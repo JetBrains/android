@@ -223,6 +223,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     signingConfig.storePassword().delete();
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     android = buildModel.android();
     assertNotNull(android);
     signingConfigs = android.signingConfigs();

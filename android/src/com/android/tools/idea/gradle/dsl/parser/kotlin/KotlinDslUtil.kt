@@ -75,7 +75,7 @@ internal val ESCAPE_CHILD = Regex("[\\t ]+")
 internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$this\"" else "'$this'"
 
 internal fun KtCallExpression.isBlockElement() : Boolean {
-  return lambdaArguments.size == 1 && (valueArgumentList == null || (valueArgumentList as KtValueArgumentList).arguments.size < 2 &&
+  return lambdaArguments.size < 2 && (valueArgumentList == null || (valueArgumentList as KtValueArgumentList).arguments.size < 2 &&
                                       isValidBlockName(this.name()))
 }
 
