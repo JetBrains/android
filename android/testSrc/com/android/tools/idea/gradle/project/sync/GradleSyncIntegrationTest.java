@@ -31,10 +31,10 @@ import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_KAPT;
-import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_MPP;
 import static com.android.tools.idea.testing.TestProjectPaths.NESTED_MODULE;
 import static com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
@@ -53,7 +53,6 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
@@ -75,6 +74,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
@@ -84,8 +84,10 @@ import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.android.tools.idea.testing.IdeComponents;
+import com.android.tools.idea.testing.TestGradleSyncListener;
 import com.google.common.collect.Lists;
 import com.intellij.build.SyncViewManager;
 import com.intellij.build.events.BuildEvent;
@@ -121,6 +123,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.LeakHunter;
 import java.io.File;
 import java.io.IOException;
@@ -897,6 +900,18 @@ b/137231583 */
     FailureResult failureResult = (FailureResult)event.getResult();
     assertThat(failureResult.getFailures()).isNotEmpty();
     assertThat(failureResult.getFailures().get(0).getMessage()).isNotEqualTo("Fake sync error");
+  }
+
+  public void testUnresolvedDependency() throws IOException {
+    prepareProjectForImport(SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY, null, null);
+    Project project = getProject();
+    TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
+      GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
+      GradleProjectImporter.getInstance().importProjectNoSync(request);
+      return AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest());
+    });
+
+    assertTrue(AndroidGradleTests.syncFailed(syncListener));
   }
 
   @NotNull
