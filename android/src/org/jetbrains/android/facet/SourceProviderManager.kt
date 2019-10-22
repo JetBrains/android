@@ -21,22 +21,37 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.model.AndroidModel
 import com.android.utils.reflection.qualifiedName
 import com.google.common.collect.Lists
+import com.intellij.ProjectTopics
+import com.intellij.facet.Facet
+import com.intellij.facet.FacetManager
+import com.intellij.facet.FacetManagerAdapter
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.ProjectComponent
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ModuleRootEvent
+import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.NotNullLazyKey
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.impl.DebugUtil
 import java.io.File
 
 // TODO(solodkyy): Remove default implementation when
 interface SourceProviderManager {
   companion object {
     @JvmStatic
-    fun getInstance(facet: AndroidFacet) = KEY.getValue(facet)
+    fun getInstance(facet: AndroidFacet) = facet.sourceProviderManager
 
+    /**
+     * Replaces the instances of SourceProviderManager for the given [facet].
+     *
+     * NOTE: The test instance is automatically discarded on any relevant change to the [facet].
+     */
     @JvmStatic
     fun replaceForTest(facet: AndroidFacet,
                        disposable: Disposable,
@@ -100,7 +115,13 @@ interface SourceProviderManager {
     get() = throw UnsupportedOperationException()
 }
 
+val AndroidFacet.sourceProviderManager: SourceProviderManager get() = getUserData(KEY) ?: createSourceProviderFor(this)
+
+/**
+ * A base class to implement SourceProviderManager which provides default implementations for manifest related helper methods.
+ */
 private abstract class SourceProviderManagerBase(val facet: AndroidFacet) : SourceProviderManager {
+
   override val mainManifestFile: VirtualFile? get() {
     // When opening a project, many parts of the IDE will try to read information from the manifest. If we close the project before
     // all of this finishes, we may end up creating disposable children of an already disposed facet. This is a rather hard problem in
@@ -120,6 +141,7 @@ private class SourceProviderManagerImpl(facet: AndroidFacet) : SourceProviderMan
    */
   private val mainSourceProvider: SourceProvider
     get() {
+      @Suppress("DEPRECATION")
       return AndroidModel.get(facet)?.defaultSourceProvider
              ?: mainSourceSet
              ?: LegacySourceProvider(facet).also { mainSourceSet = it }
@@ -353,7 +375,7 @@ private class LegacyDelegate constructor(private val facet: AndroidFacet) : Idea
   override fun hashCode(): Int = facet.hashCode()
 }
 
-private val KEY: NotNullLazyKey<SourceProviderManager, AndroidFacet> = NotNullLazyKey.create(::KEY.qualifiedName, ::createSourceProviderFor)
+private val KEY: Key<SourceProviderManager> = Key.create(::KEY.qualifiedName)
 
 private fun createSourceProviderFor(facet: AndroidFacet): SourceProviderManager {
   return if (AndroidModel.isRequired(facet)) SourceProviderManagerImpl(facet) else LegacySourceProviderManagerImpl(facet)
@@ -362,3 +384,51 @@ private fun createSourceProviderFor(facet: AndroidFacet): SourceProviderManager 
 private fun List<SourceProvider>.toIdeaProviders(): List<IdeaSourceProvider> = map(::Delegate)
 
 private fun String.convertToUrl() = VfsUtil.pathToUrl(this)
+
+private fun onChanged(facet: AndroidFacet) {
+  facet.putUserData(KEY, createSourceProviderFor(facet))
+}
+
+private class SourceProviderManagerComponent(val project: Project) : ProjectComponent {
+  private val connection = project.messageBus.connect()
+
+  init {
+    var subscribedToRootsChangedEvents = false
+
+    @Synchronized
+    fun ensureSubscribed() {
+      if (!subscribedToRootsChangedEvents) {
+        connection.subscribe(ProjectTopics.PROJECT_ROOTS, object : ModuleRootListener {
+          override fun rootsChanged(event: ModuleRootEvent) {
+            ModuleManager.getInstance(project)
+              .modules.asIterable()
+              .mapNotNull { it -> FacetManager.getInstance(it).getFacetByType(AndroidFacet.ID) }.forEach { facet ->
+                onChanged(facet)
+              }
+          }
+        })
+        subscribedToRootsChangedEvents = true
+      }
+    }
+
+    connection.subscribe(FacetManager.FACETS_TOPIC, object : FacetManagerAdapter() {
+      override fun facetConfigurationChanged(facet: Facet<*>) {
+        if (facet is AndroidFacet) {
+          ensureSubscribed()
+          onChanged(facet)
+        }
+      }
+
+      override fun facetAdded(facet: Facet<*>) {
+        if (facet is AndroidFacet) {
+          ensureSubscribed()
+          onChanged(facet)
+        }
+      }
+    })
+  }
+
+  override fun projectClosed() {
+    connection.disconnect()
+  }
+}
