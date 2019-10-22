@@ -154,6 +154,20 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
       fixture.allowTreeAccessForFile(this.virtualFile)
     }
 
+    with(fixture.addFileToProject(
+      "src/${databindingPackage.replace('.', '/')}/ObservableField.java",
+      // language=java
+      """
+        package $databindingPackage;
+
+        public class ObservableField<T> {
+            public T get() {}
+        }
+      """.trimIndent())) {
+      // The following line is needed or else we get an error for referencing a file out of bounds
+      fixture.allowTreeAccessForFile(this.virtualFile)
+    }
+
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
     ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = mode
   }
@@ -1372,5 +1386,59 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     assertThat(references.any {
       (it.resolve() as PsiMethod).name == "setValue" && (it as ModelClassResolvable).resolvedType == null
     }).isTrue()
+  }
+
+  @Test
+  fun dbReferencesMethodBestMatchedWithObservableArguments() {
+    fixture.addClass("""
+      package test.langdb;
+      import ${mode.packageName}ObservableField;
+      public class Model {
+        public Object overloadedFunction(Object object) {}
+        public String overloadedFunction(String str) {}
+        public ObservableField<String> getObservableString() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@{model.overlo${caret}adedFunction(model.observableString)}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
+  }
+
+  @Test
+  fun dbReferencesMethodWithObservableArguments() {
+    fixture.addClass("""
+      package test.langdb;
+      import ${mode.packageName}ObservableField;
+      public class Model {
+        public Object overloadedFunction(int value) {}
+        public String overloadedFunction(String str) {}
+        public ObservableField<String> getObservableString() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@{model.overloadedF${caret}unction(model.observableString)}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
   }
 }
