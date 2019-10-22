@@ -63,7 +63,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
   override fun getToolTipText(event: MouseEvent): String? {
     // Trick: Use the component from the event.source for tooltip in tables. See TableEditor.getToolTip().
     val component = event.source as? JComponent ?: this
-    return PropertyTooltip.setToolTip(component, event, editorModel.property, forValue = true, text = text.orEmpty())
+    return PropertyTooltip.setToolTip(component, event, editorModel.property, editorModel.editingValue, text = text.orEmpty())
   }
 
   override fun getData(dataId: String): Any? {
