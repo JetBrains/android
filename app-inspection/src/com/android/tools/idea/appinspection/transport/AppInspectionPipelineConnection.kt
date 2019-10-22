@@ -17,7 +17,6 @@ package com.android.tools.idea.appinspection.transport
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.transport.TransportClient
-import com.android.tools.idea.transport.TransportService
 import com.android.tools.profiler.proto.Common.Process
 import com.android.tools.profiler.proto.Common.Stream
 import com.google.common.util.concurrent.ListenableFuture
@@ -54,8 +53,9 @@ interface AppInspectionPipelineConnection {
     fun attach(
       stream: Stream,
       process: Process,
-      client: TransportClient = TransportClient(TransportService.getInstance().channelName),
+      channelName: String,
       executorService: ExecutorService
-    ): ListenableFuture<AppInspectionPipelineConnection> = attachAppInspectionPipelineConnection(client, stream, process, executorService)
+    ): ListenableFuture<AppInspectionPipelineConnection> = attachAppInspectionPipelineConnection(TransportClient(channelName), stream,
+                                                                                                 process, executorService)
   }
 }
