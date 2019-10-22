@@ -47,6 +47,8 @@ import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
@@ -68,18 +70,23 @@ import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.RootProvider;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
 import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -330,6 +337,8 @@ b/137334921 */
    */
   @Slow
   private static boolean setupSdkSilently() {
+    repairDuplicateAndroidSdks(); // TODO(b/143326468): Remove in Studio 4.1.
+
     IdeSdks ideSdks = IdeSdks.getInstance();
     File androidHome = ideSdks.getAndroidSdkPath();
 
@@ -354,6 +363,43 @@ b/137334921 */
     }
 
     return false;
+  }
+
+  /**
+   * Removes duplicate Android SDKs that could be created due to b/142005646.
+   * To limit the negative impact of potential bugs in this method, removal of SDKs
+   * is triggered only if there are 40 or more duplicate Android SDKs in JDK table.
+   */
+  private static void repairDuplicateAndroidSdks() {
+    ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
+    Sdk[] sdks = jdkTable.getAllJdks();
+    if (sdks.length <= 1) {
+      return;
+    }
+
+    Multimap<List<String>, Sdk> androidSdksByClasses = ArrayListMultimap.create();
+    for (Sdk sdk : sdks) {
+      if (sdk.getSdkType().getName().equals(AndroidSdkType.SDK_NAME)) {
+        RootProvider rootProvider = sdk.getRootProvider();
+        String[] urls = rootProvider.getUrls(OrderRootType.CLASSES);
+        androidSdksByClasses.put(Arrays.asList(urls), sdk);
+      }
+    }
+    // Bail out if there are fewer than 40 duplicate SDKs.
+    if (androidSdksByClasses.size() - androidSdksByClasses.keySet().size() < 40) {
+      return;
+    }
+
+    for (List<String> classes : androidSdksByClasses.keySet()) {
+      Collection<Sdk> duplicateSdks = androidSdksByClasses.get(classes);
+      boolean firstSkipped = false;
+      for (Sdk sdk : duplicateSdks) {
+        if (firstSkipped) {
+          jdkTable.removeJdk(sdk);
+        }
+        firstSkipped = true;
+      }
+    }
   }
 
   private static void checkAndroidSdkHome() {
