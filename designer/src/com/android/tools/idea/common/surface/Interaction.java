@@ -65,7 +65,7 @@ import java.util.List;
  *   "is required" widget linked to a text field)
  * </ul>
  */
-public class Interaction {
+public abstract class Interaction {
   /** Start mouse coordinate, in Swing coordinates */
   @SwingCoordinate protected int myStartX;
 
@@ -123,15 +123,24 @@ public class Interaction {
 
   /**
    * Handles termination of the interaction. This method is called when the
-   * interaction has terminated (either through successful completion, or because
-   * it was canceled).
+   * interaction has successful completion.
    *
    * @param x           The most recent mouse x coordinate applicable to this interaction
    * @param y           The most recent mouse y coordinate applicable to this interaction
    * @param modifiersEx current modifier key masks
-   * @param canceled    True if the interaction was canceled, and false otherwise.
    */
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
+  }
+
+  /**
+   * Handles termination of the interaction. This method is called when the
+   * interaction has be canceled.
+   *
+   * @param x           The most recent mouse x coordinate applicable to this interaction
+   * @param y           The most recent mouse y coordinate applicable to this interaction
+   * @param modifiersEx current modifier key masks
+   */
+  public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
   }
 
   /**
