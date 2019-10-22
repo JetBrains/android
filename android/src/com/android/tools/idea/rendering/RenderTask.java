@@ -149,7 +149,7 @@ public class RenderTask {
   private final float myDefaultQuality;
   @Nullable private IncludeReference myIncludedWithin;
   @NotNull private RenderingMode myRenderingMode = RenderingMode.NORMAL;
-  @Nullable private Integer myOverrideBgColor;
+  private boolean mySetTransparentBackground = false;
   private boolean myShowDecorations = true;
   private boolean myShadowEnabled = true;
   private boolean myHighQualityShadow = true;
@@ -406,17 +406,14 @@ public class RenderTask {
   }
 
   /**
-   * Sets the overriding background color to be used, if any. The color should be a bitmask of AARRGGBB.
-   * The default is null.
+   * Sets the transparent background to be used.
    *
-   * @param overrideBgColor the overriding background color to be used in the rendering,
-   *                        in the form of a AARRGGBB bitmask, or null to use no custom background.
    * @return this (such that chains of setters can be stringed together)
    */
   @SuppressWarnings("UnusedReturnValue")
   @NotNull
-  public RenderTask setOverrideBgColor(@Nullable Integer overrideBgColor) {
-    myOverrideBgColor = overrideBgColor;
+  public RenderTask setTransparentBackground() {
+    mySetTransparentBackground = true;
     return this;
   }
 
@@ -580,10 +577,8 @@ public class RenderTask {
       }
     }
 
-    if (myOverrideBgColor != null) {
-      params.setOverrideBgColor(myOverrideBgColor.intValue());
-    } else if (requiresTransparency()) {
-      params.setOverrideBgColor(0);
+    if (mySetTransparentBackground || requiresTransparency()) {
+      params.setTransparentBackground();
     }
 
     params.setImageFactory(factory);
