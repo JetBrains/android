@@ -160,7 +160,7 @@ class AndroidVersionsInfo {
       var existingApiLevel = -1
       var prevInsertedApiLevel = -1
       var index = -1
-      val supportedOfflineApiLevels = formFactor.minOfflineApiLevel..formFactor.maxOfflineApiLevel
+      val supportedOfflineApiLevels = formFactor.minOfflineApiLevel.coerceAtLeast(minSdkLevel)..formFactor.maxOfflineApiLevel
       supportedOfflineApiLevels.filterNot { formFactor.isSupported(null, it) }.forEach { apiLevel ->
         while (apiLevel > existingApiLevel) {
           existingApiLevel = if (++index < versionItemList.size) versionItemList[index].minApiLevel else Integer.MAX_VALUE
