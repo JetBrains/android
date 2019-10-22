@@ -79,12 +79,13 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.components.BaseComponent;
+import com.intellij.openapi.application.PreloadingActivity;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.actionSystem.EditorAction;
 import com.intellij.openapi.extensions.PluginId;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
@@ -137,7 +138,7 @@ import sun.tools.attach.HotSpotVirtualMachine;
 /**
  * Extension to System Health Monitor that includes Android Studio-specific code.
  */
-public class AndroidStudioSystemHealthMonitor implements BaseComponent {
+public class AndroidStudioSystemHealthMonitor extends PreloadingActivity {
   private static final Logger LOG = Logger.getInstance(AndroidStudioSystemHealthMonitor.class);
 
   // The group should be registered by SystemHealthMonitor
@@ -200,8 +201,8 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
 
   private static AndroidStudioSystemHealthMonitor ourInstance;
 
-  public AndroidStudioSystemHealthMonitor(@NotNull PropertiesComponent properties) {
-    myProperties = properties;
+  public AndroidStudioSystemHealthMonitor() {
+    myProperties = PropertiesComponent.getInstance();
     if (ourInstance != null) {
       LOG.warn("Multiple instances of AndroidStudioSystemHealthMonitor!");
     } else {
@@ -399,7 +400,7 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
   }
 
   @Override
-  public void initComponent() {
+  public void preload(@NotNull ProgressIndicator indicator) {
     assert myGroup != null;
     Application application = ApplicationManager.getApplication();
     registerPlatformEventsListener();
@@ -528,14 +529,6 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     catch (IOException ignored) {
       return false;
     }
-  }
-
-  @Override
-  public void disposeComponent() {
-    if (myListener != null) {
-      AndroidStudioSystemHealthMonitorAdapter.unregisterEventsListener(myListener);
-    }
-    ourInstance = null;
   }
 
   private void registerPlatformEventsListener() {

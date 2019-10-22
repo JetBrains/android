@@ -45,14 +45,9 @@
     <welcomeScreen implementation="com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider"/>
     <iconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioIconProvider" id="androidStudioIcons" order="before javaDirectory"/>
     <fileIconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioFileIconProvider" id="androidFileIcons"/>
+    <preloadingActivity implementation="com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor"/>
   </extensions>
 
-  <application-components>
-    <component>
-      <implementation-class>com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor</implementation-class>
-      <headless-implementation-class/>
-    </component>
-  </application-components>
   <project-components>
     <component>
       <implementation-class>com.android.tools.idea.stats.UserSentimentProjectComponent</implementation-class>
