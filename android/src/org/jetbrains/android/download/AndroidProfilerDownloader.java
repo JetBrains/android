@@ -5,6 +5,7 @@ import com.android.tools.idea.IdeInfo;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
@@ -28,6 +29,7 @@ public class AndroidProfilerDownloader {
   private static final String VERSION = "26.5.0.1";
 
   public static boolean makeSureProfilerIsInPlace() {
+    if (ApplicationManager.getApplication() == null) return false; // to support regular junit tests with no Application initialized
     if (IdeInfo.getInstance().isAndroidStudio()) return true;
     File pluginDir = getPluginDir();
     if (pluginDir.exists()) return true;
