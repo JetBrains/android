@@ -15,7 +15,13 @@
  */
 package org.jetbrains.android.refactoring;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.VfsTestUtil;
+import java.util.Arrays;
 import org.jetbrains.android.AndroidTestCase;
 
 /**
@@ -37,5 +43,28 @@ public class UnusedResourcesTest extends AndroidTestCase {
     myFixture.checkResultByFile("res/values/strings.xml", BASE_PATH + "strings_after.xml", true);
     myFixture.checkResultByFile("res/layout/layout.xml", BASE_PATH + "layout_after.xml", true);
     assertFalse(layout2.exists());
+  }
+
+  public void testUsagesPresentation() {
+    myFixture.copyFileToProject("images/actions/res/drawable-hdpi/ic_action_custom.png",
+                                "res/drawable-hdpi/ic_action_custom.png");
+
+    VfsTestUtil.createFile(ProjectUtil.guessProjectDir(myFixture.getProject()), "res/raw/foo.bin", new byte[]{0,1,2});
+
+    UnusedResourcesProcessor processor = new UnusedResourcesProcessor(getProject(),
+                                                                      ModuleManager.getInstance(getProject()).getModules(),
+                                                                      null);
+
+    assertThat(myFixture.getUsageViewTreeTextRepresentation(Arrays.asList(processor.findUsages())))
+      .isEqualTo("Usage (2 usages)\n" +
+                 " Found usages (2 usages)\n" +
+                 "  Android resource file (2 usages)\n" +
+                 "   app (2 usages)\n" +
+                 "    res/drawable-hdpi (1 usage)\n" +
+                 "     ic_action_custom.png (1 usage)\n" +
+                 "      Android resource file drawable-hdpi/ic_action_custom.png\n" +
+                 "    res/raw (1 usage)\n" +
+                 "     foo.bin (1 usage)\n" +
+                 "      Android resource file raw/foo.bin\n");
   }
 }

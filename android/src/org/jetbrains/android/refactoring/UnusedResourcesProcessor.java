@@ -52,7 +52,11 @@ import com.intellij.refactoring.util.RefactoringUIUtil;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.usageView.UsageViewUtil;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.containers.ContainerUtil;
+import kotlin.collections.CollectionsKt;
+import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -95,30 +99,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
     myElements = elements.toArray(PsiElement.EMPTY_ARRAY);
     UsageInfo[] result = new UsageInfo[myElements.length];
     for (int i = 0, n = myElements.length; i < n; i++) {
-      PsiElement element = myElements[i];
-      if (element instanceof PsiBinaryFile) {
-        // The usage view doesn't handle binaries at all. Work around this (for example,
-        // the UsageInfo class asserts in the constructor if the element doesn't have
-        // a text range.)
-        SmartPointerManager smartPointerManager = SmartPointerManager.getInstance(myProject);
-        SmartPsiElementPointer<PsiElement> smartPointer = smartPointerManager.createSmartPsiElementPointer(element);
-        SmartPsiFileRange smartFileRange =
-          smartPointerManager.createSmartPsiFileRangePointer((PsiBinaryFile)element, TextRange.EMPTY_RANGE);
-        result[i] = new UsageInfo(smartPointer, smartFileRange, false, false) {
-          @Override
-          public boolean isValid() {
-            return true;
-          }
-
-          @Override
-          @Nullable
-          public Segment getSegment() {
-            return null;
-          }
-        };
-      } else {
-        result[i] = new UsageInfo(element);
-      }
+      result[i] = new UsageInfo(myElements[i]);
     }
     return UsageViewUtil.removeDuplicatedUsages(result);
   }
