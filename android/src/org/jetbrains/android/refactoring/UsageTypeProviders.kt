@@ -101,3 +101,16 @@ class AndroidResourceReferenceInCodeUsageTypeProvider : UsageTypeProvider {
     private val PERMISSION_REFERENCE_IN_CODE = UsageType("Permission reference in code")
   }
 }
+
+/**
+ * Recognizes image files being used as usages.
+ */
+class AndroidBinaryResourceFileUsageTypeProvider : UsageTypeProvider {
+  companion object {
+    private val ANDROID_RESOURCE_FILE = UsageType("Android resource file")
+  }
+
+  override fun getUsageType(element: PsiElement): UsageType? {
+    return if (AndroidFallbackFindUsagesProvider.isBinaryResourceFile(element)) ANDROID_RESOURCE_FILE else null
+  }
+}
