@@ -42,9 +42,10 @@ public class PsiModelMethod extends ModelMethod {
   @Override
   public ModelClass[] getParameterTypes() {
     PsiParameterList parameterList = myPsiMethod.getParameterList();
-    ModelClass[] modelClasses = new ModelClass[parameterList.getParameters().length];
-    for (int i = 0; i < parameterList.getParametersCount(); i++) {
-      PsiParameter param = parameterList.getParameters()[i];
+    PsiParameter[] parameters = parameterList.getParameters();
+    ModelClass[] modelClasses = new ModelClass[parameters.length];
+    for (int i = 0; i < parameters.length; i++) {
+      PsiParameter param = parameters[i];
       modelClasses[i] = new PsiModelClass(param.getType());
     }
     return modelClasses;
