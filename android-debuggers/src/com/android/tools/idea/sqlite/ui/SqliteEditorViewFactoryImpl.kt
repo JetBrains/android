@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.ui
 
 import com.android.tools.idea.sqlite.SchemaProvider
+import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogViewImpl
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
@@ -35,4 +36,6 @@ class SqliteEditorViewFactoryImpl : SqliteEditorViewFactory {
     schemaProvider: SchemaProvider,
     tableView: TableView
   ) = SqliteEvaluatorViewImpl(project, tableView, schemaProvider)
+
+  override fun createParametersBindingView(project: Project) = ParametersBindingDialogViewImpl(project, true)
 }

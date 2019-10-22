@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite
 
+import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.google.common.util.concurrent.ListenableFuture
@@ -38,12 +39,12 @@ interface SqliteService {
    *
    * @see java.sql.PreparedStatement.executeQuery
    */
-  fun executeQuery(query: String): ListenableFuture<SqliteResultSet>
+  fun executeQuery(sqLiteStatement: SqliteStatement): ListenableFuture<SqliteResultSet>
 
   /**
    * Executes an update on the database.
    *
    * @see java.sql.PreparedStatement.executeUpdate
    */
-  fun executeUpdate(query: String): ListenableFuture<Int>
+  fun executeUpdate(sqLiteStatement: SqliteStatement): ListenableFuture<Int>
 }

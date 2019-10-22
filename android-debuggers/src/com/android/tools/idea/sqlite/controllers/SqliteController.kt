@@ -25,6 +25,7 @@ import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.SqliteServiceFactory
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
+import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.SqliteEditorViewFactory
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
@@ -133,9 +134,9 @@ class SqliteController(
     })
   }
 
-  fun runSqlStatement(database: SqliteDatabase, query: String) {
+  fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
     val sqliteEvaluatorController = openNewEvaluatorTab()
-    sqliteEvaluatorController.evaluateSqlStatement(database, query)
+    sqliteEvaluatorController.evaluateSqlStatement(database, sqliteStatement)
   }
 
   override fun dispose() {
@@ -268,8 +269,8 @@ class SqliteController(
         parentDisposable = this@SqliteController,
         view = tableView,
         tableName = table.name,
-        query = "SELECT * FROM ${AndroidSqlLexer.getValidName(table.name)}",
         sqliteService = sqliteService,
+        sqliteStatement = SqliteStatement("SELECT * FROM ${AndroidSqlLexer.getValidName(table.name)}"),
         edtExecutor = edtExecutor
       )
 

@@ -13,27 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sqlite.ui
+package com.android.tools.idea.sqlite.mocks
 
-import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
-import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
-import com.android.tools.idea.sqlite.ui.tableView.TableView
-import com.intellij.openapi.project.Project
 
-interface SqliteEditorViewFactory {
-  /**
-   * Returns a [TableView].
-   */
-  fun createTableView(): TableView
+open class MockParametersBindingDialogView : ParametersBindingDialogView {
+  val listeners = mutableListOf<ParametersBindingDialogView.Listener>()
 
-  /**
-   * Returns a [SqliteEvaluatorView].
-   */
-  fun createEvaluatorView(project: Project, schemaProvider: SchemaProvider, tableView: TableView): SqliteEvaluatorView
+  override fun show() { }
 
-  /**
-   * Returns a [ParametersBindingDialogView].
-   */
-  fun createParametersBindingView(project: Project): ParametersBindingDialogView
+  override fun showNamedParameters(parametersNames: List<String>) { }
+
+  override fun addListener(listener: ParametersBindingDialogView.Listener) {
+    listeners.add(listener)
+  }
+
+  override fun removeListener(listener: ParametersBindingDialogView.Listener) {
+    listeners.remove(listener)
+  }
 }
