@@ -53,7 +53,7 @@ class AppInspectionPipelineConnectionTest {
 
   @After
   fun tearDown() {
-    assertThat(executorService.shutdownNow()).isEmpty()
+    executorService.shutdownNow()
   }
 
   @Test

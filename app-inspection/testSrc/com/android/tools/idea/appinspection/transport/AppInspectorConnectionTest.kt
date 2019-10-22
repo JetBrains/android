@@ -88,7 +88,7 @@ class AppInspectorConnectionTest {
 
   @After
   fun tearDown() {
-    assertThat(executorService.shutdownNow()).isEmpty()
+    executorService.shutdownNow()
   }
 
   private fun setUpServiceAndConnection(
