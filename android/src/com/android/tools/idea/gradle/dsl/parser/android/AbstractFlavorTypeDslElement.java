@@ -23,15 +23,13 @@ import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
 import com.google.common.collect.ImmutableMap;
-import java.util.Map;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * Common base class for {@link BuildTypeDslElement} and {@link ProductFlavorDslElement}.
+ * Common base class for {@link BuildTypeDslElement} and {@link AbstractProductFlavorDslElement}.
  */
-public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement implements GradleDslNamedDomainElement {
+public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement {
   @NotNull
   public static final ImmutableMap<String, String> ktsToModelNameMap = Stream.of(new String[][]{
     {"applicationIdSuffix", FlavorTypeModelImpl.APPLICATION_ID_SUFFIX},
@@ -85,25 +83,6 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
 
   protected AbstractFlavorTypeDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  protected AbstractFlavorTypeDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name, @NotNull String methodName) {
-    super(parent, name);
-    this.methodName = methodName;
-  }
-
-  @Nullable
-  private String methodName;
-
-  @Override
-  public void setMethodName(String methodName) {
-    this.methodName = methodName;
-  }
-
-  @Nullable
-  @Override
-  public String getMethodName() {
-    return methodName;
   }
 
   @Override

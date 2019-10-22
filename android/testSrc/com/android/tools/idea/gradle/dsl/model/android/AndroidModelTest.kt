@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPL
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SOURCE_SET_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS
@@ -773,6 +774,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK_EXPECTED)
+
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId())
 
     buildModel.reparse()

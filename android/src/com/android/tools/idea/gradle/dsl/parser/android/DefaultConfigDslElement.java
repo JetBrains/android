@@ -16,27 +16,11 @@
 package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class ProductFlavorDslElement extends AbstractProductFlavorDslElement implements GradleDslNamedDomainElement {
-  @Nullable
-  private String methodName;
-
-  public ProductFlavorDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+public class DefaultConfigDslElement extends AbstractProductFlavorDslElement {
+  public DefaultConfigDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  @Override
-  public void setMethodName(String methodName) {
-    this.methodName = methodName;
-  }
-
-  @Nullable
-  @Override
-  public String getMethodName() {
-    return methodName;
   }
 }
