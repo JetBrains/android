@@ -82,7 +82,6 @@ import com.intellij.ui.JBColor
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.backend.common.pop
-import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtImportDirective
 import java.awt.BorderLayout
 import java.util.concurrent.CompletableFuture
@@ -596,13 +595,6 @@ private class PreviewEditor(private val psiFile: PsiFile,
 }
 
 /**
- * Extension method that returns if the file is a Kotlin file. This method first checks for the extension to fail fast without having to
- * actually trigger the potentially costly [VirtualFile#fileType] call.
- */
-private fun VirtualFile.isKotlinFileType(): Boolean =
-  extension == KotlinFileType.INSTANCE.defaultExtension && fileType == KotlinFileType.INSTANCE
-
-/**
  * [ToolbarActionGroups] that includes the [ForceCompileAndRefreshAction]
  */
 private class ComposePreviewToolbar(private val surface: DesignSurface) :
@@ -672,10 +664,10 @@ fun FileEditor.getComposePreviewManager(): ComposePreviewManager? = (this as? Co
  * @param projectContainsOldPackageImportsHandler Handler method called when the provider finds imports of the old preview packages. This is
  *  a temporary mechanism until all our internal users have migrated out of the old name.
  */
-class ComposeFileEditorProvider(
-  private val projectContainsOldPackageImportsHandler: (Project) -> Unit = ::defaultOldPackageNotificationsHandler) : FileEditorProvider, DumbAware {
+class ComposeFileEditorProvider @JvmOverloads constructor(
+  private val projectContainsOldPackageImportsHandler: (Project) -> Unit = ::defaultOldPackageNotificationsHandler,
+  private val previewElementProvider: () -> PreviewElementFinder = ::defaultPreviewElementFinder) : FileEditorProvider, DumbAware {
   private val LOG = Logger.getInstance(ComposeFileEditorProvider::class.java)
-  private val previewElementProvider = AnnotationPreviewElementFinder
 
   init {
     if (StudioFlags.COMPOSE_PREVIEW.get()) {
@@ -699,7 +691,7 @@ class ComposeFileEditorProvider(
       return false
     }
 
-    val hasPreviewMethods = previewElementProvider.hasPreviewMethods(project, file)
+    val hasPreviewMethods = previewElementProvider().hasPreviewMethods(project, file)
     if (LOG.isDebugEnabled) {
       LOG.debug("${file.path} hasPreviewMethods=${hasPreviewMethods}")
     }
@@ -723,7 +715,7 @@ class ComposeFileEditorProvider(
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
     val textEditor = getInstance().createEditor(project, file) as TextEditor
     val previewProvider = {
-      if (DumbService.isDumb(project)) emptyList() else previewElementProvider.findPreviewMethods(project, file)
+      if (DumbService.isDumb(project)) emptyList() else previewElementProvider().findPreviewMethods(project, file)
     }
     val previewEditor = PreviewEditor(psiFile = psiFile, previewProvider = previewProvider)
     val composeEditorWithPreview = ComposeTextEditorWithPreview(textEditor, previewEditor)
