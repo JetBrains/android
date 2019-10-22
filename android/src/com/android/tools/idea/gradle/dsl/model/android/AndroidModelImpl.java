@@ -56,6 +56,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.DefaultConfigDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement;
@@ -190,9 +191,9 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public ProductFlavorModel defaultConfig() {
-    ProductFlavorDslElement defaultConfigElement = myDslElement.getPropertyElement(DEFAULT_CONFIG, ProductFlavorDslElement.class);
+    DefaultConfigDslElement defaultConfigElement = myDslElement.getPropertyElement(DEFAULT_CONFIG, DefaultConfigDslElement.class);
     if (defaultConfigElement == null) {
-      defaultConfigElement = new ProductFlavorDslElement(myDslElement, GradleNameElement.create(DEFAULT_CONFIG));
+      defaultConfigElement = new DefaultConfigDslElement(myDslElement, GradleNameElement.create(DEFAULT_CONFIG));
       myDslElement.setNewElement(defaultConfigElement);
     }
     return new ProductFlavorModelImpl(defaultConfigElement);

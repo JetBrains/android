@@ -20,14 +20,16 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement {
+public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement implements GradleDslNamedDomainElement {
 
   @NotNull
   private static final ImmutableMap<String, String> ktsToModelNameMap = Stream.concat(
@@ -63,6 +65,9 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement {
     }))
     .collect(toImmutableMap(data -> data[0], data -> data[1]));
 
+  @Nullable
+  private String methodName;
+
   @Override
   @NotNull
   public ImmutableMap<String, String> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
@@ -97,5 +102,16 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement {
   public boolean isInsignificantIfEmpty() {
     // "release" and "debug" Build Type blocks can be deleted if empty
     return myName.name().equals("release") || myName.name().equals("debug");
+  }
+
+  @Override
+  public void setMethodName(String methodName) {
+    this.methodName = methodName;
+  }
+
+  @Nullable
+  @Override
+  public String getMethodName() {
+    return methodName;
   }
 }
