@@ -68,17 +68,9 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
     GradleDslSimpleExpression rootElement =
       myDslElement.getPropertyElement(ImmutableList.of(ROOT, SET_ROOT), GradleDslSimpleExpression.class);
 
-    SingleArgumentMethodTransform samt;
-    if (rootElement == null || rootElement.getName().equals(SET_ROOT)) {
-      samt = new SingleArgumentMethodTransform(SET_ROOT, myDslElement);
-    }
-    else {
-      samt = new SingleArgumentMethodTransform(ROOT);
-    }
-
     return rootElement != null ?
-           GradlePropertyModelBuilder.create(rootElement).addTransform(samt).buildResolved() :
-           GradlePropertyModelBuilder.create(myDslElement, SET_ROOT).asMethod(true).addTransform(samt).buildResolved();
+           GradlePropertyModelBuilder.create(rootElement).buildResolved() :
+           GradlePropertyModelBuilder.create(myDslElement, SET_ROOT).asMethod(true).buildResolved();
   }
 
   @Override

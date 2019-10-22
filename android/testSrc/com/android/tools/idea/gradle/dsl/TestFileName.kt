@@ -150,6 +150,7 @@ enum class TestFileName(val path: String) {
   ANDROID_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_BLOCK("androidModel/addAndApplySigningConfigBlock"),
   ANDROID_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_BLOCK_EXPECTED("androidModel/addAndApplySigningConfigBlockExpected"),
   ANDROID_MODEL_ADD_AND_APPLY_SOURCE_SET_BLOCK("androidModel/addAndApplySourceSetBlock"),
+  ANDROID_MODEL_ADD_AND_APPLY_SOURCE_SET_BLOCK_EXPECTED("androidModel/addAndApplySourceSetBlockExpected"),
   ANDROID_MODEL_REMOVE_AND_APPLY_DEFAULT_CONFIG_BLOCK("androidModel/removeAndApplyDefaultConfigBlock"),
   ANDROID_MODEL_REMOVE_AND_APPLY_BUILD_TYPE_BLOCK("androidModel/removeAndApplyBuildTypeBlock"),
   ANDROID_MODEL_REMOVE_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED("androidModel/removeAndApplyBuildTypeBlockExpected"),
