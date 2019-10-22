@@ -40,7 +40,6 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:studio-grpc",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
-        "//tools/idea/platform/util:intellij.platform.util[module]",
     ],
 )
 

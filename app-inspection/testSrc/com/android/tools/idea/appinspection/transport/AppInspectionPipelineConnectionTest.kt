@@ -91,7 +91,7 @@ class AppInspectionPipelineConnectionTest {
         }
       })
     val connection = AppInspectionPipelineConnection.attach(
-       Common.Stream.getDefaultInstance(), Common.Process.getDefaultInstance(), TransportClient(gRpcServerRule.name), executorService)
+       Common.Stream.getDefaultInstance(), Common.Process.getDefaultInstance(), gRpcServerRule.name, executorService)
     val clientFuture = Futures.transformAsync(connection, AsyncFunction<AppInspectionPipelineConnection, TestInspectorClient> {
       it!!.launchInspector(
         "test.inspector",
