@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.jdbc
 
+import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteResultSet
@@ -29,14 +30,14 @@ import java.sql.ResultSet
 class SqliteJdbcResultSet(
   private val service: SqliteJdbcService,
   private val connection: Connection,
-  private val originalQuery: String
+  private val sqliteStatement: SqliteStatement
 ) : SqliteResultSet {
 
   /**
    * It's safe to use [LazyThreadSafetyMode.NONE] because the property is accessed from a [SequentialTaskExecutor] with a single thread.
    */
   private val _columns: List<SqliteColumn> by lazy(LazyThreadSafetyMode.NONE) {
-    val preparedStatement = connection.prepareStatement(originalQuery)
+    val preparedStatement = connection.resolvePreparedStatement(sqliteStatement)
     val resultSet = preparedStatement.executeQuery()
 
     val metaData = resultSet.metaData
@@ -47,7 +48,8 @@ class SqliteJdbcResultSet(
     check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
     check(!connection.isClosed) { "The connection has been closed." }
 
-    val preparedStatement = connection.prepareStatement("SELECT COUNT(*) FROM ($originalQuery)")
+    val countQuery = "SELECT COUNT(*) FROM (${sqliteStatement.sqliteStatementText})"
+    val preparedStatement = connection.resolvePreparedStatement(SqliteStatement(countQuery, sqliteStatement.parametersValues))
     val resultSet = preparedStatement.executeQuery()
 
     resultSet.next()
@@ -71,7 +73,8 @@ class SqliteJdbcResultSet(
       check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
       check(!connection.isClosed) { "The connection has been closed." }
 
-      val preparedStatement = connection.prepareStatement("SELECT * FROM ($originalQuery) LIMIT $rowOffset, $rowBatchSize")
+      val limitOffsetQuery = "SELECT * FROM (${sqliteStatement.sqliteStatementText}) LIMIT $rowOffset, $rowBatchSize"
+      val preparedStatement = connection.resolvePreparedStatement(SqliteStatement(limitOffsetQuery, sqliteStatement.parametersValues))
       val resultSet = preparedStatement.executeQuery()
 
       val rows = ArrayList<SqliteRow>()

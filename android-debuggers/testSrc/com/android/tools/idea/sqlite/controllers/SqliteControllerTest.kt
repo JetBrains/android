@@ -33,6 +33,7 @@ import com.android.tools.idea.sqlite.mocks.MockSqliteView
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
+import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.tableView.TableView
@@ -135,7 +136,7 @@ class SqliteControllerTest : PlatformTestCase() {
     mockSqliteService = sqliteServiceFactory.sqliteService
     `when`(mockSqliteService.openDatabase()).thenReturn(Futures.immediateFuture(Unit))
     `when`(mockSqliteService.closeDatabase()).thenReturn(Futures.immediateFuture(null))
-    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
+    `when`(mockSqliteService.executeQuery(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
 
     sqliteDatabase1 = SqliteDatabase(sqliteFile1, mockSqliteService)
     sqliteDatabase2 = SqliteDatabase(sqliteFile2, mockSqliteService)
@@ -414,7 +415,7 @@ class SqliteControllerTest : PlatformTestCase() {
     val evaluatorView = viewFactory.sqliteEvaluatorView
 
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(schema))
-    `when`(mockSqliteService.executeUpdate("INSERT")).thenReturn(Futures.immediateFuture(0))
+    `when`(mockSqliteService.executeUpdate(SqliteStatement("INSERT"))).thenReturn(Futures.immediateFuture(0))
 
     sqliteController.openSqliteDatabase(sqliteFile1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -443,7 +444,7 @@ class SqliteControllerTest : PlatformTestCase() {
 
     // Prepare
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(schema))
-    `when`(mockSqliteService.executeUpdate("INSERT")).thenReturn(Futures.immediateFuture(0))
+    `when`(mockSqliteService.executeUpdate(SqliteStatement("INSERT"))).thenReturn(Futures.immediateFuture(0))
 
     sqliteController.openSqliteDatabase(sqliteFile1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()

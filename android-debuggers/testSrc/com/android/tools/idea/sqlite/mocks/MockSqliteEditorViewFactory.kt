@@ -28,6 +28,7 @@ import javax.swing.JComponent
 open class MockSqliteEditorViewFactory : SqliteEditorViewFactory {
   val sqliteEvaluatorView: MockSqliteEvaluatorView = spy(MockSqliteEvaluatorView::class.java)
   val tableView: TableView = mock(TableView::class.java)
+  val parametersBindingDialogView = MockParametersBindingDialogView()
 
   init {
     `when`(tableView.component).thenReturn(mock(JComponent::class.java))
@@ -40,4 +41,6 @@ open class MockSqliteEditorViewFactory : SqliteEditorViewFactory {
     schemaProvider: SchemaProvider,
     tableView: TableView
   ): SqliteEvaluatorView = sqliteEvaluatorView
+
+  override fun createParametersBindingView(project: Project) = parametersBindingDialogView
 }

@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewListener
 import com.google.common.util.concurrent.FutureCallback
@@ -73,27 +74,22 @@ class SqliteEvaluatorController(
     view.addDatabase(database, index)
   }
 
-  fun evaluateSqlStatement(database: SqliteDatabase, sqlStatement: String) {
-    view.showSqliteStatement(sqlStatement)
+  fun evaluateSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
+    view.showSqliteStatement(sqliteStatement.toString())
     view.selectDatabase(database)
 
-    // TODO(b/137259344) after introducing the SQL parser this bit should become a bit nicer
-    when {
-      sqlStatement.startsWith("CREATE", ignoreCase = true) or
-        sqlStatement.startsWith("DROP", ignoreCase = true) or
-        sqlStatement.startsWith("ALTER", ignoreCase = true) or
-        sqlStatement.startsWith("INSERT", ignoreCase = true) or
-        sqlStatement.startsWith("UPDATE", ignoreCase = true) or
-        sqlStatement.startsWith("DELETE", ignoreCase = true) -> executeUpdate(database, sqlStatement)
-      else -> executeQuery(database, sqlStatement) {
+    if (sqliteStatement.isUpdateStatement()) {
+      executeUpdate(database, sqliteStatement)
+    } else {
+      executeQuery(database, sqliteStatement) {
         view.tableView.reportError("Error executing sqlQueryCommand", it)
       }
     }
   }
 
-  private fun executeUpdate(database: SqliteDatabase, sqlUpdateCommand: String) {
+  private fun executeUpdate(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
     val sqliteService = database.sqliteService
-    edtExecutor.addCallback(sqliteService.executeUpdate(sqlUpdateCommand), object : FutureCallback<Int> {
+    edtExecutor.addCallback(sqliteService.executeUpdate(sqliteStatement), object : FutureCallback<Int> {
       override fun onSuccess(result: Int?) {
         view.tableView.resetView()
         listeners.forEach { it.onSchemaUpdated(database) }
@@ -105,7 +101,7 @@ class SqliteEvaluatorController(
     })
   }
 
-  private fun executeQuery(database: SqliteDatabase, sqliteQuery: String, doOnFailure: (Throwable) -> Unit) {
+  private fun executeQuery(database: SqliteDatabase, sqliteStatement: SqliteStatement, doOnFailure: (Throwable) -> Unit) {
     val sqliteService = database.sqliteService
 
     currentTableController = TableController(
@@ -113,7 +109,7 @@ class SqliteEvaluatorController(
       view = view.tableView,
       tableName = null,
       sqliteService = sqliteService,
-      query = sqliteQuery,
+      sqliteStatement = sqliteStatement,
       edtExecutor = edtExecutor
     )
 
@@ -124,7 +120,8 @@ class SqliteEvaluatorController(
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorViewListener {
     override fun evaluateSqlActionInvoked(database: SqliteDatabase, sqliteStatement: String) {
-      evaluateSqlStatement(database, sqliteStatement)
+      // TODO(b/143341562) handle SQLite statements with templates for ad-hoc queries.
+      evaluateSqlStatement(database, SqliteStatement(sqliteStatement, emptyList()))
     }
   }
 }
