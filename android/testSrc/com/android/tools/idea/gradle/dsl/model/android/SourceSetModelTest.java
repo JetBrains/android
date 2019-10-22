@@ -72,10 +72,10 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SourceSetModel> sourceSets = android.sourceSets();
-    sourceSets.get(0).root().setValue("newRoot1");
-    sourceSets.get(1).root().setValue("newRoot2");
-    sourceSets.get(2).root().setValue("newRoot3");
-    sourceSets.get(3).root().setValue("newRoot4");
+    setRootOf(sourceSets, "set1", "newRoot1");
+    setRootOf(sourceSets, "set2", "newRoot2");
+    setRootOf(sourceSets, "set3", "newRoot3");
+    setRootOf(sourceSets, "set4", "newRoot4");
     verifySourceSetRoot(buildModel, "newRoot");
 
     buildModel.resetState();
@@ -93,10 +93,10 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SourceSetModel> sourceSets = android.sourceSets();
-    sourceSets.get(0).root().setValue("newRoot1");
-    sourceSets.get(1).root().setValue("newRoot2");
-    sourceSets.get(2).root().setValue("newRoot3");
-    sourceSets.get(3).root().setValue("newRoot4");
+    setRootOf(sourceSets, "set1", "newRoot1");
+    setRootOf(sourceSets, "set2", "newRoot2");
+    setRootOf(sourceSets, "set3", "newRoot3");
+    setRootOf(sourceSets, "set4", "newRoot4");
     verifySourceSetRoot(buildModel, "newRoot");
 
     applyChanges(buildModel);
@@ -208,23 +208,25 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     assertThat(android.sourceSets()).isEmpty();
   }
 
+  private static void setRootOf(@NotNull List<SourceSetModel> sourceSetModels, @NotNull String set, @NotNull String root) {
+    sourceSetModels.stream().filter(ss -> ss.name().equals(set)).findFirst().ifPresent(s -> s.root().setValue(root));
+  }
+
   private static void verifySourceSetRoot(@NotNull GradleBuildModel buildModel, @NotNull String rootPrefix) {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
 
     List<SourceSetModel> sourceSets = android.sourceSets();
     assertThat(sourceSets).hasSize(4);
-
-    verifySourceSetRoot(sourceSets, rootPrefix);
+    for (int i = 1; i <= sourceSets.size(); i++) {
+      verifySourceSetRoot(sourceSets, rootPrefix, i);
+    }
   }
 
-  private static void verifySourceSetRoot(@NotNull List<SourceSetModel> sourceSets, @NotNull String rootPrefix) {
-    int i = 1;
-    for (SourceSetModel sourceSet : sourceSets) {
-      assertEquals("name", "set" + i, sourceSet.name());
-      assertEquals("root", rootPrefix + i, sourceSet.root());
-      i++;
-    }
+  private static void verifySourceSetRoot(@NotNull List<SourceSetModel> sourceSets, @NotNull String rootPrefix, int i) {
+    assertTrue(sourceSets.stream().anyMatch(ss -> ss.name().equals("set" + i)));
+    sourceSets.stream().filter(ss -> ss.name().equals("set" + i)).findFirst()
+      .ifPresent(set -> assertEquals("root", rootPrefix + i, set.root()));
   }
 
   @Test
