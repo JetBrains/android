@@ -337,7 +337,12 @@ public class InteractionManager implements Disposable {
    */
   private void finishInteraction(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx, boolean canceled) {
     if (myCurrentInteraction != null) {
-      myCurrentInteraction.end(x, y, modifiersEx, canceled);
+      if (!canceled) {
+        myCurrentInteraction.end(x, y, modifiersEx);
+      }
+      else {
+        myCurrentInteraction.cancel(x, y, modifiersEx);
+      }
       if (myLayers != null) {
         for (Layer layer : myLayers) {
           //noinspection SSBasedInspection

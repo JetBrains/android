@@ -159,12 +159,11 @@ public class DragDropInteraction extends Interaction {
   public boolean acceptsDrop() { return myDoesAcceptDropAtLastPosition; }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx, boolean canceled) {
-    super.end(x, y, modifiersEx, canceled);
-    moveTo(x, y, modifiersEx, !canceled);
-    canceled |= myDragHandler == null;
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
+    moveTo(x, y, modifiersEx, true);
+    boolean hasDragHandler = myDragHandler != null;
     mySceneView = myDesignSurface.getSceneView(x, y);
-    if (mySceneView != null && myDragReceiver != null && !canceled) {
+    if (mySceneView != null && myDragReceiver != null && hasDragHandler) {
       mySceneView.getModel().notifyModified(NlModel.ChangeType.DND_END);
 
       // We need to clear the selection otherwise the targets for the newly component are not added until
@@ -176,7 +175,14 @@ public class DragDropInteraction extends Interaction {
       // Select the dragged components
       mySceneView.getSelectionModel().setSelection(myDraggedComponents);
     }
-    if (canceled && myDragHandler != null) {
+    myDesignSurface.stopDragDropInteraction();
+  }
+
+  @Override
+  public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
+    moveTo(x, y, modifiersEx, false);
+    mySceneView = myDesignSurface.getSceneView(x, y);
+    if (myDragHandler != null) {
       myDragHandler.cancel();
     }
     myDesignSurface.stopDragDropInteraction();
