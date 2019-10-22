@@ -68,7 +68,7 @@ class PsiModelMethod(override val containingClass: PsiModelClass, val psiMethod:
       // it means we are referencing a parameter that is really a part of the varargs
       // parameter (which is the last one)
       var parameterType = parameterTypes[i.coerceAtMost(parameterTypes.lastIndex)]
-      val arg = args[i]
+      val arg = args[i].unwrapped
       if (parameterType.isIncomplete) {
         parameterType = parameterType.erasure()
       }
@@ -94,7 +94,7 @@ class PsiModelMethod(override val containingClass: PsiModelClass, val psiMethod:
      */
     fun betterMatchWithArguments(args: List<PsiModelClass>, thisMethod: PsiModelMethod, thatMethod: PsiModelMethod): PsiModelMethod {
       for (i in args.indices) {
-        val arg = args[i]
+        val arg = args[i].unwrapped
         val thisParameterType = thisMethod.parameterTypes[min(i, thisMethod.parameterTypes.size)]
         val thatParameterType = thatMethod.parameterTypes[min(i, thatMethod.parameterTypes.size)]
         if (thisParameterType == thatParameterType) {
