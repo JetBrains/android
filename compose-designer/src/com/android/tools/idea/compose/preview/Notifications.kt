@@ -15,21 +15,30 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.intellij.openapi.actionSystem.ShortcutSet
+import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiTreeChangeAdapter
+import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.LightColors
+import com.intellij.util.ui.update.MergingUpdateQueue
+import com.intellij.util.ui.update.Update
 import java.awt.Color
+import java.util.concurrent.TimeUnit
 
 /**
  * Returns the textual representation of the given [ShortcutSet]. If there is no shortcut, this method will return an empty string.
@@ -56,6 +65,92 @@ private fun createBuildNotificationPanel(project: Project,
   }
 }
 
+
+/**
+ * [EditorNotifications.Provider] that displays the notification when a Kotlin file adds the preview import. The notification will close
+ * the current editor and open one with the preview.
+ */
+internal class ComposeNewPreviewNotificationProvider @JvmOverloads constructor(
+  private val previewElementProvider: () -> PreviewElementFinder = ::defaultPreviewElementFinder) : EditorNotifications.Provider<EditorNotificationPanel>() {
+  private val COMPONENT_KEY = Key.create<EditorNotificationPanel>("android.tools.compose.preview.new.notification")
+
+  override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? =
+    when {
+      !StudioFlags.COMPOSE_PREVIEW.get() -> null
+      // Not a Kotlin file or already a Compose Preview Editor
+      !file.isKotlinFileType() || fileEditor.getComposePreviewManager() != null -> null
+      previewElementProvider().hasPreviewMethods(project, file) -> EditorNotificationPanel().apply {
+        setText(message("notification.new.preview"))
+        createActionLabel(message("notification.new.preview.action")) {
+          if (fileEditor.isValid) {
+            FileEditorManager.getInstance(project).closeFile(file)
+            FileEditorManager.getInstance(project).openFile(file, true)
+            val module = ModuleUtil.findModuleForFile(file, project) ?: return@createActionLabel
+            requestBuild(project, module)
+          }
+        }
+      }
+      else -> null
+    }
+
+  override fun getKey(): Key<EditorNotificationPanel> = COMPONENT_KEY
+}
+
+/**
+ * [ProjectComponent] that listens for Kotlin file additions or removals and triggers a notification update
+ */
+internal class ComposeNewPreviewNotificationManager(private val project: Project) : ProjectComponent {
+  private val LOG = Logger.getInstance(ComposeNewPreviewNotificationManager::class.java)
+
+  private val updateNotificationQueue: MergingUpdateQueue by lazy {
+    MergingUpdateQueue("Update notifications",
+                       TimeUnit.SECONDS.toMillis(2).toInt(),
+                       true,
+                       null,
+                       project)
+  }
+
+  override fun projectOpened() {
+    if (!StudioFlags.COMPOSE_PREVIEW.get()) {
+      return
+    }
+    LOG.debug("projectOpened")
+
+    PsiManager.getInstance(project).addPsiTreeChangeListener(object : PsiTreeChangeAdapter() {
+      private fun onEvent(event: PsiTreeChangeEvent) {
+        val file = event.file?.virtualFile ?: return
+        if (!file.isKotlinFileType()) return
+        updateNotificationQueue.queue(object : Update(file) {
+          override fun run() {
+            if (project.isDisposed || !file.isValid) {
+              return
+            }
+
+            if (LOG.isDebugEnabled) {
+              LOG.debug("updateNotifications for ${file.name}")
+            }
+
+            if (FileEditorManager.getInstance(project).getEditors(file).isEmpty()) {
+              LOG.debug("No editor found")
+              return
+            }
+
+            EditorNotifications.getInstance(project).updateNotifications(file)
+          }
+        })
+      }
+
+      override fun childAdded(event: PsiTreeChangeEvent) {
+        onEvent(event)
+      }
+
+      override fun childRemoved(event: PsiTreeChangeEvent) {
+        onEvent(event)
+      }
+    }, project)
+  }
+}
+
 /**
  * [EditorNotifications.Provider] that displays the notification when the preview needs to be refreshed.
  */
@@ -65,6 +160,10 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
 
   override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
     LOG.debug("createNotificationsProvider")
+    if (!StudioFlags.COMPOSE_PREVIEW.get() || !file.isKotlinFileType()) {
+      return null
+    }
+
     val previewStatus = fileEditor.getComposePreviewManager()?.status() ?: return null
     if (LOG.isDebugEnabled) {
       LOG.debug(previewStatus.toString())
