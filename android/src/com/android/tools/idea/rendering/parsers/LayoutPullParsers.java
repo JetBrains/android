@@ -210,7 +210,7 @@ public class LayoutPullParsers {
       }
       case FONT:
         AndroidFacet facet = AndroidFacet.getInstance(renderTask.getContext().getModule());
-        renderTask.setOverrideBgColor(UIUtil.TRANSPARENT_COLOR.getRGB());
+        renderTask.setTransparentBackground();
         renderTask.setDecorations(false);
         renderTask.setRenderingMode(V_SCROLL);
         return createFontFamilyParser(file, (fontName) -> facet != null
