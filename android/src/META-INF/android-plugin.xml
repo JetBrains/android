@@ -64,6 +64,9 @@
       <implementation-class>com.android.tools.idea.res.AndroidFileChangeListener</implementation-class>
     </component>
     <component>
+      <implementation-class>org.jetbrains.android.facet.SourceProviderManagerComponent</implementation-class>
+    </component>
+    <component>
       <implementation-class>com.android.tools.idea.res.ResourceNotificationManager</implementation-class>
     </component>
     <component>
