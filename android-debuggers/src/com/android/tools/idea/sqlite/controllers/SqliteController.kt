@@ -301,16 +301,16 @@ class SqliteController(
         override val isCancelled: Boolean
           get() = false
 
-        override fun onStarting(entryFullPath: Path) {
-          sqliteView.reportSyncProgress("${entryFullPath.fileName}: start sync")
+        override fun onStarting(entryFullPath: String) {
+          sqliteView.reportSyncProgress("${entryFullPath}: start sync")
         }
 
-        override fun onProgress(entryFullPath: Path, currentBytes: Long, totalBytes: Long) {
-          sqliteView.reportSyncProgress("${entryFullPath.fileName}: sync progress $currentBytes/$totalBytes")
+        override fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long) {
+          sqliteView.reportSyncProgress("${entryFullPath}: sync progress $currentBytes/$totalBytes")
         }
 
-        override fun onCompleted(entryFullPath: Path) {
-          sqliteView.reportSyncProgress("${entryFullPath.fileName}: sync completed")
+        override fun onCompleted(entryFullPath: String) {
+          sqliteView.reportSyncProgress("${entryFullPath}: sync completed")
         }
       })
 
