@@ -82,13 +82,24 @@ class ChooseActivityTypeStepTest {
   }
 
   @Test
-  fun testTemplateRequiringKotlin() {
+  fun testTemplateRequiringKotlinForNewModule() {
+    val template = mock(TemplateMetadata::class.java)
+    `when`(template.constraints).thenReturn(EnumSet.of(KOTLIN))
+
+    assertThat(validateTemplate(template, 5, 5,
+                                isNewModule = true, isAndroidxProject = false, language = JAVA,
+                                messageKeys = messageKeys))
+      .isEqualTo(message("android.wizard.activity.invalid.needs.kotlin"))
+  }
+
+  @Test
+  fun testTemplateRequiringKotlinForExistingModule() {
     val template = mock(TemplateMetadata::class.java)
     `when`(template.constraints).thenReturn(EnumSet.of(KOTLIN))
 
     assertThat(validateTemplate(template, 5, 5,
                                 isNewModule = false, isAndroidxProject = false, language = JAVA,
                                 messageKeys = messageKeys))
-      .isEqualTo(message("android.wizard.activity.invalid.needs.kotlin"))
+      .isEmpty()
   }
 }
