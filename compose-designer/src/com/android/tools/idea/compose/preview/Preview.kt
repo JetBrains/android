@@ -59,6 +59,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -70,6 +71,7 @@ import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
 import com.intellij.problems.WolfTheProblemSolver
@@ -77,6 +79,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.LightVirtualFile
+import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBColor
 import icons.StudioIcons
@@ -86,7 +89,9 @@ import org.jetbrains.kotlin.psi.KtImportDirective
 import java.awt.BorderLayout
 import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
+import javax.swing.BoxLayout
 import javax.swing.JPanel
+import kotlin.streams.asSequence
 
 /** Preview element name */
 const val PREVIEW_NAME = "Preview"
@@ -113,6 +118,9 @@ const val OLD_PREVIEW_ANNOTATION_FQN = "com.android.tools.preview.Preview"
 
 /** Action ID of the IDE declared force refresh action (see PlatformActions.xml). This allows us to re-use the shortcut of the declared action. */
 const val FORCE_REFRESH_ACTION_ID = "ForceRefresh"
+
+private val NOTIFICATIONS_EP_NAME =
+  ExtensionPointName.create<EditorNotifications.Provider<EditorNotificationPanel>>("com.android.tools.idea.compose.preview.composeEditorNotificationProvider");
 
 /** [ShortcutSet] that triggers a build and refreshes the preview */
 internal fun getBuildAndRefreshShortcut(): ShortcutSet = KeymapUtil.getActiveKeymapShortcuts(FORCE_REFRESH_ACTION_ID)
@@ -329,6 +337,10 @@ private class PreviewEditor(private val psiFile: PsiFile,
    */
   var onRefresh: (() -> Unit)? = null
 
+  val notificationsPanel = JPanel().apply {
+    layout = BoxLayout(this, BoxLayout.PAGE_AXIS)
+  }
+
   /**
    * [WorkBench] used to contain all the preview elements.
    */
@@ -336,7 +348,11 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
     val actionsToolbar = ActionsToolbar(this@PreviewEditor, surface)
     val surfacePanel = JPanel(BorderLayout()).apply {
-      add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
+      val northPanel = JPanel()
+      northPanel.layout =  BoxLayout(northPanel, BoxLayout.PAGE_AXIS)
+      northPanel.add(actionsToolbar.toolbarComponent)
+      northPanel.add(notificationsPanel)
+      add(northPanel, BorderLayout.NORTH)
       add(surface, BorderLayout.CENTER)
     }
     val issueErrorSplitter = IssuePanelSplitter(surface, surfacePanel)
@@ -409,6 +425,21 @@ private class PreviewEditor(private val psiFile: PsiFile,
   private fun showModalErrorMessage(message: String) {
     LOG.debug("showModelErrorMessage: $message")
     workbench.loadingStopped(message)
+  }
+
+  /**
+   * Method called when the notifications of the [PreviewEditor] need to be updated. This is called by the
+   * [ComposePreviewEditorNotificationAdapter] when the editor needs to refresh the notifications.
+   */
+  internal fun updateNotifications() {
+    notificationsPanel.removeAll()
+    NOTIFICATIONS_EP_NAME.extensions()
+      .asSequence()
+      .mapNotNull { it.createNotificationPanel(file, this, project)  }
+      .forEach {
+        notificationsPanel.add(it)
+      }
+    notificationsPanel.revalidate()
   }
 
   /**
@@ -663,7 +694,10 @@ private class ComposeTextEditorWithPreview constructor(
 /**
  * Returns the Compose [PreviewEditor] or null if this [FileEditor] is not a Compose preview.
  */
-fun FileEditor.getComposePreviewManager(): ComposePreviewManager? = (this as? ComposeTextEditorWithPreview)?.preview
+fun FileEditor.getComposePreviewManager(): ComposePreviewManager? =
+  // If the FileEditor is the PrevieEditor, return it otherwise check if it's a ComposeTextEditorWithPreview and return the PreviewEditor
+  // attached to it.
+  if (this is PreviewEditor) this else (this as? ComposeTextEditorWithPreview)?.preview
 
 /**
  * Provider for Compose Preview editors.
@@ -747,4 +781,28 @@ class ComposeFileEditorProvider @JvmOverloads constructor(
   override fun getEditorTypeId() = "ComposeEditor"
 
   override fun getPolicy() = FileEditorPolicy.HIDE_DEFAULT_EDITOR
+}
+
+/**
+ * [EditorNotifications.Provider] that simply listens for notification update calls and forwards it to the right Preview editor.
+ * This allows the [PreviewEditor] to have its own notification system that displays notifications that only cover the preview side
+ * and not the whole editor.
+ *
+ * This also allows for Compose Preview notifications to use exactly the same interface as [EditorNotifications] so they can easily
+ * be refactored.
+ */
+class ComposePreviewEditorNotificationAdapter : EditorNotifications.Provider<EditorNotificationPanel>() {
+
+  override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
+    // If the given FileEditor is part of the Compose Preview, forward the update to the PreviewEditor so it can handle its own
+    // notifications.
+    (fileEditor as? ComposeTextEditorWithPreview)?.preview?.updateNotifications()
+
+    // We never create a full editor notification so return null. The PreviewEditor will handle its own notifications.
+    return null
+  }
+
+  override fun getKey(): Key<EditorNotificationPanel> = COMPONENT_KEY
+
+  private val COMPONENT_KEY = Key.create<EditorNotificationPanel>("android.tools.compose.preview.notification.forwarder")
 }

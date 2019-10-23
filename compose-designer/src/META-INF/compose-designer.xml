@@ -15,10 +15,25 @@
   -->
 
 <idea-plugin>
+  <extensionPoints>
+    <!--
+    Extension point for EditorNotification$Provider that generate notification that will be displayed in the PreviewEditor
+    (as opposed to spanning the whole width of the FileEditor.
+    A notification provider that wants this behaviour should extend this point and not the regular editorNotificationProvider.
+    -->
+    <extensionPoint qualifiedName="com.android.tools.idea.compose.preview.composeEditorNotificationProvider"
+                    interface="com.intellij.ui.EditorNotifications$Provider" />
+  </extensionPoints>
+
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.compose.preview.ComposeFileEditorProvider"/>
-    <editorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposePreviewNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposeNewPreviewNotificationProvider" />
+
+    <!--
+    Notification provider that is used to detect when PreviewEditor notifications should be updated.
+    See ComposePreviewEditorNotificationAdapter
+    -->
+    <editorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposePreviewEditorNotificationAdapter"/>
 
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewAnnotationInFunctionWithParametersInspection"
                      language="kotlin"
@@ -31,7 +46,10 @@
                      level="ERROR"/>
 
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
+  </extensions>
 
+  <extensions defaultExtensionNs="com.android.tools.idea.compose.preview">
+    <composeEditorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposePreviewNotificationProvider" />
   </extensions>
 
   <project-components>
