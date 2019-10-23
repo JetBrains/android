@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -40,6 +39,7 @@ import com.intellij.psi.PsiElementFinder
 import java.nio.file.Path
 
 class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
+  private val moduleHierarchyProvider: GradleModuleHierarchyProvider = GradleModuleHierarchyProvider(project)
   private val mySyncManager: ProjectSystemSyncManager = GradleProjectSystemSyncManager(project)
   private val myProjectBuildModelHandler: ProjectBuildModelHandler = ProjectBuildModelHandler.getInstance(project)
 
@@ -78,7 +78,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   }
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
-    return GradleModuleSystem(module, myProjectBuildModelHandler)
+    return GradleModuleSystem(module, myProjectBuildModelHandler, moduleHierarchyProvider.createForModule(module))
   }
 
   override fun getPsiElementFinders(): List<PsiElementFinder> = myPsiElementFinders
@@ -86,5 +86,5 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   override fun getLightResourceClassService() = ProjectLightResourceClassService.getInstance(project)
 
   override val submodules: Collection<Module>
-    get() = getSubmodules(project, null)
+    get() = moduleHierarchyProvider.forProject.submodules
 }

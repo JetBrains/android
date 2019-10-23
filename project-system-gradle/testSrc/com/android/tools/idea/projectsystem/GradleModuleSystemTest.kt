@@ -69,6 +69,8 @@ class GradleModuleSystemTest : AndroidTestCase() {
   private val repoUrlManager = RepositoryUrlManager(mavenRepository, mavenRepository, forceRepositoryChecksInTests = false,
                                                     useEmbeddedStudioRepo = false)
 
+  private val moduleHierarchyProviderStub = object: ModuleHierarchyProvider {}
+
   private val library1ModuleName = "library1"
   private val library1Path = AndroidTestCase.getAdditionalModulePath(library1ModuleName)
 
@@ -80,7 +82,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     _gradleDependencyManager = IdeComponents(project).mockProjectService(GradleDependencyManager::class.java)
-    _gradleModuleSystem = GradleModuleSystem(myModule, ProjectBuildModelHandler(project), repoUrlManager)
+    _gradleModuleSystem = GradleModuleSystem(myModule, ProjectBuildModelHandler(project), moduleHierarchyProviderStub, repoUrlManager)
     assertThat(gradleModuleSystem.getResolvedDependentLibraries()).isEmpty()
   }
 
@@ -171,7 +173,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
 
     // Check that the version is picked up from the parent module:
     val module1 = getAdditionalModuleByName(library1ModuleName)!!
-    val gradleModuleSystem = GradleModuleSystem(module1, ProjectBuildModelHandler(project), repoUrlManager)
+    val gradleModuleSystem = GradleModuleSystem(module1, ProjectBuildModelHandler(project), moduleHierarchyProviderStub, repoUrlManager)
 
     val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
       listOf(toGradleCoordinate(GoogleMavenArtifactId.RECYCLERVIEW_V7)))

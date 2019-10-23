@@ -39,6 +39,7 @@ import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ManifestOverrides
+import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
@@ -92,6 +93,7 @@ private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
 class GradleModuleSystem(
   override val module: Module,
   private val projectBuildModelHandler: ProjectBuildModelHandler,
+  private val moduleHierarchyProvider: ModuleHierarchyProvider,
   @TestOnly private val repoUrlManager: RepositoryUrlManager = RepositoryUrlManager.get()
 ) : AndroidModuleSystem,
     ClassFileFinder by GradleClassFileFinder(module),
@@ -587,5 +589,5 @@ class GradleModuleSystem(
   }
 
   override val submodules: Collection<Module>
-    get() = getSubmodules(module.project, module)
+    get() = moduleHierarchyProvider.submodules
 }
