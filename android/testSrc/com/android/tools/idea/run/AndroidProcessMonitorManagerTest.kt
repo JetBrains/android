@@ -77,14 +77,14 @@ class AndroidProcessMonitorManagerTest {
     val device = createMockDevice(28)
     monitorManager.add(device)
 
-    assertThat(monitorManager.isAssociated(device)).isTrue()
+    assertThat(monitorManager.getMonitor(device)).isNotNull()
 
     assertThat(mockSingleDeviceAndroidProcessMonitors).containsKey(device)
     assertThat(mockSingleDeviceAndroidProcessMonitors).hasSize(1)
 
     stateChangeListener.onStateChanged(mockSingleDeviceAndroidProcessMonitors.getValue(device), PROCESS_FINISHED)
 
-    assertThat(monitorManager.isAssociated(device)).isFalse()
+    assertThat(monitorManager.getMonitor(device)).isNull()
     verify(mockMonitorManagerListener).onAllTargetProcessesTerminated()
   }
 
@@ -93,14 +93,14 @@ class AndroidProcessMonitorManagerTest {
     val device = createMockDevice(28)
     monitorManager.add(device)
 
-    assertThat(monitorManager.isAssociated(device)).isTrue()
+    assertThat(monitorManager.getMonitor(device)).isNotNull()
 
     assertThat(mockSingleDeviceAndroidProcessMonitors).containsKey(device)
     assertThat(mockSingleDeviceAndroidProcessMonitors).hasSize(1)
 
     stateChangeListener.onStateChanged(mockSingleDeviceAndroidProcessMonitors.getValue(device), PROCESS_NOT_FOUND)
 
-    assertThat(monitorManager.isAssociated(device)).isFalse()
+    assertThat(monitorManager.getMonitor(device)).isNull()
     verify(mockMonitorManagerListener).onAllTargetProcessesTerminated()
   }
 
@@ -109,14 +109,14 @@ class AndroidProcessMonitorManagerTest {
     val device = createMockDevice(28)
     monitorManager.add(device)
 
-    assertThat(monitorManager.isAssociated(device)).isTrue()
+    assertThat(monitorManager.getMonitor(device)).isNotNull()
 
     assertThat(mockSingleDeviceAndroidProcessMonitors).containsKey(device)
     assertThat(mockSingleDeviceAndroidProcessMonitors).hasSize(1)
 
     stateChangeListener.onStateChanged(mockSingleDeviceAndroidProcessMonitors.getValue(device), PROCESS_DETACHED)
 
-    assertThat(monitorManager.isAssociated(device)).isFalse()
+    assertThat(monitorManager.getMonitor(device)).isNull()
     verify(mockMonitorManagerListener).onAllTargetProcessesTerminated()
   }
 
@@ -127,36 +127,36 @@ class AndroidProcessMonitorManagerTest {
     monitorManager.add(device1)
     monitorManager.add(device2)
 
-    assertThat(monitorManager.isAssociated(device1)).isTrue()
-    assertThat(monitorManager.isAssociated(device2)).isTrue()
+    assertThat(monitorManager.getMonitor(device1)).isNotNull()
+    assertThat(monitorManager.getMonitor(device2)).isNotNull()
 
     assertThat(mockSingleDeviceAndroidProcessMonitors).containsKey(device1)
     assertThat(mockSingleDeviceAndroidProcessMonitors).containsKey(device2)
     assertThat(mockSingleDeviceAndroidProcessMonitors).hasSize(2)
 
     stateChangeListener.onStateChanged(mockSingleDeviceAndroidProcessMonitors.getValue(device1), PROCESS_FINISHED)
-    assertThat(monitorManager.isAssociated(device1)).isFalse()
+    assertThat(monitorManager.getMonitor(device1)).isNull()
 
     // The process is still running on device2 so the callback should not be called yet.
     verify(mockMonitorManagerListener, never()).onAllTargetProcessesTerminated()
 
     stateChangeListener.onStateChanged(mockSingleDeviceAndroidProcessMonitors.getValue(device2), PROCESS_FINISHED)
-    assertThat(monitorManager.isAssociated(device2)).isFalse()
+    assertThat(monitorManager.getMonitor(device2)).isNull()
 
     verify(mockMonitorManagerListener).onAllTargetProcessesTerminated()
   }
 
   @Test
-  fun testIsAssociated() {
+  fun testGetMonitor() {
     val device1 = createMockDevice(27)
     val device2 = createMockDevice(28)
     val device3NotAdded = createMockDevice(29)
     monitorManager.add(device1)
     monitorManager.add(device2)
 
-    assertThat(monitorManager.isAssociated(device1)).isTrue()
-    assertThat(monitorManager.isAssociated(device2)).isTrue()
-    assertThat(monitorManager.isAssociated(device3NotAdded)).isFalse()
+    assertThat(monitorManager.getMonitor(device1)).isNotNull()
+    assertThat(monitorManager.getMonitor(device2)).isNotNull()
+    assertThat(monitorManager.getMonitor(device3NotAdded)).isNull()
   }
 
   @Test
@@ -164,7 +164,7 @@ class AndroidProcessMonitorManagerTest {
     val device = createMockDevice(28)
     monitorManager.add(device)
 
-    assertThat(monitorManager.isAssociated(device)).isTrue()
+    assertThat(monitorManager.getMonitor(device)).isNotNull()
 
     assertThat(mockSingleDeviceAndroidProcessMonitors).containsKey(device)
     assertThat(mockSingleDeviceAndroidProcessMonitors).hasSize(1)
@@ -179,7 +179,7 @@ class AndroidProcessMonitorManagerTest {
     val device = createMockDevice(28)
     monitorManager.add(device)
 
-    assertThat(monitorManager.isAssociated(device)).isTrue()
+    assertThat(monitorManager.getMonitor(device)).isNotNull()
 
     assertThat(mockSingleDeviceAndroidProcessMonitors).containsKey(device)
     assertThat(mockSingleDeviceAndroidProcessMonitors).hasSize(1)
