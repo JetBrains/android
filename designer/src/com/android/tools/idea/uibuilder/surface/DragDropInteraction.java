@@ -38,6 +38,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
+import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.util.EventObject;
@@ -161,9 +162,33 @@ public class DragDropInteraction extends Interaction {
   @Override
   public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
     if (event instanceof DropTargetDragEvent) {
-      DropTargetDragEvent dropEvent = (DropTargetDragEvent) event;
+      DropTargetDragEvent dragEvent = (DropTargetDragEvent) event;
+      Point location = dragEvent.getLocation();
+      NlDropEvent nlDropEvent = new NlDropEvent(dragEvent);
+
+      SceneView sceneView = myDesignSurface.getSceneView(location.x, location.y);
+      if (sceneView == null) {
+        nlDropEvent.reject();
+        return;
+      }
+
       //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-      update(dropEvent.getLocation().x, dropEvent.getLocation().y, interactionInformation.getModifiersEx());
+      update(location.x, location.y, interactionInformation.getModifiersEx());
+
+      if (acceptsDrop()) {
+        DragType dragType = dragEvent.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
+        setType(dragType);
+        NlModel model = sceneView.getModel();
+        InsertType insertType = model.determineInsertType(dragType, getTransferItem(), true /* preview */);
+
+        // This determines the icon presented to the user while dragging.
+        // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
+        // that reflects the users choice i.e. controlled by the modifier key.
+        nlDropEvent.accept(insertType);
+      }
+      else {
+        nlDropEvent.reject();
+      }
     }
   }
 

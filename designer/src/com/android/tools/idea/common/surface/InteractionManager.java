@@ -846,35 +846,41 @@ public class InteractionManager implements Disposable {
 
     @Override
     public void dragOver(DropTargetDragEvent dragEvent) {
-      NlDropEvent event = new NlDropEvent(dragEvent);
-      Point location = event.getLocation();
+      Point location = dragEvent.getLocation();
       myLastMouseX = location.x;
       myLastMouseY = location.y;
-      SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
-      if (sceneView != null && myCurrentInteraction instanceof DragDropInteraction) {
-        DragDropInteraction interaction = (DragDropInteraction)myCurrentInteraction;
-        if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
-          interaction.update(dragEvent, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+      NlDropEvent event = new NlDropEvent(dragEvent);
+      if (myCurrentInteraction == null) {
+        event.reject();
+        return;
+      }
+      if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+        myCurrentInteraction.update(dragEvent, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+      }
+      else if (myCurrentInteraction instanceof DragDropInteraction) {
+        // TODO: removed below codes after StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
+        SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
+        if (sceneView != null) {
+          DragDropInteraction interaction = (DragDropInteraction)myCurrentInteraction;
+          interaction.update(myLastMouseX, myLastMouseY, myLastModifiersEx);
+          if (interaction.acceptsDrop()) {
+            DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
+            interaction.setType(dragType);
+            NlModel model = sceneView.getModel();
+            InsertType insertType = model.determineInsertType(dragType, interaction.getTransferItem(), true /* preview */);
+
+            // This determines the icon presented to the user while dragging.
+            // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
+            // that reflects the users choice i.e. controlled by the modifier key.
+            event.accept(insertType);
+          }
+          else {
+            event.reject();
+          }
         }
         else {
-          interaction.update(myLastMouseX, myLastMouseY, myLastModifiersEx);
-        }
-        if (interaction.acceptsDrop()) {
-          DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
-          interaction.setType(dragType);
-          NlModel model = sceneView.getModel();
-          InsertType insertType = model.determineInsertType(dragType, interaction.getTransferItem(), true /* preview */);
-
-          // This determines the icon presented to the user while dragging.
-          // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
-          // that reflects the users choice i.e. controlled by the modifier key.
-          event.accept(insertType);
-        } else {
           event.reject();
         }
-      }
-      else {
-        event.reject();
       }
     }
 
