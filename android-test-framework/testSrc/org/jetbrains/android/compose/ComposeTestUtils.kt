@@ -17,7 +17,7 @@ package org.jetbrains.android.compose
 
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
-internal fun CodeInsightTestFixture.stubComposableAnnotation() {
+fun CodeInsightTestFixture.stubComposableAnnotation() {
   addFileToProject(
     "src/androidx/compose/Composable.kt",
     // language=kotlin
@@ -29,3 +29,29 @@ internal fun CodeInsightTestFixture.stubComposableAnnotation() {
   )
 }
 
+fun CodeInsightTestFixture.stubPreviewAnnotation() {
+  addFileToProject(
+    "src/com/android/tools/preview/Preview.kt",
+    // language=kotlin
+    """
+    package androidx.ui.tooling.preview
+
+    data class Configuration(
+      private val apiLevel: Int? = null,
+      private val theme: String? = null,
+      private val width: Int? = null,
+      private val height: Int? = null,
+      private val fontScale: Float = 1f
+    )
+
+    annotation class Preview(
+      val name: String = "",
+      val apiLevel: Int = -1,
+      val theme: String = "",
+      val widthDp: Int = -1,
+      val heightDp: Int = -1,
+      val fontScale: Float = 1f
+    )
+    """.trimIndent()
+  )
+}

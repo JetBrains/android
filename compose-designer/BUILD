@@ -98,5 +98,6 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/idea/.idea/libraries:kotlin-plugin",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
     ],
 )
