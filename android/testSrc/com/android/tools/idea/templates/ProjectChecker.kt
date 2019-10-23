@@ -41,6 +41,7 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API_STRING
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_TOOLS_VERSION
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_GRADLE_PLUGIN_VERSION
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_HAS_APPLICATION_THEME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LAUNCHER
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_KOTLIN_VERSION
@@ -232,6 +233,7 @@ data class ProjectChecker(
   private fun createProjectForNewRenderingContext(
     project: Project, activityState: TestTemplateWizardState, newTemplate: Template2
   ) {
+    val isLauncher = activityState.getBoolean(ATTR_IS_LAUNCHER)
     val packageName = activityState.getString(ATTR_PACKAGE_NAME)
     val generateLayout = activityState["generateLayout"] as Boolean?
     val projectRoot = VfsUtilCore.virtualToIoFile(project.guessProjectDir()!!)
@@ -287,6 +289,7 @@ data class ProjectChecker(
     WizardParameterData(packageName, false, "main", newTemplate.parameters)
     (newTemplate.parameters.find { it.name == "Package name" } as StringParameter?)?.value = packageName
     (newTemplate.parameters.find { it.name == "Generate a Layout File" } as BooleanParameter?)?.value = generateLayout!!
+    (newTemplate.parameters.find { it.name == "Launcher Activity" } as BooleanParameter?)?.value = isLauncher!!
     runWriteAction {
       newTemplate.render(context, executor)
     }
