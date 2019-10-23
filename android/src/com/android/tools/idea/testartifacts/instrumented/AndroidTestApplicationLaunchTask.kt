@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRunner
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
@@ -137,7 +138,16 @@ class AndroidTestApplicationLaunchTask private constructor(
     // Run "am instrument" command in a separate thread.
     val testExecutionFuture = ApplicationManager.getApplication().executeOnPooledThread {
       try {
-        runner.run(AndroidTestListener(launchStatus, printer), UsageTrackerTestRunListener(myArtifact, device))
+        // This issues "am instrument" command and blocks execution.
+        runner.run(AndroidTestListener(printer), UsageTrackerTestRunListener(myArtifact, device))
+
+        // Detach the device from the android process handler manually as soon as "am instrument" command finishes.
+        // This is required because the android process handler may overlook target process especially when the test
+        // runs really fast (~10ms). Because the android process handler discovers new processes by polling, this
+        // race condition happens easily. By detaching the device manually, we can avoid the android process handler
+        // waiting for (already finished) process to show up until it times out (10 secs).
+        val androidProcessHandler = launchStatus.processHandler as? AndroidProcessHandler
+        androidProcessHandler?.detachDevice(device)
       }
       catch (e: Exception) {
         LOG.info(e)
