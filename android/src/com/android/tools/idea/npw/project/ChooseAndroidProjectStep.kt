@@ -191,11 +191,11 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   ) : TemplateRendererWithDescription
 
   private class HandleTemplateRendererWithDescription(
-    template: TemplateHandle?
-  ) : ChooseGalleryItemStep.OldTemplateRenderer(template) {
+    t: TemplateHandle?
+  ) : ChooseGalleryItemStep.OldTemplateRenderer(t), TemplateRendererWithDescription {
     override val label: String get() = getTemplateImageLabel(template)
     override val icon: Icon? get() = getTemplateIcon(template)
-    internal val description: String get() = getTemplateDescription(template)
+    override val description: String get() = getTemplateDescription(template)
   }
 
   companion object {

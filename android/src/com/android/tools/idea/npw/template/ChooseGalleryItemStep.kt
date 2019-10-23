@@ -166,7 +166,7 @@ abstract class ChooseGalleryItemStep(
     val exists: Boolean
   }
 
-  open class OldTemplateRenderer(internal val template: TemplateHandle?) : TemplateRenderer {
+  open class OldTemplateRenderer(val template: TemplateHandle?) : TemplateRenderer {
     override val label: String
       get() = getTemplateImageLabel(template)
 
