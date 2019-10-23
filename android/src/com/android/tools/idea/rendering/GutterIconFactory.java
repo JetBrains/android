@@ -15,24 +15,38 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.VisibleForTesting;
+import static com.android.SdkConstants.DOT_XML;
+
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.ImageUtils;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.XmlUtils;
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.Gray;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import javax.imageio.ImageIO;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -40,21 +54,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
-import static com.android.SdkConstants.DOT_XML;
-
 /**
  * Static utilities for generating scaled-down {@link Icon} instances from image resources to display in the gutter.
  */
 public class GutterIconFactory {
   private static final Logger LOG = Logger.getInstance(GutterIconCache.class);
+  private static final int RENDERING_SCALING_FACTOR = 10;
 
   /**
    * Given the path to an image resource, returns an Icon which displays the image, scaled so that its width
@@ -66,28 +71,22 @@ public class GutterIconFactory {
    * that the XML file does not contain any unresolved references (otherwise, this method returns null).
    */
   @Nullable
-  public static Icon createIcon(@NotNull String path, @Nullable RenderResources resolver, int maxWidth, int maxHeight) {
+  public static Icon createIcon(@NotNull VirtualFile file, @Nullable RenderResources resolver, int maxWidth, int maxHeight, @NotNull AndroidFacet facet) {
+    String path = file.getPath();
     if (path.endsWith(DOT_XML)) {
-      return createXmlIcon(path, resolver, maxWidth);
+      return createXmlIcon(file, resolver, maxWidth, maxHeight, facet);
     }
-    else {
-      return createBitmapIcon(path, maxWidth, maxHeight);
-    }
+
+    return createBitmapIcon(file, maxWidth, maxHeight);
   }
 
   /**
    * Read XML data from Document when possible (in case there are unsaved changes
    * for a file open in an editor).
    */
-  private static String getXmlContent(@NotNull String path) throws IOException {
-    VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
-
-    if (file == null) {
-      return Files.toString(new File(path), Charsets.UTF_8);
-    }
-
-    com.intellij.openapi.editor.Document document =
-      FileDocumentManager.getInstance().getCachedDocument(file);
+  @NotNull
+  private static String getXmlContent(@NotNull VirtualFile file) throws IOException {
+    com.intellij.openapi.editor.Document document = FileDocumentManager.getInstance().getCachedDocument(file);
 
     if  (document == null) {
       return new String(file.contentsToByteArray(), StandardCharsets.UTF_8);
@@ -96,17 +95,17 @@ public class GutterIconFactory {
     return document.getText();
   }
 
-
   @Nullable
-  private static Icon createXmlIcon(@NotNull String path, @Nullable RenderResources resolver, int maxWidth) {
+  private static Icon createXmlIcon(@NotNull VirtualFile file, @Nullable RenderResources resolver, int maxWidth, int maxHeight,
+                                    @NotNull AndroidFacet facet) {
     try {
-      VdPreview.TargetSize imageTargetSize =
-        VdPreview.TargetSize.createFromMaxDimension(isRetinaEnabled() ? ImageUtils.RETINA_SCALE * maxWidth : maxWidth);
-
-      String xml = getXmlContent(path);
-      // See if this drawable is a vector; we can't render other drawables yet.
-      // TODO: Consider resolving selectors to render for example the default image!
+      String xml = getXmlContent(file);
+      BufferedImage image;
+      // If drawable is a vector drawable, use the renderer inside Studio.
+      // Otherwise, delegate to layoutlib.
       if (xml.contains("<vector")) {
+        VdPreview.TargetSize imageTargetSize =
+            VdPreview.TargetSize.createFromMaxDimension(isRetinaEnabled() ? ImageUtils.RETINA_SCALE * maxWidth : maxWidth);
         Document document = XmlUtils.parseDocumentSilently(xml, true);
         if (document == null) {
           return null;
@@ -119,21 +118,33 @@ public class GutterIconFactory {
           replaceResourceReferences(root, resolver);
         }
         StringBuilder builder = new StringBuilder(100);
-        BufferedImage image = VdPreview.getPreviewFromVectorDocument(imageTargetSize, document, builder);
+        image = VdPreview.getPreviewFromVectorDocument(imageTargetSize, document, builder);
         if (builder.length() > 0) {
-          LOG.warn("Problems rendering " + path + ": " + builder);
+          LOG.warn("Problems rendering " + file.getPresentableUrl() + ": " + builder);
         }
-        if (isRetinaEnabled()) {
-          RetinaImageIcon retinaIcon = getRetinaIcon(image);
-          if (retinaIcon != null) {
-            return retinaIcon;
-          }
-        }
-        return new ImageIcon(image);
       }
+      else {
+        Configuration configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file);
+        DrawableRenderer renderer = new DrawableRenderer(facet, configuration);
+        Dimension size = new Dimension(maxWidth * RENDERING_SCALING_FACTOR, maxHeight * RENDERING_SCALING_FACTOR);
+        image = renderer.renderDrawable(xml, size).get();
+        if (image == null) {
+          return null;
+        }
+        image = ImageUtils.scale(image, maxWidth / (double)image.getWidth(), maxHeight / (double)image.getHeight());
+        Disposer.dispose(renderer);
+      }
+      if (isRetinaEnabled()) {
+        RetinaImageIcon retinaIcon = getRetinaIcon(image);
+        if (retinaIcon != null) {
+          return retinaIcon;
+        }
+      }
+
+      return new ImageIcon(image);
     }
     catch (Throwable e) {
-      LOG.warn(String.format("Could not read/render icon image %1$s", path), e);
+      LOG.warn(String.format("Could not read/render icon image %1$s", file.getPresentableUrl()), e);
     }
 
     return null;
@@ -157,7 +168,7 @@ public class GutterIconFactory {
    * be resolved, the value of that attribute remains unchanged.
    */
   @VisibleForTesting
-  static void replaceResourceReferences(@NonNull Node node, @NonNull RenderResources resolver) {
+  static void replaceResourceReferences(@NotNull Node node, @NotNull RenderResources resolver) {
     if (node.getNodeType() == Node.ELEMENT_NODE) {
       Element element = (Element)node;
       NamedNodeMap attributes = element.getAttributes();
@@ -185,18 +196,16 @@ public class GutterIconFactory {
   }
 
   @Nullable
-  private static Icon createBitmapIcon(@NotNull String path, int maxWidth, int maxHeight) {
-    try {
-      Icon icon = createBitmapIcon(ImageIO.read(new File(path)), maxWidth, maxHeight);
-      if (icon != null) return icon;
+  private static Icon createBitmapIcon(@NotNull VirtualFile file, int maxWidth, int maxHeight) {
+    try (InputStream stream = file.getInputStream()) {
+      return createBitmapIcon(ImageIO.read(stream), maxWidth, maxHeight);
     }
-    catch (Throwable e) {
+    catch (Exception e) {
       // Not just IOExceptions here; for example, we've seen
-      // IllegalArgumentEx @ ...... < PNGImageReader:1479 < ... ImageIO.read
-      LOG.warn(String.format("Could not read icon image %1$s", path), e);
+      // IllegalArgumentException @ ...... < PNGImageReader:1479 < ... ImageIO.read
+      LOG.warn(String.format("Could not read icon image %1$s", file.getPresentableUrl()), e);
+      return null;
     }
-
-    return null;
   }
 
   @Nullable
@@ -220,10 +229,8 @@ public class GutterIconFactory {
           // Indexed images look terrible if they are scaled directly; instead, paint into an ARGB blank image
           BufferedImage bg = ImageUtil.createImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
           Graphics g = bg.getGraphics();
-          //noinspection UseJBColor
           g.setColor(Gray.TRANSPARENT);
           g.fillRect(0, 0, bg.getWidth(), bg.getHeight());
-          //noinspection ConstantConditions
           StartupUiUtil.drawImage(g, image, 0, 0, null);
           g.dispose();
           image = bg;
@@ -241,7 +248,7 @@ public class GutterIconFactory {
    * Returns a {@link RetinaImageIcon} for the given {@link BufferedImage}, if possible. Returns null otherwise.
    */
   @Nullable
-  private static RetinaImageIcon getRetinaIcon(@NonNull BufferedImage image) {
+  private static RetinaImageIcon getRetinaIcon(@NotNull BufferedImage image) {
     if (isRetinaEnabled()) {
       Image hdpiImage = ImageUtils.convertToRetina(image);
       if (hdpiImage != null) {
@@ -256,7 +263,6 @@ public class GutterIconFactory {
       super(image, "");
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
     public synchronized void paintIcon(Component c, Graphics g, int x, int y) {
       StartupUiUtil.drawImage(g, getImage(), x, y, null);

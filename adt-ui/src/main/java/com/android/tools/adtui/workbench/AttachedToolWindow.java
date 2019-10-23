@@ -1,15 +1,24 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.adtui.workbench;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.tools.adtui.common.AdtSecondaryPanel;
-import com.android.tools.adtui.common.StudioColorsKt;
+import static com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE;
+import static com.intellij.openapi.actionSystem.IdeActions.ACTION_FIND;
+
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionPopupMenu;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -18,6 +27,7 @@ import com.intellij.openapi.wm.impl.AnchoredButton;
 import com.intellij.openapi.wm.impl.InternalDecorator;
 import com.intellij.openapi.wm.impl.StripeButtonUI;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.UIBundle;
@@ -28,20 +38,35 @@ import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.accessibility.ScreenReader;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.MouseInputAdapter;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE;
+import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.LayoutFocusTraversalPolicy;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.MouseInputAdapter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * AttachedToolWindow is a tool window that can be attached to a {@link WorkBench}.
@@ -49,7 +74,7 @@ import static com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUT
  *
  * @param <T> the type of data that is being edited by the associated {@link WorkBench}
  */
-class AttachedToolWindow<T> implements Disposable {
+class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   static final String TOOL_WINDOW_PROPERTY_PREFIX = "ATTACHED_TOOL_WINDOW.";
   static final String TOOL_WINDOW_TOOLBAR_PLACE = "TOOL_WINDOW_TOOLBAR";
   static final String LABEL_HEADER = "LABEL";
@@ -73,10 +98,10 @@ class AttachedToolWindow<T> implements Disposable {
   private boolean myAutoHideOpen;
   private int myToolOrder;
 
-  public AttachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
-                            @NotNull ButtonDragListener<T> dragListener,
-                            @NotNull String workBenchName,
-                            @NotNull SideModel<T> model) {
+  AttachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
+                     @NotNull ButtonDragListener<T> dragListener,
+                     @NotNull String workBenchName,
+                     @NotNull SideModel<T> model) {
     myWorkBenchName = workBenchName;
     myDefinition = definition;
     myDragListener = dragListener;
@@ -96,12 +121,15 @@ class AttachedToolWindow<T> implements Disposable {
     setDefaultProperty(PropertyType.AUTO_HIDE, definition.getAutoHide().isAutoHide());
     updateContent();
     DumbService.getInstance(model.getProject()).smartInvokeLater(this::updateActions);
+    AnAction globalFindAction = ActionManager.getInstance().getAction(ACTION_FIND);
+    if (globalFindAction != null) {
+      new FindAction().registerCustomShortcutSet(globalFindAction.getShortcutSet(), myPanel, this);
+    }
   }
 
   @Override
   public void dispose() {
     if (myContent != null) {
-      Disposer.dispose(myContent);
       myContent = null;
       myDragListener = null;
       myPanel.removeAll();
@@ -260,6 +288,11 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   @VisibleForTesting
+  public SearchTextField getSearchField() {
+    return mySearchField;
+  }
+
+  @VisibleForTesting
   @Nullable
   ToolContent<T> getContent() {
     return myContent;
@@ -273,25 +306,24 @@ class AttachedToolWindow<T> implements Disposable {
       myContent = null;
     }
     else if (!isDetached() && myContent == null) {
-      myContent = myDefinition.getFactory().create();
+      myContent = myDefinition.getFactory().apply(this);
       assert myContent != null;
       myContent.setToolContext(myModel.getContext());
-      myContent.setCloseAutoHideWindow(this::closeAutoHideWindow);
-      myContent.setRestoreToolWindow(this::restore);
-      myContent.setStartFiltering(this::startFiltering);
-      myContent.setStopFiltering(this::stopFiltering);
+      myContent.registerCallbacks(this);
       myPanel.add(createHeader(myContent.supportsFiltering(), myContent.getAdditionalActions()), BorderLayout.NORTH);
       myPanel.add(myContent.getComponent(), BorderLayout.CENTER);
     }
   }
 
-  private void restore() {
+  @Override
+  public void restore() {
     if (!isDetached() && isMinimized()) {
       setPropertyAndUpdate(PropertyType.MINIMIZED, false);
     }
   }
 
-  private void closeAutoHideWindow() {
+  @Override
+  public void autoHide() {
     if (!isDetached() && isAutoHide() && !isMinimized()) {
       setPropertyAndUpdate(PropertyType.MINIMIZED, true);
     }
@@ -299,10 +331,10 @@ class AttachedToolWindow<T> implements Disposable {
 
   @NotNull
   private JComponent createHeader(boolean includeSearchButton, @NotNull List<AnAction> additionalActions) {
-    JPanel header = new AdtSecondaryPanel(new BorderLayout());
+    JPanel header = new JPanel(new BorderLayout());
     header.add(createTitlePanel(myDefinition.getTitle(), includeSearchButton, mySearchField), BorderLayout.CENTER);
     header.add(createActionPanel(includeSearchButton, additionalActions), BorderLayout.EAST);
-    header.setBorder(new SideBorder(StudioColorsKt.getBorder(), SideBorder.BOTTOM));
+    header.setBorder(new SideBorder(JBColor.border(), SideBorder.BOTTOM));
     return header;
   }
 
@@ -310,9 +342,14 @@ class AttachedToolWindow<T> implements Disposable {
   private static JPanel createTitlePanel(@NotNull String title, boolean includeSearchField, @NotNull SearchTextField searchField) {
     CardLayout layout = new CardLayout();
     JPanel titlePanel = new JPanel(layout);
-    JLabel titleLabel = new JBLabel(title);
+    JLabel titleLabel = new JBLabel(title) {
+      @Override
+      public void updateUI() {
+        super.updateUI();
+        setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
+      }
+    };
     titleLabel.setBorder(JBUI.Borders.empty(2, 5, 2, 10));
-    titleLabel.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
     titlePanel.add(titleLabel, LABEL_HEADER);
     if (includeSearchField) {
       // Override the preferred height of the search field in order to align all tool window headers
@@ -324,6 +361,9 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private void showSearchField(boolean show) {
+    if (myContent == null || !myContent.supportsFiltering()) {
+      return;
+    }
     Container parent = mySearchField.getParent();
     CardLayout layout = (CardLayout)parent.getLayout();
     if (show) {
@@ -336,15 +376,17 @@ class AttachedToolWindow<T> implements Disposable {
     mySearchActionButton.setVisible(!show);
   }
 
-  private void startFiltering(char character) {
+  @Override
+  public void startFiltering(@NotNull String initialSearchString) {
     if (myContent == null || !myContent.supportsFiltering()) {
       return;
     }
-    mySearchField.setText(String.valueOf(character));
+    mySearchField.setText(initialSearchString);
     showSearchField(true);
   }
 
-  private void stopFiltering() {
+  @Override
+  public void stopFiltering() {
     if (myContent == null || !myContent.supportsFiltering()) {
       return;
     }
@@ -417,7 +459,7 @@ class AttachedToolWindow<T> implements Disposable {
     private final Component myDragImage;
     private final Point myDragPoint;
 
-    public DragEvent(@NotNull MouseEvent mouseEvent, @NotNull Component dragImage, @NotNull Point dragPoint) {
+    DragEvent(@NotNull MouseEvent mouseEvent, @NotNull Component dragImage, @NotNull Point dragPoint) {
       myMouseEvent = mouseEvent;
       myDragImage = dragImage;
       myDragPoint = dragPoint;
@@ -459,7 +501,7 @@ class AttachedToolWindow<T> implements Disposable {
     private JLabel myDragImage;
     private Point myStartDragPosition;
 
-    public MinimizedButton(@NotNull String title, @NotNull Icon icon, @NotNull AttachedToolWindow toolWindow) {
+    private MinimizedButton(@NotNull String title, @NotNull Icon icon, @NotNull AttachedToolWindow toolWindow) {
       super(title, icon);
       myToolWindow = toolWindow;
       setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
@@ -586,7 +628,7 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private class SearchAction extends AnAction {
-    public SearchAction() {
+    private SearchAction() {
       super("Search");
       Presentation presentation = getTemplatePresentation();
       presentation.setIcon(AllIcons.Actions.Find);
@@ -599,7 +641,7 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private class GearAction extends AnAction {
-    public GearAction() {
+    private GearAction() {
       super("More Options", null, AllIcons.General.GearPlain);
     }
 
@@ -618,7 +660,7 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private class HideAction extends AnAction {
-    public HideAction() {
+    private HideAction() {
       super(UIBundle.message("tool.window.hide.action.name"), null, AllIcons.General.HideToolWindow);
     }
 
@@ -631,18 +673,18 @@ class AttachedToolWindow<T> implements Disposable {
   private class TogglePropertyTypeAction extends ToggleAction {
     private final PropertyType myProperty;
 
-    public TogglePropertyTypeAction(@NotNull PropertyType property, @NotNull String text) {
+    private TogglePropertyTypeAction(@NotNull PropertyType property, @NotNull String text) {
       super(text);
       myProperty = property;
     }
 
-    public TogglePropertyTypeAction(@NotNull PropertyType property, @NotNull AnAction action) {
+    private TogglePropertyTypeAction(@NotNull PropertyType property, @NotNull AnAction action) {
       myProperty = property;
       copyFrom(action);
     }
 
     @Override
-    public boolean isSelected(AnActionEvent event) {
+    public boolean isSelected(@NotNull AnActionEvent event) {
       return getProperty(myProperty);
     }
 
@@ -653,16 +695,16 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private class ToggleOppositePropertyTypeAction extends TogglePropertyTypeAction {
-    public ToggleOppositePropertyTypeAction(@NotNull PropertyType property, @NotNull String text) {
+    private ToggleOppositePropertyTypeAction(@NotNull PropertyType property, @NotNull String text) {
       super(property, text);
     }
 
-    public ToggleOppositePropertyTypeAction(@NotNull PropertyType property, @NotNull AnAction action) {
+    private ToggleOppositePropertyTypeAction(@NotNull PropertyType property, @NotNull AnAction action) {
       super(property, action);
     }
 
     @Override
-    public boolean isSelected(AnActionEvent event) {
+    public boolean isSelected(@NotNull AnActionEvent event) {
       return !super.isSelected(event);
     }
 
@@ -673,7 +715,7 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private class SwapAction extends AnAction {
-    public SwapAction() {
+    private SwapAction() {
       super("Swap");
     }
 
@@ -692,7 +734,7 @@ class AttachedToolWindow<T> implements Disposable {
       addKeyboardListener(this);
       addDocumentListener(new DocumentAdapter() {
         @Override
-        protected void textChanged(DocumentEvent e) {
+        protected void textChanged(@NotNull DocumentEvent e) {
           if (myContent != null) {
             myContent.setFilter(getText().trim());
           }
@@ -756,6 +798,13 @@ class AttachedToolWindow<T> implements Disposable {
           addCurrentTextToHistory();
         }
       }
+    }
+  }
+
+  private final class FindAction extends DumbAwareAction {
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent event) {
+      showSearchField(true);
     }
   }
 }

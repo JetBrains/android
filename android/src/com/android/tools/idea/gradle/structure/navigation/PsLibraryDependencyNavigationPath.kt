@@ -15,29 +15,22 @@
  */
 package com.android.tools.idea.gradle.structure.navigation
 
-import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.configurables.issues.GoToPathLinkHandler.GO_TO_PATH_TYPE
+import com.android.tools.idea.gradle.structure.configurables.dependencies.module.MODULE_DEPENDENCIES_PLACE_NAME
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsModulePath
 import com.android.tools.idea.gradle.structure.model.PsPath
-import com.android.tools.idea.gradle.structure.navigation.Places.serialize
-import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.putPath
+import com.android.tools.idea.gradle.structure.model.PsPlaceBasedPath
 import com.intellij.ui.navigation.Place
 
-data class PsLibraryDependencyNavigationPath(override val parent: PsModulePath, val dependency: String) : PsPath {
-  constructor (dependency: PsLibraryDependency) : this(PsModulePath(dependency.parent), dependency.spec.compactNotation())
 
-  override fun getHyperlinkDestination(context: PsContext): String {
-    val place = Place()
+data class PsLibraryDependencyNavigationPath(override val parent: PsDependenciesNavigationPath, val dependency: String) : PsPlaceBasedPath() {
+  constructor (dependency: PsLibraryDependency) :
+    this(PsDependenciesNavigationPath(PsModulePath(dependency.parent)), dependency.spec.compactNotation())
 
-    val mainConfigurable = context.mainConfigurable
-    val target = mainConfigurable.findConfigurable(DependenciesPerspectiveConfigurable::class.java)!!
-
-    putPath(place, target)
-    target.putNavigationPath(place, parent.moduleName, dependency)
-
-    return GO_TO_PATH_TYPE + serialize(place)
+  override fun queryPlace(place: Place, context: PsContext) {
+    parent.queryPlace(place, context)
+    place.putPath(MODULE_DEPENDENCIES_PLACE_NAME, dependency)
   }
 
   override fun toString(): String = dependency

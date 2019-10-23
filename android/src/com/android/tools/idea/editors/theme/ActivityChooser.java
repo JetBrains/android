@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
 import com.android.tools.idea.run.editor.SpecificActivityConfigurable;
 import com.android.tools.idea.run.editor.SpecificActivityLaunch;
@@ -63,8 +63,8 @@ public class ActivityChooser extends DialogWrapper {
     myChooser = new SpecificActivityConfigurable(module.getProject(), () -> module);
     setTitle("Select Activity");
 
-    // we can NOT use AndroidFacet.getManifest() as it does not take manifestPlaceholders into account, so we MUST use MergedManifest
-    List<Element> activities = MergedManifest.get(module).getActivities();
+    // we can NOT use AndroidFacet.getManifest() as it does not take manifestPlaceholders into account, so we MUST use MergedManifestManager
+    List<Element> activities = MergedManifestManager.getSnapshot(module).getActivities();
 
     // show list of activities from merged manifest
     Element[] first10 = activities.stream().limit(DROPDOWN_LIMIT).toArray(Element[]::new);
@@ -150,7 +150,7 @@ public class ActivityChooser extends DialogWrapper {
       return new ValidationInfo(AndroidBundle.message("not.activity.subclass.error", activity));
     }
     // check whether activity is declared in the manifest
-    Element element = MergedManifest.get(myModule).findActivity(ActivityLocatorUtils.getQualifiedActivityName(c));
+    Element element = MergedManifestManager.getSnapshot(myModule).findActivity(ActivityLocatorUtils.getQualifiedActivityName(c));
     if (element == null) {
       return new ValidationInfo(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
     }

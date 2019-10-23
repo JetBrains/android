@@ -42,9 +42,10 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
     assert(components.size == 1)
     val dragged = components[0]
     sceneComponent = layout.scene.getSceneComponent(dragged) ?:
-        TemporarySceneComponent(layout.scene, dragged).apply { setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h), false) }
+        TemporarySceneComponent(layout.scene, dragged).apply { setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h)) }
 
-    sceneComponent.setTargetProvider({ listOf(dragTarget) })
+    sceneComponent.setTargetProvider { listOf(dragTarget) }
+    sceneComponent.updateTargets()
     dragTarget.component = sceneComponent
     sceneComponent.isSelected = true
 
@@ -71,7 +72,8 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
     return ret
   }
 
-  override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int, insertType: InsertType) {
+  override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int,
+                      insertType: InsertType) {
     editor.insertChildren(layout.nlComponent, components, -1, insertType)
 
     when (insertType) {
@@ -106,6 +108,6 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
 
   override fun cancel() {
     editor.scene.removeComponent(sceneComponent)
-    dragTarget.cancel()
+    dragTarget.mouseCancel()
   }
 }

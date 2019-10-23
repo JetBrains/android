@@ -15,70 +15,171 @@
  */
 package org.jetbrains.android.dom;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_AFTER;
+import static com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE;
+import static com.android.SdkConstants.ATTR_CHECKED_BUTTON;
+import static com.android.SdkConstants.ATTR_CHECKED_CHIP;
+import static com.android.SdkConstants.ATTR_FONT_FAMILY;
+import static com.android.SdkConstants.ATTR_HIDE_MOTION_SPEC;
+import static com.android.SdkConstants.ATTR_ICON;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_LABEL;
+import static com.android.SdkConstants.ATTR_LABEL_FOR;
+import static com.android.SdkConstants.ATTR_LAYOUT;
+import static com.android.SdkConstants.ATTR_LAYOUT_ABOVE;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_BASELINE;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_BOTTOM;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_END;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_LEFT;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_RIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_START;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_TOP;
+import static com.android.SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_BEHAVIOR;
+import static com.android.SdkConstants.ATTR_LAYOUT_BELOW;
+import static com.android.SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_END_TO_END_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_END_TO_START_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_MANAGER;
+import static com.android.SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_END_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_START_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TO_LEFT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TO_START_OF;
+import static com.android.SdkConstants.ATTR_LISTITEM;
+import static com.android.SdkConstants.ATTR_MENU;
+import static com.android.SdkConstants.ATTR_ON_CLICK;
+import static com.android.SdkConstants.ATTR_SHOW_MOTION_SPEC;
+import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.ATTR_STYLE;
+import static com.android.SdkConstants.ATTR_THEME;
+import static com.android.SdkConstants.ATTR_TITLE;
+import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
+import static com.android.SdkConstants.COORDINATOR_LAYOUT;
+import static com.android.SdkConstants.RECYCLER_VIEW;
+import static com.android.SdkConstants.VALUE_FALSE;
+import static com.android.SdkConstants.VALUE_TRUE;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.support.AndroidxName;
-import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.xml.*;
+import com.intellij.util.xml.Converter;
+import com.intellij.util.xml.DomElement;
+import com.intellij.util.xml.GenericAttributeValue;
+import com.intellij.util.xml.ResolvingConverter;
+import com.intellij.util.xml.XmlName;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
-import org.jetbrains.android.dom.converters.*;
+import org.jetbrains.android.dom.converters.AndroidConstraintIdsConverter;
+import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
+import org.jetbrains.android.dom.converters.CompositeConverter;
+import org.jetbrains.android.dom.converters.DimensionConverter;
+import org.jetbrains.android.dom.converters.FlagConverter;
+import org.jetbrains.android.dom.converters.FragmentClassConverter;
+import org.jetbrains.android.dom.converters.IntegerConverter;
+import org.jetbrains.android.dom.converters.OnClickConverter;
+import org.jetbrains.android.dom.converters.PackageClassConverter;
+import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
+import org.jetbrains.android.dom.converters.StaticEnumConverter;
+import org.jetbrains.android.dom.converters.StringResourceAdapterConverter;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
-import org.jetbrains.android.dom.manifest.*;
+import org.jetbrains.android.dom.manifest.Action;
+import org.jetbrains.android.dom.manifest.Activity;
+import org.jetbrains.android.dom.manifest.Application;
+import org.jetbrains.android.dom.manifest.Category;
+import org.jetbrains.android.dom.manifest.IntentFilter;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.dom.manifest.Provider;
+import org.jetbrains.android.dom.manifest.Receiver;
+import org.jetbrains.android.dom.manifest.Service;
 import org.jetbrains.android.dom.menu.MenuItem;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * @author Eugene.Kudelevsky
  */
 @SuppressWarnings({"EnumSwitchStatementWhichMissesCases"})
 public class AndroidDomUtil {
+  private static final Logger LOG = Logger.getInstance(AndroidDomUtil.class);
+
   private static final AndroidxName RECYCLER_VIEW_LAYOUT_MANAGER_NAME =
-      AndroidxName.of("android.support.v7.widget.", "RecyclerView.LayoutManager");
-  private static final AndroidxName RECYCLER_VIEW_PACKAGE_NAME =
-    AndroidxName.of("android.support.v7.widget.");
+    AndroidxName.of("android.support.v7.widget.", "RecyclerView$LayoutManager");
   private static final String[] RECYCLER_VIEW_LAYOUT_MANAGER_NAMES =
     {RECYCLER_VIEW_LAYOUT_MANAGER_NAME.oldName(), RECYCLER_VIEW_LAYOUT_MANAGER_NAME.newName()};
   private static final String[] RECYCLER_VIEW_LAYOUT_MANAGER_BASE_PACKAGES =
-    {RECYCLER_VIEW_PACKAGE_NAME.oldName(), RECYCLER_VIEW_PACKAGE_NAME.newName()};
+    {"android.support.v7.widget.", "androidx.recyclerview.widget."};
+  private static final AndroidxName COORDINATOR_LAYOUT_BEHAVIOR_NAME =
+    AndroidxName.of("android.support.design.widget.", "CoordinatorLayout$Behavior");
+  private static final String[] COORDINATOR_LAYOUT_BEHAVIOR_NAMES =
+    {COORDINATOR_LAYOUT_BEHAVIOR_NAME.oldName(), COORDINATOR_LAYOUT_BEHAVIOR_NAME.newName()};
 
   public static final StaticEnumConverter BOOLEAN_CONVERTER = new StaticEnumConverter(VALUE_TRUE, VALUE_FALSE);
-  // TODO: Make SPECIAL_RESOURCE_TYPES into an ImmutableMultimap
   private static final Multimap<String, ResourceType> SPECIAL_RESOURCE_TYPES = ArrayListMultimap.create();
   private static final PackageClassConverter ACTIVITY_CONVERTER = new PackageClassConverter(AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
-  private static final PackageClassConverter RECYCLER_VIEW_LAYOUT_MANAGER_CONVERTER = new PackageClassConverter.Builder()
-    .useManifestBasePackage(true)
-    .withExtraBasePackages(RECYCLER_VIEW_LAYOUT_MANAGER_BASE_PACKAGES)
-    .completeLibraryClasses(true)
-    .withExtendClassNames(RECYCLER_VIEW_LAYOUT_MANAGER_NAMES)
-    .build();
+
+  private static final Converter RECYCLER_VIEW_LAYOUT_MANAGER_CONVERTER =
+    new StringResourceAdapterConverter(
+      new PackageClassConverter.Builder()
+        .useManifestBasePackage(true)
+        .withExtraBasePackages(RECYCLER_VIEW_LAYOUT_MANAGER_BASE_PACKAGES)
+        .completeLibraryClasses(true)
+        .withExtendClassNames(RECYCLER_VIEW_LAYOUT_MANAGER_NAMES)
+        .build());
+
+  private static final Converter COORDINATOR_LAYOUT_BEHAVIOR_CONVERTER =
+    new StringResourceAdapterConverter(
+      new PackageClassConverter.Builder()
+        .useManifestBasePackage(true)
+        .completeLibraryClasses(true)
+        .withExtendClassNames(COORDINATOR_LAYOUT_BEHAVIOR_NAMES)
+        .build());
+
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
+
+  private static final AndroidConstraintIdsConverter CONSTRAINT_REFERENCED_IDS_CONVERTER = new AndroidConstraintIdsConverter();
 
   private static final ToolsAttributeDefinitionsImpl TOOLS_ATTRIBUTE_DEFINITIONS = new ToolsAttributeDefinitionsImpl();
 
@@ -106,7 +207,9 @@ public class AndroidDomUtil {
                            ATTR_ACCESSIBILITY_TRAVERSAL_AFTER, ATTR_LABEL_FOR, ATTR_CHECKED_CHIP,
                            ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_LEFT_TO_RIGHT_OF, ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
                            ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
-                           ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
+                           ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF,
+                           ATTR_LAYOUT_START_TO_END_OF, ATTR_LAYOUT_START_TO_START_OF, ATTR_LAYOUT_END_TO_START_OF,
+                           ATTR_LAYOUT_END_TO_END_OF);
     addSpecialResourceType(ResourceType.LAYOUT, ATTR_LISTITEM, ATTR_LAYOUT);
     addSpecialResourceType(ResourceType.FONT, ATTR_FONT_FAMILY);
     addSpecialResourceType(ResourceType.MENU, ATTR_MENU);
@@ -207,7 +310,7 @@ public class AndroidDomUtil {
     String localName = attrName.getLocalName();
     String tagName = xmlTag.getName();
 
-    if (NS_RESOURCES.equals(attrName.getNamespaceKey())) {
+    if (ANDROID_URI.equals(attrName.getNamespaceKey())) {
       // Framework attributes:
       if (context instanceof XmlResourceElement) {
         if ("configure".equals(localName) && "appwidget-provider".equals(tagName)) {
@@ -228,8 +331,19 @@ public class AndroidDomUtil {
     else {
       // TODO: This should be duplicated to handle the similar classes from the new support packages
       // RecyclerView:
-      if (localName.equals(ATTR_LAYOUT_MANAGER) && RECYCLER_VIEW.isEquals(tagName)) {
+      if (localName.equals(ATTR_LAYOUT_MANAGER) && isInheritor(xmlTag, RECYCLER_VIEW)) {
         return RECYCLER_VIEW_LAYOUT_MANAGER_CONVERTER;
+      }
+      else if (localName.equals(ATTR_LAYOUT_BEHAVIOR)) {
+        // app:layout_behavior attribute is used by CoordinatorLayout children to specify their behaviour
+        // when scrolling.
+        // https://developer.android.com/reference/android/support/design/widget/CoordinatorLayout
+        XmlTag parentTag = xmlTag.getParentTag();
+        if (parentTag != null && isInheritor(parentTag, COORDINATOR_LAYOUT)) {
+            return COORDINATOR_LAYOUT_BEHAVIOR_CONVERTER;
+        }
+      } else if (localName.equals(CONSTRAINT_REFERENCED_IDS)) {
+        return CONSTRAINT_REFERENCED_IDS_CONVERTER;
       }
     }
 
@@ -283,6 +397,12 @@ public class AndroidDomUtil {
     return ImmutableList.of();
   }
 
+  @TestOnly
+  @NotNull
+  public static Stream<String> getSpecialAttributeNamesByType(@NotNull ResourceType type) {
+    return SPECIAL_RESOURCE_TYPES.entries().stream().filter(entry -> entry.getValue() == type).map(entry -> entry.getKey());
+  }
+
   // for special cases
   static void addSpecialResourceType(ResourceType type, String... attrs) {
     for (String attr : attrs) {
@@ -310,6 +430,8 @@ public class AndroidDomUtil {
 
   @Nullable
   public static AttributeDefinition getAttributeDefinition(@NotNull AndroidFacet facet, @NotNull XmlAttribute attribute) {
+    checkThreading();
+
     String localName = attribute.getLocalName();
 
     ResourceNamespace namespace = null;
@@ -345,18 +467,6 @@ public class AndroidDomUtil {
             return definition;
           }
         }
-      }
-    }
-
-    Module module = facet.getModule();
-    DataBindingProjectComponent dataBindingComponent = module.getProject().getComponent(DataBindingProjectComponent.class);
-    if (dataBindingComponent != null) {
-      String attributeName = attribute.getName();
-      if (dataBindingComponent.getBindingAdapterAttributes(module).anyMatch(name -> name.equals(attributeName))) {
-        if (namespace == null) {
-          namespace = ResourceNamespace.RES_AUTO;
-        }
-        return new AttributeDefinition(namespace, localName);
       }
     }
 
@@ -413,10 +523,10 @@ public class AndroidDomUtil {
       return null;
     }
 
-    boolean isActivity = isInheritor(aClass, AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
-    boolean isService = isInheritor(aClass, AndroidUtils.SERVICE_CLASS_NAME);
-    boolean isReceiver = isInheritor(aClass, AndroidUtils.RECEIVER_CLASS_NAME);
-    boolean isProvider = isInheritor(aClass, AndroidUtils.PROVIDER_CLASS_NAME);
+    boolean isActivity = InheritanceUtil.isInheritor(aClass, AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
+    boolean isService = InheritanceUtil.isInheritor(aClass, AndroidUtils.SERVICE_CLASS_NAME);
+    boolean isReceiver = InheritanceUtil.isInheritor(aClass, AndroidUtils.RECEIVER_CLASS_NAME);
+    boolean isProvider = InheritanceUtil.isInheritor(aClass, AndroidUtils.PROVIDER_CLASS_NAME);
 
     if (!isActivity && !isService && !isReceiver && !isProvider) {
       return null;
@@ -466,9 +576,28 @@ public class AndroidDomUtil {
     return null;
   }
 
-  public static boolean isInheritor(@NotNull PsiClass aClass, @NotNull String baseClassQName) {
-    Project project = aClass.getProject();
-    PsiClass baseClass = JavaPsiFacade.getInstance(project).findClass(baseClassQName, aClass.getResolveScope());
-    return baseClass != null && aClass.isInheritor(baseClass, true);
+  private static boolean isInheritor(@NotNull XmlTag tag, @NotNull AndroidxName baseClass) {
+    String qualifiedName = tag.getName();
+    if (StringUtil.isEmpty(qualifiedName)) {
+      return false;
+    }
+
+    PsiClass tagClass = JavaPsiFacade.getInstance(tag.getProject()).findClass(qualifiedName, tag.getResolveScope());
+    return InheritanceUtil.isInheritor(tagClass, MigrateToAndroidxUtil.getNameInProject(baseClass, tag.getProject()));
+  }
+
+  private static final boolean CHECK_THREADING = false;
+
+  public static void checkThreading() {
+    if (!CHECK_THREADING) {
+      return;
+    }
+
+    if (ApplicationManager.getApplication().isDispatchThread()) {
+      LOG.error("Android DOM operations on the UI thread.");
+    }
+    else if (Thread.currentThread().getName().startsWith("JobScheduler FJ pool")) {
+      LOG.error("Android DOM operations on FJ pool.");
+    }
   }
 }

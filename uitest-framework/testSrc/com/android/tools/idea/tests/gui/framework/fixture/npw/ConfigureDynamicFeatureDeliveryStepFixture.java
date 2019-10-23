@@ -15,12 +15,23 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
+import com.android.tools.idea.npw.dynamicapp.DeviceFeatureKind;
+import com.android.tools.idea.npw.dynamicapp.DownloadInstallKind;
+import com.android.tools.idea.tests.gui.framework.fixture.LinkLabelFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.EditorTextFieldFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import com.intellij.ui.components.labels.LinkLabel;
+import java.util.Collection;
+import java.util.Objects;
+import javax.swing.JComboBox;
+import javax.swing.JPanel;
+import javax.swing.JRootPane;
 import javax.swing.text.JTextComponent;
+import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.fixture.JComboBoxFixture;
+import org.fest.swing.timing.Wait;
+import org.jetbrains.annotations.NotNull;
 
 public class ConfigureDynamicFeatureDeliveryStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ConfigureDynamicFeatureDeliveryStepFixture, W> {
@@ -44,7 +55,85 @@ public class ConfigureDynamicFeatureDeliveryStepFixture<W extends AbstractWizard
 
   @NotNull
   public ConfigureDynamicFeatureDeliveryStepFixture<W> setFusing(boolean select) {
-    selectCheckBoxWithText("Fusing (install module on devices that don't support on-demand delivery)", select);
+    selectCheckBoxWithText("Fusing (include module at install-time for pre-Lollipop devices)", select);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureDynamicFeatureDeliveryStepFixture<W> setDownloadInstallKind(@NotNull DownloadInstallKind value) {
+    JComboBox comboBox = robot().finder().findByType(JComboBox.class, true);
+    new JComboBoxFixture(robot(), comboBox).selectItem(value.getDisplayName());
+    return this;
+  }
+
+  @NotNull
+  public ConfigureDynamicFeatureDeliveryStepFixture<W> checkMinimumSdkApiCheckBox() {
+    selectCheckBoxWithName("ModuleDownloadConditions.myMinimumSDKLevelCheckBox", true);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureDynamicFeatureDeliveryStepFixture<W> uncheckMinimumSdkApiCheckBox() {
+    selectCheckBoxWithName("ModuleDownloadConditions.myMinimumSDKLevelCheckBox", false);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureDynamicFeatureDeliveryStepFixture<W> selectMinimumSdkApi(@NotNull String api) {
+    ApiLevelComboBoxFixture apiLevelComboBox =
+      new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), "Mobile.minSdk", JComboBox.class));
+    apiLevelComboBox.selectApiLevel(api);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureDynamicFeatureDeliveryStepFixture<W> addConditionalDeliveryFeature(@NotNull DeviceFeatureKind featureKind, @NotNull String value) {
+    // Click the "+ device-feature" link
+    LinkLabel ll = robot().finder().findByName("ModuleDownloadConditions.myAddDeviceFeatureLinkLabel", LinkLabel.class);
+    new LinkLabelFixture(robot(), ll).click();
+
+    // Find the panel containing the new "device feature" entry (it is the last panel added in the container)
+    JPanel container = robot().finder().findByName("ModuleDownloadConditions.myDeviceFeaturesContainer", JPanel.class);
+    Collection<JPanel> featurePanels = robot().finder().findAll(new GenericTypeMatcher<JPanel>(JPanel.class) {
+      @Override
+      protected boolean isMatching(@NotNull JPanel component) {
+        return component.getParent() == container;
+      }
+    });
+    JPanel featurePanel = featurePanels.stream().reduce((fist, second) -> second).get();
+
+    // Set the feature kind and value
+    JComboBox featureKindCombo = robot().finder().findByType(featurePanel, JComboBox.class, true);
+    new JComboBoxFixture(robot(), featureKindCombo).selectItem(featureKind.getDisplayName());
+    EditorTextFieldFixture.find(robot(), featurePanel).replaceText(value);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureDynamicFeatureDeliveryStepFixture<W> removeConditionalDeliveryFeature(@NotNull DeviceFeatureKind featureKind, @NotNull String value) {
+    // Find the panel containing the "device feature" entry matching feature kind and value
+    JPanel container = robot().finder().findByName("ModuleDownloadConditions.myDeviceFeaturesContainer", JPanel.class);
+    Collection<JPanel> featurePanels = robot().finder().findAll(new GenericTypeMatcher<JPanel>(JPanel.class) {
+      @Override
+      protected boolean isMatching(@NotNull JPanel component) {
+        return component.getParent() == container;
+      }
+    });
+    JPanel featurePanel = featurePanels.stream().filter(panel -> {
+      JComboBox featureKindCombo = robot().finder().findByType(panel, JComboBox.class, true);
+      String featureName = new JComboBoxFixture(robot(), featureKindCombo).selectedItem();
+      String featureValue = EditorTextFieldFixture.find(robot(), panel).getText();
+      return Objects.equals(featureName, featureKind.getDisplayName()) &&
+             Objects.equals(featureValue, value);
+    }).findFirst().get();
+
+    // Find the "remove" button and click it
+    LinkLabel removeLabel = robot().finder().findByType(featurePanel, LinkLabel.class);
+    new LinkLabelFixture(robot(), removeLabel).clickLink();
+
+    Wait.seconds(2).expecting("Remove Label to disappear")
+      .until(() -> !removeLabel.isShowing());
+
     return this;
   }
 }

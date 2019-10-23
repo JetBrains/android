@@ -15,24 +15,29 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profilers.ProfilerClient;
+import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.sessions.SessionsManager;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class CpuProfilerTest {
 
@@ -40,13 +45,15 @@ public class CpuProfilerTest {
 
   private static final Common.Session FAKE_SESSION = Common.Session.newBuilder().setSessionId(4321).setPid(FAKE_PID).build();
 
-  private final FakeProfilerService myProfilerService = new FakeProfilerService();
+  private final FakeTimer myTimer = new FakeTimer();
+  private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
+  private final FakeProfilerService myProfilerService = new FakeProfilerService(myTimer);
 
   private final FakeCpuService myCpuService = new FakeCpuService();
 
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("CpuProfilerTest", myProfilerService, new FakeMemoryService(), myCpuService);
+    new FakeGrpcChannel("CpuProfilerTest", myTransportService, myProfilerService, new FakeMemoryService(), myCpuService);
 
   @Rule public final ExpectedException myExpectedException = ExpectedException.none();
 
@@ -59,7 +66,7 @@ public class CpuProfilerTest {
   @Before
   public void setUp() {
     myIdeServices = new FakeIdeProfilerServices();
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), myIdeServices, new FakeTimer());
+    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeServices, new FakeTimer());
   }
 
   @Test

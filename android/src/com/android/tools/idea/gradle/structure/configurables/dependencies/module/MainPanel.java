@@ -15,25 +15,27 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.module;
 
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
+
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.AbstractMainDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
+import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.PsResolvedDependency;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
+import java.awt.BorderLayout;
+import java.util.List;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.List;
-
-import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
 
 public class MainPanel extends AbstractMainDependenciesPanel {
   @NotNull private final JBSplitter myVerticalSplitter;
@@ -44,8 +46,8 @@ public class MainPanel extends AbstractMainDependenciesPanel {
 
   private int myQueuedSelectionCounter = 0;
 
-  public MainPanel(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraModules) {
-    super(context, extraModules);
+  public MainPanel(@NotNull PsModule module, @NotNull PsContext context) {
+    super(context);
 
     myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(module, context);
     myDeclaredDependenciesPanel.setHistory(getHistory());
@@ -62,20 +64,29 @@ public class MainPanel extends AbstractMainDependenciesPanel {
     myDeclaredDependenciesPanel.add(new SelectionChangeListener<PsBaseDependency>() {
       @Override
       public void selectionChanged(@Nullable PsBaseDependency newSelection) {
-        myQueuedSelectionCounter++;
-        myResolvedDependenciesPanel.setSelection(newSelection).doWhenProcessed(() -> myQueuedSelectionCounter--);
+        if (myQueuedSelectionCounter == 0) {
+          myQueuedSelectionCounter++;
+          myResolvedDependenciesPanel
+            .setSelection(null)
+            .doWhenProcessed(() -> myQueuedSelectionCounter--);
+        }
       }
     });
 
     myResolvedDependenciesPanel.add(new SelectionChangeListener<PsBaseDependency>() {
       @Override
       public void selectionChanged(@Nullable PsBaseDependency newSelection) {
-        if (myQueuedSelectionCounter == 0) {
-          if (newSelection != null) {
-            myDeclaredDependenciesPanel.selectDependency(newSelection.toText());
-          }
-          else {
-            myDeclaredDependenciesPanel.selectDependency(null);
+        if (newSelection instanceof PsResolvedDependency) {
+          PsResolvedDependency resolvedDependency = (PsResolvedDependency)newSelection;
+          final List<PsDeclaredDependency> declaredDependencies = resolvedDependency.getDeclaredDependencies();
+          if (myQueuedSelectionCounter == 0) {
+            myQueuedSelectionCounter++;
+            if (!declaredDependencies.isEmpty()) {
+              myDeclaredDependenciesPanel.setSelection(declaredDependencies).doWhenProcessed(() -> myQueuedSelectionCounter--);
+            }
+            else {
+              myDeclaredDependenciesPanel.setSelection(null).doWhenProcessed(() -> myQueuedSelectionCounter--);
+            }
           }
         }
       }

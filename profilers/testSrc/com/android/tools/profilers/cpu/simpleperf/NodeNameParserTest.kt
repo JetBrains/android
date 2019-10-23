@@ -19,7 +19,6 @@ import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel
 import com.android.tools.profilers.cpu.nodemodel.SyscallModel
 import com.google.common.truth.Truth.assertThat
-import org.junit.Assert.fail
 import org.junit.Test
 
 class NodeNameParserTest {
@@ -177,6 +176,15 @@ class NodeNameParserTest {
              classOrNamespace = "std::__1::basic_ostream",
              parameters = listOf("MyTemplate"))
     }
+  }
+
+  @Test
+  fun abiArchFileNameAndVAddressPassedToCppModel() {
+    val fileName = "myfile.so"
+    val vAddress = 0x013F01F0D4L
+    val model = NodeNameParser.parseNodeName("void MyNameSpace::my_method(int)", false, fileName, vAddress) as CppFunctionModel
+    assertThat(model.fileName).isEqualTo(fileName)
+    assertThat(model.vAddress).isEqualTo(vAddress)
   }
 
   @Test

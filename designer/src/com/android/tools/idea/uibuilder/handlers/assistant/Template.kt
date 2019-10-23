@@ -21,9 +21,9 @@ import com.android.tools.idea.util.dependsOnAndroidx
 import com.android.tools.idea.util.dependsOnOldSupportLib
 import com.intellij.openapi.module.Module
 import com.intellij.util.io.DigestUtil
-import libcore.io.Streams
 import java.io.InputStream
 import java.io.InputStreamReader
+import java.io.StringWriter
 
 private fun hash(content: String): ByteArray =
   DigestUtil.sha1().digest(content.toByteArray(Charsets.UTF_8))
@@ -88,8 +88,18 @@ internal data class Template(private val myTemplateName: String, val myTemplate:
     @JvmStatic
     @JvmOverloads
     fun fromStream(name: String, stream: InputStream, tags: Set<TemplateTag> = setOf()): Template {
-      val content = Streams.readFully(InputStreamReader(stream)).trim()
-      return Template(name, content, tags)
+      val reader = InputStreamReader(stream)
+      reader.use {
+        val writer = StringWriter()
+        val buffer = CharArray(1024)
+        var count = it.read(buffer)
+        while (count != -1) {
+          writer.write(buffer, 0, count)
+          count = it.read(buffer)
+        }
+        val content = writer.toString().trim()
+        return Template(name, content, tags)
+      }
     }
   }
 }

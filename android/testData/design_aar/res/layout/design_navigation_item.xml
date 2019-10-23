@@ -14,11 +14,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
 -->
-<android.support.design.internal.NavigationMenuItemView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/listPreferredItemHeightSmall"
-        android:paddingLeft="?attr/listPreferredItemPaddingLeft"
-        android:paddingRight="?attr/listPreferredItemPaddingRight"
-        android:foreground="?attr/selectableItemBackground"
-        android:focusable="true"/>
+<android.support.design.internal.NavigationMenuItemView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="?android.support.v7.appcompat:attr/listPreferredItemHeightSmall"
+    android:focusable="true"
+    android:foreground="?android.support.v7.appcompat:attr/selectableItemBackground"
+    android:paddingLeft="?android.support.v7.appcompat:attr/listPreferredItemPaddingLeft"
+    android:paddingRight="?android.support.v7.appcompat:attr/listPreferredItemPaddingRight" />

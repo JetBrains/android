@@ -17,8 +17,9 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.google.common.truth.Truth.assertThat
@@ -41,7 +42,7 @@ class CpuFramesModelTest {
   fun setup() {
     val timer = FakeTimer()
     val services = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(grpcChannel.client, services, timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), services, timer)
     stage = CpuProfilerStage(profilers)
     model = CpuFramesModel(range, stage)
   }

@@ -43,7 +43,7 @@ public class AndroidSdkPreSyncCheckTest {
 
   @Test
   public void doCheckCanSyncWithSuccessfulSdkSync() throws IOException {
-    PreSyncCheckResult result = myCondition.doCheckCanSync(myProject);
+    PreSyncCheckResult result = myCondition.doCheckCanSyncAndTryToFix(myProject);
     assertTrue(result.isSuccess());
     verify(mySdkSync).syncIdeAndProjectAndroidSdks(myProject);
   }
@@ -53,7 +53,7 @@ public class AndroidSdkPreSyncCheckTest {
     //noinspection ThrowableInstanceNeverThrown
     IOException error = new IOException();
     doThrow(error).when(mySdkSync).syncIdeAndProjectAndroidSdks(myProject);
-    PreSyncCheckResult result = myCondition.doCheckCanSync(myProject);
+    PreSyncCheckResult result = myCondition.doCheckCanSyncAndTryToFix(myProject);
     assertFalse(result.isSuccess());
     verify(mySdkSync).syncIdeAndProjectAndroidSdks(myProject);
   }

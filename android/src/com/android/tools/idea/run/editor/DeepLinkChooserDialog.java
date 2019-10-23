@@ -176,7 +176,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
     List<XmlTag> actions = searchXmlTagsByName(intentFilter, TAG_ACTION);
     boolean hasActionView = false;
     for (XmlTag action : actions) {
-      String name = action.getAttributeValue(SdkConstants.ATTR_NAME, SdkConstants.NS_RESOURCES);
+      String name = action.getAttributeValue(SdkConstants.ATTR_NAME, SdkConstants.ANDROID_URI);
       if (name != null && name.equals(ACTION_VIEW)) {
         hasActionView = true;
         break;
@@ -191,7 +191,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
     boolean hasDefaultCategory = false;
     boolean hasBrowsableCategory = false;
     for (XmlTag category : categories) {
-      String name = category.getAttributeValue(SdkConstants.ATTR_NAME, SdkConstants.NS_RESOURCES);
+      String name = category.getAttributeValue(SdkConstants.ATTR_NAME, SdkConstants.ANDROID_URI);
       if (name != null && name.equals(CATEGORY_DEFAULT)) {
         hasDefaultCategory = true;
       }
@@ -207,17 +207,17 @@ public class DeepLinkChooserDialog extends DialogWrapper {
     List<XmlTag> datas = searchXmlTagsByName(intentFilter, TAG_DATA);
     String scheme = null, host = null, pathPrefix = null, path = null;
     for (XmlTag data : datas) {
-      if (null != data.getAttributeValue(SdkConstants.ATTR_SCHEME, SdkConstants.NS_RESOURCES)) {
-        scheme = data.getAttributeValue(SdkConstants.ATTR_SCHEME, SdkConstants.NS_RESOURCES);
+      if (null != data.getAttributeValue(SdkConstants.ATTR_SCHEME, SdkConstants.ANDROID_URI)) {
+        scheme = data.getAttributeValue(SdkConstants.ATTR_SCHEME, SdkConstants.ANDROID_URI);
       }
-      if (null != data.getAttributeValue(SdkConstants.ATTR_HOST, SdkConstants.NS_RESOURCES)) {
-        host = data.getAttributeValue(SdkConstants.ATTR_HOST, SdkConstants.NS_RESOURCES);
+      if (null != data.getAttributeValue(SdkConstants.ATTR_HOST, SdkConstants.ANDROID_URI)) {
+        host = data.getAttributeValue(SdkConstants.ATTR_HOST, SdkConstants.ANDROID_URI);
       }
-      if (null != data.getAttributeValue(SdkConstants.ATTR_PATH_PREFIX, SdkConstants.NS_RESOURCES)) {
-        pathPrefix = data.getAttributeValue(SdkConstants.ATTR_PATH_PREFIX, SdkConstants.NS_RESOURCES);
+      if (null != data.getAttributeValue(SdkConstants.ATTR_PATH_PREFIX, SdkConstants.ANDROID_URI)) {
+        pathPrefix = data.getAttributeValue(SdkConstants.ATTR_PATH_PREFIX, SdkConstants.ANDROID_URI);
       }
-      if (null != data.getAttributeValue(SdkConstants.ATTR_PATH, SdkConstants.NS_RESOURCES)) {
-        path = data.getAttributeValue(SdkConstants.ATTR_PATH, SdkConstants.NS_RESOURCES);
+      if (null != data.getAttributeValue(SdkConstants.ATTR_PATH, SdkConstants.ANDROID_URI)) {
+        path = data.getAttributeValue(SdkConstants.ATTR_PATH, SdkConstants.ANDROID_URI);
       }
     }
 

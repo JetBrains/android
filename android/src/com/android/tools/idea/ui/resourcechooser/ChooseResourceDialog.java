@@ -68,6 +68,7 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.scale.JBUIScale;
+import com.intellij.ui.speedSearch.FilteringTableModel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -100,8 +101,8 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static com.android.SdkConstants.*;
@@ -685,7 +686,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private AnAction createNewResourceValueAction() {
     return new AnAction() {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         ResourceType type = (ResourceType)getTemplatePresentation().getClientProperty(TYPE_KEY);
         createNewResourceValue(type);
       }
@@ -696,7 +697,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private AnAction createNewResourceFileAction() {
     return new AnAction() {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         ResourceFolderType type = (ResourceFolderType)getTemplatePresentation().getClientProperty(FOLDER_TYPE_KEY);
         createNewResourceFile(type);
       }
@@ -705,7 +706,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
   @NotNull
   private AbstractAction createNewResourceAction() {
-    return new AbstractAction("New Resource", AllIcons.General.ComboArrowDown) {
+    return new AbstractAction("New Resource", AllIcons.General.ArrowDownSmall) {
       @Override
       public void actionPerformed(ActionEvent e) {
         JComponent component = (JComponent)e.getSource();
@@ -719,7 +720,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private AnAction createExtractStyleAction() {
     return new AnAction("Extract Style...") {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         extractStyle();
       }
     };
@@ -729,8 +730,11 @@ public class ChooseResourceDialog extends DialogWrapper {
   private AnAction createNewResourceReferenceAction() {
     return new AnAction() {
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         ResourcePanel panel = getSelectedPanel();
+        if (panel.myReferencePanel == null) {
+          panel.showEditorPanel();
+        }
         panel.showNewResource(panel.myReferencePanel);
       }
     };
@@ -757,7 +761,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     searchField.setMaximumSize(new Dimension(JBUIScale.scale(300), searchField.getMaximumSize().height));
     searchField.addDocumentListener(new DocumentAdapter() {
       @Override
-      protected void textChanged(DocumentEvent e) {
+      protected void textChanged(@NotNull DocumentEvent e) {
         updateFilter();
       }
     });
@@ -1088,7 +1092,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       return;
     }
 
-    XmlFile newFile = CreateResourceFileAction.createFileResource(myFacet, folderType, null, null, null, true, null, null, null);
+    XmlFile newFile = CreateResourceFileAction.createFileResource(myFacet, folderType, null, null, null, true, null, null, null, false);
     if (newFile != null) {
       String name = newFile.getName();
       int index = name.lastIndexOf('.');
@@ -1218,7 +1222,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   }
 
   @NotNull
-  private ResourceResolver getResourceResolver() {
+  public ResourceResolver getResourceResolver() {
     Configuration config = getConfiguration();
     ResourceResolver resolver = config.getResourceResolver();
     assert resolver != null;
@@ -1649,7 +1653,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         });
         myReferenceComponent.addTextDocumentListener(new DocumentListener() {
           @Override
-          public void documentChanged(com.intellij.openapi.editor.event.DocumentEvent e) {
+          public void documentChanged(@NotNull com.intellij.openapi.editor.event.DocumentEvent e) {
             // This is run inside a WriteAction and updateIcon may need an APP_RESOURCES_LOCK from AndroidFacet.
             // To prevent a potential deadlock, we call updateIcon in another thread.
             ApplicationManager.getApplication().invokeLater(() -> {
@@ -2340,12 +2344,12 @@ public class ChooseResourceDialog extends DialogWrapper {
       for (final Action action : actions) {
         final AnAction anAction = new AnAction() {
           @Override
-          public void actionPerformed(AnActionEvent e) {
+          public void actionPerformed(@NotNull AnActionEvent e) {
             action.actionPerformed(new ActionEvent(source, 0, ""));
           }
 
           @Override
-          public void update(AnActionEvent e) {
+          public void update(@NotNull AnActionEvent e) {
             Presentation presentation = e.getPresentation();
             String name = (String)action.getValue(Action.NAME);
             if (name != null) {

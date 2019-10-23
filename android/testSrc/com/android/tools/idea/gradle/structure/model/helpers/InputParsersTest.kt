@@ -20,6 +20,9 @@ import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.pom.java.LanguageLevel
 import junit.framework.Assert.*
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import java.math.BigDecimal
@@ -231,5 +234,18 @@ class InputParsersTest {
     assertTrue(matchFiles(File("/tmp"), File("/tmp/a"), File("/tmp/a")))
     assertFalse(matchFiles(File("/tmp"), null, File("/tmp/a")))
     assertFalse(matchFiles(File("/tmp"), File("b"), File("/tmp/a")))
+  }
+
+  @Test
+  fun formatAny_ambiguous() {
+    assertThat(formatAny(1), equalTo("1"))
+    assertThat(formatAny("1"), equalTo("\"1\""))
+    assertThat(formatAny(1.1), equalTo("1.1"))
+    assertThat(formatAny("1.1"), equalTo("\"1.1\""))
+    assertThat(formatAny(true), equalTo("true"))
+    assertThat(formatAny(false), equalTo("false"))
+    assertThat(formatAny("true"), equalTo("\"true\""))
+    assertThat(formatAny("false"), equalTo("\"false\""))
+    assertThat(formatAny("xyz"), equalTo("xyz"))
   }
 }

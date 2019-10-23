@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.FakeElementTransform;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -34,9 +33,9 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*;
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.resolveElement;
 
 /**
@@ -59,12 +58,13 @@ import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.resolveEl
 public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl implements
                                                                               ArtifactDependencyModel {
   @Nullable private GradleDslClosure myConfigurationElement;
-  @NotNull private String myConfigurationName;
   protected boolean mySetThrough = false;
 
-  public ArtifactDependencyModelImpl(@Nullable GradleDslClosure configurationElement, @NotNull String configurationName) {
+  public ArtifactDependencyModelImpl(@Nullable GradleDslClosure configurationElement,
+                                     @NotNull String configurationName,
+                                     @NotNull Maintainer maintainer) {
+    super(configurationName, maintainer);
     myConfigurationElement = configurationElement;
-    myConfigurationName = configurationName;
   }
 
   @NotNull
@@ -127,74 +127,10 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     mySetThrough = false;
   }
 
-  @Override
-  @NotNull
-  public String configurationName() {
-    return myConfigurationName;
-  }
-
-  @NotNull
-  static List<ArtifactDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslElement element) {
-    return create(configurationName, element, null);
-  }
-
-  @NotNull
-  static List<ArtifactDependencyModel> create(@NotNull String configurationName,
-                                              @NotNull GradleDslElement element,
-                                              @Nullable GradleDslClosure configurationElement) {
-    if (configurationElement == null) {
-      configurationElement = element.getClosureElement();
-    }
-    List<ArtifactDependencyModel> results = Lists.newArrayList();
-    // We can only create ArtifactDependencyModels from expressions, if for some reason we don't have an expression here (e.g form a
-    // parser bug) then don't create anything.
-    if (!(element instanceof GradleDslExpression)) {
-      return ImmutableList.of();
-    }
-    GradleDslExpression resolved = (GradleDslExpression)element;
-    if (element instanceof GradleDslLiteral) {
-      GradleDslElement foundElement = followElement((GradleDslLiteral)element);
-      if (foundElement instanceof GradleDslExpression) {
-        resolved = (GradleDslExpression)foundElement;
-      }
-    }
-
-    if (resolved instanceof GradleDslExpressionMap) {
-      MapNotation mapNotation =
-        MapNotation.create(configurationName, (GradleDslExpressionMap)resolved, configurationElement);
-      if (mapNotation != null) {
-        results.add(mapNotation);
-      }
-    }
-    else if (resolved instanceof GradleDslMethodCall) {
-      String name = ((GradleDslMethodCall)resolved).getMethodName();
-      if (!"project".equals(name) && !"fileTree".equals(name) && !"files".equals(name)) {
-        for (GradleDslElement argument : ((GradleDslMethodCall)resolved).getArguments()) {
-          results.addAll(create(configurationName, argument, configurationElement));
-        }
-      }
-    }
-    else if (resolved instanceof GradleDslExpressionList) {
-      for (GradleDslSimpleExpression expression : ((GradleDslExpressionList)resolved).getSimpleExpressions()) {
-        CompactNotation compactNotation = CompactNotation.create(configurationName, expression, configurationElement);
-        if (compactNotation != null) {
-          results.add(compactNotation);
-        }
-      }
-    }
-    else {
-      CompactNotation compactNotation = CompactNotation.create(configurationName, (GradleDslSimpleExpression)element, configurationElement);
-      if (compactNotation != null) {
-        results.add(compactNotation);
-      }
-    }
-    return results;
-  }
-
-  static void create(@NotNull GradlePropertiesDslElement parent,
-                     @NotNull String configurationName,
-                     @NotNull ArtifactDependencySpec dependency,
-                     @NotNull List<ArtifactDependencySpec> excludes) {
+  static void createNew(@NotNull GradlePropertiesDslElement parent,
+                        @NotNull String configurationName,
+                        @NotNull ArtifactDependencySpec dependency,
+                        @NotNull List<ArtifactDependencySpec> excludes) {
     GradleNameElement name = GradleNameElement.create(configurationName);
     GradleDslLiteral literal = new GradleDslLiteral(parent, name);
     literal.setElementType(REGULAR);
@@ -221,24 +157,26 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     return shouldInterpolate ? iStr(compact) : compact;
   }
 
-  private static class MapNotation extends ArtifactDependencyModelImpl {
+  static class MapNotation extends ArtifactDependencyModelImpl {
     @NotNull private GradleDslExpressionMap myDslElement;
 
     @Nullable
     static MapNotation create(@NotNull String configurationName,
                               @NotNull GradleDslExpressionMap dslElement,
-                              @Nullable GradleDslClosure configurationElement) {
+                              @Nullable GradleDslClosure configurationElement,
+                              @NotNull Maintainer maintainer) {
       if (dslElement.getLiteral("name", String.class) == null) {
         return null; // not a artifact dependency element.
       }
 
-      return new MapNotation(configurationName, dslElement, configurationElement);
+      return new MapNotation(configurationName, dslElement, configurationElement, maintainer);
     }
 
     private MapNotation(@NotNull String configurationName,
                         @NotNull GradleDslExpressionMap dslElement,
-                        @Nullable GradleDslClosure configurationElement) {
-      super(configurationElement, configurationName);
+                        @Nullable GradleDslClosure configurationElement,
+                        @NotNull Maintainer maintainer) {
+      super(configurationElement, configurationName, maintainer);
       myDslElement = dslElement;
     }
 
@@ -283,26 +221,35 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     protected GradleDslElement getDslElement() {
       return myDslElement;
     }
+
+    @Override
+    void setDslElement(@NotNull GradleDslElement dslElement) {
+      myDslElement = (GradleDslExpressionMap)dslElement;
+    }
   }
 
-  private static class CompactNotation extends ArtifactDependencyModelImpl {
+  static class CompactNotation extends ArtifactDependencyModelImpl {
     @NotNull private GradleDslSimpleExpression myDslExpression;
 
     @Nullable
     static CompactNotation create(@NotNull String configurationName,
                                   @NotNull GradleDslSimpleExpression dslExpression,
-                                  @Nullable GradleDslClosure configurationElement) {
+                                  @Nullable GradleDslClosure configurationElement,
+                                  @NotNull Maintainer maintainer) {
       String value = dslExpression.getValue(String.class);
       if (value == null || value.trim().isEmpty()) {
         return null;
       }
-      return new CompactNotation(configurationName, dslExpression, configurationElement);
+      CompactNotation notation = new CompactNotation(configurationName, dslExpression, configurationElement, maintainer);
+      // Check if the create notation is valid i.e it has a name
+      return (notation.name().getValueType() != NONE) ? notation : null;
     }
 
     private CompactNotation(@NotNull String configurationName,
                             @NotNull GradleDslSimpleExpression dslExpression,
-                            @Nullable GradleDslClosure configurationElement) {
-      super(configurationElement, configurationName);
+                            @Nullable GradleDslClosure configurationElement,
+                            @NotNull Maintainer maintainer) {
+      super(configurationElement, configurationName, maintainer);
       myDslExpression = dslExpression;
     }
 
@@ -357,6 +304,14 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     @NotNull
     protected GradleDslElement getDslElement() {
       return myDslExpression;
+    }
+
+    @Override
+    void setDslElement(@NotNull GradleDslElement dslElement) {
+      // We do not expect changes to happen to dslElement while in setThrough mode. Make sure this is not used in an unexpected and
+      // not tested way.
+      assert !mySetThrough;
+      myDslExpression = (GradleDslSimpleExpression)dslElement;
     }
 
     @Override

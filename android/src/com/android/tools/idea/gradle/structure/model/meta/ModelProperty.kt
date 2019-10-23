@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.meta
 
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import java.io.File
 import kotlin.properties.ReadWriteProperty
 
 /**
@@ -105,8 +106,6 @@ fun <T : Any> emptyKnownValues() = object : KnownValues<T> {
 interface ModelPropertyContext<ValueT : Any> {
   /**
    * Parses the text representation of type [ValueT].
-   *
-   * This is up to the parser to decide whether [value] is valid, invalid or is a DSL expression.
    */
   fun parse(value: String): Annotated<ParsedValue<ValueT>>
 
@@ -121,6 +120,30 @@ interface ModelPropertyContext<ValueT : Any> {
    * Returns a list of well-known values (constants) with their short human-readable descriptions that are applicable to the property.
    */
   fun getKnownValues(): ListenableFuture<KnownValues<ValueT>>
+
+  /**
+   * Parses the text representation of [ParsedValue<ValueT>].
+   *
+   * This is up to the parser to decide whether [value] is valid, invalid or is a DSL expression.
+   */
+  fun parseEditorText(text: String): Annotated<ParsedValue<ValueT>> = when {
+    text.startsWith("\$\$") ->
+      ParsedValue.Set.Parsed(value = null, dslText = DslText.OtherUnparsedDslText(text.substring(2))).annotated()
+    text.startsWith("\$") ->
+      ParsedValue.Set.Parsed<ValueT>(value = null, dslText = DslText.Reference(text.substring(1))).annotated()
+    text.startsWith("\"") && text.endsWith("\"") ->
+      ParsedValue.Set.Parsed<ValueT>(value = null, dslText = DslText.InterpolatedString(text.substring(1, text.length - 1))).annotated()
+    else -> parse(text)
+  }
+}
+
+/**
+ * An extension to a property context providing the details to the file chooser UI.
+ */
+interface FileTypePropertyContext<ValueT: Any>  : ModelPropertyContext<ValueT> {
+  val browseRootDir: File?
+  val resolveRootDir: File?
+  val filterPredicate: ((File) -> Boolean)?
 }
 
 /**
@@ -216,15 +239,4 @@ open class PropertyContextStub<ValueT : Any> : ModelPropertyContext<ValueT> {
   override fun parse(value: String): Annotated<ParsedValue<ValueT>> = throw UnsupportedOperationException()
   override fun format(value: ValueT): String = value.toString()
   override fun getKnownValues(): ListenableFuture<KnownValues<ValueT>> = Futures.immediateCancelledFuture()
-}
-
-fun <T : Any> ModelPropertyContext<T>.parseEditorText(text: String): Annotated<ParsedValue<T>> = when {
-  text.startsWith("\$\$") ->
-    ParsedValue.Set.Parsed(value = null, dslText = DslText.OtherUnparsedDslText(text.substring(2))).annotated()
-  text.startsWith("\$") ->
-    ParsedValue.Set.Parsed<T>(value = null, dslText = DslText.Reference(text.substring(1))).annotated()
-  text.startsWith("\"") && text.endsWith("\"") ->
-    ParsedValue.Set.Parsed<T>(value = null,
-                              dslText = DslText.InterpolatedString(text.substring(1, text.length - 1))).annotated()
-  else -> parse(text)
 }

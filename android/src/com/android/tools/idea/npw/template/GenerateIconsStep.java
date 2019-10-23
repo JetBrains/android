@@ -48,7 +48,7 @@ public final class GenerateIconsStep extends ModelWizardStep<RenderTemplateModel
     assert iconType != null; // It's an error to create <icon> tags w/o types.
     myGenerateIconsPanel = new GenerateImageAssetPanel(this, facet, model.getTemplate().get().getPaths(), iconType);
 
-    myListeners.receiveAndFire(model.getTemplate(), value -> myGenerateIconsPanel.setProjectPaths(value.getPaths()));
+    myListeners.listenAndFire(model.getTemplate(), value -> myGenerateIconsPanel.setProjectPaths(value.getPaths()));
 
     myStudioPanel = new StudioWizardStepPanel(myGenerateIconsPanel);
   }

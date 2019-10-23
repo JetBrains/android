@@ -38,6 +38,12 @@ class PsMessageScopeAggregatorTest {
   }
 
   @Test
+  fun simpleNoBuildTypes_errorneusConfig() {
+    val aggregator = PsMessageScopeAggregator(setOf(), listOf())
+    assertThat(aggregator.aggregate(setOf(PsMessageScope("debug"))), equalTo(setOf(PsMessageAggregatedScope("debug"))))
+  }
+
+  @Test
   fun withOneDimensionAllFlavors() {
     val aggregator = PsMessageScopeAggregator(setOf("debug", "release"), listOf(setOf("A", "B", "C")))
     assertThat(aggregator.aggregate(setOf(
@@ -109,6 +115,14 @@ class PsMessageScopeAggregatorTest {
       equalTo(setOf(
         PsMessageAggregatedScope("debug", listOf("C")),
         PsMessageAggregatedScope("release", listOf("C"), scope = "Test"))))
+  }
+
+  @Test
+  fun withOneDimensionNoFlavors_errorneousConfig() {
+    val aggregator = PsMessageScopeAggregator(setOf("debug", "release"), listOf(setOf()))
+    assertThat(aggregator.aggregate(setOf(
+      PsMessageScope("debug", listOf("A"))
+    )), equalTo(setOf(PsMessageAggregatedScope("debug", listOf("A")))))
   }
 
   @Test

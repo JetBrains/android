@@ -16,10 +16,10 @@
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.drawable.BitmapElement;
 
-public class BitmapDomFileDescription extends AbstractSingleRootFileDescription<BitmapElement> {
+public class BitmapDomFileDescription extends SingleRootResourceDomFileDescription<BitmapElement> {
 
   public BitmapDomFileDescription() {
     super(BitmapElement.class, "bitmap", ResourceFolderType.DRAWABLE);

@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.common.SyncNlModel;
-import com.android.tools.idea.common.analytics.NlUsageTracker;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
@@ -100,6 +100,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     addFiles();
     setUpManifest();
     myModel = createModel();
+    Disposer.register(getProject(), myModel);
     myComponentMap = createComponentMap();
     myTextView = myComponentMap.get("textView");
     myProgressBar = myComponentMap.get("progress");
@@ -123,9 +124,10 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myViewTag = myComponentMap.get("viewTag");
     myFragment = myComponentMap.get("fragmentTag");
     myDesignSurface = (NlDesignSurface)myModel.getSurface();
+    Disposer.register(getProject(), myDesignSurface);
     ScreenView view = new ScreenView(myDesignSurface, myDesignSurface.getSceneManager());
     when(myDesignSurface.getCurrentSceneView()).thenReturn(view);
-    myPropertiesManager = new NlPropertiesManager(myFacet, myDesignSurface);
+    myPropertiesManager = new NlPropertiesManager(myFacet, myDesignSurface, getProject());
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myPropertiesComponent = new PropertiesComponentMock();
     myUsageTracker = mockNlUsageTracker(myDesignSurface);
@@ -136,9 +138,6 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   public void tearDown() throws Exception {
     try {
       cleanUsageTrackerAfterTesting(myDesignSurface);
-      Disposer.dispose(myModel);
-      Disposer.dispose(myPropertiesManager);
-      Disposer.dispose(myDesignSurface);
       // Null out all fields, since otherwise they're retained for the lifetime of the suite (which can be long if e.g. you're running many
       // tests through IJ)
       myTextView = null;
@@ -418,9 +417,9 @@ public abstract class PropertyTestCase extends LayoutTestCase {
 
   @Nullable
   protected XmlAttributeDescriptor getDescriptor(@NotNull NlComponent component, @NotNull String attributeName) {
-    XmlElementDescriptor elementDescriptor = myDescriptorProvider.getDescriptor(component.getTag());
+    XmlElementDescriptor elementDescriptor = myDescriptorProvider.getDescriptor(component.getTagDeprecated());
     assertThat(elementDescriptor).isNotNull();
-    XmlAttributeDescriptor[] descriptors = elementDescriptor.getAttributesDescriptors(component.getTag());
+    XmlAttributeDescriptor[] descriptors = elementDescriptor.getAttributesDescriptors(component.getTagDeprecated());
     for (XmlAttributeDescriptor descriptor : descriptors) {
       if (descriptor.getName().equals(attributeName)) {
         return descriptor;
@@ -441,7 +440,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     AttributeDefinitions systemAttrDefs = frameworkResourceManager.getAttributeDefinitions();
     XmlName name = getXmlName(component, descriptor);
 
-    AttributeDefinitions attrDefs = NS_RESOURCES.equals(name.getNamespaceKey()) ? systemAttrDefs : localAttrDefs;
+    AttributeDefinitions attrDefs = ANDROID_URI.equals(name.getNamespaceKey()) ? systemAttrDefs : localAttrDefs;
     return attrDefs == null ? null : attrDefs.getAttrDefByName(descriptor.getName());
   }
 
@@ -449,7 +448,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   private static XmlName getXmlName(@NotNull NlComponent component, @NotNull XmlAttributeDescriptor descriptor) {
     String namespace = null;
     if (descriptor instanceof NamespaceAwareXmlAttributeDescriptor) {
-      namespace = ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(component.getTag());
+      namespace = ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(component.getTagDeprecated());
     }
     return new XmlName(descriptor.getName(), namespace);
   }

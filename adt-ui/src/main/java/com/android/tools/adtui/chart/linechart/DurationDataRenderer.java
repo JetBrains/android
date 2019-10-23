@@ -17,22 +17,14 @@ package com.android.tools.adtui.chart.linechart;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.DurationData;
-import com.android.tools.adtui.model.DurationDataModel;
-import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.SeriesData;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Shape;
-import java.awt.Stroke;
+import com.android.tools.adtui.model.*;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
@@ -41,14 +33,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import javax.swing.Icon;
-import javax.swing.JLabel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A custom renderer to support drawing {@link DurationData} over line charts
@@ -297,6 +283,23 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
         g2d.setClip(originalClip);
       }
     }
+
+    // Draw the start/end lines if stroke has been set.
+    if (myStroke != null) {
+      g2d.setColor(myColor);
+      g2d.setStroke(myStroke);
+      Line2D eventLine = new Line2D.Float();
+      for (Rectangle2D.Float rect : myPathCache) {
+        double scaledXStart = rect.x * lineChart.getWidth();
+        double scaledXDuration = rect.width * lineChart.getWidth();
+        g2d.translate(scaledXStart, 0);
+        eventLine.setLine(0, 0, 0, lineChart.getHeight());
+        g2d.draw(eventLine);
+        eventLine.setLine(scaledXDuration, 0, scaledXDuration, lineChart.getHeight());
+        g2d.draw(eventLine);
+        g2d.translate(-scaledXStart, 0);
+      }
+    }
   }
 
   @VisibleForTesting Rectangle2D.Float getScaledClickRegion(@NotNull Rectangle2D.Float rect, int componentWidth, int componentHeight) {
@@ -338,28 +341,11 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     }
 
     myClick = false;
-
-    // Draw the start/end lines if stroke has been set.
-    if (myStroke != null) {
-      g2d.setColor(myColor);
-      g2d.setStroke(myStroke);
-      Line2D eventLine = new Line2D.Float();
-      for (Rectangle2D.Float rect : myPathCache) {
-        double scaledXStart = rect.x * host.getWidth();
-        double scaledXDuration = rect.width * host.getWidth();
-        g2d.translate(scaledXStart, 0);
-        eventLine.setLine(0, 0, 0, host.getHeight());
-        g2d.draw(eventLine);
-        eventLine.setLine(scaledXDuration, 0, scaledXDuration, host.getHeight());
-        g2d.draw(eventLine);
-        g2d.translate(-scaledXStart, 0);
-      }
-    }
   }
 
   private boolean isHoveringOverClickRegion(@NotNull Component overlayComponent, @NotNull MouseEvent event) {
-    for (Rectangle2D.Float clickRegionCache : myClickRegionCache) {
-      Rectangle2D.Float rect = getScaledClickRegion(clickRegionCache, overlayComponent.getWidth(), overlayComponent.getHeight());
+    for (int i = 0; i < myClickRegionCache.size(); ++i) {
+      Rectangle2D.Float rect = getScaledClickRegion(myClickRegionCache.get(i), overlayComponent.getWidth(), overlayComponent.getHeight());
       if (myMousePosition != null && rect.contains(myMousePosition)) {
         return true;
       }

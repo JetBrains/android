@@ -49,29 +49,29 @@ public class GutterIconCacheTest extends AndroidTestCase {
     GutterIconCache cache = new GutterIconCache();
 
     // If we've never requested an Icon for the path, there should be no valid cache entry.
-    assertThat(cache.isIconUpToDate(mySampleSvgPath.toString())).isFalse();
+    assertThat(cache.isIconUpToDate(mySampleSvgFile)).isFalse();
   }
 
   public void testIsIconUpToDate_entryValid() {
-    GutterIconCache.getInstance().getIcon(mySampleSvgPath.toString(), null);
+    GutterIconCache.getInstance().getIcon(mySampleSvgFile, null, myFacet);
 
     // If we haven't modified the image since creating an Icon, the cache entry is still valid
-    assertThat(GutterIconCache.getInstance().isIconUpToDate(mySampleSvgPath.toString())).isTrue();
+    assertThat(GutterIconCache.getInstance().isIconUpToDate(mySampleSvgFile)).isTrue();
   }
 
   public void testIsIconUpToDate_entryInvalidUnsavedChanges() {
-    GutterIconCache.getInstance().getIcon(mySampleSvgPath.toString(), null);
+    GutterIconCache.getInstance().getIcon(mySampleSvgFile, null, myFacet);
 
     // "Modify" Document by rewriting its contents
     Document document = FileDocumentManager.getInstance().getDocument(mySampleSvgFile);
     ApplicationManager.getApplication().runWriteAction(() -> document.setText(document.getText()));
 
     // Modifying the image should have invalidated the cache entry.
-    assertThat(GutterIconCache.getInstance().isIconUpToDate(mySampleSvgPath.toString())).isFalse();
+    assertThat(GutterIconCache.getInstance().isIconUpToDate(mySampleSvgFile)).isFalse();
   }
 
   public void testIconUpToDate_entryInvalidSavedChanges() throws Exception {
-    GutterIconCache.getInstance().getIcon(mySampleSvgPath.toString(), null);
+    GutterIconCache.getInstance().getIcon(mySampleSvgFile, null, myFacet);
 
     // Modify image resource by adding an empty comment and then save
     Document document = FileDocumentManager.getInstance().getDocument(mySampleSvgFile);
@@ -81,11 +81,11 @@ public class GutterIconCacheTest extends AndroidTestCase {
     });
 
     // Modifying the image should have invalidated the cache entry.
-    assertThat(GutterIconCache.getInstance().isIconUpToDate(mySampleSvgPath.toString())).isFalse();
+    assertThat(GutterIconCache.getInstance().isIconUpToDate(mySampleSvgFile)).isFalse();
   }
 
   public void testIconUpToDate_entryInvalidDiskChanges() throws Exception {
-    GutterIconCache.getInstance().getIcon(mySampleSvgPath.toString(), null);
+    GutterIconCache.getInstance().getIcon(mySampleSvgFile, null, myFacet);
 
     FileTime previousTimestamp = Files.getLastModifiedTime(mySampleSvgPath);
 
@@ -97,6 +97,6 @@ public class GutterIconCacheTest extends AndroidTestCase {
     assertThat(previousTimestamp).isLessThan(Files.getLastModifiedTime(mySampleSvgPath));
 
     // Modifying the image should have invalidated the cache entry.
-    assertThat(GutterIconCache.getInstance().isIconUpToDate(mySampleSvgPath.toString())).isFalse();
+    assertThat(GutterIconCache.getInstance().isIconUpToDate(mySampleSvgFile)).isFalse();
   }
 }

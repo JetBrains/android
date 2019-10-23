@@ -26,24 +26,22 @@ import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Compan
 import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Companion.ENABLED_OPTION
 import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Companion.DEFAULT_CACHE_IMPL_OPTION
 import org.jetbrains.kotlin.android.synthetic.AndroidComponentRegistrar.Companion.parseCacheImplementationType
-import org.jetbrains.kotlin.compiler.plugin.CliOption
+import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.idea.core.unwrapModuleSourceInfo
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatform
 
 private val ANNOTATION_OPTION_PREFIX = "plugin:$ANDROID_COMPILER_PLUGIN_ID:"
 
-private fun Module.getOptionValueInFacet(option: CliOption): String? {
+private fun Module.getOptionValueInFacet(option: AbstractCliOption): String? {
     val kotlinFacet = KotlinFacet.get(this) ?: return null
     val commonArgs = kotlinFacet.configuration.settings.compilerArguments ?: return null
 
-    val prefix = ANNOTATION_OPTION_PREFIX + option.name + "="
+    val prefix = ANNOTATION_OPTION_PREFIX + option.optionName + "="
 
-    val optionValue = commonArgs.pluginOptions
+    return commonArgs.pluginOptions
             ?.firstOrNull { it.startsWith(prefix) }
             ?.substring(prefix.length)
-
-    return optionValue
 }
 
 private fun isTestMode(module: Module): Boolean {
@@ -69,8 +67,7 @@ internal val ModuleInfo.androidExtensionsIsExperimental: Boolean
 
 internal val Module.androidExtensionsIsExperimental: Boolean
     get() {
-        // Android Studio: running in tests should not enable experimental features that aren't enabled in production.
-        // if (isTestMode(this)) return true
+        if (isTestMode(this)) return true
         return getOptionValueInFacet(EXPERIMENTAL_OPTION) == "true"
     }
 

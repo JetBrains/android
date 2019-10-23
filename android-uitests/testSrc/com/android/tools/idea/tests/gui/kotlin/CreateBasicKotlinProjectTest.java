@@ -20,13 +20,14 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.idea.tests.gui.kotlin.ProjectWithKotlinTestUtil.createNewBasicKotlinProject;
+import static com.android.tools.idea.tests.gui.kotlin.ProjectWithKotlinTestUtil.createKotlinProj;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
@@ -55,8 +56,8 @@ public class CreateBasicKotlinProjectTest {
    */
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
-  public void createBasicKotlinProject() {
-    createNewBasicKotlinProject(false, guiTest);
+  public void createBasicKotlinProject() throws IOException {
+    createKotlinProj(false, guiTest);
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
     assertThat(KOTLIN_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());

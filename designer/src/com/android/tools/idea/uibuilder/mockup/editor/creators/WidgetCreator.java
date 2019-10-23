@@ -279,7 +279,7 @@ public abstract class WidgetCreator {
    */
   private void ensureNewComponentCreated() {
     if (myComponent == null) {
-      final XmlTag parentTag = myMockup.getComponent().getTag();
+      final XmlTag parentTag = myMockup.getComponent().getTagDeprecated();
       final XmlTag childTag = parentTag.createChildTag(getAndroidViewTag(), null, null, false);
       myComponent = myModel.createComponent(childTag);
     }

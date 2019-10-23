@@ -15,18 +15,32 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_ADD_AND_APPLY_ALL_MODULE_PATHS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_ADD_AND_APPLY_MODULE_PATHS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_ADD_AND_RESET_MODULE_PATHS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_GET_BUILD_FILE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_GET_MODULE_DIRECTORY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_GET_MODULE_WITH_DIRECTORY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_GET_PARENT_MODULE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_INCLUDED_MODULE_PATHS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_INCLUDED_MODULE_PATHS_WITH_DOT_SEPARATOR;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_INCLUDED_MODULE_PATHS_WITH_DOT_SEPARATOR_SETTINGS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_REMOVE_AND_APPLY_ALL_MODULE_PATHS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_REMOVE_AND_APPLY_MODULE_PATHS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_REMOVE_AND_RESET_MODULE_PATHS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_REPLACE_AND_APPLY_MODULE_PATHS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_REPLACE_AND_RESET_MODULE_PATHS;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
-import java.io.File;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 /**
  * Tests for {@link GradleSettingsModel}.
@@ -34,19 +48,15 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 public class GradleSettingsModelTest extends GradleFileModelTestCase {
   @Test
   public void testIncludedModulePaths() throws Exception {
-    String text = "include \":app\" \n" +
-                  "include \":lib\", \":lib:subLib\"";
-
-    writeToSettingsFile(text);
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_INCLUDED_MODULE_PATHS);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib:subLib"), settingsModel.modulePaths());
   }
 
   @Test
   public void testIncludedModulePathsWithDotSeparator() throws Exception {
-    String text = "include \":app:app.ext\"\n";
-    writeToBuildFile("");
-    writeToSettingsFile(text);
+    writeToBuildFile(GRADLE_SETTINGS_MODEL_INCLUDED_MODULE_PATHS_WITH_DOT_SEPARATOR);
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_INCLUDED_MODULE_PATHS_WITH_DOT_SEPARATOR_SETTINGS);
     Module newModule = writeToNewSubModule("app.ext", "", "");
 
     ProjectBuildModel projectModel = ProjectBuildModel.get(myProject);
@@ -57,9 +67,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndResetModulePaths() throws Exception {
-    String text = "include \":app\", \":lib\"";
-
-    writeToSettingsFile(text);
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_ADD_AND_RESET_MODULE_PATHS);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals("include", ImmutableList.of(":", ":app", ":lib"), settingsModel.modulePaths());
 
@@ -72,9 +80,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndApplyModulePaths() throws Exception {
-    String text = "include \":app\", \":lib\"";
-
-    writeToSettingsFile(text);
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_ADD_AND_APPLY_MODULE_PATHS);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals("include", ImmutableList.of(":", ":app", ":lib"), settingsModel.modulePaths());
 
@@ -90,9 +96,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndApplyAllModulePaths() throws Exception {
-    String text = "";
-
-    writeToSettingsFile(text);
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_ADD_AND_APPLY_ALL_MODULE_PATHS);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals("include", ImmutableList.of(":"), settingsModel.modulePaths());
 
@@ -108,10 +112,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndResetModulePaths() throws Exception {
-    String text = "include \":app\" \n" +
-                  "include \":lib\"";
-
-    writeToSettingsFile(text);
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_REMOVE_AND_RESET_MODULE_PATHS);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals("include", ImmutableList.of(":", ":app", ":lib"), settingsModel.modulePaths());
 
@@ -124,10 +125,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndApplyModulePaths() throws Exception {
-    String text = "include \":app\" \n" +
-                  "include \":lib\"";
-
-    writeToSettingsFile(text);
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_REMOVE_AND_APPLY_MODULE_PATHS);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals("include", ImmutableList.of(":", ":app", ":lib"), settingsModel.modulePaths());
 
@@ -143,10 +141,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndApplyAllModulePaths() throws Exception {
-    String text = "include \":app\" \n" +
-                  "include \":lib\", \":lib1\"";
-
-    writeToSettingsFile(text);
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_REMOVE_AND_APPLY_ALL_MODULE_PATHS);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib1"), settingsModel.modulePaths());
 
@@ -164,10 +159,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceAndResetModulePaths() throws Exception {
-    String text = "include \":app\" \n" +
-                  "include \":lib\", \":lib:subLib\"";
-
-    writeToSettingsFile(text);
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_REPLACE_AND_RESET_MODULE_PATHS);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib:subLib"), settingsModel.modulePaths());
 
@@ -180,10 +172,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceAndApplyModulePaths() throws Exception {
-    String text = "include \":app\" \n" +
-                  "include \":lib\", \":lib:subLib\"";
-
-    writeToSettingsFile(text);
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_REPLACE_AND_APPLY_MODULE_PATHS);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib:subLib"), settingsModel.modulePaths());
 
@@ -199,15 +188,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testGetModuleDirectory() throws Exception {
-    String text = "include \"app\", \":libs\"\n" +
-                  "include 'libs:mylibrary'\n" +
-                  "project(':libs:mylibrary').projectDir = new File(rootDir, 'xyz/mylibrary')\n" +
-                  "include \":olibs\"\n" +
-                  "project  (   \":olibs\"  )   .   projectDir = new File(rootDir, 'otherlibs')\n" +
-                  "include 'olibs:mylibrary'\n" +
-                  "include ':notamodule:deepmodule'";
-
-    writeToSettingsFile(text);
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_GET_MODULE_DIRECTORY);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals(ImmutableList.of(":", ":app", ":libs", ":libs:mylibrary", ":olibs", ":olibs:mylibrary", ":notamodule:deepmodule"),
                  settingsModel.modulePaths());
@@ -224,15 +205,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testGetModuleWithDirectory() throws Exception {
-    String text = "include \"app\", \":libs\"\n" +
-                  "include 'libs:mylibrary'\n" +
-                  "project(':libs:mylibrary').projectDir = new File(rootDir, 'xyz/mylibrary')\n" +
-                  "include \":olibs\"\n" +
-                  "project  (   \":olibs\"  )   .   projectDir = new File(rootDir, 'otherlibs')\n" +
-                  "include 'olibs:mylibrary'\n" +
-                  "include ':notamodule:deepmodule'";
-
-    writeToSettingsFile(text);
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_GET_MODULE_WITH_DIRECTORY);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals(ImmutableList.of(":", ":app", ":libs", ":libs:mylibrary", ":olibs", ":olibs:mylibrary", ":notamodule:deepmodule"),
                  settingsModel.modulePaths());
@@ -249,13 +222,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testGetBuildFile() throws Exception {
-    String text = "include \"app\", \":lib\"\n" +
-                  "project(':lib').buildFileName = 'test.gradle'\n" +
-                  "include 'olib'\n" +
-                  "project(\":olib\").projectDir = new File(rootDir, \"otherlibs/xyz\")\n" +
-                  "project(':olib').buildFileName = 'other.gradle'";
-
-    writeToSettingsFile(text);
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_GET_BUILD_FILE);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals(ImmutableList.of(":", ":app", ":lib", ":olib"), settingsModel.modulePaths());
 
@@ -268,13 +235,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testGetParentModule() throws Exception {
-    String text = "include \"app\", \":libs\"\n" +
-                  "include 'libs:mylibrary'\n" +
-                  "include \":olibs\"\n" +
-                  "include 'olibs:mylibrary'\n" +
-                  "include ':notamodule:deepmodule'";
-
-    writeToSettingsFile(text);
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_GET_PARENT_MODULE);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     assertEquals(ImmutableList.of(":", ":app", ":libs", ":libs:mylibrary", ":olibs", ":olibs:mylibrary", ":notamodule:deepmodule"),
                  settingsModel.modulePaths());
@@ -288,12 +249,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
   }
 
   private void applyChanges(@NotNull final GradleSettingsModel settingsModel) {
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        settingsModel.applyChanges();
-      }
-    });
+    runWriteCommandAction(myProject, () -> settingsModel.applyChanges());
     assertFalse(settingsModel.isModified());
   }
 }

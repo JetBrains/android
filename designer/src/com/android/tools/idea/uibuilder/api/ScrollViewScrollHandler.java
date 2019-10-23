@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.api;
 
 import android.view.View;
 import android.view.ViewGroup;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.IntConsumer;
@@ -44,17 +45,24 @@ public final class ScrollViewScrollHandler implements ScrollHandler {
     myScrollHandler = scrollHandler;
   }
 
+  /**
+   * Creates a new {@link ScrollViewScrollHandler}
+   * @param viewGroup The scrollable {@link android.view.ViewGroup}
+   * @param maxScrollableSize The maximum number of pixels the viewGroup can be scrolled
+   * @param scrollUnitSize The number of pixels to scroll in every scroll step
+   * @param orientation The scroll orientation
+   */
   @NotNull
-  public static ScrollViewScrollHandler createHandler(@NotNull View view,
+  public static ScrollViewScrollHandler createHandler(@NotNull ViewGroup viewGroup,
                                                       int maxScrollableSize,
                                                       int scrollUnitSize,
                                                       @NotNull Orientation orientation) {
     return new ScrollViewScrollHandler(
       maxScrollableSize,
       scrollUnitSize,
-      orientation == Orientation.VERTICAL ? view::setScrollY : view::setScrollX,
-      orientation == Orientation.VERTICAL ? view::getScrollY : view::getScrollX,
-      () -> handleScrolling(view)
+      orientation == Orientation.VERTICAL ? viewGroup::setScrollY : viewGroup::setScrollX,
+      orientation == Orientation.VERTICAL ? viewGroup::getScrollY : viewGroup::getScrollX,
+      () -> handleScrolling(viewGroup)
     );
   }
 
@@ -153,6 +161,30 @@ public final class ScrollViewScrollHandler implements ScrollHandler {
       return false;
     }
     return true;
+  }
+
+  /**
+   * Returns the maximum distance that the passed view group could scroll
+   *
+   * @param measureGroup    {@link Function} used to measure the passed viewGroup (for example {@link ViewGroup#getHeight()})
+   * @param measureChildren {@link Function} used to measure the children of the viewGroup (for example {@link View#getMeasuredHeight()})
+   */
+  public static int getMaxScrollable(@NotNull ViewGroup viewGroup,
+                                     @NotNull Function<ViewGroup, Integer> measureGroup,
+                                     @NotNull Function<View, Integer> measureChildren) {
+    int maxScrollable = 0;
+    for (int i = 0; i < viewGroup.getChildCount(); i++) {
+      maxScrollable += measureChildren.apply(viewGroup.getChildAt(i));
+    }
+
+    // Subtract the viewport height from the scrollable size
+    maxScrollable -= measureGroup.apply(viewGroup);
+
+    if (maxScrollable < 0) {
+      maxScrollable = 0;
+    }
+
+    return maxScrollable;
   }
 
   /**

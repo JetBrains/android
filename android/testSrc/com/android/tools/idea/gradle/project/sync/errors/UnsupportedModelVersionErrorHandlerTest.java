@@ -15,27 +15,33 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_MODEL_VERSION;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.FIX_ANDROID_GRADLE_PLUGIN_VERSION_HYPERLINK;
 
 /**
  * Tests for {@link UnsupportedModelVersionErrorHandler}.
  */
 public class UnsupportedModelVersionErrorHandlerTest extends AndroidGradleTestCase {
   private GradleSyncMessagesStub mySyncMessagesStub;
+  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject(), getTestRootDisposable());
   }
 
   public void testHandleError() throws Exception {
@@ -54,5 +60,8 @@ public class UnsupportedModelVersionErrorHandlerTest extends AndroidGradleTestCa
 
     NotificationHyperlink quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(FixAndroidGradlePluginVersionHyperlink.class);
+
+    assertEquals(UNSUPPORTED_MODEL_VERSION, myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(FIX_ANDROID_GRADLE_PLUGIN_VERSION_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 }

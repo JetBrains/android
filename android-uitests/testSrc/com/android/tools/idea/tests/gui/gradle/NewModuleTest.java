@@ -17,10 +17,9 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
+import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
@@ -35,7 +34,6 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests, that newly generated modules work, even with older gradle plugin versions.
  */
-@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner.class)
 public class NewModuleTest {
 
@@ -43,7 +41,7 @@ public class NewModuleTest {
 
   @Test
   public void testNewModuleOldGradle() throws Exception {
-    String gradleFileContents = guiTest.importSimpleLocalApplication()
+    String gradleFileContents = guiTest.importSimpleApplication()
       // the oldest combination we support:
       .updateAndroidGradlePluginVersion("1.0.0")
       .updateGradleWrapperVersion("2.2.1")
@@ -76,7 +74,7 @@ public class NewModuleTest {
   public void createNewModuleFromJar() throws Exception {
     String jarFile = GuiTests.getTestDataDir() + "/LocalJarsAsModules/localJarAsModule/local.jar";
 
-    guiTest.importSimpleLocalApplication()
+    guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Import .JAR/.AAR Package")
       .clickNextToStep("Import Module from Library")
@@ -100,7 +98,7 @@ public class NewModuleTest {
 
   @Test
   public void createNewJavaLibraryWithDefaults() throws Exception {
-    guiTest.importSimpleLocalApplication()
+    guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Java Library")
       .clickNextToStep("Library name:")
@@ -116,8 +114,25 @@ public class NewModuleTest {
   }
 
   @Test
+  public void createNewAndroidLibraryWithDefaults() throws Exception {
+    String gradleFileContents = guiTest.importSimpleApplication()
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .chooseModuleType("Android Library")
+      .clickNextToStep("Android Library")
+      .setModuleName("somelibrary")
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("somelibrary/build.gradle")
+      .getCurrentFileContents();
+
+    assertThat(gradleFileContents).contains("apply plugin: 'com.android.library'");
+    assertThat(gradleFileContents).contains("consumerProguardFiles");
+  }
+
+  @Test
   public void createNewJavaLibraryWithNoGitIgnore() throws Exception {
-    guiTest.importSimpleLocalApplication()
+    guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Java Library")
       .clickNextToStep("Library name:")
@@ -131,5 +146,32 @@ public class NewModuleTest {
       .waitForGradleProjectSyncToFinish();
     assertAbout(file()).that(guiTest.getProjectPath("mylib/src/main/java/my/test/MyJavaClass.java")).isFile();
     assertAbout(file()).that(guiTest.getProjectPath("mylib/.gitignore")).doesNotExist();
+  }
+
+  @Test
+  public void addNewModuleToAndroidxProject() {
+    WizardUtils.createNewProject(guiTest); // Default projects are created with androidx dependencies
+    guiTest.ideFrame()
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .clickNext() // Default Phone & Tablet Module
+      .setModuleName("otherModule")
+      .clickNext()
+      .clickNext() // Default "Empty Activity"
+      .clickFinish();
+
+    String gradleProperties = guiTest.ideFrame().getEditor()
+      .open("gradle.properties")
+      .getCurrentFileContents();
+    assertThat(gradleProperties).contains("android.useAndroidX=true");
+
+    String appBuildGradle = guiTest.ideFrame().getEditor()
+      .open("app/build.gradle")
+      .getCurrentFileContents();
+    assertThat(appBuildGradle).contains("androidx.appcompat:appcompat");
+
+    String otherModuleBuildGradle = guiTest.ideFrame().getEditor()
+      .open("othermodule/build.gradle")
+      .getCurrentFileContents();
+    assertThat(otherModuleBuildGradle).contains("androidx.appcompat:appcompat");
   }
 }

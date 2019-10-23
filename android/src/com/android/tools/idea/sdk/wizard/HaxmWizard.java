@@ -113,7 +113,7 @@ public class HaxmWizard extends DynamicWizard {
     private DynamicWizardHost myHost;
     private StudioLoggerProgressIndicator myProgressIndicator;
 
-    SetupProgressStep(Disposable parentDisposable, Haxm haxm, DynamicWizardHost host) {
+    public SetupProgressStep(Disposable parentDisposable, Haxm haxm, DynamicWizardHost host) {
       super(parentDisposable, "Invoking installer");
       myHaxm = haxm;
       myHost = host;

@@ -25,13 +25,13 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.progress.StudioProgressRunner;
+import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.adapters.AdapterProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.progress.StudioProgressRunner;
-import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.welcome.wizard.deprecated.ConsolidatedProgressStep;
@@ -41,10 +41,7 @@ import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
-import com.google.common.collect.TreeMultimap;
+import com.google.common.collect.*;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
@@ -69,7 +66,6 @@ import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.table.SelectionProvider;
 import java.util.HashSet;
-import com.intellij.util.containers.ImmutableList;
 import com.intellij.util.ui.accessibility.ScreenReader;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -88,8 +84,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 
 import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
 
@@ -222,7 +218,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
     if (!sdkLocations.isEmpty()) {
       mySelectedSdkLocation.set(sdkLocations.stream().findFirst());
     }
-    mySelectedSdkLocation.addListener(sender -> ApplicationManager.getApplication().invokeLater(this::reset));
+    mySelectedSdkLocation.addListener(() -> ApplicationManager.getApplication().invokeLater(this::reset));
 
     ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "SingleSdk");
     setUpSingleSdkChooser();
@@ -272,7 +268,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
   private static Collection<File> getSdkLocations() {
     File androidHome = IdeSdks.getInstance().getAndroidSdkPath();
     if (androidHome != null) {
-      return ImmutableList.singleton(androidHome);
+      return ImmutableList.of(androidHome);
     }
 
     Set<File> locations = new HashSet<>();
@@ -525,12 +521,12 @@ public class SdkUpdaterConfigPanel implements Disposable {
       myPlatformComponentsPanel.startLoading();
       myToolComponentsPanel.startLoading();
       myConfigurable.getRepoManager()
-                    .load(0, ImmutableList.singleton(myLocalUpdater), ImmutableList.singleton(myRemoteUpdater), null,
+                    .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
                           progressRunner, myDownloader, mySettings, false);
     }
     else {
       myConfigurable.getRepoManager()
-                    .load(0, ImmutableList.singleton(myLocalUpdater), null, null,
+                    .load(0, ImmutableList.of(myLocalUpdater), null, null,
                           progressRunner, null, mySettings, false);
     }
   }

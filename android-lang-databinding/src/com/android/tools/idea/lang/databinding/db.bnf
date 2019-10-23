@@ -1,0 +1,221 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Modify databinding expression grammar to allow calls to unqualified methods. See b/37137454.
+// See https://github.com/JetBrains/Grammar-Kit/blob/master/HOWTO.md#24-compact-expression-parsing-with-priorities
+// and https://github.com/JetBrains/Grammar-Kit/blob/master/testData/generator/ExprParser.bnf
+
+{
+  parserClass="com.android.tools.idea.lang.databinding.parser.DbParser"
+  extends="com.android.tools.idea.lang.databinding.psi.DataBindingPsiElement"
+
+  psiClassPrefix="PsiDb"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.android.tools.idea.lang.databinding.psi"
+  psiImplPackage="com.android.tools.idea.lang.databinding.psi.impl"
+
+  elementTypeHolderClass="com.android.tools.idea.lang.databinding.psi.DbTokenTypes"
+  elementTypeClass="com.android.tools.idea.lang.databinding.psi.DbElementType"
+  tokenTypeClass="com.android.tools.idea.lang.databinding.psi.DbTokenType"
+
+  classHeader='generatedFilesHeader.txt'
+
+  extends(".*Expr")=expr
+
+  tokens=[
+    // literals
+    TRUE='true'
+    FALSE='false'
+    NULL='null'
+
+    // primitive types
+    BOOLEAN_KEYWORD='boolean'
+    BYTE_KEYWORD='byte'
+    CHAR_KEYWORD='char'
+    SHORT_KEYWORD='short'
+    INT_KEYWORD='int'
+    LONG_KEYWORD='long'
+    FLOAT_KEYWORD='float'
+    DOUBLE_KEYWORD='double'
+
+    // other keywords
+    VOID_KEYWORD='void'
+    CLASS_KEYWORD='class'
+    INSTANCEOF_KEYWORD='instanceof'
+    DEFAULT_KEYWORD='default'
+
+    // operators
+    EQEQ='=='
+    NE='!='
+    LE='<='
+    LTLT='<<'
+    LT='<'
+    GTGTGT='>>>'
+    GTGT='>>'
+    GTEQ='>='
+    GT='>'
+    EQ='='
+    EXCL='!'
+    TILDE='~'
+    QUESTQUEST='??'
+    QUEST='?'
+    COLONCOLON='::'
+    COLON=':'
+    PLUS='+'
+    MINUS='-'
+    ASTERISK='*'
+    DIV='/'
+    ANDAND='&&'
+    AND='&'
+    OROR='||'
+    OR='|'
+    XOR='^'
+    PERC='%'
+    LAMBDA='->'
+
+    // other symbols
+    LPARENTH='('
+    RPARENTH=')'
+    LBRACKET='['
+    RBRACKET=']'
+    COMMA=','
+    DOT='.'
+
+    // Some more tokens are written directly in the flex file. Follow instructions above to make sure that they are not overridden.
+  ]
+
+}
+
+dataBindingExpression
+  ::= lambdaExpression  // RootLambda
+  |   expr defaults?    // RootExpr
+
+// All branches here must end in "Expr"
+expr
+  ::= nullCoalesceExpr     //  '??'
+  |   ternaryExpr
+  |   logicalOrExpr        //  '||'
+  |   logicalAndExpr
+  |   binaryOrExpr         //  '|'
+  |   binaryXorExpr
+  |   binaryAndExpr
+  |   eqComparisonExpr     //  '==' and '!='
+  |   instanceOfExpr
+  |   ineqComparisonExpr   //  '<=', '<' etc.
+  |   bitShiftExpr
+  |   addExpr              //  '+' and '-'
+  |   mulExpr              //  '*' and '/' and '%'
+  |   negationExpr         //  '!' and '~'
+  |   signChangeExpr
+  |   castExpr
+  |   callExpr
+  |   bracketExpr          //  array op - []
+  |   qualRefExpr          //  field access
+  |   simpleRefExpr
+  |   functionRefExpr      //  method reference using '::'
+  |   resourcesExpr
+  |   classExtractionExpr
+  |   voidExpr
+  |   literalExpr
+  |   parenExpr           //  (grouping)
+
+fake refExpr ::= expr? '.' id
+simpleRefExpr ::= id {extends=refExpr elementType=refExpr}
+qualRefExpr ::= expr '.' id {extends=refExpr elementType=refExpr}
+nullCoalesceExpr ::= expr '??' expr
+ternaryExpr ::= expr '?' expr ':' expr
+logicalOrExpr ::= expr '||' expr
+logicalAndExpr ::= expr '&&' expr
+binaryOrExpr ::= expr '|' expr
+binaryXorExpr ::= expr '^' expr
+binaryAndExpr ::= expr '&' expr
+eqComparisonExpr ::= expr eqComparisonOp expr
+instanceOfExpr ::= expr 'instanceof' expr
+ineqComparisonExpr ::= expr ineqComparisonOp expr
+bitShiftExpr ::= expr bitShiftOp expr
+addExpr ::= expr addOp expr
+mulExpr ::= expr mulOp expr
+negationExpr ::= negationOp expr
+signChangeExpr ::= signOp expr
+castExpr ::= '(' type ')' expr
+callExpr ::= refExpr '(' expressionList? ')'
+bracketExpr ::= expr '[' expr ']'
+functionRefExpr ::= expr '::' id
+resourcesExpr ::= RESOURCE_REFERENCE resourceParameters?
+classExtractionExpr ::= type '.' 'class'
+voidExpr ::= voidLiteral
+literalExpr ::= literal
+parenExpr ::= '(' expr ')'
+
+private eqComparisonOp ::= '==' | '!='
+private ineqComparisonOp ::= '<=' | '>=' | '<' | '>'
+private bitShiftOp ::= '<<' | '>>>' | '>>'
+private addOp ::= '+' | '-'
+private signOp ::= '+' | '-'
+private mulOp ::= '*' | '/' | '%'
+private negationOp ::= '~' | '!'
+
+expressionList ::= expr (',' expr)*
+
+private literal
+  ::= INTEGER_LITERAL
+  |   FLOAT_LITERAL
+  |   LONG_LITERAL
+  |   DOUBLE_LITERAL
+  |   TRUE | FALSE
+  |   NULL
+  |   CHARACTER_LITERAL
+  |   STRING_LITERAL
+
+private voidLiteral
+  ::= 'void'
+  |   'Void'   // TODO: Add /shruggie if escaping works fine.
+
+typeArguments ::= '<' type (',' type)* '>'
+
+type ::= primitiveType ('[' ']')* | classOrInterfaceType ('[' ']')*
+
+id ::= IDENTIFIER
+
+classOrInterfaceType ::= IDENTIFIER typeArguments? ('.' IDENTIFIER typeArguments? )*
+
+resourceParameters ::= '(' expressionList ')'
+
+primitiveType
+  ::= BOOLEAN_KEYWORD
+  |   BYTE_KEYWORD
+  |   CHAR_KEYWORD
+  |   SHORT_KEYWORD
+  |   INT_KEYWORD
+  |   LONG_KEYWORD
+  |   FLOAT_KEYWORD
+  |   DOUBLE_KEYWORD
+
+defaults ::= ',' 'default' '=' constantValue
+
+constantValue
+  ::= literal
+  |   RESOURCE_REFERENCE
+  |   IDENTIFIER
+
+lambdaExpression
+  ::= lambdaParameters '->' expr
+
+lambdaParameters
+  ::= '(' inferredFormalParameterList? ')'
+  |   IDENTIFIER
+
+inferredFormalParameterList ::= IDENTIFIER (',' IDENTIFIER)*

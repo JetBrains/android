@@ -20,6 +20,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ConsolePrinter;
+import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.LaunchInfo;
 import com.android.tools.idea.run.ProcessHandlerConsolePrinter;
 import com.android.tools.idea.run.editor.AndroidDebugger;
@@ -28,14 +29,15 @@ import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ConnectDebuggerTask implements DebugConnectorTask {
   private static final int POLL_TIMEOUT = 15;
@@ -103,12 +105,20 @@ public abstract class ConnectDebuggerTask implements DebugConnectorTask {
       }
 
       for (String name : myApplicationIds) {
-        Client client = device.getClient(name);
-        if (client == null) {
+        List<Client> clients = DeploymentApplicationService.getInstance().findClient(device, name);
+        if (clients.isEmpty()) {
           printer.stdout("Waiting for application to come online: " + Joiner.on(" | ").join(myApplicationIds));
         }
         else {
           printer.stdout("Connecting to " + name);
+          // Even though multiple processes may be related to a particular application ID, we'll only connect to the first one
+          // in the list since the debugger is set up to only connect to at most one process.
+          // TODO b/122613825: improve support for connecting to multiple processes with the same application ID.
+          // This requires this task to wait for potentially multiple Clients before returning.
+          if (clients.size() > 1) {
+            Logger.getInstance(ConnectDebuggerTask.class).info("Multiple clients with same application ID: " + name);
+          }
+          Client client = clients.get(0);
           ClientData.DebuggerStatus status = client.getClientData().getDebuggerConnectionStatus();
           switch (status) {
             case ERROR:

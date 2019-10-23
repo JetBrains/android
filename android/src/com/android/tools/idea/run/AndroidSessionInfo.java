@@ -6,16 +6,17 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.intellij.execution.ExecutionManager;
+import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.Executor;
+import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidSessionInfo {
   public static final Key<AndroidSessionInfo> KEY = new Key<>("KEY");
@@ -27,20 +28,20 @@ public class AndroidSessionInfo {
   @NotNull private final String myExecutorId;
   @NotNull private final String myExecutorActionName;
   private final int myRunConfigId;
-  private final boolean myInstantRun;
+  @NotNull private final ExecutionTarget myExecutionTarget;
 
   public AndroidSessionInfo(@NotNull ProcessHandler processHandler,
                             @NotNull RunContentDescriptor descriptor,
                             int runConfigId,
                             @NotNull String executorId,
                             @NotNull String executorActionName,
-                            boolean instantRunEnabled) {
+                            @NotNull ExecutionTarget executionTarget) {
     myProcessHandler = processHandler;
     myDescriptor = descriptor;
     myRunConfigId = runConfigId;
     myExecutorId = executorId;
     myExecutorActionName = executorActionName;
-    myInstantRun = instantRunEnabled;
+    myExecutionTarget = executionTarget;
   }
 
   @NotNull
@@ -58,28 +59,19 @@ public class AndroidSessionInfo {
     return myExecutorId;
   }
 
+  @Nullable
+  public Executor getExecutor() {
+    return ExecutorRegistry.getInstance().getExecutorById(getExecutorId());
+  }
+
   @NotNull
   public String getExecutorActionName() {
     return myExecutorActionName;
   }
 
-  public boolean isInstantRun() {
-    return myInstantRun;
-  }
-
   @NotNull
-  public List<IDevice> getDevices() {
-    if (myProcessHandler instanceof AndroidProcessHandler) {
-      return ((AndroidProcessHandler)myProcessHandler).getDevices();
-    }
-    else {
-      Client client = myProcessHandler.getUserData(ANDROID_DEBUG_CLIENT);
-      if (client != null) {
-        return Collections.singletonList(client.getDevice());
-      }
-    }
-
-    return Collections.emptyList();
+  public ExecutionTarget getExecutionTarget() {
+    return myExecutionTarget;
   }
 
   public int getRunConfigurationId() {
@@ -87,7 +79,10 @@ public class AndroidSessionInfo {
   }
 
   @Nullable
-  public static AndroidSessionInfo findOldSession(@NotNull Project project, @Nullable Executor executor, int currentID) {
+  public static AndroidSessionInfo findOldSession(@NotNull Project project,
+                                                  @Nullable Executor executor,
+                                                  int currentID,
+                                                  @NotNull ExecutionTarget executionTarget) {
     // Note: There are 2 alternatives here:
     //    1. ExecutionManager.getInstance(project).getContentManager().getAllDescriptors()
     //    2. ExecutionManagerImpl.getInstance(project).getRunningDescriptors
@@ -102,7 +97,8 @@ public class AndroidSessionInfo {
 
       if (info != null &&
           currentID == info.getRunConfigurationId() &&
-          (executor == null || executor.getId().equals(info.getExecutorId()))) {
+          (executor == null || executor.getId().equals(info.getExecutorId())) &&
+          executionTarget.equals(info.getExecutionTarget())) {
         return info;
       }
     }

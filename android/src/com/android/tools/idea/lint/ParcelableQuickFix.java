@@ -712,7 +712,7 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
     private static class NumberObjectPersistence implements FieldPersistence {
       private String myMethodSuffix;
 
-      NumberObjectPersistence(String methodSuffix) {
+      public NumberObjectPersistence(String methodSuffix) {
         myMethodSuffix = methodSuffix;
       }
 
@@ -763,7 +763,7 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
   private static class ShortOrCharFieldPersistence implements QuickFixWorker.FieldPersistence {
     private String myCast;
 
-    ShortOrCharFieldPersistence(String cast) {
+    public ShortOrCharFieldPersistence(String cast) {
       myCast = cast;
     }
 
@@ -791,7 +791,7 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
   private static class ShortOrCharObjectFieldPersistence implements QuickFixWorker.FieldPersistence {
     private String myCast;
 
-    ShortOrCharObjectFieldPersistence(String cast) {
+    public ShortOrCharObjectFieldPersistence(String cast) {
       myCast = cast;
     }
 

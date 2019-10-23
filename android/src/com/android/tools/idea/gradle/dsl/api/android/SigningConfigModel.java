@@ -24,6 +24,14 @@ public interface SigningConfigModel extends GradleDslModel {
   @NotNull
   String name();
 
+  /**
+   * Renames this SigningConfigModel, this only changes the name where the model is first defined it does not
+   * attempt to update any references to the model.
+   *
+   * @param newName the new name
+   */
+  void rename(@NotNull String newName);
+
   @NotNull
   ResolvedPropertyModel storeFile();
 

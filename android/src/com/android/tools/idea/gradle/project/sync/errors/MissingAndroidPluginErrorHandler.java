@@ -15,27 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
+import static com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink.getBuildFileForPlugin;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.EnableEmbeddedRepoHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenPluginBuildFileHyperlink;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-
-import static com.android.tools.idea.gradle.project.sync.errors.MissingDependencyErrorHandler.MISSING_DEPENDENCY_PATTERN;
-import static com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink.getBuildFileForPlugin;
-import static com.android.tools.idea.gradle.project.sync.hyperlink.EnableEmbeddedRepoHyperlink.shouldEnableEmbeddedRepo;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Process errors caused by not finding Android Gradle plugin
@@ -60,12 +56,18 @@ public class MissingAndroidPluginErrorHandler extends BaseSyncErrorHandler {
 
     if (project.isInitialized()) {
       List<VirtualFile> buildFiles = getBuildFileForPlugin(project);
-      if (!buildFiles.isEmpty()) {
+      if (!buildFiles.isEmpty() && buildFiles.get(0) != null) {
         VirtualFile buildFile = buildFiles.get(0);
-        GradleBuildModel gradleBuildModel = ProjectBuildModel.get(project).getModuleBuildModel(buildFile);
-        // Check if Google Maven repository can be added
-        if (!gradleBuildModel.buildscript().repositories().hasGoogleMavenRepository()) {
-          hyperlinks.add(new AddGoogleMavenRepositoryHyperlink(ImmutableList.of(buildFile)));
+        //TODO(b/130224064): need to remove check when kts fully supported
+        if (!GradleUtil.isKtsFile(buildFile)) {
+          ProjectBuildModel projectBuildModel = ProjectBuildModel.getOrLog(project);
+          if (projectBuildModel != null) {
+            GradleBuildModel gradleBuildModel = projectBuildModel.getModuleBuildModel(buildFile);
+            // Check if Google Maven repository can be added
+            if (!gradleBuildModel.buildscript().repositories().hasGoogleMavenRepository()) {
+              hyperlinks.add(new AddGoogleMavenRepositoryHyperlink(ImmutableList.of(buildFile)));
+            }
+          }
         }
         hyperlinks.add(new OpenFileHyperlink(toSystemDependentName(buildFile.getPath())));
       }
@@ -76,13 +78,6 @@ public class MissingAndroidPluginErrorHandler extends BaseSyncErrorHandler {
       hyperlinks.add(new OpenPluginBuildFileHyperlink());
     }
 
-    // Offer to turn on embedded offline repo if the missing Android plugin can be found there.
-    Matcher matcher = MISSING_DEPENDENCY_PATTERN.matcher(getFirstLineMessage(text));
-    if (matcher.matches()) {
-      if (shouldEnableEmbeddedRepo(matcher.group(1))) {
-        hyperlinks.add(new EnableEmbeddedRepoHyperlink());
-      }
-    }
     return hyperlinks;
   }
 }

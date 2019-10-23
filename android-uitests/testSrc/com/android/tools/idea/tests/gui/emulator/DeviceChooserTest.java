@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.emulator;
 
-import com.android.tools.idea.tests.gui.framework.*;
+import static com.google.common.truth.Truth.assertThat;
+import static org.fest.reflect.core.Reflection.field;
+import static org.fest.reflect.core.Reflection.method;
+
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.DeployTargetPickerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -27,6 +32,9 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.ScalableIcon;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.LayeredIcon;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import javax.swing.Icon;
 import org.fest.reflect.exception.ReflectionError;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.timing.Wait;
@@ -35,14 +43,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-import javax.swing.*;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.fest.reflect.core.Reflection.method;
-import static org.fest.reflect.core.Reflection.field;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class DeviceChooserTest {
@@ -102,12 +102,7 @@ public class DeviceChooserTest {
         new ChooseSystemImageStepFixture.SystemImage(RELEASE_NAME, API_LEVEL, ABI_TYPE, TARGET_NAME),
         SECOND_AVD_NAME);
 
-    DeployTargetPickerDialogFixture deployTargetPickerDialog = ideFrame.runApp(APP_NAME);
-    deployTargetPickerDialog.getCreateNewVirtualDeviceButton();
-    deployTargetPickerDialog.selectDevice(emulator.getDefaultAvdName());
-    deployTargetPickerDialog.selectDevice(SECOND_AVD_NAME);
-    deployTargetPickerDialog.selectDevice(emulator.getDefaultAvdName());
-    deployTargetPickerDialog.clickOk();
+    ideFrame.runApp(APP_NAME, emulator.getDefaultAvdName());
 
     ideFrame.getRunToolWindow().findContent(APP_NAME)
         .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);

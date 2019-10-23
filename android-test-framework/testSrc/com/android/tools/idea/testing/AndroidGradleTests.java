@@ -81,15 +81,18 @@ public class AndroidGradleTests {
       String pluginVersion = gradlePluginVersion != null ? gradlePluginVersion : buildEnvironment.getGradlePluginVersion();
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
                                    pluginVersion);
-      contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle-experimental:(.+)['\"]",
-                                   buildEnvironment.getExperimentalPluginVersion());
 
       String kotlinVersion = getKotlinVersionForTests().split("-")[0];
       contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", kotlinVersion);
 
+      // App compat version needs to match compile SDK
+      String appCompatMainVersion = BuildEnvironment.getInstance().getCompileSdkVersion();
+      contents =  replaceRegexGroup(contents, "com.android.support:appcompat-v7:(\\+)",  appCompatMainVersion + ".+");
+
       contents = updateBuildToolsVersion(contents);
       contents = updateCompileSdkVersion(contents);
       contents = updateTargetSdkVersion(contents);
+      contents = updateMinSdkVersion(contents);
       contents = updateLocalRepositories(contents, localRepositories);
 
       if (!contents.equals(contentsOrig)) {
@@ -106,6 +109,8 @@ public class AndroidGradleTests {
       BuildEnvironment buildEnvironment = BuildEnvironment.getInstance();
 
       String pluginVersion = gradlePluginVersion != null ? gradlePluginVersion : buildEnvironment.getGradlePluginVersion();
+      contents = replaceRegexGroup(contents, "classpath\\(['\"]com.android.tools.build:gradle:(.+)['\"]",
+                                   pluginVersion);
       contents = replaceRegexGroup(contents, "\\(\"com.android.application\"\\) version \"(.+)\"", pluginVersion);
       contents = replaceRegexGroup(contents, "\\(\"com.android.library\"\\) version \"(.+)\"", pluginVersion);
       contents = replaceRegexGroup(contents, "buildToolsVersion\\(\"(.+)\"\\)", buildEnvironment.getBuildToolsVersion());
@@ -136,6 +141,24 @@ public class AndroidGradleTests {
   }
 
   @NotNull
+  public static String updateMinSdkVersion(@NotNull String contents) {
+    String regex = "minSdkVersion ([0-9]+)";
+    Pattern pattern = Pattern.compile(regex);
+    Matcher matcher = pattern.matcher(contents);
+    String minSdkVersion = BuildEnvironment.getInstance().getMinSdkVersion();
+    if (matcher.find()) {
+      try {
+        if (Integer.parseInt(matcher.group(1)) < Integer.parseInt(minSdkVersion)) {
+          contents = contents.substring(0, matcher.start(1)) + minSdkVersion + contents.substring(matcher.end(1));
+        }
+      }
+      catch (NumberFormatException ignore) {
+      }
+    }
+    return contents;
+  }
+
+  @NotNull
   public static String updateLocalRepositories(@NotNull String contents, @NotNull String localRepositories) {
     String newContents = REPOSITORIES_PATTERN.matcher(contents).replaceAll("repositories {\n" + localRepositories);
     newContents = GOOGLE_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
@@ -160,7 +183,7 @@ public class AndroidGradleTests {
     List<File> repositories = new ArrayList<>();
     String prebuiltsRepo = "prebuilts/tools/common/m2/repository";
     String publishLocalRepo = "out/repo";
-    if (TestUtils.runningFromBazel()) {
+    if (TestUtils.runningFromBazel() && false) { // FIXME-ank: env variables imply Bazel. This is not correct when running from IU.
       // Based on EmbeddedDistributionPaths#findAndroidStudioLocalMavenRepoPaths:
       File tmp = new File(PathManager.getHomePath()).getParentFile().getParentFile();
       File file = new File(tmp, prebuiltsRepo);

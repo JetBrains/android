@@ -93,7 +93,7 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
     private final boolean myIgnoreImportStatements;
     private final boolean myIgnoreMethodsOfDeprecated;
 
-    DeprecationElementVisitor(final ProblemsHolder holder,
+    public DeprecationElementVisitor(final ProblemsHolder holder,
                                      boolean ignoreInsideDeprecated,
                                      boolean ignoreAbstractDeprecatedOverrides,
                                      boolean ignoreImportStatements,

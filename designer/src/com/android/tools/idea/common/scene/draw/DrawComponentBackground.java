@@ -60,10 +60,8 @@ public class DrawComponentBackground extends DrawRegion {
     Color[] colorBackground = {colorSet.getComponentBackground(), colorSet.getComponentBackground(),
       colorSet.getComponentHighlightedBackground(), colorSet.getComponentHighlightedBackground(),
       colorSet.getDragReceiverBackground()};
-    if (colorSet.drawBackground()) {
-      g.setColor(colorBackground[myMode]);
-      g.fillRect(x, y, width, height);
-    }
+    g.setColor(colorBackground[myMode]);
+    g.fillRect(x, y, width, height);
   }
 
   @Override

@@ -89,7 +89,7 @@ public class NlBooleanIconEditor {
     private final String myFalseValue;
     private NlProperty myProperty;
 
-    BooleanAction(@NotNull Icon icon, @Nullable String description, @NotNull String trueValue, @Nullable String falseValue) {
+    public BooleanAction(@NotNull Icon icon, @Nullable String description, @NotNull String trueValue, @Nullable String falseValue) {
       super(description, icon);
       getTemplatePresentation().setIcon(icon);
       myTrueValue = trueValue;

@@ -15,15 +15,20 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+
 import com.android.tools.lint.checks.ApiDetector;
-import com.android.tools.lint.detector.api.*;
+import com.android.tools.lint.detector.api.Category;
+import com.android.tools.lint.detector.api.Implementation;
+import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.Scope;
+import com.android.tools.lint.detector.api.Severity;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
+import org.mockito.Mockito;
 
 public class LintInspectionDescriptionLinkHandlerTest extends AndroidTestCase {
   @Override
@@ -36,7 +41,6 @@ public class LintInspectionDescriptionLinkHandlerTest extends AndroidTestCase {
   protected void tearDown() throws Exception {
     try {
       AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false);
-      AndroidLintInspectionBase.resetDynamicTools();
     } finally {
       super.tearDown();
     }
@@ -60,6 +64,7 @@ public class LintInspectionDescriptionLinkHandlerTest extends AndroidTestCase {
   public void testThirdPartyIssue() {
     Project project = getProject();
     Editor editor = mock(Editor.class);
+    Mockito.when(editor.getProject()).thenReturn(project);
     LintInspectionDescriptionLinkHandler handler = new LintInspectionDescriptionLinkHandler();
 
     String explanation = "The full explanation for the third party issue.";

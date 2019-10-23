@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.common.analytics;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT_ID;
+import static com.android.SdkConstants.FLEXBOX_LAYOUT_LIB_ARTIFACT_ID;
+import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
-import com.google.common.collect.ImmutableMap;
-import com.google.wireless.android.sdk.stats.*;
-import com.google.wireless.android.sdk.stats.LayoutPaletteEvent.ViewGroup;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.AndroidAttribute;
+import com.google.wireless.android.sdk.stats.AndroidView;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
@@ -33,42 +37,18 @@ import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.*;
-
 public class UsageTrackerUtil {
-
-  private static final Pattern STYLE_PATTERN = Pattern.compile("style=\"(.*)\"");
-  private static final Pattern INPUT_STYLE_PATTERN = Pattern.compile("android:inputType=\"(.*)\"");
-  private static final Pattern ORIENTATION_PATTERN = Pattern.compile("android:orientation=\"(.*)\"");
-  private static final Map<String, LayoutPaletteEvent.ViewOption> PALETTE_VIEW_OPTION_MAP =
-    ImmutableMap.<String, LayoutPaletteEvent.ViewOption>builder()
-      .put("textPassword", LayoutPaletteEvent.ViewOption.PASSWORD)
-      .put("numberPassword", LayoutPaletteEvent.ViewOption.PASSWORD_NUMERIC)
-      .put("textEmailAddress", LayoutPaletteEvent.ViewOption.EMAIL)
-      .put("phone", LayoutPaletteEvent.ViewOption.PHONE)
-      .put("textPostalAddress", LayoutPaletteEvent.ViewOption.POSTAL_ADDRESS)
-      .put("textMultiLine", LayoutPaletteEvent.ViewOption.MULTILINE_TEXT)
-      .put("time", LayoutPaletteEvent.ViewOption.TIME_EDITOR)
-      .put("date", LayoutPaletteEvent.ViewOption.DATE_EDITOR)
-      .put("number", LayoutPaletteEvent.ViewOption.NUMBER)
-      .put("numberSigned", LayoutPaletteEvent.ViewOption.SIGNED_NUMBER)
-      .put("numberDecimal", LayoutPaletteEvent.ViewOption.DECIMAL_NUMBER)
-      .build();
 
   // Identifies a custom tag name or attribute name i.e. a placeholder for a name we do NOT want to log.
   @VisibleForTesting
-  static final String CUSTOM_NAME = "CUSTOM";
+  public static final String CUSTOM_NAME = "CUSTOM";
 
   // Prevent instantiation
   private UsageTrackerUtil() {
   }
 
   @NotNull
-  static AndroidAttribute convertAttribute(@NotNull NlProperty property) {
+  public static AndroidAttribute convertAttribute(@NotNull NlProperty property) {
     AndroidFacet facet = property.getModel().getFacet();
     AttributeDefinition definition = property.getDefinition();
     String libraryName = definition != null ? definition.getLibraryName() : null;
@@ -81,7 +61,7 @@ public class UsageTrackerUtil {
   }
 
   @NotNull
-  static AndroidAttribute convertAttribute(@NotNull NelePropertyItem property) {
+  public static AndroidAttribute convertAttribute(@NotNull NelePropertyItem property) {
     AndroidFacet facet = property.getModel().getFacet();
     AndroidAttribute.AttributeNamespace namespace = convertNamespace(property.getNamespace());
 
@@ -92,7 +72,7 @@ public class UsageTrackerUtil {
   }
 
   @NotNull
-  static AndroidAttribute convertAttribute(@NotNull String attributeName, @NotNull AndroidFacet facet) {
+  public static AndroidAttribute convertAttribute(@NotNull String attributeName, @NotNull AndroidFacet facet) {
     AndroidAttribute.AttributeNamespace namespace = null;
     if (attributeName.startsWith(TOOLS_NS_NAME_PREFIX)) {
       namespace = AndroidAttribute.AttributeNamespace.TOOLS;
@@ -125,142 +105,6 @@ public class UsageTrackerUtil {
   }
 
   @NotNull
-  static ViewGroup convertGroupName(@NotNull String groupName) {
-    switch (groupName) {
-      case "All":
-        return ViewGroup.ALL_GROUPS;
-      case "All Results":
-        return ViewGroup.ALL_RESULTS;
-      case "Common":
-        return ViewGroup.COMMON;
-      case "Buttons":
-        return ViewGroup.BUTTONS;
-      case "Widgets":
-        return ViewGroup.WIDGETS;
-      case "Text":
-        return ViewGroup.TEXT;
-      case "Layouts":
-        return ViewGroup.LAYOUTS;
-      case "Containers":
-        return ViewGroup.CONTAINERS;
-      case "Images":
-        return ViewGroup.IMAGES;
-      case "Date":
-        return ViewGroup.DATES;
-      case "Transitions":
-        return ViewGroup.TRANSITIONS;
-      case "Advanced":
-        return ViewGroup.ADVANCED;
-      case "Google":
-        return ViewGroup.GOOGLE;
-      case "Design":
-        return ViewGroup.DESIGN;
-      case "AppCompat":
-        return ViewGroup.APP_COMPAT;
-      case "Legacy":
-        return ViewGroup.LEGACY;
-      default:
-        return ViewGroup.CUSTOM;
-    }
-  }
-
-  @NotNull
-  static LayoutPaletteEvent.ViewOption convertViewOption(@NotNull String tagName, @NotNull String representation) {
-    switch (tagName) {
-      case PROGRESS_BAR:
-        return convertProgressBarViewOption(representation);
-
-      case SEEK_BAR:
-        return convertSeekBarViewOption(representation);
-
-      case EDIT_TEXT:
-        return convertEditTextViewOption(representation);
-
-      case LINEAR_LAYOUT:
-        return convertLinearLayoutViewOption(representation);
-
-      default:
-        return LayoutPaletteEvent.ViewOption.NORMAL;
-    }
-  }
-
-  @NotNull
-  static LayoutAttributeChangeEvent.ViewType convertPropertiesMode(@NotNull PropertiesViewMode propertiesMode) {
-    switch (propertiesMode) {
-      case TABLE:
-        return LayoutAttributeChangeEvent.ViewType.PROPERTY_TABLE;
-      case INSPECTOR:
-      default:
-        return LayoutAttributeChangeEvent.ViewType.INSPECTOR;
-    }
-  }
-
-  @NotNull
-  static SearchOption convertFilterMatches(int matches) {
-    if (matches < 1) {
-      return SearchOption.NONE;
-    }
-    if (matches > 1) {
-      return SearchOption.MULTIPLE_MATCHES;
-    }
-    return SearchOption.SINGLE_MATCH;
-  }
-
-  @NotNull
-  @VisibleForTesting
-  static LayoutPaletteEvent.ViewOption convertProgressBarViewOption(@NotNull String representation) {
-    String styleValue = getStyleValue(representation);
-    if (styleValue == null || styleValue.equals("?android:attr/progressBarStyle")) {
-      return LayoutPaletteEvent.ViewOption.NORMAL;
-    }
-    if (styleValue.equals("?android:attr/progressBarStyleHorizontal")) {
-      return LayoutPaletteEvent.ViewOption.HORIZONTAL_PROGRESS_BAR;
-    }
-    return LayoutPaletteEvent.ViewOption.CUSTOM_OPTION;
-  }
-
-  @NotNull
-  @VisibleForTesting
-  static LayoutPaletteEvent.ViewOption convertSeekBarViewOption(@NotNull String representation) {
-    String styleValue = getStyleValue(representation);
-    if (styleValue == null) {
-      return LayoutPaletteEvent.ViewOption.NORMAL;
-    }
-    if (styleValue.equals("@style/Widget.AppCompat.SeekBar.Discrete")) {
-      return LayoutPaletteEvent.ViewOption.DISCRETE_SEEK_BAR;
-    }
-    return LayoutPaletteEvent.ViewOption.CUSTOM_OPTION;
-  }
-
-  @NotNull
-  @VisibleForTesting
-  static LayoutPaletteEvent.ViewOption convertEditTextViewOption(@NotNull String representation) {
-    Matcher matcher = INPUT_STYLE_PATTERN.matcher(representation);
-    if (!matcher.find()) {
-      return LayoutPaletteEvent.ViewOption.NORMAL;
-    }
-    LayoutPaletteEvent.ViewOption viewOption = PALETTE_VIEW_OPTION_MAP.get(matcher.group(1));
-    return viewOption != null ? viewOption : LayoutPaletteEvent.ViewOption.CUSTOM_OPTION;
-  }
-
-  @NotNull
-  @VisibleForTesting
-  static LayoutPaletteEvent.ViewOption convertLinearLayoutViewOption(@NotNull String representation) {
-    Matcher matcher = ORIENTATION_PATTERN.matcher(representation);
-    if (!matcher.find()) {
-      return LayoutPaletteEvent.ViewOption.HORIZONTAL_LINEAR_LAYOUT;
-    }
-    String orientation = matcher.group(1);
-    if (orientation.equals("horizontal")) {
-      return LayoutPaletteEvent.ViewOption.HORIZONTAL_LINEAR_LAYOUT;
-    }
-    if (orientation.equals("vertical")) {
-      return LayoutPaletteEvent.ViewOption.VERTICAL_LINEAR_LAYOUT;
-    }
-    return LayoutPaletteEvent.ViewOption.CUSTOM_OPTION;
-  }
-
-  @NotNull
   @VisibleForTesting
   static String convertAttributeName(@NotNull String attributeName,
                                      @NotNull AndroidAttribute.AttributeNamespace namespace,
@@ -281,18 +125,11 @@ public class UsageTrackerUtil {
   }
 
   @NotNull
-  static AndroidView convertTagName(@NotNull String tagName) {
+  public static AndroidView convertTagName(@NotNull String tagName) {
     tagName = acceptedGoogleTagNamespace(tagName) ? StringUtil.getShortName(tagName, '.') : CUSTOM_NAME;
     return AndroidView.newBuilder()
       .setTagName(tagName)
       .build();
-  }
-
-  @Nullable
-  @VisibleForTesting
-  static String getStyleValue(@NotNull String representation) {
-    Matcher matcher = STYLE_PATTERN.matcher(representation);
-    return matcher.find() ? matcher.group(1) : null;
   }
 
   @VisibleForTesting

@@ -15,10 +15,15 @@
  */
 package org.jetbrains.android.util;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.intellij.openapi.application.ApplicationManager.getApplication;
+
 import com.android.SdkConstants;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.utils.TraceUtils;
@@ -69,7 +74,14 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.JavaTokenType;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiModifier;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.tree.java.IKeywordElementType;
 import com.intellij.psi.xml.XmlFile;
@@ -83,22 +95,30 @@ import com.intellij.util.graph.GraphAlgorithms;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
+import java.awt.BorderLayout;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextArea;
+import org.gradle.internal.impldep.com.esotericsoftware.minlog.Log;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.List;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.intellij.openapi.application.ApplicationManager.getApplication;
 
 /**
  * @author yole, coyote
@@ -488,6 +508,42 @@ public class AndroidUtils {
     return depFacets;
   }
 
+  /**
+   * Returns the AndroidFacets corresponding to the Android modules that the given module transitively
+   * depends on for resources.
+   * <p/>
+   * Note that this method should only be used to find dependencies in the context of resolving Android
+   * resources. This is a special case where, depending on the build system, we may be able to ignore
+   * certain modules to improve performance. If you want to find <b>all</b> the modules that a given module
+   * depends on according to its order entries, use {@link AndroidUtils#getAllAndroidDependencies}.
+   * <p/>
+   * TODO(b/118317486): Remove this API once resource module dependencies can accurately
+   * be determined from order entries for all supported build systems.
+   *
+   * @see AndroidModuleSystem#getResourceModuleDependencies()
+   */
+  public static List<AndroidFacet> getAndroidResourceDependencies(@NotNull Module module) {
+    return ProjectSystemUtil.getModuleSystem(module)
+      .getResourceModuleDependencies()
+      .stream()
+      .map(AndroidFacet::getInstance)
+      .peek(facet -> {
+        if (facet == null) {
+          Log.error("Null in result of getResourceModuleDependencies, module system: " + ProjectSystemUtil.getModuleSystem(module));
+        }
+      })
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
+  }
+
+  /**
+   * Returns the AndroidFacets corresponding to all the Android modules that the given module
+   * transitively depends on.
+   * <p/>
+   * Callers who need to know a module's dependencies <b>in the context of resolving resources</b>
+   * should consider using {@link AndroidUtils#getAndroidResourceDependencies(Module)} instead,
+   * as that method may exclude irrelevant modules depending on the build system.
+   */
   @NotNull
   public static List<AndroidFacet> getAllAndroidDependencies(@NotNull Module module, boolean androidLibrariesOnly) {
     return AndroidDependenciesCache.getInstance(module).getAllAndroidDependencies(androidLibrariesOnly);
@@ -729,14 +785,10 @@ public class AndroidUtils {
   }
 
   @NotNull
-  public static Set<Module> getSetWithBackwardDependencies(@NotNull Collection<Module> modules) {
-    if (modules.isEmpty()) return Collections.emptySet();
-    Module next = modules.iterator().next();
-    Graph<Module> graph = ModuleManager.getInstance(next.getProject()).moduleGraph();
+  public static Set<Module> getSetWithBackwardDependencies(@NotNull Module module) {
+    Graph<Module> graph = ModuleManager.getInstance(module.getProject()).moduleGraph();
     final Set<Module> set = new HashSet<>();
-    for (Module module : modules) {
-      GraphAlgorithms.getInstance().collectOutsRecursively(graph, module, set);
-    }
+    GraphAlgorithms.getInstance().collectOutsRecursively(graph, module, set);
     return set;
   }
 

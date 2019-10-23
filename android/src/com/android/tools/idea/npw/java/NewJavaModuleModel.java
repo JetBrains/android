@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.npw.java;
 
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public final class NewJavaModuleModel extends WizardModel {
@@ -86,11 +87,11 @@ public final class NewJavaModuleModel extends WizardModel {
 
   @Override
   protected void handleFinished() {
-    File moduleRoot = new File(myProject.getBasePath(), libraryNameName().get());
+    AndroidModuleTemplate modulePaths = createDefaultTemplateAt(myProject.getBasePath(), libraryNameName().get()).getPaths();
     Map<String, Object> myTemplateValues = Maps.newHashMap();
 
     new TemplateValueInjector(myTemplateValues)
-      .setModuleRoots(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths(), packageName().get())
+      .setModuleRoots(modulePaths, myProject.getBasePath(), libraryNameName().get(), packageName().get())
       .setJavaVersion(myProject);
 
     myTemplateValues.put(TemplateMetadata.ATTR_CLASS_NAME, className().get());
@@ -98,6 +99,8 @@ public final class NewJavaModuleModel extends WizardModel {
     myTemplateValues.put(TemplateMetadata.ATTR_IS_NEW_PROJECT, true);
     myTemplateValues.put(TemplateMetadata.ATTR_IS_LIBRARY_MODULE, true);
 
+    File moduleRoot = modulePaths.getModuleRoot();
+    assert moduleRoot != null;
     if (doDryRun(moduleRoot, myTemplateValues)) {
       render(moduleRoot, myTemplateValues);
     }

@@ -56,6 +56,7 @@ public class ClassConverterTest extends TestCase {
     assertEquals(45, jdkToClassVersion("1.1"));
     assertEquals(53, jdkToClassVersion("9"));
     assertEquals(55, jdkToClassVersion("11"));
+    assertEquals(55, jdkToClassVersion("11.0.2+9-b159.56"));
   }
 
   public void testFindHighestMajorVersion() {
@@ -159,14 +160,19 @@ public class ClassConverterTest extends TestCase {
   // Method that generates the binary dump of the view below:
   //
   //class TestView extends View {
-  //  public TestView(Context context) {
-  //    super(context);
-  //  }
+  //    public TestView(Context context) {
+  //        super(context);
+  //    }
   //
-  //  @Override
-  //  protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-  //    super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-  //  }
+  //    @Override
+  //    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+  //        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+  //    }
+  //
+  //    @Override
+  //    protected void onFinishInflate() {
+  //        super.onFinishInflate();
+  //    }
   //}
   //
   // The binary dump was created by using ASMifier running:
@@ -198,6 +204,16 @@ public class ClassConverterTest extends TestCase {
       mv.visitMaxs(3, 3);
       mv.visitEnd();
     }
+    {
+      mv = cw.visitMethod(ACC_PROTECTED, "onFinishInflate", "()V", null, null);
+      mv.visitCode();
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitMethodInsn(INVOKESPECIAL, "android/view/View", "onFinishInflate", "()V", false);
+      mv.visitInsn(RETURN);
+      mv.visitMaxs(1, 1);
+      mv.visitEnd();
+    }
+
     cw.visitEnd();
 
     return cw.toByteArray();
@@ -215,7 +231,7 @@ public class ClassConverterTest extends TestCase {
     ClassReader classReader = new ClassReader(modified);
     classReader.accept(classNode, 0);
 
-    assertEquals(3, classNode.methods.size());
+    assertEquals(5, classNode.methods.size());
     final Set<String> methods = new HashSet<>();
     classNode.accept(new ClassVisitor(ASM5) {
       @Override
@@ -226,6 +242,8 @@ public class ClassConverterTest extends TestCase {
     });
     assertTrue(methods.contains("onMeasure(II)V"));
     assertTrue(methods.contains("onMeasure_Original(II)V"));
+    assertTrue(methods.contains("onFinishInflate()V"));
+    assertTrue(methods.contains("onFinishInflate_Original()V"));
   }
 
   public void testMethodWrapping2() throws Exception {
@@ -374,7 +392,7 @@ public class ClassConverterTest extends TestCase {
 
   private static class TestClassLoader extends RenderClassLoader {
     final byte[] myData;
-    TestClassLoader(byte[] data) {
+    public TestClassLoader(byte[] data) {
       super(null,Integer.MAX_VALUE);
       myData = data;
     }

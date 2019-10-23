@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.diagnostics;
 
+import static java.nio.file.Files.newDirectoryStream;
+
 import com.android.annotations.NonNull;
+import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.intellij.diagnostic.IdePerformanceListener;
 import com.intellij.diagnostic.ThreadDump;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.messages.MessageBusConnection;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -34,9 +34,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.function.Consumer;
-
-import static java.nio.file.Files.newDirectoryStream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.diagnostics.DiagnosticReportIdePerformanceListener");
@@ -94,7 +95,7 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
   @Override
   public void uiFreezeFinished(long durationMs, @Nullable File reportDir) {
     int lengthInSeconds = (int)(durationMs / 1000);
-    LOG.info(String.format("uiFreezeFinished: duration = %d seconds", lengthInSeconds));
+    LOG.info(String.format(Locale.US, "uiFreezeFinished: duration = %d seconds", lengthInSeconds));
     DiagnosticReportBuilder localBuilder = myBuilder;
     if (localBuilder == null) {
       return;

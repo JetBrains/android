@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              >
+
+    <TextView style="?android:textAppearanceMedium"
+        android:paddingTop="32dp"
+        android:paddingLeft="24dp"
+        android:paddingRight="24dp"
+        android:id="@+id/textview_q"
+        android:lineSpacingMultiplier="1.2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Q.1"
+        android:textColor="#2979D6"
+        android:textSize="20sp" />
+
+    <TextView style="?android:textAppearanceMedium"
+        android:paddingTop="5dp"
+        android:paddingLeft="24dp"
+        android:paddingRight="32dp"
+        android:paddingBottom="24dp"
+        android:id="@+id/textview_q_title"
+        android:lineSpacingMultiplier="1.1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Title"
+        android:textColor="#5E5D5D"
+        android:layout_marginBottom="10dp"
+        android:layout_below="@+id/textview_q"
+        android:textSize="24sp" />
+
+    <!--<ScrollView-->
+                <!--android:id="@+id/content"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="0dp"-->
+                <!--android:fillViewport="true"-->
+                <!--android:layout_weight="2">-->
+
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="24dp"
+                android:layout_marginRight="24dp"
+                android:layout_marginBottom="24dp"
+                android:layout_above="@+id/button_continue"
+                android:id="@+id/linearLayout_list"
+                android:layout_below="@+id/textview_q_title">
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/my_recycler_view"
+                    android:scrollbars="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+
+            </LinearLayout>
+
+    <!--</ScrollView>-->
+
+
+    <Button
+        android:id="@+id/button_continue"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_gravity="bottom"
+        android:background="#2979D6"
+        android:text="@string/xcontinue"
+        android:layout_alignParentBottom="true"
+        android:textColor="#FFF"
+        android:textSize="20sp" />
+
+</RelativeLayout>

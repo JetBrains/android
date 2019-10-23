@@ -15,23 +15,30 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
+import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
+import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+
 import com.android.annotations.NonNull;
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RemotePackage;
-import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.project.sync.hyperlink.*;
+import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetailsHyperlink;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -41,24 +48,14 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
-import static com.android.ide.common.repository.SdkMavenRepository.GOOGLE;
-import static com.android.ide.common.repository.SdkMavenRepository.findBestPackageMatching;
-import static com.android.tools.idea.gradle.project.sync.hyperlink.EnableEmbeddedRepoHyperlink.shouldEnableEmbeddedRepo;
-import static com.android.tools.idea.gradle.project.sync.issues.ConstraintLayoutFeature.isSupportedInSdkManager;
-import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.sdk.StudioSdkUtil.reloadRemoteSdkWithModalProgress;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssueReporter {
   private static final String UNRESOLVED_DEPENDENCIES_GROUP = "Unresolved dependencies";
@@ -93,7 +90,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
     return new OpenFileHyperlink(buildFile.getPath(), module.getName(), lineNumber, -1);
   }
 
-  @Nullable
+  @NotNull
   @Override
   protected Object getDeduplicationKey(@NotNull SyncIssue issue) {
     return issue;
@@ -137,25 +134,9 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
       List<VirtualFile> buildFiles = affectedModules.stream().map(m -> buildFileMap.get(m)).collect(Collectors.toList());
       Module module = affectedModules.get(0);
 
-      RepoPackage constraintPackage = null;
-      if (coordinate != null) {
-        ProgressIndicator indicator = new StudioLoggerProgressIndicator(getClass());
-        reloadRemoteSdkWithModalProgress();
-        Collection<RemotePackage> remotePackages = getRemotePackages(indicator);
-        constraintPackage = findBestPackageMatching(coordinate, remotePackages);
-      }
-
-      if (dependency.startsWith("com.android.support.constraint:constraint-layout:") && !isSupportedInSdkManager(module)) {
-        quickFixes.add(new FixAndroidGradlePluginVersionHyperlink());
-      }
-      else if (constraintPackage != null) {
-        quickFixes.add(new InstallArtifactHyperlink(constraintPackage.getPath()));
-      }
-      else if (dependency.startsWith("com.android.support") || dependency.startsWith("androidx.")) {
+      if (dependency.startsWith("com.android.support") || dependency.startsWith("androidx.")
+          || dependency.startsWith("com.google.android")) {
         addGoogleMavenRepositoryHyperlink(project, buildFiles, quickFixes);
-      }
-      else if (dependency.startsWith("com.google.android")) {
-        quickFixes.add(new InstallRepositoryHyperlink(GOOGLE, dependency));
       }
       else {
         if (isOfflineBuildModeEnabled(project)) {
@@ -163,15 +144,11 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
         }
       }
 
-      if (IdeInfo.getInstance().isAndroidStudio()) {
+      //TODO(b/130224064): PSD is empty for projects with KTS at this moment. Need to remove kts check when fixed
+      if (IdeInfo.getInstance().isAndroidStudio() && buildFileMap.values().stream().noneMatch(GradleUtil::isKtsFile)) {
         if (coordinate != null) {
           quickFixes.add(new ShowDependencyInProjectStructureHyperlink(module, coordinate));
         }
-      }
-
-      // Offer to turn on embedded offline repo if the missing dependency can be found there.
-      if (shouldEnableEmbeddedRepo(dependency)) {
-        quickFixes.add(new EnableEmbeddedRepoHyperlink());
       }
 
       return quickFixes;
@@ -235,8 +212,10 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
         return null;
       }
     }).collect(Collectors.toList());
+
+    SyncIssueUsageReporter syncIssueUsageReporter = SyncIssueUsageReporter.Companion.getInstance(module.getProject());
     reportAll(syncIssues, syncIssues.stream().collect(Collectors.toMap(Function.identity(), k -> module)),
-              buildFile == null ? ImmutableMap.of() : ImmutableMap.of(module, buildFile));
+              buildFile == null ? ImmutableMap.of() : ImmutableMap.of(module, buildFile), syncIssueUsageReporter);
   }
 
   @NotNull
@@ -262,7 +241,10 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
       return;
     }
 
-    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
+    ProjectBuildModel projectBuildModel = ProjectBuildModel.getOrLog(project);
+    if (projectBuildModel == null) {
+      return;
+    }
 
     // Check modules
     List<VirtualFile> filesToFix = new ArrayList<>();

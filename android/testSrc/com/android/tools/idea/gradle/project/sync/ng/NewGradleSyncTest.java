@@ -15,6 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.areCachedFilesMissing;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.same;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -25,24 +42,30 @@ import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
+import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.LightPlatformTestCase;
+import com.intellij.openapi.roots.JavadocOrderRootType;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.testFramework.IdeaTestCase;
+import java.io.File;
+import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import java.io.File;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
-
 /**
  * Tests for {@link NewGradleSync}.
  */
-public class NewGradleSyncTest extends LightPlatformTestCase {
+public class NewGradleSyncTest extends IdeaTestCase {
   @Mock private GradleSyncMessages mySyncMessages;
   @Mock private SyncExecutor mySyncExecutor;
   @Mock private SyncResultHandler myResultHandler;
@@ -59,15 +82,27 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
     super.setUp();
     initMocks(this);
 
+    StudioFlags.COMPOUND_SYNC_ENABLED.override(false);
     myCallback = new SyncExecutionCallback();
     myGradleSync =
       new NewGradleSync(getProject(), mySyncMessages, mySyncExecutor, myResultHandler, myBuildFileChecksumsLoader, myProjectModelsLoader,
                         myCallbackFactory);
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
   public void testSyncFromCachedModels() throws Exception {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.useCachedGradleModels = true;
+    request.generateSourcesOnSuccess = false;
 
     Project project = getProject();
     ProjectBuildFileChecksums buildFileChecksums = mock(ProjectBuildFileChecksums.class);
@@ -79,12 +114,20 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
 
     myGradleSync.sync(request, mySyncListener);
 
+    PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
+    setupRequest.usingCachedGradleModels = request.useCachedGradleModels;
+
+    // Verify that source generation is true for cached sync.
+    setupRequest.generateSourcesAfterSync = true;
+    setupRequest.cleanProjectAfterSync = request.cleanProject;
+    setupRequest.lastSyncTimestamp = 0;
+
     verify(mySyncMessages).removeAllMessages();
-    verify(myResultHandler).onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener), any());
+    verify(myResultHandler).onSyncSkipped(same(projectModelsCache), eq(setupRequest), any(), same(mySyncListener), any());
   }
 
   public void testFailedSyncFromCachedModels() throws Exception {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.useCachedGradleModels = true;
 
     Project project = getProject();
@@ -96,7 +139,7 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
     when(myProjectModelsLoader.loadFromDisk(project)).thenReturn(projectModelsCache);
 
     // Simulate loading models from cache fails.
-    Answer getTaskIdAndTrowError = new Answer() {
+    Answer getTaskIdAndThrowError = new Answer() {
       @Override
       public Object answer(InvocationOnMock invocation) throws Throwable {
         ExternalSystemTaskId taskId = invocation.getArgument(4);
@@ -104,13 +147,16 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
         throw new ModelNotFoundInCacheException(GradleModuleModel.class);
       }
     };
-    doAnswer(getTaskIdAndTrowError).when(myResultHandler)
-                                   .onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener), any());
+    doAnswer(getTaskIdAndThrowError).when(myResultHandler)
+      .onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener), any());
 
     when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
 
     myGradleSync.sync(request, mySyncListener);
+
+    // Verify that cached sync was completed in build view.
+    verify(mySyncExecutor).generateFailureEvent(any());
 
     // Full sync should have been executed.
     verify(mySyncMessages).removeAllMessages();
@@ -118,7 +164,7 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
   }
 
   public void testSyncFromCachedModelsWithoutBuildFileChecksums() {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.useCachedGradleModels = true;
 
     Project project = getProject();
@@ -138,7 +184,7 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
   }
 
   public void testSyncFromCachedModelsWithoutModelsCache() {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.useCachedGradleModels = true;
 
     Project project = getProject();
@@ -158,7 +204,7 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
   }
 
   public void testSyncFromCachedModelsWithoutBuildFileOutdatedChecksums() {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.useCachedGradleModels = true;
 
     Project project = getProject();
@@ -179,9 +225,113 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
     verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener));
   }
 
+  public void testSyncFromCachedModelsWithMissingJars() throws IOException {
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
+    request.useCachedGradleModels = true;
+
+    Project project = getProject();
+    ProjectBuildFileChecksums buildFileChecksums = mock(ProjectBuildFileChecksums.class);
+    when(myBuildFileChecksumsLoader.loadFromDisk(project)).thenReturn(buildFileChecksums);
+    when(buildFileChecksums.canUseCachedData()).thenReturn(true);
+
+    CachedProjectModels projectModelsCache = mock(CachedProjectModels.class);
+    when(myProjectModelsLoader.loadFromDisk(project)).thenReturn(projectModelsCache);
+
+    // Simulate the case when javadoc file is missing.
+    File classesJarPath = createTempFileAndRefresh("library", ".jar");
+    File resFolder = createTempFileAndRefresh("res", "");
+    File sourcePath = createTempFileAndRefresh("library-sources", ".jar");
+    File javadocPath = new File(getProject().getBasePath(), "library-javadoc.jar");
+    createLibraryEntry(classesJarPath, resFolder, sourcePath, javadocPath);
+
+    myCallback.setDone(mock(SyncProjectModels.class), mock(ExternalSystemTaskId.class));
+    when(myCallbackFactory.create()).thenReturn(myCallback);
+    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
+
+    myGradleSync.sync(request, mySyncListener);
+
+    // Full sync should have been executed.
+    verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener));
+  }
+
+  public void testAreCachedFilesMissingWithoutMissingFiles() throws IOException {
+    // Simulate the case that all files exist.
+    File classesJarPath = createTempFileAndRefresh("library", ".jar");
+    File resFolder = createTempFileAndRefresh("res", "");
+    File sourcePath = createTempFileAndRefresh("library-sources", ".jar");
+    File javadocPath = createTempFileAndRefresh("library-javadoc", ".jar");
+
+    createLibraryEntry(classesJarPath, resFolder, sourcePath, javadocPath);
+    assertFalse(areCachedFilesMissing(getProject()));
+  }
+
+  public void testAreCachedFilesMissingWithMissedSourceFile() throws IOException {
+    // Simulate the case that source file is missing.
+    File classesJarPath = createTempFileAndRefresh("library", ".jar");
+    File resFolder = createTempFileAndRefresh("res", "");
+    File javadocPath = createTempFileAndRefresh("library-javadoc", ".jar");
+    File sourcePath = new File(getProject().getBasePath(), "library-sources.jar");
+
+    createLibraryEntry(classesJarPath, resFolder, sourcePath, javadocPath);
+    assertTrue(areCachedFilesMissing(getProject()));
+  }
+
+  public void testAreCachedFilesMissingWithMissedResFile() throws IOException {
+    // Simulate the case that res folder is missing. This should not cause a full sync because res folder
+    // are often non-existing.
+    File classesJarPath = createTempFileAndRefresh("library", ".jar");
+    File resFolder = new File(getProject().getBasePath(), "res");
+    File sourcePath = createTempFileAndRefresh("library-sources", ".jar");
+    File javadocPath = createTempFileAndRefresh("library-javadoc", ".jar");
+
+    createLibraryEntry(classesJarPath, resFolder, sourcePath, javadocPath);
+    assertFalse(areCachedFilesMissing(getProject()));
+  }
+
+  public void testAreCachedFilesMissingWithMissedResAndJarFile() throws IOException {
+    // Simulate the case that all of CLASSES files are missing.
+    File classesJarPath = new File(getProject().getBasePath(), "library.jar");
+    File resFolder = new File(getProject().getBasePath(), "res");
+    File sourcePath = createTempFileAndRefresh("library-sources", ".jar");
+    File javadocPath = createTempFileAndRefresh("library-javadoc", ".jar");
+
+
+    createLibraryEntry(classesJarPath, resFolder, sourcePath, javadocPath);
+    assertTrue(areCachedFilesMissing(getProject()));
+  }
+
+  @NotNull
+  private File createTempFileAndRefresh(@NotNull String name, @NotNull String text) throws IOException {
+    File file = createTempFile(name, text);
+    LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
+    return file;
+  }
+
+  private void createLibraryEntry(@NotNull File classesJarPath,
+                                  @NotNull File resFolder,
+                                  @NotNull File sourcePath,
+                                  @NotNull File javadocPath) {
+    ModifiableRootModel rootModel = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+    LibraryTable libraryTable = rootModel.getModuleLibraryTable();
+    LibraryTable.ModifiableModel libraryTableModel = libraryTable.getModifiableModel();
+    Library library = libraryTableModel.createLibrary("Gradle: " + classesJarPath.getName());
+
+    Application application = ApplicationManager.getApplication();
+    application.runWriteAction(libraryTableModel::commit);
+
+    Library.ModifiableModel libraryModel = library.getModifiableModel();
+    libraryModel.addRoot(pathToIdeaUrl(classesJarPath), CLASSES);
+    libraryModel.addRoot(pathToIdeaUrl(resFolder), CLASSES);
+    libraryModel.addRoot(pathToIdeaUrl(sourcePath), SOURCES);
+    libraryModel.addRoot(pathToIdeaUrl(javadocPath), JavadocOrderRootType.getInstance());
+
+    application.runWriteAction(libraryModel::commit);
+    application.runWriteAction(rootModel::commit);
+  }
+
   public void testSyncWithSuccessfulSync() {
     // Simulate successful sync.
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
 
     myCallback.setDone(mock(SyncProjectModels.class), mock(ExternalSystemTaskId.class));
     when(myCallbackFactory.create()).thenReturn(myCallback);
@@ -196,7 +346,7 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
 
   public void testSyncWithFailedSync() {
     // Simulate failed sync.
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
 
     myCallback.setRejected(new Throwable("Test error"));
     when(myCallbackFactory.create()).thenReturn(myCallback);
@@ -210,7 +360,7 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
   }
 
   public void testCreateSyncTaskWithModalExecutionMode() {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.runInBackground = false;
 
     Task task = myGradleSync.createSyncTask(request, null);
@@ -218,7 +368,7 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
   }
 
   public void testCreateSyncTaskWithBackgroundExecutionMode() {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.runInBackground = true;
 
     Task task = myGradleSync.createSyncTask(request, null);
@@ -227,7 +377,7 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
 
   public void testSyncWithVariantOnlySuccessfulSync() {
     // Simulate successful sync.
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.variantOnlySyncOptions = mock(VariantOnlySyncOptions.class);
 
     myCallback.setDone(mock(VariantOnlyProjectModels.class), mock(ExternalSystemTaskId.class));
@@ -243,7 +393,7 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
 
   public void testSyncWithVariantOnlyFailedSync() {
     // Simulate failed sync.
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.variantOnlySyncOptions = mock(VariantOnlySyncOptions.class);
 
     myCallback.setRejected(new Throwable("Test error"));
@@ -263,20 +413,19 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
       StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
 
-      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
       when(myCallbackFactory.create()).thenReturn(myCallback);
 
       doAnswer(invocation -> {
         myCallback.setDone(mock(SyncProjectModels.class), mock(ExternalSystemTaskId.class));
         return null;
-      }).when(mySyncExecutor).syncProject(any(), same(myCallback), any(), any(), any(), eq(true));
+      }).when(mySyncExecutor).syncProject(any(), same(myCallback), any(), any(), any(), any(), eq(true));
 
       myGradleSync.sync(request, mySyncListener);
 
-      verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(null), any(), any(), eq(true));
+      verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(null), any(), any(), any(), eq(true));
 
       verify(myResultHandler).onCompoundSyncModels(same(myCallback), any(), any(), same(mySyncListener), eq(false));
-      verify(myResultHandler).onCompoundSyncFinished(same(mySyncListener));
       verify(myResultHandler, never()).onSyncFailed(same(myCallback), same(mySyncListener));
     }
     finally {
@@ -292,21 +441,20 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
       StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
 
-      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
       request.variantOnlySyncOptions = new VariantOnlySyncOptions(new File(""), "", "", null, true);
       when(myCallbackFactory.create()).thenReturn(myCallback);
 
       doAnswer(invocation -> {
         myCallback.setDone(mock(VariantOnlyProjectModels.class), mock(ExternalSystemTaskId.class));
         return null;
-      }).when(mySyncExecutor).syncProject(any(), same(myCallback), eq(request.variantOnlySyncOptions), any(), any(), anyBoolean());
+      }).when(mySyncExecutor).syncProject(any(), same(myCallback), eq(request.variantOnlySyncOptions), any(), any(), any(), anyBoolean());
 
       myGradleSync.sync(request, mySyncListener);
 
-      verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(request.variantOnlySyncOptions), any(), any(), anyBoolean());
+      verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(request.variantOnlySyncOptions), any(), any(), any(), anyBoolean());
 
       verify(myResultHandler).onCompoundSyncModels(same(myCallback), any(), any(), same(mySyncListener), eq(true));
-      verify(myResultHandler).onCompoundSyncFinished(same(mySyncListener));
       verify(myResultHandler, never()).onSyncFailed(same(myCallback), same(mySyncListener));
     }
     finally {

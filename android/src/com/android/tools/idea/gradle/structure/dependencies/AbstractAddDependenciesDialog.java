@@ -44,7 +44,6 @@ public abstract class AbstractAddDependenciesDialog extends DialogWrapper {
   protected AbstractAddDependenciesDialog(@NotNull PsModule module) {
     super(module.getParent().getIdeProject());
     myModule = module;
-    init();
   }
 
   @Override
@@ -53,9 +52,7 @@ public abstract class AbstractAddDependenciesDialog extends DialogWrapper {
   }
 
   @NotNull
-  private static AbstractDependencyScopesPanel createDependencyScopesPanel(@NotNull PsModule module) {
-    return new DependencyScopePanel(module);
-  }
+  protected abstract AbstractDependencyScopesPanel createDependencyScopesPanel(@NotNull PsModule module);
 
   @Override
   @Nullable

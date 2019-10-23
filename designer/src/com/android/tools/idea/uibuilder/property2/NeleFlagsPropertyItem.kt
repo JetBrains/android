@@ -16,16 +16,19 @@
 package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.property2.api.FlagPropertyItem
-import com.android.tools.idea.common.property2.api.FlagsPropertyItem
-import com.android.tools.idea.common.property2.api.PropertyItem
+import com.android.tools.property.panel.api.FlagPropertyItem
+import com.android.tools.property.panel.api.FlagsPropertyItem
+import com.android.tools.property.panel.api.PropertyItem
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.google.common.collect.Sets
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ArrayUtil
 import com.intellij.util.containers.stream
+import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 
 /**
@@ -39,10 +42,13 @@ class NeleFlagsPropertyItem(
   name: String,
   type: NelePropertyType,
   private val attrDefinition: AttributeDefinition,
+  componentName: String,
   libraryName: String,
   model: NelePropertiesModel,
+  optionalValue: Any?,
   components: List<NlComponent>
-) : NelePropertyItem(namespace, name, type, attrDefinition, libraryName, model, components), FlagsPropertyItem<NeleFlagPropertyItem> {
+) : NelePropertyItem(namespace, name, type, attrDefinition, componentName, libraryName, model, optionalValue, components),
+    FlagsPropertyItem<NeleFlagPropertyItem> {
   private val _flags = mutableListOf<NeleFlagPropertyItem>()
   private val _lastValues = mutableSetOf<String>()
   private var _lastValue: String? = null
@@ -70,8 +76,8 @@ class NeleFlagsPropertyItem(
   override val children: List<NeleFlagPropertyItem>
     get() {
       if (_flags.isEmpty()) {
-          attrDefinition.values.mapTo(_flags, { NeleFlagPropertyItem(this, it, lookupMaskValue(it)) })
-        }
+          attrDefinition.values.mapTo(_flags) { NeleFlagPropertyItem(this, it, lookupMaskValue(it)) }
+      }
       return _flags
     }
 
@@ -86,6 +92,23 @@ class NeleFlagsPropertyItem(
 
   override fun flag(itemName: String): NeleFlagPropertyItem {
     return children.find { it.name == itemName } ?: throw IllegalArgumentException(itemName)
+  }
+
+  override fun validate(text: String?): Pair<EditingErrorCategory, String> {
+    var flagsValue = (text ?: rawValue).nullize() ?: return EDITOR_NO_ERROR
+    if (flagsValue.startsWith("@")) {
+      val result = validateResourceReference(flagsValue)
+      if (result != null) {
+        return result
+      }
+      flagsValue = resolveValue(flagsValue) ?: flagsValue
+    }
+    val unknown = VALUE_SPLITTER.split(flagsValue).toSet().minus(children.map { it.name }).map { "'$it'" }
+    return when {
+      unknown.isEmpty() -> EDITOR_NO_ERROR
+      unknown.size == 1 -> Pair(EditingErrorCategory.ERROR, "Invalid value: ${unknown.first()}")
+      else -> Pair(EditingErrorCategory.ERROR, "Invalid values: ${Joiner.on(", ").join(unknown)}")
+    }
   }
 
   fun isFlagSet(flag: NeleFlagPropertyItem) = lastValues.contains(flag.name)
@@ -172,7 +195,9 @@ class NeleFlagsPropertyItem(
  * A generated [PropertyItem] which can be used in an editor in the property inspector.
  */
 class NeleFlagPropertyItem(override val flags: NeleFlagsPropertyItem, name: String, override val maskValue: Int) :
-  NelePropertyItem(flags.namespace, name, NelePropertyType.BOOLEAN, null, "", flags.model, flags.components), FlagPropertyItem {
+  NelePropertyItem(flags.namespace, name, NelePropertyType.BOOLEAN, null, flags.componentName, "", flags.model,
+                   flags.optionalValue, flags.components),
+  FlagPropertyItem {
 
   override val isReference: Boolean
     get() = false

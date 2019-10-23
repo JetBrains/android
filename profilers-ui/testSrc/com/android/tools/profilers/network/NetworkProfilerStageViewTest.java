@@ -15,6 +15,14 @@
  */
 package com.android.tools.profilers.network;
 
+import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
+import static com.android.tools.profiler.proto.NetworkProfiler.SpeedData;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertFalse;
+
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.TreeWalker;
@@ -23,26 +31,30 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.NetworkProfiler;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.FakeIdeProfilerComponents;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profilers.ProfilerClient;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.google.common.collect.ImmutableList;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
-import static com.android.tools.profiler.proto.NetworkProfiler.SpeedData;
-import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertFalse;
 
 @SuppressWarnings("OptionalGetWithoutIsPresent")
 public class NetworkProfilerStageViewTest {
@@ -63,29 +75,25 @@ public class NetworkProfilerStageViewTest {
 
   private FakeUi myFakeUi;
   private StudioProfilersView myView;
+  private FakeTimer myTimer = new FakeTimer();
 
-  private final FakeProfilerService myProfilerService = new FakeProfilerService(true);
+  private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
   private final FakeNetworkService myNetworkService =
     FakeNetworkService.newBuilder().setNetworkDataList(NETWORK_PROFILER_DATA_LIST).build();
 
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("NetworkProfilerStageViewTestChannel", myProfilerService, myNetworkService,
+    new FakeGrpcChannel("NetworkProfilerStageViewTestChannel", myTransportService, myNetworkService, new FakeProfilerService(myTimer),
                         new FakeEventService(), new FakeMemoryService(), new FakeCpuService());
 
-  private FakeTimer myTimer;
 
   @Before
   public void setUp() {
-    myTimer = new FakeTimer();
     FakeIdeProfilerServices ideProfilerServices = new FakeIdeProfilerServices();
-    // TODO b/76100366 temporarily disable the sessions panel as the spliiter's divider can interfere with the mouse events targeting over
-    // the LineChart.
-    ideProfilerServices.enableSessionsView(false);
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), ideProfilerServices, myTimer);
-    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), ideProfilerServices, myTimer);
+    myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
-    profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null);
+    profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     // StudioProfilersView initialization needs to happen after the tick, as during setDevice/setProcess the StudioMonitorStage is
     // constructed. If the StudioMonitorStageView is constructed as well, grpc exceptions will be thrown due to lack of various services
     // in the channel, and the tick loop would not complete properly to set the process and agent status.
@@ -135,6 +143,9 @@ public class NetworkProfilerStageViewTest {
   @Test
   public void dragSelectionToggleInfoPanelVisibility() {
     NetworkProfilerStageView stageView = (NetworkProfilerStageView)myView.getStageView();
+    // Fades out the instruction panel so that it does not interfere with the mouse interaction on the selection component.
+    // For the purpose of this test, we only care about the info panel showing when the selection is created over a range with no data.
+    stageView.getStage().getInstructionsEaseOutModel().setCurrentPercentage(1f);
     TreeWalker treeWalker = new TreeWalker(stageView.getComponent());
     JComponent infoPanel = (JComponent)treeWalker.descendantStream().filter(c -> "Info".equals(c.getName())).findFirst().get();
     assertFalse(infoPanel.isVisible());

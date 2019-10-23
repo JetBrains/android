@@ -86,7 +86,7 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
   public void filterPrivateResources(@NotNull CompletionParameters parameters,
                                      @NotNull final CompletionResultSet resultSet,
                                      AndroidFacet facet) {
-    final ResourceVisibilityLookup lookup = ResourceRepositoryManager.getOrCreateInstance(facet).getResourceVisibility();
+    final ResourceVisibilityLookup lookup = ResourceRepositoryManager.getInstance(facet).getResourceVisibility();
     if (lookup.isEmpty()) {
       return;
     }

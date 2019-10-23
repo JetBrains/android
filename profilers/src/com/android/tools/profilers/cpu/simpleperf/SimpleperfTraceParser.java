@@ -17,7 +17,7 @@ package com.android.tools.profilers.cpu.simpleperf;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.SimpleperfReport;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
@@ -28,8 +28,6 @@ import com.android.tools.profilers.cpu.nodemodel.NoSymbolModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -38,8 +36,13 @@ import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Parses a trace file obtained using simpleperf to a map threadId -> {@link CaptureNode}.
@@ -81,8 +84,7 @@ public class SimpleperfTraceParser implements TraceParser {
   /**
    * List of samples containing method trace data.
    */
-  @VisibleForTesting
-  final List<SimpleperfReport.Sample> mySamples;
+  @VisibleForTesting final List<SimpleperfReport.Sample> mySamples;
 
   /**
    * Maps a {@link CpuThreadInfo} to its correspondent method call tree.
@@ -159,10 +161,10 @@ public class SimpleperfTraceParser implements TraceParser {
   }
 
   @Override
-  public CpuCapture parse(File trace, int traceId) throws IOException {
+  public CpuCapture parse(File trace, long traceId) throws IOException {
     parseTraceFile(trace);
     parseSampleData();
-    return new CpuCapture(this, traceId, CpuProfiler.CpuProfilerType.SIMPLEPERF);
+    return new CpuCapture(this, traceId, Cpu.CpuTraceType.SIMPLEPERF);
   }
 
   @Override
@@ -208,7 +210,7 @@ public class SimpleperfTraceParser implements TraceParser {
    * LittleEndian32(record_size_N)
    * message Record(record_N) (having record_size_N bytes)
    * LittleEndian32(0)
-   *
+   * <p>
    * Parsed data is stored in {@link #myFiles} and {@link #mySamples}.
    */
   @VisibleForTesting
@@ -401,11 +403,11 @@ public class SimpleperfTraceParser implements TraceParser {
     // Node used to traverse the tree when adding new nodes or going up to find the divergent node ancestor.
     CaptureNode traversalNode = lastVisitedNode;
 
-    // Find the node whre the current call chain diverge from the previous one
+    // Find the node where the current call chain diverge from the previous one
     int divergenceIndex = 0;
     while (divergenceIndex < callChain.size() && divergenceIndex < previousCallChain.size() &&
            equals(previousCallChain.get(divergenceIndex), callChain.get(divergenceIndex))) {
-      divergenceIndex ++;
+      divergenceIndex++;
     }
 
     // If there is a divergence, we update the end time of the traversal node and go up in the tree until we find the divergent node parent.
@@ -445,7 +447,9 @@ public class SimpleperfTraceParser implements TraceParser {
                                   CaptureNode node, int startIndex, long startTimestamp) {
     assert node != null;
     for (int i = startIndex; i < callChain.size(); i++) {
-      CaptureNode child = createCaptureNode(methodModelFromCallchainEntry(callChain.get(i)), startTimestamp);
+      // Get the parent function vAddress. That corresponds to the line of the parent function where the current function is called.
+      long parentVAddress = i > 0 ? callChain.get(i - 1).getVaddrInFile() : -1;
+      CaptureNode child = createCaptureNode(methodModelFromCallchainEntry(callChain.get(i), parentVAddress), startTimestamp);
       node.addChild(child);
       child.setDepth(node.getDepth() + 1);
       node = child;
@@ -454,7 +458,7 @@ public class SimpleperfTraceParser implements TraceParser {
     return node;
   }
 
-  private CaptureNodeModel methodModelFromCallchainEntry(SimpleperfReport.Sample.CallChainEntry callChainEntry) {
+  private CaptureNodeModel methodModelFromCallchainEntry(SimpleperfReport.Sample.CallChainEntry callChainEntry, long parentVAddress) {
     int symbolId = callChainEntry.getSymbolId();
     SimpleperfReport.File symbolFile = myFiles.get(callChainEntry.getFileId());
     if (symbolFile == null) {
@@ -469,6 +473,6 @@ public class SimpleperfTraceParser implements TraceParser {
     // Otherwise, read the method from the symbol table and parse it into a CaptureNodeModel. User's code symbols come from
     // files located inside the app's directory, therefore we check if the symbol path has the same prefix of such directory.
     boolean isUserWritten = symbolFile.getPath().startsWith(myAppDataFolderPrefix);
-    return NodeNameParser.parseNodeName(symbolFile.getSymbol(symbolId), isUserWritten);
+    return NodeNameParser.parseNodeName(symbolFile.getSymbol(symbolId), isUserWritten, symbolFile.getPath(), parentVAddress);
   }
 }

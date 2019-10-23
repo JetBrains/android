@@ -302,7 +302,7 @@ public final class ObservableList<E> extends AbstractObservableValue<List<? exte
   private class ObservableIterator extends ForwardingIterator<E> {
     private final Iterator<E> myInner;
 
-    ObservableIterator(@NotNull Iterator<E> inner) {
+    public ObservableIterator(@NotNull Iterator<E> inner) {
       myInner = inner;
     }
 
@@ -321,7 +321,7 @@ public final class ObservableList<E> extends AbstractObservableValue<List<? exte
   private class ObservableListIterator extends ForwardingListIterator<E> {
     @NotNull private final ListIterator<E> myInner;
 
-    ObservableListIterator(@NotNull ListIterator<E> inner) {
+    public ObservableListIterator(@NotNull ListIterator<E> inner) {
       myInner = inner;
     }
 

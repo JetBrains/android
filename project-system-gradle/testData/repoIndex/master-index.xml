@@ -15,7 +15,13 @@
   ~ limitations under the License.
   -->
 <metadata>
+  <com.acme.pie/>
   <com.android.support/>
   <com.android.support.constraint/>
+  <com.google.android.material/>
+  <androidx.appcompat/>
+  <androidx.core/>
+  <androidx.fragment/>
   <androidx.navigation/>
+  <androidx.recyclerview/>
 </metadata>

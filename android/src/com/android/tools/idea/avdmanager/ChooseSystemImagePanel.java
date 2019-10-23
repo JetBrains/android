@@ -43,6 +43,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
+import static com.android.sdklib.AndroidVersion.MIN_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
 
@@ -164,8 +165,15 @@ public class ChooseSystemImagePanel extends JPanel
     if (device == null || image == null) {
       return false;
     }
+
     String deviceTagId = device.getTagId();
     IdDisplay imageTag = image.getTag();
+
+    // Foldable device requires Q preview or API29 and above.
+    if (device.getDefaultHardware().getScreen().isFoldable() &&
+        image.getVersion().getFeatureLevel() < MIN_FOLDABLE_DEVICE_API) {
+        return false;
+    }
 
     // Unknown/generic device?
     if (deviceTagId == null || deviceTagId.equals(SystemImage.DEFAULT_TAG.getId())) {
@@ -174,7 +182,7 @@ public class ChooseSystemImagePanel extends JPanel
       // here (which will filter out system images with a non-default tag, such as the Google API
       // system images (see issue #78947), we instead deliberately skip the other form factor images
       return !imageTag.equals(SystemImage.TV_TAG) && !imageTag.equals(SystemImage.WEAR_TAG) &&
-          !imageTag.equals(SystemImage.CHROMEOS_TAG);
+          !imageTag.equals(SystemImage.CHROMEOS_TAG) && !imageTag.equals(SystemImage.AUTOMOTIVE_TAG);
     }
     return deviceTagId.equals(imageTag.getId());
   }
@@ -308,7 +316,7 @@ public class ChooseSystemImagePanel extends JPanel
   private class ClassificationRowFilter extends RowFilter<ListTableModel<SystemImageDescription>, Integer> {
     private final SystemImageClassification myClassification;
 
-    ClassificationRowFilter(@NotNull SystemImageClassification classification) {
+    public ClassificationRowFilter(@NotNull SystemImageClassification classification) {
       myClassification = classification;
     }
 

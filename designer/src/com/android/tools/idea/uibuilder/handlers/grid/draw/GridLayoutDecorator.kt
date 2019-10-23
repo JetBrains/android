@@ -31,12 +31,18 @@ import java.awt.Graphics2D
 open class GridLayoutDecorator : SceneDecorator() {
 
   override fun addBackground(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
-    with(getGridBarriers(component)) {
-      columns.forEach { x -> if (x in left ..right) list.add(DrawLineCommand(x, top, x, bottom)) }
-      rows.forEach { y -> if (y in top ..bottom) list.add(DrawLineCommand(left, y, right, y)) }
-    }
-
     super.addBackground(list, sceneContext, component)
+    with(getGridBarriers(component)) {
+      // Add barrier lines
+      columnIndices.mapNotNull { getColumnValue(it) }
+        .distinct()
+        .filter { it in left..right }
+        .forEach { list.add(DrawLineCommand(it, top, it, bottom)) }
+      rowIndices.mapNotNull { getRowValue(it) }
+        .distinct()
+        .filter { it in top..bottom }
+        .forEach { list.add(DrawLineCommand(left, it, right, it)) }
+    }
   }
 }
 

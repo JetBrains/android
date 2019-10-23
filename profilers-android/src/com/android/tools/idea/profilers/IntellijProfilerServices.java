@@ -22,22 +22,30 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
+import com.android.tools.idea.profilers.stacktrace.IntelliJNativeFrameSymbolizer;
 import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
+import com.android.tools.nativeSymbolizer.NativeSymbolizer;
+import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
+import com.android.tools.nativeSymbolizer.SymbolFilesLocatorKt;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.Notification;
 import com.android.tools.profilers.ProfilerPreferences;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.TracePreProcessor;
+import com.android.tools.profilers.cpu.simpleperf.SimpleperfSampleReporter;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
+import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.impl.EditConfigurationsDialog;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -47,12 +55,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -60,32 +65,49 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class IntellijProfilerServices implements IdeProfilerServices {
+public class IntellijProfilerServices implements IdeProfilerServices, Disposable {
 
   private static Logger getLogger() {
     return Logger.getInstance(IntellijProfilerServices.class);
   }
 
   private final IntellijCodeNavigator myCodeNavigator;
+  @NotNull private final NativeFrameSymbolizer myNativeSymbolizer;
   private final StudioFeatureTracker myFeatureTracker;
 
   @NotNull private final Project myProject;
   @NotNull private final IntellijProfilerPreferences myPersistentPreferences;
   @NotNull private final TemporaryProfilerPreferences myTemporaryPreferences;
 
+  @NotNull private final SimpleperfSampleReporter mySimpleperfSampleReporter;
+
   public IntellijProfilerServices(@NotNull Project project) {
     myProject = project;
     myFeatureTracker = new StudioFeatureTracker(myProject);
-    myCodeNavigator = new IntellijCodeNavigator(project, myFeatureTracker);
+    NativeSymbolizer nativeSymbolizer = NativeSymbolizerKt.createNativeSymbolizer(project);
+    Disposer.register(this, nativeSymbolizer::stop);
+    myNativeSymbolizer = new IntelliJNativeFrameSymbolizer(nativeSymbolizer);
+    myCodeNavigator = new IntellijCodeNavigator(project, nativeSymbolizer, myFeatureTracker);
     myPersistentPreferences = new IntellijProfilerPreferences();
     myTemporaryPreferences = new TemporaryProfilerPreferences();
+    mySimpleperfSampleReporter = new SimpleperfSampleReporter(() -> getNativeSymbolsDirectories());
+  }
+
+  @Override
+  public void dispose() {
+    // Dispose logic handled in constructor.
   }
 
   @NotNull
@@ -143,6 +165,12 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
     }
     return applicationIds.isEmpty() ? "" : applicationIds.get(0);
+  }
+
+  @NotNull
+  @Override
+  public NativeFrameSymbolizer getNativeFrameSymbolizer() {
+    return myNativeSymbolizer;
   }
 
   @NotNull
@@ -241,6 +269,9 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isPerfettoEnabled() { return StudioFlags.PROFILER_USE_PERFETTO.get(); }
+
+      @Override
       public boolean isPerformanceMonitoringEnabled() {
         return StudioFlags.PROFILER_PERFORMANCE_MONITORING.get();
       }
@@ -251,8 +282,8 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isSessionsEnabled() {
-        return StudioFlags.PROFILER_SHOW_SESSIONS.get();
+      public boolean isSimpleperfHostEnabled() {
+        return StudioFlags.PROFILER_SIMPLEPERF_HOST.get();
       }
 
       @Override
@@ -263,6 +294,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isStartupCpuProfilingEnabled() {
         return StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get();
+      }
+
+      @Override
+      public boolean isUnifiedPipelineEnabled() {
+        return StudioFlags.PROFILER_UNIFIED_PIPELINE.get();
       }
     };
   }
@@ -332,6 +368,22 @@ public class IntellijProfilerServices implements IdeProfilerServices {
     return (T)selectedValue[0];
   }
 
+  @NotNull
+  @Override
+  public TracePreProcessor getSimpleperfTracePreProcessor() {
+    return mySimpleperfSampleReporter;
+  }
+
+  /**
+   * Gets a {@link Set} of directories containing the symbol files corresponding to the architecture of the session currently selected.
+   */
+  @NotNull
+  private Set<File> getNativeSymbolsDirectories() {
+    String arch = myCodeNavigator.fetchCpuAbiArch();
+    Map<String, Set<File>> archToDirectories = SymbolFilesLocatorKt.getArchToSymDirsMap(myProject);
+    return archToDirectories.containsKey(arch) ? archToDirectories.get(arch) : Collections.emptySet();
+  }
+
   @Override
   public List<ProfilingConfiguration> getUserCpuProfilerConfigs() {
     CpuProfilerConfigsState configsState = CpuProfilerConfigsState.getInstance(myProject);
@@ -392,12 +444,12 @@ public class IntellijProfilerServices implements IdeProfilerServices {
     if (urlData != null) {
       OpenUrlHyperlink hyperlink = new OpenUrlHyperlink(urlData.getUrl(), urlData.getText());
       AndroidNotification.getInstance(myProject)
-                         .showBalloon(notification.getTitle(), notification.getText(), type, AndroidNotification.BALLOON_GROUP, false,
-                                      hyperlink);
+        .showBalloon(notification.getTitle(), notification.getText(), type, AndroidNotification.BALLOON_GROUP, false,
+                     hyperlink);
     }
     else {
       AndroidNotification.getInstance(myProject)
-                         .showBalloon(notification.getTitle(), notification.getText(), type, AndroidNotification.BALLOON_GROUP);
+        .showBalloon(notification.getTitle(), notification.getText(), type, AndroidNotification.BALLOON_GROUP);
     }
   }
 

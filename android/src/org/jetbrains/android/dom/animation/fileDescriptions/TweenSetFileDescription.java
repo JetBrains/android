@@ -16,14 +16,14 @@
 package org.jetbrains.android.dom.animation.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.animation.Set;
 
 /**
  * Documentation: http://developer.android.com/guide/topics/resources/animation-resource.html#Tween
  * Framework inflation code: AnimationUtils#loadAnimation
  */
-public class TweenSetFileDescription extends AbstractSingleRootFileDescription<Set> {
+public class TweenSetFileDescription extends SingleRootResourceDomFileDescription<Set> {
   public TweenSetFileDescription() {
     super(Set.class, "set", ResourceFolderType.ANIM);
   }

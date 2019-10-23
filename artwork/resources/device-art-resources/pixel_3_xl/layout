@@ -1,0 +1,39 @@
+parts {
+  device {
+    display {
+      width 1440
+      height 2960
+      x 0
+      y 0
+    }
+  }
+  portrait {
+    background {
+      image port_back.webp
+    }
+    foreground {
+      mask round_corners.webp
+      cutout emu01
+    }
+    onion {
+      image port_fore.webp
+    }
+  }
+}
+layouts {
+  portrait {
+    width 1684
+    height 3246
+    event EV_SW:0:1
+    part1 {
+      name portrait
+      x 0
+      y 0
+    }
+    part2 {
+      name device
+      x 126
+      y 72
+    }
+  }
+}

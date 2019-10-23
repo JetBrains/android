@@ -15,49 +15,59 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.intellij.notification.NotificationType.INFORMATION;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.gradle.actions.GoToBundleLocationTask.OpenFolderNotificationListener;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.project.AndroidNotification;
-import com.intellij.ide.actions.RevealFileAction;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.gradle.tooling.BuildCancelledException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.Map;
-
-import static com.intellij.notification.NotificationType.INFORMATION;
-import static org.mockito.Mockito.verify;
-
 /**
  * Tests for {@link GoToBundleLocationTask}.
  */
 public class GoToBundleLocationTaskTest extends JavaProjectTestCase {
   private static final String NOTIFICATION_TITLE = "Build Bundle(s)";
-
+  boolean isRevealFileActionSupported;
   @Mock private AndroidNotification myMockNotification;
   private GoToBundleLocationTask myTask;
-  private File myBundleFilePath;
+  private Map<String, File> modulesToPaths;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);
-
+    List<Module> modules = Collections.singletonList(getModule());
+    isRevealFileActionSupported = true;
     // Simulate the path of the bundle file for the project's module.
-    myBundleFilePath = createTempDir("bundleFileLocation");
-    Map<Module, File> modulesToPaths = Collections.singletonMap(getModule(), myBundleFilePath);
-
-    myTask = new GoToBundleLocationTask(getProject(), NOTIFICATION_TITLE, null, modulesToPaths, null);
+    File myBundleFilePath = createTempDir("bundleFileLocation");
+    modulesToPaths = Collections.singletonMap(getModule().getName(), myBundleFilePath);
+    BuildsToPathsMapper mockGenerator = IdeComponents.mockProjectService(myProject, BuildsToPathsMapper.class, getTestRootDisposable());
+    when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean(), any())).thenReturn(modulesToPaths);
+    myTask = new GoToBundleLocationTask(getProject(), modules, NOTIFICATION_TITLE) {
+      @Override
+      boolean isRevealFileActionSupported() {
+        return isRevealFileActionSupported;  // Inject ability to simulate both behaviors.
+      }
+    };
     ServiceContainerUtil
-      .replaceService(myProject, AndroidNotification.class, myMockNotification, getTestRootDisposable());
+            .replaceService(myProject, AndroidNotification.class, myMockNotification, getTestRootDisposable());
   }
 
   public void testExecuteWithCancelledBuild() {
@@ -74,35 +84,43 @@ public class GoToBundleLocationTaskTest extends JavaProjectTestCase {
   }
 
   public void testExecuteWithSuccessfulBuild() {
-    Module module = getModule();
-
     myTask.execute(createBuildResult(null /* build successful - no errors */));
-    if (RevealFileAction.isSupported()) {
-      String moduleName = module.getName();
-      String message = getModuleNotificationMessage(moduleName);
-      Map<String, File> bundlePathsPerModule = Collections.singletonMap(moduleName, myBundleFilePath);
-      verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
-                                             new OpenFolderNotificationListener(myProject, bundlePathsPerModule, null));
-    }
+    String moduleName = getModule().getName();
+    String message = getExpectedModuleNotificationMessage(moduleName);
+    verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
+            new OpenFolderNotificationListener(myProject, modulesToPaths, null));
+  }
+
+  public void testExecuteWithSuccessfulBuildNoRevealFileAction() {
+    isRevealFileActionSupported = false;
+    myTask.execute(createBuildResult(null /* build successful - no errors */));
+    String message = getExpectedModuleNotificationMessageNoRevealFileAction();
+    verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION, new GoToBundleLocationTask.OpenEventLogHyperlink());
   }
 
   @NotNull
-  private static String getModuleNotificationMessage(@NotNull String moduleName) {
-    return "App bundle(s) generated successfully:" + getModuleLineNotificationMessage(moduleName);
+  private static String getExpectedModuleNotificationMessage(@NotNull String moduleName) {
+    return "App bundle(s) generated successfully for 1 module:" + getExpectedModuleLineNotificationMessage(moduleName);
   }
 
+
   @NotNull
-  private static String getModuleLineNotificationMessage(@NotNull String moduleName) {
+  private static String getExpectedModuleLineNotificationMessage(@NotNull String moduleName) {
     return "<br/>Module '" +
-           moduleName +
-           "': <a href=\"" +
-           GoToBundleLocationTask.LOCATE_URL_PREFIX +
-           moduleName +
-           "\">locate</a> or " +
-           "<a href=\"" +
-           GoToBundleLocationTask.ANALYZE_URL_PREFIX +
-           moduleName +
-           "\">analyze</a> the app bundle.";
+            moduleName +
+            "': <a href=\"" +
+            GoToBundleLocationTask.LOCATE_URL_PREFIX +
+            moduleName +
+            "\">locate</a> or " +
+            "<a href=\"" +
+            GoToBundleLocationTask.ANALYZE_URL_PREFIX +
+            moduleName +
+            "\">analyze</a> the app bundle.";
+  }
+
+  @NotNull
+  private static String getExpectedModuleNotificationMessageNoRevealFileAction() {
+    return "App bundle(s) generated successfully for 1 module";
   }
 
   @NotNull

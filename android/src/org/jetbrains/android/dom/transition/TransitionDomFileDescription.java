@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,31 +15,20 @@
  */
 package org.jetbrains.android.dom.transition;
 
-import com.android.resources.ResourceFolderType;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Computable;
-import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
-import org.jetbrains.annotations.NotNull;
-
 import static org.jetbrains.android.dom.transition.TransitionDomUtil.TRANSITION_SET_TAG;
 
-public class TransitionDomFileDescription extends AndroidResourceDomFileDescription<TransitionSet> {
-  public TransitionDomFileDescription() {
-    super(TransitionSet.class, TRANSITION_SET_TAG, ResourceFolderType.TRANSITION);
-  }
+import com.android.resources.ResourceFolderType;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.psi.xml.XmlFile;
+import org.jetbrains.android.dom.ResourceFolderTypeDomFileDescription;
+import org.jetbrains.annotations.NotNull;
 
-  @Override
-  public boolean acceptsOtherRootTagNames() {
-    return true;
+public class TransitionDomFileDescription extends ResourceFolderTypeDomFileDescription<TransitionSet> {
+  public TransitionDomFileDescription() {
+    super(TransitionSet.class, ResourceFolderType.TRANSITION, TRANSITION_SET_TAG);
   }
 
   public static boolean isTransitionFile(@NotNull final XmlFile file) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
-      @Override
-      public Boolean compute() {
-        return new TransitionDomFileDescription().isMyFile(file, null);
-      }
-    });
+    return ReadAction.compute(() -> new TransitionDomFileDescription().isMyFile(file, null));
   }
 }

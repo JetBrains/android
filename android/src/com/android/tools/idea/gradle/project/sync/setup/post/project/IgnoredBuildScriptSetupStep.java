@@ -22,15 +22,18 @@ import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.GradleModelProvider;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.utils.FileUtils;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import java.io.File;
@@ -41,8 +44,6 @@ import org.jetbrains.annotations.Nullable;
  * Check if project's build script is ignored (b/67790757)
  */
 public class IgnoredBuildScriptSetupStep extends ProjectSetupStep {
-  public static final String IGNORED_PATH_IN_SETTINGS = "File → Settings → Editor → File Types";
-
   @Override
   public void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator) {
     // Check build script
@@ -56,15 +57,18 @@ public class IgnoredBuildScriptSetupStep extends ProjectSetupStep {
     checkIsNotIgnored("Project " + project.getName() + " " + DOT_GRADLE + " folder", dotGradleFolder, project);
 
     // Check all Gradle Modules
-    GradleModelProvider modelProvider = GradleModelProvider.get();
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      GradleBuildModel buildModel = modelProvider.getBuildModel(module);
-      if (buildModel != null) {
-        File moduleBuildPath = new File(buildModel.getVirtualFile().getPath());
-        if (moduleBuildPath.exists() && !FileUtils.isSameFile(moduleBuildPath, projectBuildPath)) {
-          // Only check for modules other than Project module
-          checkIsNotIgnored("Build script for module " + module.getName(), moduleBuildPath, project);
-        }
+      GradleFacet gradleFacet = GradleFacet.getInstance(module);
+      if (gradleFacet == null) {
+        continue;
+      }
+      GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
+      if (gradleModel == null) {
+        continue;
+      }
+      File buildPath = gradleModel.getBuildFilePath();
+      if (buildPath != null && buildPath.exists() && !FileUtils.isSameFile(buildPath, projectBuildPath)) {
+        checkIsNotIgnored("Build script for module " + module.getName(), buildPath, project);
       }
     }
   }
@@ -72,6 +76,10 @@ public class IgnoredBuildScriptSetupStep extends ProjectSetupStep {
   @Override
   public boolean invokeOnFailedSync() {
     return false;
+  }
+
+  public static String getIgnoredFileTypesPathInSettings() {
+    return String.format("%s → Editor → File Types", ShowSettingsUtil.getSettingsMenuName());
   }
 
   /**
@@ -90,10 +98,17 @@ public class IgnoredBuildScriptSetupStep extends ProjectSetupStep {
     if (fileTypeManager.isFileIgnored(path.getPath())) {
       String[] text = {
         prefix + " is being ignored. This can cause issues on the IDE.",
-        "Ignored path: " + path,
-        "You can change ignored files and folders from " + IGNORED_PATH_IN_SETTINGS,
+        "You can change ignored files and folders from " + getIgnoredFileTypesPathInSettings(),
       };
-      messages.report(new SyncMessage(DEFAULT_GROUP, WARNING, text));
+      SyncMessage message = new SyncMessage(DEFAULT_GROUP, WARNING, text);
+      message.add(new NotificationHyperlink("open.settings.filetypes", "Open in Settings") {
+        @Override
+        protected void execute(@NotNull Project project) {
+          ShowSettingsUtil.getInstance().showSettingsDialog(project, "preferences.fileTypes");
+        }
+      });
+      message.add(new OpenFileHyperlink(path.getPath(), "Open ignored " + ((path.isDirectory()) ? "folder location" : "file"), -1, -1));
+      messages.report(message);
     }
   }
 }

@@ -27,16 +27,30 @@ import java.io.StringReader
 class MavenCentralRepositoryTest {
   @Test
   fun testCreateUrlWithGroupId() {
-    val request = SearchRequest("guava", "com.google.guava", 20, 1)
+    val request = SearchRequest(SearchQuery("com.google.guava", "guava"), 20, 1)
     val url = MavenCentralRepository.createRequestUrl(request)
-    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=g:%22com.google.guava%22+AND+a:%22guava%22", url)
+    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=g%3Acom.google.guava+AND+a%3Aguava", url)
   }
 
   @Test
   fun testCreateUrlWithoutGroupId() {
-    val request = SearchRequest("guava", null, 20, 1)
+    val request = SearchRequest(SearchQuery(null, "guava"), 20, 1)
     val url = MavenCentralRepository.createRequestUrl(request)
-    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=a:%22guava%22", url)
+    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=a%3Aguava", url)
+  }
+
+  @Test
+  fun testCreateUrlWithoutArtifactId() {
+    val request = SearchRequest(SearchQuery("com.google.guava", ""), 20, 1)
+    val url = MavenCentralRepository.createRequestUrl(request)
+    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=g%3Acom.google.guava", url)
+  }
+
+  @Test
+  fun testCreateUrlWithWildcards() {
+    val request = SearchRequest(SearchQuery("com.google.*", "gu*va"), 20, 1)
+    val url = MavenCentralRepository.createRequestUrl(request)
+    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=g%3Acom.google.*+AND+a%3Agu*va", url)
   }
 
   @Test

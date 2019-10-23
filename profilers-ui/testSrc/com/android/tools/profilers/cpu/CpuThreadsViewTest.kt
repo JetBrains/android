@@ -19,8 +19,19 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.ui.HideablePanel
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profilers.*
+import com.android.tools.profilers.DragAndDropList
+import com.android.tools.profilers.FakeFeatureTracker
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.ProfilerColors
+import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
@@ -33,22 +44,23 @@ import javax.swing.JLabel
 import javax.swing.ListSelectionModel
 
 class CpuThreadsViewTest {
+  private val timer = FakeTimer()
   private val cpuService = FakeCpuService()
 
   @Rule
   @JvmField
-  var grpcChannel = FakeGrpcChannel("CpuThreadsViewTest", cpuService, FakeProfilerService(),
+  var grpcChannel = FakeGrpcChannel("CpuThreadsViewTest", cpuService,
+                                    FakeTransportService(timer), FakeProfilerService(timer),
                                     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
-  private val timer = FakeTimer()
   private lateinit var stage: CpuProfilerStage
   private lateinit var ideServices: FakeIdeProfilerServices
 
   @Before
   fun setUp() {
     ideServices = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(grpcChannel.client, ideServices, timer)
-    profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), ideServices, timer)
+    profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     stage = CpuProfilerStage(profilers)
@@ -86,7 +98,7 @@ class CpuThreadsViewTest {
     val threadsView = CpuThreadsView(stage)
     stage.studioProfilers.stage = stage
     cpuService.apply {
-      profilerType = CpuProfiler.CpuProfilerType.ATRACE
+      traceType = Cpu.CpuTraceType.ATRACE
       setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
       setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)))
     }
@@ -102,7 +114,7 @@ class CpuThreadsViewTest {
     // Add a thread
     cpuService.addAdditionalThreads(1, "Test", mutableListOf(
       CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder().setTimestamp(0).setNewState(
-        CpuProfiler.GetThreadsResponse.State.SLEEPING).build()))
+        Cpu.CpuThreadData.State.SLEEPING).build()))
     // Update the view range triggering an aspect change in CpuThreadsModel.
     stage.studioProfilers.timeline.viewRange.set(stage.studioProfilers.timeline.dataRange)
     // Tick to trigger

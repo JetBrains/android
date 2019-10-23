@@ -39,6 +39,7 @@ import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -46,8 +47,8 @@ import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
 import com.android.resources.ResourceType;
-import com.android.tools.adtui.ptable.PTableGroupItem;
-import com.android.tools.adtui.ptable.StarState;
+import com.android.tools.property.ptable.PTableGroupItem;
+import com.android.tools.property.ptable.StarState;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
@@ -259,6 +260,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
     text.setValue("Hello World");
     UIUtil.dispatchAllInvocationEvents();
     assertThat(myTextView.getAttribute(ANDROID_URI, ATTR_TEXT)).isEqualTo("Hello World");
+    verify(myUsageTracker).logPropertyChange(text, NlPropertiesPanel.PropertiesViewMode.INSPECTOR, -1);
   }
 
   public void testSetValueWithDefaultValue() {
@@ -285,6 +287,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
     assertThat(myMerge.getAttribute(TOOLS_URI, ATTR_PARENT_TAG)).isEqualTo(LINEAR_LAYOUT);
     assertThat(myPropertiesManager.getUpdateCount()).isEqualTo(originalUpdateCount + 1);
     assertThat(getDescriptor(myMerge, ATTR_ORIENTATION)).isNotNull();
+    verify(myUsageTracker).logPropertyChange(parentTag, NlPropertiesPanel.PropertiesViewMode.INSPECTOR, -1);
   }
 
   public void testSetValueOnDisposedProject() {
@@ -297,7 +300,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
     when(fakeModel.getProject()).thenReturn(fakeProject);
     NlComponent fakeComponent = mock(NlComponent.class);
     when(fakeComponent.getModel()).thenReturn(fakeModel);
-    when(fakeComponent.getTag()).thenThrow(new RuntimeException("setValue should bail out"));
+    when(fakeComponent.getTagDeprecated()).thenThrow(new RuntimeException("setValue should bail out"));
     NlPropertyItem fake = NlPropertyItem.create(
       new XmlName(ATTR_TEXT, ANDROID_URI), text.getDefinition(), ImmutableList.of(fakeComponent), myPropertiesManager);
     fake.setValue("stuff");

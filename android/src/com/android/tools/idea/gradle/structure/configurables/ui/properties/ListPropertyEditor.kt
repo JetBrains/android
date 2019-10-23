@@ -17,9 +17,15 @@ package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorCoreFactory
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
+import com.android.tools.idea.gradle.structure.model.meta.ModelListPropertyCore
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.getValue
 import javax.swing.table.DefaultTableColumnModel
 import javax.swing.table.DefaultTableModel
+import javax.swing.table.TableCellEditor
 import javax.swing.table.TableColumn
 import javax.swing.table.TableColumnModel
 
@@ -30,9 +36,10 @@ class ListPropertyEditor<ValueT : Any, ModelPropertyT : ModelListPropertyCore<Va
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<ValueT>,
   editor: PropertyEditorCoreFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
-  variablesScope: PsVariablesScope?
+  variablesScope: PsVariablesScope?,
+  logValueEdited: () -> Unit
 ) :
-  CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesScope),
+  CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesScope, logValueEdited),
   ModelPropertyEditor<List<ValueT>>, ModelPropertyEditorFactory<List<ValueT>, ModelPropertyT> {
 
   override fun updateProperty(): UpdatePropertyOutcome = throw UnsupportedOperationException()
@@ -91,7 +98,11 @@ class ListPropertyEditor<ValueT : Any, ModelPropertyT : ModelListPropertyCore<Va
 
   override fun getPropertyAt(row: Int) = property.getEditableValues()[row]
 
-  override fun createNew(property: ModelPropertyT): ModelPropertyEditor<List<ValueT>> =
-    ListPropertyEditor(property, propertyContext, editor, variablesScope)
+  override fun createNew(
+    property: ModelPropertyT,
+    cellEditor: TableCellEditor?,
+    isPropertyContext: Boolean
+  ): ModelPropertyEditor<List<ValueT>> =
+    ListPropertyEditor(property, propertyContext, editor, variablesScope) { /* no usage logging */}
 }
 

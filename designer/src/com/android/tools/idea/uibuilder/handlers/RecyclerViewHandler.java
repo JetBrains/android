@@ -15,24 +15,37 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
+import static com.android.SdkConstants.ATTR_BACKGROUND;
+import static com.android.SdkConstants.ATTR_CLIP_CHILDREN;
+import static com.android.SdkConstants.ATTR_CLIP_TO_PADDING;
+import static com.android.SdkConstants.ATTR_ITEM_COUNT;
+import static com.android.SdkConstants.ATTR_LISTITEM;
+import static com.android.SdkConstants.ATTR_SCROLLBARS;
+import static com.android.SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT;
+import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.flags.StudioFlags.NELE_SAMPLE_DATA_UI;
+
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
-import com.android.tools.idea.common.scene.target.Target;
-import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.scene.target.ComponentAssistantViewAction;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.android.tools.idea.uibuilder.handlers.actions.PickSampleListDataViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.RecyclerViewAssistant;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
+import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
+import java.util.Collections;
+import java.util.List;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.flags.StudioFlags.NELE_SAMPLE_DATA_UI;
 
 /**
  * Handler for the {@code <RecyclerView>} layout
@@ -40,11 +53,29 @@ import static com.android.tools.idea.flags.StudioFlags.NELE_SAMPLE_DATA_UI;
 public class RecyclerViewHandler extends ViewGroupHandler {
   @Override
   @NotNull
+  @Language("XML")
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
+    switch (xmlType) {
+      case DRAG_PREVIEW:
+        return new XmlBuilder()
+          .startTag(tagName)
+          .wrapContent()
+          .endTag(tagName)
+          .toString();
+      case PREVIEW_ON_PALETTE:
+      default:
+        return super.getXml(tagName, xmlType);
+    }
+  }
+
+  @Override
+  @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
       ATTR_SCROLLBARS,
-      ATTR_LISTITEM,
       ATTR_BACKGROUND,
+      TOOLS_NS_NAME_PREFIX + ATTR_ITEM_COUNT,
+      TOOLS_NS_NAME_PREFIX + ATTR_LISTITEM,
       ATTR_CLIP_TO_PADDING,
       ATTR_CLIP_CHILDREN);
   }
@@ -58,7 +89,7 @@ public class RecyclerViewHandler extends ViewGroupHandler {
   }
 
   @Nullable
-  public ComponentAssistantFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+  private static ComponentAssistantFactory getComponentAssistant(@NotNull NlComponent component) {
     if (!NELE_SAMPLE_DATA_UI.get()) {
       return null;
     }
@@ -71,13 +102,22 @@ public class RecyclerViewHandler extends ViewGroupHandler {
     return RecyclerViewAssistant::createComponent;
   }
 
-  @NotNull
   @Override
-  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
-    ComponentAssistantFactory panelFactory = getComponentAssistant(sceneComponent.getScene().getDesignSurface(), sceneComponent.getNlComponent());
+  public boolean addPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
+    boolean cacheable = super.addPopupMenuActions(component, actions);
 
-    return panelFactory != null ?
-           ImmutableList.of(new ComponentAssistantActionTarget(panelFactory)) :
-           ImmutableList.of();
+    actions.add(new ComponentAssistantViewAction(RecyclerViewHandler::getComponentAssistant));
+
+    return cacheable;
+  }
+
+  @Override
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<ViewAction> getPropertyActions(@NotNull List<NlComponent> components) {
+    return ImmutableList.of(new PickSampleListDataViewAction(TOOLS_URI, ATTR_LISTITEM));
   }
 }

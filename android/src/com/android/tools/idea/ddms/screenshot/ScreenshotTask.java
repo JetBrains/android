@@ -145,7 +145,7 @@ public class ScreenshotTask extends Task.Modal {
     private final IDevice myDevice;
     private final SettableFuture<RawImage> myFuture;
 
-    ScreenshotRetrieverTask(@NotNull IDevice device) {
+    public ScreenshotRetrieverTask(@NotNull IDevice device) {
       myDevice = device;
       myFuture = SettableFuture.create();
     }

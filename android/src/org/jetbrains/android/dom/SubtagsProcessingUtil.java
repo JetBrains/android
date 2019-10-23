@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,34 @@
  */
 package org.jetbrains.android.dom;
 
+import static com.android.SdkConstants.CLASS_PREFERENCE_GROUP;
+import static com.android.SdkConstants.CLASS_PREFERENCE_GROUP_ANDROIDX;
+
 import com.google.common.collect.Multimap;
 import com.intellij.codeInsight.completion.CompletionUtil;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.XmlName;
+import java.lang.reflect.Type;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
 import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.navigation.NavElement;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
+import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.lang.reflect.Type;
-import java.util.*;
-import java.util.function.Predicate;
 
 /**
  * Utility functions for enumerating available children tag types in the context of a given XML tag.
@@ -45,21 +54,38 @@ public class SubtagsProcessingUtil {
   private SubtagsProcessingUtil() {
   }
 
-  private static boolean isPreference(@NotNull Map<String, PsiClass> preferenceClassMap, @Nullable PsiClass psiClass) {
-    if (psiClass == null) {
-      return false;
+  /**
+   * Checks if the given {@code psiClass} is a preference group and should have subtags in XML.
+   *  @param psiClass class to check
+   * @param preferenceClassMap class map obtained from a {@link com.android.tools.idea.psi.TagToClassMapper} used to find PSI classes.
+   */
+  private static boolean isPreferenceGroup(@NotNull PsiClass psiClass, @NotNull Map<String, PsiClass> preferenceClassMap) {
+    Project project = psiClass.getProject();
+    PsiManager psiManager = PsiManager.getInstance(project);
+
+    PsiClass frameworkClass = preferenceClassMap.get(CLASS_PREFERENCE_GROUP);
+    if (frameworkClass != null) {
+      if (psiManager.areElementsEquivalent(frameworkClass, psiClass) || psiClass.isInheritor(frameworkClass, true)) {
+        return true;
+      }
     }
-    PsiClass preferenceClass = preferenceClassMap.get("Preference");
-    return preferenceClass != null && (preferenceClass == psiClass || psiClass.isInheritor(preferenceClass, true));
+
+    PsiClass libClass = preferenceClassMap.get(MigrateToAndroidxUtil.getNameInProject(CLASS_PREFERENCE_GROUP_ANDROIDX, project));
+    if (libClass != null) {
+      if (psiManager.areElementsEquivalent(libClass, psiClass) || psiClass.isInheritor(libClass, true)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**
    * Provides information about available tags for resources in xml/ folder
    */
-  public static void registerXmlResourcesSubtags(AndroidFacet facet,
-                                                 XmlTag tag,
-                                                 XmlResourceElement element,
-                                                 SubtagProcessor subtagProcessor) {
+  public static void registerXmlResourcesSubtags(@NotNull AndroidFacet facet,
+                                                 @NotNull XmlTag tag,
+                                                 @NotNull SubtagProcessor subtagProcessor) {
     final String tagName = tag.getName();
 
     switch (tagName) {
@@ -99,11 +125,15 @@ public class SubtagsProcessingUtil {
     }
 
     // for preferences
-    Map<String, PsiClass> prefClassMap = AttributeProcessingUtil.getPreferencesClassMap(facet);
-    String prefClassName = element.getXmlTag().getName();
-    PsiClass psiClass = prefClassMap.get(prefClassName);
+    Map<String, PsiClass> prefClassMap;
+    if (AndroidXmlResourcesUtil.isAndroidXPreferenceFile(tag, facet)) {
+      prefClassMap = AttributeProcessingUtil.getAndroidXPreferencesClassMap(facet);
+    } else {
+      prefClassMap = AttributeProcessingUtil.getFrameworkPreferencesClassMap(facet);
+    }
+    PsiClass psiClass = prefClassMap.get(tagName);
 
-    if (isPreference(prefClassMap, psiClass)) {
+    if (psiClass != null && isPreferenceGroup(psiClass, prefClassMap)) {
       registerClassNameSubtags(tag, prefClassMap, PreferenceElement.class, subtagProcessor);
     }
   }
@@ -156,7 +186,10 @@ public class SubtagsProcessingUtil {
                                subtagProcessor);
     }
     else if (element instanceof XmlResourceElement) {
-      registerXmlResourcesSubtags(facet, element.getXmlTag(), (XmlResourceElement)element, subtagProcessor);
+      XmlTag tag = element.getXmlTag();
+      if (tag != null) {
+        registerXmlResourcesSubtags(facet, tag, subtagProcessor);
+      }
     }
     else if (element instanceof NavElement) {
       try {

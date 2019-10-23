@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.startup;
 
-import com.android.annotations.VisibleForTesting;
+import com.android.annotations.concurrency.Slow;
+import com.android.annotations.concurrency.UiThread;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
@@ -31,10 +32,8 @@ import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
 import com.intellij.ide.AppLifecycleListener;
-import com.intellij.ide.actions.TemplateProjectStructureAction;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
-import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.notification.*;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
@@ -47,10 +46,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.codeStyle.CodeStyleScheme;
-import com.intellij.psi.codeStyle.CodeStyleSchemes;
-import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
-import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -63,7 +59,6 @@ import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
-import java.util.Objects;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
@@ -102,18 +97,75 @@ public class GradleSpecificInitializer implements Runnable {
     }
 
     if (AndroidSdkUtils.isAndroidSdkManagerEnabled()) {
+      ApplicationManager.getApplication().executeOnPooledThread(GradleSpecificInitializer::setupSdk);
+    }
+  }
+
+  @Slow
+  private static void setupSdk() {
+    try {
+      // Setup JDK and Android SDK if necessary.
+      if (setupSdkSilently()) {
+        finishSdkSetup();
+      }
+    }
+    catch (Exception e) {
+      LOG.error("Unexpected error while setting up SDKs: ", e);
+      return;
+    }
+
+    UIUtil.invokeLaterIfNeeded(GradleSpecificInitializer::setUpSdkInteractively);
+  }
+
+  @UiThread
+  private static void setUpSdkInteractively() {
+    File androidSdkPath = getAndroidSdkPath();
+    if (androidSdkPath == null) {
+      return;
+    }
+
+    FirstRunWizardMode wizardMode = AndroidStudioWelcomeScreenProvider.getWizardMode();
+    // Only show "Select SDK" dialog if the "First Run" wizard is not displayed.
+    boolean promptSdkSelection = wizardMode == null;
+
+    Sdk sdk = createNewAndroidPlatform(androidSdkPath.getPath(), promptSdkSelection);
+    if (sdk != null) {
+      // Rename the SDK to fit our default naming convention.
+      String sdkNamePrefix = AndroidSdks.SDK_NAME_PREFIX;
+      if (sdk.getName().startsWith(sdkNamePrefix)) {
+        SdkModificator sdkModificator = sdk.getSdkModificator();
+        sdkModificator.setName(sdkNamePrefix + sdk.getName().substring(sdkNamePrefix.length()));
+        sdkModificator.commitChanges();
+
+        // Rename the JDK that goes along with this SDK.
+        AndroidSdkAdditionalData additionalData = AndroidSdks.getInstance().getAndroidSdkAdditionalData(sdk);
+        if (additionalData != null) {
+          Sdk jdk = additionalData.getJavaSdk();
+          if (jdk != null) {
+            sdkModificator = jdk.getSdkModificator();
+            sdkModificator.setName(DEFAULT_JDK_NAME);
+            sdkModificator.commitChanges();
+          }
+        }
+
+        // Fill out any missing build APIs for this new SDK.
+        IdeSdks.getInstance().createAndroidSdkPerAndroidTarget(androidSdkPath);
+      }
+    }
+
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
       try {
-        // Setup JDK and Android SDK if necessary
-        setupSdks();
-        checkAndroidSdkHome();
+        finishSdkSetup();
       }
       catch (Exception e) {
         LOG.error("Unexpected error while setting up SDKs: ", e);
       }
-      checkAndSetAndroidSdkSources();
-    }
+    });
+  }
 
-    modifyCodeStyleSettings();
+  private static void finishSdkSetup() {
+    checkAndroidSdkHome();
+    checkAndSetAndroidSdkSources();
   }
 
   /**
@@ -167,6 +219,7 @@ public class GradleSpecificInitializer implements Runnable {
     replaceAction("WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open an existing Android Studio project"));
     replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("Start a new Android Studio project"));
     replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction("Import project (Gradle, Eclipse ADT, etc.)"));
+    replaceAction("WelcomeScreen.Configure.ProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
     replaceAction("TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
 
     ActionManager actionManager = ActionManager.getInstance();
@@ -177,18 +230,6 @@ public class GradleSpecificInitializer implements Runnable {
     AnAction getFromVcsAction = actionManager.getAction("Vcs.VcsClone");
     if (getFromVcsAction != null) {
       getFromVcsAction.getTemplatePresentation().setText("Get project from Version Control");
-    }
-
-    AnAction configureIdeaAction = actionManager.getAction("WelcomeScreen.Configure.IDEA");
-    if (configureIdeaAction instanceof DefaultActionGroup) {
-      DefaultActionGroup settingsGroup = (DefaultActionGroup)configureIdeaAction;
-      AnAction[] children = settingsGroup.getChildren(null);
-      if (children.length == 1) {
-        AnAction child = children[0];
-        if (child instanceof TemplateProjectStructureAction) {
-          settingsGroup.replaceAction(child, new AndroidTemplateProjectSettingsGroup());
-        }
-      }
     }
   }
 
@@ -260,7 +301,13 @@ public class GradleSpecificInitializer implements Runnable {
     return group;
   }
 
-  private static void setupSdks() {
+  /**
+   * Tries to set up Android SDK without user participation.
+   *
+   * @return true if an Android SDK was selected successfully
+   */
+  @Slow
+  private static boolean setupSdkSilently() {
     IdeSdks ideSdks = IdeSdks.getInstance();
     File androidHome = ideSdks.getAndroidSdkPath();
 
@@ -272,16 +319,16 @@ public class GradleSpecificInitializer implements Runnable {
       }
 
       // Do not prompt user to select SDK path (we have one already.) Instead, check SDK compatibility when a project is opened.
-      return;
+      return true;
     }
 
     // If running in a GUI test we don't want the "Select SDK" dialog to show up when running GUI tests.
-    // In unit tests, we only want to set up SDKs which are set up explicitly by the test itself, whereas initialisers
+    // In unit tests, we only want to set up SDKs which are set up explicitly by the test itself, whereas initializers
     // might lead to unexpected SDK leaks because having not set up the SDKs, the test will consequently not release them either.
     if (GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode()
         || ApplicationManager.getApplication().isHeadlessEnvironment()) {
       // This is good enough. Later on in the GUI test we'll validate the given SDK path.
-      return;
+      return true;
     }
 
     Sdk sdk = findFirstCompatibleAndroidSdk();
@@ -289,45 +336,10 @@ public class GradleSpecificInitializer implements Runnable {
       String sdkHomePath = sdk.getHomePath();
       assert sdkHomePath != null;
       ideSdks.createAndroidSdkPerAndroidTarget(toSystemDependentPath(sdkHomePath));
-      return;
+      return true;
     }
 
-    // Called in a 'invokeLater' block, otherwise file chooser will hang forever.
-    ApplicationManager.getApplication().invokeLater(() -> {
-      File androidSdkPath = getAndroidSdkPath();
-      if (androidSdkPath == null) {
-        return;
-      }
-
-      FirstRunWizardMode wizardMode = AndroidStudioWelcomeScreenProvider.getWizardMode();
-      // Only show "Select SDK" dialog if the "First Run" wizard is not displayed.
-      boolean promptSdkSelection = wizardMode == null;
-
-      Sdk sdk1 = createNewAndroidPlatform(androidSdkPath.getPath(), promptSdkSelection);
-      if (sdk1 != null) {
-        // Rename the SDK to fit our default naming convention.
-        String sdkNamePrefix = AndroidSdks.SDK_NAME_PREFIX;
-        if (sdk1.getName().startsWith(sdkNamePrefix)) {
-          SdkModificator sdkModificator = sdk1.getSdkModificator();
-          sdkModificator.setName(sdkNamePrefix + sdk1.getName().substring(sdkNamePrefix.length()));
-          sdkModificator.commitChanges();
-
-          // Rename the JDK that goes along with this SDK.
-          AndroidSdkAdditionalData additionalData = AndroidSdks.getInstance().getAndroidSdkAdditionalData(sdk1);
-          if (additionalData != null) {
-            Sdk jdk = additionalData.getJavaSdk();
-            if (jdk != null) {
-              sdkModificator = jdk.getSdkModificator();
-              sdkModificator.setName(DEFAULT_JDK_NAME);
-              sdkModificator.commitChanges();
-            }
-          }
-
-          // Fill out any missing build APIs for this new SDK.
-          ideSdks.createAndroidSdkPerAndroidTarget(androidSdkPath);
-        }
-      }
-    });
+    return false;
   }
 
   private static void checkAndroidSdkHome() {
@@ -357,22 +369,6 @@ public class GradleSpecificInitializer implements Runnable {
   @Nullable
   private static File getAndroidSdkPath() {
     return AndroidSdkInitializer.findOrGetAndroidSdkPath();
-  }
-
-  @VisibleForTesting
-  static void modifyCodeStyleSettings() {
-    CodeStyleSchemes schemes = CodeStyleSchemes.getInstance();
-    CodeStyleScheme scheme = schemes.getDefaultScheme();
-
-    if (scheme != null) {
-      AndroidCodeStyleSettingsModifier.modify(scheme.getCodeStyleSettings());
-    }
-
-    CommonCodeStyleSettings settings = schemes.getCurrentScheme().getCodeStyleSettings().getCommonSettings(XMLLanguage.INSTANCE);
-
-    if (Objects.equals(settings.getArrangementSettings(), AndroidXmlPredefinedCodeStyle.createVersion1Settings())) {
-      settings.setArrangementSettings(AndroidXmlPredefinedCodeStyle.createVersion2Settings());
-    }
   }
 
   private static void checkAndSetAndroidSdkSources() {

@@ -45,7 +45,7 @@ public class AndroidStudioIconProvider extends IconProvider {
       if (isModuleContentRoot(virtualDirectory, project)) {
         ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
         Module module = projectFileIndex.getModuleForFile(virtualDirectory);
-        if (module != null) {
+        if (module != null && !module.isDisposed()) {
           return getModuleIcon(module);
         }
       }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.refactoring;
 
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
@@ -77,7 +77,7 @@ public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestC
   private void verifyErrorMessage() throws Exception {
     loadSimpleApplication();
     // Generate buildConfig.
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_USER_REQUEST);
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED);
     request.generateSourcesOnSuccess = true;
     requestSyncAndWait(request);
 

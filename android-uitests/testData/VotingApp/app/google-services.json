@@ -1,0 +1,101 @@
+{
+  "project_info": {
+    "project_number": "124942098427",
+    "firebase_url": "https://asux-survey.firebaseio.com",
+    "project_id": "asux-survey",
+    "storage_bucket": "asux-survey.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:124942098427:android:8d0c0c0e78627cba",
+        "android_client_info": {
+          "package_name": "com.google.adux.votingapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "124942098427-bjeco6b4clia9p2guqjqob9h5tmb1cds.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.google.adux.votingapp",
+            "certificate_hash": "270208865cac376065cb372cf9116a4577cebbad"
+          }
+        },
+        {
+          "client_id": "124942098427-kv1urmf9ht47jbskgjsvpl2ho2ek5vov.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "124942098427-kv1urmf9ht47jbskgjsvpl2ho2ek5vov.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0B3aScqpqVeCaE5mZYYBUl4k082MN_e8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "124942098427-kv1urmf9ht47jbskgjsvpl2ho2ek5vov.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "124942098427-1o3qb34tg4d74bqftjj3dkgisg7hmngp.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.massivedisaster.example.activitymanager"
+              }
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:124942098427:android:ce48c9b4d120ada0",
+        "android_client_info": {
+          "package_name": "com.src.adux.votingapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "124942098427-kv1urmf9ht47jbskgjsvpl2ho2ek5vov.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "124942098427-kv1urmf9ht47jbskgjsvpl2ho2ek5vov.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0B3aScqpqVeCaE5mZYYBUl4k082MN_e8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

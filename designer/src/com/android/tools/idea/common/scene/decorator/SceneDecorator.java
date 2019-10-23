@@ -20,12 +20,12 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawComponentBackground;
 import com.android.tools.idea.common.scene.draw.DrawComponentFrame;
-import com.android.tools.idea.common.surface.SceneLayer;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
+import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * The generic Scene Decorator
@@ -55,8 +55,9 @@ public class SceneDecorator {
    * </ol>
    */
   public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    if (SceneLayer.SHOW_ON_HOVER && sceneContext.showOnlySelection()) {
+    if (sceneContext.showOnlySelection()) {
       addFrame(list, sceneContext, component);
+      buildListTargets(list, time, sceneContext, component);
       buildListChildren(list, time, sceneContext, component);
       return;
     }
@@ -84,10 +85,14 @@ public class SceneDecorator {
   protected void addBackground(@NotNull DisplayList list,
                                @NotNull SceneContext sceneContext,
                                @NotNull SceneComponent component) {
-    if (sceneContext.getColorSet().drawBackground()) {
+    boolean wantToConnect = DecoratorUtilities.getTryingToConnectState(component.getAuthoritativeNlComponent()) != null;
+    SceneComponent.DrawState state = component.getDrawState();
+
+    // For normal design mode, only draw background for hover.
+    if (!component.getAuthoritativeNlComponent().isRoot() &&
+        (sceneContext.getColorSet().drawBackground() || (wantToConnect && state == SceneComponent.DrawState.HOVER))) {
       Rectangle rect = new Rectangle();
       component.fillRect(rect); // get the rectangle from the component
-      SceneComponent.DrawState state = component.getDrawState();
       if (component.isToolLocked()) {
         state = SceneComponent.DrawState.SUBDUED;
       }
@@ -115,23 +120,13 @@ public class SceneDecorator {
                                    @NotNull SceneComponent component) {
     List<SceneComponent> children = component.getChildren();
     if (!children.isEmpty()) {
-      if (StudioFlags.NELE_DRAG_PLACEHOLDER.get()) {
-        // The CommonDragTarget is render by the dragged SceneComponent, which may need to render the placeholder for other SceneComponents
-        // So we should not clip its bound.
-        // FIXME: Makes CommonDragTarget is not rendered here.
-        for (SceneComponent child : children) {
-          child.buildDisplayList(time, list, sceneContext);
-        }
+      Rectangle rect = new Rectangle();
+      component.fillRect(rect);
+      list.pushClip(sceneContext, rect);
+      for (SceneComponent child : children) {
+        child.buildDisplayList(time, list, sceneContext);
       }
-      else {
-        Rectangle rect = new Rectangle();
-        component.fillRect(rect);
-        DisplayList.UNClip unClip = list.addClip(sceneContext, rect);
-        for (SceneComponent child : children) {
-          child.buildDisplayList(time, list, sceneContext);
-        }
-        list.add(unClip);
-      }
+      list.popClip();
     }
   }
 

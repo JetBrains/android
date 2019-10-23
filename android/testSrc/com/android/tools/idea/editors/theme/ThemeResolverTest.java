@@ -92,7 +92,7 @@ public class ThemeResolverTest extends AndroidTestCase {
     assertNull("The theme is an app theme and shouldn't be returned for the android namespace",
                themeResolver.getTheme(ResourceReference.style(ResourceNamespace.ANDROID, "Theme.MyTheme")));
 
-    ResourceNamespace moduleNamespace = ResourceRepositoryManager.getOrCreateInstance(myModule).getNamespace();
+    ResourceNamespace moduleNamespace = ResourceRepositoryManager.getInstance(myModule).getNamespace();
     ConfiguredThemeEditorStyle theme = themeResolver.getTheme(ResourceReference.style(moduleNamespace, "Theme.MyTheme"));
     assertNotNull(theme);
     assertEquals("Theme.MyTheme", theme.getName());
@@ -124,7 +124,7 @@ public class ThemeResolverTest extends AndroidTestCase {
 
     ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = configurationManager.getConfiguration(file);
-    ResourceNamespace moduleNamespace = ResourceRepositoryManager.getOrCreateInstance(myModule).getNamespace();
+    ResourceNamespace moduleNamespace = ResourceRepositoryManager.getInstance(myModule).getNamespace();
 
     ThemeEditorContext context = new ThemeEditorContext(configuration);
     ThemeResolver resolver = context.getThemeResolver();
@@ -205,7 +205,7 @@ public class ThemeResolverTest extends AndroidTestCase {
     projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, myModule, new GradleVersion(1337, 600613));
 
     ResourceNamespace appcompatNamespace =
-        ResourceRepositoryManager.getOrCreateInstance(myModule).getNamespacing() == AaptOptions.Namespacing.DISABLED
+      ResourceRepositoryManager.getInstance(myModule).getNamespacing() == AaptOptions.Namespacing.DISABLED
         ? ResourceNamespace.RES_AUTO
         : ResourceNamespace.APPCOMPAT;
     VirtualFile layoutFile = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout.xml");

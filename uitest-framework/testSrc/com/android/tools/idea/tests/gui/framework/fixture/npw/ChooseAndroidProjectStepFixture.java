@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
+import static com.android.tools.idea.tests.gui.framework.matcher.Matchers.byType;
+
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import javax.swing.JRootPane;
+import javax.swing.JTabbedPane;
 import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.fixture.JTabbedPaneFixture;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class ChooseAndroidProjectStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ChooseAndroidProjectStepFixture, W> {
@@ -31,9 +36,18 @@ public class ChooseAndroidProjectStepFixture<W extends AbstractWizardFixture>
   }
 
   public ChooseAndroidProjectStepFixture<W> chooseActivity(@NotNull String activity) {
-    JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
+    JListFixture listFixture = new JListFixture(robot(), waitUntilShowingAndEnabled(robot(), target(), byType(ASGallery.class)));
     listFixture.replaceCellReader((jList, index) -> String.valueOf(jList.getModel().getElementAt(index)));
     listFixture.clickItem(activity);
     return this;
+  }
+
+  public ChooseAndroidProjectStepFixture<W> selectAutomotiveTab() {
+    selectTab("Automotive");
+    return this;
+  }
+
+  private void selectTab(@NotNull String tabName) {
+    new JTabbedPaneFixture(robot(), waitUntilFound(robot(), target(), byType(JTabbedPane.class))).selectTab(tabName);
   }
 }

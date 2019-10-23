@@ -121,13 +121,13 @@ public class PropertyUtil {
 
   @NotNull
   public static GradlePropertyModelImpl resolveModel(@NotNull GradlePropertyModelImpl model) {
-    Set<GradlePropertyModel> seenModels = new HashSet<>();
+    Set<String> seenModels = new HashSet<>();
 
-    while (model.getValueType() == REFERENCE && !seenModels.contains(model)) {
+    while (model.getValueType() == REFERENCE && !seenModels.contains(model.getFullyQualifiedName())) {
       if (model.getDependencies().isEmpty()) {
         return model;
       }
-      seenModels.add(model);
+      seenModels.add(model.getFullyQualifiedName());
       model = model.dependencies().get(0);
     }
     return model;

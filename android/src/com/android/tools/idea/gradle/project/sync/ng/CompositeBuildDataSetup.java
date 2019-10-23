@@ -58,6 +58,11 @@ public class CompositeBuildDataSetup {
         String buildPath = toCanonicalPath(moduleBuildId.getRootDir().getCanonicalPath());
         BuildParticipant buildParticipant = compositeParticipants.computeIfAbsent(buildPath, p -> {
           BuildParticipant participant = new BuildParticipant();
+          GradleProject rootProject = gradleProject;
+          while (rootProject.getParent() != null) {
+            rootProject = rootProject.getParent();
+          }
+          participant.setRootProjectName(rootProject.getName());
           cache.addBuildParticipant(participant);
           return participant;
         });

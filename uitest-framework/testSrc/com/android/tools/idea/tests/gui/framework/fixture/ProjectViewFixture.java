@@ -27,7 +27,6 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.ide.projectView.impl.ProjectViewTree;
-import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
@@ -100,6 +99,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
   }
 
   private void changePane(@NotNull String paneName) {
+    myToolWindow.getComponent().requestFocusInWindow();
     Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byText(BaseLabel.class, "Project:"));
     if (SystemInfo.isMac) {
       myRobot.click(projectDropDown.getParent());
@@ -183,21 +183,6 @@ public class ProjectViewFixture extends ToolWindowFixture {
     }
 
     @NotNull
-    public NodeFixture findExternalLibrariesNode() {
-      final AbstractTreeStructure treeStructure = getTreeStructure();
-
-      ExternalLibrariesNode node = GuiQuery.getNonNull(() -> {
-        for (Object child : treeStructure.getChildElements(treeStructure.getRootElement())) {
-          if (child instanceof ExternalLibrariesNode) {
-            return (ExternalLibrariesNode)child;
-          }
-        }
-        throw new IllegalStateException("Unable to find 'External Libraries' node");
-      });
-      return new NodeFixture(node, treeStructure);
-    }
-
-    @NotNull
     private NodeFixture findApkNode() {
       AbstractTreeStructure treeStructure = getTreeStructure();
 
@@ -252,6 +237,12 @@ public class ProjectViewFixture extends ToolWindowFixture {
       }
       myTree.clickPath(totalPath.toString(), button);
       return myIdeFrameFixture;
+    }
+
+    public IdeFrameFixture deletePath(@NotNull final String... pathSegments) {
+      return clickPath(MouseButton.RIGHT_BUTTON, pathSegments)
+        .openFromMenu(DeleteDialogFixture::find, "Delete...")
+        .unsafeDelete();
     }
   }
 

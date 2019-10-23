@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.relative.targets
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.common.model.NlAttributesHolder
@@ -45,7 +45,6 @@ class RelativeDragTarget : DragBaseTarget() {
       return
     }
     super.mouseDown(x, y)
-    myComponent.setModelUpdateAuthorized(true)
   }
 
   override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
@@ -59,11 +58,7 @@ class RelativeDragTarget : DragBaseTarget() {
   }
 
   override fun updateAttributes(attributes: NlAttributesHolder, x: Int, y: Int) {
-    // Remove offset, so (dx, dy) is the position of left-top corner of component.
-    val parent = myComponent.parent!!
-    val dx = Math.max(parent.drawLeft, Math.min(x - myOffsetX, parent.drawRight - myComponent.drawWidth))
-    val dy = Math.max(parent.drawTop, Math.min(y - myOffsetY, parent.drawBottom - myComponent.drawHeight))
-    dropHandler.updateAttributes(attributes, dx, dy)
+    dropHandler.updateAttributes(attributes, x - myOffsetX, y - myOffsetY)
   }
 
   override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>) {
@@ -79,7 +74,7 @@ class RelativeDragTarget : DragBaseTarget() {
       attributes.apply()
 
       if (Math.abs(x - myFirstMouseX) > 1 || Math.abs(y - myFirstMouseY) > 1) {
-        NlWriteCommandAction.run(component, "Dragged " + StringUtil.getShortName(component.tagName), { attributes.commit() })
+        NlWriteCommandActionUtil.run(component, "Dragged " + StringUtil.getShortName(component.tagName), { attributes.commit() })
       }
     }
 
@@ -135,7 +130,7 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
     val newX = processHorizontalAttributes(attributes, x)
     val newY = processVerticalAttributes(attributes, y)
 
-    myComponent.setPosition(newX, newY, false)
+    myComponent.setPosition(newX, newY)
   }
 
   // TODO: remove this function if possible

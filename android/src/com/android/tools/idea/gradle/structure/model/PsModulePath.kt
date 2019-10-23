@@ -15,7 +15,20 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-data class PsModulePath(val moduleName: String) : PsPath {
+import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.gradle.structure.navigation.PsBuildTypesNavigationPath
+import com.android.tools.idea.gradle.structure.navigation.PsBuildVariantsNavigationPath
+import com.android.tools.idea.gradle.structure.navigation.PsDependenciesNavigationPath
+import com.android.tools.idea.gradle.structure.navigation.PsProductFlavorsNavigationPath
+import com.intellij.ui.navigation.Place
+
+data class PsModulePath(val moduleName: String) : PsPlaceBasedPath() {
   constructor (module: PsModule) : this(module.name)
   override fun toString(): String = moduleName
+  override fun queryPlace(place: Place, context: PsContext) = throw UnsupportedOperationException()
+  override fun getHyperlinkDestination(context: PsContext): String? = null
+  val buildVariantsPath: PsBuildVariantsNavigationPath = PsBuildVariantsNavigationPath(this)
+  val dependenciesPath: PsDependenciesNavigationPath = PsDependenciesNavigationPath(this)
+  val buildTypesPath: PsBuildTypesNavigationPath = PsBuildTypesNavigationPath(buildVariantsPath)
+  val productFlavorsPath: PsProductFlavorsNavigationPath = PsProductFlavorsNavigationPath(buildVariantsPath)
 }

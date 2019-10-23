@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.adtui.ptable.PTableCellRenderer;
-import com.android.tools.adtui.ptable.PTableGroupItem;
-import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableCellRenderer;
+import com.android.tools.property.ptable.PTableGroupItem;
+import com.android.tools.property.ptable.PTableItem;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,13 +33,13 @@ class NlPropertyAccumulator {
   private final Predicate<NlPropertyItem> myFilter;
   private PTableGroupItem myGroupNode;
 
-  NlPropertyAccumulator(@NotNull String groupName, @NotNull String prefix) {
+  public NlPropertyAccumulator(@NotNull String groupName, @NotNull String prefix) {
     myGroupName = groupName;
     myPrefix = prefix;
     myFilter = null;
   }
 
-  NlPropertyAccumulator(@NotNull String groupName, @NotNull String prefix, @NotNull Predicate<NlPropertyItem> isApplicable) {
+  public NlPropertyAccumulator(@NotNull String groupName, @NotNull String prefix, @NotNull Predicate<NlPropertyItem> isApplicable) {
     myGroupName = groupName;
     myPrefix = prefix;
     myFilter = isApplicable;

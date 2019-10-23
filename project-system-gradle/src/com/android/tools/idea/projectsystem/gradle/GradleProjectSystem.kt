@@ -18,6 +18,7 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.log.LogWrapper
@@ -41,17 +42,14 @@ import java.nio.file.Path
 
 class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   private val mySyncManager: ProjectSystemSyncManager = GradleProjectSystemSyncManager(project)
+  private val myProjectBuildModelHandler: ProjectBuildModelHandler = ProjectBuildModelHandler.getInstance(project)
 
   private val myPsiElementFinders: List<PsiElementFinder> = run {
-    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      listOf(
-        AndroidInnerClassFinder.INSTANCE,
-        AndroidManifestClassPsiElementFinder.getInstance(project),
-        AndroidResourceClassPsiElementFinder(getLightResourceClassService())
-      )
-    } else {
-      listOf(AndroidInnerClassFinder.INSTANCE)
-    }
+    listOf(
+      AndroidInnerClassFinder.INSTANCE,
+      AndroidManifestClassPsiElementFinder.getInstance(project),
+      AndroidResourceClassPsiElementFinder(getLightResourceClassService())
+    )
   }
 
   override fun getSyncManager(): ProjectSystemSyncManager = mySyncManager
@@ -87,17 +85,11 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     }
   }
 
-  override fun upgradeProjectToSupportInstantRun(): Boolean {
-    return updateProjectToInstantRunTools(project)
-  }
-
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
-    return GradleModuleSystem(module)
+    return GradleModuleSystem(module, myProjectBuildModelHandler)
   }
 
   override fun getPsiElementFinders(): List<PsiElementFinder> = myPsiElementFinders
-
-  override fun getAugmentRClasses() = !StudioFlags.IN_MEMORY_R_CLASSES.get()
 
   override fun getLightResourceClassService() = ProjectLightResourceClassService.getInstance(project)
 }

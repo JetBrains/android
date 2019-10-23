@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.lang.roomSql
 
+import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
+import com.intellij.find.FindManager
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiLiteralExpression
 
@@ -368,6 +370,36 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
   }
 
+  fun testCodeCompletion_insert() {
+    myFixture.addRoomEntity("com.example.User",  "firstName" ofType "String")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("INSERT INTO user(f<caret>) VALUES ('Bob')") void insertBob();
+        }
+    """.trimIndent())
+
+    myFixture.completeBasic()
+
+    myFixture.checkResult("""
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("INSERT INTO user(firstName) VALUES ('Bob')") void insertBob();
+        }
+    """.trimIndent())
+  }
+
   fun testCodeCompletion_delete() {
     myFixture.addRoomEntity("com.example.User",  "firstName" ofType "String")
 
@@ -629,6 +661,14 @@ class ColumnReferencesTest : RoomLightTestCase() {
             .find { it.file!!.language == RoomSqlLanguage.INSTANCE })
         .isNotNull()
   }
+
+  fun testUsages_readAction() {
+    myFixture.addRoomEntity("com.example.Item", "desc" ofType "String")
+    // FindManager calls referenceSearch extensions in a pooled thread without the read lock, as opposed to the EDT that
+    // myFixture.findUsages uses. Make sure our Room extensions don't throw under these conditions.
+    FindManager.getInstance(project).findUsages(myFixture.findField("com.example.Item", "desc"))
+  }
+
 
   fun testQualifiedColumns() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
@@ -1193,6 +1233,153 @@ class ColumnReferencesTest : RoomLightTestCase() {
     """.trimIndent())
   }
 
+  fun testColumnSubqueryAliasResolvesWithoutExplicitSelection() {
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
+    //language=JAVA
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT * FROM (SELECT 17 AS alias) WHERE alias > 0") List<String> getNames();
+        }
+    """.trimIndent())
+
+
+    myFixture.moveCaret("AS |alias")
+    val aliasDefinition = myFixture.elementAtCaret
+    myFixture.moveCaret("WHERE |alias")
+    assertThat(myFixture.elementAtCaret).isEqualTo(aliasDefinition)
+  }
+
+  fun testColumnSubqueryAlias() {
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
+    //language=JAVA
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT alias FROM (SELECT 17 AS alias)") List<String> getNames();
+        }
+    """.trimIndent())
+
+
+    myFixture.moveCaret("SELECT |alias")
+    val aliasDefinition = myFixture.elementAtCaret
+    myFixture.moveCaret("AS |alias")
+    assertThat(myFixture.elementAtCaret).isEqualTo(aliasDefinition)
+  }
+
+  fun testColumnAlias() {
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
+    //language=JAVA
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT name AS alias FROM User WHERE alias > 0") List<String> getNames();
+        }
+    """.trimIndent())
+
+    myFixture.moveCaret("AS |alias")
+    val aliasDefinition = myFixture.elementAtCaret
+    myFixture.moveCaret("WHERE |alias")
+    assertThat(myFixture.elementAtCaret).isEqualTo(aliasDefinition)
+  }
+
+  // Separate test for ORDER BY clause because ORDER BY clause is not at the same level in a tree as WHERE, FROM or GROUP BY clause
+  fun testColumnAliasWithOrderByClause() {
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
+    //language=JAVA
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT name AS alias FROM User ORDER BY alias") List<String> getNames();
+        }
+    """.trimIndent())
+
+    myFixture.moveCaret("SELECT name AS |alias")
+    val aliasDefinition = myFixture.elementAtCaret
+    myFixture.moveCaret("ORDER BY |alias")
+    assertThat(myFixture.elementAtCaret).isEqualTo(aliasDefinition)
+  }
+
+  fun testNotResolveColumnIfAliasOutOfScope() {
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
+    //language=JAVA
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT name AS alias FROM (SELECT a<caret>lias, name FROM User)") List<String> getNames();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.referenceAtCaret.resolve()).isNull()
+  }
+
+  // Regression test for b/133004192.
+  fun testNotResolveNotExistingColumnFromSubquery() {
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
+    //language=JAVA
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT not_e<caret>xisting_column FROM (SELECT not_existing_column FROM User)") List<String> getNames();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.referenceAtCaret.resolve()).isNull()
+  }
+
+  fun testTableAliasWithColumnAlias() {
+    myFixture.addRoomEntity("com.example.User", "name" ofType "String")
+    //language=JAVA
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("SELECT user.name AS alias FROM User AS user WHERE alias IS NOT NULL") List<String> getNames();
+        }
+    """.trimIndent())
+
+
+    myFixture.moveCaret("AS |alias FROM")
+    val aliasDefinition = myFixture.elementAtCaret
+
+    myFixture.moveCaret("WHERE |alias")
+    assertThat(myFixture.elementAtCaret).isEqualTo(aliasDefinition)
+  }
+
   fun testParserRecovery() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String")
 
@@ -1264,7 +1451,10 @@ class ColumnReferencesTest : RoomLightTestCase() {
       }
       """)
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      //language=JAVA
+      """
         package com.example;
 
         import androidx.room.Dao;
@@ -1274,8 +1464,100 @@ class ColumnReferencesTest : RoomLightTestCase() {
         public interface SomeDao {
           @Query("SELECT * FROM aaa WHERE <caret>") List<String> getStrings();
         }
-    """.trimIndent())
+      """.trimIndent()
+    )
 
     assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly("a", "bbb_b", "bbb_c", "bbb_ccc_c")
+  }
+
+  fun testFts_completion() {
+    myFixture.addClass(
+      """
+      package com.example;
+
+      import androidx.room.Entity;
+      import androidx.room.Fts4;
+
+      @Entity
+      @Fts4
+      class Mail {
+        String subject;
+        String body;
+      }
+      """
+    )
+
+    myFixture.configureFromExistingVirtualFile(
+      myFixture.addClass(
+        //language=JAVA
+        """
+      package com.example;
+
+      import androidx.room.Dao;
+      import androidx.room.Query;
+
+      @Dao
+      public interface SomeDao {
+        @Query("SELECT * FROM mail WHERE <caret>") List<String> getStrings();
+      }
+      """.trimIndent()
+      ).containingFile.virtualFile
+    )
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsExactly("Mail", "subject", "body")
+  }
+
+  fun testFts_rename() {
+    val mail = myFixture.addClass(
+      """
+      package com.example;
+
+      import androidx.room.Entity;
+      import androidx.room.Fts4;
+
+      @Entity
+      @Fts4
+      class Mail {
+        String subject;
+        String body;
+      }
+      """
+    )
+
+    val dao = myFixture.addClass(
+      //language=JAVA
+      """
+      package com.example;
+
+      import androidx.room.Dao;
+      import androidx.room.Query;
+
+      @Dao
+      public interface SomeDao {
+        @Query("SELECT * FROM mail WHERE mail MATCH 'foo'") List<String> getStrings();
+      }
+      """.trimIndent()
+    )
+
+    myFixture.openFileInEditor(mail.containingFile.virtualFile)
+    myFixture.findClass("com.example.Mail").navigate(true)
+    myFixture.renameElementAtCaret("Post")
+
+    myFixture.openFileInEditor(dao.containingFile.virtualFile)
+
+    myFixture.checkResult(
+      //language=JAVA
+      """
+      package com.example;
+
+      import androidx.room.Dao;
+      import androidx.room.Query;
+
+      @Dao
+      public interface SomeDao {
+        @Query("SELECT * FROM Post WHERE Post MATCH 'foo'") List<String> getStrings();
+      }
+      """.trimIndent()
+    )
   }
 }

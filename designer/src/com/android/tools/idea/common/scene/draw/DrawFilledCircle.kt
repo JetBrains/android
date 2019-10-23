@@ -23,7 +23,7 @@ import java.awt.Graphics2D
 import java.awt.geom.Ellipse2D
 import java.awt.geom.Point2D
 
-class DrawFilledCircle(private val level: Int,
+data class DrawFilledCircle(private val level: Int,
                        @SwingCoordinate private val center: Point2D.Float,
                        private val color: Color,
                        @SwingCoordinate private val radius: LerpFloat) : DrawCommandBase() {

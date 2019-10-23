@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.npw.instantapp;
 
+import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
+import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateIcon;
+import static com.android.tools.idea.templates.Template.ANDROID_MODULE_TEMPLATE;
+import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewModuleModel;
@@ -27,20 +33,13 @@ import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-
-import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
-import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImage;
-import static com.android.tools.idea.templates.Template.ANDROID_MODULE_TEMPLATE;
-import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
-import static org.jetbrains.android.util.AndroidBundle.message;
+import javax.swing.Icon;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NewInstantAppModuleDescriptionProvider implements ModuleDescriptionProvider {
   @Override
@@ -64,8 +63,8 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
 
     @Nullable
     @Override
-    public Image getIcon() {
-      return getTemplateImage(myTemplateHandle, false);
+    public Icon getIcon() {
+      return getTemplateIcon(myTemplateHandle, false);
     }
 
     @NotNull
@@ -125,8 +124,8 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
 
     @Nullable
     @Override
-    public Image getIcon() {
-      return getTemplateImage(myTemplateHandle, false);
+    public Icon getIcon() {
+      return getTemplateIcon(myTemplateHandle, false);
     }
 
     @NotNull

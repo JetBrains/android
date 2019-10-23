@@ -26,7 +26,8 @@ import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.GraphicsUtil;
-import icons.AndroidIcons;
+import com.intellij.util.ui.JBUI;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,12 +68,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
 
   private static final JBColor OUR_GRAY = new JBColor(Gray._192, Gray._96);
 
-  private InvalidationListener myRepaintListener = new InvalidationListener() {
-    @Override
-    public void onInvalidated(@NotNull ObservableValue<?> sender) {
-      repaint();
-    }
-  };
+  private InvalidationListener myRepaintListener = () -> repaint();
 
   public DeviceDefinitionPreview(@NotNull AvdDeviceData deviceData) {
     myDeviceData = deviceData;
@@ -90,13 +86,13 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
    */
   @NotNull
   public static Icon getIcon(@Nullable AvdDeviceData deviceData) {
-    Icon icon = AndroidIcons.FormFactors.Mobile_32;
+    Icon icon = StudioIcons.Avd.DEVICE_MOBILE_LARGE;
     if (deviceData != null) {
       if (deviceData.isTv().get()) {
-        icon = AndroidIcons.FormFactors.Tv_32;
+        icon = StudioIcons.Avd.DEVICE_TV_LARGE;
       }
       else if (deviceData.isWear().get()) {
-        icon = AndroidIcons.FormFactors.Wear_32;
+        icon = StudioIcons.Avd.DEVICE_WEAR_LARGE;
       }
     }
     return icon;
@@ -156,14 +152,51 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
         screenSize.width = 1;
       }
       RoundRectangle2D roundRect =
-        new RoundRectangle2D.Double(PADDING, JBUIScale.scale(100), screenSize.width, screenSize.height, JBUIScale.scale(10),
-                                    JBUIScale.scale(10));
-      g2d.setStroke(new BasicStroke(DIMENSION_LINE_WIDTH));
+        new RoundRectangle2D.Double(PADDING, JBUIScale.scale(100), screenSize.width, screenSize.height, JBUIScale.scale(10), JBUIScale.scale(10));
+      Stroke normalStroke = new BasicStroke(DIMENSION_LINE_WIDTH);
+      g2d.setStroke(normalStroke);
       g2d.setColor(OUR_GRAY);
 
       g2d.setFont(FIGURE_FONT);
       metrics = g2d.getFontMetrics(FIGURE_FONT);
       int stringHeight = metrics.getHeight() - metrics.getDescent();
+
+      if (myDeviceData.isFoldable().get()) {
+        // Show the boundary of the folded region using dashed lines
+        // Get the location and size of the preview of the folded region
+        double displayFactor = screenSize.height / (double)myDeviceData.screenResolutionHeight().get();
+        int foldedX = (int)(myDeviceData.screenFoldedXOffset().get() * displayFactor + 0.5);
+        int foldedY = (int)(myDeviceData.screenFoldedYOffset().get() * displayFactor + 0.5);
+        int foldedWidth = (int)(myDeviceData.screenFoldedWidth().get() * displayFactor + 0.5);
+        int foldedHeight = (int)(myDeviceData.screenFoldedHeight().get() * displayFactor + 0.5);
+
+        foldedX += PADDING;
+        foldedY += JBUI.scale(100);
+
+        g2d.setStroke(new BasicStroke(OUTLINE_LINE_WIDTH, BasicStroke.CAP_BUTT,
+                                      BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0));
+        // Show a side of the folded region if it does not coincide with the
+        // corresponding side of the full region
+        if (myDeviceData.screenFoldedXOffset().get() != 0) {
+          // Show the left boundary
+          g2d.drawLine(foldedX, foldedY, foldedX, foldedY + foldedHeight);
+        }
+        if (myDeviceData.screenFoldedYOffset().get() != 0) {
+          // Show the top boundary
+          g2d.drawLine(foldedX, foldedY, foldedX + foldedWidth, foldedY);
+        }
+        if ((myDeviceData.screenFoldedXOffset().get() + myDeviceData.screenFoldedWidth().get())
+            != myDeviceData.screenResolutionWidth().get()) {
+          // Show the right boundary
+          g2d.drawLine(foldedX + foldedWidth, foldedY, foldedX + foldedWidth, foldedY + foldedHeight);
+        }
+        if ((myDeviceData.screenFoldedYOffset().get() + myDeviceData.screenFoldedHeight().get())
+            != myDeviceData.screenResolutionHeight().get()) {
+          // Show the bottom boundary
+          g2d.drawLine(foldedX, foldedY + foldedHeight, foldedX + foldedWidth, foldedY + foldedHeight);
+        }
+        g2d.setStroke(normalStroke);
+      }
 
       // Paint the width dimension
       String widthString = Integer.toString(pixelScreenSize.width) + "px";
@@ -283,6 +316,11 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
                                                       myDeviceData.screenResolutionHeight().get());
       }
       g2d.drawString("Density: " + pixelDensity.getResourceValue(), infoSegmentX, infoSegmentY);
+      if (myDeviceData.isFoldable().get()) {
+        infoSegmentY += stringHeight;
+        g2d.drawString("Folded: " + myDeviceData.screenFoldedWidth().get() +
+                       "x" + myDeviceData.screenFoldedHeight(), infoSegmentX, infoSegmentY);
+      }
     }
   }
 
@@ -308,7 +346,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     double desiredMaxWidthPx = getWidth() * 0.40;
     double desiredMinWidthPx = getWidth() * 0.10;
 
-    // This is the scaled with we want to use.
+    // This is the scaled width we want to use.
     double widthPixels = widthIn * desiredMaxWidthPx / maxWidthIn;
 
     // However a search result can contain both very small devices (wear) and very

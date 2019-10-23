@@ -18,22 +18,49 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.builder.model.BuildType
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
-import com.android.tools.idea.gradle.structure.model.helpers.*
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
+import com.android.tools.idea.gradle.structure.model.helpers.buildTypeMatchingFallbackValues
+import com.android.tools.idea.gradle.structure.model.helpers.formatUnit
+import com.android.tools.idea.gradle.structure.model.helpers.parseAny
+import com.android.tools.idea.gradle.structure.model.helpers.parseBoolean
+import com.android.tools.idea.gradle.structure.model.helpers.parseFile
+import com.android.tools.idea.gradle.structure.model.helpers.parseInt
+import com.android.tools.idea.gradle.structure.model.helpers.parseReferenceOnly
+import com.android.tools.idea.gradle.structure.model.helpers.parseString
+import com.android.tools.idea.gradle.structure.model.helpers.proGuardFileValues
+import com.android.tools.idea.gradle.structure.model.helpers.signingConfigs
+import com.android.tools.idea.gradle.structure.model.helpers.withProFileSelector
+import com.android.tools.idea.gradle.structure.model.meta.ListProperty
+import com.android.tools.idea.gradle.structure.model.meta.MapProperty
+import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
+import com.android.tools.idea.gradle.structure.model.meta.SimpleProperty
+import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
+import com.android.tools.idea.gradle.structure.model.meta.asAny
+import com.android.tools.idea.gradle.structure.model.meta.asBoolean
+import com.android.tools.idea.gradle.structure.model.meta.asFile
+import com.android.tools.idea.gradle.structure.model.meta.asInt
+import com.android.tools.idea.gradle.structure.model.meta.asString
+import com.android.tools.idea.gradle.structure.model.meta.asUnit
+import com.android.tools.idea.gradle.structure.model.meta.getValue
+import com.android.tools.idea.gradle.structure.model.meta.listProperty
+import com.android.tools.idea.gradle.structure.model.meta.mapProperty
+import com.android.tools.idea.gradle.structure.model.meta.property
+import com.android.tools.idea.gradle.structure.model.meta.withFileSelectionRoot
+import com.android.tools.idea.gradle.structure.navigation.PsBuildTypeNavigationPath
+import icons.StudioIcons.Misc.BUILD_TYPE
 import java.io.File
+import javax.swing.Icon
 
 private const val DEBUG_BUILD_TYPE_NAME = "debug"
 
 open class PsBuildType(
-  final override val parent: PsAndroidModule
+  final override val parent: PsAndroidModule,
+  private val renamed: (String, String) -> Unit
 ) : PsChildModel() {
   override val descriptor by BuildTypeDescriptors
   var resolvedModel: BuildType? = null
   private var parsedModel: BuildTypeModel? = null
-
-  constructor (parent: PsAndroidModule, resolvedModel: BuildType?, parsedModel: BuildTypeModel?) : this(parent) {
-    init(resolvedModel, parsedModel)
-  }
 
   fun init(resolvedModel: BuildType?, parsedModel: BuildTypeModel?) {
     this.resolvedModel = resolvedModel
@@ -41,6 +68,7 @@ open class PsBuildType(
   }
 
   override val name get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
+  override val path: PsBuildTypeNavigationPath get() = PsBuildTypeNavigationPath(parent.path.buildTypesPath, name)
 
   var applicationIdSuffix by BuildTypeDescriptors.applicationIdSuffix
   var embedMicroApp by BuildTypeDescriptors.embedMicroApp
@@ -54,10 +82,13 @@ open class PsBuildType(
   var zipAlignEnabled by BuildTypeDescriptors.zipAlignEnabled
   var multiDexEnabled by BuildTypeDescriptors.multiDexEnabled
   var debuggable by BuildTypeDescriptors.debuggable
+  var matchingFallbacks by BuildTypeDescriptors.matchingFallbacks
+  var consumerProguardFiles by BuildTypeDescriptors.consumerProGuardFiles
   var proguardFiles by BuildTypeDescriptors.proGuardFiles
   var manifestPlaceholders by BuildTypeDescriptors.manifestPlaceholders
 
   override val isDeclared: Boolean get() = parsedModel != null
+  override val icon: Icon = BUILD_TYPE
 
   fun ensureDeclared() {
     if (parsedModel == null) {
@@ -66,13 +97,23 @@ open class PsBuildType(
     }
   }
 
+  fun rename(newName: String) {
+    ensureDeclared()
+    val oldName = name
+    parsedModel!!.rename(newName)
+    renamed(oldName, newName)
+  }
+
   object BuildTypeDescriptors : ModelDescriptor<PsBuildType, BuildType, BuildTypeModel> {
     override fun getResolved(model: PsBuildType): BuildType? = model.resolvedModel
 
     override fun getParsed(model: PsBuildType): BuildTypeModel? = model.parsedModel
 
-    override fun setModified(model: PsBuildType) {
+    override fun prepareForModification(model: PsBuildType) {
       model.ensureDeclared()
+    }
+
+    override fun setModified(model: PsBuildType) {
       model.isModified = true
     }
 
@@ -235,6 +276,7 @@ open class PsBuildType(
       parser = ::parseFile,
       knownValuesGetter = { model -> proGuardFileValues(model.parent) }
     )
+      .withProFileSelector(module = { parent })
 
     val proGuardFiles: ListProperty<PsBuildType, File> = listProperty(
       "ProGuard Files",
@@ -245,6 +287,7 @@ open class PsBuildType(
       parser = ::parseFile,
       knownValuesGetter = { model -> proGuardFileValues(model.parent) }
     )
+      .withProFileSelector(module = { parent })
 
     val manifestPlaceholders: MapProperty<PsBuildType, Any> = mapProperty(
       "Manifest Placeholders",

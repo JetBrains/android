@@ -15,16 +15,36 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
+import static com.android.tools.idea.gradle.project.build.BuildStatus.CANCELED;
+import static com.android.tools.idea.gradle.project.build.BuildStatus.FAILED;
+import static com.android.tools.idea.gradle.project.build.BuildStatus.SUCCESS;
+import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
+import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
+import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
+import static com.android.tools.idea.gradle.util.GradleUtil.attemptToUseEmbeddedGradle;
+import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
+import static com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings;
+import static com.android.tools.idea.gradle.util.GradleUtil.hasCause;
+import static com.google.common.base.Strings.nullToEmpty;
+import static com.intellij.openapi.ui.MessageType.ERROR;
+import static com.intellij.openapi.ui.MessageType.INFO;
+import static com.intellij.openapi.util.text.StringUtil.formatDuration;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
+import static com.intellij.util.ArrayUtil.toStringArray;
+import static com.intellij.util.ExceptionUtil.getRootCause;
+import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
+
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.fd.FlightRecorder;
-import com.android.tools.idea.fd.InstantRunBuildProgressListener;
-import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.BuildContext;
+import com.android.tools.idea.gradle.project.build.BuildSummary;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
@@ -46,6 +66,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -59,8 +80,22 @@ import com.intellij.ui.content.ContentManagerAdapter;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicReference;
 import net.jcip.annotations.GuardedBy;
-import org.gradle.tooling.*;
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildActionExecuter;
+import org.gradle.tooling.BuildCancelledException;
+import org.gradle.tooling.BuildException;
+import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.CancellationTokenSource;
+import org.gradle.tooling.GradleConnector;
+import org.gradle.tooling.LongRunningOperation;
+import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -69,29 +104,6 @@ import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static com.android.tools.idea.gradle.project.build.BuildStatus.*;
-import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
-import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
-import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
-import static com.android.tools.idea.gradle.util.GradleUtil.*;
-import static com.google.common.base.Strings.nullToEmpty;
-import static com.intellij.openapi.ui.MessageType.ERROR;
-import static com.intellij.openapi.ui.MessageType.INFO;
-import static com.intellij.openapi.util.text.StringUtil.formatDuration;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
-import static com.intellij.util.ExceptionUtil.getRootCause;
-import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
 class GradleTasksExecutorImpl extends GradleTasksExecutor {
   private static final long ONE_MINUTE_MS = 60L /*sec*/ * 1000L /*millisec*/;
@@ -193,21 +205,19 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       boolean isRunBuildAction = buildAction != null;
 
       List<String> gradleTasks = myRequest.getGradleTasks();
-      String executingTasksText = "Executing tasks: " + gradleTasks;
+      String executingTasksText = "Executing tasks: " + gradleTasks + " in project " + myRequest.getBuildFilePath().getPath();
       addToEventLog(executingTasksText, INFO);
 
       StringBuilder output = new StringBuilder();
 
       Throwable buildError = null;
-      InstantRunBuildProgressListener instantRunProgressListener = null;
       ExternalSystemTaskId id = myRequest.getTaskId();
-      ExternalSystemTaskNotificationListener taskListener = myRequest.getTaskListener();
-      CancellationTokenSource cancellationTokenSource = myBuildStopper.createAndRegisterTokenSource(id);
+      ExternalSystemTaskNotificationListener taskListener = getTaskListener();
+      CancellationTokenSource cancellationTokenSource = GradleConnector.newCancellationTokenSource();
+      myBuildStopper.register(id, cancellationTokenSource);
 
-      if (taskListener != null) {
-        taskListener.onStart(id, myRequest.getBuildFilePath().getPath());
-        taskListener.onTaskOutput(id, executingTasksText + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator(), true);
-      }
+      taskListener.onStart(id, myRequest.getBuildFilePath().getPath());
+      taskListener.onTaskOutput(id, executingTasksText + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator(), true);
 
       BuildMode buildMode = BuildSettings.getInstance(myProject).getBuildMode();
       GradleBuildState buildState = GradleBuildState.getInstance(myProject);
@@ -261,20 +271,16 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         prepare(operation, id, executionSettings, new ExternalSystemTaskNotificationListenerAdapter() {
           @Override
           public void onStatusChange(@NotNull ExternalSystemTaskNotificationEvent event) {
-            if (taskListener != null) {
-              if (myBuildStopper.contains(id)) {
-                taskListener.onStatusChange(event);
-              }
+            if (myBuildStopper.contains(id)) {
+              taskListener.onStatusChange(event);
             }
           }
 
           @Override
           public void onTaskOutput(@NotNull ExternalSystemTaskId id, @NotNull String text, boolean stdOut) {
             output.append(text);
-            if (taskListener != null) {
-              if (myBuildStopper.contains(id)) {
-                taskListener.onTaskOutput(id, text, stdOut);
-              }
+            if (myBuildStopper.contains(id)) {
+              taskListener.onTaskOutput(id, text, stdOut);
             }
           }
         }, connection);
@@ -293,11 +299,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
         operation.withCancellationToken(cancellationTokenSource.token());
 
-        if (InstantRunSettings.isInstantRunEnabled() && InstantRunSettings.isRecorderEnabled()) {
-          instantRunProgressListener = new InstantRunBuildProgressListener();
-          operation.addProgressListener(instantRunProgressListener);
-        }
-
         if (isRunBuildAction) {
           model.set(((BuildActionExecuter)operation).run());
         }
@@ -306,6 +307,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         }
 
         buildState.buildFinished(SUCCESS);
+        taskListener.onSuccess(id);
       }
       catch (BuildException e) {
         buildError = e;
@@ -315,37 +317,25 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         handleTaskExecutionError(e);
       }
       finally {
-        if (myBuildStopper.contains(id)) {
-          if (buildError != null) {
-            if (wasBuildCanceled(buildError)) {
-              buildState.buildFinished(CANCELED);
-            }
-            else {
-              buildState.buildFinished(FAILED);
-            }
+        if (buildError != null) {
+          if (wasBuildCanceled(buildError)) {
+            buildState.buildFinished(CANCELED);
+            taskListener.onCancel(id);
           }
-
-          if (taskListener != null) {
-            if (buildError != null) {
-              BuildEnvironment buildEnvironment =
-                GradleExecutionHelper.getBuildEnvironment(connection, id, taskListener, cancellationTokenSource);
-              GradleProjectResolverExtension projectResolverChain = GradleProjectResolver.createProjectResolverChain(executionSettings);
-              ExternalSystemException userFriendlyError =
+          else {
+            buildState.buildFinished(FAILED);
+            BuildEnvironment buildEnvironment =
+              GradleExecutionHelper.getBuildEnvironment(connection, id, taskListener, cancellationTokenSource);
+            GradleProjectResolverExtension projectResolverChain = GradleProjectResolver.createProjectResolverChain(executionSettings);
+            ExternalSystemException userFriendlyError =
                 projectResolverChain.getUserFriendlyError(buildEnvironment, buildError, myRequest.getBuildFilePath().getPath(), null);
-              taskListener.onFailure(id, userFriendlyError);
-            }
-            else {
-              taskListener.onSuccess(id);
-            }
-            taskListener.onEnd(id);
+            taskListener.onFailure(id, userFriendlyError);
           }
         }
-
+        taskListener.onEnd(id);
         myBuildStopper.remove(id);
+
         String gradleOutput = output.toString();
-        if (instantRunProgressListener != null) {
-          FlightRecorder.get(myProject).saveBuildOutput(gradleOutput, instantRunProgressListener);
-        }
         Application application = ApplicationManager.getApplication();
         if (GuiTestingService.getInstance().isGuiTestingMode()) {
           String testOutput = application.getUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY);
@@ -354,24 +344,16 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           }
         }
 
-        application.invokeLater(() -> notifyGradleInvocationCompleted(stopwatch.elapsed(MILLISECONDS)));
+        application.invokeLater(() -> notifyGradleInvocationCompleted(buildState, stopwatch.elapsed(MILLISECONDS)));
 
         if (!getProject().isDisposed()) {
           List<Message> buildMessages = new ArrayList<>();
           if (buildError instanceof BuildException) {
-            String message = buildError.getMessage();
+            String message = ExternalSystemApiUtil.buildErrorMessage(buildError);
             Message msg = new Message(Message.Kind.ERROR, message, SourceFilePosition.UNKNOWN);
             buildMessages.add(msg);
           }
           GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildError, model.get());
-          for (GradleBuildInvoker.AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
-            task.execute(result);
-          }
-        }
-
-        if (!getProject().isDisposed()) {
-          GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), Collections.emptyList(), buildError,
-                                                                     model.get());
           for (GradleBuildInvoker.AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
             task.execute(result);
           }
@@ -395,13 +377,20 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
                        myRequest.getTaskId(), myRequest.getTaskListener(), null, executeTasksFunction);
     }
     catch (ExternalSystemException e) {
-      if (e.getOriginalReason().startsWith("com.intellij.openapi.progress.ProcessCanceledException: java.lang.Throwable")) {
+      if (e.getOriginalReason().startsWith("com.intellij.openapi.progress.ProcessCanceledException")) {
         getLogger().info("Gradle execution cancelled.", e);
       }
-      else{
+      else {
         throw e;
       }
     }
+  }
+
+  @NotNull
+  private ExternalSystemTaskNotificationListener getTaskListener() {
+    ExternalSystemTaskNotificationListener result = myRequest.getTaskListener();
+    if (result == null) result = new NoopExternalSystemTaskNotificationListener();
+    return result;
   }
 
   private static boolean wasBuildCanceled(@NotNull Throwable buildError) {
@@ -444,10 +433,10 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     return Logger.getInstance(GradleBuildInvoker.class);
   }
 
-  private void notifyGradleInvocationCompleted(long durationMillis) {
+  private void notifyGradleInvocationCompleted(@NotNull GradleBuildState buildState, long durationMillis) {
     Project project = myRequest.getProject();
     if (!project.isDisposed()) {
-      String statusMsg = createStatusMessage(durationMillis);
+      String statusMsg = createStatusMessage(buildState, durationMillis);
       MessageType messageType = myErrorCount > 0 ? ERROR : INFO;
       if (durationMillis > ONE_MINUTE_MS) {
         BALLOON_NOTIFICATION.createNotification(statusMsg, messageType).notify(project);
@@ -460,13 +449,31 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
   }
 
   @NotNull
-  private String createStatusMessage(long durationMillis) {
-    String message = "Gradle build finished";
+  private String createStatusMessage(@NotNull GradleBuildState buildState, long durationMillis) {
+    String message = "Gradle build " + formatBuildStatusFromState(buildState);
     if (myErrorCount > 0) {
-      message += String.format(" with %d error(s)", myErrorCount);
+      message += String.format(Locale.US, " with %d error(s)", myErrorCount);
     }
     message = message + " in " + formatDuration(durationMillis);
     return message;
+  }
+
+  @NotNull
+  private static String formatBuildStatusFromState(@NotNull GradleBuildState state) {
+    BuildSummary summary = state.getSummary();
+    if (summary != null) {
+      switch (summary.getStatus()) {
+        case SKIPPED:
+          return "skipped";
+        case SUCCESS:
+          return "finished";
+        case FAILED:
+          return "failed";
+        case CANCELED:
+          return "cancelled";
+      }
+    }
+    return "finished";
   }
 
   private void addToEventLog(@NotNull String message, @NotNull MessageType type) {
@@ -581,11 +588,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     @Override
     void onCancel() {
       stopAppIconProgress();
-      // Let listener know that the task was cancelled
-      ExternalSystemTaskNotificationListener taskListener = myRequest.getTaskListener();
-      if (taskListener != null) {
-        taskListener.onCancel(myRequest.getTaskId());
-      }
     }
 
     @Override

@@ -15,7 +15,14 @@
  */
 package com.android.tools.idea.run.tasks;
 
+/**
+ * Constant values of estimated {@link LaunchTask} durations. They are unit-less and relative to
+ * one another. For example, connecting a debugger typically lasts five times longer than
+ * launching an activity.
+ */
 public class LaunchTaskDurations {
+  private LaunchTaskDurations() {}
+
   public static final int ASYNC_TASK = 1;
   public static final int LAUNCH_ACTIVITY = 2;
   public static final int CONNECT_DEBUGGER = 10;

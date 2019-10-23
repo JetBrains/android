@@ -30,23 +30,25 @@ import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.impl.dom.DomElementXmlDescriptor;
 import icons.StudioIcons;
+import java.util.Map;
+import javax.swing.Icon;
+import org.jetbrains.android.dom.layout.DataBindingElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
+import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.LayoutViewClassUtils;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.HashMap;
-import java.util.Map;
 
 public class AndroidDomElementDescriptorProvider implements XmlElementDescriptorProvider {
   private static final Map<String, Ref<Icon>> ourViewTagName2Icon = ContainerUtil.createSoftMap();
@@ -99,7 +101,8 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
     if (domManager.getFileElement((XmlFile)file, AndroidDomElement.class) == null) return null;
     
     final DomElement domElement = domManager.getDomElement(tag);
-    if (!(domElement instanceof AndroidDomElement)) {
+    // DataBindingElements are handled by a different provider.
+    if (!(domElement instanceof AndroidDomElement) || domElement instanceof DataBindingElement) {
       return null;
     }
 
@@ -108,7 +111,12 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
       className = AndroidUtils.VIEW_CLASS_NAME;
     }
     else if (domElement instanceof XmlResourceElement) {
-      className = SdkConstants.CLASS_PREFERENCE;
+      AndroidFacet facet = AndroidFacet.getInstance(domElement);
+      if(facet != null && AndroidXmlResourcesUtil.isAndroidXPreferenceFile(tag, facet)){
+        className = MigrateToAndroidxUtil.getNameInProject(SdkConstants.CLASS_PREFERENCE_ANDROIDX, project);
+      } else {
+        className = SdkConstants.CLASS_PREFERENCE;
+      }
     }
     return Pair.create((AndroidDomElement)domElement, className);
   }
@@ -124,11 +132,6 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
   @Nullable
   public static Icon getIconForViewTag(@NotNull String tagName) {
     return getIconForView(tagName);
-  }
-
-  @Nullable
-  public static Icon getLargeIconForViewTag(@NotNull String tagName) {
-    return getIconForView(tagName + "Large");
   }
 
   @Nullable

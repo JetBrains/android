@@ -45,7 +45,7 @@ public final class AdbDeviceFileSystemRenderer implements DeviceFileSystemRender
     @NotNull private final AdbDeviceFileSystemService myService;
     private final DeviceNamePropertiesProvider myDeviceNamePropertiesProvider;
 
-    DeviceNameRenderer(@NotNull AdbDeviceFileSystemService service,
+    public DeviceNameRenderer(@NotNull AdbDeviceFileSystemService service,
                               @NotNull DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
       myService = service;
       myDeviceNamePropertiesProvider = deviceNamePropertiesProvider;

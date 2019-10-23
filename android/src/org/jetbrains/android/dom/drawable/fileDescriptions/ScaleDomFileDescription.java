@@ -16,10 +16,10 @@
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.drawable.Scale;
 
-public class ScaleDomFileDescription extends AbstractSingleRootFileDescription<Scale> {
+public class ScaleDomFileDescription extends SingleRootResourceDomFileDescription<Scale> {
 
   public ScaleDomFileDescription() {
     super(Scale.class, "scale", ResourceFolderType.DRAWABLE);

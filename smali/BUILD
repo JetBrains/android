@@ -11,6 +11,10 @@ iml_module(
     iml_files = ["intellij.android.smali.iml"],
     resources = ["resources"],
     test_class = "com.android.tools.idea.smali.SmaliTestSuite",
+    test_coverage = True,
+    test_data = [
+        "//tools/idea:platform-build-info",
+    ],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl",
@@ -21,11 +25,10 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
+        "//tools/idea/RegExpSupport:intellij.regexp",
         "//tools/idea/platform/lvcs-impl:intellij.platform.lvcs.impl",
         "//tools/idea/xml/xml-structure-view-impl:intellij.xml.structureView.impl",
-        "//tools/idea/xml/dom-impl:intellij.xml.dom.impl",
         "//tools/idea/spellchecker:intellij.spellchecker",
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",

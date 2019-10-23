@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.suggestions
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.structure.configurables.AbstractCounterDisplayConfigurable
 import com.android.tools.idea.gradle.structure.configurables.JavaModuleUnsupportedConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
+import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
@@ -30,6 +32,18 @@ import javax.swing.JComponent
 class SuggestionsPerspectiveConfigurable(context: PsContext)
   : AbstractCounterDisplayConfigurable(context, extraModules = listOf(PsAllModulesFakeModule(context.project))), TrackedConfigurable {
   private var messageCount: Int = 0
+  private var errorCount: Int = 0
+
+  init {
+    fun issuesChanged() {
+      val issues = getIssues(context, null)
+      messageCount = issues.size
+      errorCount = issues.count { it.severity == PsIssue.Severity.ERROR }
+      fireCountChangeListener()
+    }
+
+    context.analyzerDaemon.onIssuesChange(this) @UiThread { issuesChanged() }
+  }
 
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_SUGGESTIONS
 
@@ -42,22 +56,14 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
         else -> JavaModuleUnsupportedConfigurable(context, module)
       }
 
-  override val navigationPathName: String = "suggestions.place"
-
   override fun getDisplayName(): String = "Suggestions"
-
 
   override fun getCount(): Int = messageCount
 
-  override fun createComponent(): JComponent {
-    val component = super.createComponent().apply { name = "SuggestionsView" }
-    context.analyzerDaemon.add({
-      fireCountChangeListener()
-      invokeLaterIfNeeded { messageCount = getIssues(context, null).size }
-    }, this)
-    return component
-  }
+  override fun containsErrors(): Boolean = errorCount > 0
+
+  override fun createComponent(): JComponent = super.createComponent().apply { name = "SuggestionsView" }
 
   private fun createConfigurable(module: PsModule) =
-      AndroidModuleSuggestionsConfigurable(context, module, extraModules).apply { setHistory(myHistory) }
+      AndroidModuleSuggestionsConfigurable(context, module).apply { setHistory(myHistory) }
 }

@@ -28,6 +28,8 @@ import java.util.*;
 public class ExtraGradleSyncModelsManager {
   @NotNull private final List<ExtraGradleSyncJavaModels> myJavaModels;
   @NotNull private final Set<Class<?>> myJavaModelTypes;
+  @NotNull private final List<ExtraGradleSyncAndroidModels> myAndroidModels;
+  @NotNull private final Set<Class<?>> myAndroidModelTypes;
 
   @NotNull
   public static ExtraGradleSyncModelsManager getInstance() {
@@ -35,22 +37,28 @@ public class ExtraGradleSyncModelsManager {
   }
 
   public ExtraGradleSyncModelsManager() {
-    this(Arrays.asList(ExtraGradleSyncJavaModels.getExtensions()));
+    this(Arrays.asList(ExtraGradleSyncJavaModels.getExtensions()), Arrays.asList(ExtraGradleSyncAndroidModels.getExtensions()));
   }
 
   @VisibleForTesting
-  ExtraGradleSyncModelsManager(@NotNull List<ExtraGradleSyncJavaModels> javaModels) {
+  ExtraGradleSyncModelsManager(@NotNull List<ExtraGradleSyncJavaModels> javaModels,
+                               @NotNull List<ExtraGradleSyncAndroidModels> androidModels) {
     myJavaModels = javaModels;
     myJavaModelTypes = new HashSet<>();
     for (ExtraGradleSyncJavaModels models : myJavaModels) {
       myJavaModelTypes.addAll(models.getModelTypes());
     }
+
+    myAndroidModels = androidModels;
+    myAndroidModelTypes = new HashSet<>();
+    for (ExtraGradleSyncAndroidModels models : myAndroidModels) {
+      myAndroidModelTypes.addAll(models.getModelTypes());
+    }
   }
 
   @NotNull
   public Set<Class<?>> getAndroidModelTypes() {
-    // TODO implement extension point for Android model
-    return Collections.emptySet();
+    return myAndroidModelTypes;
   }
 
   @NotNull
@@ -58,16 +66,30 @@ public class ExtraGradleSyncModelsManager {
     return myJavaModelTypes;
   }
 
-  public void applyModelsToModule(@NotNull GradleModuleModels moduleModels,
-                                  @NotNull Module module,
-                                  @NotNull IdeModifiableModelsProvider modelsProvider) {
+  public void applyJavaModelsToModule(@NotNull GradleModuleModels moduleModels,
+                                      @NotNull Module module,
+                                      @NotNull IdeModifiableModelsProvider modelsProvider) {
     for (ExtraGradleSyncModels models : myJavaModels) {
+      models.applyModelsToModule(moduleModels, module, modelsProvider);
+    }
+  }
+
+  public void applyAndroidModelsToModule(@NotNull GradleModuleModels moduleModels,
+                                         @NotNull Module module,
+                                         @NotNull IdeModifiableModelsProvider modelsProvider) {
+    for (ExtraGradleSyncModels models : myAndroidModels) {
       models.applyModelsToModule(moduleModels, module, modelsProvider);
     }
   }
 
   public void addJavaModelsToCache(@NotNull Module module, @NotNull CachedModuleModels cache) {
     for (ExtraGradleSyncModels models : myJavaModels) {
+      models.addModelsToCache(module, cache);
+    }
+  }
+
+  public void addAndroidModelsToCache(@NotNull Module module, @NotNull CachedModuleModels cache) {
+    for (ExtraGradleSyncModels models : myAndroidModels) {
       models.addModelsToCache(module, cache);
     }
   }

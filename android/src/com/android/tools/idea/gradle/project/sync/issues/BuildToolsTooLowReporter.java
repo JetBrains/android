@@ -66,7 +66,7 @@ class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReporter {
     return new OpenFileHyperlink(buildFile.getPath(), module.getName(), lineNumber, -1);
   }
 
-  @Nullable
+  @NotNull
   @Override
   protected Object getDeduplicationKey(@NotNull SyncIssue issue) {
     return issue;

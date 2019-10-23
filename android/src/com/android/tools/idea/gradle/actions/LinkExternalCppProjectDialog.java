@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_CPP_EXTERNAL_PROJECT_LINKED;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.jetbrains.android.facet.AndroidRootUtil.getPathRelativeToModuleDir;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -24,20 +29,20 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.*;
+import com.intellij.openapi.ui.ComponentWithBrowseButton;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.TextComponentAccessor;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.io.File;
-
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static org.jetbrains.android.facet.AndroidRootUtil.getPathRelativeToModuleDir;
 
 public class LinkExternalCppProjectDialog extends DialogWrapper {
   private static final String CMAKE_PATH_DESCRIPTION = "Select the main CMakeLists.txt file of a CMake project";
@@ -195,7 +200,7 @@ public class LinkExternalCppProjectDialog extends DialogWrapper {
       }
     }.execute();
 
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_CPP_EXTERNAL_PROJECT_LINKED);
     super.doOKAction();
   }
 

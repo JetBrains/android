@@ -21,7 +21,8 @@ import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.speedSearch.ListWithFilter;
 import com.intellij.util.ui.AbstractLayoutManager;
 import com.intellij.util.ui.JBUI;
-import icons.AndroidIcons;
+import icons.StudioIcons;
+import java.util.HashMap;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,8 +32,10 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.*;
+import java.util.Map;
 
 import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
 
@@ -219,28 +222,28 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
 
   private static final Map<String, Icon> ourIcons = Maps.newHashMapWithExpectedSize(25);
   static {
-    ourIcons.put(UiModeQualifier.NAME, AndroidIcons.Configs.Dock);
-    ourIcons.put(NightModeQualifier.NAME, AndroidIcons.Configs.Night);
-    ourIcons.put(ScreenDimensionQualifier.NAME, AndroidIcons.Configs.Dimension);
-    ourIcons.put(DensityQualifier.NAME, AndroidIcons.Configs.Dpi);
-    ourIcons.put(ScreenHeightQualifier.NAME, AndroidIcons.Configs.Height);
-    ourIcons.put(KeyboardStateQualifier.NAME, AndroidIcons.Configs.Keyboard);
-    ourIcons.put(LocaleQualifier.NAME, AndroidIcons.Configs.Locale);
-    ourIcons.put(CountryCodeQualifier.NAME, AndroidIcons.Configs.Mcc);
-    ourIcons.put(NetworkCodeQualifier.NAME, AndroidIcons.Configs.Mnc);
-    ourIcons.put(NavigationStateQualifier.NAME, AndroidIcons.Configs.Navpad);
-    ourIcons.put(NavigationMethodQualifier.NAME, AndroidIcons.Configs.NavpadMethod);
-    ourIcons.put(ScreenOrientationQualifier.NAME, AndroidIcons.Configs.Orientation);
-    ourIcons.put(ScreenRatioQualifier.NAME, AndroidIcons.Configs.Ratio);
-    ourIcons.put(ScreenSizeQualifier.NAME, AndroidIcons.Configs.Size);
-    ourIcons.put(SmallestScreenWidthQualifier.NAME, AndroidIcons.Configs.SmallestWidth);
-    ourIcons.put(ScreenWidthQualifier.NAME, AndroidIcons.Configs.Width);
-    ourIcons.put(TextInputMethodQualifier.NAME, AndroidIcons.Configs.TextInput);
-    ourIcons.put(TouchScreenQualifier.NAME, AndroidIcons.Configs.Touch);
-    ourIcons.put(LayoutDirectionQualifier.NAME, AndroidIcons.Configs.LayoutDirection);
+    ourIcons.put(UiModeQualifier.NAME, StudioIcons.DeviceConfiguration.UI_MODE);
+    ourIcons.put(NightModeQualifier.NAME, StudioIcons.DeviceConfiguration.NIGHT_MODE);
+    ourIcons.put(ScreenDimensionQualifier.NAME, StudioIcons.DeviceConfiguration.DIMENSION);
+    ourIcons.put(DensityQualifier.NAME, StudioIcons.DeviceConfiguration.DENSITY);
+    ourIcons.put(ScreenHeightQualifier.NAME, StudioIcons.DeviceConfiguration.SCREEN_HEIGHT);
+    ourIcons.put(KeyboardStateQualifier.NAME, StudioIcons.DeviceConfiguration.KEYBOARD);
+    ourIcons.put(LocaleQualifier.NAME, StudioIcons.DeviceConfiguration.LOCALE);
+    ourIcons.put(CountryCodeQualifier.NAME, StudioIcons.DeviceConfiguration.COUNTRY_CODE);
+    ourIcons.put(NetworkCodeQualifier.NAME, StudioIcons.DeviceConfiguration.NETWORK_CODE);
+    ourIcons.put(NavigationStateQualifier.NAME, StudioIcons.DeviceConfiguration.NAVIGATION_STATE);
+    ourIcons.put(NavigationMethodQualifier.NAME, StudioIcons.DeviceConfiguration.NAVIGATION_METHOD);
+    ourIcons.put(ScreenOrientationQualifier.NAME, StudioIcons.DeviceConfiguration.ORIENTATION);
+    ourIcons.put(ScreenRatioQualifier.NAME, StudioIcons.DeviceConfiguration.SCREEN_RATIO);
+    ourIcons.put(ScreenSizeQualifier.NAME, StudioIcons.DeviceConfiguration.SCREEN_SIZE);
+    ourIcons.put(SmallestScreenWidthQualifier.NAME, StudioIcons.DeviceConfiguration.SMALLEST_SCREEN_SIZE);
+    ourIcons.put(ScreenWidthQualifier.NAME, StudioIcons.DeviceConfiguration.SCREEN_WIDTH);
+    ourIcons.put(TextInputMethodQualifier.NAME, StudioIcons.DeviceConfiguration.TEXT_INPUT);
+    ourIcons.put(TouchScreenQualifier.NAME, StudioIcons.DeviceConfiguration.TOUCH_SCREEN);
+    ourIcons.put(LayoutDirectionQualifier.NAME, StudioIcons.DeviceConfiguration.LAYOUT_DIRECTION);
 
     // TODO: Get dedicated icon for the API version
-    ourIcons.put(VersionQualifier.NAME, AndroidIcons.Targets);
+    ourIcons.put(VersionQualifier.NAME, StudioIcons.DeviceConfiguration.VERSION);
   }
 
   @Nullable
@@ -683,7 +686,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     private final List<Density> myList;
     private Density mySelected = null;
 
-    DensityComboBoxModel() {
+    public DensityComboBoxModel() {
       myList = new ArrayList<>();
       for (Density density : Density.values()) {
         if (density.isRecommended()) {
@@ -1188,14 +1191,12 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
           // Sort "Any Region" to the top
           if (s1.equals(FAKE_VALUE)) {
             return -1;
-          }
-          else if (s2.equals(FAKE_VALUE)) {
+          } else if (s2.equals(FAKE_VALUE)) {
             return 1;
           }
           if (s1.equals(preferred.get())) {
             return -1;
-          }
-          else if (s2.equals(preferred.get())) {
+          } else if (s2.equals(preferred.get())) {
             return 1;
           }
           // Special language comparator: We want to prefer 2-letter language codes.

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,18 @@
  */
 package org.jetbrains.android;
 
+import static com.intellij.psi.search.GlobalSearchScope.notScope;
+import static com.intellij.util.ArrayUtilRt.find;
+import static com.intellij.psi.search.GlobalSearchScope.notScope;
+import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClass;
+
+import com.android.support.AndroidxName;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.psi.TagToClassMapper;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.ProjectTopics;
+import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -28,25 +36,28 @@ import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.impl.PsiModificationTrackerImpl;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PsiModificationTracker;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.messages.MessageBusConnection;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.intellij.util.ArrayUtilRt.find;
-import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClass;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.idea.KotlinLanguage;
 
 class TagToClassMapperImpl implements TagToClassMapper {
+  private static final Logger LOG = Logger.getInstance(TagToClassMapper.class);
+
   private final Map<String, Map<String, SmartPsiElementPointer<PsiClass>>> myInitialClassMaps = new HashMap<>();
   private final Map<String, CachedValue<Map<String, PsiClass>>> myClassMaps = Maps.newConcurrentMap();
 
@@ -71,16 +82,31 @@ class TagToClassMapperImpl implements TagToClassMapper {
    * In addition, a {@link CachedValue} for this mapping is created that is updated automatically with changes
    * to {@link PsiModificationTracker#JAVA_STRUCTURE_MODIFICATION_COUNT}.
    */
-  // TODO: correctly support classes from external non-platform jars
   @Override
   @NotNull
-  public Map<String, PsiClass> getClassMap(@NotNull String className) {
+  public Map<String, PsiClass> getFrameworkClassMap(@NotNull String frameworkClass) {
+    Map<String, PsiClass> frameworkClasses = getClassMap(frameworkClass);
+    return Collections.unmodifiableMap(frameworkClasses);
+  }
+
+  @NotNull
+  @Override
+  public Map<String, PsiClass> getAndroidXClassMap(@NotNull AndroidxName androidXClass) {
+    String qualifiedName = MigrateToAndroidxUtil.getNameInProject(androidXClass, myModule.getProject());
+    Map<String, PsiClass> libClasses = getClassMap(qualifiedName);
+    return Collections.unmodifiableMap(libClasses);
+  }
+
+  private Map<String, PsiClass> getClassMap(String className) {
     CachedValue<Map<String, PsiClass>> value = myClassMaps.get(className);
 
     if (value == null) {
       value = CachedValuesManager.getManager(myModule.getProject()).createCachedValue(() -> {
         Map<String, PsiClass> map = computeClassMap(className);
-        return CachedValueProvider.Result.create(map, PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT);
+        return CachedValueProvider.Result.create(
+          map,
+          ((PsiModificationTrackerImpl)PsiManager.getInstance(myModule.getProject()).getModificationTracker()).forLanguages(
+            language -> language.is(JavaLanguage.INSTANCE) || language.is(KotlinLanguage.INSTANCE)));
       }, false);
       myClassMaps.put(className, value);
     }
@@ -93,17 +119,17 @@ class TagToClassMapperImpl implements TagToClassMapper {
     Map<String, SmartPsiElementPointer<PsiClass>> classMap = getInitialClassMap(className, false);
     Map<String, PsiClass> result = new HashMap<>();
     boolean shouldRebuildInitialMap = false;
+    int apiLevel = getMinApiLevel();
 
     for (String key : classMap.keySet()) {
       SmartPsiElementPointer<PsiClass> pointer = classMap.get(key);
-
-      if (!isUpToDate(pointer, key)) {
-        shouldRebuildInitialMap = true;
-        break;
-      }
       PsiClass aClass = pointer.getElement();
 
       if (aClass != null) {
+        if (!isUpToDate(aClass, key, apiLevel)) {
+          shouldRebuildInitialMap = true;
+          break;
+        }
         result.put(key, aClass);
       }
     }
@@ -121,29 +147,32 @@ class TagToClassMapperImpl implements TagToClassMapper {
         }
       }
     }
-    fillMap(className, myModule.getModuleWithDependenciesAndLibrariesScope(true), result, false);
+    fillMap(className, projectClassesScope(), result);
     return result;
   }
 
-  private static boolean isUpToDate(@NotNull SmartPsiElementPointer<PsiClass> pointer, String tagName) {
-    PsiClass aClass = pointer.getElement();
-    if (aClass == null) {
-      return false;
-    }
-    String[] tagNames = getTagNamesByClass(aClass, -1);
-    return find(tagNames, tagName) >= 0;
+  private static boolean isUpToDate(@NotNull PsiClass aClass, @NotNull String tagName, int apiLevel) {
+    return ArrayUtil.contains(tagName, getTagNamesByClass(aClass, apiLevel));
   }
 
   @NotNull
   private Map<String, SmartPsiElementPointer<PsiClass>> getInitialClassMap(@NotNull String className, boolean forceRebuild) {
-    Map<String, SmartPsiElementPointer<PsiClass>> viewClassMap;
-    viewClassMap = myInitialClassMaps.get(className);
+    Map<String, SmartPsiElementPointer<PsiClass>> viewClassMap = myInitialClassMaps.get(className);
     if (viewClassMap != null && !forceRebuild) {
       return viewClassMap;
     }
+    return computeInitialClassMap(className);
+  }
+
+  @VisibleForTesting
+  @NotNull
+  Map<String, SmartPsiElementPointer<PsiClass>> computeInitialClassMap(@NotNull String className) {
+    LOG.info("Building initial class map for " + className);
+
+    Map<String, SmartPsiElementPointer<PsiClass>> viewClassMap = null;
     Map<String, PsiClass> map = new HashMap<>();
 
-    if (fillMap(className, myModule.getModuleWithDependenciesAndLibrariesScope(true), map, true)) {
+    if (fillMap(className, dependenciesClassesScope(), map)) {
       viewClassMap = new HashMap<>(map.size());
       SmartPointerManager manager = SmartPointerManager.getInstance(myModule.getProject());
 
@@ -155,16 +184,35 @@ class TagToClassMapperImpl implements TagToClassMapper {
     return viewClassMap != null ? viewClassMap : Collections.emptyMap();
   }
 
+  @NotNull
+  private GlobalSearchScope moduleResolveScope() {
+    return myModule.getModuleWithDependenciesAndLibrariesScope(false);
+  }
+
+  @NotNull
+  private GlobalSearchScope allLibrariesScope() {
+    return ProjectScope.getLibrariesScope(myModule.getProject());
+  }
+
+  @NotNull
+  private GlobalSearchScope projectClassesScope() {
+    return moduleResolveScope().intersectWith(notScope(allLibrariesScope()));
+  }
+
+  @NotNull
+  private GlobalSearchScope dependenciesClassesScope() {
+    return moduleResolveScope().intersectWith(allLibrariesScope());
+  }
+
   private boolean fillMap(@NotNull String className,
                           @NotNull GlobalSearchScope scope,
-                          @NotNull Map<String, PsiClass> map,
-                          boolean libClassesOnly) {
+                          @NotNull Map<String, PsiClass> map) {
     JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getProject());
     PsiClass baseClass = ApplicationManager.getApplication().runReadAction((Computable<PsiClass>)() -> {
       PsiClass aClass;
       // facade.findClass uses index to find class by name, which might throw an IndexNotReadyException in dumb mode
       try {
-        aClass = facade.findClass(className, myModule.getModuleWithDependenciesAndLibrariesScope(true));
+        aClass = facade.findClass(className, moduleResolveScope());
       }
       catch (IndexNotReadyException e) {
         aClass = null;
@@ -175,8 +223,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
       return false;
     }
 
-    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myModule);
-    int api = androidModuleInfo == null ? 1 : androidModuleInfo.getModuleMinApi();
+    int api = getMinApiLevel();
 
     String[] baseClassTagNames = getTagNamesByClass(baseClass, api);
     for (String tagName : baseClassTagNames) {
@@ -184,9 +231,6 @@ class TagToClassMapperImpl implements TagToClassMapper {
     }
     try {
       ClassInheritorsSearch.search(baseClass, scope, true).forEach(c -> {
-        if (libClassesOnly && c.getManager().isInProject(c)) {
-          return true;
-        }
         String[] tagNames = getTagNamesByClass(c, api);
         for (String tagName : tagNames) {
           map.put(tagName, c);
@@ -199,6 +243,11 @@ class TagToClassMapperImpl implements TagToClassMapper {
       return false;
     }
     return !map.isEmpty();
+  }
+
+  private int getMinApiLevel() {
+    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myModule);
+    return androidModuleInfo == null ? 1 : androidModuleInfo.getModuleMinApi();
   }
 
   public void clear() {

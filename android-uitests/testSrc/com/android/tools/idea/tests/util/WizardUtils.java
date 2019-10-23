@@ -15,50 +15,31 @@
  */
 package com.android.tools.idea.tests.util;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import org.jetbrains.annotations.NotNull;
 
 public final class WizardUtils {
   private WizardUtils() {
   }
 
-  /** @deprecated Avoid until b/66680171 is otherwise addressed. */
-  @Deprecated
   public static void createNewProject(@NotNull GuiTestRule guiTest) {
     createNewProject(guiTest, "Empty Activity");
   }
 
-  /** @deprecated Avoid until b/66680171 is otherwise addressed. */
-  @Deprecated
   public static void createNewProject(@NotNull GuiTestRule guiTest, @NotNull String activity) {
-    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
-      guiTest
-        .welcomeFrame()
-        .createNewProject()
-        .getChooseAndroidProjectStep()
-        .chooseActivity(activity)
-        .wizard()
-        .clickNext()
-        .getConfigureNewAndroidProjectStep()
-        .enterPackageName("com.google.myapplication")
-        .wizard()
-        .clickFinish();
-    }
-    else {
-      NewProjectWizardFixture wizard = guiTest.welcomeFrame().createNewProject();
-
-      wizard.getConfigureAndroidProjectStep().enterCompanyDomain("google.com");
-      wizard.clickNext();
-
-      wizard.clickNext();
-
-      wizard.chooseActivity(activity);
-      wizard.clickNext();
-
-      wizard.clickFinish();
-    }
+    guiTest
+      .welcomeFrame()
+      .createNewProject()
+      .getChooseAndroidProjectStep()
+      .chooseActivity(activity)
+      .wizard()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .setSourceLanguage("Java")
+      .setUseAndroidX(true)
+      .enterPackageName("com.google.myapplication")
+      .wizard()
+      .clickFinish();
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
   }
 }

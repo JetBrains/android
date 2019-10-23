@@ -70,9 +70,9 @@ public final class ObservableValueTest {
     final MutableInt strongCount = new MutableInt();
     final MutableInt weakCount = new MutableInt();
     MockObservableValue mockValue = new MockObservableValue();
-    mockValue.addListener(sender -> strongCount.value++);
+    mockValue.addListener(() -> strongCount.value++);
     {
-      InvalidationListener scopedListener = sender -> weakCount.value++;
+      InvalidationListener scopedListener = () -> weakCount.value++;
       mockValue.addWeakListener(scopedListener);
 
       assertThat(strongCount.value).isEqualTo(0);

@@ -19,10 +19,13 @@ import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.scale.JBUIScale;
+import java.awt.Component;
+import java.awt.Dimension;
+import javax.swing.AbstractButton;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * The {@link MinimizedPanel} shows tool button to the left or right of the {@link WorkBench}.

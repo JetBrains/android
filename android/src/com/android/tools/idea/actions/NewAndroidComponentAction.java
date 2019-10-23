@@ -16,7 +16,9 @@
 package com.android.tools.idea.actions;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
@@ -33,29 +35,37 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.templates.TemplateManager.CATEGORY_ANDROID_AUTO;
+import static com.android.tools.idea.templates.TemplateManager.CATEGORY_AUTOMOTIVE;
+import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 
 /**
  * An action to launch a wizard to create a component from a template.
  */
 public class NewAndroidComponentAction extends AnAction {
   // These categories will be using a new wizard
-  public static Set<String> NEW_WIZARD_CATEGORIES = ImmutableSet.of("Activity", "Google");
+  public static Set<String> NEW_WIZARD_CATEGORIES = ImmutableSet.of("Activity", "Google", CATEGORY_AUTOMOTIVE);
 
   public static final DataKey<List<File>> CREATED_FILES = DataKey.create("CreatedFiles");
 
   private final String myTemplateCategory;
   private final String myTemplateName;
+  private final File myTemplateFile;
   private final int myMinSdkApi;
   private final int myMinBuildSdkApi;
+  private final boolean myAndroidXRequired;
   private boolean myShouldOpenFiles = true;
 
   public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion) {
@@ -63,12 +73,25 @@ public class NewAndroidComponentAction extends AnAction {
   }
 
   public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion, int minBuildSdkApi) {
+    this(templateCategory, templateName, minSdkVersion, minBuildSdkApi, false);
+  }
+
+  public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion, int minBuildSdkApi,
+                                   boolean androidXRequired) {
+    this(templateCategory, templateName, minSdkVersion, minBuildSdkApi, androidXRequired,
+         TemplateManager.getInstance().getTemplateFile(templateCategory, templateName));
+  }
+
+  public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion, int minBuildSdkApi,
+                                   boolean androidXRequired, File templateFile) {
     super(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null);
     myTemplateCategory = templateCategory;
     myTemplateName = templateName;
-    getTemplatePresentation().setIcon(isActivityTemplate() ? AndroidIcons.Activity : AndroidIcons.AndroidFile);
+    getTemplatePresentation().setIcon(isActivityTemplate() ? AndroidIcons.Activity : StudioIcons.Shell.Filetree.ANDROID_FILE);
     myMinSdkApi = minSdkVersion;
     myMinBuildSdkApi = minBuildSdkApi;
+    myAndroidXRequired = androidXRequired;
+    myTemplateFile = templateFile;
   }
 
   public void setShouldOpenFiles(boolean shouldOpenFiles) {
@@ -92,6 +115,17 @@ public class NewAndroidComponentAction extends AnAction {
     }
 
     Presentation presentation = e.getPresentation();
+
+    // Hide Automotive templates if automotive feature is not enabled, or Car templates if it is.
+    if ((myTemplateCategory.equals(CATEGORY_AUTOMOTIVE) && !StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) ||
+        (myTemplateCategory.equals(CATEGORY_ANDROID_AUTO) && StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get())) {
+      presentation.setVisible(false);
+      return;
+    } else {
+      presentation.setVisible(true);
+    }
+
+    // See also com.android.tools.idea.npw.template.ChooseActivityTypeStep#validateTemplate
     AndroidVersion buildSdkVersion = moduleInfo.getBuildSdkVersion();
     if (myMinSdkApi > moduleInfo.getMinSdkVersion().getFeatureLevel()) {
       presentation.setText(AndroidBundle.message("android.wizard.action.requires.minsdk", myTemplateName, myMinSdkApi));
@@ -99,6 +133,10 @@ public class NewAndroidComponentAction extends AnAction {
     }
     else if (buildSdkVersion != null && myMinBuildSdkApi > buildSdkVersion.getFeatureLevel()) {
       presentation.setText(AndroidBundle.message("android.wizard.action.requires.minbuildsdk", myTemplateName, myMinBuildSdkApi));
+      presentation.setEnabled(false);
+    }
+    else if (myAndroidXRequired && !useAndroidX(module)) {
+      presentation.setText(AndroidBundle.message("android.wizard.action.requires.androidx", myTemplateName));
       presentation.setEnabled(false);
     }
     else {
@@ -128,7 +166,7 @@ public class NewAndroidComponentAction extends AnAction {
       assert targetDirectory != null;
     }
 
-    File file = TemplateManager.getInstance().getTemplateFile(myTemplateCategory, myTemplateName);
+    File file = myTemplateFile;
     assert file != null;
 
     String activityDescription = e.getPresentation().getText(); // e.g. "Empty Activity", "Tabbed Activity"
@@ -165,5 +203,15 @@ public class NewAndroidComponentAction extends AnAction {
       view.selectElement(createdElement);
     }
     */
+  }
+
+  private static boolean useAndroidX(@Nullable Module module) {
+    if (module != null) {
+      Project project = module.getProject();
+      if (MigrateToAndroidxUtil.hasAndroidxProperty(module.getProject())) {
+        return isAndroidx(project);
+      }
+    }
+    return false;
   }
 }

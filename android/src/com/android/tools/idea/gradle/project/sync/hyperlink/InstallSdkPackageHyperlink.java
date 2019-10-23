@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_REPOSITORY_INSTALLED;
+
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
-
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@link NotificationHyperlink} that offers the user to install the SDK package that Gradle decided to be required but missing.
@@ -41,7 +40,7 @@ public class InstallSdkPackageHyperlink extends NotificationHyperlink {
   protected void execute(@NotNull Project project) {
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, myPackageIds, true);
     if (dialog != null && dialog.showAndGet()) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_REPOSITORY_INSTALLED);
     }
   }
 }

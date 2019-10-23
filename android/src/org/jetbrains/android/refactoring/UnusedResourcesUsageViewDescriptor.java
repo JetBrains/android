@@ -18,6 +18,7 @@ package org.jetbrains.android.refactoring;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 class UnusedResourcesUsageViewDescriptor extends UsageViewDescriptorAdapter {
@@ -40,6 +41,6 @@ class UnusedResourcesUsageViewDescriptor extends UsageViewDescriptorAdapter {
 
   @Override
   public String getCodeReferencesText(int usagesCount, int filesCount) {
-    return String.format("Unused Resource Declarations (%1$d resources in %2$d files)", usagesCount, filesCount);
+    return String.format(Locale.US, "Unused Resource Declarations (%1$d resources in %2$d files)", usagesCount, filesCount);
   }
 }

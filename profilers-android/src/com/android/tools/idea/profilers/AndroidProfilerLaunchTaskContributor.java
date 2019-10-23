@@ -37,9 +37,15 @@ import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
+import com.android.tools.idea.transport.TransportFileManager;
+import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Transport.TimeRequest;
+import com.android.tools.profiler.proto.Transport.TimeResponse;
+import com.android.tools.profilers.ProfilerClient;
+import com.android.tools.profilers.StudioProfilers;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.process.ProcessAdapter;
@@ -55,6 +61,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,6 +71,8 @@ import org.jetbrains.annotations.Nullable;
  * extra option to "am start ..." command.
  */
 public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunchTaskContributor {
+  private static final String STARTUP_AGENT_CONFIG_NAME = "startupagent.config";
+
   private static Logger getLogger() {
     return Logger.getInstance(AndroidProfilerLaunchTaskContributor.class);
   }
@@ -84,15 +93,16 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     }
 
     Project project = module.getProject();
-    ProfilerService profilerService = ProfilerService.getInstance(project);
-    if (profilerService == null) {
+    TransportService transportService = TransportService.getInstance();
+    if (transportService == null) {
       // Profiler cannot be run.
       return "";
     }
 
+    ProfilerClient client = new ProfilerClient(transportService.getChannelName());
     long deviceId;
     try {
-      deviceId = waitForPerfd(device, profilerService);
+      deviceId = waitForPerfd(device, client);
     }
     catch (InterruptedException | TimeoutException e) {
       getLogger().debug(e);
@@ -100,16 +110,17 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
-    pushNewAgentConfig(project, device);
-    String agentArgs = getAttachAgentArgs(applicationId, profilerService, device, deviceId);
-    String startupProfilingResult = startStartupProfiling(applicationId, module, profilerService, device, deviceId);
+    TransportFileManager fileManager = new TransportFileManager(device, transportService.getMessageBus());
+    pushStartupAgentConfig(fileManager, project);
+    String agentArgs = fileManager.configureStartupAgent(applicationId, STARTUP_AGENT_CONFIG_NAME);
+    String startupProfilingResult = startStartupProfiling(applicationId, project, client, device, deviceId);
     return String.format("%s %s", agentArgs, startupProfilingResult);
   }
 
-  private static void pushNewAgentConfig(@NotNull Project project, @NotNull IDevice device) {
+  private void pushStartupAgentConfig(@NotNull TransportFileManager fileManager, @NotNull Project project) {
     // Memory live allocation setting may change in the run config so push a new one
     try {
-      StudioProfilerDeviceManager.pushAgentConfig(device, shouldEnableMemoryLiveAllocationAtStartup(project));
+      fileManager.pushAgentConfig(STARTUP_AGENT_CONFIG_NAME, getSelectedRunConfiguration(project));
     }
     catch (TimeoutException | ShellCommandUnresponsiveException | SyncException e) {
       throw new RuntimeException(e);
@@ -117,32 +128,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     catch (AdbCommandRejectedException | IOException e) {
       // AdbCommandRejectedException and IOException happen when unplugging the device shortly after plugging it in.
       // We don't want to crash in this case.
-      getLogger().warn("Error when trying to push AgentConfig:");
-      getLogger().warn(e);
+      getLogger().warn("Error when trying to push AgentConfig:", e);
     }
-  }
-
-
-  @NotNull
-  private static String getAttachAgentArgs(@NotNull String appPackageName,
-                                           @NotNull ProfilerService profilerService,
-                                           @NotNull IDevice device,
-                                           long deviceId) {
-    // --attach-agent flag was introduced from android API level 27.
-    if (device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O_MR1) {
-      return "";
-    }
-    Profiler.ConfigureStartupAgentResponse response = profilerService.getProfilerClient().getProfilerClient()
-                                                                     .configureStartupAgent(
-                                                                       Profiler.ConfigureStartupAgentRequest.newBuilder()
-                                                                                                            .setDeviceId(deviceId)
-                                                                                                            // TODO: Find a way of finding the correct ABI
-                                                                                                            .setAgentLibFileName(
-                                                                                                              getAbiDependentLibPerfaName(
-                                                                                                                device))
-                                                                                                            .setAppPackageName(
-                                                                                                              appPackageName).build());
-    return response.getAgentArgs().isEmpty() ? "" : "--attach-agent " + response.getAgentArgs();
   }
 
   /**
@@ -154,30 +141,30 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
    */
   @NotNull
   private static String startStartupProfiling(@NotNull String appPackageName,
-                                              @NotNull Module module,
-                                              @NotNull ProfilerService profilerService,
+                                              @NotNull Project project,
+                                              @NotNull ProfilerClient client,
                                               @NotNull IDevice device,
                                               long deviceId) {
     if (!StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get()) {
       return "";
     }
 
-    AndroidRunConfigurationBase runConfig = getSelectedRunConfiguration(module.getProject());
+    AndroidRunConfigurationBase runConfig = getSelectedRunConfiguration(project);
     if (runConfig == null || !runConfig.getProfilerState().STARTUP_CPU_PROFILING_ENABLED) {
       return "";
     }
 
     String configName = runConfig.getProfilerState().STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
-    CpuProfilerConfig startupConfig = CpuProfilerConfigsState.getInstance(module.getProject()).getConfigByName(configName);
+    CpuProfilerConfig startupConfig = CpuProfilerConfigsState.getInstance(project).getConfigByName(configName);
     if (startupConfig == null) {
       return "";
     }
 
     if (!isAtLeastO(device)) {
-      AndroidNotification.getInstance(module.getProject()).showBalloon("Startup CPU Profiling",
-                                                                       "Starting a method trace recording on startup is only " +
-                                                                       "supported on devices with API levels 26 and higher.",
-                                                                       NotificationType.WARNING);
+      AndroidNotification.getInstance(project).showBalloon("Startup CPU Profiling",
+                                                           "Starting a method trace recording on startup is only " +
+                                                           "supported on devices with API levels 26 and higher.",
+                                                           NotificationType.WARNING);
       return "";
     }
 
@@ -187,15 +174,16 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       .setDeviceId(deviceId)
       .setConfiguration(CpuProfilerConfigConverter.toProto(startupConfig));
 
-    if (requestBuilder.getConfiguration().getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
-      requestBuilder.setAbiCpuArch(getSimpleperfAbi(device));
+    if (requestBuilder.getConfiguration().getTraceType() == Cpu.CpuTraceType.SIMPLEPERF) {
+      requestBuilder.setAbiCpuArch(getAbiDependentCommonLibName("simpleperf", "simpleperf", device));
+    }
+    else if (requestBuilder.getConfiguration().getTraceType() == Cpu.CpuTraceType.ATRACE) {
+      requestBuilder.setAbiCpuArch(getAbiDependentCommonLibName("perfetto", "perfetto", device));
     }
 
-    CpuProfiler.StartupProfilingResponse response = profilerService
-      .getProfilerClient().getCpuClient()
-      .startStartupProfiling(requestBuilder.build());
+    CpuProfiler.StartupProfilingResponse response = client.getCpuClient().startStartupProfiling(requestBuilder.build());
 
-    if (response.getFilePath().isEmpty() || requestBuilder.getConfiguration().getProfilerType() != CpuProfiler.CpuProfilerType.ART) {
+    if (response.getFilePath().isEmpty() || requestBuilder.getConfiguration().getTraceType() != Cpu.CpuTraceType.ART) {
       return "";
     }
 
@@ -222,28 +210,15 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   }
 
   /**
-   * If startup profiling is enabled and the profiling config disables memory live allocation, disable live allocation at startup.
-   */
-  private static boolean shouldEnableMemoryLiveAllocationAtStartup(@NotNull Project project) {
-    AndroidRunConfigurationBase runConfig = getSelectedRunConfiguration(project);
-    if (runConfig != null && runConfig.getProfilerState().STARTUP_CPU_PROFILING_ENABLED) {
-      String configName = runConfig.getProfilerState().STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
-      CpuProfilerConfig startupConfig = CpuProfilerConfigsState.getInstance(project).getConfigByName(configName);
-      return startupConfig == null || !startupConfig.isDisableLiveAllocation();
-    }
-    return true;
-  }
-
-  /**
    * Waits for perfd to come online for maximum 1 minute.
    *
    * @return ID of device, i.e {@link Common.Device#getDeviceId()}
    */
-  private static long waitForPerfd(@NotNull IDevice device, @NotNull ProfilerService profilerService)
+  private static long waitForPerfd(@NotNull IDevice device, @NotNull ProfilerClient client)
     throws InterruptedException, TimeoutException {
     // Wait for perfd to come online for 1 minute.
     for (int i = 0; i < 60; ++i) {
-      Common.Device profilerDevice = getProfilerDevice(device, profilerService);
+      Common.Device profilerDevice = getProfilerDevice(device, client);
       if (!Common.Device.getDefaultInstance().equals(profilerDevice)) {
         return profilerDevice.getDeviceId();
       }
@@ -258,11 +233,9 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
    * {@link Common.Device#getDefaultInstance()} otherwise.
    */
   @NotNull
-  private static Common.Device getProfilerDevice(@NotNull IDevice device, @NotNull ProfilerService profilerService) {
-    Profiler.GetDevicesResponse response =
-      profilerService.getProfilerClient().getProfilerClient().getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
-
-    for (Common.Device profilerDevice : response.getDeviceList()) {
+  private static Common.Device getProfilerDevice(@NotNull IDevice device, @NotNull ProfilerClient client) {
+    List<Common.Device> devices = StudioProfilers.getUpToDateDevices(StudioFlags.PROFILER_UNIFIED_PIPELINE.get(), client, null);
+    for (Common.Device profilerDevice : devices) {
       if (profilerDevice.getSerial().equals(device.getSerialNumber()) && profilerDevice.getState() == Common.Device.State.ONLINE) {
         return profilerDevice;
       }
@@ -272,31 +245,24 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
   }
 
   @NotNull
-  private static String getAbiDependentLibPerfaName(IDevice device) {
-    String abi = getBestAbi(device,
-                            "plugins/android/resources/perfa",
-                            "../../bazel-bin/tools/base/profiler/native/perfa/android",
-                            "libperfa.so");
-    return abi.isEmpty() ? "" : String.format("libperfa_%s.so", abi);
-  }
-
-  @NotNull
-  private static String getSimpleperfAbi(IDevice device) {
-    return getBestAbi(device,
-                      "plugins/android/resources/simpleperf",
-                      "../../prebuilts/tools/common/simpleperf",
-                      "simpleperf");
+  private static String getAbiDependentCommonLibName(String dir, String fileName, IDevice device) {
+    return getBestAbiCpuArch(device,
+                             "plugins/android/resources/" + dir,
+                             "../../prebuilts/tools/common/" + dir,
+                             fileName);
   }
 
   /**
-   * @return the most preferred ABI according to {@link IDevice#getAbis()} for which
-   * {@param fileName} exists in {@param releaseDir} or {@param devDir}
+   * @return the most preferred CPU arch according to {@link IDevice#getAbis()} for which
+   * {@param fileName} exists in {@param releaseDir} or {@param devDir}.
+   * For example, if the preferred Abi according to {@link IDevice#getAbis()} is {@link Abi#ARMEABI} or {@link Abi#ARMEABI_V7A} and
+   * the {@param fileName} exists under it then it returns "arm".
    */
   @NotNull
-  private static String getBestAbi(@NotNull IDevice device,
-                                   @NotNull String releaseDir,
-                                   @NotNull String devDir,
-                                   @NotNull String fileName) {
+  private static String getBestAbiCpuArch(@NotNull IDevice device,
+                                          @NotNull String releaseDir,
+                                          @NotNull String devDir,
+                                          @NotNull String fileName) {
     File dir = new File(PathManager.getHomePath(), releaseDir);
     if (!dir.exists()) {
       dir = new File(PathManager.getHomePath(), devDir);
@@ -407,14 +373,15 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       long startTimeNs = Long.MIN_VALUE;
 
       // If it's not a profile launch avoid initializing the service as it is an expensive call.
-      if (!isProfilerLaunch(myLaunchOptions) && !ProfilerService.isServiceInitialized(myModule.getProject())) {
+      if (!isProfilerLaunch(myLaunchOptions) && !TransportService.isServiceInitialized()) {
         return startTimeNs;
       }
 
-      ProfilerService profilerService = ProfilerService.getInstance(myModule.getProject());
-      if (profilerService == null) {
+      TransportService transportService = TransportService.getInstance();
+      if (transportService == null) {
         return startTimeNs;
       }
+      ProfilerClient client = new ProfilerClient(transportService.getChannelName());
 
       // If we are launching from the "Profile" action, wait for perfd to start properly to get the time.
       // Note: perfd should have started already from AndroidProfilerLaunchTaskContributor#getAmStartOptions already. This wait might be
@@ -422,7 +389,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       long deviceId = -1;
       if (isProfilerLaunch(myLaunchOptions)) {
         try {
-          deviceId = waitForPerfd(device, profilerService);
+          deviceId = waitForPerfd(device, client);
         }
         catch (InterruptedException | TimeoutException e) {
           getLogger().debug(e);
@@ -431,12 +398,11 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       else {
         // If we are launching from Run/Debug, do not bother waiting for perfd start, but try to get the time anyway in case the profiler
         // is already running.
-        deviceId = getProfilerDevice(device, profilerService).getDeviceId();
+        deviceId = getProfilerDevice(device, client).getDeviceId();
       }
 
-      Profiler.TimeResponse timeResponse = profilerService.getProfilerClient().getProfilerClient().getCurrentTime(
-        Profiler.TimeRequest.newBuilder().setDeviceId(deviceId).build());
-      if (!Profiler.TimeResponse.getDefaultInstance().equals(timeResponse)) {
+      TimeResponse timeResponse = client.getTransportClient().getCurrentTime(TimeRequest.newBuilder().setStreamId(deviceId).build());
+      if (!TimeResponse.getDefaultInstance().equals(timeResponse)) {
         // Found a valid time response, sets that as the time for detecting when the process is next launched.
         startTimeNs = timeResponse.getTimestampNs();
       }

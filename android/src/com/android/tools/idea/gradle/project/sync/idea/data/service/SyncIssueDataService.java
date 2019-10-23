@@ -15,21 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUES;
+
 import com.android.tools.idea.gradle.project.sync.idea.data.model.SyncIssuesModel;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
 import com.intellij.openapi.project.Project;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUES;
 
 public class SyncIssueDataService extends AbstractProjectDataService<SyncIssuesModel, Void> {
   @Override
@@ -37,7 +35,7 @@ public class SyncIssueDataService extends AbstractProjectDataService<SyncIssuesM
                          @Nullable ProjectData projectData,
                          @NotNull Project project,
                          @NotNull IdeModifiableModelsProvider modelsProvider) {
-    SyncIssuesReporter.getInstance().report(Lists.newArrayList(modelsProvider.getModules()));
+    SyncIssuesReporter.getInstance().report(project);
   }
 
   @NotNull

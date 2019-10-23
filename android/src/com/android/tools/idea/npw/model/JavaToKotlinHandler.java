@@ -15,17 +15,13 @@
  */
 package com.android.tools.idea.npw.model;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.common.collect.Lists;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.FacetType;
-import com.intellij.facet.FacetTypeId;
-import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -35,13 +31,10 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.ArrayUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
-
-import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A class for handling actions related to the java to kotlin conversion.
@@ -110,19 +103,5 @@ public class JavaToKotlinHandler {
       }
     }
     return psiJavaFiles;
-  }
-
-  static boolean hasKotlinFacet(@NotNull Project project) {
-    final FacetType kotlinFacet = FacetTypeRegistry.getInstance().findFacetType("kotlin-language");
-    if (kotlinFacet == null) {
-      return false;
-    }
-    FacetTypeId<?> kotlinFacetId = kotlinFacet.getId();
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      if (FacetManager.getInstance(module).getFacetByType(kotlinFacetId) != null) {
-        return true;
-      }
-    }
-    return false;
   }
 }

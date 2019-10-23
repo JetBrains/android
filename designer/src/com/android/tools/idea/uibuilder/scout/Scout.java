@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.*;
 
@@ -32,6 +34,9 @@ import static com.android.SdkConstants.*;
  * TODO support Stash / merge constraints ourConverts etc.
  */
 public class Scout {
+
+  public static final int DEFAULT_MARGIN = 0;
+
   private static final String[] ourAttrsToDelete = {
     ATTR_PADDING,
     ATTR_PADDING_LEFT,
@@ -53,7 +58,8 @@ public class Scout {
     ChainInsertHorizontal, ChainInsertVertical,
   }
 
-  private static int sMargin = 8;
+  private static int sMargin = DEFAULT_MARGIN;
+  @Nullable private static String sMarginResource = null;
 
   public static int getMargin() {
     return sMargin;
@@ -61,6 +67,14 @@ public class Scout {
 
   public static void setMargin(int margin) {
     sMargin = margin;
+  }
+
+  public static void setMarginResource(String marginResource) {
+    sMarginResource = marginResource;
+  }
+
+  public static @Nullable String getMarginResource() {
+    return sMarginResource;
   }
 
   public static void arrangeWidgets(Arrange type, List<NlComponent> widgets,
@@ -107,7 +121,57 @@ public class Scout {
     ConnectToParentTop,
     ConnectToParentBottom,
     ConnectToParentStart,
-    ConnectToParentEnd,
+    ConnectToParentEnd;
+
+    /** Returns the equivalent {@link AnchorTarget.Type} for the source of this connection. */
+    public AnchorTarget.Type getSrcAnchorType() {
+      switch (this) {
+        case ConnectTopToTop:
+        case ConnectTopToBottom:
+        case ConnectToParentTop:
+          return AnchorTarget.Type.TOP;
+        case ConnectBottomToTop:
+        case ConnectBottomToBottom:
+        case ConnectToParentBottom:
+          return AnchorTarget.Type.BOTTOM;
+        case ConnectStartToStart:
+        case ConnectStartToEnd:
+        case ConnectToParentStart:
+          return AnchorTarget.Type.LEFT;
+        case ConnectEndToStart:
+        case ConnectEndToEnd:
+        case ConnectToParentEnd:
+          return AnchorTarget.Type.RIGHT;
+        case ConnectBaseLineToBaseLine:
+          return AnchorTarget.Type.BASELINE;
+      }
+      return null;
+    }
+
+    /** Returns the equivalent {@link AnchorTarget.Type} for the destination of this connection. */
+    public AnchorTarget.Type getDstAnchorType() {
+      switch (this) {
+        case ConnectTopToTop:
+        case ConnectBottomToTop:
+        case ConnectToParentTop:
+          return AnchorTarget.Type.TOP;
+        case ConnectTopToBottom:
+        case ConnectBottomToBottom:
+        case ConnectToParentBottom:
+          return AnchorTarget.Type.BOTTOM;
+        case ConnectStartToStart:
+        case ConnectEndToStart:
+        case ConnectToParentStart:
+          return AnchorTarget.Type.LEFT;
+        case ConnectStartToEnd:
+        case ConnectEndToEnd:
+        case ConnectToParentEnd:
+          return AnchorTarget.Type.RIGHT;
+        case ConnectBaseLineToBaseLine:
+          return AnchorTarget.Type.BASELINE;
+      }
+      return null;
+    }
   }
 
   public static void connect(List<NlComponent> widgets, Connect action, boolean reverse, boolean margin) {
@@ -343,6 +407,6 @@ public class Scout {
       return;
     }
 
-    NlWriteCommandAction.run(list, label, () -> list.forEach(component -> component.startAttributeTransaction().commit()));
+    NlWriteCommandActionUtil.run(list, label, () -> list.forEach(component -> component.startAttributeTransaction().commit()));
   }
 }

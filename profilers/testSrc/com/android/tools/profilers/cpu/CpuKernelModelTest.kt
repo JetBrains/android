@@ -17,9 +17,11 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.android.tools.profilers.event.FakeEventService
@@ -33,6 +35,7 @@ import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 
 class CpuKernelModelTest {
+  private val myTimer = FakeTimer()
   private lateinit var myCpuModel: CpuKernelModel
   private val myRange = Range()
   private lateinit var myStage: CpuProfilerStage
@@ -40,15 +43,14 @@ class CpuKernelModelTest {
   @Rule
   @JvmField
   var myGrpcChannel = FakeGrpcChannel(
-    "CpuKernelModelTest", FakeCpuService(), FakeProfilerService(),
+    "CpuKernelModelTest", FakeCpuService(), FakeTransportService(myTimer), FakeProfilerService(myTimer),
     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
   )
 
   @Before
   fun setup() {
-    val timer = FakeTimer()
     val services = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(myGrpcChannel.client, services, timer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), services, myTimer)
     myStage = CpuProfilerStage(profilers)
     myCpuModel = CpuKernelModel(myRange, myStage)
   }

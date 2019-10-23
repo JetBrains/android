@@ -209,10 +209,14 @@ public final class TooltipComponent extends AnimatedComponent {
     g.fillRect(paintLocation.x, paintLocation.y, preferredSize.width, preferredSize.height);
     g.setStroke(new BasicStroke(1.0f));
 
+    // Note that for the rectangle drawn by java.awt.Graphics.fillRect(), the left and right edges of the rectangle are
+    // at x and x + width - 1. The top and bottom edges are at y and y + height - 1. Therefore, the inner-most lines
+    // of the drop shadow should be drawn at x - 1, y - 1, x + width, and y + height.
     RoundRectangle2D.Float rect = new RoundRectangle2D.Float();
     for (int i = 1; i <= DROPSHADOW_ALPHAS.length; i++) {
       g.setColor(new Color(0, 0, 0, DROPSHADOW_ALPHAS[i - 1]));
-      rect.setRoundRect(paintLocation.x - i, paintLocation.y - i, preferredSize.width + i * 2, preferredSize.height + i * 2, i * 2, i * 2);
+      rect.setRoundRect(paintLocation.x - i, paintLocation.y - i, preferredSize.width + i * 2 - 1, preferredSize.height + i * 2 - 1, i * 2,
+                        i * 2);
       g.draw(rect);
     }
   }

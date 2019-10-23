@@ -16,6 +16,10 @@
     <orderEntry type="module" module-name="intellij.android.lang" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
+    <orderEntry type="module" module-name="intellij.android.transport" />
+    <orderEntry type="module" module-name="intellij.android.androidLayoutInspector" />
+    <orderEntry type="module" module-name="intellij.android.databinding" />
+    <orderEntry type="module" module-name="intellij.android.naveditor" />
     <orderEntry type="module" module-name="intellij.android.layoutInspector" />
   </component>
 </module>

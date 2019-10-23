@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res.psi
 
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.ResolveResult
@@ -24,6 +25,13 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidResourceUtil
 
 object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
+  override fun getXmlAttributeNameGotoDeclarationTargets(attributeName: String,
+                                                         namespace: ResourceNamespace,
+                                                         context: PsiElement,
+                                                         facet: AndroidFacet): Array<PsiElement> {
+    TODO("not implemented")
+  }
+
   override fun resolveToPsi(resourceValue: ResourceValue,
                             element: XmlElement,
                             facet: AndroidFacet): Array<out ResolveResult> {

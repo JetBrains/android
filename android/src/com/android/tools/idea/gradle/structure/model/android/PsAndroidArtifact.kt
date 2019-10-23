@@ -25,7 +25,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.icons.AllIcons.Modules.TestRoot
 import com.intellij.icons.AllIcons.Nodes.Artifact
 import com.intellij.openapi.util.text.StringUtil.capitalize
-import icons.AndroidIcons.AndroidTestRoot
+import icons.StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT
 import org.jetbrains.annotations.NonNls
 import javax.swing.Icon
 
@@ -52,7 +52,7 @@ class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: String
       ARTIFACT_MAIN -> icon = AllIcons.Modules.SourceRoot
       ARTIFACT_ANDROID_TEST -> {
         name = "AndroidTest"
-        icon = AndroidTestRoot
+        icon = ANDROID_TEST_ROOT
       }
       ARTIFACT_UNIT_TEST -> {
         name = "UnitTest"

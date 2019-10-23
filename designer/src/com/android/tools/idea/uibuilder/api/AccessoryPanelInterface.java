@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This is the interface to Accessory Panels they are returned by ViewGroupHandlers if they want to have a panel on the bottom of the design
@@ -52,4 +53,14 @@ public interface AccessoryPanelInterface {
   void deactivate();
 
   void updateAfterModelDerivedDataChanged();
+
+  /**
+   * Returns the currently selected object to be displayed.
+   */
+  @Nullable
+  Object getSelectedAccessory();
+
+  void addListener(@NotNull AccessorySelectionListener listener);
+
+  void removeListener(@NotNull AccessorySelectionListener listener);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,40 @@
 package org.jetbrains.android;
 
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.testing.DisposerExplorer;
 import com.android.tools.idea.testing.Sdks;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.application.ex.PathManagerEx;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.impl.ProjectImpl;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.AppScheduledExecutorService;
+import com.intellij.util.ui.UIUtil;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -44,16 +58,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.internal.progress.ThreadSafeMockingProgress;
 
-import java.io.File;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
-
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestBase extends UsefulTestCase {
-
   protected JavaCodeInsightTestFixture myFixture;
 
   @Override
@@ -70,6 +76,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     cleanupMockitoThreadLocals();
     myFixture = null;
     super.tearDown();
+    checkUndisposedAndroidRelatedObjects();
   }
 
   public static void cleanupMockitoThreadLocals() throws Exception {
@@ -86,18 +93,42 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     }
   }
 
-  public static String getAbsoluteTestDataPath() {
-    // The following code doesn't work right now that the Android
-    // plugin lives in a separate place:
-    //String androidHomePath = System.getProperty("android.home.path");
-    //if (androidHomePath == null) {
-    //  androidHomePath = new File(PathManager.getHomePath(), "android/android").getPath();
-    //}
-    //return PathUtil.getCanonicalPath(androidHomePath + "/testData");
+  /**
+   * Checks that there are no undisposed Android-related objects.
+   */
+  private static void checkUndisposedAndroidRelatedObjects() {
+    DisposerExplorer.visitTree(disposable -> {
+      if (disposable.getClass().getName().equals("com.android.tools.idea.adb.AdbService") ||
+          disposable.getClass().getName().equals("com.android.tools.idea.adb.AdbOptionsService") ||
+          (disposable instanceof ProjectImpl && (((ProjectImpl)disposable).isDefault() || ((ProjectImpl)disposable).isLight())) ||
+          (disposable instanceof Module && ((Module)disposable).getName().equals(LightProjectDescriptor.TEST_MODULE_NAME))) {
+        // Ignore application services and light projects and modules that are not disposed by tearDown.
+        return DisposerExplorer.VisitResult.SKIP_CHILDREN;
+      }
+      if (disposable.getClass().getName().startsWith("com.android.")) {
+        Disposable root = disposable;
+        Disposable parent;
+        while ((parent = DisposerExplorer.getParent(root)) != null) {
+          root = parent;
+        }
+        fail("Undisposed object: " + root);
+      }
+      return DisposerExplorer.VisitResult.CONTINUE;
+    });
+  }
 
-    String path = Paths.get(getTestDataPath()).toAbsolutePath().toString();
-    assertTrue(new File(path).isAbsolute());
-    return path;
+  public void refreshProjectFiles() {
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      // With IJ14 code base, we run tests with NO_FS_ROOTS_ACCESS_CHECK turned on. I'm not sure if that
+      // is the cause of the issue, but not all files inside a project are seen while running unit tests.
+      // This explicit refresh of the entire project fix such issues (e.g. AndroidProjectViewTest).
+      // This refresh must be synchronous and recursive so it is completed before continuing the test and clean everything so indexes are
+      // properly updated. Apparently this solves outdated indexes and stubs problems
+      WriteAction.run(() -> LocalFileSystem.getInstance().refresh(false));
+
+      // Run VFS listeners.
+      UIUtil.dispatchAllInvocationEvents();
+    });
   }
 
   public static String getTestDataPath() {
@@ -111,9 +142,9 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   public static String getModulePath(String moduleFolder) {
     // Now that the Android plugin is kept in a separate place, we need to look in
     // a relative position instead
-    String adtPath = PathManager.getHomePath() + "/../adt/idea/" + moduleFolder;
-    if (new File(adtPath).exists()) {
-      return adtPath;
+    Path adtPath = Paths.get(PathManager.getHomePath(), "../adt/idea", moduleFolder).normalize();
+    if (Files.exists(adtPath)) {
+      return adtPath.toString();
     }
     return PathManagerEx.findFileUnderCommunityHome("android/" + moduleFolder).getPath();
   }
@@ -231,7 +262,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       }
       String indent = "  ";
       sb.append(indent);
-      sb.append(text.substring(lineStart, lineEnd));
+      sb.append(text, lineStart, lineEnd);
       sb.append('\n');
       sb.append(indent);
       for (int i = lineStart; i < lineEnd; i++) {
@@ -251,17 +282,5 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       sb.append(":?");
     }
     sb.append('\n');
-  }
-
-  protected void copyRJavaToGeneratedSources() {
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
-    }
-  }
-
-  protected void copyManifestJavaToGeneratedSources() {
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.copyFileToProject("Manifest.java", "gen/p1/p2/Manifest.java");
-    }
   }
 }

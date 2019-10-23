@@ -16,23 +16,18 @@
 package org.jetbrains.android.dom.layout;
 
 import com.android.resources.ResourceFolderType;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
+import org.jetbrains.android.dom.CustomLogicResourceDomFileDescription;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class LayoutDomFileDescription<T extends LayoutElement> extends AndroidResourceDomFileDescription<T> {
+public abstract class LayoutDomFileDescription<T extends LayoutElement> extends CustomLogicResourceDomFileDescription<T> {
   public LayoutDomFileDescription(@NotNull Class<T> rootElementClass, @NotNull String rootTagName) {
-    super(rootElementClass, rootTagName, ResourceFolderType.LAYOUT);
+    super(rootElementClass, ResourceFolderType.LAYOUT, rootTagName);
   }
 
   public static boolean isLayoutFile(@NotNull final XmlFile file) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
-      @Override
-      public Boolean compute() {
-        return AndroidResourceDomFileDescription.doIsMyFile(file, ResourceFolderType.LAYOUT);
-      }
-    });
+    return ReadAction.compute(() -> AndroidResourceDomFileDescription.isFileInResourceFolderType(file, ResourceFolderType.LAYOUT));
   }
 }

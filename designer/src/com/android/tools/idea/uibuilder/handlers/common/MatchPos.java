@@ -30,7 +30,7 @@ class MatchPos {
    */
   private final int myPosition;
 
-  MatchPos(@AndroidDpCoordinate int distance, int position) {
+  public MatchPos(@AndroidDpCoordinate int distance, int position) {
     myDistance = distance;
     myPosition = position;
   }

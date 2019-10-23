@@ -21,18 +21,18 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.CommandEvent;
-import com.intellij.openapi.command.CommandListener;
-import com.intellij.openapi.command.CommandProcessor;
+import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.util.concurrency.EdtExecutorService;
+import com.intellij.util.ui.UIUtil;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link LayoutlibSceneManager} used for tests that performs all operations synchronously.
@@ -46,40 +46,29 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
     myDefaultProperties = new HashMap<>();
   }
 
-  @Override
   @NotNull
+  @Override
+  protected CompletableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+    return CompletableFuture.completedFuture(super.render(trigger).join());
+  }
+
+  @NotNull
+  @Override
   public CompletableFuture<Void> requestRender() {
-    CompletableFuture<Void> result = new CompletableFuture<>();
-    runAfterCommandIfNecessary(() -> {
-      render(getTriggerFromChangeType(getModel().getLastChangeType()));
-      result.complete(null);
-    });
-    return result;
+    return CompletableFuture.completedFuture(super.requestRender().join());
   }
 
   @Override
-  void doRequestLayoutAndRender(boolean animate) {
-    runAfterCommandIfNecessary(() -> render(getTriggerFromChangeType(getModel().getLastChangeType())));
+  protected CompletableFuture<Void> updateModel() {
+    return CompletableFuture.completedFuture(super.updateModel().join());
   }
 
   @Override
   protected void requestModelUpdate() {
-    runAfterCommandIfNecessary(this::updateModel);
-  }
+    updateModel();
 
-  private static void runAfterCommandIfNecessary(Runnable runnable) {
-    if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
-      CommandProcessor.getInstance().addCommandListener(new CommandListener() {
-        @Override
-        public void commandFinished(CommandEvent event) {
-          runnable.run();
-          CommandProcessor.getInstance().removeCommandListener(this);
-        }
-      });
-    }
-    else {
-      runnable.run();
-    }
+    // Note: this probably doesn't belong here, but several tests rely on the UI event queue being emptied so keep it for now:
+    UIUtil.dispatchAllInvocationEvents();
   }
 
   @Override
@@ -116,5 +105,9 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   @Override
   public ViewEditor getViewEditor() {
     return myCustomViewEditor != null ? myCustomViewEditor : super.getViewEditor();
+  }
+
+  public void fireRenderCompleted() {
+    fireRenderListeners();
   }
 }

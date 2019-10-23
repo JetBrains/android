@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -38,8 +39,15 @@ public class ConfigureAndroidModuleStepFixture<W extends AbstractWizardFixture>
 
   @NotNull
   public ConfigureAndroidModuleStepFixture<W> selectMinimumSdkApi(@NotNull String api) {
-    ApiLevelComboBoxFixture apiLevelComboBox = new ApiLevelComboBoxFixture(robot(), robot().finder().findByType(target(), JComboBox.class));
-    apiLevelComboBox.selectApiLevel(api);
+    new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), "Mobile.minSdk", JComboBox.class))
+      .selectApiLevel(api);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureAndroidModuleStepFixture<W> setSourceLanguage(@NotNull String sourceLanguage) {
+    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Language", JComboBox.class, true))
+      .selectItem(sourceLanguage);
     return this;
   }
 }

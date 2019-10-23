@@ -42,7 +42,7 @@ public class FontEnumSupport extends EnumSupport {
 
   public FontEnumSupport(@NotNull NlProperty property) {
     super(property);
-    myProjectFonts = new ProjectFonts(myProperty.getResolver());
+    myProjectFonts = new ProjectFonts(myProperty.getModel().getFacet());
   }
 
   @NotNull
@@ -123,7 +123,7 @@ public class FontEnumSupport extends EnumSupport {
     @Nullable
     @Override
     public ValueWithDisplayString selectValue(@Nullable String currentValue) {
-      MoreFontsDialog dialog = new MoreFontsDialog(myFacet, myResolver, currentValue);
+      MoreFontsDialog dialog = new MoreFontsDialog(myFacet, currentValue);
       dialog.show();
       String font = dialog.isOK() ? dialog.getResultingFont() : null;
       if (font == null) {

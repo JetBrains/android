@@ -22,11 +22,12 @@ import org.junit.rules.ExternalResource;
 /** Holds a {@link org.fest.swing.core.BasicRobot} and associated {@link org.fest.swing.lock.ScreenLock}. */
 class RobotTestRule extends ExternalResource {
 
-  private Robot myRobot;
+  private StudioRobot myRobot;
 
   @Override
   protected void before() {
-    myRobot = BasicRobot.robotWithCurrentAwtHierarchy();  // acquires ScreenLock
+    Robot baseRobot = BasicRobot.robotWithCurrentAwtHierarchy();  // acquires ScreenLock
+    myRobot = new StudioRobot(baseRobot);
     myRobot.settings().delayBetweenEvents(30);
   }
 
@@ -35,7 +36,7 @@ class RobotTestRule extends ExternalResource {
     myRobot.cleanUpWithoutDisposingWindows();  // releases ScreenLock
   }
 
-  public Robot getRobot() {
+  public StudioRobot getRobot() {
     return myRobot;
   }
 }

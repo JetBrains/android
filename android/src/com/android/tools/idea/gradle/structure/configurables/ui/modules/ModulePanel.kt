@@ -28,8 +28,8 @@ class ModulePanel(
     signingConfigsTreeModel: ConfigurablesTreeModel
 ) : AbstractTabbedMainPanel(context, placeName = MODULE_PLACE_NAME) {
 
-  private val modulePropertiesConfigPanel = ModulePropertiesConfigPanel(module)
-  private val moduleDefaultConfigConfigPanel = ModuleDefaultConfigConfigPanel(module.defaultConfig)
+  private val modulePropertiesConfigPanel = ModulePropertiesConfigPanel(module, context)
+  private val moduleDefaultConfigConfigPanel = ModuleDefaultConfigConfigPanel(module.defaultConfig, context)
   private val moduleSigningConfigsPanel = SigningConfigsPanel(module, signingConfigsTreeModel, context.uiSettings)
 
   init {

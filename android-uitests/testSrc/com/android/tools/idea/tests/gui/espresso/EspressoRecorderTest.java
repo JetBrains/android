@@ -15,38 +15,47 @@
  */
 package com.android.tools.idea.tests.gui.espresso;
 
-import com.android.tools.idea.tests.gui.emulator.DeleteAvdsRule;
-import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
-import com.android.tools.idea.tests.gui.framework.*;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec;
+import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule;
+import com.android.tools.idea.tests.gui.framework.emulator.EmulatorGenerator;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.RecordingDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.TestClassNameInputDialogFixture;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import org.fest.swing.exception.LocationUnavailableException;
+import java.awt.event.KeyEvent;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
-import java.awt.event.KeyEvent;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-
 @RunWith(GuiTestRemoteRunner.class)
 public class EspressoRecorderTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
-
-  private final EmulatorTestRule emulator = new EmulatorTestRule(false);
+  private final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  private final AvdTestRule avdRule = AvdTestRule.Companion.buildAvdTestRule(() ->
+    new AvdSpec.Builder()
+  );
   @Rule public final RuleChain emulatorRules = RuleChain
-    .outerRule(new DeleteAvdsRule())
-    .around(emulator);
+    .outerRule(avdRule)
+    .around(guiTest);
 
   private static final String APP_NAME = "MyActivityTest";
   private static final String TEST_RECORDER_APP = "TestRecorderapp";
@@ -54,6 +63,24 @@ public class EspressoRecorderTest {
     Pattern.compile(".*google\\.simpleapplication\\.test.*Connecting to google\\.simpleapplication.*", Pattern.DOTALL);
   private static final Pattern RUN_OUTPUT =
     Pattern.compile(".*adb shell am instrument.*google\\.simpleapplication\\.MyActivityTest.*Tests ran to completion.*", Pattern.DOTALL);
+
+  /**
+   * The SDK used for this test requires the emulator and the system images to be
+   * available. The emulator and system images are not available in the prebuilts
+   * SDK. The AvdTestRule should generate such an SDK for us, but we need to set
+   * the generated SDK as the SDK to use for our test.
+   *
+   * Unfortunately, GuiTestRule can overwrite the SDK we set in AvdTestRule, so
+   * we need to set this in a place after GuiTestRule has been applied.
+   */
+  @Before
+  public void setupSpecialSdk() {
+    GuiTask.execute(() -> {
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        IdeSdks.getInstance().setAndroidSdkPath(avdRule.getGeneratedSdkLocation(), null);
+      });
+    });
+  }
 
   /**
    * To verify espresso adds dependencies after recording in new project
@@ -73,21 +100,17 @@ public class EspressoRecorderTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/77635374
+  @RunIn(TestGroup.SANITY_BAZEL) // http://b/77635374
   @Test
   public void addDependencyOnFly() throws Exception {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
-    String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
+    String avdName = avdRule.getMyAvd().getName();
 
     ideFrameFixture
-      .invokeMenuPath("Run", "Record Espresso Test");
-    DeployTargetPickerDialogFixture.find(guiTest.robot())
-      .selectDevice(avdName)
-      .clickOk();
-
-    ideFrameFixture.getDebugToolWindow()
+      .recordEspressoTest(avdName)
+      .getDebugToolWindow()
       .findContent(TEST_RECORDER_APP)
       .waitForOutput(new PatternTextMatcher(DEBUG_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
 
@@ -124,11 +147,10 @@ public class EspressoRecorderTest {
 
     popupList.get().clickItem("Wrapper[MyActivityTest]");
 
-    DeployTargetPickerDialogFixture.find(guiTest.robot())
+    ideFrameFixture
       .selectDevice(avdName)
-      .clickOk();
-
-    // Wait until tests run completion.
-    ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
+      .getRunToolWindow()
+      .findContent(APP_NAME)
+      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
   }
 }

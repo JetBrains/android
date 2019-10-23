@@ -58,7 +58,7 @@ class DownloadStatusColumnInfo extends ColumnInfo<UpdaterTreeNode, Icon> {
 
     public static IconInfo Empty = new IconInfo(null, "Action: no change");
 
-    IconInfo(Icon icon, String name) {
+    public IconInfo(Icon icon, String name) {
       myIcon = icon;
       myName = name;
     }

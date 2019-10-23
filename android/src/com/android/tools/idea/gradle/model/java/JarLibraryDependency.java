@@ -74,7 +74,7 @@ public class JarLibraryDependency implements Serializable {
     mySourcePath = sourcePath;
     myJavadocPath = javadocPath;
     myScope = scope;
-    myModuleVersion = moduleVersion;
+    myModuleVersion = moduleVersion != null ? new GradleModuleVersionImpl(moduleVersion) : null;
     myResolved = resolved;
   }
 

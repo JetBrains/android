@@ -20,6 +20,8 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Bleak;
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.testFramework.LeakHunter;
@@ -57,15 +59,10 @@ import java.util.Set;
  * further leak analysis.
  */
 @RunWith(GuiTestRemoteRunner.class)
-@RunIn(TestGroup.UNRELIABLE)
 public class LayoutEditorMemoryUseTest {
 
   private static final int MAX_LOOP_COUNT = 5;
-  private static final Set<String> ourIgnoredClasses = ImmutableSet.of(
-    // Known leak: b/73826291. Each time RenderTask is created, its myAssetRepository object is leaked.
-    // The lifetime of the leak is equal to the lifetime of the Module (project close should dispose it).
-    "com.android.tools.idea.res.AssetRepositoryImpl"
-  );
+  private static final Set<String> ourIgnoredClasses = ImmutableSet.of();
 
   private static final Logger LOG = Logger.getInstance(LayoutEditorMemoryUseTest.class);
   private static final boolean CAPTURE_HEAP_DUMPS = false;
@@ -100,7 +97,7 @@ public class LayoutEditorMemoryUseTest {
 
   @Test
   public void navigateAndEdit() throws Exception {
-    IdeFrameFixture fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest");
+    IdeFrameFixture fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
     warmUp(fixture);
 
@@ -141,6 +138,14 @@ public class LayoutEditorMemoryUseTest {
 
       Assert.fail("Found leaked objects.");
     }
+  }
+
+  @Test
+  @UseBleak
+  @RunIn(TestGroup.PERFORMANCE)
+  public void navigateAndEditWithBLeak() throws Exception {
+    IdeFrameFixture fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+    Bleak.runWithBleak(() -> runScenario(fixture));
   }
 
   public void createHprofDump(String path) throws Exception {

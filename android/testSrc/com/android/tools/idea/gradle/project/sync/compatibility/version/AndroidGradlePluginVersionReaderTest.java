@@ -24,7 +24,6 @@ import com.intellij.openapi.module.Module;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.ORIGINAL;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -37,7 +36,7 @@ public class AndroidGradlePluginVersionReaderTest extends AndroidGradleTestCase 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myVersionReader = new AndroidGradlePluginVersionReader(ORIGINAL);
+    myVersionReader = new AndroidGradlePluginVersionReader();
   }
 
   public void testAppliesToWithAndroidModule() throws Exception {

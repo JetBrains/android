@@ -24,7 +24,7 @@ import static com.android.SdkConstants.SHERPA_URI;
 import static com.android.SdkConstants.TAG;
 
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -75,7 +75,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
             NlComponent component = toDrag;
             if (insertType.isMove() && toDrag.getParent() != receiver) {
               insert = InsertType.CREATE;
-              XmlTag tag = receiver.getTag().createChildTag(TAG, null, null, false);
+              XmlTag tag = receiver.getTagDeprecated().createChildTag(TAG, null, null, false);
               tag.setAttribute(PREFIX_ANDROID + ATTR_ID, toDrag.getAttribute(ANDROID_URI, ATTR_ID));
               component = model.createComponent(tag);
             }
@@ -177,7 +177,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
         if (p != null) {
           p.removeChild(element);
         }
-        element.getTag().delete();
+        element.getTagDeprecated().delete();
       }
     }
     else {
@@ -252,7 +252,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
                                @NotNull AttributesTransaction transaction,
                                @Nullable String idList) {
     transaction.setAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS, idList);
-    NlWriteCommandAction.run(component, "", transaction::commit);
+    NlWriteCommandActionUtil.run(component, "", transaction::commit);
   }
 
   @Override
@@ -310,7 +310,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
     public static final DataFlavor BARRIER_FLAVOR = new DataFlavor(BarrierTransferable.class, "Barrier Item");
     private final List<String> myBarrierReferences;
 
-    BarrierTransferable(List<String> barrierReferences) {
+    public BarrierTransferable(List<String> barrierReferences) {
       myBarrierReferences = barrierReferences;
     }
 

@@ -42,13 +42,13 @@ public class ShellCommandLauncher {
       Logger logger = Logger.getInstance(ShellCommandLauncher.class);
       logger.warn("Unexpected exception while executing shell command: " + command);
       logger.warn(e);
-      launchStatus.terminateLaunch("Unexpected error while executing: " + command);
+      launchStatus.terminateLaunch("Unexpected error while executing: " + command, true);
       return false;
     }
 
     String output = receiver.getOutput();
     if (StringUtil.toLowerCase(output).contains("error")) {
-      launchStatus.terminateLaunch("Error while executing: " + command);
+      launchStatus.terminateLaunch("Error while executing: " + command, true);
       printer.stderr(output);
       return false;
     }
@@ -59,7 +59,7 @@ public class ShellCommandLauncher {
   private static class AndroidLaunchReceiver extends CollectingOutputReceiver {
     private final LaunchStatus myLaunchStatus;
 
-    AndroidLaunchReceiver(@NotNull LaunchStatus state) {
+    public AndroidLaunchReceiver(@NotNull LaunchStatus state) {
       myLaunchStatus = state;
     }
 

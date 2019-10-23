@@ -22,9 +22,10 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.model.ActivityAttributesSnapshot;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
@@ -39,7 +40,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.SortedListModel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.treeStructure.Tree;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -133,7 +134,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     myThemeList.setCellRenderer(new ColoredListCellRenderer<String>() {
       @Override
       protected void customizeCellRenderer(@NotNull JList list, String style, int index, boolean selected, boolean hasFocus) {
-        setIcon(AndroidIcons.Themes);
+        setIcon(StudioIcons.Shell.Menu.THEME_EDITOR);
 
         String filter = myFilter.getFilter();
         style = ThemeUtils.getPreferredThemeName(style);
@@ -328,8 +329,8 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         }
         break;
       case MANIFEST: {
-        MergedManifest manifest = MergedManifest.get(myConfiguration.getModule());
-        Map<String, ActivityAttributes> activityAttributesMap = manifest.getActivityAttributesMap();
+        MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(myConfiguration.getModule());
+        Map<String, ActivityAttributesSnapshot> activityAttributesMap = manifest.getActivityAttributesMap();
         /*
         TODO: Until we don't sort the theme lists automatically, no need to call out the preferred one first
         String activity = myConfiguration.getActivity();
@@ -346,7 +347,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         if (manifestTheme != null) {
           allThemes.add(manifestTheme);
         }
-        for (ActivityAttributes info : activityAttributesMap.values()) {
+        for (ActivityAttributesSnapshot info : activityAttributesMap.values()) {
           if (info.getTheme() != null) {
             allThemes.add(info.getTheme());
           }

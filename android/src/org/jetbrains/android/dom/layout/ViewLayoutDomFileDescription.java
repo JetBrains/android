@@ -11,15 +11,8 @@ public class ViewLayoutDomFileDescription extends LayoutDomFileDescription<Layou
   }
 
   @Override
-  public boolean acceptsOtherRootTagNames() {
-    return true;
-  }
-
-  @Override
-  public boolean isMyFile(@NotNull XmlFile file, @Nullable Module module) {
-    return super.isMyFile(file, module)
-           && !FragmentLayoutDomFileDescription.hasFragmentRootTag(file)
-           && !DataBindingDomFileDescription.hasDataBindingRootTag(file);
+  public boolean checkFile(@NotNull XmlFile file, @Nullable Module module) {
+    return !FragmentLayoutDomFileDescription.hasFragmentRootTag(file) && !DataBindingDomFileDescription.hasDataBindingRootTag(file);
   }
 }
 

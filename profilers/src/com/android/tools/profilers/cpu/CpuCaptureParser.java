@@ -17,13 +17,14 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
+import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
-import com.android.tools.profilers.cpu.atrace.AtraceDecompressor;
+import com.android.tools.profilers.cpu.atrace.AtraceProducer;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
+import com.android.tools.profilers.cpu.atrace.PerfettoProducer;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
@@ -55,17 +56,17 @@ public class CpuCaptureParser {
    * Used as ID of imported traces. Importing a trace will happen once per session,
    * so we can have an arbitrary ID as it's going to be unique within a session.
    */
-  static final int IMPORTED_TRACE_ID = 42;
+  static final long IMPORTED_TRACE_ID = 42L;
 
   /**
    * Maps a trace id to a corresponding {@link CompletableFuture<CpuCapture>}.
    */
-  private final Map<Integer, CompletableFuture<CpuCapture>> myCaptures;
+  private final Map<Long, CompletableFuture<CpuCapture>> myCaptures;
 
   /**
    * Maps a trace id to the path of a temporary file containing the trace content.
    */
-  private final Map<Integer, String> myTraceFiles;
+  private final Map<Long, String> myTraceFiles;
 
   /**
    * Services containing the {@link java.util.concurrent.Executor} responsible for parsing the capture.
@@ -106,12 +107,12 @@ public class CpuCaptureParser {
    * Returns a capture (or a promise of one) in case {@link #parse} was already called for the given trace id.
    */
   @Nullable
-  public CompletableFuture<CpuCapture> getCapture(int traceId) {
+  public CompletableFuture<CpuCapture> getCapture(long traceId) {
     return myCaptures.get(traceId);
   }
 
   @Nullable
-  String getTraceFilePath(int traceId) {
+  String getTraceFilePath(long traceId) {
     return myTraceFiles.get(traceId);
   }
 
@@ -231,7 +232,8 @@ public class CpuCaptureParser {
     // If atrace flag is enabled, check the file header to see if it's an atrace file.
     if (myServices.getFeatureConfig().isAtraceEnabled()) {
       try {
-        if (AtraceDecompressor.verifyFileHasAtraceHeader(traceFile)) {
+        if (AtraceProducer.verifyFileHasAtraceHeader(traceFile) ||
+            (myServices.getFeatureConfig().isPerfettoEnabled() && PerfettoProducer.verifyFileHasPerfettoTraceHeader(traceFile))) {
           // Atrace files contain multiple processes. For imported Atrace files we don't have a
           // session that can tell us which process the user is interested in. So for all imported
           // trace files we ask the user to select a process. The list of processes the user can
@@ -267,9 +269,9 @@ public class CpuCaptureParser {
    */
   @Nullable
   public CompletableFuture<CpuCapture> parse(@NotNull Common.Session session,
-                                             int traceId,
+                                             long traceId,
                                              @NotNull ByteString traceData,
-                                             CpuProfilerType profilerType) {
+                                             CpuTraceType profilerType) {
     if (!myCaptures.containsKey(traceId)) {
       // Trace is not being parsed nor is already parsed. We need to start parsing it.
       if (traceData.size() <= MAX_SUPPORTED_TRACE_SIZE) {
@@ -297,16 +299,16 @@ public class CpuCaptureParser {
     return myCaptures.get(traceId);
   }
 
-  private CompletableFuture<CpuCapture> createCaptureFuture(@NotNull Common.Session session, int traceId, ByteString traceBytes,
-                                                            CpuProfilerType profilerType) {
+  private CompletableFuture<CpuCapture> createCaptureFuture(@NotNull Common.Session session, long traceId, ByteString traceBytes,
+                                                            CpuTraceType profilerType) {
     CompletableFuture<CpuCapture> future =
       CompletableFuture.supplyAsync(() -> traceBytesToCapture(session, traceId, traceBytes, profilerType), myServices.getPoolExecutor());
     updateParsingStateWhenDone(future);
     return future;
   }
 
-  private CpuCapture traceBytesToCapture(@NotNull Common.Session session, int traceId, @NotNull ByteString traceData,
-                                         CpuProfilerType profilerType) {
+  private CpuCapture traceBytesToCapture(@NotNull Common.Session session, long traceId, @NotNull ByteString traceData,
+                                         CpuTraceType profilerType) {
     // TODO: Remove layers, analyze whether we can keep the whole file in memory.
     try {
       File trace = FileUtil.createTempFile(String.format("cpu_trace_%d", traceId), ".trace", true);
@@ -316,13 +318,13 @@ public class CpuCaptureParser {
       myTraceFiles.put(traceId, trace.getAbsolutePath());
 
       TraceParser parser;
-      if (profilerType == CpuProfilerType.ART) {
+      if (profilerType == CpuTraceType.ART) {
         parser = new ArtTraceParser();
       }
-      else if (profilerType == CpuProfilerType.SIMPLEPERF) {
+      else if (profilerType == CpuTraceType.SIMPLEPERF) {
         parser = new SimpleperfTraceParser();
       }
-      else if (profilerType == CpuProfilerType.ATRACE) {
+      else if (profilerType == CpuTraceType.ATRACE) {
         parser = new AtraceParser(session.getPid());
       }
       else {

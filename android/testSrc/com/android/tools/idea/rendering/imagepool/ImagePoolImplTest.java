@@ -141,7 +141,9 @@ public class ImagePoolImplTest {
     try {
       image.getCopy();
     }
-    catch (AssertionError ignore) {
+    catch (AssertionError e) {
+      // Check than the assertion contains the stack trace fo the first dispose
+      assertTrue(e.getMessage().contains(ImagePoolImplTest.class.getName() + ".testManualFree"));
       threw = true;
     }
     assertTrue("Expected assertion error trying to use an already disposed image", threw);

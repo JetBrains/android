@@ -15,12 +15,19 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import static com.android.ide.common.resources.ResourceResolver.THEME_NAME;
+import static com.android.ide.common.resources.ResourceResolver.THEME_NAME_DOT;
+import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
+
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.resources.*;
+import com.android.ide.common.resources.ResourceRepositoryUtil;
+import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceValueMap;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
@@ -34,16 +41,16 @@ import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-import static com.android.ide.common.resources.ResourceResolver.THEME_NAME;
-import static com.android.ide.common.resources.ResourceResolver.THEME_NAME_DOT;
-import static com.google.common.collect.Maps.newHashMapWithExpectedSize;
 
 /**
  * Resolves themes for a given configuration.
@@ -63,7 +70,7 @@ public class ThemeResolver {
   public ThemeResolver(@NotNull Configuration configuration) {
     myConfiguration = configuration;
 
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(configuration.getModule());
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(configuration.getModule());
     if (repositoryManager == null) {
       throw new IllegalArgumentException("\"" + configuration.getModule().getName() + "\" is not an Android module");
     }
@@ -144,11 +151,11 @@ public class ThemeResolver {
    */
   @NotNull
   private List<StyleResourceValue> resolveNonFrameworkThemes() {
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(myConfiguration.getModule());
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myConfiguration.getModule());
     if (repositoryManager == null) {
       return Collections.emptyList();
     }
-    LocalResourceRepository repository = repositoryManager.getAppResources(true);
+    LocalResourceRepository repository = repositoryManager.getAppResources();
     ResourceValueMap configuredResources =
         ResourceRepositoryUtil.getConfiguredResources(repository, repositoryManager.getNamespace(), ResourceType.STYLE,
                                                       myConfiguration.getFullConfig());
@@ -358,7 +365,7 @@ public class ThemeResolver {
   }
 
   private static boolean isNamespacingEnabled(@NotNull Module module) {
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(module);
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
     return repositoryManager != null && repositoryManager.getNamespacing() == AaptOptions.Namespacing.REQUIRED;
   }
 }

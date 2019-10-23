@@ -16,9 +16,30 @@
 
 package com.android.tools.idea.javadoc;
 
+import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
+import static com.android.SdkConstants.DOT_PNG;
+import static com.android.SdkConstants.DOT_WEBP;
+import static com.android.SdkConstants.PREFIX_ANDROID;
+import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
+import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
+import static com.android.utils.SdkUtils.hasImageExtension;
+import static com.intellij.codeInsight.documentation.DocumentationComponent.COLOR_KEY;
+import static com.intellij.openapi.util.io.FileUtilRt.copy;
+import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
+
 import com.android.SdkConstants;
-import com.android.builder.model.*;
-import com.android.ide.common.rendering.api.*;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.BuildTypeContainer;
+import com.android.builder.model.ProductFlavorContainer;
+import com.android.builder.model.SourceProvider;
+import com.android.builder.model.Variant;
+import com.android.ide.common.rendering.api.ArrayResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.ide.common.resources.ResourceRepository;
@@ -30,7 +51,6 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
@@ -38,7 +58,14 @@ import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererE
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceFolderRegistry;
+import com.android.tools.idea.res.ResourceFolderRepository;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StateList;
+import com.android.tools.idea.res.StateListState;
+import com.android.tools.idea.resources.aar.AarResourceRepository;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Joiner;
@@ -47,36 +74,41 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import com.intellij.openapi.editor.colors.EditorColorsUtil;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
-
-import static com.android.SdkConstants.*;
-import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
-import static com.android.utils.SdkUtils.hasImageExtension;
-import static com.intellij.codeInsight.documentation.DocumentationComponent.COLOR_KEY;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidJavaDocRenderer {
 
@@ -250,31 +282,6 @@ public class AndroidJavaDocRenderer {
       }
     }
 
-    /**
-     * Returns a {@link ResourceRepository} instance that allows accessing the framework public resources of the highest available
-     * SDK.
-     */
-    @Nullable
-    private static ResourceRepository getLatestPublicFrameworkResources(Module module) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet == null) {
-        return null;
-      }
-
-      IAndroidTarget target = ConfigurationManager.getOrCreateInstance(module).getDefaultTarget();
-      if (target == null) {
-        return null;
-      }
-
-      AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
-      if (targetData != null) {
-        return targetData.getFrameworkResources(true);
-      }
-
-      return null;
-    }
-
-
     @Nullable
     public String render(@NotNull ResourceUrl url) {
       List<ItemInfo> items = gatherItems(url);
@@ -373,7 +380,7 @@ public class AndroidJavaDocRenderer {
       if (resources != null) {
         if (hasGradleModel) {
           // Go through all the binary libraries and look for additional resources there
-          for (LocalResourceRepository dependency : ResourceRepositoryManager.getOrCreateInstance(facet).getLibraryResources()) {
+          for (AarResourceRepository dependency : ResourceRepositoryManager.getInstance(facet).getLibraryResources()) {
             addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, false, type, resourceName, results);
           }
         }
@@ -558,11 +565,8 @@ public class AndroidJavaDocRenderer {
     @Override
     @Nullable
     public ResourceRepository getFrameworkResources() {
-      if (myFrameworkResources == null) {
-        myFrameworkResources = getLatestPublicFrameworkResources(myModule);
-      }
-
-      return myFrameworkResources;
+      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myModule);
+      return repositoryManager == null ? null : repositoryManager.getFrameworkResources(false);
     }
 
     @Override
@@ -588,7 +592,7 @@ public class AndroidJavaDocRenderer {
 
         AndroidFacet facet = AndroidFacet.getInstance(myModule);
         if (facet != null) {
-          VirtualFile layout = ResourceHelper.pickAnyLayoutFile(myModule, facet);
+          VirtualFile layout = ResourceHelper.pickAnyLayoutFile(facet);
           if (layout != null) {
             Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout);
             myResourceResolver = configuration.getResourceResolver();
@@ -710,8 +714,7 @@ public class AndroidJavaDocRenderer {
               builder.newline();
             }
           } else if (value.endsWith(DOT_PNG)) {
-            File f = new File(value);
-            if (f.exists()) {
+            if (ResourceHelper.isFileResource(value)) {
               found = true;
               ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.DRAWABLE, myModule, myConfiguration);
               assert renderer != null;
@@ -724,7 +727,7 @@ public class AndroidJavaDocRenderer {
 
           if (!found) {
             assert lookupChain != null;
-            for (int i = lookupChain.size() - 1; i >= 0; i--) {
+            for (int i = lookupChain.size(); --i >= 0;) {
               ResourceValue rv = lookupChain.get(i);
               if (rv != null) {
                 String value2 = rv.getValue();
@@ -781,80 +784,78 @@ public class AndroidJavaDocRenderer {
         ImmutableList<StyleItemResourceValue> values = Ordering.usingToString().immutableSortedCopy(styleValue.getDefinedItems());
         for (StyleItemResourceValue itemResourceValue : values) {
           String name = itemResourceValue.getAttrName();
-          if (masked.contains(name)) {
-            continue;
-          }
-          masked.add(name);
-          String value = null;
-          ResourceReference attr = itemResourceValue.getAttr();
-          if (attr != null) {
-            final ResourceValue v = styleValue.getItem(attr);
-            if (v != null) {
-              value = v.getValue();
+          if (masked.add(name)) {
+            String value = null;
+            ResourceReference attr = itemResourceValue.getAttr();
+            if (attr != null) {
+              ResourceValue v = styleValue.getItem(attr);
+              if (v != null) {
+                value = v.getValue();
+              }
             }
-          }
 
-          builder.addNbsps(4);
-          if (attr != null && attr.getNamespace() == ResourceNamespace.ANDROID) {
-            // TODO: namespaces
-            builder.add(PREFIX_ANDROID);
-          }
-          builder.addBold(name).add(" = ").add(value == null ? "null" : value);
-          if (value != null) {
-            ResourceUrl url = ResourceUrl.parse(value, styleValue.isFramework());
-            if (url != null) {
-              ResourceUrl resolvedUrl = url;
-              int count = 0;
-              while (resolvedUrl != null) {
-                if (lookupChain != null) {
-                  lookupChain.clear();
-                }
-                ResourceValue resourceValue;
-                if (resolvedUrl.isTheme()) {
-                  ResourceReference ref =
+            builder.addNbsps(4);
+            if (attr != null && attr.getNamespace() == ResourceNamespace.ANDROID) {
+              // TODO: namespaces
+              builder.add(PREFIX_ANDROID);
+            }
+            builder.addBold(name).add(" = ").add(value == null ? "null" : value);
+            if (value != null) {
+              ResourceUrl url = ResourceUrl.parse(value, styleValue.isFramework());
+              if (url != null) {
+                ResourceUrl resolvedUrl = url;
+                int count = 0;
+                while (resolvedUrl != null) {
+                  if (lookupChain != null) {
+                    lookupChain.clear();
+                  }
+                  ResourceValue resourceValue;
+                  if (resolvedUrl.isTheme()) {
+                    ResourceReference ref =
                       new ResourceReference(ResourceNamespace.fromBoolean(resolvedUrl.isFramework()), ResourceType.ATTR, resolvedUrl.name);
-                  resourceValue = resolver.findItemInTheme(ref);
+                    resourceValue = resolver.findItemInTheme(ref);
+                  }
+                  else {
+                    resourceValue = resolver.findResValue(resolvedUrl.toString(), resolvedUrl.isFramework());
+                  }
+                  if (resourceValue == null || resourceValue.getValue() == null) {
+                    break;
+                  }
+                  url = resolvedUrl;
+                  value = resourceValue.getValue();
+                  resolvedUrl = ResourceUrl.parse(value, resolvedUrl.isFramework());
+                  if (count++ == MAX_RESOURCE_INDIRECTION) { // prevent deep recursion (likely an invalid resource cycle)
+                    break;
+                  }
+                }
+
+                ResourceValueRenderer renderer = create(url.type, myModule, myConfiguration);
+                if (renderer != null && renderer.getClass() != this.getClass()) {
+                  builder.newline();
+                  renderer.setSmall(true);
+                  ResourceValue resolved = new ResourceValueImpl(urlToReference(url), value);
+                  renderer.renderToHtml(builder, item, url, false, resolved);
                 }
                 else {
-                  resourceValue = resolver.findResValue(resolvedUrl.toString(), resolvedUrl.isFramework());
-                }
-                if (resourceValue == null || resourceValue.getValue() == null) {
-                  break;
-                }
-                url = resolvedUrl;
-                value = resourceValue.getValue();
-                resolvedUrl = ResourceUrl.parse(value, resolvedUrl.isFramework());
-                if (count++ == MAX_RESOURCE_INDIRECTION) { // prevent deep recursion (likely an invalid resource cycle)
-                  break;
-                }
-              }
+                  builder.add(" => ");
 
-              ResourceValueRenderer renderer = create(url.type, myModule, myConfiguration);
-              if (renderer != null && renderer.getClass() != this.getClass()) {
-                builder.newline();
-                renderer.setSmall(true);
-                ResourceValue resolved = new ResourceValueImpl(urlToReference(url), value);
-                //noinspection ConstantConditions
-                renderer.renderToHtml(builder, item, url, false, resolved);
+                  // AAR Library? Strip off prefix
+                  int index = value.indexOf(FilenameConstants.EXPLODED_AAR);
+                  if (index != -1) {
+                    value = value.substring(index + FilenameConstants.EXPLODED_AAR.length() + 1);
+                  }
+
+                  builder.add(value);
+                  builder.newline();
+                }
               }
               else {
-                builder.add(" => ");
-
-                // AAR Library? Strip off prefix
-                int index = value.indexOf(FilenameConstants.EXPLODED_AAR);
-                if (index != -1) {
-                  value = value.substring(index + FilenameConstants.EXPLODED_AAR.length() + 1);
-                }
-
-                builder.add(value);
                 builder.newline();
               }
-            } else {
+            }
+            else {
               builder.newline();
             }
-          }
-          else {
-            builder.newline();
           }
         }
 
@@ -1046,12 +1047,17 @@ public class AndroidJavaDocRenderer {
 
     private void renderDrawableToHtml(@NotNull HtmlBuilder builder, @NotNull String result, @NotNull Density density,
                                       @NotNull ResourceValue resolvedValue) {
-      final File file = new File(result);
-      if (file.exists() && file.isFile()) {
-        renderDrawableToHtml(builder, file, density, resolvedValue);
+      if (ResourceHelper.isFileResource(result)) {
+        VirtualFile file = toVirtualFile(ResourceHelper.toFileResourcePathString(result));
+        if (file == null) {
+          renderError(builder, result);
+        }
+        else {
+          renderDrawableToHtml(builder, file, density, resolvedValue);
+        }
       }
       else if (result.startsWith("#")) {
-        // a Drawable can also point to a color (but NOT a color statelist)
+        // A Drawable can also point to a color (but NOT a color state list).
         ColorValueRenderer colorRenderer = (ColorValueRenderer) ResourceValueRenderer.create(ResourceType.COLOR, myModule, myConfiguration);
         assert colorRenderer != null;
         colorRenderer.setSmall(mySmall);
@@ -1062,24 +1068,37 @@ public class AndroidJavaDocRenderer {
       }
     }
 
-    private void renderDrawableToHtml(@NotNull HtmlBuilder builder, @NotNull File file, @NotNull Density density,
+    private void renderDrawableToHtml(@NotNull HtmlBuilder builder, @NotNull VirtualFile virtualFile, @NotNull Density density,
                                       @NotNull ResourceValue resolvedValue) {
-      String path = file.getPath();
+      String path = virtualFile.getPath();
       boolean isWebP = path.endsWith(DOT_WEBP);
-      if (hasImageExtension(path) && !isWebP) { // webp: must render with layoutlib
-        URL fileUrl = null;
-        try {
-          fileUrl = SdkUtils.fileToUrl(file);
+      if (hasImageExtension(path) && !isWebP) { // webp: must render with layoutlib.
+        File file;
+        if (virtualFile.getFileSystem().getProtocol().equals(FILE_PROTOCOL)) {
+          file = VfsUtilCore.virtualToIoFile(virtualFile);
         }
-        catch (MalformedURLException ignore) {
+        else {
+          try {
+            file = FileUtilRt.createTempFile("render", DOT_PNG, true);
+            try (InputStream input = virtualFile.getInputStream();
+                OutputStream output = Files.newOutputStream(file.toPath(), StandardOpenOption.APPEND, StandardOpenOption.WRITE)) {
+              copy(input, output);
+            }
+          }
+          catch (IOException e) {
+            renderError(builder, e.toString());
+            return;
+          }
         }
+
+        URL fileUrl = fileToUrl(file);
 
         if (fileUrl != null) {
           builder.beginDiv("background-color:gray;padding:10px");
           builder.addImage(fileUrl, path);
           builder.endDiv();
 
-          Dimension size = getSize(file);
+          Dimension size = getSize(virtualFile);
           if (size != null) {
             builder.addHtml(String.format(Locale.US, "%1$d&#xd7;%2$d px (%3$d&#xd7;%4$d dp @ %5$s)", size.width, size.height,
                                           px2dp(size.width, density), px2dp(size.height, density), density.getResourceValue()));
@@ -1090,11 +1109,11 @@ public class AndroidJavaDocRenderer {
         if (myConfiguration != null) {
           RenderTask renderTask = DrawableRendererEditor.configureRenderTask(myModule, myConfiguration);
 
-          // Find intrinsic size
+          // Find intrinsic size.
           int width = 100;
           int height = 100;
           if (isWebP) {
-            Dimension size = getSize(file);
+            Dimension size = getSize(virtualFile);
             if (size != null) {
               width = size.width;
               height = size.height;
@@ -1111,18 +1130,12 @@ public class AndroidJavaDocRenderer {
             return;
           }
           if (image != null) {
-            // Need to write it somewhere
+            // Need to write it somewhere.
             try {
-              File tempFile = FileUtil.createTempFile("render", DOT_PNG);
-              tempFile.deleteOnExit();
+              File tempFile = FileUtilRt.createTempFile("render", DOT_PNG, true);
               boolean ok = ImageIO.write(image, "PNG", tempFile);
               if (ok) {
-                URL fileUrl = null;
-                try {
-                  fileUrl = SdkUtils.fileToUrl(tempFile);
-                }
-                catch (MalformedURLException ignore) {
-                }
+                URL fileUrl = fileToUrl(tempFile);
                 if (fileUrl != null) {
                   builder.beginDiv("background-color:gray;padding:10px");
                   builder.addImage(fileUrl, null);
@@ -1134,12 +1147,21 @@ public class AndroidJavaDocRenderer {
               renderError(builder, e.toString());
             }
           } else {
-            renderError(builder, "Couldn't render " + file);
+            renderError(builder, "Couldn't render " + virtualFile);
           }
-
         } else {
           renderError(builder, path);
         }
+      }
+    }
+
+    @Nullable
+    private static URL fileToUrl(@NotNull File file) {
+      try {
+        return SdkUtils.fileToUrl(file);
+      }
+      catch (MalformedURLException e) {
+        return null;
       }
     }
 
@@ -1319,9 +1341,9 @@ public class AndroidJavaDocRenderer {
    * This is a copy of the method in {@link com.android.tools.lint.checks.IconDetector}.
    */
   @Nullable
-  private static Dimension getSize(File file) {
+  private static Dimension getSize(@NotNull VirtualFile file) {
     try {
-      ImageInputStream input = ImageIO.createImageInputStream(file);
+      ImageInputStream input = ImageIO.createImageInputStream(file.getInputStream());
       if (input != null) {
         try {
           Iterator<ImageReader> readers = ImageIO.getImageReaders(input);

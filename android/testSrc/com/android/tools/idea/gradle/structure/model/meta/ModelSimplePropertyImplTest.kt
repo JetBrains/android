@@ -33,6 +33,7 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
   object Model : ModelDescriptor<Model, Model, Model> {
     override fun getResolved(model: Model): Model? = this
     override fun getParsed(model: Model): Model? = this
+    override fun prepareForModification(model: Model) = Unit
     override fun setModified(model: Model) = Unit
   }
 
@@ -198,12 +199,16 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
     val prop25 = extModel.findProperty("prop25").wrap(::parseInt, ResolvedPropertyModel::asInt, resolvedValue = 26).bind(Model)
     val newResolvedProperty = extModel.findProperty("newVar").resolve()
     var localModified = false
+    var localModifying = false
     @Suppress("UNCHECKED_CAST")
-    val reboundProp = (prop25 as GradleModelCoreProperty<Int, ModelPropertyCore<Int>>).rebind(newResolvedProperty, { localModified = true })
+    val reboundProp =
+      (prop25 as GradleModelCoreProperty<Int, ModelPropertyCore<Int>>)
+        .rebind(newResolvedProperty) { localModifying = true; it(); localModified = true }
     assertThat(reboundProp.getParsedValue(), equalTo<Annotated<ParsedValue<Int>>>(ParsedValue.NotSet.annotated()))
     reboundProp.setParsedValue(1.asParsed())
     assertThat(reboundProp.getParsedValue(), equalTo<Annotated<ParsedValue<Int>>>(1.asParsed().annotated()))
     assertThat(localModified, equalTo(true))
+    assertThat(localModifying, equalTo(true))
     assertThat(newResolvedProperty.isModified, equalTo(true))
     assertThat(newResolvedProperty.getValue(INTEGER_TYPE), equalTo(1))
 
@@ -215,5 +220,33 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
                  newVar = 1
                }""".trimIndent()
     verifyFileContents(myBuildFile, expected)
+  }
+
+  @Test
+  fun testPropertyInitializer() {
+    val text = """
+               ext {
+                 prop25 = 25
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModelInstance = gradleBuildModel
+    val extModel = buildModelInstance.ext()
+    val findProperty = extModel.findProperty("prop25")
+    val resolved = findProperty.resolve()
+    var property: ResolvedPropertyModel? = null
+    val notYetProp25 = Model.property(
+      "description",
+      resolvedValueGetter = { 26 },
+      parsedPropertyGetter = { property },
+      parsedPropertyInitializer = { property = resolved; resolved },
+      getter = { asInt() },
+      setter = { setValue(it) },
+      parser = { value -> (::parseInt)(value) }
+    ).bind(Model)
+
+    assertThat(notYetProp25.getParsedValue().value, equalTo<ParsedValue<Any>>(ParsedValue.NotSet))
+    notYetProp25.setParsedValue(25.asParsed())
+    assertThat(notYetProp25.getParsedValue().value, equalTo<ParsedValue<Any>>(25.asParsed()))
   }
 }

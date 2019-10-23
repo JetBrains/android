@@ -56,6 +56,7 @@ public class RoomSingleTableStatementTableImpl extends ASTWrapperPsiElement impl
     return findNotNullChildByClass(RoomDefinedTableName.class);
   }
 
+  @Override
   @Nullable
   public SqlTable getSqlTable() {
     return PsiImplUtil.getSqlTable(this);

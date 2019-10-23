@@ -17,11 +17,11 @@ package com.android.tools.idea.res
 
 import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.projectmodel.ExternalLibrary
 import com.android.tools.idea.findAllLibrariesWithResources
 import com.android.tools.idea.findDependenciesWithResources
 import com.android.tools.idea.projectsystem.LightResourceClassService
-import com.android.tools.idea.res.aar.AarResourceRepositoryCache
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.concurrency.getAndUnwrap
 import com.android.utils.concurrency.retainAll
@@ -131,7 +131,7 @@ class ProjectLightResourceClassService(
   }
 
   override fun getLightRClassesAccessibleFromModule(module: Module, includeTestClasses: Boolean): Collection<PsiClass> {
-    val namespacing = ResourceRepositoryManager.getOrCreateInstance(module)?.namespacing ?: return emptySet()
+    val namespacing = ResourceRepositoryManager.getInstance(module)?.namespacing ?: return emptySet()
     val androidFacet = module.androidFacet ?: return emptySet()
 
     val result = mutableListOf<ResourceClasses>()
@@ -206,7 +206,7 @@ class ProjectLightResourceClassService(
             psiManager,
             ideaLibrary,
             packageName,
-            aarResourceRepositoryCache.getProtoRepository(resApk, aarLibrary.address),
+            aarResourceRepositoryCache.getProtoRepository(aarLibrary),
             ResourceNamespace.fromPackageName(packageName)
           )
         },
@@ -260,7 +260,7 @@ class ProjectLightResourceClassService(
     }
     return aarPackageNamesCache.getAndUnwrap(aarLibrary) {
       val fromManifest = try {
-        aarLibrary.manifestFile?.let(AndroidManifestUtils::getPackageNameFromManifestFile) ?: ""
+        aarLibrary.manifestFile?.let(AndroidManifestPackageNameUtils::getPackageNameFromManifestFile) ?: ""
       }
       catch (e: IOException) {
         null

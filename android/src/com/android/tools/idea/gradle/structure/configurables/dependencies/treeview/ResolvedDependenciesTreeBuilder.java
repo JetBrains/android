@@ -16,47 +16,24 @@
 package com.android.tools.idea.gradle.structure.configurables.dependencies.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
-import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
+import javax.swing.JTree;
+import javax.swing.tree.DefaultTreeModel;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import javax.swing.tree.DefaultTreeModel;
-
 public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
-  @NotNull private final DependencySelection myDependencySelectionSource;
-  @NotNull private final DependencySelection myDependencySelectionDestination;
-
   public ResolvedDependenciesTreeBuilder(@NotNull PsModule module,
                                          @NotNull JTree tree,
                                          @NotNull DefaultTreeModel treeModel,
-                                         @NotNull DependencySelection dependencySelectionSource,
-                                         @NotNull DependencySelection dependencySelectionDestination,
                                          @NotNull PsUISettings uiSettings) {
     super(tree, treeModel, new ResolvedDependenciesTreeStructure(module, uiSettings));
-    myDependencySelectionSource = dependencySelectionSource;
-    myDependencySelectionDestination = dependencySelectionDestination;
-  }
-
-  @Override
-  protected void onAllNodesExpanded() {
-    getReady(this).doWhenDone(() -> {
-      PsBaseDependency selection = myDependencySelectionSource.getSelection();
-      myDependencySelectionDestination.setSelection(selection);
-    });
   }
 
   public void reset() {
     AbstractTreeStructure treeStructure = getTreeStructure();
     if (treeStructure instanceof ResolvedDependenciesTreeStructure) {
       ((ResolvedDependenciesTreeStructure)treeStructure).reset();
-      queueUpdateAndRestoreSelection();
     }
-  }
-
-  private void queueUpdateAndRestoreSelection() {
-    PsBaseDependency selected = myDependencySelectionSource.getSelection();
-    queueUpdate().doWhenDone(() -> myDependencySelectionDestination.setSelection(selected));
   }
 }

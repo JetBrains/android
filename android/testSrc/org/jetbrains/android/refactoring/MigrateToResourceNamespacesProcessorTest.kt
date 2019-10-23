@@ -25,9 +25,9 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.inspections.AndroidDomInspection
-import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection
-import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection
+import org.jetbrains.android.dom.inspections.AndroidDomInspection
+import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection
+import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection
 
 class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
 
@@ -71,20 +71,10 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
       """.trimIndent()
     )
 
-    StudioFlags.IN_MEMORY_R_CLASSES.override(true)
-
     // This may trigger creation of resource repositories, so let's do last to make local runs less flaky.
     runUndoTransparentWriteAction {
       myFacet.manifest!!.`package`.value = "com.example.app"
       AndroidFacet.getInstance(getAdditionalModuleByName("lib")!!)!!.manifest!!.`package`.value = "com.example.lib"
-    }
-  }
-
-  override fun tearDown() {
-    try{
-      StudioFlags.IN_MEMORY_R_CLASSES.clearOverride()
-    } finally {
-      super.tearDown()
     }
   }
 

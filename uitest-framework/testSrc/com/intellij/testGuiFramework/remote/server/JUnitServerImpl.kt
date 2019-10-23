@@ -29,6 +29,7 @@ import org.junit.runner.Result
 import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunListener
 import org.junit.runner.notification.RunNotifier
+import org.junit.runners.model.TestTimedOutException
 import java.io.InvalidClassException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -74,10 +75,10 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
     LOG.info("Server running on port $port")
     serverSocket.soTimeout = if (GuiTestOptions.isDebug()) 0 else IDE_STARTUP_TIMEOUT.toMillis().toInt()  // 0 means infinite
     notifier.addListener(object : RunListener() {
-      var testFailed = false
+      var failure: Failure? = null
 
       override fun testFailure(failure: Failure?) {
-        testFailed = true
+        this.failure = failure
         failure?.exception?.let { LOG.warn(it) }
         super.testFailure(failure)
       }
@@ -86,14 +87,14 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
         super.testFinished(description)
         val shouldRestart = when (GuiTestOptions.getRestartPolicy()) {
           RestartPolicy.EACH_TEST -> true
-          RestartPolicy.TEST_FAILURE -> testFailed || ideError
-          RestartPolicy.IDE_ERROR -> ideError
+          RestartPolicy.TEST_FAILURE -> failure != null || ideError
+          RestartPolicy.IDE_ERROR_OR_JUNIT_TIMEOUT -> failure?.exception is TestTimedOutException || ideError
         }
         if (shouldRestart) {
           closeIdeAndStop()
           launchIdeAndStart()
         }
-        testFailed = false
+        failure = null
         ideError = false
       }
 
@@ -126,7 +127,7 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   }
 
   override fun receive(): MessageFromClient {
-    val message = if (GuiTestOptions.isDebug()) {
+    val message = if (GuiTestOptions.isDebug() || System.getProperty("enable.bleak") == "true") {
       receivingMessages.take()
     } else {
       receivingMessages.poll(MESSAGE_INTERVAL_TIMEOUT.seconds, TimeUnit.SECONDS)
@@ -162,6 +163,9 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
     if (process != null && !process.waitFor(5, TimeUnit.SECONDS)) {
       LOG.warn("Client didn't shut down when asked nicely; shutting it down forcibly.")
       process.destroyForcibly()
+      val systemDir = GuiTests.getSystemDirPath()
+      FileUtil.delete(systemDir) // ensure lock files are removed, which would prevent startup for the next test
+      FileUtil.ensureExists(systemDir)
     }
   }
 

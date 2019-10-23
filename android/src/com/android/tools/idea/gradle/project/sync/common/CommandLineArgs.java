@@ -15,8 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.common;
 
+import static com.android.builder.model.AndroidProject.MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD;
+import static com.android.builder.model.AndroidProject.MODEL_LEVEL_4_NEW_DEP_MODEL;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_ADVANCED;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_VERSIONED;
+import static com.android.builder.model.AndroidProject.PROPERTY_INVOKED_FROM_IDE;
+import static com.android.builder.model.AndroidProject.PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL;
+import static com.android.builder.model.AndroidProject.PROPERTY_STUDIO_VERSION;
+import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
+import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
+import static com.intellij.util.ArrayUtil.toStringArray;
+
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
@@ -34,11 +49,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.builder.model.AndroidProject.*;
-import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
-import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
-import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CommandLineArgs {
   private static Key<String[]> GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY = Key.create("gradle.sync.command.line.options");
@@ -47,11 +59,11 @@ public class CommandLineArgs {
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final GradleInitScripts myInitScripts;
   @NotNull private final AndroidStudioGradleIdeSettings myIdeSettings;
-  private final boolean myApplyJavaLibraryPlugin;
+  private final boolean myIsNewSync;
 
-  public CommandLineArgs(boolean applyJavaLibraryPlugin) {
+  public CommandLineArgs(boolean isNewSync) {
     this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance(),
-         AndroidStudioGradleIdeSettings.getInstance(), applyJavaLibraryPlugin);
+         AndroidStudioGradleIdeSettings.getInstance(), isNewSync);
   }
 
   @VisibleForTesting
@@ -59,12 +71,12 @@ public class CommandLineArgs {
                   @NotNull IdeInfo ideInfo,
                   @NotNull GradleInitScripts initScripts,
                   @NotNull AndroidStudioGradleIdeSettings ideSettings,
-                  boolean applyJavaLibraryPlugin) {
+                  boolean isNewSync) {
     myApplicationInfo = applicationInfo;
     myIdeInfo = ideInfo;
     myInitScripts = initScripts;
     myIdeSettings = ideSettings;
-    myApplyJavaLibraryPlugin = applyJavaLibraryPlugin;
+    myIsNewSync = isNewSync;
   }
 
   @NotNull
@@ -72,8 +84,10 @@ public class CommandLineArgs {
     List<String> args = new ArrayList<>();
 
     // TODO: figure out why this is making sync fail.
-    if (myApplyJavaLibraryPlugin) {
+    if (myIsNewSync) {
       myInitScripts.addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
+      myInitScripts.addApplyKaptModelBuilderInitScript(args);
+      myInitScripts.addApplyBuildScriptClasspathModelBuilderInitScript(args);
     }
 
     // http://b.android.com/201742, let's make sure the daemon always runs in headless mode.
@@ -94,10 +108,13 @@ public class CommandLineArgs {
     // Sent to plugin starting with Studio 3.0
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED,
                                    NewGradleSync.isLevel4Model() ? MODEL_LEVEL_4_NEW_DEP_MODEL : MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD));
-    if (myIdeInfo.isAndroidStudio()) {
+    if (myIdeInfo.isAndroidStudio() && !isDevBuild(myApplicationInfo.getStrictVersion())) {
       // Example of version to pass: 2.4.0.6
       args.add(createProjectProperty(PROPERTY_STUDIO_VERSION, myApplicationInfo.getStrictVersion()));
     }
+    // Whether or not skip download of source and javadoc jars during Gradle sync.
+    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD,
+                                   GradleExperimentalSettings.getInstance().SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC));
 
     if (project != null) {
       Boolean refreshExternalNativeModels = project.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
@@ -105,12 +122,6 @@ public class CommandLineArgs {
         project.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, null);
         args.add(createProjectProperty(PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL, refreshExternalNativeModels));
       }
-    }
-
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      // Explicitly request R.java files to be generated and put in the model. Older versions of AGP do it always, newer may not by default.
-      // See GradleTaskExecutorImpl.invokeGradleTasks for flags passed at build time.
-      args.add(createProjectProperty(PROPERTY_SEPARATE_R_CLASS_COMPILATION, false));
     }
 
     Application application = ApplicationManager.getApplication();
@@ -126,7 +137,12 @@ public class CommandLineArgs {
     return args;
   }
 
+  private static boolean isDevBuild(String version) {
+    return version.equals("0.0.0.0");  // set in AndroidStudioApplicationInfo.xml
+  }
+
   public static boolean isInTestingMode() {
-    return GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode();
+    GuiTestingService guiTestingService = GuiTestingService.getInstance();
+    return (guiTestingService != null && guiTestingService.isGuiTestingMode()) || ApplicationManager.getApplication().isUnitTestMode();
   }
 }

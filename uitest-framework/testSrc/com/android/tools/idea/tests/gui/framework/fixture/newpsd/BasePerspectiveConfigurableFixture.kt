@@ -16,15 +16,24 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
-import com.android.tools.idea.tests.gui.framework.*
+import com.android.tools.idea.tests.gui.framework.GuiTests
+import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
+import com.android.tools.idea.tests.gui.framework.findByLabel
+import com.android.tools.idea.tests.gui.framework.findByType
+import com.android.tools.idea.tests.gui.framework.finder
 import com.android.tools.idea.tests.gui.framework.fixture.ComboBoxActionFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import com.android.tools.idea.tests.gui.framework.matcher
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers
+import com.android.tools.idea.tests.gui.framework.robot
+import com.android.tools.idea.tests.gui.framework.tryFind
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.TimedDeadzone
 import org.fest.swing.core.MouseButton
 import org.fest.swing.edt.GuiQuery
+import org.fest.swing.fixture.JTabbedPaneFixture
 import org.fest.swing.fixture.JTreeFixture
 import org.fest.swing.timing.Pause
 import java.awt.Container
@@ -32,6 +41,7 @@ import java.awt.Point
 import java.awt.event.KeyEvent
 import javax.swing.JButton
 import javax.swing.JLabel
+import javax.swing.JTabbedPane
 
 open class BasePerspectiveConfigurableFixture protected constructor(
     override val ideFrameFixture: IdeFrameFixture,
@@ -130,6 +140,11 @@ open class BasePerspectiveConfigurableFixture protected constructor(
   private fun doFindModuleSelector() = finder().find(container, matcher<JLabel> { it.text == "Modules" })
 }
 
+internal inline fun <T> BasePerspectiveConfigurableFixture.selectTab(tabName: String, fixtureBuilder: (JTabbedPane) -> T): T {
+  val tabbedPane = GuiTests.waitUntilFound(robot(), container, Matchers.byType(JTabbedPane::class.java))
+  JTabbedPaneFixture(robot(), tabbedPane).selectTab(tabName)
+  return fixtureBuilder(tabbedPane)
+}
 
 interface ModuleSelectorFixture {
   fun modules(): List<String>

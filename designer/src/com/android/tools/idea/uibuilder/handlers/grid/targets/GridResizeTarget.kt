@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.grid.targets
 
-import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.common.model.NlAttributesHolder
-import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.handlers.absolute.AbsoluteResizeTarget
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 
@@ -27,11 +25,6 @@ import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.*
  * Target to handle the resizing of GridLayout's children
  */
 class GridResizeTarget(type: ResizeBaseTarget.Type) : AbsoluteResizeTarget(type) {
-
-  override fun mouseDown(x: Int, y: Int) {
-    myComponent.setModelUpdateAuthorized(true)
-    super.mouseDown(x, y)
-  }
 
   override fun updateAttributes(attributes: NlAttributesHolder, x: Int, y: Int) {
     if (TOP == type || LEFT_TOP == type || RIGHT_TOP == type) {

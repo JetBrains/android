@@ -9,7 +9,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
@@ -30,6 +29,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module]",
     ],
 )
 
@@ -37,19 +37,21 @@ iml_module(
 iml_module(
     name = "whats-new-assistant-test",
     iml_files = ["whats-new-assistant-test.iml"],
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.whatsnew.assistant.WhatsNewAssistantTestSuite",
+    test_coverage = True,
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
         "//tools/base/templates",
+        "//tools/idea:platform-build-info",
     ],
     test_srcs = ["testSrc"],
     test_tags = ["slow"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
@@ -67,7 +69,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
@@ -75,5 +77,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/whats-new-assistant[module, test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
+        "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
     ],
 )

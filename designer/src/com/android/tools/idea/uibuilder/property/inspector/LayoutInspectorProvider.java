@@ -101,7 +101,7 @@ public class LayoutInspectorProvider implements InspectorProvider<NlPropertiesMa
     private final List<String> myPropertyNames;
     private final List<NlComponentEditor> myEditors;
 
-    LayoutInspectorComponent(@NotNull String tagName,
+    public LayoutInspectorComponent(@NotNull String tagName,
                                     @NotNull Map<String, NlProperty> properties,
                                     @NotNull NlPropertiesManager propertiesManager,
                                     @NotNull List<String> propertyNames) {

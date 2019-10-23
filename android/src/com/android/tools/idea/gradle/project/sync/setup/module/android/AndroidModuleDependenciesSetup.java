@@ -15,8 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
+import static com.android.SdkConstants.ANDROIDX_ANNOTATIONS_ARTIFACT;
+import static com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT;
+import static com.android.SdkConstants.DOT_JAR;
+import static com.android.SdkConstants.FD_RES;
+import static com.android.SdkConstants.FN_ANNOTATIONS_ZIP;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
+import static java.io.File.separatorChar;
+
 import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.ModuleDependenciesSetup;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.AnnotationOrderRootType;
@@ -24,21 +34,16 @@ import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VfsUtil;
+import java.io.File;
 import java.io.UncheckedIOException;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-import java.io.File;
-
-import static com.android.SdkConstants.*;
-import static com.android.utils.FileUtils.isSameFile;
-import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.roots.OrderRootType.SOURCES;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static java.io.File.separatorChar;
-
 class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
+  private static final Logger LOG = Logger.getInstance(AndroidModuleDependenciesSetup.class);
+
   @NotNull private final LibraryFilePaths myLibraryFilePaths;
 
   AndroidModuleDependenciesSetup(@NotNull LibraryFilePaths libraryFilePaths) {
@@ -69,8 +74,11 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
 
     boolean newLibrary = false;
     Library library = modelsProvider.getLibraryByName(libraryName);
-    if (library == null || !isLibraryValid(library, binaryPaths)) {
+    if (library == null || !isLibraryValid(modelsProvider.getModifiableLibraryModel(library), binaryPaths)) {
       if (library != null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(library.getName() + " not valid after sync.");
+        }
         modelsProvider.removeLibrary(library);
       }
       library = modelsProvider.createLibrary(libraryName);
@@ -129,29 +137,36 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
   }
 
   /**
-   * Check if the cached Library instance is still valid, by comparing the cached classes path and the current
-   * binary path. This can be false if a library is recompiled with updated sources but the same version, in which
+   * Check if the cached Library instance is still valid, by comparing the cached classes url and the current
+   * binary url. This can be false if a library is recompiled with updated sources but the same version, in which
    * case the artifact will be exploded to a different directory.
+   * <p>
+   * If the library has already been created for another module during the current sync, treat library as valid,
+   * because recreating it leads to "already disposed" exception when committing the models. Although the library
+   * might have different binary paths due to different classpath in modules, using the previous path works because
+   * it was returned by the same Gradle Sync invocation.
    */
-  private static boolean isLibraryValid(@NotNull Library library, @NotNull File[] binaryPaths) {
-    VirtualFile[] cachedFiles = library.getRootProvider().getFiles(CLASSES);
-    String[] urls = library.getRootProvider().getUrls(CLASSES);
-    // Some of the urls present in the library no longer map to actual files, in this case treat the library as invalid and
-    // recreate it. If we don't recreate it none of the symbols will be resolved, a common example of this when upgrading the
-    // android gradle plugin the paths used to store the resulting library artifacts can change this means that no files are returned by
-    // library.getRootProvider().getFiles(CLASSES).
-    if (urls.length != cachedFiles.length) {
+  private static boolean isLibraryValid(@NotNull Library.ModifiableModel library, @NotNull File[] binaryPaths) {
+    // The same library model has been setup by previous module. Don't recreate the library to avoid "already disposed" error.
+    if (library.isChanged()) {
+      return true;
+    }
+
+    String[] cachedUrls = library.getUrls(CLASSES);
+
+    if (cachedUrls.length != binaryPaths.length) {
       return false;
     }
 
-    if (cachedFiles.length == 0 || binaryPaths.length == 0) {
+    if (binaryPaths.length == 0) {
       return true;
     }
+
     // All of the class files are extracted to the same Gradle cache folder, it is sufficient to only check one of the files.
-    File cachedFile = virtualToIoFile(cachedFiles[0]);
-    for (File binaryPath : binaryPaths) {
+    String newUrl = VfsUtil.getUrlForLibraryRoot(binaryPaths[0]);
+    for (String url : cachedUrls) {
       try {
-        if (isSameFile(binaryPath, cachedFile)) {
+        if (Objects.equals(url, newUrl)) {
           return true;
         }
       }

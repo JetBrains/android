@@ -32,6 +32,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
@@ -39,12 +44,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateAPKProjectTest extends DebuggerTestBase {
@@ -57,50 +56,6 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
     // An ~/ApkProjects directory will show us a dialog in the middle of the test
     // to overwrite the directory. Delete the directory now so it won't trip the test.
     removeApkProjectsDirectory();
-  }
-
-  /**
-   * Verifies source code directories are set for locally built APKs.
-   *
-   * <p>TT ID: 47e054af-29c2-4bfa-8410-e2f826452e78
-   *
-   * <pre>
-   *   Test steps:
-   *   1. Import ApkDebug.
-   *   2. Build APK
-   *   3. Close ApkDebug project window.
-   *   4. Create APK debugging project with the locally built APK
-   *   5. Open a .smali file to attach Java sources
-   *   6. Open the native library to view the native library editor window.
-   *   8. Attach debug symbols for the library.
-   *   Verify:
-   *   1. C and C++ code directories are attached to the native library
-   *   2. Java source code files are added to the project tree.
-   * </pre>
-   */
-  @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70731570
-  public void createProjectFromLocallyBuiltApk() throws Exception {
-    File projectRoot = buildApkLocally("ApkDebug");
-
-    profileOrDebugApk(guiTest.welcomeFrame(), new File(projectRoot, "app/build/outputs/apk/debug/app-x86-debug.apk"));
-
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    EditorFixture editor = ideFrame.getEditor();
-    attachJavaSources(ideFrame, new File(projectRoot, "app/src/main/java"));
-
-    // need to wait since the editor doesn't open the java file immediately
-    waitForJavaFileToShow(editor);
-
-    File debugSymbols = new File(projectRoot, "app/build/intermediates/cmake/debug/obj/x86/libsanangeles.so");
-    editor.open("lib/x86/libsanangeles.so")
-      .getLibrarySymbolsFixture()
-      .addDebugSymbols(debugSymbols);
-    guiTest.waitForBackgroundTasks();
-
-    List<ProjectViewFixture.NodeFixture> srcNodes = getLibChildren(ideFrame, "libsanangeles");
-
-    Assert.assertEquals(2, countOccurrencesOfSourceFolders(srcNodes));
   }
 
   /**
@@ -220,9 +175,7 @@ public class CreateAPKProjectTest extends DebuggerTestBase {
     String debugConfigName = "app-x86-debug";
 
     emulator.createDefaultAVD(ideFrame.invokeAvdManager());
-    ideFrame.debugApp(debugConfigName)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
+    ideFrame.debugApp(debugConfigName, emulator.getDefaultAvdName());
 
     String debugWindowJava = "app-x86-debug-java";
     DebugToolWindowFixture debugWindow = ideFrame.getDebugToolWindow();

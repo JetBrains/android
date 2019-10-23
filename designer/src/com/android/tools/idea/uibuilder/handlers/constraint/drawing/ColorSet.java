@@ -17,20 +17,21 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.drawing;
 
 import com.intellij.ui.JBColor;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Paint;
+import java.awt.Stroke;
 
 /**
  * Holds a set of colors for drawing a scene
  */
 public class ColorSet {
 
-    public static final JBColor DEFAULT_LASSO_BORDER_COLOR =
-      new JBColor(new Color(0xc01886f7, true), new Color(0xc09ccdff, true));
-    public static final JBColor DEFAULT_LASSO_FILL_COLOR =
-      new JBColor(new Color(0x1a1886f7, true), new Color(0x1a9ccdff, true));
-
     public static Stroke
             sNormalStroke = new BasicStroke(1);
+
+    public static Stroke
+            sBoldStroke = new BasicStroke(2);
 
     public static Stroke
             sOutlineStroke = new BasicStroke(2);
@@ -112,9 +113,15 @@ public class ColorSet {
 
     protected Color mDragReceiverFrames = new Color(135, 195, 77);
     protected Color mDragReceiverBackground = new Color(154, 221, 140, 60);
+    protected Stroke mDragReceiverStroke = sBoldStroke;
+    protected Color mDragOtherReceiversFrame = new Color(135, 195, 77, 102);
+    protected Color mDragReceiverSiblingBackground = new Color(154, 221, 140, 26);
+    protected Stroke mDragReceiverSiblingStroke = sNormalStroke;
 
-    protected Color mLassoSelectionBorder;
-    protected Color mLassoSelectionFill;
+    protected Color mLassoSelectionBorder
+      = new JBColor(new Color(0xc01886f7, true), new Color(0xc09ccdff, true));
+    protected Color mLassoSelectionFill
+      = new JBColor(new Color(0x1a1886f7, true), new Color(0x1a9ccdff, true));
 
     public Stroke getOutlineStroke() { return sOutlineStroke; }
 
@@ -143,6 +150,20 @@ public class ColorSet {
     public Color getDragReceiverFrames() { return mDragReceiverFrames; }
 
     public Color getDragReceiverBackground() { return mDragReceiverBackground; }
+
+    public Stroke getDragReceiverStroke() {
+        return mDragReceiverStroke;
+    }
+
+    public Color getDragOtherReceiversFrame() {
+        return mDragOtherReceiversFrame;
+    }
+
+    public Color getDragReceiverSiblingBackground() { return mDragReceiverSiblingBackground; }
+
+    public Stroke getDragReceiverSiblingStroke() {
+        return mDragReceiverSiblingStroke;
+    }
 
     public Color getBackground() { return mBackground; }
 

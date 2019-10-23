@@ -97,7 +97,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     loadProject(MODULE_INFO_MERGE);
     assertNotNull(myAndroidFacet);
 
-    MergedManifest manifestInfo = MergedManifest.get(myAndroidFacet);
+    MergedManifestSnapshot manifestInfo = MergedManifestManager.getSnapshot(myAndroidFacet);
     List<Element> mergedActivities = manifestInfo.getActivities();
     assertEquals(2, mergedActivities.size());
     Set<String> activities = Sets.newHashSet(ActivityLocatorUtils.getQualifiedName(mergedActivities.get(0)),
@@ -154,7 +154,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     assertNotNull(myAndroidFacet);
     assertEquals(1, AndroidUtils.getAllAndroidDependencies(myAndroidFacet.getModule(), true).size());
 
-    MergedManifest manifestInfo = MergedManifest.get(myAndroidFacet);
+    MergedManifestSnapshot manifestInfo = MergedManifestManager.getSnapshot(myAndroidFacet);
     List<Element> mergedActivities = manifestInfo.getActivities();
     assertEquals(3, mergedActivities.size());
     Set<String> activities = Sets.newHashSet(ActivityLocatorUtils.getQualifiedName(mergedActivities.get(0)),
@@ -191,7 +191,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     UIUtil.dispatchAllInvocationEvents();
 
     // reload data and check it is correct
-    manifestInfo.clear();
+    manifestInfo = MergedManifestManager.getSnapshot(myAndroidFacet, true);
     mergedActivities = manifestInfo.getActivities();
     assertEquals(4, mergedActivities.size());
     activities = Sets.newHashSet(ActivityLocatorUtils.getQualifiedName(mergedActivities.get(0)),
@@ -215,7 +215,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     UIUtil.dispatchAllInvocationEvents();
 
     // reload data and check it is correct
-    manifestInfo.clear();
+    manifestInfo = MergedManifestManager.getSnapshot(myAndroidFacet, true);
     mergedActivities = manifestInfo.getActivities();
     assertEquals(5, mergedActivities.size());
     activities = Sets.newHashSet(ActivityLocatorUtils.getQualifiedName(mergedActivities.get(0)),

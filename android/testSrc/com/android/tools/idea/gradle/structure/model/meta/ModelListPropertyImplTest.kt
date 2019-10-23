@@ -31,6 +31,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
   object Model : ModelDescriptor<Model, Model, Model> {
     override fun getResolved(model: Model): Model? = null
     override fun getParsed(model: Model): Model? = this
+    override fun prepareForModification(model: Model) = Unit
     override fun setModified(model: Model) = Unit
   }
 
@@ -264,13 +265,15 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
     val newResolvedProperty = extModel.findProperty("newVar").resolve()
     var localModified = false
+    var localModifying = false
     @Suppress("UNCHECKED_CAST")
     val reboundProp = (propList.getEditableValues()[0] as GradleModelCoreProperty<Int, ModelPropertyCore<Int>>)
-      .rebind(newResolvedProperty, { localModified = true })
+      .rebind(newResolvedProperty) { localModifying = true ; it (); localModified = true }
     assertThat(reboundProp.getParsedValue(), equalTo<Annotated<ParsedValue<Int>>>(ParsedValue.NotSet.annotated()))
     reboundProp.setParsedValue(1.asParsed())
     assertThat(reboundProp.getParsedValue(), equalTo<Annotated<ParsedValue<Int>>>(1.asParsed().annotated()))
     assertThat(localModified, equalTo(true))
+    assertThat(localModifying, equalTo(true))
     assertThat(newResolvedProperty.isModified, equalTo(true))
     assertThat(newResolvedProperty.getValue(GradlePropertyModel.INTEGER_TYPE), equalTo(1))
 

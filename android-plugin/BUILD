@@ -8,7 +8,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
@@ -17,7 +16,6 @@ iml_module(
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
-        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
     ],
     # do not sort: must match IML order
     deps = [
@@ -30,9 +28,14 @@ iml_module(
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
+        "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/adt/idea/android-layout-inspector[module]",
         "//tools/adt/idea/assistant[module]",
         "//tools/adt/idea/connection-assistant[module]",
         "//tools/adt/idea/whats-new-assistant[module]",
+        "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module]",
+        "//tools/adt/idea/databinding:intellij.android.databinding[module]",
+        "//tools/adt/idea/naveditor:intellij.android.naveditor[module]",
+        "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector[module]",
     ],
 )

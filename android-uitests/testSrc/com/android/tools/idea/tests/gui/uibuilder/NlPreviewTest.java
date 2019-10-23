@@ -47,7 +47,6 @@ public class NlPreviewTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void testConfigurationMatching() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
@@ -157,6 +156,7 @@ public class NlPreviewTest {
     assertFalse(preview.hasRenderErrors()); // but our build timestamp check this time will mask the out of date warning
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void testRenderingDynamicResources() throws Exception {
     // Opens a layout which contains dynamic resources (defined only in build.gradle)
@@ -215,10 +215,10 @@ public class NlPreviewTest {
     file.waitForCodeAnalysisHighlightCount(ERROR, 0);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // Should be fixed with ag/3371722
+  @RunIn(TestGroup.UNRELIABLE)  // Should be fixed with ag/6717284
   @Test
   public void testCopyAndPaste() throws Exception {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
@@ -251,7 +251,7 @@ public class NlPreviewTest {
   @Test
   public void testPreviewingDrawable() throws Exception {
     // Regression test for http://b.android.com/221330
-    guiTest.importSimpleLocalApplication()
+    guiTest.importSimpleApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutPreview(true)
@@ -272,7 +272,6 @@ public class NlPreviewTest {
       .waitForScreenMode(SceneMode.BLUEPRINT_ONLY);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void testNavigation() throws Exception {
     // Open 2 different layout files in a horizontal split view (both editors visible).
@@ -280,7 +279,7 @@ public class NlPreviewTest {
     // Navigate in the preview. Only 1 of the layouts should change its scroll position (regression test for b/62367302).
     // Navigate in the file. The preview selection should update.
 
-    EditorFixture editor = guiTest.importSimpleLocalApplication().getEditor();
+    EditorFixture editor = guiTest.importSimpleApplication().getEditor();
     editor
       .open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.EDITOR)
       .invokeAction(EditorFixture.EditorAction.SPLIT_HORIZONTALLY)
@@ -300,7 +299,7 @@ public class NlPreviewTest {
 
   @Test
   public void deletePreviewedFile() throws Exception {
-    guiTest.importSimpleLocalApplication()
+    guiTest.importSimpleApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutPreview(true)
@@ -309,17 +308,14 @@ public class NlPreviewTest {
       .getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout", "activity_my.xml")
-      .invokeMenuPath("Delete...");
-    DeleteDialogFixture.find(guiTest.robot(), "Delete")
-      .safe(false)
-      .clickOk()
-      .waitUntilNotShowing();
+      .openFromMenu(DeleteDialogFixture::find, "Delete...")
+      .unsafeDelete();
   }
 
   @Test
   public void closeLayoutShouldNotClosePreviewForAnotherLayout() throws Exception {
     // Regression test for b/64288544
-    EditorFixture editor = guiTest.importSimpleLocalApplication()
+    EditorFixture editor = guiTest.importSimpleApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.EDITOR);
@@ -334,11 +330,10 @@ public class NlPreviewTest {
     assertTrue(editor.isPreviewShowing("activity_my.xml"));
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void closeSplitLayoutShouldMovePreviewToCorrectFile() throws Exception {
     // Regression test for b/64199946
-    EditorFixture editor = guiTest.importSimpleLocalApplication()
+    EditorFixture editor = guiTest.importSimpleApplication()
       .getEditor()
       .open("app/src/main/res/drawable/ic_launcher.xml", EditorFixture.Tab.EDITOR)
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
@@ -361,7 +356,7 @@ public class NlPreviewTest {
   @Test
   public void closeAllFileShouldClosePreview() throws Exception {
     // Regression test for b/73592522
-    EditorFixture editor = guiTest.importSimpleLocalApplication()
+    EditorFixture editor = guiTest.importSimpleApplication()
       .waitForGradleProjectSyncToFinish()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)

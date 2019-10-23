@@ -28,12 +28,18 @@ import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
 public class ThemeEditorNotificationProvider extends EditorNotifications.Provider<ThemeEditorNotificationProvider.InfoPanel> {
   private static final Key<InfoPanel> KEY = Key.create("android.editors.theme");
+  private final @NotNull Project myProject;
   private boolean myDismissed = false;
+
+  public ThemeEditorNotificationProvider(final @NotNull Project project) {
+    myProject = project;
+  }
 
   @NotNull
   @Override
@@ -41,21 +47,23 @@ public class ThemeEditorNotificationProvider extends EditorNotifications.Provide
     return KEY;
   }
 
+  @Nullable
   @Override
-  public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull final FileEditor fileEditor, @NotNull Project project) {
+  public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull final FileEditor fileEditor) {
     if (!StudioFlags.THEME_EDITOR_ENABLED.get()) {
       return null;
     }
+
     if (myDismissed) {
       return null;
     }
 
-    final PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
+    final PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myProject, file);
     if (!ThemeEditorProvider.isAndroidTheme(psiFile)) {
       return null;
     }
 
-    if (!ThemeEditorUtils.findAndroidModules(project).findAny().isPresent()) {
+    if (!ThemeEditorUtils.findAndroidModules(myProject).findAny().isPresent()) {
       return null;
     }
 
@@ -64,7 +72,7 @@ public class ThemeEditorNotificationProvider extends EditorNotifications.Provide
     panel.createActionLabel("Open editor", new Runnable() {
       @Override
       public void run() {
-        ThemeEditorUtils.openThemeEditor(project);
+        ThemeEditorUtils.openThemeEditor(myProject);
       }
     });
     panel.createActionLabel("Hide notification", new Runnable() {

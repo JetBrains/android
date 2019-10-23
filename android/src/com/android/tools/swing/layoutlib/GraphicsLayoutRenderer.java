@@ -33,12 +33,13 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -62,7 +63,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * <p/>
  * <p/>Note: This class is not thread safe.
  */
-public class GraphicsLayoutRenderer {
+public class GraphicsLayoutRenderer implements Disposable {
   private static final Logger LOG = Logger.getInstance(GraphicsLayoutRenderer.class);
 
   private static final int MIN_LAYOUTLIB_API_VERSION = 15;
@@ -162,19 +163,16 @@ public class GraphicsLayoutRenderer {
           }
         };
 
-    if (ResourceIdManager.get(module).getFinalIdsUsed()) {
+    if (ResourceIdManager.get(module).finalIdsUsed()) {
       // Load the local project R identifiers.
-      boolean loadRResult = ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
-        @Override
-        public Boolean compute() {
-          // create can run from a different thread so we need to run this in a read action to make sure the module hasn't been disposed
-          // half way.
-          if (module.isDisposed()) {
-            return false;
-          }
-          layoutlibCallback.loadAndParseRClass();
-          return true;
+      boolean loadRResult = ReadAction.compute(() -> {
+        // create can run from a different thread so we need to run this in a read action to make sure the module hasn't been disposed
+        // half way.
+        if (module.isDisposed()) {
+          return false;
         }
+        layoutlibCallback.loadAndParseRClass();
+        return true;
       });
       if (!loadRResult) {
         throw new AlreadyDisposedException("Module was already disposed");
@@ -573,7 +571,7 @@ public class GraphicsLayoutRenderer {
     private int myWidth;
     private int myHeight;
 
-    DynamicHardwareConfig(HardwareConfig delegate) {
+    public DynamicHardwareConfig(HardwareConfig delegate) {
       super(delegate.getScreenWidth(), delegate.getScreenHeight(), delegate.getDensity(), delegate.getXdpi(), delegate.getYdpi(),
             delegate.getScreenSize(), delegate.getOrientation(), delegate.getScreenRoundness(), delegate.hasSoftwareButtons());
 

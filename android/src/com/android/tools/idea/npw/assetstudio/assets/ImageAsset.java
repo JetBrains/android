@@ -65,7 +65,7 @@ public final class ImageAsset extends BaseAsset {
 
   public ImageAsset() {
     myImagePath = new OptionalValueProperty<>();
-    myImagePath.addListener((v) -> {
+    myImagePath.addListener(() -> {
       myXmlDrawableIsResizable.set(false);
       synchronized (myLock) {
         myImageFile = myImagePath.getValueOrNull();
@@ -114,6 +114,11 @@ public final class ImageAsset extends BaseAsset {
    * Checks if the image is clipart. All clipart images are black on a transparent background.
    */
   public boolean isClipart() {
+    return isClipart;
+  }
+
+  @Override
+  public boolean isColorable() {
     return isClipart;
   }
 

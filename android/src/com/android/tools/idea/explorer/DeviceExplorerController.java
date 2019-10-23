@@ -1122,10 +1122,11 @@ public class DeviceExplorerController {
       tracker.setUploadFileText(file, 0, 0);
 
       SettableFuture<Void> futureResult = SettableFuture.create();
-      logFuture(futureResult, millis -> String.format("Uploaded file in %,d msec: %s",
-                                                      millis,
-                                                      AdbPathUtil.resolve(parentNode.getEntry().getFullPath(),
-                                                                          file.getName())));
+      logFuture(futureResult,
+                millis -> String.format(Locale.US,
+                                        "Uploaded file in %,d msec: %s",
+                                        millis,
+                                        AdbPathUtil.resolve(parentNode.getEntry().getFullPath(), file.getName())));
 
       DeviceFileEntry parentEntry = parentNode.getEntry();
       Path localPath = Paths.get(file.getPath());
@@ -1217,7 +1218,8 @@ public class DeviceExplorerController {
       if (summary.getProblems().isEmpty()) {
         String successMessage;
         if (summary.getDirectoryCount() > 0) {
-          successMessage = String.format("Successfully %s %,d %s and %,d %s for a total size of %,d %s in %s.",
+          successMessage = String.format(Locale.getDefault(),
+                                         "Successfully %s %,d %s and %,d %s for a total size of %,d %s in %s.",
                                          pastParticiple,
                                          summary.getFileCount(),
                                          fileString,
@@ -1228,7 +1230,8 @@ public class DeviceExplorerController {
                                          StringUtil.formatDuration(summary.getDurationMillis()));
         }
         else {
-          successMessage = String.format("Successfully %s %,d %s for a total of size of %,d %s in %s.",
+          successMessage = String.format(Locale.getDefault(),
+                                         "Successfully %s %,d %s for a total of size of %,d %s in %s.",
                                          pastParticiple,
                                          summary.getFileCount(),
                                          fileString,
@@ -1254,7 +1257,8 @@ public class DeviceExplorerController {
 
       String message = String.format("There were errors %s files and/or directories", presentParticiple);
       if (summary.getFileCount() > 0) {
-        message += String.format(", although %,d %s %s successfully %s in %s for a total of size of %,d %s",
+        message += String.format(Locale.getDefault(),
+                                 ", although %,d %s %s successfully %s in %s for a total of size of %,d %s",
                                  summary.getFileCount(),
                                  fileString,
                                  (summary.getFileCount() <= 1 ? "was" : "were"),
@@ -1383,7 +1387,7 @@ public class DeviceExplorerController {
         }
       });
       myEdtExecutor.addListener(futureDownload, () -> stopNodeDownload(treeNode));
-      logFuture(futureDownload, millis -> String.format("Downloaded file in %,d msec: %s", millis, entry.getFullPath()));
+      logFuture(futureDownload, millis -> String.format(Locale.US, "Downloaded file in %,d msec: %s", millis, entry.getFullPath()));
       return myEdtExecutor.transform(futureDownload, aVoid -> sizeRef.get());
     }
 
@@ -1614,7 +1618,7 @@ public class DeviceExplorerController {
     @NotNull private DefaultTreeModel myTreeModel;
     @NotNull private DeviceFileEntryNode myNode;
 
-    ShowLoadingNodeRequest(@NotNull DefaultTreeModel treeModel, @NotNull DeviceFileEntryNode node) {
+    public ShowLoadingNodeRequest(@NotNull DefaultTreeModel treeModel, @NotNull DeviceFileEntryNode node) {
       myTreeModel = treeModel;
       myNode = node;
     }

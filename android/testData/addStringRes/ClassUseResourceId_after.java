@@ -7,6 +7,6 @@ import p1.p2.R;
 
 public class Class {
   public void f(Context context) {
-    Toast.makeText(context, R.string.hello, Toast.LENGTH_SHORT).show();
+    Toast.makeText(context, context.getString(R.string.hello), Toast.LENGTH_SHORT).show();
   }
 }

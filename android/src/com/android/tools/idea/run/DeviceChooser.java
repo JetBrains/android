@@ -458,7 +458,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
   private class MyDeviceTableModel extends AbstractTableModel {
     private final IDevice[] myDevices;
 
-    MyDeviceTableModel(IDevice[] devices) {
+    public MyDeviceTableModel(IDevice[] devices) {
       myDevices = devices;
     }
 

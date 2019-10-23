@@ -77,6 +77,7 @@ public class MergedManifestFixture extends ComponentFixture<MergedManifestFixtur
       int index = text.indexOf(linkText);
       Truth.assertThat(index).isAtLeast(0);
       Rectangle rect = myInfoPane.target().modelToView(index);
+      myInfoPane.target().scrollRectToVisible(rect);
       Point location = rect.getLocation();
       location.translate(2, 0);
       robot().click(myInfoPane.target(), location, MouseButton.LEFT_BUTTON, 1);

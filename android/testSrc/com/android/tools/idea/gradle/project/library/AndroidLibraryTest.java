@@ -1,4 +1,4 @@
-// Copyright (C) 2018 The Android Open Source Project
+// Copyright (C) 2017 The Android Open Source Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ public class AndroidLibraryTest extends AndroidGradleTestCase {
 
     // Create a Wizard and add an Activity to the lib module
     TemplateHandle myTemplateHandle = new TemplateHandle(TemplateManager.getInstance().getTemplateFile("Activity", "Empty Activity"));
-    NamedModuleTemplate template = GradleAndroidModuleTemplate.createDefaultTemplateAt(new File(project.getProjectFilePath()));
+    NamedModuleTemplate template = GradleAndroidModuleTemplate.createDefaultTemplateAt(project.getProjectFilePath(), "");
     RenderTemplateModel render = new RenderTemplateModel(libAndroidFacet, myTemplateHandle, "com.example", template, "command",
                                                          new ProjectSyncInvoker.DefaultProjectSyncInvoker(), true);
 

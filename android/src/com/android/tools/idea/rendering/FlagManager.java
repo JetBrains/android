@@ -26,7 +26,6 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.util.Function;
-import icons.AndroidArtworkIcons;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -218,7 +217,7 @@ public class FlagManager {
         // or with idea.is.internal=true
       }
       if (flagImage == null) {
-        flagImage = AndroidArtworkIcons.Icons.Flags.Flag_empty;
+        flagImage = AndroidIcons.EmptyFlag;
       }
       myImageMap.put(base, flagImage);
     }

@@ -18,11 +18,12 @@ package com.android.tools.idea.gradle.structure.model.repositories.search
 import com.android.ide.common.repository.GradleVersion
 import com.google.common.annotations.VisibleForTesting
 import com.google.gson.JsonParser
-import com.intellij.openapi.util.text.StringUtil.isNotEmpty
+import com.google.wireless.android.sdk.stats.PSDEvent
+import com.google.wireless.android.sdk.stats.PSDEvent.PSDRepositoryUsage.PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_JCENTER
 import com.intellij.util.io.HttpRequests
 import java.io.Reader
 
-object JCenterRepository : ArtifactRepository() {
+object JCenterRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPOSITORY_JCENTER) {
   override val name: String = "JCenter"
   override val isRemote: Boolean = true
 
@@ -164,20 +165,24 @@ object JCenterRepository : ArtifactRepository() {
       }
     }
 
-    return SearchResult(artifacts, errors)
+    return SearchResult(artifacts, errors, SearchResultStats.EMPTY)
   }
 
   @VisibleForTesting
   fun createRequestUrl(request: SearchRequest): String = buildString {
     append("https://api.bintray.com/search/packages/maven?")
-    val groupId = request.groupId
+    val groupId = request.query.groupId
     if (!groupId.isNullOrEmpty()) {
       append("g=")
       append(groupId)
       append("&")
     }
-    append("a=")
-    append(request.artifactName)
-    append("&subject=bintray&repo=jcenter")
+    val artifactName = request.query.artifactName
+    if (!artifactName.isNullOrEmpty()) {
+      append("a=")
+      append(artifactName)
+      append("&")
+    }
+    append("subject=bintray&repo=jcenter")
   }
 }

@@ -4,6 +4,7 @@ package org.jetbrains.android.refactoring
 
 import com.android.tools.idea.actions.ExportProjectZip
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
@@ -152,11 +153,11 @@ fun offerToCreateBackupAndRun(project: Project, title: String, runRefactoring: (
  * This means that organizing imports and shortening references is done after the sync. We rely on the fact that
  * [BaseRefactoringProcessor.doRefactoring] drains the dumb mode tasks queue after running [BaseRefactoringProcessor.performRefactoring].
  */
-fun syncBeforeFinishingRefactoring(project: Project) {
+fun syncBeforeFinishingRefactoring(project: Project, trigger: GradleSyncStats.Trigger) {
   assert(ApplicationManager.getApplication().isDispatchThread)
 
   GradleSyncInvoker.getInstance().requestProjectSync(
     project,
-    GradleSyncInvoker.Request.projectModified()
+    GradleSyncInvoker.Request(trigger)
   )
 }

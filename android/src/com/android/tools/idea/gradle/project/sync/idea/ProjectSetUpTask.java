@@ -32,7 +32,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,7 +71,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     }
     GradleSyncState.getInstance(myProject).setupStarted();
     boolean importedProject = GradleProjectInfo.getInstance(myProject).isImportedProject();
-    populateProject(projectInfo, taskId, importedProject);
+    doPopulateProject(projectInfo, taskId);
 
     Runnable runnable = () -> {
       boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
@@ -100,15 +99,6 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     else {
       TransactionGuard.getInstance().submitTransactionLater(myProject, runnable);
     }
-  }
-
-  private void populateProject(@NotNull DataNode<ProjectData> projectInfo, @NotNull ExternalSystemTaskId taskId, boolean importedProject) {
-    if (!importedProject) {
-      doPopulateProject(projectInfo, taskId);
-      return;
-    }
-    StartupManager startupManager = StartupManager.getInstance(myProject);
-    startupManager.runWhenProjectIsInitialized(() -> doPopulateProject(projectInfo, taskId));
   }
 
   private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo, @NotNull ExternalSystemTaskId taskId) {

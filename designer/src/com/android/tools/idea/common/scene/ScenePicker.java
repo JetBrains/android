@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.scene;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 /**
  * This class provides efficient detection of many objects
@@ -51,6 +52,15 @@ public class ScenePicker {
     myEngines[OBJECT_CURVE] = mCurve;
     myEngines[OBJECT_RECTANGLE] = mRectangle;
     myEngines[OBJECT_CIRCLE] = mCircle;
+  }
+
+  /**
+   * for all objects
+   */
+  public void foreachObject(Consumer<Object> consumer){
+    for (int i = 0; i < mObjectCount; i++) {
+      consumer.accept(mObjects[i]);
+    }
   }
 
   /**

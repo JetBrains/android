@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.scopes;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.TestSourcesFilter;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.ResolveScopeProvider;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -33,29 +34,33 @@ public class TestArtifactResolveScopeProvider extends ResolveScopeProvider {
     if (project == null) {
       return null;
     }
+    if (!TestSourcesFilter.isTestSources(file, project)) {
+      return null;
+    }
     TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(file, project);
     if (testScopes == null) {
       return null;
     }
 
     GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(testScopes.getModule(), true);
-    GlobalSearchScope excludedScope;
+    GlobalSearchScope excludeScope;
 
     boolean inAndroidTest = testScopes.isAndroidTestSource(file);
     boolean inUnitTest = testScopes.isUnitTestSource(file);
 
     if (inAndroidTest && inUnitTest) {
-      excludedScope = testScopes.getSharedTestsExcludeScope();
+      excludeScope = testScopes.getSharedTestsExcludeScope();
     }
     else if (inAndroidTest) {
-      excludedScope = testScopes.getAndroidTestExcludeScope();
+      excludeScope = testScopes.getAndroidTestExcludeScope();
     }
     else if (inUnitTest) {
-      excludedScope = testScopes.getUnitTestExcludeScope();
+      excludeScope = testScopes.getUnitTestExcludeScope();
     }
     else {
       return null;
     }
-    return scope.intersectWith(GlobalSearchScope.notScope(excludedScope));
+    // scope - excludeScope
+    return scope.intersectWith(GlobalSearchScope.notScope(excludeScope));
   }
 }

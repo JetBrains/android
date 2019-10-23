@@ -16,6 +16,7 @@
 package com.android.tools.profilers.performance
 
 import com.android.tools.datastore.database.CpuTable
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
 
 import java.sql.Connection
@@ -46,18 +47,18 @@ class CpuGenerator(connection: Connection) : DataGenerator(connection) {
   }
 
   private fun generateTraceInfo(timestamp: Long, properties: GeneratorProperties) {
-    val threads = mutableListOf<CpuProfiler.Thread>()
+    val threadIds = mutableListOf<Int>()
     for(i in 0..NUMBER_OF_THREADS) {
-      threads.add(CpuProfiler.Thread.newBuilder().setName(i.toString()).setTid(i).build())
+      threadIds.add(i)
     }
-    val trace = CpuProfiler.TraceInfo.newBuilder()
+    val trace = Cpu.CpuTraceInfo.newBuilder()
       .setFromTimestamp((lastTraceInfoTimestamp + timestamp) / 2)
       .setToTimestamp(timestamp)
       .setTraceFilePath("Some Fake Path")
-      .setTraceId(random.nextInt())
-      .setInitiationType(CpuProfiler.TraceInitiationType.INITIATED_BY_UI)
-      .setProfilerMode(CpuProfiler.CpuProfilerMode.SAMPLED)
-      .addAllThreads(threads)
+      .setTraceId(random.nextLong())
+      .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_UI)
+      .setTraceMode(Cpu.CpuTraceMode.SAMPLED)
+      .addAllTids(threadIds)
       .build()
     myTable.insertTraceInfo(properties.session, trace)
   }
@@ -68,7 +69,7 @@ class CpuGenerator(connection: Connection) : DataGenerator(connection) {
       snapshots.add(CpuProfiler.GetThreadsResponse.ThreadSnapshot.Snapshot.newBuilder()
                       .setName(i.toString())
                       .setTid(i)
-                      .setState(CpuProfiler.GetThreadsResponse.State.RUNNING)
+                      .setState(Cpu.CpuThreadData.State.RUNNING)
                       .build()
       )
     }
@@ -76,23 +77,23 @@ class CpuGenerator(connection: Connection) : DataGenerator(connection) {
   }
 
   private fun generateUsage(timestamp: Long, properties: GeneratorProperties) {
-    val data = CpuProfiler.CpuUsageData.newBuilder()
-      .addCores(CpuProfiler.CpuCoreUsageData.newBuilder()
+    val data = Cpu.CpuUsageData.newBuilder()
+      .addCores(Cpu.CpuCoreUsageData.newBuilder()
                   .setCore(0)
                   .setFrequencyInKhz(1024)
                   .setElapsedTimeInMillisec(timestamp)
                   .setSystemCpuTimeInMillisec(timestamp))
-      .addCores(CpuProfiler.CpuCoreUsageData.newBuilder()
+      .addCores(Cpu.CpuCoreUsageData.newBuilder()
                   .setCore(1)
                   .setFrequencyInKhz(1024)
                   .setElapsedTimeInMillisec(timestamp)
                   .setSystemCpuTimeInMillisec(timestamp))
-      .addCores(CpuProfiler.CpuCoreUsageData.newBuilder()
+      .addCores(Cpu.CpuCoreUsageData.newBuilder()
                   .setCore(2)
                   .setFrequencyInKhz(1024)
                   .setElapsedTimeInMillisec(timestamp)
                   .setSystemCpuTimeInMillisec(timestamp))
-      .addCores(CpuProfiler.CpuCoreUsageData.newBuilder()
+      .addCores(Cpu.CpuCoreUsageData.newBuilder()
                   .setCore(3)
                   .setFrequencyInKhz(1024)
                   .setElapsedTimeInMillisec(timestamp)

@@ -37,7 +37,7 @@ class ClassesAndJarsValidityState implements ValidityState {
     }
   }
 
-  ClassesAndJarsValidityState(@NotNull Collection<VirtualFile> files) {
+  public ClassesAndJarsValidityState(@NotNull Collection<VirtualFile> files) {
     myFiles = new HashMap<>();
     Set<VirtualFile> visited = new HashSet<>();
     for (VirtualFile file : files) {
@@ -45,7 +45,7 @@ class ClassesAndJarsValidityState implements ValidityState {
     }
   }
 
-  ClassesAndJarsValidityState(@NotNull DataInput in) throws IOException {
+  public ClassesAndJarsValidityState(@NotNull DataInput in) throws IOException {
     myFiles = new HashMap<>();
     int size = in.readInt();
     while (size-- > 0) {

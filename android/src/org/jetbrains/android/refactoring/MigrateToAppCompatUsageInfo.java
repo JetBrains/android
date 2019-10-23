@@ -18,7 +18,6 @@ package org.jetbrains.android.refactoring;
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.internal.util.function.TriFunction;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
@@ -45,11 +44,11 @@ import org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil;
 
 abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
 
-  MigrateToAppCompatUsageInfo(@NotNull PsiReference reference) {
+  public MigrateToAppCompatUsageInfo(@NotNull PsiReference reference) {
     super(reference);
   }
 
-  MigrateToAppCompatUsageInfo(@NotNull PsiElement element) {
+  public MigrateToAppCompatUsageInfo(@NotNull PsiElement element) {
     super(element);
   }
 
@@ -69,7 +68,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
   static class ChangeMethodUsageInfo extends MigrateToAppCompatUsageInfo {
     final MethodMigrationEntry myEntry;
 
-    ChangeMethodUsageInfo(PsiReference ref, @NotNull MethodMigrationEntry entry) {
+    public ChangeMethodUsageInfo(PsiReference ref, @NotNull MethodMigrationEntry entry) {
       super(ref);
       myEntry = entry;
     }
@@ -93,7 +92,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
   static class ClassMigrationUsageInfo extends MigrateToAppCompatUsageInfo {
     final ClassMigrationEntry mapEntry;
 
-    ClassMigrationUsageInfo(@NotNull UsageInfo info, @NotNull ClassMigrationEntry mapEntry) {
+    public ClassMigrationUsageInfo(@NotNull UsageInfo info, @NotNull ClassMigrationEntry mapEntry) {
       //noinspection ConstantConditions
       super(info.getElement());
       this.mapEntry = mapEntry;
@@ -285,7 +284,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
 
     private final String mySuggestedSuperClass;
 
-    ChangeCustomViewUsageInfo(@NotNull PsiElement element, @NotNull String suggestedSuperClass) {
+    public ChangeCustomViewUsageInfo(@NotNull PsiElement element, @NotNull String suggestedSuperClass) {
       super(element);
       mySuggestedSuperClass = suggestedSuperClass;
     }
@@ -310,7 +309,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
   static class ReplaceMethodUsageInfo extends MigrateToAppCompatUsageInfo {
     private final ReplaceMethodCallMigrationEntry myEntry;
 
-    ReplaceMethodUsageInfo(@NotNull PsiReference element, @NotNull ReplaceMethodCallMigrationEntry entry) {
+    public ReplaceMethodUsageInfo(@NotNull PsiReference element, @NotNull ReplaceMethodCallMigrationEntry entry) {
       super(element);
       myEntry = entry;
     }
@@ -367,7 +366,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
   static class ChangeXmlTagUsageInfo extends MigrateToAppCompatUsageInfo {
     private final XmlTagMigrationEntry myEntry;
 
-    ChangeXmlTagUsageInfo(@NotNull PsiElement element,
+    public ChangeXmlTagUsageInfo(@NotNull PsiElement element,
                                  @NotNull XmlTagMigrationEntry entry) {
       super(element);
       myEntry = entry;
@@ -396,7 +395,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
   static class ChangeXmlAttrUsageInfo extends MigrateToAppCompatUsageInfo {
     private final AttributeMigrationEntry myEntry;
 
-    ChangeXmlAttrUsageInfo(@NotNull PsiElement element, @NotNull AttributeMigrationEntry entry) {
+    public ChangeXmlAttrUsageInfo(@NotNull PsiElement element, @NotNull AttributeMigrationEntry entry) {
       super(element);
       myEntry = entry;
     }
@@ -424,7 +423,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
   static class ChangeXmlAttrValueUsageInfo extends MigrateToAppCompatUsageInfo {
     private final AttributeValueMigrationEntry myEntry;
 
-    ChangeXmlAttrValueUsageInfo(@NotNull PsiElement element, @NotNull AttributeValueMigrationEntry entry) {
+    public ChangeXmlAttrValueUsageInfo(@NotNull PsiElement element, @NotNull AttributeValueMigrationEntry entry) {
       super(element);
       myEntry = entry;
     }
@@ -709,8 +708,9 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
     private final ProjectBuildModel myProjectBuildModel;
 
     public AddGoogleRepositoryUsageInfo(@NotNull ProjectBuildModel projectBuildModel,
-                                        @NotNull RepositoriesModel repositoriesModel) {
-      super(repositoriesModel.getPsiElement());
+                                        @NotNull RepositoriesModel repositoriesModel,
+                                        @NotNull PsiElement repositoriesModelPsiElement) {
+      super(repositoriesModelPsiElement);
       myProjectBuildModel = projectBuildModel;
       myRepositoriesModel = repositoriesModel;
     }
@@ -722,5 +722,9 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       myProjectBuildModel.applyChanges();
       return getElement();
     }
+  }
+
+  private interface TriFunction<A, B, C, R> {
+    R apply(A a, B b, C c);
   }
 }

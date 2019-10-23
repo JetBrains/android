@@ -123,9 +123,12 @@ public class DeviceArtPainter {
     boolean isTablet = false;
     if (device.getId().contains("Tablet")) { // For example "10.1in WXGA (Tablet)"
       isTablet = true;
-    } else {
+    }
+    else {
       Screen screen = device.getDefaultHardware().getScreen();
-      if (screen != null && screen.getDiagonalLength() >= 6.95) { // Arbitrary
+      if (screen != null
+          && screen.getDiagonalLength() >= Device.MINIMUM_TABLET_SIZE
+          && !device.getDefaultHardware().getScreen().isFoldable()) {
         isTablet = true;
       }
     }

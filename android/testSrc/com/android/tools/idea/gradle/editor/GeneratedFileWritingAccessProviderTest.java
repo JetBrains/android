@@ -25,7 +25,6 @@ import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 
-import java.util.Arrays;
 import java.util.Collection;
 
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
@@ -70,7 +69,7 @@ public class GeneratedFileWritingAccessProviderTest extends JavaProjectTestCase 
   public void testRequestWritingInAndroidModule() {
     simulateIsAndroidModule();
 
-    Collection<VirtualFile> readOnlyFiles = myAccessProvider.requestWriting(Arrays.asList(myRegularFile, myGeneratedFile));
+    Collection<VirtualFile> readOnlyFiles = myAccessProvider.requestWriting(myRegularFile, myGeneratedFile);
     assertThat(readOnlyFiles).containsExactly(myGeneratedFile);
 
     verifyThatModuleSearchIncludedAllFiles();
@@ -79,7 +78,7 @@ public class GeneratedFileWritingAccessProviderTest extends JavaProjectTestCase 
   public void testRequestWritingInNonAndroidModule() {
     when(myProjectInfo.findAndroidModelInModule(any(), eq(false))).thenReturn(null);
 
-    Collection<VirtualFile> readOnlyFiles = myAccessProvider.requestWriting(Arrays.asList(myRegularFile, myGeneratedFile));
+    Collection<VirtualFile> readOnlyFiles = myAccessProvider.requestWriting(myRegularFile, myGeneratedFile);
     assertThat(readOnlyFiles).isEmpty();
 
     verifyThatModuleSearchIncludedAllFiles();

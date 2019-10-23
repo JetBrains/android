@@ -17,6 +17,7 @@ package com.android.tools.idea.sdk;
 
 import com.android.annotations.NonNull;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -452,8 +453,8 @@ public class AndroidSdks {
           result.add(androidJarRoot);
         }
 
-        List<IAndroidTarget.OptionalLibrary> libraries = target.getAdditionalLibraries();
-        for (IAndroidTarget.OptionalLibrary library : libraries) {
+        List<OptionalLibrary> libraries = target.getAdditionalLibraries();
+        for (OptionalLibrary library : libraries) {
           VirtualFile root = getRoot(library);
           if (root != null) {
             result.add(root);
@@ -477,7 +478,7 @@ public class AndroidSdks {
   }
 
   @Nullable
-  private static VirtualFile getRoot(@NotNull IAndroidTarget.OptionalLibrary library) {
+  private static VirtualFile getRoot(@NotNull OptionalLibrary library) {
     File jar = library.getJar();
     if (jar != null) {
       return findFileInJarFileSystem(jar);

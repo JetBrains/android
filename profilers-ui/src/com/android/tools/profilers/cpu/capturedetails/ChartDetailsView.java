@@ -25,7 +25,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
@@ -36,16 +36,18 @@ import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.intellij.ui.DoubleClickListener;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.CardLayout;
+import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.concurrent.TimeUnit;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A base class for {@link CallChartDetailsView} and {@link FlameChartDetailsView} details views.
@@ -115,7 +117,7 @@ abstract class ChartDetailsView extends CaptureDetailsView {
       }
     }
 
-    if (myStageView.getStage().getCapture() != null && myStageView.getStage().getCapture().getType() != CpuProfiler.CpuProfilerType.ATRACE) {
+    if (myStageView.getStage().getCapture() != null && myStageView.getStage().getCapture().getType() != Cpu.CpuTraceType.ATRACE) {
       CodeNavigator navigator = myStageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
       CodeNavigationHandler handler = new CodeNavigationHandler(chart, navigator);
       chart.addMouseListener(handler);
@@ -135,6 +137,8 @@ abstract class ChartDetailsView extends CaptureDetailsView {
         .setMethodName(nativeFunction.getName())
         .setMethodParameters(nativeFunction.getParameters())
         .setNativeCode(true)
+        .setFileName(nativeFunction.getFileName())
+        .setNativeVAddress(nativeFunction.getVAddress())
         .build();
     }
     else if (model instanceof JavaMethodModel) {
@@ -156,7 +160,7 @@ abstract class ChartDetailsView extends CaptureDetailsView {
     @NotNull private final HTreeChart<CaptureNode> myChart;
 
     /**
-     * The call chart details that needs to be rendered.
+     * The {@link CaptureDetails.CallChart} details that needs to be rendered.
      */
     @NotNull private final CaptureDetails.CallChart myCallChart;
 
@@ -234,7 +238,7 @@ abstract class ChartDetailsView extends CaptureDetailsView {
     @NotNull private final HTreeChart<CaptureNode> myChart;
 
     /**
-     * The flame chart details that needs to be rendered.
+     * The {@link CaptureDetails.FlameChart} details that needs to be rendered.
      */
     @NotNull private final CaptureDetails.FlameChart myFlameChart;
 
@@ -245,10 +249,10 @@ abstract class ChartDetailsView extends CaptureDetailsView {
 
     FlameChartDetailsView(CpuProfilerStageView stageView, @NotNull CaptureDetails.FlameChart flameChart) {
       super(stageView, flameChart);
-      // Flame Chart model always correlates to the selected range on the timeline, not necessarily the entire capture. Users cannot
-      // navigate to other part within the capture by interacting with the flame chart UI (they can do so only from timeline UI).
-      // Users can zoom-in and then view only part of the flame chart. Since a part of flame chart may not correspond to a continuous
-      // sub-range on timeline, the timeline selection should not be updated while users are interacting with flame chart UI. Therefore,
+      // FlameChart model always correlates to the selected range on the timeline, not necessarily the entire capture. Users cannot
+      // navigate to other part within the capture by interacting with the FlameChart UI (they can do so only from timeline UI).
+      // Users can zoom-in and then view only part of the FlameChart. Since a part of FlameChart may not correspond to a continuous
+      // sub-range on timeline, the timeline selection should not be updated while users are interacting with FlameChart UI. Therefore,
       // we create new Range object (myMasterRange) to represent the range visible to the user. We cannot just pass flameChart.getRange().
       myFlameChart = flameChart;
       myMasterRange = new Range(flameChart.getRange());
@@ -293,7 +297,7 @@ abstract class ChartDetailsView extends CaptureDetailsView {
         protected boolean onDoubleClick(MouseEvent event) {
           setLastPopupPoint(event);
           CodeLocation codeLocation = getCodeLocation();
-          if (codeLocation != null && navigator.isNavigatable(codeLocation)) {
+          if (codeLocation != null) {
             navigator.navigate(codeLocation);
           }
           return false;

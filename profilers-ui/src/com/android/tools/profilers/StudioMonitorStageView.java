@@ -108,6 +108,9 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       component.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseReleased(MouseEvent e) {
+          // Sets the focus on the stage UI. This prevents the sessions UI from maintaining focus when the users starts navigating through
+          // the profilers main UI.
+          getProfilersView().getStageComponent().requestFocusInWindow();
           if (SwingUtilities.isLeftMouseButton(e)) {
             expandMonitor(monitor);
           }

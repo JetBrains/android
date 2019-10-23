@@ -54,8 +54,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 
 /**
  * A UI component which lists the existing AVDs
@@ -67,7 +67,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
 
   private static final String MOBILE_TAG_STRING = "mobile-device";
 
-  private final Project myProject;
+  @Nullable private final Project myProject;
   private final JPanel myCenterCardPanel;
   private final JPanel myNotificationPanel;
   private final AvdListDialog myDialog;
@@ -349,7 +349,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     String path;
     HighlightableIconPair thisClassPair;
     if (id.contains("android-")) {
-      path = String.format("/studio/icons/avd/device-%s_large.png", id.substring("android-".length()));
+      path = String.format("/studio/icons/avd/device-%s-large.svg", id.substring("android-".length()));
       thisClassPair = myDeviceClassIcons.get(path);
       if (thisClassPair == null) {
         thisClassPair = new HighlightableIconPair(IconLoader.getIcon(path, AvdDisplayList.class));
@@ -371,7 +371,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     private Icon baseIcon;
     private Icon highlightedIcon;
 
-    HighlightableIconPair(@Nullable Icon theBaseIcon) {
+    public HighlightableIconPair(@Nullable Icon theBaseIcon) {
       baseIcon = theBaseIcon;
       if (theBaseIcon != null) {
         highlightedIcon = ColoredIconGenerator.INSTANCE.generateWhiteIcon(theBaseIcon);
@@ -487,7 +487,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         return targetString(info.getAndroidVersion(), info.getTag());
       }
     },
-    new AvdColumnInfo("CPU/ABI", JBUIScale.scale(60)) {
+    new AvdColumnInfo("CPU/ABI") {
       @NotNull
       @Override
       public String valueOf(AvdInfo avdInfo) {
@@ -566,12 +566,12 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
 
     };
 
-    AvdIconColumnInfo(@NotNull String name, int width) {
+    public AvdIconColumnInfo(@NotNull String name, int width) {
       super(name);
       myWidth = width;
     }
 
-    AvdIconColumnInfo(@NotNull String name) {
+    public AvdIconColumnInfo(@NotNull String name) {
       this(name, JBUIScale.scale(50));
     }
 
@@ -680,13 +680,13 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
      */
     private final Map<AvdInfo, ActionRenderer> ourActionPanelRendererEditor = Maps.newHashMap();
 
-    AvdActionsColumnInfo(@NotNull String name, int numVisibleActions) {
+    public AvdActionsColumnInfo(@NotNull String name, int numVisibleActions) {
       super(name);
       myNumVisibleActions = numVisibleActions;
       myWidth = numVisibleActions == -1 ? -1 : JBUIScale.scale(45) * numVisibleActions + JBUIScale.scale(75);
     }
 
-    AvdActionsColumnInfo(@NotNull String name) {
+    public AvdActionsColumnInfo(@NotNull String name) {
       this(name, -1);
     }
 
@@ -748,7 +748,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
 
   private class AvdSizeColumnInfo extends AvdColumnInfo {
 
-    AvdSizeColumnInfo(@NotNull String name) {
+    public AvdSizeColumnInfo(@NotNull String name) {
       super(name);
     }
 

@@ -167,5 +167,6 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
       }
     }
     return false;
+
   }
 }

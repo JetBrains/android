@@ -16,23 +16,54 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.builder.model.ProductFlavor
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
-import com.android.tools.idea.gradle.structure.model.helpers.*
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
+import com.android.tools.idea.gradle.structure.model.helpers.formatUnit
+import com.android.tools.idea.gradle.structure.model.helpers.installedSdksAsInts
+import com.android.tools.idea.gradle.structure.model.helpers.installedSdksAsStrings
+import com.android.tools.idea.gradle.structure.model.helpers.parseAny
+import com.android.tools.idea.gradle.structure.model.helpers.parseBoolean
+import com.android.tools.idea.gradle.structure.model.helpers.parseFile
+import com.android.tools.idea.gradle.structure.model.helpers.parseInt
+import com.android.tools.idea.gradle.structure.model.helpers.parseReferenceOnly
+import com.android.tools.idea.gradle.structure.model.helpers.parseString
+import com.android.tools.idea.gradle.structure.model.helpers.proGuardFileValues
+import com.android.tools.idea.gradle.structure.model.helpers.productFlavorMatchingFallbackValues
+import com.android.tools.idea.gradle.structure.model.helpers.signingConfigs
+import com.android.tools.idea.gradle.structure.model.helpers.toIntOrString
+import com.android.tools.idea.gradle.structure.model.helpers.withProFileSelector
+import com.android.tools.idea.gradle.structure.model.meta.ListProperty
+import com.android.tools.idea.gradle.structure.model.meta.MapProperty
+import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
+import com.android.tools.idea.gradle.structure.model.meta.SimpleProperty
+import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
+import com.android.tools.idea.gradle.structure.model.meta.asAny
+import com.android.tools.idea.gradle.structure.model.meta.asBoolean
+import com.android.tools.idea.gradle.structure.model.meta.asFile
+import com.android.tools.idea.gradle.structure.model.meta.asInt
+import com.android.tools.idea.gradle.structure.model.meta.asString
+import com.android.tools.idea.gradle.structure.model.meta.asUnit
+import com.android.tools.idea.gradle.structure.model.meta.getValue
+import com.android.tools.idea.gradle.structure.model.meta.listProperty
+import com.android.tools.idea.gradle.structure.model.meta.mapProperty
+import com.android.tools.idea.gradle.structure.model.meta.maybeValue
+import com.android.tools.idea.gradle.structure.model.meta.property
+import com.android.tools.idea.gradle.structure.navigation.PsProductFlavorNavigationPath
 import com.google.common.util.concurrent.Futures.immediateFuture
+import icons.StudioIcons.Misc.PRODUCT_FLAVOR
 import java.io.File
+import javax.swing.Icon
 
 data class PsProductFlavorKey(val dimension: String, val name: String)
 
 open class PsProductFlavor(
-  final override val parent: PsAndroidModule
+  final override val parent: PsAndroidModule,
+  private val renamed: (PsProductFlavorKey, PsProductFlavorKey) -> Unit
 ) : PsChildModel() {
   override val descriptor by ProductFlavorDescriptors
   var resolvedModel: ProductFlavor? = null
   private var parsedModel: ProductFlavorModel? = null
-
-  constructor(parent: PsAndroidModule, resolvedModel: ProductFlavor?, parsedModel: ProductFlavorModel?) : this(parent) {
-    init(resolvedModel, parsedModel)
-  }
 
   fun init(resolvedModel: ProductFlavor?, parsedModel: ProductFlavorModel?) {
     this.resolvedModel = resolvedModel
@@ -40,10 +71,23 @@ open class PsProductFlavor(
   }
 
   override val name: String get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
+  override val path: PsProductFlavorNavigationPath get() = PsProductFlavorNavigationPath(parent.path.productFlavorsPath, name)
+
+  /**
+   * The dimension the product flavor belongs to, i.e. either the configured dimension or the default dimension.
+   */
+  val effectiveDimension: String? get() =
+    (configuredDimension.maybeValue ?: parent.flavorDimensions.singleOrNull()?.name)
+      ?.takeIf { parent.findFlavorDimension(it) != null }
 
   var applicationId by ProductFlavorDescriptors.applicationId
   var applicationIdSuffix by ProductFlavorDescriptors.applicationIdSuffix
-  var dimension by ProductFlavorDescriptors.dimension
+
+  /**
+   * The 'dimension' property. Note, for filtering and matching, [effectiveDimension] should be used.
+   */
+  var configuredDimension by ProductFlavorDescriptors.dimension
+
   var maxSdkVersion by ProductFlavorDescriptors.maxSdkVersion
   var minSdkVersion by ProductFlavorDescriptors.minSdkVersion
   var multiDexEnabled by ProductFlavorDescriptors.multiDexEnabled
@@ -56,15 +100,27 @@ open class PsProductFlavor(
   var versionName by ProductFlavorDescriptors.versionName
   var versionNameSuffix by ProductFlavorDescriptors.versionNameSuffix
   var resConfigs by ProductFlavorDescriptors.resConfigs
+  var matchingFallbacks by ProductFlavorDescriptors.matchingFallbacks
+  var consumerProguardFiles by ProductFlavorDescriptors.consumerProGuardFiles
+  var proguardFiles by ProductFlavorDescriptors.proGuardFiles
   var manifestPlaceholders by ProductFlavorDescriptors.manifestPlaceholders
   var testInstrumentationRunnerArguments by ProductFlavorDescriptors.testInstrumentationRunnerArguments
 
   override val isDeclared: Boolean get() = parsedModel != null
+  override val icon: Icon = PRODUCT_FLAVOR
+
+  fun rename(newName: String) {
+    val oldName = name
+    parsedModel!!.rename(newName)
+    renamed(PsProductFlavorKey(effectiveDimension.orEmpty(), oldName), PsProductFlavorKey(effectiveDimension.orEmpty(), newName))
+  }
 
   object ProductFlavorDescriptors : ModelDescriptor<PsProductFlavor, ProductFlavor, ProductFlavorModel> {
     override fun getResolved(model: PsProductFlavor): ProductFlavor? = model.resolvedModel
 
     override fun getParsed(model: PsProductFlavor): ProductFlavorModel? = model.parsedModel
+
+    override fun prepareForModification(model: PsProductFlavor) = Unit
 
     override fun setModified(model: PsProductFlavor) {
       model.isModified = true
@@ -94,6 +150,7 @@ open class PsProductFlavor(
       parsedPropertyGetter = { dimension() },
       getter = { asString() },
       setter = { setValue(it) },
+      refresher = { parent.resetProductFlavors() },
       parser = ::parseString,
       knownValuesGetter = { model -> immediateFuture(model.parent.flavorDimensions.map { ValueDescriptor(it.name, it.name) }) }
     )
@@ -113,7 +170,7 @@ open class PsProductFlavor(
       resolvedValueGetter = { minSdkVersion?.apiLevel?.toString() },
       parsedPropertyGetter = { minSdkVersion() },
       getter = { asString() },
-      setter = { setValue(it) },
+      setter = { setValue(it.toIntOrString()) },
       parser = ::parseString,
       knownValuesGetter = ::installedSdksAsStrings
     )
@@ -144,7 +201,7 @@ open class PsProductFlavor(
       resolvedValueGetter = { targetSdkVersion?.apiLevel?.toString() },
       parsedPropertyGetter = { targetSdkVersion() },
       getter = { asString() },
-      setter = { setValue(it) },
+      setter = { setValue(it.toIntOrString()) },
       parser = ::parseString,
       knownValuesGetter = ::installedSdksAsStrings
 
@@ -225,7 +282,7 @@ open class PsProductFlavor(
       setter = { setValue(it) },
       parser = ::parseString,
       variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
-      knownValuesGetter = { model -> productFlavorMatchingFallbackValues(model.parent.parent, model.dimension.maybeValue) }
+      knownValuesGetter = { model -> productFlavorMatchingFallbackValues(model.parent.parent, model.configuredDimension.maybeValue) }
     )
 
     val consumerProGuardFiles: ListProperty<PsProductFlavor, File> = listProperty(
@@ -237,6 +294,7 @@ open class PsProductFlavor(
       parser = ::parseFile,
       knownValuesGetter = { model -> proGuardFileValues(model.parent) }
     )
+      .withProFileSelector(module = { parent })
 
     val proGuardFiles: ListProperty<PsProductFlavor, File> = listProperty(
       "ProGuard Files",
@@ -247,6 +305,7 @@ open class PsProductFlavor(
       parser = ::parseFile,
       knownValuesGetter = { model -> proGuardFileValues(model.parent) }
     )
+      .withProFileSelector(module = { parent })
 
     val resConfigs: ListProperty<PsProductFlavor, String> = listProperty(
       "Resource Configs",

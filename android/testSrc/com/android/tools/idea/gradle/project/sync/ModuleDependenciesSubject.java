@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.google.common.truth.FailureStrategy;
-import com.google.common.truth.SubjectFactory;
+import com.google.common.truth.FailureMetadata;
+import com.google.common.truth.Subject;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleOrderEntry;
@@ -26,18 +26,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ModuleDependenciesSubject extends DependenciesSubject<ModuleOrderEntry> {
+
   @NotNull
-  public static SubjectFactory<DependenciesSubject<ModuleOrderEntry>, Module> moduleDependencies() {
-    return new SubjectFactory<DependenciesSubject<ModuleOrderEntry>, Module>() {
-      @Override
-      public ModuleDependenciesSubject getSubject(FailureStrategy failureStrategy, @Nullable Module subject) {
-        return new ModuleDependenciesSubject(failureStrategy, subject);
-      }
-    };
+  public static Subject.Factory<DependenciesSubject<ModuleOrderEntry>, Module> moduleDependencies() {
+    return ModuleDependenciesSubject::new;
   }
 
-  public ModuleDependenciesSubject(FailureStrategy failureStrategy, @Nullable Module subject) {
-    super(failureStrategy, subject);
+  public ModuleDependenciesSubject(FailureMetadata failureMetadata, @Nullable Module subject) {
+    super(failureMetadata, subject);
   }
 
   @Override

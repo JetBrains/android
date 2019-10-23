@@ -16,19 +16,18 @@
 package org.jetbrains.android.exportSignedPackage
 
 import com.intellij.credentialStore.CredentialAttributes
-import com.intellij.credentialStore.Credentials
 import com.intellij.credentialStore.PasswordSafeSettings
 import com.intellij.credentialStore.ProviderType
 import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.ide.passwordSafe.impl.BasePasswordSafe
+import com.intellij.ide.wizard.CommitStepException
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
-import com.intellij.testFramework.LightIdeaTestCase
+import com.intellij.testFramework.IdeaTestCase
 import com.intellij.testFramework.replaceService
+import com.intellij.util.ThrowableRunnable
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.concurrency.Promise
-import org.jetbrains.concurrency.resolvedPromise
+import org.jetbrains.android.util.AndroidBundle
 import org.junit.Assert.assertArrayEquals
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -36,7 +35,7 @@ import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
 
-class KeystoreStepTest : LightIdeaTestCase() {
+class KeystoreStepTest : IdeaTestCase() {
   private lateinit var facets: MutableList<AndroidFacet>
 
   override fun setUp() {
@@ -79,6 +78,77 @@ class KeystoreStepTest : LightIdeaTestCase() {
 
     assertEquals(false, keystoreStep.myExportKeyPathLabel.isVisible)
     assertEquals(false, keystoreStep.myExportKeyPathField.isVisible)
+  }
+
+  fun testEnableEncryptedKeyCheckboxNotSelected_NextSucceeds() {
+    val wizard = setupWizardHelper()
+    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+    val testKeyStorePath = "/test/path/to/keystore"
+    val testKeyAlias = "testkey"
+    val testKeyStorePassword = "123456"
+    val testKeyPassword = "qwerty"
+
+    val settings = GenerateSignedApkSettings.getInstance(wizard.project)
+    settings.KEY_STORE_PATH = testKeyStorePath
+    settings.KEY_ALIAS = testKeyAlias
+    settings.REMEMBER_PASSWORDS = false
+    settings.EXPORT_PRIVATE_KEY = false
+    project.replaceService(GenerateSignedApkSettings::class.java, settings, testRootDisposable)
+
+    val keystoreStep = KeystoreStep(wizard, true, facets)
+    keystoreStep.keyStorePasswordField.text = testKeyStorePassword
+    keystoreStep.keyPasswordField.text = testKeyPassword
+    keystoreStep._init()
+    keystoreStep.commitForNext()
+  }
+
+  fun testEnableEncryptedKeyCheckboxSelectedWithoutExportPath_NextFails() {
+    val wizard = setupWizardHelper()
+    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+    val testKeyStorePath = "/test/path/to/keystore"
+    val testKeyAlias = "testkey"
+    val testKeyStorePassword = "123456"
+    val testKeyPassword = "qwerty"
+
+    val settings = GenerateSignedApkSettings.getInstance(wizard.project)
+    settings.KEY_STORE_PATH = testKeyStorePath
+    settings.KEY_ALIAS = testKeyAlias
+    settings.REMEMBER_PASSWORDS = false
+    settings.EXPORT_PRIVATE_KEY = true
+    project.replaceService(GenerateSignedApkSettings::class.java, settings, testRootDisposable)
+
+    val keystoreStep = KeystoreStep(wizard, true, facets)
+    keystoreStep.keyStorePasswordField.text = testKeyStorePassword
+    keystoreStep.keyPasswordField.text = testKeyPassword
+    keystoreStep.myExportKeyPathField.text = ""
+    keystoreStep._init()
+    assertThrows(CommitStepException::class.java,
+                 AndroidBundle.message("android.apk.sign.gradle.missing.destination", wizard.targetType),
+                 ThrowableRunnable<RuntimeException> { keystoreStep.commitForNext() })
+  }
+
+  fun testEnableEncryptedKeyCheckboxSelectedWithExportPath_NextSucceeds() {
+    val wizard = setupWizardHelper()
+    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+    val testKeyStorePath = "/test/path/to/keystore"
+    val testKeyAlias = "testkey"
+    val testKeyStorePassword = "123456"
+    val testKeyPassword = "qwerty"
+    val testExportKeyPath = "test"
+    File(testExportKeyPath).mkdir()
+
+    val settings = GenerateSignedApkSettings.getInstance(wizard.project)
+    settings.KEY_STORE_PATH = testKeyStorePath
+    settings.KEY_ALIAS = testKeyAlias
+    settings.REMEMBER_PASSWORDS = false
+    settings.EXPORT_PRIVATE_KEY = true
+    project.replaceService(GenerateSignedApkSettings::class.java, settings, testRootDisposable)
+
+    val keystoreStep = KeystoreStep(wizard, true, facets)
+    keystoreStep.keyStorePasswordField.text = testKeyStorePassword
+    keystoreStep.keyPasswordField.text = testKeyPassword
+    keystoreStep.myExportKeyPathField.text = testExportKeyPath
+    keystoreStep._init()
   }
 
   fun testModuelDropDownEnabledByDefault() {
@@ -128,7 +198,9 @@ class KeystoreStepTest : LightIdeaTestCase() {
 
     project.replaceService(GenerateSignedApkSettings::class.java, settings, testRootDisposable)
 
-    val passwordSafe = PasswordSafeMock()
+    val passwordSafeSettings = PasswordSafeSettings()
+    passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
+    val passwordSafe = BasePasswordSafe(passwordSafeSettings)
     ApplicationManager.getApplication().replaceService(PasswordSafe::class.java, passwordSafe, testRootDisposable)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
@@ -157,7 +229,7 @@ class KeystoreStepTest : LightIdeaTestCase() {
     ApplicationManager.getApplication().replaceService(PasswordSafe::class.java, passwordSafe, testRootDisposable)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(getProject())
+    `when`(wizard.project).thenReturn(myProject)
     `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
@@ -206,7 +278,7 @@ class KeystoreStepTest : LightIdeaTestCase() {
     ApplicationManager.getApplication().replaceService(PasswordSafe::class.java, passwordSafe, testRootDisposable)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(getProject())
+    `when`(wizard.project).thenReturn(myProject)
     `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
@@ -225,27 +297,5 @@ class KeystoreStepTest : LightIdeaTestCase() {
 
     // Now check that the old-style password is erased
     assertEquals(null, passwordSafe.getPassword(getProject(), legacyRequestor, keyPasswordKey))
-  }
-
-  class PasswordSafeMock : PasswordSafe() {
-    private val storedPasswords = HashMap<Class<*>, HashMap<String, String?>>()
-
-    override fun getAsync(attributes: CredentialAttributes): Promise<Credentials?> = resolvedPromise()
-    override var isRememberPasswordByDefault: Boolean = false
-    override val isMemoryOnly: Boolean = false
-    override fun isPasswordStoredOnlyInMemory(attributes: CredentialAttributes, credentials: Credentials): Boolean = false
-    override fun set(attributes: CredentialAttributes, credentials: Credentials?, memoryOnly: Boolean) {}
-    override fun set(attributes: CredentialAttributes, credentials: Credentials?) {}
-    override fun get(attributes: CredentialAttributes): Credentials? = null
-
-    override fun storePassword(project: Project?, requestor: Class<*>, accountName: String, value: String?) {
-      val account = storedPasswords.getOrDefault(requestor, HashMap())
-      account[accountName] = value
-      storedPasswords[requestor] = account
-    }
-
-    override fun getPassword(project: Project?, requestor: Class<*>, accountName: String): String? {
-      return storedPasswords[requestor]?.get(accountName)
-    }
   }
 }

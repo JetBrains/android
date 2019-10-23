@@ -19,6 +19,7 @@ import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenPluginBuildFileHyperlink;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.google.common.annotations.VisibleForTesting;
@@ -31,7 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly;
+import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class OldAndroidPluginErrorHandler extends BaseSyncErrorHandler {
@@ -45,7 +47,7 @@ public class OldAndroidPluginErrorHandler extends BaseSyncErrorHandler {
     // To override this check from the command line please set the ANDROID_DAILY_OVERRIDE environment variable to "e3353206c64a2c010454e8bb4f2d7187b56c198"
     String text = rootCause.getMessage();
     if (isMatching(text)) {
-      updateUsageTracker();
+      updateUsageTracker(project, OLD_ANDROID_PLUGIN);
       // This way we remove extra lines and spaces from original message.
       return Joiner.on('\n').join(Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text));
     }
@@ -69,9 +71,12 @@ public class OldAndroidPluginErrorHandler extends BaseSyncErrorHandler {
   @NotNull
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
-    hyperlinks.add(new FixAndroidGradlePluginVersionHyperlink());
+    //TODO(b/130224064): need to remove check when kts fully supported
+    if (!GradleUtil.hasKtsBuildFiles(project)) {
+      hyperlinks.add(new FixAndroidGradlePluginVersionHyperlink());
+    }
     if (project.isInitialized()) {
-      AndroidPluginInfo result = searchInBuildFilesOnly(project);
+      AndroidPluginInfo result = findFromBuildFiles(project);
       if (result != null && result.getPluginBuildFile() != null) {
         hyperlinks.add(new OpenFileHyperlink(result.getPluginBuildFile().getPath()));
       }

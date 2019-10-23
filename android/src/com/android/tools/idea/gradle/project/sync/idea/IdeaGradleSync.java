@@ -38,7 +38,6 @@ import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMo
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,6 +53,7 @@ import java.util.*;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.idea.ProjectFinder.registerAsNewProject;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
+import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.areCachedFilesMissing;
 import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.createProjectSetupFromCacheTaskWithStartMessage;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleExecutionSettings;
@@ -65,14 +65,6 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refres
 import static java.lang.System.currentTimeMillis;
 
 public class IdeaGradleSync implements GradleSync {
-  /**
-   * This is workaround to provide AndroidSyncIssue reporting with the sync task id to be able to work with the Build Sync view
-   * Should be removed when the GradleSyncMessages will be able to use the proper sync task id for the reporting
-   */
-  @Deprecated
-  @NotNull public static final Key<ExternalSystemTaskId> LAST_SYNC_TASK_ID_KEY =
-    Key.create("com.intellij.openapi.externalSystem.util.taskId");
-
   private static final boolean SYNC_WITH_CACHED_MODEL_ONLY =
     SystemProperties.getBooleanProperty("studio.sync.with.cached.model.only", false);
 
@@ -99,10 +91,10 @@ public class IdeaGradleSync implements GradleSync {
       if (buildFileChecksums != null && buildFileChecksums.canUseCachedData()) {
         DataNodeCaches dataNodeCaches = DataNodeCaches.getInstance(myProject);
         DataNode<ProjectData> cache = dataNodeCaches.getCachedProjectData();
-        if (cache != null && !dataNodeCaches.isCacheMissingModels(cache)) {
+        if (cache != null && !dataNodeCaches.isCacheMissingModels(cache) && !areCachedFilesMissing(myProject)) {
           PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
           setupRequest.usingCachedGradleModels = true;
-          setupRequest.generateSourcesAfterSync = false;
+          setupRequest.generateSourcesAfterSync = true;
           setupRequest.lastSyncTimestamp = buildFileChecksums.getLastGradleSyncTimestamp();
 
           setSkipAndroidPluginUpgrade(request, setupRequest);
@@ -120,6 +112,7 @@ public class IdeaGradleSync implements GradleSync {
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
     setupRequest.generateSourcesAfterSync = request.generateSourcesOnSuccess;
     setupRequest.cleanProjectAfterSync = request.cleanProject;
+    setupRequest.usingCachedGradleModels = false;
 
     setSkipAndroidPluginUpgrade(request, setupRequest);
 

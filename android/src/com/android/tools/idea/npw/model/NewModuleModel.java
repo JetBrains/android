@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.model;
 
 import com.android.tools.idea.instantapp.InstantApps;
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.*;
@@ -39,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.npw.model.RenderTemplateModel.getInitialSourceLanguage;
 import static com.android.tools.idea.observable.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
@@ -57,10 +59,12 @@ public final class NewModuleModel extends WizardModel {
   @NotNull private final Map<String, Object> myTemplateValues = Maps.newHashMap();
 
   @NotNull private final StringProperty myApplicationName;
+  @NotNull private final StringProperty myProjectLocation;
   @NotNull private final StringProperty myPackageName = new StringValueProperty();
   @NotNull private final StringProperty myProjectPackageName;
   @NotNull private final BoolProperty myIsInstantApp = new BoolValueProperty();
   @NotNull private final BoolProperty myEnableCppSupport;
+  @NotNull private final OptionalValueProperty<Language> myLanguage;
   @NotNull private final OptionalProperty<Project> myProject;
   @NotNull private final ProjectSyncInvoker myProjectSyncInvoker;
   @NotNull private final MultiTemplateRenderer myMultiTemplateRenderer;
@@ -78,11 +82,12 @@ public final class NewModuleModel extends WizardModel {
     myProjectPackageName = myPackageName;
     myCreateInExistingProject = true;
     myEnableCppSupport = new BoolValueProperty();
-
+    myLanguage = new OptionalValueProperty<>(getInitialSourceLanguage(project));
     myApplicationName = new StringValueProperty(message("android.wizard.module.config.new.application"));
     myApplicationName.addConstraint(String::trim);
-    myIsLibrary.addListener(sender -> updateApplicationName());
-    myIsInstantApp.addListener(sender -> updateApplicationName());
+    myProjectLocation = new StringValueProperty(project.getBasePath());
+    myIsLibrary.addListener(() -> updateApplicationName());
+    myIsInstantApp.addListener(() -> updateApplicationName());
 
     myMultiTemplateRenderer = new MultiTemplateRenderer(project, projectSyncInvoker);
   }
@@ -94,9 +99,11 @@ public final class NewModuleModel extends WizardModel {
     myCreateInExistingProject = false;
     myEnableCppSupport = projectModel.enableCppSupport();
     myApplicationName = projectModel.applicationName();
+    myProjectLocation = projectModel.projectLocation();
     myTemplateFile.setValue(templateFile);
     myMultiTemplateRenderer = projectModel.getMultiTemplateRenderer();
     myMultiTemplateRenderer.incrementRenders();
+    myLanguage = new OptionalValueProperty<>();
 
     myBindings.bind(myPackageName, myProjectPackageName, myIsInstantApp.not());
   }
@@ -118,6 +125,11 @@ public final class NewModuleModel extends WizardModel {
   @NotNull
   public StringProperty applicationName() {
     return myApplicationName;
+  }
+
+  @NotNull
+  public StringProperty projectLocation() {
+    return myProjectLocation;
   }
 
   @NotNull
@@ -148,6 +160,11 @@ public final class NewModuleModel extends WizardModel {
   @NotNull
   public BoolProperty enableCppSupport() {
     return myEnableCppSupport;
+  }
+
+  @NotNull
+  public OptionalValueProperty<Language> language() {
+    return myLanguage;
   }
 
   @NotNull
@@ -190,9 +207,17 @@ public final class NewModuleModel extends WizardModel {
     Map<String, Object> renderTemplateValues = Maps.newHashMap();
     new TemplateValueInjector(renderTemplateValues)
       .setBuildVersion(renderModel.androidSdkInfo().getValue(), project)
-      .setModuleRoots(renderModel.getTemplate().get().getPaths(), packageName().get());
+      .setModuleRoots(renderModel.getTemplate().get().getPaths(), project.getBasePath(), moduleName().get(), packageName().get());
 
     getRenderTemplateValues().setValue(renderTemplateValues);
+  }
+
+  @NotNull
+  public static File getModuleRoot(@NotNull String projectLocation, @NotNull String moduleName) {
+    // Module names may use ":" for sub folders. This mapping is only true when creating new modules, as the user can later customize
+    // the Module Path (called Project Path in gradle world) in "settings.gradle"
+    moduleName = moduleName.replace(':', File.separatorChar);
+    return new File(projectLocation, moduleName);
   }
 
   @Override
@@ -242,6 +267,9 @@ public final class NewModuleModel extends WizardModel {
       }
 
       if (renderTemplateValues != null) {
+        if (language().get().isPresent()) { // For new Projects, we have a different UI, so no Language should be present
+          new TemplateValueInjector(renderTemplateValues).setLanguage(language().getValue());
+        }
         myTemplateValues.putAll(renderTemplateValues);
       }
 
@@ -267,7 +295,7 @@ public final class NewModuleModel extends WizardModel {
     private boolean renderModule(boolean dryRun, @NotNull Map<String, Object> templateState, @NotNull Project project,
                                  @NotNull String moduleName) {
       File projectRoot = new File(project.getBasePath());
-      File moduleRoot = new File(projectRoot, moduleName);
+      File moduleRoot = getModuleRoot(project.getBasePath(), moduleName);
       Template template = Template.createFromPath(myTemplateFile.getValue());
       List<File> filesToOpen = new ArrayList<>();
 

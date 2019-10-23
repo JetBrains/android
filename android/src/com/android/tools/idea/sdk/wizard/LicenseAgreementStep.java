@@ -112,13 +112,10 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
     myLicenseTextField.setEditable(false);
 
     final SelectedProperty accepted = new SelectedProperty(myAcceptRadioButton);
-    accepted.addListener(new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        myAcceptances.put(myCurrentLicense, accepted.get());
-        checkAllLicensesAreAccepted();
-        myChangeTree.repaint();
-      }
+    accepted.addListener(() -> {
+      myAcceptances.put(myCurrentLicense, accepted.get());
+      checkAllLicensesAreAccepted();
+      myChangeTree.repaint();
     });
 
     myChangeTree.addTreeSelectionListener(createTreeSelectionListener());
@@ -298,7 +295,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
     public RemotePackage myPackage;
     public License license;
 
-    Change(@NotNull RemotePackage p, @NotNull License license) {
+    public Change(@NotNull RemotePackage p, @NotNull License license) {
       this.myPackage = p;
       this.license = license;
     }

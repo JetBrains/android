@@ -1030,7 +1030,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
           "navigationBarColor",
           "statusBarColor");
 
-    SimpleModeFilter() {
+    public SimpleModeFilter() {
       myIsFilterEnabled = true;
       filterAttributes = new HashSet<>();
     }
@@ -1087,7 +1087,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
   }
 
   class StyleAttributesFilter extends AttributesFilter {
-    StyleAttributesFilter() {
+    public StyleAttributesFilter() {
       myIsFilterEnabled = true;
       filterAttributes = Collections.emptySet();
     }

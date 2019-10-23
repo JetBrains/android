@@ -17,8 +17,6 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import static com.android.SdkConstants.ANDROID_MATERIAL_PKG;
 import static com.android.SdkConstants.ATTR_BACKGROUND;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.ATTR_STYLE;
 import static com.android.SdkConstants.ATTR_TAB_BACKGROUND;
 import static com.android.SdkConstants.ATTR_TAB_CONTENT_START;
@@ -108,21 +106,17 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
     String tabItem = tagName.startsWith(ANDROID_MATERIAL_PKG) ? TAB_ITEM.newName() : TAB_ITEM.oldName();
     return new XmlBuilder()
       .startTag(tagName)
-      .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
-      .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+      .withSize(VALUE_MATCH_PARENT, VALUE_WRAP_CONTENT)
       .startTag(tabItem)
-      .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
-      .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+      .wrapContent()
       .androidAttribute(ATTR_TEXT, "Monday")
       .endTag(tabItem)
       .startTag(tabItem)
-      .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
-      .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+      .wrapContent()
       .androidAttribute(ATTR_TEXT, "Tuesday")
       .endTag(tabItem)
       .startTag(tabItem)
-      .androidAttribute(ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
-      .androidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+      .wrapContent()
       .androidAttribute(ATTR_TEXT, "Wednesday")
       .endTag(tabItem)
       .endTag(tagName)

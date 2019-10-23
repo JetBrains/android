@@ -28,7 +28,7 @@ abstract class LongRunningOperationTracker implements Disposable {
   private boolean myIsCancelled;
   private long myStartNanoTime;
 
-  LongRunningOperationTracker(@NotNull DeviceExplorerView view) {
+  public LongRunningOperationTracker(@NotNull DeviceExplorerView view) {
     myView = view;
     myProgressListener = () -> myIsCancelled = true;
   }

@@ -17,7 +17,7 @@ package com.android.tools.idea.refactoring.modularize;
 
 import com.android.resources.ResourceUrl;
 import com.intellij.ui.ColoredTreeCellRenderer;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 public class ResourceUrlTreeNode extends DependencyTreeNode {
@@ -28,7 +28,7 @@ public class ResourceUrlTreeNode extends DependencyTreeNode {
 
   @Override
   public void render(@NotNull ColoredTreeCellRenderer renderer) {
-    renderer.setIcon(AndroidIcons.AndroidFile);
+    renderer.setIcon(StudioIcons.Shell.Filetree.ANDROID_FILE);
     renderer.append((getUserObject()).toString(), getTextAttributes());
   }
 }

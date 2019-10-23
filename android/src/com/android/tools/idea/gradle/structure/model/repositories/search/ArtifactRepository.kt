@@ -17,10 +17,12 @@ package com.android.tools.idea.gradle.structure.model.repositories.search
 
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.wireless.android.sdk.stats.PSDEvent
 import org.jetbrains.ide.PooledThreadExecutor
+import java.time.Duration
 import java.util.concurrent.Callable
 
-abstract class ArtifactRepository : ArtifactRepositorySearchService {
+abstract class ArtifactRepository(val repoForStats: PSDEvent.PSDRepositoryUsage.PSDRepository) : ArtifactRepositorySearchService {
   private val executor = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE)
 
   abstract val name: String
@@ -28,12 +30,18 @@ abstract class ArtifactRepository : ArtifactRepositorySearchService {
   @Throws(Exception::class) protected abstract fun doSearch(request: SearchRequest): SearchResult
 
   override fun search(request: SearchRequest): ListenableFuture<SearchResult> =
-    executor.submit(Callable {
+    executor.submit(Callable { executeAndMeasure(request) })
+
+  private fun executeAndMeasure(request: SearchRequest): SearchResult {
+    val startedAt = System.currentTimeMillis()
+    return (
       try {
         doSearch(request)
       }
       catch (e: Exception) {
         SearchResult(e)
-      }
-    })
+      })
+      .copy(
+        stats = SearchResultStats.duration(repoForStats, Duration.ofMillis(System.currentTimeMillis() - startedAt)))
+  }
 }

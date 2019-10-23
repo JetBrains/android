@@ -22,13 +22,12 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class InstrumentationTest {
@@ -78,9 +77,7 @@ public class InstrumentationTest {
       .selectModuleForAndroidInstrumentedTestsConfiguration(APP_NAME)
       .clickOk();
 
-    ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
+    ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME, emulator.getDefaultAvdName());
 
     ideFrameFixture.getRunToolWindow().findContent(INSTRUMENTED_TEST_CONF_NAME)
       .waitForOutput(new PatternTextMatcher(INSTRUMENTED_TEST_OUTPUT), 120);

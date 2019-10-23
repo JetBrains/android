@@ -96,7 +96,7 @@ RequestExecutionLevel admin # The uninstaller always runs in admin mode
 !define BAD_CHARS '?%*:|"<>!;'
 
 !define VERSION_MAJOR 3
-!define VERSION_MINOR 3
+!define VERSION_MINOR 5
 !define VERSION ${VERSION_MAJOR}.${VERSION_MINOR}
 !define VENDOR Android
 !define COMPANY "Google LLC"

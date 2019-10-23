@@ -32,7 +32,7 @@ public class GenericNamedPresentationProvider<T extends ManifestElementWithName>
       return null;
     }
 
-    final XmlAttribute attribute = tag.getAttribute("name", SdkConstants.NS_RESOURCES);
+    final XmlAttribute attribute = tag.getAttribute("name", SdkConstants.ANDROID_URI);
     final String value = attribute == null ? null : attribute.getValue();
     if (value == null) {
       return null;

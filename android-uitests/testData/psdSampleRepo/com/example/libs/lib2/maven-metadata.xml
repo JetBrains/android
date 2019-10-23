@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>com.example.libs</groupId>
+  <artifactId>lib2</artifactId>
+  <versioning>
+    <release>1.0</release>
+    <versions>
+      <version>0.5</version>
+      <version>0.6</version>
+      <version>0.6.1</version>
+      <version>0.6.1-alpha</version>
+      <version>0.9.1</version>
+      <version>1.0-alpha</version>
+      <version>1.0</version>
+    </versions>
+    <lastUpdated>20180212154821</lastUpdated>
+  </versioning>
+</metadata>

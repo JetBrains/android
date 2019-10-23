@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.property.ptable.PTableItem;
 import com.android.tools.idea.common.property.NlProperty;
 import com.google.common.collect.Table;
 import com.intellij.openapi.util.text.StringUtil;

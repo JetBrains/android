@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseProcessDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
@@ -31,14 +36,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.regex.Pattern;
-
-import static com.google.common.truth.Truth.assertThat;
-
 @RunWith(GuiTestRemoteRunner.class)
 public class SwitchDebuggersTest extends DebuggerTestBase {
 
-  @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES).settingNdkPath();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String JAVA = "Java";
@@ -82,7 +83,7 @@ public class SwitchDebuggersTest extends DebuggerTestBase {
   @RunIn(TestGroup.QA_UNRELIABLE) // b/37093995
   public void switchDebuggersUsingAttachToDebugger() throws Exception {
     IdeFrameFixture ideFrame =
-      guiTest.importProjectAndWaitForProjectSyncToFinish("SwitchDebuggers");
+      guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/SwitchDebuggers");
 
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
@@ -93,9 +94,7 @@ public class SwitchDebuggersTest extends DebuggerTestBase {
                              MAIN2_JAVA_BKPT1,
                              MAIN2_JAVA_BKPT2);
 
-    ideFrame.runApp(RUN_CONFIG_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
+    ideFrame.runApp(RUN_CONFIG_NAME, emulator.getDefaultAvdName());
 
     // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
     guiTest.waitForBackgroundTasks();

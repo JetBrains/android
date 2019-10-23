@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.network.httpdata;
 
-import com.android.tools.profilers.network.NetworkConnectionsModel;
-import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.StackFrameParser;
 import com.google.common.annotations.VisibleForTesting;
@@ -31,10 +29,10 @@ public final class StackTrace {
   private final ImmutableList<CodeLocation> myLocations;
   private final String myTrace;
 
-  public StackTrace(@NotNull NetworkConnectionsModel model, @NotNull HttpData httpData) {
-    myTrace = model.requestBytes(httpData.getTraceId()).toStringUtf8();
+  public StackTrace(@NotNull HttpData httpData) {
+    myTrace = httpData.getTrace();
     ImmutableList.Builder<CodeLocation> builder = new ImmutableList.Builder<>();
-    for (String line: myTrace.split("\\n")) {
+    for (String line : myTrace.split("\\n")) {
       if (line.trim().isEmpty()) {
         continue;
       }

@@ -24,42 +24,44 @@ import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.UIUtil
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
-import java.awt.event.KeyEvent
 import javax.swing.JComponent
-import javax.swing.KeyStroke
 import javax.swing.event.DocumentEvent
 
 const val OUTLINE_PROPERTY = "JComponent.outline"
 const val ERROR_VALUE = "error"
+const val WARNING_VALUE = "warning"
 
 /**
  * TextField controlled by an [editorModel].
  */
 open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JBTextField() {
 
-  private var lookup: Lookup<M>? = null
+  private var _lookup: Lookup<M>? = null
   private var updatingFromModel = false
   private var documentChangeFromSetText = false
+
+  val lookup: Lookup<M>?
+    get() = _lookup
 
   init {
     if (editorModel.editingSupport.completion != EDITOR_NO_COMPLETIONS) {
       @Suppress("LeakingThis")
       val myLookup = Lookup(this)
-      registerKeyAction({ enterInLookup() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
-      registerKeyAction({ escapeInLookup() }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape")
-      registerKeyAction({ myLookup.showLookup() }, KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, KeyEvent.CTRL_MASK), "showCompletions")
-      registerKeyAction({ myLookup.selectNext() }, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "selectNext")
-      registerKeyAction({ myLookup.selectPrevious() }, KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "selectPrevious")
-      registerKeyAction({ myLookup.selectNextPage() }, KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), "selectNextPage")
-      registerKeyAction({ myLookup.selectPreviousPage() }, KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0), "selectPreviousPage")
-      registerKeyAction({ myLookup.selectFirst() }, KeyStroke.getKeyStroke(KeyEvent.VK_HOME, KeyEvent.CTRL_MASK), "selectFirst")
-      registerKeyAction({ myLookup.selectLast() }, KeyStroke.getKeyStroke(KeyEvent.VK_END, KeyEvent.CTRL_MASK), "selectLast")
+      registerActionKey({ enterInLookup() }, KeyStrokes.ENTER, "enter")
+      registerActionKey({ escapeInLookup() }, KeyStrokes.ESCAPE, "escape")
+      registerActionKey({ myLookup.showLookup() }, KeyStrokes.CTRL_SPACE, "showCompletions")
+      registerActionKey({ myLookup.selectNext() }, KeyStrokes.DOWN, "selectNext", { myLookup.enabled })
+      registerActionKey({ myLookup.selectPrevious() }, KeyStrokes.UP, "selectPrevious", { myLookup.enabled })
+      registerActionKey({ myLookup.selectNextPage() }, KeyStrokes.PAGE_DOWN, "selectNextPage", { myLookup.enabled })
+      registerActionKey({ myLookup.selectPreviousPage() }, KeyStrokes.PAGE_UP, "selectPreviousPage", { myLookup.enabled })
+      registerActionKey({ myLookup.selectFirst() }, KeyStrokes.CMD_HOME, "selectFirst", { myLookup.enabled })
+      registerActionKey({ myLookup.selectLast() }, KeyStrokes.CMD_END, "selectLast", { myLookup.enabled })
       super.addFocusListener(object: FocusAdapter() {
         override fun focusLost(event: FocusEvent) {
           myLookup.close()
         }
       })
-      lookup = myLookup
+      _lookup = myLookup
     }
     isFocusable = true
     setFromModel()
@@ -86,11 +88,11 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
   }
 
   fun enterInLookup(): Boolean {
-    return lookup?.enter() ?: false
+    return _lookup?.enter() ?: false
   }
 
   fun escapeInLookup(): Boolean {
-    return lookup?.escape() ?: false
+    return _lookup?.escape() ?: false
   }
 
   private fun setFromModel() {
@@ -113,8 +115,8 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
       // Avoid flickering: Only update if value is different from current value
       if (!text.equals(super.getText())) {
         super.setText(text)
-        UIUtil.resetUndoRedoActions(this)
       }
+      UIUtil.resetUndoRedoActions(this)
     }
     finally {
       documentChangeFromSetText = false
@@ -128,7 +130,7 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
     // otherwise set the property on this text field.
     val component = getComponentWithErrorBorder() ?: return
     val current = component.getClientProperty(OUTLINE_PROPERTY)
-    val (code, _) = editorModel.editingSupport.validation(editorModel.text)
+    val (code, _) = editorModel.editingSupport.validation(if (hasFocus()) editorModel.text else null)
     val newOutline = code.outline
     if (current != newOutline) {
       component.putClientProperty(OUTLINE_PROPERTY, newOutline)

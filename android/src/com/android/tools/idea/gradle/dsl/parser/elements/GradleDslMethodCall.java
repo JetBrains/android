@@ -17,25 +17,26 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a method call expression element.
  */
 public final class GradleDslMethodCall extends GradleDslSimpleExpression {
+  public static final Logger LOG = Logger.getInstance(GradleDslMethodCall.class);
   /**
    * The name of the method that this method call is invoking.
    * For example:
-   *   storeFile file('file.txt') -> myMethodName = file
-   *   google()                   -> myMethodName = google
-   *   System.out.println('text') -> myMethodName = System.out.println
+   * storeFile file('file.txt') -> myMethodName = file
+   * google()                   -> myMethodName = google
+   * System.out.println('text') -> myMethodName = System.out.println
    */
   @NotNull private String myMethodName;
   @NotNull private GradleDslExpressionList myArguments;
@@ -191,15 +192,18 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
   public GradleDslMethodCall copy() {
     assert myParent != null;
     GradleDslMethodCall methodCall = new GradleDslMethodCall(myParent, GradleNameElement.copy(myName), myMethodName);
-    Object v = getRawValue();
-    if (v != null) {
-      methodCall.setValue(v);
+
+    for (GradleDslExpression argument : getArguments()) {
+      GradleDslExpression copy;
+      copy = argument.copy();
+      methodCall.addNewArgument(copy);
     }
     return methodCall;
   }
 
   private void setFileValue(@NotNull File file) {
     if (!myMethodName.equals("file")) {
+      LOG.error(new UnsupportedOperationException("Cannot set a file value to a method other than file(). Method name: " + myMethodName));
       return;
     }
 
@@ -222,6 +226,15 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
   @NotNull
   public String getMethodName() {
     return myMethodName;
+  }
+
+  /**
+   * Renames an element which represents a property/dependency level method call and should only me called when renaming the corresponding
+   * property/dependency. It has to be called before changing the name of the property/dependency.
+   */
+  public void setMethodName(@NotNull String newMethodName) {
+    assert getNameElement().name().equals(getMethodName());
+    myMethodName = newMethodName;
   }
 
   @Override

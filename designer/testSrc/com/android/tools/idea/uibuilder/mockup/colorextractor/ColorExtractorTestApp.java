@@ -169,7 +169,7 @@ public class ColorExtractorTestApp implements ColorExtractor.ColorExtractorCallb
     private List<Integer> drawnPixel = new ArrayList<>();
     private BufferedImage myPixelImage;
 
-    Output() {
+    public Output() {
       super(new GridBagLayout());
       setBackground(Color.BLACK);
     }

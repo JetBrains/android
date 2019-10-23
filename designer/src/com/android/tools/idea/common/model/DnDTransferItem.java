@@ -18,7 +18,8 @@ package com.android.tools.idea.common.model;
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.resourceExplorer.view.ResourceDragHandlerKt;
+import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking;
+import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManagerKt;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
@@ -64,8 +65,8 @@ public class DnDTransferItem {
         return (DnDTransferItem)transferable.getTransferData(ItemTransferable.DESIGNER_FLAVOR);
       }
 
-      if (transferable.isDataFlavorSupported(ResourceDragHandlerKt.RESOURCE_URL_FLAVOR)) {
-        ResourceUrl url = (ResourceUrl)transferable.getTransferData(ResourceDragHandlerKt.RESOURCE_URL_FLAVOR);
+      if (transferable.isDataFlavorSupported(ResourceDataManagerKt.RESOURCE_URL_FLAVOR)) {
+        ResourceUrl url = (ResourceUrl)transferable.getTransferData(ResourceDataManagerKt.RESOURCE_URL_FLAVOR);
         DnDTransferItem item = fromResourceUrl(url);
         if (item != null) {
           return item;
@@ -92,17 +93,32 @@ public class DnDTransferItem {
     return null;
   }
 
-  private static DnDTransferItem fromResourceUrl(ResourceUrl url) {
-    if (url.type == ResourceType.DRAWABLE) {
-      @Language("XML")
-      String representation = "<ImageView\n" +
-                              "    android:layout_width=\"wrap_content\"\n" +
-                              "    android:layout_height=\"wrap_content\"\n" +
-                              "    android:src=\"" + url.toString() + "\"/>";
-
-      return new DnDTransferItem(new DnDTransferComponent(SdkConstants.IMAGE_VIEW, representation, 200, 100));
+  @Nullable
+  private static DnDTransferItem fromResourceUrl(@NotNull ResourceUrl url) {
+    String representation;
+    String tag;
+    ResourceManagerTracking.INSTANCE.logDragOnViewGroup(url.type);
+    // TODO(caen) Delegate this to the view Handlers
+    if (url.type == ResourceType.LAYOUT) {
+      representation = String.format("<include layout=\"%s\"/>", url.toString());
+      tag = SdkConstants.TAG_INCLUDE;
     }
-    return null;
+    else if (url.type == ResourceType.COLOR || url.type == ResourceType.DRAWABLE) {
+      String size = url.type == ResourceType.COLOR ? "50dp" : "wrap_content";
+
+      @Language("XML")
+      String xml = "<ImageView\n" +
+                   "    android:layout_width=\"%1$s\"\n" +
+                   "    android:layout_height=\"%1$s\"\n" +
+                   "    android:src=\"%2$s\"/>";
+      representation = String.format(xml, size, url.toString());
+
+      tag = SdkConstants.IMAGE_VIEW;
+    }
+    else {
+      return null;
+    }
+    return new DnDTransferItem(new DnDTransferComponent(tag, representation, 100, 100));
   }
 
   public boolean isFromPalette() {

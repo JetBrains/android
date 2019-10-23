@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.structure.model.ModuleKind
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsModelCollection
 import com.android.tools.idea.gradle.structure.model.PsModule
@@ -38,7 +39,7 @@ import javax.swing.Icon
 class PsAndroidModule(
   parent: PsProject,
   override val gradlePath: String
-) : PsModule(parent) {
+) : PsModule(parent, ModuleKind.ANDROID) {
   override val descriptor by AndroidModuleDescriptors
   var resolvedModel: AndroidModuleModel? = null; private set
   override var projectType: PsModuleType = PsModuleType.UNKNOWN; private set
@@ -112,15 +113,15 @@ class PsAndroidModule(
   }
 
   // TODO(solodkyy): Return a collection of PsBuildConfiguration instead of strings.
-  override fun getConfigurations(onlyImportant: Boolean): List<String> {
+  override fun getConfigurations(onlyImportantFor: ImportantFor?): List<String> {
 
     fun applicableArtifacts() = listOf("", "test", "androidTest")
 
     fun flavorsByDimension(dimension: String) =
-      productFlavors.filter { it.dimension.maybeValue == dimension }.map { it.name }
+      productFlavors.filter { it.effectiveDimension == dimension }.map { it.name }
 
     fun buildFlavorCombinations() = when {
-      !onlyImportant && flavorDimensions.size > 1 -> flavorDimensions
+      flavorDimensions.size > 1 -> flavorDimensions
         .fold(listOf(listOf(""))) { acc, dimension ->
           flavorsByDimension(dimension.name).flatMap { flavor ->
             acc.map { prefix -> prefix + flavor }
@@ -131,17 +132,24 @@ class PsAndroidModule(
     }
 
     fun applicableProductFlavors() =
-      listOf("") + productFlavors.map { it.name } + buildFlavorCombinations()
+      listOf("") +
+      (if (onlyImportantFor == null || onlyImportantFor == ImportantFor.LIBRARY) productFlavors.map { it.name } else listOf()) +
+      (if (onlyImportantFor == null) buildFlavorCombinations() else listOf())
 
     fun applicableBuildTypes(artifact: String) =
     // TODO(solodkyy): Include product flavor combinations
       when (artifact) {
         "androidTest" -> listOf("")  // androidTest is built only for the configured buildType.
-        else -> listOf("") + buildTypes.map { it.name }
+        else -> listOf("") +
+                (if (onlyImportantFor == null || onlyImportantFor == ImportantFor.LIBRARY) buildTypes.map { it.name } else listOf())
       }
 
     // TODO(solodkyy): When explicitly requested return other advanced scopes (compileOnly, api).
-    fun applicableScopes() = listOf("implementation")
+    fun applicableScopes() = listOfNotNull(
+      "implementation",
+      "api".takeIf { onlyImportantFor == null || onlyImportantFor == ImportantFor.MODULE },
+      "compileOnly".takeIf { onlyImportantFor == null },
+      "annotationProcessor".takeIf { onlyImportantFor == null })
 
     val result = mutableListOf<String>()
     applicableArtifacts().forEach { artifact ->
@@ -187,7 +195,7 @@ class PsAndroidModule(
 
   fun removeProductFlavor(productFlavor: PsProductFlavor) =
     getOrCreateProductFlavorCollection()
-      .remove(PsProductFlavorKey(productFlavor.dimension.maybeValue.orEmpty(), productFlavor.name))
+      .remove(PsProductFlavorKey(productFlavor.effectiveDimension.orEmpty(), productFlavor.name))
 
   fun addNewSigningConfig(name: String): PsSigningConfig = getOrCreateSigningConfigCollection().addNew(name)
 
@@ -224,6 +232,11 @@ class PsAndroidModule(
   override fun resetDependencies() {
     resetDeclaredDependencies()
     resetResolvedDependencies()
+  }
+
+  fun resetProductFlavors() {
+    productFlavorCollection?.refresh()
+    flavorDimensionCollection?.refresh()  // (invalid) dimension may appear or disappear.
   }
 
   internal fun resetResolvedDependencies() {

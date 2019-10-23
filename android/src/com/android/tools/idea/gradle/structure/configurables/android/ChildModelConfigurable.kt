@@ -32,6 +32,7 @@ abstract class ChildModelConfigurable<T : PsChildModel, out PanelT>(
   val model: T
 ) : NamedConfigurable<T>(), Place.Navigator, Disposable
   where PanelT : ComponentProvider,
+        PanelT : Place.Navigator,
         PanelT : Disposable {
   var myHistory: History? = null
   var disposed = false
@@ -70,6 +71,6 @@ abstract class ChildModelConfigurable<T : PsChildModel, out PanelT>(
     this.myHistory = history
   }
 
-  override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = ActionCallback.DONE
-  override fun queryPlace(place: Place) = Unit
+  override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = panel.navigateTo(place, requestFocus)
+  override fun queryPlace(place: Place) = panel.queryPlace(place)
 }

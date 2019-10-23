@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.menu;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -58,7 +58,7 @@ public final class SearchItemHandler extends MenuHandler {
       return true;
     }
 
-    NlWriteCommandAction.run(newChild, "", () -> {
+    NlWriteCommandActionUtil.run(newChild, "", () -> {
       String value = editor.getMinSdkVersion().getApiLevel() < 11 ? "android.support.v7.widget.SearchView" : "android.widget.SearchView";
       // TODO: Adjust for correct namespace
       String namespace = editor.moduleDependsOnAppCompat() ? AUTO_URI : ANDROID_URI;

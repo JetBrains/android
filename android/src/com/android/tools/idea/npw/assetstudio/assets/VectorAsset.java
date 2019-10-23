@@ -15,49 +15,81 @@
  */
 package com.android.tools.idea.npw.assetstudio.assets;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.vectordrawable.Svg2Vector;
 import com.android.ide.common.vectordrawable.VdOverrideInfo;
 import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.Validator.Severity;
+import com.android.tools.idea.concurrent.FutureUtils;
+import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
-import com.android.tools.idea.observable.core.IntProperty;
-import com.android.tools.idea.observable.core.IntValueProperty;
+import com.android.tools.idea.observable.core.DoubleProperty;
+import com.android.tools.idea.observable.core.DoubleValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.utils.SdkUtils;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.io.Files;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.ui.EdtInvocationManager;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.io.StringReader;
+import java.nio.file.Files;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
 
 /**
  * An asset which represents a vector graphics image. This can be loaded either from an SVG file,
  * a layered image supported by the pixelprobe library, or a Vector Drawable file.
  * <p>
- * After setting {@link #path()}, call one of the {@link #parse()} to attempt to read it and
- * generate a result.
+ * After setting {@link #path()}, call one of the {@link #generatePreview()} methods to attempt to
+ * read it and generate a result.
  */
 public final class VectorAsset extends BaseAsset {
   private static final String ERROR_EMPTY_PREVIEW = "Could not generate a preview";
 
-  private final ObjectProperty<File> myPath = new ObjectValueProperty<>(new File(System.getProperty("user.home")));
-  private final BoolProperty myAutoMirrored = new BoolValueProperty();
-  private final IntProperty myOutputWidth = new IntValueProperty();
-  private final IntProperty myOutputHeight = new IntValueProperty();
+  @NotNull private final ObjectProperty<File> myPath = new ObjectValueProperty<>(new File(System.getProperty("user.home")));
+  @NotNull private final BoolProperty myAutoMirrored = new BoolValueProperty();
+  @NotNull private final DoubleProperty myOutputWidth = new DoubleValueProperty();
+  @NotNull private final DoubleProperty myOutputHeight = new DoubleValueProperty();
+
+  @NotNull private final ObjectProperty<VectorDrawableInfo> myVectorDrawableInfo =
+      new ObjectValueProperty<>(new VectorDrawableInfo(new Validator.Result(Severity.WARNING, "Please select a file")));
 
   public VectorAsset() {
+    InvalidationListener listener = () -> {
+      File file = myPath.get();
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        VectorDrawableInfo drawableInfo = convertToVectorDrawable(file);
+        EdtInvocationManager.getInstance().invokeLater(() -> {
+          if (isCurrentFile(file)) {
+            myVectorDrawableInfo.set(drawableInfo);
+          }
+        });
+      });
+    };
+    myPath.addListener(listener);
+    listener.onInvalidated();
+  }
+
+  public boolean isCurrentFile(@NotNull Object file) {
+    return file.equals(myPath.get());
   }
 
   @NotNull
@@ -79,7 +111,7 @@ public final class VectorAsset extends BaseAsset {
    * @see #outputHeight()
    */
   @NotNull
-  public IntProperty outputWidth() {
+  public DoubleProperty outputWidth() {
     return myOutputWidth;
   }
 
@@ -92,8 +124,72 @@ public final class VectorAsset extends BaseAsset {
    * @see #outputWidth()
    */
   @NotNull
-  public IntProperty outputHeight() {
+  public DoubleProperty outputHeight() {
     return myOutputHeight;
+  }
+
+  @NotNull
+  public ObjectProperty<VectorDrawableInfo> getVectorDrawableInfo() {
+    return myVectorDrawableInfo;
+  }
+
+  @NotNull
+  private static VectorDrawableInfo convertToVectorDrawable(@NotNull File file) {
+    if (!file.exists()) {
+      return new VectorDrawableInfo("File " + file.getName() + " does not exist");
+    }
+    if (file.isDirectory()) {
+      return new VectorDrawableInfo(new Validator.Result(Severity.WARNING, "Please select a file"));
+    }
+
+    String xmlFileContent = null;
+    StringBuilder errors = new StringBuilder();
+    FileType fileType = FileType.fromFile(file);
+
+    try {
+      switch (fileType) {
+        case SVG: {
+          OutputStream outStream = new ByteArrayOutputStream();
+          String errorMessage = Svg2Vector.parseSvgToXml(file, outStream);
+          errors.append(errorMessage);
+          xmlFileContent = outStream.toString();
+          break;
+        }
+
+        case LAYERED_IMAGE:
+          xmlFileContent = new LayeredImageConverter().toVectorDrawableXml(file);
+          break;
+
+        case VECTOR_DRAWABLE:
+          xmlFileContent = new String(Files.readAllBytes(file.toPath()), UTF_8);
+          break;
+      }
+    } catch (IOException e) {
+      errors.replace(0, errors.length(), e.getMessage());
+    }
+
+    double originalWidth = 0;
+    double originalHeight = 0;
+    if (!Strings.isNullOrEmpty(xmlFileContent)) {
+      Document document = parseXml(xmlFileContent, errors.length() == 0 ? errors : null);
+      if (document == null) {
+        xmlFileContent = null; // XML content is invalid, discard it.
+      }
+      else {
+        Element root = document.getDocumentElement();
+        originalWidth = parseDoubleAttributeValue(root, "android:width", "dp");
+        originalHeight = parseDoubleAttributeValue(root, "android:height", "dp");
+      }
+    }
+
+    boolean valid = originalWidth > 0 && originalHeight > 0;
+    if (!valid && errors.length() == 0) {
+      return new VectorDrawableInfo("The specified asset could not be parsed. Please choose another asset.");
+    }
+
+    Severity severity = !valid ? Severity.ERROR : errors.length() == 0 ? Severity.OK : Severity.WARNING;
+    Validator.Result messages = new Validator.Result(severity, errors.toString());
+    return new VectorDrawableInfo(messages, xmlFileContent, originalWidth, originalHeight);
   }
 
   /**
@@ -101,161 +197,207 @@ public final class VectorAsset extends BaseAsset {
    * useful for previewing this vector asset in some UI component of the same width.
    *
    * @param previewWidth width of the display component
-   * @param allowPropertyOverride true if this method can override some properties of the original file
-   *                              (e.g. size ratio, opacity)
    */
   @NotNull
-  public ParseResult parse(int previewWidth, boolean allowPropertyOverride) {
-    File path = myPath.get();
-    if (!path.exists()) {
-      return new ParseResult("File " + path.getName() + " does not exist");
+  public Preview generatePreview(int previewWidth) {
+    VectorDrawableInfo drawableInfo = convertToVectorDrawable(myPath.get());
+    return generatePreview(drawableInfo, previewWidth, null);
+  }
+
+  /**
+   * Generates preview of the asset.
+   *
+   * @param drawableInfo information about the vector drawable produced from the asset
+   * @param previewSize the width (and height) of the display component
+   * @param overrideInfo adjustments to the drawable parameters
+   */
+  @NotNull
+  public static Preview generatePreview(@NotNull VectorDrawableInfo drawableInfo, int previewSize, @Nullable VdOverrideInfo overrideInfo) {
+    Preconditions.checkArgument(previewSize > 0);
+
+    Validator.Result validityState = drawableInfo.getValidityState();
+    if (!drawableInfo.isValid()) {
+      return new Preview(validityState);
     }
-    if (path.isDirectory()) {
-      return new ParseResult(new Validator.Result(Severity.WARNING, "Please select a file"));
-    }
 
-    String xmlFileContent = null;
-    FileType fileType = FileType.fromFile(path);
+    String xmlFileContent = drawableInfo.getXmlContent();
+    assert xmlFileContent != null;
+    Document document = parseXml(xmlFileContent, null);
+    assert document != null;
 
-    StringBuilder errorBuffer = new StringBuilder();
+    StringBuilder errors = new StringBuilder();
 
-    try {
-      switch (fileType) {
-        case SVG: {
-          OutputStream outStream = new ByteArrayOutputStream();
-          String errorLog = Svg2Vector.parseSvgToXml(path, outStream);
-          errorBuffer.append(errorLog);
-          xmlFileContent = outStream.toString();
-          break;
-        }
-
-        case LAYERED_IMAGE:
-          xmlFileContent = new LayeredImageConverter().toVectorDrawableXml(path);
-          break;
-
-        case VECTOR_DRAWABLE:
-          xmlFileContent = Files.toString(path, StandardCharsets.UTF_8);
-          break;
+    if (overrideInfo != null) {
+      String overriddenXml = VdPreview.overrideXmlContent(document, overrideInfo, errors);
+      if (overriddenXml != null) {
+        xmlFileContent = overriddenXml;
       }
-    } catch (IOException e) {
-      errorBuffer.append(e.getMessage());
     }
 
     BufferedImage image = null;
-    float originalWidth = 0;
-    float originalHeight = 0;
-    if (!Strings.isNullOrEmpty(xmlFileContent)) {
-      Document document = VdPreview.parseVdStringIntoDocument(xmlFileContent, errorBuffer.length() == 0 ? errorBuffer : null);
-      if (document != null) {
-        VdPreview.SourceSize originalSize = VdPreview.getVdOriginalSize(document);
-        originalWidth = originalSize.getWidth();
-        originalHeight = originalSize.getHeight();
+    VdPreview.TargetSize imageTargetSize = VdPreview.TargetSize.createFromMaxDimension(previewSize);
+    try {
+      image = VdPreview.getPreviewFromVectorXml(imageTargetSize, xmlFileContent, errors);
+    } catch (Throwable e) {
+      Logger.getInstance(VectorAsset.class).error(e);
+    }
 
-        if (allowPropertyOverride) {
-          String overriddenXml = overrideXmlFileContent(document, originalSize, errorBuffer);
-          if (overriddenXml != null) {
-            xmlFileContent = overriddenXml;
-          }
-        }
+    if (validityState.getSeverity() == Severity.OK && errors.length() != 0) {
+      validityState = image == null ?
+                      new Validator.Result(Severity.ERROR, ERROR_EMPTY_PREVIEW) : new Validator.Result(Severity.WARNING, errors.toString());
+    }
 
-        if (previewWidth <= 0) {
-          previewWidth = myOutputWidth.get() > 0 ? myOutputWidth.get() : Math.round(originalWidth);
-        }
+    return new Preview(validityState, image, xmlFileContent);
+  }
 
-        VdPreview.TargetSize imageTargetSize = VdPreview.TargetSize.createFromMaxDimension(previewWidth);
-        try {
-          image = VdPreview.getPreviewFromVectorXml(imageTargetSize, xmlFileContent, errorBuffer);
-        } catch (Throwable e) {
-          Logger.getInstance(getClass()).error(e);
-        }
+  /**
+   * Parses a vector drawable XML file into a {@link Document} object.
+   *
+   * @param xmlFileContent the content of the VectorDrawable's XML file.
+   * @param errorLog when errors were found, log them in this builder if it is not null.
+   * @return parsed document or null if errors happened.
+   */
+  @Nullable
+  public static Document parseXml(@NotNull String xmlFileContent, @com.android.annotations.Nullable StringBuilder errorLog) {
+    try {
+      DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+      return builder.parse(new InputSource(new StringReader(xmlFileContent)));
+    }
+    catch (Exception e) {
+      if (errorLog != null) {
+        errorLog.append("Exception while parsing XML file:\n").append(e.getMessage());
       }
+      return null;
     }
-
-    if (image == null) {
-      if (errorBuffer.length() == 0) {
-        errorBuffer.append(ERROR_EMPTY_PREVIEW);
-      }
-      return new ParseResult(errorBuffer.toString());
-    }
-
-    boolean valid = (originalWidth > 0 && originalHeight > 0);
-    if (!valid && errorBuffer.length() == 0) {
-      errorBuffer.append("The specified asset could not be parsed. Please choose another asset.");
-    }
-    Severity severity = !valid ? Severity.ERROR : errorBuffer.length() == 0 ? Severity.OK : Severity.WARNING;
-    Validator.Result messages = new Validator.Result(severity, errorBuffer.toString());
-    return new ParseResult(messages, image, originalWidth, originalHeight, xmlFileContent);
   }
 
   /**
    * Parses the file specified by the {@link #path()} property.
    */
   @NotNull
-  public ParseResult parse() {
-    return parse(0, true);
+  public Preview generatePreview() {
+    int previewSize = roundToInt(Math.max(myOutputWidth.get(), myOutputHeight.get()));
+    VdOverrideInfo overrideInfo = createOverrideInfo();
+    return generatePreview(myVectorDrawableInfo.get(), previewSize, overrideInfo);
+  }
+
+  private static double parseDoubleAttributeValue(@NotNull Element element, @NotNull String attributeName, @NotNull String expectedSuffix) {
+    String value = element.getAttribute(attributeName);
+    if (value == null || !value.endsWith(expectedSuffix)) {
+      return 0;
+    }
+    try {
+      return Double.parseDouble(value.substring(0, value.length() - expectedSuffix.length()));
+    } catch (NumberFormatException e) {
+      return 0;
+    }
   }
 
   @Override
-  @Nullable
+  @NotNull
   public ListenableFuture<BufferedImage> toImage() {
-    return Futures.immediateFuture(parse().getImage());
+    return FutureUtils.executeOnPooledThread(() -> generatePreview().getImage());
   }
 
   /**
-   * Modifies the source XML content with custom values set by the user, such as final output size
-   * and opacity.
+   * Creates {@link VdOverrideInfo} reflecting the current state of the asset parameters.
    */
-  @Nullable
-  private String overrideXmlFileContent(@NotNull Document document, @NotNull VdPreview.SourceSize originalSize,
-                                        @NotNull StringBuilder errorBuffer) {
-    float finalWidth = originalSize.getWidth();
-    float finalHeight = originalSize.getHeight();
-
-    int outputWidth = myOutputWidth.get();
-    int outputHeight = myOutputHeight.get();
-    if (outputWidth > 0) {
-      finalWidth = outputWidth;
+  @NotNull
+  public VdOverrideInfo createOverrideInfo() {
+    double width = myOutputWidth.get();
+    double height = myOutputHeight.get();
+    if (width <= 0 || height <= 0) {
+      // Preserve original dimensions.
+      width = 0;
+      height = 0;
     }
-    if (outputHeight > 0) {
-      finalHeight = outputHeight;
-    }
-
-    finalWidth = Math.max(VdPreview.MIN_PREVIEW_IMAGE_SIZE, finalWidth);
-    finalHeight = Math.max(VdPreview.MIN_PREVIEW_IMAGE_SIZE, finalHeight);
-
-    VdOverrideInfo overrideInfo =
-        new VdOverrideInfo(finalWidth, finalHeight, color().getValueOrNull(), opacityPercent().get() / 100.f, myAutoMirrored.get());
-    return VdPreview.overrideXmlContent(document, overrideInfo, errorBuffer);
+    return new VdOverrideInfo(width, height, color().getValueOrNull(), opacityPercent().get() / 100., myAutoMirrored.get());
   }
 
   /**
-   * A parse result returned after calling {@link #parse()}. Check {@link #isValid()} to see if
-   * the parsing was successful.
+   * Vector drawable data returned by the {@link #convertToVectorDrawable(File)} method. Check {@link #isValid()}
+   * to see if the conversion was successful.
    */
-  public static final class ParseResult {
+  public static final class VectorDrawableInfo {
     @NotNull private final Validator.Result myValidityState;
-    @Nullable private final BufferedImage myImage;
-    private final float myOriginalWidth;
-    private final float myOriginalHeight;
-    private final boolean myIsValid;
-    @NotNull private final String myXmlContent;
+    @Nullable private final String myXmlContent;
+    private final double myOriginalWidth;
+    private final double myOriginalHeight;
 
-    public ParseResult(@NotNull String errorMessage) {
+    private VectorDrawableInfo(@NotNull String errorMessage) {
       this(Validator.Result.fromNullableMessage(errorMessage));
     }
 
-    public ParseResult(@NotNull Validator.Result validityState) {
-      this(validityState, null, 0, 0, "");
+    private VectorDrawableInfo(@NotNull Validator.Result validityState) {
+      this(validityState, null, 0, 0);
     }
 
-    public ParseResult(@NotNull Validator.Result validityState, @Nullable BufferedImage image, float originalWidth, float originalHeight,
-                       @NotNull String xmlContent) {
+    private VectorDrawableInfo(@NotNull Validator.Result validityState, @Nullable String xmlContent,
+                               double originalWidth, double originalHeight) {
       myValidityState = validityState;
-      myImage = image;
+      myXmlContent = xmlContent;
       myOriginalWidth = originalWidth;
       myOriginalHeight = originalHeight;
+    }
+
+    @Nullable
+    public String getXmlContent() {
+      return myXmlContent;
+    }
+
+    /**
+     * Returns true if the content of the target file was successfully converted to a vector drawable.
+     * <p>
+     * Note that a result can still be valid even with errors. See {@link #getValidityState()} for more information.
+     */
+    public boolean isValid() {
+      return myOriginalWidth > 0 && myOriginalHeight > 0;
+    }
+
+    /**
+     * The preferred width specified in the SVG file (although a vector drawable file can be rendered to any width).
+     */
+    public double getOriginalWidth() {
+      return myOriginalWidth;
+    }
+
+    /**
+     * The preferred height specified in the SVG file (although a vector drawable file can be rendered to any height).
+     */
+    public double getOriginalHeight() {
+      return myOriginalHeight;
+    }
+
+    /**
+     * Returns errors, warnings or informational messages produced during parsing.
+     */
+    @NotNull
+    public Validator.Result getValidityState() {
+      return myValidityState;
+    }
+  }
+
+  /**
+   * Preview data returned by the {@link #generatePreview} methods. Check {@link #isValid()} to see
+   * if the preview generation was successful.
+   */
+  public static final class Preview {
+    @NotNull private final Validator.Result myValidityState;
+    @Nullable private final BufferedImage myImage;
+    @Nullable private final String myXmlContent;
+
+    public Preview(@NotNull String errorMessage) {
+      this(Validator.Result.fromNullableMessage(errorMessage));
+    }
+
+    public Preview(@NotNull Validator.Result validityState) {
+      this(validityState, null, null);
+    }
+
+    public Preview(@NotNull Validator.Result validityState, @Nullable BufferedImage image, @Nullable String xmlContent) {
+      myValidityState = validityState;
+      myImage = image;
       myXmlContent = xmlContent;
-      myIsValid = (originalWidth > 0 && originalHeight > 0);
     }
 
     /**
@@ -265,23 +407,7 @@ public final class VectorAsset extends BaseAsset {
      * information.
      */
     public boolean isValid() {
-      return myIsValid;
-    }
-
-    /**
-     * The preferred width specified in the SVG file (although a vector drawable file can be rendered to any
-     * width).
-     */
-    public float getOriginalWidth() {
-      return myOriginalWidth;
-    }
-
-    /**
-     * The preferred height specified in the SVG file (although a vector drawable file can be rendered to
-     * any height).
-     */
-    public float getOriginalHeight() {
-      return myOriginalHeight;
+      return myValidityState.getSeverity() != Severity.ERROR;
     }
 
     /**
@@ -304,7 +430,7 @@ public final class VectorAsset extends BaseAsset {
      * The XML that represents the final Android vector resource. It will be different from
      * the source file as some values may be overridden based on user values.
      */
-    @NotNull
+    @Nullable
     public String getXmlContent() {
       return myXmlContent;
     }

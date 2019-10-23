@@ -85,4 +85,28 @@ public class TemplateRecipeTest {
       return null;
     });
   }
+
+  @Test
+  public void addGlobalVariable() {
+    final RenderingContext context = RenderingContext.Builder
+      .newContext(tmpFolderRule.getRoot(), projectRule.getProject())
+      .withOutputRoot(tmpFolderRule.getRoot())
+      .withModuleRoot(tmpFolderRule.getRoot())
+      .build();
+
+    runWriteCommandAction(projectRule.getProject(), () -> {
+      RecipeExecutor recipeExecutor = context.getRecipeExecutor();
+      String stringKey = "stringKey";
+      String value1 = "value1";
+      String booleanKey = "booleanKey";
+      String intKey = "intKey";
+      recipeExecutor.addGlobalVariable(stringKey, value1);
+      recipeExecutor.addGlobalVariable(booleanKey, true);
+      recipeExecutor.addGlobalVariable(intKey, 1);
+
+      Truth.assertThat(context.getParamMap().get(stringKey)).isEqualTo(value1);
+      Truth.assertThat(context.getParamMap().get(booleanKey)).isEqualTo(true);
+      Truth.assertThat(context.getParamMap().get(intKey)).isEqualTo(1);
+    });
+  }
 }

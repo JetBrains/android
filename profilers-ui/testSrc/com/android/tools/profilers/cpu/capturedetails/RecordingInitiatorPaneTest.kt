@@ -18,9 +18,11 @@ package com.android.tools.profilers.cpu.capturedetails
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.TextInstruction
+import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.CommonTabbedPane
-import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.StudioProfilersView
@@ -34,11 +36,11 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ui.HyperlinkLabel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JButton
-import javax.swing.JLabel
 
 class RecordingInitiatorPaneTest {
   @JvmField
@@ -49,9 +51,12 @@ class RecordingInitiatorPaneTest {
   @Rule
   val cpuProfiler: FakeCpuProfiler
 
+  private val timer = FakeTimer()
+
   init {
     val cpuService = FakeCpuService()
-    grpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", cpuService, FakeProfilerService(),
+    grpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", cpuService,
+                                  FakeTransportService(timer), FakeProfilerService(timer),
                                   FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
     cpuProfiler = FakeCpuProfiler(grpcChannel = grpcChannel, cpuService = cpuService)
@@ -103,15 +108,13 @@ class RecordingInitiatorPaneTest {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
 
     stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("Sampled Java",
-                                                                                        CpuProfiler.CpuProfilerType.ART,
-                                                                                        CpuProfiler.CpuProfilerMode.SAMPLED)
+                                                                                        Cpu.CpuTraceType.ART,
+                                                                                        Cpu.CpuTraceMode.SAMPLED)
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
-      .filterIsInstance<JLabel>()
+      .filterIsInstance<HyperlinkLabel>()
       .any { it.text == ProfilingTechnology.ART_SAMPLED.description }
-      .let {
-        assertThat(it).isTrue()
-      }
+      .let { assertThat(it).isTrue() }
   }
 
   @Test
@@ -119,15 +122,13 @@ class RecordingInitiatorPaneTest {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
 
     stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("Instrumented Java",
-                                                                                        CpuProfiler.CpuProfilerType.ART,
-                                                                                        CpuProfiler.CpuProfilerMode.INSTRUMENTED)
+                                                                                        Cpu.CpuTraceType.ART,
+                                                                                        Cpu.CpuTraceMode.INSTRUMENTED)
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
-      .filterIsInstance<JLabel>()
+      .filterIsInstance<HyperlinkLabel>()
       .any { it.text == ProfilingTechnology.ART_INSTRUMENTED.description }
-      .let {
-        assertThat(it).isTrue()
-      }
+      .let { assertThat(it).isTrue() }
   }
 
   @Test
@@ -135,15 +136,13 @@ class RecordingInitiatorPaneTest {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
 
     stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("Sampled Native",
-                                                                                        CpuProfiler.CpuProfilerType.SIMPLEPERF,
-                                                                                        CpuProfiler.CpuProfilerMode.SAMPLED)
+                                                                                        Cpu.CpuTraceType.SIMPLEPERF,
+                                                                                        Cpu.CpuTraceMode.SAMPLED)
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
-      .filterIsInstance<JLabel>()
+      .filterIsInstance<HyperlinkLabel>()
       .any { it.text == ProfilingTechnology.SIMPLEPERF.description }
-      .let {
-        assertThat(it).isTrue()
-      }
+      .let { assertThat(it).isTrue() }
   }
 
   @Test
@@ -151,14 +150,23 @@ class RecordingInitiatorPaneTest {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
 
     stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("ATrace",
-                                                                                        CpuProfiler.CpuProfilerType.ATRACE,
-                                                                                        CpuProfiler.CpuProfilerMode.SAMPLED)
+                                                                                        Cpu.CpuTraceType.ATRACE,
+                                                                                        Cpu.CpuTraceMode.SAMPLED)
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
-      .filterIsInstance<JLabel>()
+      .filterIsInstance<HyperlinkLabel>()
       .any { it.text == ProfilingTechnology.ATRACE.description }
-      .let {
-        assertThat(it).isTrue()
-      }
+      .let { assertThat(it).isTrue() }
+  }
+
+  @Test
+  fun learnMoreHyperlinkIsPresent() {
+    cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
+
+    TreeWalker(RecordingInitiatorPane(stageView))
+      .descendants()
+      .filterIsInstance<HyperlinkLabel>()
+      .any { it.text == RecordingInitiatorPane.LEARN_MORE_MESSAGE }
+      .let { assertThat(it).isTrue() }
   }
 }

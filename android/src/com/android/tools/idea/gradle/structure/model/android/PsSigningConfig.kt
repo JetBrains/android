@@ -21,23 +21,35 @@ import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.helpers.matchFiles
 import com.android.tools.idea.gradle.structure.model.helpers.parseFile
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
+import com.android.tools.idea.gradle.structure.model.meta.SimpleProperty
+import com.android.tools.idea.gradle.structure.model.meta.asFile
+import com.android.tools.idea.gradle.structure.model.meta.asString
+import com.android.tools.idea.gradle.structure.model.meta.getValue
+import com.android.tools.idea.gradle.structure.model.meta.property
+import com.android.tools.idea.gradle.structure.model.meta.withFileSelectionRoot
+import icons.StudioIcons.Misc.SIGNING_CONFIG
 import java.io.File
+import javax.swing.Icon
 
 class PsSigningConfig(
-  override val parent: PsAndroidModule
+  override val parent: PsAndroidModule,
+  private val renamed: (String, String) -> Unit
 ) : PsChildModel() {
   override val descriptor by SigningConfigDescriptors
   var resolvedModel: SigningConfig? = null ; private set
   private var parsedModel: SigningConfigModel? = null
 
-  internal fun init(resolvedModel: SigningConfig?,
-                    parsedModel: SigningConfigModel?) {
+  internal fun init(
+    resolvedModel: SigningConfig?,
+    parsedModel: SigningConfigModel?
+  ) {
     this.resolvedModel = resolvedModel
     this.parsedModel = parsedModel
   }
 
-  override val name get() = resolvedModel?.name ?:    parsedModel?.name() ?: ""
+  override val name get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
 
   var storeFile by SigningConfigDescriptors.storeFile
   var storePassword by SigningConfigDescriptors.storePassword
@@ -45,12 +57,20 @@ class PsSigningConfig(
   var keyPassword by SigningConfigDescriptors.keyPassword
 
   override val isDeclared: Boolean get() = parsedModel != null
+  override val icon: Icon = SIGNING_CONFIG
 
   fun ensureDeclared() {
     if (parsedModel == null) {
-      parsedModel = parent.parsedModel!!.android()!!.addSigningConfig(name)
+      parsedModel = parent.parsedModel!!.android().addSigningConfig(name)
       parent.isModified = true
     }
+  }
+
+  fun rename(newName: String) {
+    ensureDeclared()
+    val oldName = name
+    parsedModel!!.rename(newName)
+    renamed(oldName, newName)
   }
 
   object SigningConfigDescriptors : ModelDescriptor<PsSigningConfig, SigningConfig, SigningConfigModel> {
@@ -58,8 +78,11 @@ class PsSigningConfig(
 
     override fun getParsed(model: PsSigningConfig): SigningConfigModel? = model.parsedModel
 
-    override fun setModified(model: PsSigningConfig) {
+    override fun prepareForModification(model: PsSigningConfig) {
       model.ensureDeclared()
+    }
+
+    override fun setModified(model: PsSigningConfig) {
       model.isModified = true
     }
 
@@ -73,6 +96,7 @@ class PsSigningConfig(
       parser = ::parseFile,
       matcher = { model, parsedValue, resolvedValue -> matchFiles(model.parent.resolvedModel?.rootDirPath, parsedValue, resolvedValue) }
     )
+      .withFileSelectionRoot(browseRoot = { null }, resolveRoot = { null })
 
     val storePassword: SimpleProperty<PsSigningConfig, String> = property(
       "Store Password",

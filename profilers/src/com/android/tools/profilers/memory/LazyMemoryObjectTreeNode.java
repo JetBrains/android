@@ -162,7 +162,7 @@ public abstract class LazyMemoryObjectTreeNode<T extends MemoryObject> extends M
   private static class PagingNode extends MemoryObjectTreeNode<MemoryObject> {
     @NotNull private final LazyMemoryObjectTreeNode myOwnerNode;
 
-    PagingNode(@NotNull LazyMemoryObjectTreeNode ownerNode) {
+    public PagingNode(@NotNull LazyMemoryObjectTreeNode ownerNode) {
       super(() -> String.format("Click to see next %d...",
                                 Math.min(NUM_CHILDREN_PER_PAGE, ownerNode.myChildren.size() - ownerNode.myChildrenView.size())));
       myOwnerNode = ownerNode;

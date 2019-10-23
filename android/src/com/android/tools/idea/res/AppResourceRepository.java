@@ -23,87 +23,71 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.aar.AarSourceResourceRepository;
+import com.android.tools.idea.resources.aar.AarResourceRepository;
+import com.android.tools.idea.resources.aar.AarSourceResourceRepository;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * @see ResourceRepositoryManager#getAppResources(boolean)
+ * @see ResourceRepositoryManager#getAppResources()
  */
 class AppResourceRepository extends MultiResourceRepository {
-  private static final Logger LOG = Logger.getInstance(AppResourceRepository.class);
   static final Key<Boolean> TEMPORARY_RESOURCE_CACHE = Key.create("TemporaryResourceCache");
 
   private final AndroidFacet myFacet;
-  private Collection<AarSourceResourceRepository> myLibraries;
   private long myIdsModificationCount;
   private ListMultimap<String, ResourceItem> myIds;
 
   private final Object RESOURCE_MAP_LOCK = new Object();
 
   /**
-   * Map from library name to resource dirs.
-   * The key library name may be null.
+   * Resource directories. Computed lazily.
    */
-  @Nullable private Multimap<String, VirtualFile> myResourceDirMap;
+  @Nullable private Collection<VirtualFile> myResourceDirs;
 
   @NotNull
-  static AppResourceRepository create(@NotNull AndroidFacet facet, @NotNull List<AarSourceResourceRepository> libraryRepositories) {
-    AppResourceRepository repository =
-        new AppResourceRepository(facet, computeRepositories(facet, libraryRepositories), libraryRepositories);
-    ProjectResourceRepositoryRootListener.ensureSubscribed(facet.getModule().getProject());
+  static AppResourceRepository create(@NotNull AndroidFacet facet, @NotNull Collection<AarResourceRepository> libraryRepositories) {
+    AppResourceRepository repository = new AppResourceRepository(facet, computeLocalRepositories(facet), libraryRepositories);
+    AndroidProjectRootListener.ensureSubscribed(facet.getModule().getProject());
 
     return repository;
   }
 
   @NotNull
-  Multimap<String, VirtualFile> getAllResourceDirs() {
+  Collection<VirtualFile> getAllResourceDirs() {
     synchronized (RESOURCE_MAP_LOCK) {
-      if (myResourceDirMap == null) {
-        myResourceDirMap = HashMultimap.create();
-        for (LocalResourceRepository resourceRepository : getChildren()) {
-          myResourceDirMap.putAll(resourceRepository.getLibraryName(), resourceRepository.getResourceDirs());
-          if (resourceRepository instanceof AarSourceResourceRepository) {
-            VirtualFile resDir = VfsUtil.findFileByIoFile(((AarSourceResourceRepository)resourceRepository).getResourceDirectory(), true);
-            if (resDir != null) {
-              myResourceDirMap.put(resourceRepository.getLibraryName(), resDir);
-            }
-          }
+      if (myResourceDirs == null) {
+        ImmutableList.Builder<VirtualFile> result = ImmutableList.builder();
+        for (LocalResourceRepository resourceRepository : getLocalResources()) {
+          result.addAll(resourceRepository.getResourceDirs());
         }
+        myResourceDirs = result.build();
       }
-      return myResourceDirMap;
+      return myResourceDirs;
     }
   }
 
-  private static List<LocalResourceRepository> computeRepositories(@NotNull AndroidFacet facet,
-                                                                   @NotNull Collection<AarSourceResourceRepository> libraryRepositories) {
-    List<LocalResourceRepository> repositories = new ArrayList<>(libraryRepositories.size() + 2);
-    repositories.addAll(libraryRepositories);
-    repositories.add(ResourceRepositoryManager.getProjectResources(facet));
-    repositories.add(SampleDataResourceRepository.getInstance(facet));
-    return repositories;
+  private static List<LocalResourceRepository> computeLocalRepositories(@NotNull AndroidFacet facet) {
+    return ImmutableList.of(ResourceRepositoryManager.getProjectResources(facet), SampleDataResourceRepository.getInstance(facet));
   }
 
   protected AppResourceRepository(@NotNull AndroidFacet facet,
-                                  @NotNull List<? extends LocalResourceRepository> delegates,
-                                  @NotNull Collection<AarSourceResourceRepository> libraries) {
+                                  @NotNull List<LocalResourceRepository> localResources,
+                                  @NotNull Collection<AarResourceRepository> libraryResources) {
     super(facet.getModule().getName() + " with modules and libraries");
     myFacet = facet;
-    myLibraries = libraries;
-    setChildren(delegates);
+    setChildren(localResources, libraryResources);
   }
 
   /**
@@ -117,11 +101,15 @@ class AppResourceRepository extends MultiResourceRepository {
     long currentModCount = getModificationCount();
     if (myIdsModificationCount < currentModCount) {
       myIdsModificationCount = currentModCount;
+      ImmutableList<AarResourceRepository> libraryResources = getLibraryResources();
       if (myIds == null) {
         int size = 0;
-        for (AarSourceResourceRepository library : myLibraries) {
-          if (library.getAllDeclaredIds() != null) {
-            size += library.getAllDeclaredIds().size();
+        for (AarResourceRepository library : libraryResources) {
+          if (library instanceof AarSourceResourceRepository) {
+            Set<String> idsFromRTxt = ((AarSourceResourceRepository)library).getIdsFromRTxt();
+            if (idsFromRTxt != null) {
+              size += idsFromRTxt.size();
+            }
           }
         }
         myIds = ArrayListMultimap.create(size, 1);
@@ -129,10 +117,13 @@ class AppResourceRepository extends MultiResourceRepository {
       else {
         myIds.clear();
       }
-      for (AarSourceResourceRepository library : myLibraries) {
-        if (library.getAllDeclaredIds() != null) {
-          for (String name : library.getAllDeclaredIds().keySet()) {
-            myIds.put(name, new IdResourceItem(name));
+      for (AarResourceRepository library : libraryResources) {
+        if (library instanceof AarSourceResourceRepository) {
+          Set<String> idsFromRTxt = ((AarSourceResourceRepository)library).getIdsFromRTxt();
+          if (idsFromRTxt != null) {
+            for (String name : idsFromRTxt) {
+              myIds.put(name, new IdResourceItem(name));
+            }
           }
         }
       }
@@ -152,25 +143,19 @@ class AppResourceRepository extends MultiResourceRepository {
     }
   }
 
-  void updateRoots(@NotNull Collection<AarSourceResourceRepository> libraries) {
-    List<LocalResourceRepository> repositories = computeRepositories(myFacet, libraries);
-    updateRoots(repositories, libraries);
+  void updateRoots(@NotNull Collection<? extends AarResourceRepository> libraryResources) {
+    List<LocalResourceRepository> localResources = computeLocalRepositories(myFacet);
+    updateRoots(localResources, libraryResources);
   }
 
   @VisibleForTesting
-  void updateRoots(@NotNull List<LocalResourceRepository> resources, @NotNull Collection<AarSourceResourceRepository> libraries) {
+  void updateRoots(@NotNull List<? extends LocalResourceRepository> localResources,
+                   @NotNull Collection<? extends AarResourceRepository> libraryResources) {
     synchronized (RESOURCE_MAP_LOCK) {
-      myResourceDirMap = null;
+      myResourceDirs = null;
     }
     invalidateResourceDirs();
-
-    if (resources.equals(getChildren())) {
-      // Nothing changed (including order); nothing to do.
-      return;
-    }
-
-    myLibraries = libraries;
-    setChildren(resources);
+    setChildren(localResources, libraryResources);
 
     // Clear the fake R class cache and the ModuleClassLoader cache.
     ResourceIdManager.get(myFacet.getModule()).resetDynamicIds();
@@ -181,10 +166,10 @@ class AppResourceRepository extends MultiResourceRepository {
   @NotNull
   static AppResourceRepository createForTest(@NotNull AndroidFacet facet,
                                              @NotNull List<LocalResourceRepository> modules,
-                                             @NotNull Collection<AarSourceResourceRepository> libraries) {
-    assert modules.containsAll(libraries);
-    assert modules.size() == libraries.size() + 1; // Should only combine with the module set repository.
-    return new AppResourceRepository(facet, modules, libraries);
+                                             @NotNull Collection<AarResourceRepository> libraries) {
+    AppResourceRepository repository = new AppResourceRepository(facet, modules, libraries);
+    Disposer.register(facet, repository);
+    return repository;
   }
 
   private static class IdResourceItem implements ResourceItem {

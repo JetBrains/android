@@ -116,7 +116,7 @@ public class FlagRendererEditor extends TypedCellRendererEditor<EditedStyleItem,
   private class FlagDialog extends DialogWrapper {
     private final HashSet<String> mySelectedFlags = new HashSet<>();
 
-    FlagDialog() {
+    public FlagDialog() {
       super(false);
       String value = myItem.getValue();
       if (!StringUtil.isEmpty(value)) {
@@ -147,7 +147,7 @@ public class FlagRendererEditor extends TypedCellRendererEditor<EditedStyleItem,
       LightweightHint myTooltipHint;
       final String myToolTipText;
 
-      FlagCheckBox(@NotNull String name, @Nullable String toolTipText) {
+      public FlagCheckBox(@NotNull String name, @Nullable String toolTipText) {
         super(name);
         myToolTipText = toolTipText;
         addActionListener(new CheckBoxListener());

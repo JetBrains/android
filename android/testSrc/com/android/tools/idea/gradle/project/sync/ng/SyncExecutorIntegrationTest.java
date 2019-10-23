@@ -358,7 +358,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
       // Verify that GradlePluginModel is available for all Gradle modules.
       GradlePluginModel pluginModel = moduleModels.findModel(GradlePluginModel.class);
       assertNotNull(pluginModel);
-      Collection<String> plugins = pluginModel.getGraldePluginList();
+      Collection<String> plugins = pluginModel.getGradlePluginList();
       // Verify that Java Library Plugin is in the plugin list of each module.
       assertThat(plugins).contains("com.android.java.model.builder.JavaLibraryPlugin");
       if ("app".equals(moduleModels.getModuleName())) {
@@ -385,7 +385,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
                                                  new SyncErrorHandlerManager(project), variantCollector);
 
     SyncListener syncListener = new SyncListener();
-    syncExecutor.syncProject(new MockProgressIndicator(), syncListener, null, null, null, true);
+    syncExecutor.syncProject(new MockProgressIndicator(), syncListener, null, null, null, null, true);
     syncListener.await();
 
     syncListener.propagateFailureIfAny();
@@ -520,7 +520,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
 
     @Override
     @NotNull
-    SelectedVariants collectSelectedVariants() {
+    public SelectedVariants collectSelectedVariants() {
       return mySelectedVariants;
     }
 

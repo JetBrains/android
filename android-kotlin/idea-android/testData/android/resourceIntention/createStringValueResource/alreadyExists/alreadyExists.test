@@ -1,4 +1,6 @@
 {
   "isApplicable": false,
-  "intentionText": "Create string value resource 'my_activity_title'"
+  "rFile": "../../R.kt",
+  "resDirectory": "../../res",
+  "intentionText": "Create string value resource 'app_name'"
 }

@@ -1,18 +1,3 @@
-/*
- * Copyright (C) 2017 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.android.tools.idea.lang.roomSql.parser;
 
 import com.intellij.lexer.FlexLexer;
@@ -133,6 +118,7 @@ BRACKET_LITERAL={UNTERMINATED_BRACKET_LITERAL} \]
   "FOR"                               { return FOR; }
   "FOREIGN"                           { return FOREIGN; }
   "FROM"                              { return FROM; }
+  "FULL"                              { return FULL; }
   "GLOB"                              { return GLOB; }
   "GROUP"                             { return GROUP; }
   "HAVING"                            { return HAVING; }
@@ -180,9 +166,9 @@ BRACKET_LITERAL={UNTERMINATED_BRACKET_LITERAL} \]
   "RENAME"                            { return RENAME; }
   "REPLACE"                           { return REPLACE; }
   "RESTRICT"                          { return RESTRICT; }
+  "RIGHT"                             { return RIGHT; }
   "ROLLBACK"                          { return ROLLBACK; }
   "ROW"                               { return ROW; }
-  "ROWID"                             { return ROWID; }
   "SAVEPOINT"                         { return SAVEPOINT; }
   "SELECT"                            { return SELECT; }
   "SET"                               { return SET; }

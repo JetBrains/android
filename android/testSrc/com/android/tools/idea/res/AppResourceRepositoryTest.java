@@ -23,13 +23,13 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.aar.AarProtoResourceRepository;
-import com.android.tools.idea.res.aar.AarSourceResourceRepository;
+import com.android.tools.idea.resources.aar.AarSourceResourceRepository;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
@@ -42,15 +42,11 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -70,15 +66,16 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
   public void testStringOrder() {
     VirtualFile res1 = myFixture.copyFileToProject(VALUES, "res/values/values.xml").getParent().getParent();
 
-    ModuleResourceRepository moduleRepository = ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(res1));
+    ModuleResourceRepository moduleRepository =
+        ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(res1), RES_AUTO, null);
     ProjectResourceRepository projectResources =
         ProjectResourceRepository.createForTest(myFacet, Collections.singletonList(moduleRepository));
     AppResourceRepository appResources =
         AppResourceRepository.createForTest(myFacet, Collections.singletonList(projectResources), Collections.emptyList());
 
     assertOrderedEquals(appResources.getResources(RES_AUTO, ResourceType.STRING).keySet(),
-                        Arrays.asList("app_name", "title_crossfade", "title_card_flip", "title_screen_slide", "title_zoom",
-                                      "title_layout_changes", "title_template_step", "ellipsis"));
+                        ImmutableList.of("app_name", "title_crossfade", "title_card_flip", "title_screen_slide", "title_zoom",
+                                         "title_layout_changes", "title_template_step", "ellipsis"));
   }
 
   /**
@@ -98,7 +95,8 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertNotSame(res2, res3);
 
     // res3 is not used as an overlay here; instead we use it to simulate an AAR library below
-    ModuleResourceRepository moduleRepository = ModuleResourceRepository.createForTest(myFacet, Arrays.asList(res1, res2));
+    ModuleResourceRepository moduleRepository =
+        ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO, null);
     ProjectResourceRepository projectResources = ProjectResourceRepository.createForTest(
         myFacet, Collections.singletonList(moduleRepository));
 
@@ -114,8 +112,8 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertTrue(moduleRepository.hasResources(RES_AUTO, ResourceType.STRING, "title_card_flip"));
     assertFalse(moduleRepository.hasResources(RES_AUTO, ResourceType.STRING, "non_existent_title_card_flip"));
 
-    AarSourceResourceRepository aar1 = AarSourceResourceRepository.create(VfsUtilCore.virtualToIoFile(res3), null);
-    appResources.updateRoots(Arrays.asList(projectResources, aar1), Collections.singletonList(aar1));
+    AarSourceResourceRepository aar1 = AarSourceResourceRepository.create(VfsUtilCore.virtualToIoFile(res3), "aar1");
+    appResources.updateRoots(ImmutableList.of(projectResources), ImmutableList.of(aar1));
 
     assertTrue(appResources.hasResources(RES_AUTO, ResourceType.STRING, "another_unique_string"));
     assertTrue(aar1.hasResources(RES_AUTO, ResourceType.STRING, "another_unique_string"));
@@ -167,8 +165,10 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertNotSame(res1, res2);
 
     // res2 is not used as an overlay here; instead we use it to simulate an AAR library below
-    ModuleResourceRepository moduleRepository1 = ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(res1));
-    ModuleResourceRepository moduleRepository2 = ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(res2));
+    ModuleResourceRepository moduleRepository1 =
+        ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(res1), RES_AUTO, null);
+    ModuleResourceRepository moduleRepository2 =
+        ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(res2), RES_AUTO, null);
     ProjectResourceRepository projectResources =
         ProjectResourceRepository.createForTest(myFacet, ImmutableList.of(moduleRepository1, moduleRepository2));
     AppResourceRepository appResources =
@@ -180,24 +180,24 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
 
   public void testGetItemsOfTypeIdIncludeAar() {
     VirtualFile res1 = myFixture.copyFileToProject(LAYOUT, "res/layout/some_layout.xml").getParent().getParent();
-    LocalResourceRepository moduleRepository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1));
+    LocalResourceRepository moduleRepository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1), RES_AUTO, null);
     LocalResourceRepository projectResources = ProjectResourceRepository.createForTest(myFacet, ImmutableList.of(moduleRepository));
 
     AarSourceResourceRepository aar = ResourcesTestsUtil.getTestAarRepository();
     AppResourceRepository appResources =
-        AppResourceRepository.createForTest(myFacet, ImmutableList.of(projectResources, aar), ImmutableList.of(aar));
+        AppResourceRepository.createForTest(myFacet, ImmutableList.of(projectResources), ImmutableList.of(aar));
 
     Collection<String> idResources = appResources.getResources(RES_AUTO, ResourceType.ID).keySet();
-    Map<String, Integer> aarIds = aar.getAllDeclaredIds();
+    Set<String> aarIds = aar.getIdsFromRTxt();
     assertNotNull(aarIds);
     assertFalse(aarIds.isEmpty());
-    assertContainsElements(idResources, aarIds.keySet());
-    assertFalse(aarIds.keySet().contains("btn_title_refresh"));
+    assertContainsElements(idResources, aarIds);
+    assertFalse(aarIds.contains("btn_title_refresh"));
     assertContainsElements(idResources, "btn_title_refresh");
   }
 
   public void testNamespaces() {
-    //// This is necessary to use DynamicResourceValueRepository.
+    // This is necessary to use DynamicResourceValueRepository.
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
 
     BiFunction<ResourceNamespace, String, DynamicResourceValueRepository> makeDynamicRepo = (namespace, value) -> {
@@ -206,109 +206,102 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     };
     ResourceNamespace appNamespace = ResourceNamespace.fromPackageName("com.example.app");
 
-    ModuleResourceRepository app =
-      ModuleResourceRepository.createForTest(myFacet,
-                                             ImmutableList.of(
-                                               myFixture.copyFileToProject(VALUES,
-                                                                           "app/res/values/values.xml").getParent().getParent(),
-                                               myFixture.copyFileToProject(VALUES_WITH_NAMESPACE,
-                                                                           "app/res/values/values_with_namespace.xml").getParent().getParent()),
-                                             appNamespace,
-                                             makeDynamicRepo.apply(appNamespace, "appValue"));
+    ModuleResourceRepository appModuleResources = ModuleResourceRepository.createForTest(
+        myFacet,
+        ImmutableSet.of(
+            myFixture.copyFileToProject(VALUES, "app/res/values/values.xml").getParent().getParent(),
+            myFixture.copyFileToProject(VALUES_WITH_NAMESPACE, "app/res/values/values_with_namespace.xml").getParent().getParent()),
+       appNamespace,
+       makeDynamicRepo.apply(appNamespace, "appValue"));
 
     ResourceNamespace localLibNamespace = ResourceNamespace.fromPackageName("com.localLib");
-    ModuleResourceRepository localLib =
-      ModuleResourceRepository.createForTest(myFacet,
-                                             ImmutableList.of(
-                                               myFixture.copyFileToProject(VALUES_OVERLAY1, "localLib/res/values/values.xml").getParent().getParent(),
-                                               myFixture.copyFileToProject(VALUES_WITH_NAMESPACE, "localLib/res/values/values_with_namespace.xml").getParent().getParent()),
-                                             localLibNamespace,
-                                             makeDynamicRepo.apply(localLibNamespace, "localLibValue"));
+    ModuleResourceRepository localLibResources = ModuleResourceRepository.createForTest(
+        myFacet,
+        ImmutableSet.of(
+            myFixture.copyFileToProject(VALUES_OVERLAY1, "localLib/res/values/values.xml").getParent().getParent(),
+            myFixture.copyFileToProject(VALUES_WITH_NAMESPACE, "localLib/res/values/values_with_namespace.xml").getParent().getParent()),
+      localLibNamespace,
+      makeDynamicRepo.apply(localLibNamespace, "localLibValue"));
 
-    ProjectResourceRepository projectResourceRepository = ProjectResourceRepository.createForTest(myFacet, Arrays.asList(app, localLib));
+    ProjectResourceRepository projectResources =
+        ProjectResourceRepository.createForTest(myFacet, ImmutableList.of(appModuleResources, localLibResources));
 
-    VirtualFile aarLibResources = myFixture.copyFileToProject(VALUES_OVERLAY2, "aarLib/res/values/values.xml").getParent().getParent();
+    VirtualFile aarLibResDir = myFixture.copyFileToProject(VALUES_OVERLAY2, "aarLib/res/values/values.xml").getParent().getParent();
     ResourceNamespace aarLibNamespace = ResourceNamespace.fromPackageName("com.aarLib");
-    AarSourceResourceRepository
-      aarLib = AarSourceResourceRepository.createForTest(new File(aarLibResources.getPath()), aarLibNamespace, null);
+    AarSourceResourceRepository aarLib =
+        AarSourceResourceRepository.createForTest(new File(aarLibResDir.getPath()), aarLibNamespace, "aarlib");
 
-    AppResourceRepository appResourceRepository = AppResourceRepository.createForTest(myFacet,
-                                                                                      Arrays.asList(projectResourceRepository, aarLib),
-                                                                                      Collections.singletonList(aarLib));
+    AppResourceRepository appResources =
+        AppResourceRepository.createForTest(myFacet, ImmutableList.of(projectResources), ImmutableList.of(aarLib));
 
-    assertRepositorySelfConsistent(appResourceRepository);
-    assertRepositorySelfConsistent(app);
-    assertRepositorySelfConsistent(localLib);
+    assertRepositorySelfConsistent(appResources);
+    assertRepositorySelfConsistent(appModuleResources);
+    assertRepositorySelfConsistent(localLibResources);
     assertRepositorySelfConsistent(aarLib);
-    assertRepositorySelfConsistent(projectResourceRepository);
+    assertRepositorySelfConsistent(projectResources);
 
-    ResourceTable resourceTable = appResourceRepository.getFullTablePackageAccessible();
+    assertThat(appResources.getResources(appNamespace, ResourceType.ID).keySet()).containsExactly("action_flip", "action_next");
 
-    assertThat(appResourceRepository.getResources(appNamespace, ResourceType.ID).keySet()).containsExactly("action_flip", "action_next");
+    assertThat(projectResources.getNamespaces()).containsExactly(appNamespace, localLibNamespace);
+    assertThat(appResources.getNamespaces()).containsExactly(appNamespace, localLibNamespace, aarLibNamespace);
 
-    assertThat(projectResourceRepository.getNamespaces()).containsExactly(appNamespace, localLibNamespace);
-    assertThat(appResourceRepository.getNamespaces()).containsExactly(appNamespace, localLibNamespace, aarLibNamespace);
+    assertOnlyValue(appResources, appNamespace, "app_name", "Animations Demo");
+    assertOnlyValue(appResources, localLibNamespace, "app_name", "Different App Name");
+    assertOnlyValue(appResources, aarLibNamespace, "app_name", "Very Different App Name");
 
-    assertOnlyValue(appResourceRepository, appNamespace, "app_name", "Animations Demo");
-    assertOnlyValue(appResourceRepository, localLibNamespace, "app_name", "Different App Name");
-    assertOnlyValue(appResourceRepository, aarLibNamespace, "app_name", "Very Different App Name");
+    assertOnlyValue(appResources, appNamespace, "model_value", "appValue");
+    assertOnlyValue(appResources, localLibNamespace, "model_value", "localLibValue");
 
-    assertOnlyValue(appResourceRepository, appNamespace, "model_value", "appValue");
-    assertOnlyValue(appResourceRepository, localLibNamespace, "model_value", "localLibValue");
-    assertThat(resourceTable.get(aarLibNamespace, ResourceType.STRING).get("model_value")).isEmpty();
+    assertThat(appResources.getResources(aarLibNamespace, ResourceType.STRING, "model_value")).isEmpty();
 
-    assertThat(resourceTable.get(appNamespace, ResourceType.ID).get("action_next")).hasSize(1);
-    assertThat(resourceTable.get(localLibNamespace, ResourceType.ID).get("action_next")).isEmpty();
-    assertThat(resourceTable.get(aarLibNamespace, ResourceType.ID).get("action_next")).isEmpty();
+    assertThat(appResources.getResources(appNamespace, ResourceType.ID, "action_next")).hasSize(1);
+    assertThat(appResources.getResources(localLibNamespace, ResourceType.ID, "action_next")).isEmpty();
+    assertThat(appResources.getResources(aarLibNamespace, ResourceType.ID, "action_next")).isEmpty();
 
-    assertThat(resourceTable.get(appNamespace, ResourceType.STRING).get("unique_string")).isEmpty();
-    assertThat(resourceTable.get(localLibNamespace, ResourceType.STRING).get("unique_string")).hasSize(1);
-    assertThat(resourceTable.get(aarLibNamespace, ResourceType.STRING).get("unique_string")).isEmpty();
+    assertThat(appResources.getResources(appNamespace, ResourceType.STRING, "unique_string")).isEmpty();
+    assertThat(appResources.getResources(localLibNamespace, ResourceType.STRING, "unique_string")).hasSize(1);
+    assertThat(appResources.getResources(aarLibNamespace, ResourceType.STRING, "unique_string")).isEmpty();
 
-    assertThat(resourceTable.get(appNamespace, ResourceType.STRING).get("another_unique_string")).isEmpty();
-    assertThat(resourceTable.get(localLibNamespace, ResourceType.STRING).get("another_unique_string")).isEmpty();
-    assertThat(resourceTable.get(aarLibNamespace, ResourceType.STRING).get("another_unique_string")).hasSize(1);
+    assertThat(appResources.getResources(appNamespace, ResourceType.STRING, "another_unique_string")).isEmpty();
+    assertThat(appResources.getResources(localLibNamespace, ResourceType.STRING, "another_unique_string")).isEmpty();
+    assertThat(appResources.getResources(aarLibNamespace, ResourceType.STRING, "another_unique_string")).hasSize(1);
 
-    checkCrossNamespaceReference(appResourceRepository,
+    checkCrossNamespaceReference(appResources,
                                  new ResourceReference(appNamespace, ResourceType.STRING, "using_alias"),
                                  new ResourceReference(aarLibNamespace, ResourceType.STRING, "app_name"),
                                  true);
-    checkCrossNamespaceReference(appResourceRepository,
+    checkCrossNamespaceReference(appResources,
                                  new ResourceReference(appNamespace, ResourceType.STRING, "using_package_name"),
                                  new ResourceReference(aarLibNamespace, ResourceType.STRING, "app_name"),
                                  true);
-    checkCrossNamespaceReference(appResourceRepository,
+    checkCrossNamespaceReference(appResources,
                                  new ResourceReference(appNamespace, ResourceType.STRING, "this_namespace"),
                                  new ResourceReference(appNamespace, ResourceType.STRING, "app_name"),
                                  true);
-    checkCrossNamespaceReference(localLib,
+    checkCrossNamespaceReference(localLibResources,
                                  new ResourceReference(localLibNamespace, ResourceType.STRING, "using_alias"),
                                  new ResourceReference(aarLibNamespace, ResourceType.STRING, "app_name"),
                                  false);
-    checkCrossNamespaceReference(localLib,
+    checkCrossNamespaceReference(localLibResources,
                                  new ResourceReference(localLibNamespace, ResourceType.STRING, "using_package_name"),
                                  new ResourceReference(aarLibNamespace, ResourceType.STRING, "app_name"),
                                  false);
-    checkCrossNamespaceReference(localLib,
+    checkCrossNamespaceReference(localLibResources,
                                  new ResourceReference(localLibNamespace, ResourceType.STRING, "this_namespace"),
                                  new ResourceReference(localLibNamespace, ResourceType.STRING, "app_name"),
                                  true);
   }
 
-  public void testComputeLibraries() {
+  public void testLibraryResources() {
     addBinaryAarDependency(myModule);
     enableNamespacing("p1.p2");
 
     LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myFacet);
-    List<ResourceItem> items = appResources.getResources(ResourceNamespace.fromPackageName("com.example.mylibrary"),
-                                                         ResourceType.STRING,
-                                                         "my_aar_string");
-    List<SingleNamespaceResourceRepository>repositories = new ArrayList<>();
-    appResources.getLeafResourceRepositories(repositories);
-    assertThat(repositories).hasSize(3);
-    assertThat(repositories.stream().map(Object::getClass).collect(Collectors.toSet())).containsExactly(
-        ResourceFolderRepository.class, AarProtoResourceRepository.class, SampleDataResourceRepository.class);
+    Collection<SingleNamespaceResourceRepository> repositories = appResources.getLeafResourceRepositories();
+    assertThat(repositories).hasSize(4);
 
+    List<ResourceItem> items = appResources.getResources(ResourceNamespace.fromPackageName("com.example.mylibrary"),
+                                                         ResourceType.STRING, "my_aar_string");
     assertThat(items).hasSize(1);
     assertThat(items.get(0).getResourceValue().getValue()).isEqualTo("This string came from an AARv2");
   }
@@ -323,22 +316,20 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertEquals(expected, reference);
 
     if (shouldExist) {
-      List<ResourceItem> matches = repo.getFullTablePackageAccessible().get(reference);
-      assertSize(1, matches);
+      List<ResourceItem> matches = repo.getResources(reference.getNamespace(), reference.getResourceType(), reference.getName());
+      assertThat(matches).hasSize(1);
       ResourceItem target = matches.get(0);
       assertNotNull(target);
     }
     else {
-      assertNull(repo.getFullTablePackageAccessible().get(reference));
+      assertThat(repo.getResources(reference.getNamespace(), reference.getResourceType(), reference.getName())).isEmpty();
     }
   }
 
-  private static void assertRepositorySelfConsistent(LocalResourceRepository repository) {
-    ResourceTable resourceTable = repository.getFullTablePackageAccessible();
-
+  private static void assertRepositorySelfConsistent(@NotNull ResourceRepository repository) {
     eachItemInRepo:
     for (ResourceItem item : repository.getAllResources()) {
-      ListMultimap<String, ResourceItem> multimap = resourceTable.get(item.getNamespace(), item.getType());
+      ListMultimap<String, ResourceItem> multimap = repository.getResources(item.getNamespace(), item.getType());
       assertThat(multimap).named("Multimap for " + item).isNotNull();
 
       List<ResourceItem> itemsWithSameName = multimap.get(item.getName());
@@ -369,7 +360,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
                                             String name) {
     String fullName = String.format("@%s:%s/%s", namespace, resourceType, name);
 
-    ListMultimap<String, ResourceItem> multimap = repository.getFullTablePackageAccessible().get(namespace, resourceType);
+    ListMultimap<String, ResourceItem> multimap = repository.getResources(namespace, resourceType);
     assertThat(multimap).named(String.format("@%s:%s", namespace, resourceType)).isNotNull();
 
     List<ResourceItem> items = multimap.get(name);

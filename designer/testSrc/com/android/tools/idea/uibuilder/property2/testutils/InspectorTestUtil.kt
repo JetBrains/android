@@ -15,33 +15,43 @@
  */
 package com.android.tools.idea.uibuilder.property2.testutils
 
-import com.android.tools.adtui.ptable2.PTableModel
-import com.android.tools.idea.common.property2.api.*
-import com.android.tools.idea.common.property2.impl.model.*
-import com.android.tools.idea.common.property2.impl.support.PropertiesTableImpl
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertiesProvider
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
+import com.android.tools.property.panel.api.ControlType
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.FlagsPropertyItem
+import com.android.tools.property.panel.api.PropertiesTable
+import com.android.tools.property.panel.api.PropertyEditorModel
+import com.android.tools.property.panel.impl.model.BooleanPropertyEditorModel
+import com.android.tools.property.panel.impl.model.ColorFieldPropertyEditorModel
+import com.android.tools.property.panel.impl.model.ComboBoxPropertyEditorModel
+import com.android.tools.property.panel.impl.model.FlagPropertyEditorModel
+import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
+import com.android.tools.property.panel.impl.model.ThreeStateBooleanPropertyEditorModel
+import com.android.tools.property.panel.impl.model.util.FakeInspectorLineModel
+import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
+import com.android.tools.property.panel.impl.model.util.FakeLineType
+import com.android.tools.property.panel.impl.model.util.FakeTableLineModel
+import com.android.tools.property.panel.impl.support.PropertiesTableImpl
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
-import org.jetbrains.android.dom.attrs.AttributeDefinition
-import com.android.ide.common.rendering.api.AttributeFormat
-import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.tools.adtui.ptable2.PTableItem
-import com.intellij.openapi.actionSystem.AnAction
+import com.google.common.truth.Truth
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class InspectorTestUtil(projectRule: AndroidProjectRule, tag: String, parentTag: String = "")
-  : SupportTestUtil(projectRule, tag, parentTag) {
+class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, parentTag: String = "", fileName: String = "layout.xml")
+  : SupportTestUtil(projectRule, *tags, parentTag = parentTag, fileName = fileName) {
+
   private val _properties: Table<String, String, NelePropertyItem> = HashBasedTable.create()
 
   val properties: PropertiesTable<NelePropertyItem> = PropertiesTableImpl(_properties)
 
-  val editorProvider = FakeEditorProviderImpl()
+  val editorProvider = FakeEditorProviderImpl(model)
 
   val inspector = FakeInspectorPanel()
 
@@ -62,110 +72,42 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, tag: String, parentTag:
   }
 
   fun loadProperties() {
-    val provider = NelePropertiesProvider(model)
-    for (propertyItem in provider.getProperties(components).values) {
+    val provider = NelePropertiesProvider(model.facet)
+    for (propertyItem in provider.getProperties(model, null, components).values) {
       _properties.put(propertyItem.namespace, propertyItem.name, propertyItem)
     }
   }
-}
 
-enum class LineType {
-  TITLE, PROPERTY, TABLE, PANEL, SEPARATOR
-}
-
-open class FakeInspectorLine(val type: LineType) : InspectorLineModel {
-  override var visible = true
-  override var hidden = false
-  override var focusable = true
-  override var parent: InspectorLineModel? = null
-  var actions = listOf<AnAction>()
-  open val tableModel: PTableModel? = null
-  var title: String? = null
-  var editorModel: PropertyEditorModel? = null
-  var expandable = false
-  var expanded = false
-  val children = mutableListOf<InspectorLineModel>()
-  val childProperties: List<String>
-    get() = children.map { it as FakeInspectorLine }.map { it.editorModel!!.property.name }
-
-  var focusWasRequested = false
-    private set
-
-  var gotoNextLineWasRequested = false
-    private set
-
-  override fun requestFocus() {
-    focusWasRequested = true
+  fun checkTitle(line: Int, title: String) {
+    Truth.assertThat(line).isLessThan(inspector.lines.size)
+    Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.TITLE)
+    Truth.assertThat(inspector.lines[line].title).isEqualTo(title)
   }
 
-  override var gotoNextLine: (InspectorLineModel) -> Unit
-    get() = { gotoNextLineWasRequested = true }
-    set(value) {}
+  fun checkTitle(line: Int, title: String, expandable: Boolean): FakeInspectorLineModel {
+    Truth.assertThat(line).isLessThan(inspector.lines.size)
+    Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.TITLE)
+    Truth.assertThat(inspector.lines[line].title).isEqualTo(title)
+    Truth.assertThat(inspector.lines[line].expandable).isEqualTo(expandable)
+    return inspector.lines[line]
+  }
 
-  override fun makeExpandable(initiallyExpanded: Boolean) {
-    expandable = true
-    expanded = initiallyExpanded
+  fun checkEditor(line: Int, namespace: String, name: String) {
+    Truth.assertThat(line).isLessThan(inspector.lines.size)
+    Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.PROPERTY)
+    Truth.assertThat(inspector.lines[line].editorModel?.property?.name).isEqualTo(name)
+    Truth.assertThat(inspector.lines[line].editorModel?.property?.namespace).isEqualTo(namespace)
+  }
+
+  fun checkTable(line: Int): FakeTableLineModel {
+    Truth.assertThat(line).isLessThan(inspector.lines.size)
+    Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.TABLE)
+    return inspector.lines[line] as FakeTableLineModel
   }
 }
 
-class FakeTableLine(override val tableModel: PTableModel) : FakeInspectorLine(LineType.TABLE), TableLineModel {
-  override var selectedItem: PTableItem? = null
-
-  override fun requestFocus(item: PTableItem) {
-    selectedItem = item
-  }
-
-  override fun stopEditing() {
-    selectedItem = null
-  }
-}
-
-class FakeInspectorPanel : InspectorPanel {
-  val lines = mutableListOf<FakeInspectorLine>()
-
-  override fun addTitle(title: String, vararg actions: AnAction): InspectorLineModel {
-    val line = FakeInspectorLine(LineType.TITLE)
-    line.title = title
-    line.actions = actions.asList()
-    lines.add(line)
-    return line
-  }
-
-  override fun addCustomEditor(editorModel: PropertyEditorModel, editor: JComponent, parent: InspectorLineModel?): InspectorLineModel {
-    val line = FakeInspectorLine(LineType.PROPERTY)
-    editorModel.lineModel = line
-    line.editorModel = editorModel
-    lines.add(line)
-    addAsChild(line, parent)
-    return line
-  }
-
-  override fun addTable(tableModel: PTableModel,
-                        searchable: Boolean,
-                        tableUI: TableUIProvider,
-                        parent: InspectorLineModel?): TableLineModel {
-    val line = FakeTableLine(tableModel)
-    lines.add(line)
-    addAsChild(line, parent)
-    return line
-  }
-
-  override fun addComponent(component: JComponent, parent: InspectorLineModel?): InspectorLineModel {
-    val line = FakeInspectorLine(LineType.PANEL)
-    lines.add(line)
-    addAsChild(line, parent)
-    return line
-  }
-
-  private fun addAsChild(child: FakeInspectorLine, parent: InspectorLineModel?) {
-    val group = parent as? FakeInspectorLine ?: return
-    group.children.add(child)
-    child.parent = group
-  }
-}
-
-class FakeEditorProviderImpl: EditorProvider<NelePropertyItem> {
-  private val enumSupportProvider = NeleEnumSupportProvider()
+class FakeEditorProviderImpl(model: NelePropertiesModel): EditorProvider<NelePropertyItem> {
+  private val enumSupportProvider = NeleEnumSupportProvider(model)
   private val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
 
   override fun createEditor(property: NelePropertyItem, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {

@@ -16,9 +16,11 @@
 package com.android.tools.idea.testartifacts.junit;
 
 import com.android.tools.idea.IdeInfo;
+import com.intellij.execution.configuration.ConfigurationFactoryEx;
+import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationTypeUtil;
+import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.configurations.SimpleConfigurationType;
 import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
@@ -32,42 +34,71 @@ import javax.swing.*;
 /**
  * Android implementation of {@link JUnitConfigurationType} for running local unit tests. Dual test scopes is supported.
  */
-public final class AndroidJUnitConfigurationType extends SimpleConfigurationType {
+public class AndroidJUnitConfigurationType extends JUnitConfigurationType {
   private static final String ANDROID_JUNIT_DESCRIPTION = "Android JUnit test configuration";
   private static final String ANDROID_JUNIT_NAME = "Android JUnit";
   private static final String ANDROID_JUNIT_ID = "AndroidJUnit";
-
-  public AndroidJUnitConfigurationType() {
-    super(ANDROID_JUNIT_ID, ANDROID_JUNIT_NAME, ANDROID_JUNIT_DESCRIPTION, NotNullLazyValue.createValue(() -> loadIcon()));
-  }
-
-  private static Icon loadIcon() {
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      return AllIcons.RunConfigurations.Junit;
-    }
-    else {
+  private static final NotNullLazyValue<Icon> ANDROID_TEST_ICON = new NotNullLazyValue<Icon>() {
+    @NotNull
+    @Override
+    protected Icon compute() {
       LayeredIcon icon = new LayeredIcon(2);
       icon.setIcon(StudioIcons.Shell.Filetree.ANDROID_PROJECT, 0);
       icon.setIcon(AllIcons.Nodes.JunitTestMark, 1);
       return icon;
     }
+  };
+
+  private final ConfigurationFactory myFactory;
+
+  public AndroidJUnitConfigurationType() {
+    myFactory = new ConfigurationFactoryEx(this) {
+      @NotNull
+      @Override
+      public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
+        AndroidJUnitConfiguration configuration = new AndroidJUnitConfiguration(project, this);
+        configuration.setVMParameters("-ea");
+        configuration.setWorkingDirectory("$MODULE_DIR$");
+        return configuration;
+      }
+
+      @Override
+      public void onNewConfigurationCreated(@NotNull RunConfiguration configuration) {
+        ((ModuleBasedConfiguration)configuration).onNewConfigurationCreated();
+      }
+    };
   }
 
-  @NotNull
   @Override
-  public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
-    return new AndroidJUnitConfiguration(project, this);
+  public String getDisplayName() {
+    return ANDROID_JUNIT_NAME;
+  }
+
+  @Override
+  public String getConfigurationTypeDescription() {
+    return ANDROID_JUNIT_DESCRIPTION;
+  }
+
+  @Override
+  public Icon getIcon() {
+    // Uses the standard JUnit icon if in AndroidStudio and otherwise, another icon
+    return IdeInfo.getInstance().isAndroidStudio() ? AllIcons.RunConfigurations.Junit : ANDROID_TEST_ICON.getValue();
+  }
+
+  @Override
+  public ConfigurationFactory[] getConfigurationFactories() {
+    return new ConfigurationFactory[]{myFactory};
+  }
+
+  @Override
+  @NotNull
+  public String getId() {
+    return ANDROID_JUNIT_ID;
   }
 
   @NotNull
   public static AndroidJUnitConfigurationType getInstance() {
     return ConfigurationTypeUtil.findConfigurationType(AndroidJUnitConfigurationType.class);
-  }
-
-  @NotNull
-  @Override
-  public String getTag() {
-    return "androidJunit";
   }
 
   @Override

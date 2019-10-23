@@ -82,7 +82,7 @@ public class AdbDeviceDataDirectoryEntry extends AdbDeviceForwardingFileEntry {
     @NotNull
     private final AdbDeviceDirectFileEntry myDirectEntry;
 
-    AdbDeviceDataDataDirectoryEntry(@NotNull AdbDeviceFileEntry parent,
+    public AdbDeviceDataDataDirectoryEntry(@NotNull AdbDeviceFileEntry parent,
                                            @NotNull AdbFileListingEntry entry) {
       super(parent.myDevice, entry, parent);
       myDirectEntry = new AdbDeviceDirectFileEntry(parent.myDevice, entry, parent, null);
@@ -119,7 +119,7 @@ public class AdbDeviceDataDirectoryEntry extends AdbDeviceForwardingFileEntry {
     @NotNull
     private final AdbDeviceDirectFileEntry myDirectEntry;
 
-    AdbDeviceDataAppDirectoryEntry(@NotNull AdbDeviceFileEntry parent,
+    public AdbDeviceDataAppDirectoryEntry(@NotNull AdbDeviceFileEntry parent,
                                            @NotNull AdbFileListingEntry entry) {
       super(parent.myDevice, entry, parent);
       myDirectEntry = new AdbDeviceDirectFileEntry(parent.myDevice, entry, parent, null);
@@ -171,7 +171,7 @@ public class AdbDeviceDataDirectoryEntry extends AdbDeviceForwardingFileEntry {
     @NotNull
     private final AdbDeviceDirectFileEntry myDirectEntry;
 
-    AdbDeviceDataLocalDirectoryEntry(@NotNull AdbDeviceFileEntry parent,
+    public AdbDeviceDataLocalDirectoryEntry(@NotNull AdbDeviceFileEntry parent,
                                            @NotNull AdbFileListingEntry entry) {
       super(parent.myDevice, entry, parent);
       myDirectEntry = new AdbDeviceDirectFileEntry(parent.myDevice, entry, parent, null);
@@ -205,7 +205,7 @@ public class AdbDeviceDataDirectoryEntry extends AdbDeviceForwardingFileEntry {
     @NotNull
     private final AdbDeviceDirectFileEntry myDirectEntry;
 
-    AdbDevicePackageDirectoryEntry(@NotNull AdbDeviceFileEntry parent,
+    public AdbDevicePackageDirectoryEntry(@NotNull AdbDeviceFileEntry parent,
                                           @NotNull AdbFileListingEntry entry,
                                           @NotNull String packageName) {
       super(parent.myDevice, entry, parent);

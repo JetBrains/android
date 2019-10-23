@@ -23,13 +23,14 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.impl.analysis.XmlUnusedNamespaceInspection
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.inspections.AndroidDomInspection
-import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection
-import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection
+import org.jetbrains.android.dom.inspections.AndroidDomInspection
+import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection
+import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection
 
 /**
  * Tests for code editor features when working with value resources XML files in namespaced projects.
@@ -77,6 +78,8 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
       """.trimIndent()
     )
 
+    // Some tests trigger a large list of possible completions.
+    Registry.get("ide.completion.variant.limit").setValue(2000, testRootDisposable)
   }
 
   fun testDifferentNamespacesCompletion() {

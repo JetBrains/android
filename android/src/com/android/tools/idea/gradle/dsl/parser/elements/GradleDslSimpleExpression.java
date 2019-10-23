@@ -31,6 +31,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NotNull;
@@ -165,6 +166,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
    * This means that it can be used to duplicate the element and use it elsewhere in the tree without the danger that the PsiElement will
    * be deleted from use elsewhere.
    */
+  @Override
   @NotNull
   public abstract GradleDslSimpleExpression copy();
 
@@ -294,10 +296,11 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
     String standardProjectKey = getStandardProjectKey(projectReference);
     if (standardProjectKey != null) { // project(':project:path')
       String modulePath = standardProjectKey.substring(standardProjectKey.indexOf('\'') + 1, standardProjectKey.lastIndexOf('\''));
-      GradleSettingsFile file = dslFile.getContext().getOrCreateSettingsFile(dslFile.getProject());
-      if (file == null) {
+      VirtualFile settingFile = dslFile.tryToFindSettingsFile();
+      if (settingFile == null) {
         return null;
       }
+      GradleSettingsFile file = dslFile.getContext().getOrCreateSettingsFile(settingFile);
       GradleSettingsModel model = new GradleSettingsModelImpl(file);
       File moduleDirectory = model.moduleDirectory(modulePath);
       if (moduleDirectory == null) {
@@ -428,6 +431,8 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
       if (!isPropertiesElementOrMap(element)) {
         return null;
       }
+      // isPropertiesElementOrMap should always return false when is not an instance of GradlePropertiesDslElement.
+      //noinspection ConstantConditions
       properties = (GradlePropertiesDslElement)element;
     }
 
@@ -489,6 +494,11 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
       if (resolveWithOrder) {
         elementTrace.push(element);
       }
+
+      // Don't resolve up the parents for BuildScript elements.
+      if (element instanceof BuildScriptDslElement) {
+        return null;
+      }
       element = element.getParent();
     }
 
@@ -517,6 +527,16 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
     if (propertyElement != null) {
       return propertyElement;
     }
+
+    // Ensure we check the buildscript as well.
+    BuildScriptDslElement bsDslElement = dslFile.getPropertyElement(BUILDSCRIPT_BLOCK_NAME, BuildScriptDslElement.class);
+    if (bsDslElement != null) {
+      GradleDslElement bsElement = resolveReferenceOnElement(bsDslElement, referenceText, false, true, -1);
+      if (bsElement != null) {
+        return bsElement;
+      }
+    }
+
 
     if (dslFile.getParentModuleDslFile() == null) {
       return null; // This is the root project build.gradle file and there is no further path to look up.

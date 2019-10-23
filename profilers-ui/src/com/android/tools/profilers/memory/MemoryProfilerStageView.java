@@ -31,8 +31,8 @@ import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.*;
-import com.android.tools.profilers.memory.MemoryProfilerStage.LiveAllocationSamplingMode;
 import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.memory.MemoryProfilerStage.LiveAllocationSamplingMode;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
@@ -50,10 +50,10 @@ import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
+import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -642,7 +642,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     IdeProfilerComponents ideProfilerComponents = getIdeComponents();
     ContextMenuInstaller contextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
 
-    ProfilerAction exportHeapDumpAction = new ProfilerAction.Builder("Export...").setIcon(StudioIcons.Common.EXPORT).build();
+    ProfilerAction exportHeapDumpAction = new ProfilerAction.Builder("Export...").setIcon(AllIcons.ToolbarDecorator.Export).build();
     contextMenuInstaller.installGenericContextMenu(
       mySelectionComponent, exportHeapDumpAction,
       x -> getCaptureIntersectingWithMouseX(x) != null &&
@@ -694,7 +694,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
                         ? IconUtil.darker(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6)
                         : IconUtil.brighter(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6);
     RenderInstruction[] instructions;
-    FontMetrics metrics = SwingUtilities2.getFontMetrics(parent, ProfilerFonts.H2_FONT);
+    FontMetrics metrics = UIUtilities.getFontMetrics(parent, ProfilerFonts.H2_FONT);
     if (getStage().useLiveAllocationTracking()) {
       RenderInstruction[] liveAllocInstructions = {
         new TextInstruction(metrics, "Select a range to inspect allocations"),
@@ -768,8 +768,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     stopLoadingUi();
     myCaptureObject = getStage().getSelectedCapture();
     if (myCaptureObject == null) {
-      myAllocationButton.setEnabled(true);
-      myHeapDumpButton.setEnabled(true);
+      boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
+      myAllocationButton.setEnabled(isAlive);
+      myHeapDumpButton.setEnabled(isAlive);
       myChartCaptureSplitter.setSecondComponent(null);
       return;
     }
@@ -789,13 +790,14 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   private void captureObjectFinishedLoading() {
-    myAllocationButton.setEnabled(true);
+    boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
+    myAllocationButton.setEnabled(isAlive);
     // If the capture is an imported file, mySelectionComponent is null.
     // If it is part of a profiler session, mySelectionComponent is not null and should obtain the focus.
     if (mySelectionComponent != null) {
       mySelectionComponent.requestFocus();
     }
-    myHeapDumpButton.setEnabled(true);
+    myHeapDumpButton.setEnabled(isAlive);
     if (myCaptureObject != getStage().getSelectedCapture() || myCaptureObject == null) {
       return;
     }

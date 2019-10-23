@@ -187,7 +187,7 @@ public class SystemInfoStatsMonitor {
     myCpuInfo = calcCpuInfo(mySdkHandler);
   }
 
-  @NotNull
+  @Nullable
   private static File getEmulatorCheckBinary(@NotNull AndroidSdkHandler handler) {
     return AvdManagerConnection.getAvdManagerConnection(handler).getEmulatorCheckBinary();
   }
@@ -208,7 +208,7 @@ public class SystemInfoStatsMonitor {
     }
 
     File checkBinary = getEmulatorCheckBinary(handler);
-    if (!checkBinary.isFile()) {
+    if (checkBinary == null) {
       throw new ExecutionException("No emulator-check binary in the SDK tools package");
     }
     GeneralCommandLine commandLine = new GeneralCommandLine(checkBinary.getPath(), argument);

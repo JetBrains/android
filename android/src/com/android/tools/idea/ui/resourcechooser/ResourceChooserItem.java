@@ -45,7 +45,7 @@ public abstract class ResourceChooserItem {
   @NotNull protected final String myName;
   private final HashMap<Integer, Icon> myIcons = Maps.newHashMapWithExpectedSize(2);
 
-  ResourceChooserItem(@NotNull ResourceType type, @NotNull String name) {
+  public ResourceChooserItem(@NotNull ResourceType type, @NotNull String name) {
     myType = type;
     myName = name;
   }

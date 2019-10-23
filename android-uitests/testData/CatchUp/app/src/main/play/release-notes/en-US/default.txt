@@ -1,0 +1,1 @@
+* **Fix:** Accidental proguard issue that would break HackerNews

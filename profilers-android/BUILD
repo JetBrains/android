@@ -5,13 +5,17 @@ iml_module(
     name = "intellij.android.profilersAndroid",
     srcs = ["src"],
     iml_files = ["intellij.android.profilersAndroid.iml"],
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
+    test_coverage = True,
+    test_data = [
+        "//tools/idea:platform-build-info",
+    ],
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
@@ -19,7 +23,6 @@ iml_module(
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
-        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
     ],
     # do not sort: must match IML order
     deps = [
@@ -29,7 +32,7 @@ iml_module(
         "//tools/adt/idea/profilers:intellij.android.profilers[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
-        "//tools/adt/idea/perfd-host:intellij.android.perfdHost[module]",
+        "//tools/adt/idea/transport-database:intellij.android.transportDatabase[module]",
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
@@ -45,7 +48,6 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
-        "//tools/vendor/intellij/cidr:intellij.c[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/adt/idea/native-symbolizer[module]",
         "//tools/idea/.idea/libraries:protobuf",
@@ -55,5 +57,6 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/idea/json:intellij.json[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
+        "//tools/adt/idea/android-transport:intellij.android.transport[module]",
     ],
 )

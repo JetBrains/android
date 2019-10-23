@@ -19,8 +19,11 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public interface LanguageLevelPropertyModel extends ResolvedPropertyModel {
+
+  @TestOnly
   @Nullable
   LanguageLevel toLanguageLevel();
 

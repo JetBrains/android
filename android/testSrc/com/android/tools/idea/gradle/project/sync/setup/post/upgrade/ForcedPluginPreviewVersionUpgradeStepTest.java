@@ -27,7 +27,7 @@ import java.util.Collection;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link ForcedPluginPreviewVersionUpgradeStep}.
+ * Tests for {@link ForcedPluginVersionUpgradeStep}.
  */
 @RunWith(Parameterized.class)
 public class ForcedPluginPreviewVersionUpgradeStepTest {
@@ -51,6 +51,20 @@ public class ForcedPluginPreviewVersionUpgradeStepTest {
       {"2.5.0", "2.4.0-alpha8", false},
       {"2.5.0-alpha1", "2.4.0-alpha8", false},
       {"2.3.0-alpha1", "2.4.0-alpha8", true},
+
+      // Allow recent rc builds in canaries
+      {"3.3.1-rc01", "3.5.0-dev", true}, // must be previous
+      {"3.3.1-rc01", "3.5.0-alpha01", true}, // dev==alpha
+      {"3.4.0-rc02", "3.4.0-rc03", true}, // within single release require latest
+      {"3.4.0-rc02", "3.4.0", true}, // old rc's only allowed from previews, not stable
+      {"3.4.0-rc02", "3.5.0", true}, // old rc's only allowed from previews, not stable
+
+      {"3.4.0-alpha03", "3.5.0", true},
+      {"3.4.0-alpha05", "3.4.0", true},
+
+      {"3.4.0-rc01", "3.5.0-alpha01", false},
+      {"3.4.0-rc02", "3.5.0-alpha01", false},
+      {"3.3.1", "3.5.0-alpha01", false},
     });
   }
 
@@ -67,7 +81,7 @@ public class ForcedPluginPreviewVersionUpgradeStepTest {
 
   @Test
   public void shouldPreviewBeForcedToUpgradePluginVersion() {
-    boolean forced = ForcedPluginPreviewVersionUpgradeStep.shouldPreviewBeForcedToUpgradePluginVersion(myRecommended, myCurrent);
+    boolean forced = ForcedPluginVersionUpgradeStep.shouldPreviewBeForcedToUpgradePluginVersion(myRecommended, myCurrent);
     assertEquals("should force upgrade from " + myCurrent + " to " + myRecommended + "?", myForceUpgrade, forced);
   }
 }

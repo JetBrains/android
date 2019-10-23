@@ -18,8 +18,6 @@ package com.android.tools.idea.npw.template;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CLASS_NAME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS;
 import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
@@ -244,7 +242,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       RowEntry row = createRowForParameter(getModel().getModule(), parameter);
       final ObservableValue<?> property = row.getProperty();
       if (property != null) {
-        property.addListener(sender -> {
+        property.addListener(() -> {
           // If not evaluating, change comes from the user (or user pressed "Back" and updates are "external". eg Template changed)
           if (myEvaluationState != EvaluationState.EVALUATING && myRootPanel.isShowing()) {
             myUserValues.put(parameter, property.get());
@@ -288,7 +286,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       SelectedItemProperty<NamedModuleTemplate> template = (SelectedItemProperty<NamedModuleTemplate>)row.getProperty();
       assert template != null; // ModuleTemplateComboProvider always sets this
       myBindings.bind(getModel().getTemplate(), ObjectProperty.wrap(template));
-      template.addListener(sender -> enqueueEvaluateParameters());
+      template.addListener(() -> enqueueEvaluateParameters());
     }
 
     myValidatorPanel.registerMessageSource(myInvalidParameterMessage);
@@ -297,8 +295,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   }
 
   private boolean displayLanguageChoice(TemplateMetadata templateMetadata) {
-    // Note: For new projects we have a different UI.
-    if (getModel().getProject().getValueOrNull() == null) {
+    // Note: For new projects and new module we have a different UI.
+    if (getModel().getAndroidFacet() == null) {
       return false;
     }
     // For Templates with an Android FormFactor or that have a class/package name, we allow the user to select the programming language
@@ -338,7 +336,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       assert packageName != null;
       myBindings.bindTwoWay(packageName, getModel().packageName());
       // Model.packageName is used for parameter evaluation, but updated asynchronously. Do new evaluation when value changes.
-      myListeners.listen(getModel().packageName(), sender -> enqueueEvaluateParameters());
+      myListeners.listen(getModel().packageName(), () -> enqueueEvaluateParameters());
       return rowEntry;
     }
 
@@ -583,13 +581,6 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
         templateValues.put(parameter.id, property.get());
       }
     }
-
-    //noinspection ConstantConditions
-    if (displayLanguageChoice(getModel().getTemplateHandle().getMetadata())) {
-      Language language = getModel().getLanguage().get();
-      templateValues.put(ATTR_LANGUAGE, language);
-      templateValues.put(ATTR_KOTLIN_SUPPORT, language == Language.KOTLIN);
-    }
   }
 
   /**
@@ -630,7 +621,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     @Nullable private final AbstractProperty<?> myProperty;
     @NotNull private final WantGrow myWantGrow;
 
-    RowEntry(@NotNull String headerText, @NotNull ComponentProvider<T> componentProvider) {
+    public RowEntry(@NotNull String headerText, @NotNull ComponentProvider<T> componentProvider) {
       myHeader = new JPanel(new FlowLayout(FlowLayout.LEFT));
       JBLabel headerLabel = new JBLabel(headerText + ":");
       myHeader.add(headerLabel);
@@ -643,7 +634,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       headerLabel.setLabelFor(myComponent);
     }
 
-    RowEntry(@NotNull ParameterComponentProvider<T> componentProvider, @NotNull WantGrow stretch) {
+    public RowEntry(@NotNull ParameterComponentProvider<T> componentProvider, @NotNull WantGrow stretch) {
       myHeader = null;
       myWantGrow = stretch;
       myComponentProvider = componentProvider;
@@ -749,7 +740,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   private final class ResetParameterAction extends AnAction {
     @NotNull private final Parameter myParameter;
 
-    ResetParameterAction(@NotNull Parameter parameter) {
+    public ResetParameterAction(@NotNull Parameter parameter) {
       super("Restore default value", "Discards any user modifications made to this parameter", AllIcons.General.Reset);
       myParameter = parameter;
     }

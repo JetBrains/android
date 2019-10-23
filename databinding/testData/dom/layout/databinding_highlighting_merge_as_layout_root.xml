@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:bind="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <merge>
+        <ImageView
+            android:id="@+id/user_photo"
+            android:scaleType="fitCenter"
+            android:layout_width="20dp"
+            android:layout_height="20dp" />
+
+        <TextView
+            android:layout_marginLeft="20dp"
+            android:id="@+id/fullname"
+            android:gravity="center"
+            android:text='@{user.name.substring(0,1).toUpperCase() + "." + user.lastName}'
+            android:layout_weight="@{safeUnbox(boxedBoolean) ? 2 : 3}"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent" />
+    </merge>
+</layout>

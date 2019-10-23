@@ -36,7 +36,7 @@ class PatchInstaller extends AbstractInstaller implements PatchOperation {
   private LocalPackage myExisting;
   private File myPatchFile;
 
-  PatchInstaller(@Nullable LocalPackage existing,
+  public PatchInstaller(@Nullable LocalPackage existing,
                         @NotNull RemotePackage p,
                         @NotNull Downloader downloader,
                         @NotNull RepoManager mgr,

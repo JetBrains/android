@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporterUtils;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class BaseSyncErrorHandler extends SyncErrorHandler {
   @Override
@@ -34,6 +35,9 @@ public abstract class BaseSyncErrorHandler extends SyncErrorHandler {
     String text = findErrorMessage(getRootCause(error), project);
     if (text != null) {
       List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(project, text);
+      SyncIssueUsageReporterUtils.collect(
+        SyncIssueUsageReporter.Companion.getInstance(project),
+        hyperlinks);
       GradleSyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
       return true;
     }

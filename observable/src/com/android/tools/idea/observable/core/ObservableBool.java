@@ -16,18 +16,42 @@
 package com.android.tools.idea.observable.core;
 
 import com.android.tools.idea.observable.ObservableValue;
+import com.android.tools.idea.observable.expressions.bool.AndExpression;
+import com.android.tools.idea.observable.expressions.bool.NotExpression;
+import com.android.tools.idea.observable.expressions.bool.OrExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Read-only handle to a {@link BoolProperty}.
  */
 public interface ObservableBool extends ObservableValue<Boolean> {
-  @NotNull
-  ObservableBool not();
+  ObservableBool TRUE = new ConstantBool() {
+    @Override
+    @NotNull
+    public Boolean get() {
+      return Boolean.TRUE;
+    }
+  };
+  ObservableBool FALSE = new ConstantBool() {
+    @Override
+    @NotNull
+    public Boolean get() {
+      return Boolean.FALSE;
+    }
+  };
 
   @NotNull
-  ObservableBool or(@NotNull ObservableValue<Boolean> other);
+  default ObservableBool not() {
+    return new NotExpression(this);
+  }
 
   @NotNull
-  ObservableBool and(@NotNull ObservableValue<Boolean> other);
+  default ObservableBool or(@NotNull ObservableValue<Boolean> other) {
+    return new OrExpression(this, other);
+  }
+
+  @NotNull
+  default ObservableBool and(@NotNull ObservableValue<Boolean> other) {
+    return new AndExpression(this, other);
+  }
 }

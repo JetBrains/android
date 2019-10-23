@@ -15,6 +15,16 @@
  */
 package org.jetbrains.android;
 
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.CLASS_VIEW;
+import static com.android.SdkConstants.NEW_ID_PREFIX;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.TAG_ATTR;
+import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
+import static com.android.resources.ResourceType.STYLEABLE;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
@@ -22,7 +32,6 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -51,9 +60,15 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.light.LightElement;
 import com.intellij.psi.search.SearchScope;
+import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -70,29 +85,27 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.MultiMap;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.jetbrains.android.augment.AndroidLightField;
-import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
-import org.jetbrains.android.dom.wrappers.ResourceFieldElementWrapper;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.*;
-import static com.android.resources.ResourceType.STYLEABLE;
-import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
  * @author Eugene.Kudelevsky
@@ -146,7 +159,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       }
       else if (computedElement instanceof PsiClass) {
         PsiClass cls = (PsiClass)computedElement;
-        if (AndroidDomUtil.isInheritor(cls, CLASS_VIEW)) {
+        if (InheritanceUtil.isInheritor(cls, CLASS_VIEW)) {
           return true;
         }
       }
@@ -157,7 +170,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
   @Nullable
   @Override
   public PsiElement substituteElementToRename(@NotNull PsiElement element, @Nullable Editor editor) {
-    if (StudioFlags.IN_MEMORY_R_CLASSES.get() && element instanceof AndroidLightField) {
+    if (element instanceof AndroidLightField) {
       return new ResourceFieldElementWrapper((AndroidLightField)element);
     }
 
@@ -180,14 +193,16 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     }
     else if (computedElement instanceof PsiClass) {
       PsiClass cls = (PsiClass)computedElement;
-      if (AndroidDomUtil.isInheritor(cls, CLASS_VIEW)) {
+      if (InheritanceUtil.isInheritor(cls, CLASS_VIEW)) {
         prepareCustomViewRenaming(cls, newName, allRenames, facet);
       }
     }
     else if (computedElement instanceof XmlAttributeValue) {
       XmlAttributeValue value = (XmlAttributeValue)computedElement;
       if (AndroidResourceUtil.isIdDeclaration(value)) {
-        prepareIdRenaming(value, newName, allRenames, facet);
+        if (AndroidResourceUtil.isIdDeclaration(newName)) {
+          prepareIdRenaming(value, newName, allRenames, facet);
+        }
       }
       else {
         prepareValueResourceRenaming(computedElement, newName, allRenames, facet);
@@ -246,7 +261,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     LocalResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
     String id = AndroidResourceUtil.getResourceNameByReferenceText(value.getValue());
     assert id != null;
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
     ResourceNamespace namespace = repositoryManager.getNamespace();
     List<XmlAttributeValue> idDeclarations = manager.findIdDeclarations(namespace, id);
     ProjectFileIndex fileIndex = ProjectRootManager.getInstance(facet.getModule().getProject()).getFileIndex();
@@ -375,7 +390,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
                                                    Map<PsiElement, String> allRenames,
                                                    final AndroidFacet facet) {
     LocalResourceManager localResourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
-    ResourceRepositoryManager repoManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+    ResourceRepositoryManager repoManager = ResourceRepositoryManager.getInstance(facet);
     XmlTag tag = PsiTreeUtil.getParentOfType(element, XmlTag.class);
     assert tag != null;
     ResourceType type = localResourceManager.getValueResourceType(tag);
@@ -407,7 +422,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
 
       final String stylePrefix = name + ".";
       Collection<String> renameCandidates;
-      Collection<String> allStyles = repoManager.getAppResources(true).getResources(ResourceNamespace.TODO(), type).keySet();
+      Collection<String> allStyles = repoManager.getAppResources().getResources(ResourceNamespace.TODO(), type).keySet();
       renameCandidates = Collections2.filter(allStyles, styleName -> styleName.startsWith(stylePrefix));
 
       for (String resourceName : ORDER_BY_LENGTH.sortedCopy(renameCandidates)) {
@@ -471,19 +486,21 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
 
   private static void prepareResourceFileRenaming(PsiFile file, String newName, Map<PsiElement, String> allRenames, AndroidFacet facet) {
     Project project = file.getProject();
-    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
+    LocalResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
     ResourceFolderType type = manager.getFileResourceFolderType(file);
     if (type == null) return;
-    String name = file.getName();
+    String nameWithoutExtension = FileUtil.getNameWithoutExtension(file.getName());
+    String resourceName = AndroidCommonUtils.getResourceName( type.getName(), file.getName());
 
-    if (AndroidCommonUtils.getResourceName(type.getName(), name).equals(AndroidCommonUtils.getResourceName(type.getName(), newName))) {
+    if (AndroidCommonUtils.getResourceName(type.getName(), nameWithoutExtension).equals(AndroidCommonUtils.getResourceName(type.getName(), newName))) {
       return;
     }
 
-    List<PsiFile> resourceFiles = manager.findResourceFiles(type, AndroidCommonUtils.getResourceName(type.getName(), name), true, false);
+    Collection<PsiFile> resourceFiles = manager.findResourceFiles(ResourceNamespace.TODO(), type, resourceName, true, false);
     List<PsiFile> alternativeResources = new ArrayList<>();
     for (PsiFile resourceFile : resourceFiles) {
-      if (!resourceFile.getManager().areElementsEquivalent(file, resourceFile) && resourceFile.getName().equals(name)) {
+      String alternativeFileName = AndroidCommonUtils.getResourceName(type.getName(), resourceFile.getName());
+      if (!resourceFile.getManager().areElementsEquivalent(file, resourceFile) && alternativeFileName.equals(resourceName)) {
         alternativeResources.add(resourceFile);
       }
     }
@@ -495,7 +512,11 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       }
       if (r == 0) {
         for (PsiFile candidate : alternativeResources) {
-          allRenames.put(candidate, newName);
+          String extension = FileUtilRt.getExtension(candidate.getName());
+          if (!extension.isEmpty()) {
+            extension = "." + extension;
+          }
+          allRenames.put(candidate, FileUtil.getNameWithoutExtension(newName) + extension);
         }
       }
       else {

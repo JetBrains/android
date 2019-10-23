@@ -16,10 +16,16 @@
 package com.android.tools.idea.instantapp
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.run.*
-import com.android.tools.idea.run.tasks.DynamicAppDeployTaskContext
+import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.run.AndroidAppRunConfigurationBase
+import com.android.tools.idea.run.AndroidLaunchTasksProvider
+import com.android.tools.idea.run.AndroidProgramRunner
+import com.android.tools.idea.run.AndroidRunConfigurationType
+import com.android.tools.idea.run.ConsolePrinter
+import com.android.tools.idea.run.GradleApkProvider
+import com.android.tools.idea.run.GradleApplicationIdProvider
+import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.tasks.RunInstantAppTask
-import com.android.tools.idea.run.tasks.SplitApkDeployTask
 import com.android.tools.idea.run.util.LaunchStatus
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
@@ -46,7 +52,7 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
 
   private lateinit var launchOptionsBuilder : LaunchOptions.Builder
 
-  private val device = Mockito.mock(IDevice::class.java)
+  private lateinit var device : IDevice
   private val launchStatus = StubLaunchStatus()
   private val consolePrinter = StubConsolePrinter()
 
@@ -57,7 +63,7 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
 
     loadProject(INSTANT_APP_WITH_DYNAMIC_FEATURES, "app")
 
-    configSettings = RunManager.getInstance(project).createRunConfiguration("debug", AndroidRunConfigurationType.getInstance().configurationFactories[0])
+    configSettings = RunManager.getInstance(project).createRunConfiguration("debug", AndroidRunConfigurationType.getInstance().factory)
     configuration = configSettings.configuration as AndroidAppRunConfigurationBase
     ex = DefaultDebugExecutor.getDebugExecutorInstance()
     env = ExecutionEnvironment(ex, runner, configSettings, project)
@@ -65,6 +71,8 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
     appIdProvider = GradleApplicationIdProvider(myAndroidFacet)
 
     apkProvider = GradleApkProvider(myAndroidFacet, appIdProvider, false)
+    device = Mockito.mock(IDevice::class.java)
+    Mockito.`when`(device.version).thenReturn(AndroidVersion(26, null))
 
     launchOptionsBuilder = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
@@ -84,7 +92,6 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
       configuration,
       env,
       myAndroidFacet,
-      null,
       appIdProvider,
       apkProvider,
       launchOptionsBuilder.build()
@@ -116,7 +123,6 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
       configuration,
       env,
       myAndroidFacet,
-      null,
       appIdProvider,
       apkProvider,
       launchOptionsBuilder.build()
@@ -142,7 +148,6 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
       configuration,
       env,
       myAndroidFacet,
-      null,
       appIdProvider,
       apkProvider,
       launchOptionsBuilder.build()
@@ -151,17 +156,6 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
     val launchTasks = launchTaskProvider.getTasks(device, launchStatus, consolePrinter)
 
     assertThat(launchTasks.stream().filter{ x -> x is RunInstantAppTask }.findFirst().orElse(null)).isNull()
-    val deployTask = launchTasks.stream().filter{ x -> x is SplitApkDeployTask }.findFirst().orElse(null)
-
-    assertThat(deployTask).isNotNull()
-    assertInstanceOf(deployTask, SplitApkDeployTask::class.java)
-    assertInstanceOf((deployTask as SplitApkDeployTask).context, DynamicAppDeployTaskContext::class.java)
-
-    val context = deployTask.context
-    assertThat(context.artifacts.size).isEqualTo(3)
-    assertThat(context.artifacts[0].name).isEqualTo("app-debug.apk")
-    assertThat(context.artifacts[1].name).isEqualTo("dynamicfeature-debug.apk")
-    assertThat(context.artifacts[2].name).isEqualTo("instantdynamicfeature-debug.apk")
   }
 
   class StubConsolePrinter : ConsolePrinter {
@@ -177,7 +171,7 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
       return false
     }
 
-    override fun terminateLaunch(reason: String?) {
+    override fun terminateLaunch(reason: String?, destroyProcess: Boolean) {
     }
   }
 }

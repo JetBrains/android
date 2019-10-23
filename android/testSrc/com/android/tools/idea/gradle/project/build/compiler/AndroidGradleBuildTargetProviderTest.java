@@ -37,7 +37,7 @@ public class AndroidGradleBuildTargetProviderTest extends AndroidGradleTestCase 
   public void testNoAndroidFacetAddsScope() throws Exception {
     prepareProjectForImport(PURE_JAVA_PROJECT);
     Project project = getProject();
-    importProject(project.getName(), getBaseDirPath(project), null);
+    importProject(project.getName(), getBaseDirPath(project));
 
     CompileScope scope = new ProjectCompileScope(getProject());
 

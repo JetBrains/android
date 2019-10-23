@@ -20,7 +20,11 @@ package com.android.tools.idea.gradle.structure.model.helpers
 import com.android.ide.common.repository.GradleVersion
 import com.android.sdklib.AndroidTargetHash
 import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.annotateWithError
+import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.intellij.pom.java.LanguageLevel
 import java.io.File
 
@@ -28,7 +32,8 @@ fun parseAny(text: String): Annotated<ParsedValue<Any>> =
   if (text == "")
     ParsedValue.NotSet.annotated()
   else
-    ParsedValue.Set.Parsed(text.toIntOrNull() ?: text.toBigDecimalOrNull() ?: text.toBooleanOrNull() ?: text, DslText.Literal).annotated()
+    ParsedValue.Set.Parsed(text.toIntOrNull() ?: text.toBigDecimalOrNull() ?: text.toBooleanOrNull() ?: text,
+                           DslText.Literal).annotated()
 
 fun parseString(text: String): Annotated<ParsedValue<String>> =
   if (text == "")
@@ -119,6 +124,14 @@ fun parseReferenceOnly(text: String): Annotated<ParsedValue<Unit>> =
 
 fun formatLanguageLevel(value: LanguageLevel): String = value.toJavaVersion().toString()
 
+fun formatAny(value: Any): String {
+  if (value !is String) return value.toString()
+  val text = value.toString()
+  return if (text.toIntOrNull() ?: text.toBigDecimalOrNull() ?: text.toBooleanOrNull() != null)
+    "\"$text\""
+  else text
+}
+
 fun formatUnit(value: Unit): String = ""
 
 fun matchHashStrings(mode: Any?, parsed: String?, resolved: String) =
@@ -126,3 +139,5 @@ fun matchHashStrings(mode: Any?, parsed: String?, resolved: String) =
 
 fun matchFiles(rootDir: File?, parsed: File?, resolved: File): Boolean =
   parsed?.let { rootDir?.resolve(parsed) } == resolved
+
+fun String.toIntOrString(): Any = this.toIntOrNull() ?: this

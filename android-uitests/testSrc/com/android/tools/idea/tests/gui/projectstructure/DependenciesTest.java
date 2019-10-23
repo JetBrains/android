@@ -25,7 +25,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.Proje
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +36,6 @@ import java.util.concurrent.TimeUnit;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
 
-@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRemoteRunner.class)
 public class DependenciesTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
@@ -52,7 +50,7 @@ public class DependenciesTest {
     StudioFlags.NEW_PSD_ENABLED.clearOverride();
   }
 
-  @Ignore("b/70694098")
+  @RunIn(TestGroup.UNRELIABLE)  // b/128436786
   @Test
   public void createNewFlavors() throws Exception {
     String projPath = guiTest.importSimpleApplication()

@@ -15,37 +15,38 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.fest.reflect.core.Reflection.field;
+
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Ref;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.components.JBList;
 import com.intellij.xdebugger.stepping.XSmartStepIntoVariant;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import javax.swing.ListModel;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import javax.swing.*;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.fest.reflect.core.Reflection.field;
-
 @RunWith(GuiTestRemoteRunner.class)
 public class SmartStepIntoTest extends DebuggerTestBase {
 
-  @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES).settingNdkPath();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String JAVA_FILE_NAME = "MainActivity.java";
@@ -82,7 +83,7 @@ public class SmartStepIntoTest extends DebuggerTestBase {
   @Test
   public void testSmartStepIntoNativeMethodWithDualDebugger() throws Exception {
     IdeFrameFixture ideFrame =
-      guiTest.importProjectAndWaitForProjectSyncToFinish("SmartStepIntoCmakeApp");
+      guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/SmartStepIntoCmakeApp");
 
     DebuggerTestUtil.setDebuggerType(ideFrame, DebuggerTestUtil.DUAL);
 
@@ -93,9 +94,7 @@ public class SmartStepIntoTest extends DebuggerTestBase {
 
     emulator.createDefaultAVD(ideFrame.invokeAvdManager());
 
-    ideFrame.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
+    ideFrame.debugApp(DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
 
     // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
     guiTest.waitForBackgroundTasks();

@@ -4,7 +4,7 @@ import android.content.Context;
 import android.view.ViewGroup;
 import android.util.AttributeSet;
 
-class BottomAppBar extends ViewGroup {
+public class BottomAppBar extends ViewGroup {
   public BottomAppBar(Context context, AttributeSet attrs, int defStyleAttr) {
   }
 

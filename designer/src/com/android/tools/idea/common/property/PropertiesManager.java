@@ -19,7 +19,8 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.adtui.workbench.ToolContent;
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.adtui.workbench.ToolWindowCallback;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -75,14 +76,16 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
   private boolean myFirstLoad = true;
   private int myUpdateCount;
   private JBSplitter mySplitter;
-  private Runnable myStopFilteringCallback;
+  private ToolWindowCallback myToolWindow;
 
-  public PropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface, @NotNull PropertyEditors editors) {
+  public PropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface, @NotNull PropertyEditors editors,
+                           @NotNull Disposable parentDisposable) {
     myProject = facet.getModule().getProject();
     myFacet = facet;
     mySurface = designSurface;
     myEditors = editors;
     setToolContextWithoutCheck(designSurface);
+    Disposer.register(parentDisposable, this);
   }
 
   @Override
@@ -94,8 +97,8 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
   }
 
   @Override
-  public void setStopFiltering(@NotNull Runnable callback) {
-    myStopFilteringCallback = callback;
+  public void registerCallbacks(@NotNull ToolWindowCallback toolWindow) {
+    myToolWindow = toolWindow;
   }
 
   @NotNull
@@ -245,9 +248,6 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
           return;
         }
         getPropertiesPanel().setItems(components, properties);
-        if (myStopFilteringCallback != null) {
-          myStopFilteringCallback.run();
-        }
         if (postUpdateRunnable != null) {
           myLoading = false;
           postUpdateRunnable.run();
@@ -366,7 +366,7 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
     if (mySceneView == null) {
       return;
     }
-    NlUsageTrackerManager.getInstance(mySurface).logFavoritesChange(added, removed, favorites, mySceneView.getModel().getFacet());
+    NlUsageTracker.getInstance(mySurface).logFavoritesChange(added, removed, favorites, mySceneView.getModel().getFacet());
   }
 
   // ---- Implements DesignSurfaceListener ----

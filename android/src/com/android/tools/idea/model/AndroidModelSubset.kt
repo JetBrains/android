@@ -18,8 +18,19 @@
 package com.android.tools.idea.model
 
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.projectmodel.*
+import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.AndroidModel
+import com.android.projectmodel.AndroidSubmodule
+import com.android.projectmodel.Artifact
+import com.android.projectmodel.Config
+import com.android.projectmodel.ConfigAssociation
+import com.android.projectmodel.ConfigPath
+import com.android.projectmodel.SubmodulePath
+import com.android.projectmodel.Variant
+import com.android.projectmodel.matchAllArtifacts
+import com.android.projectmodel.matchNoArtifacts
+import com.android.projectmodel.toConfigPath
+import com.android.projectmodel.visitEach
 
 /**
  * Identifies a subset of [Config] instances across a set of [AndroidSubmodule].
@@ -43,14 +54,19 @@ typealias SelectedVariantPaths = Map<String, ConfigPath>
  */
 data class AndroidModelSubset(val model: AndroidModel, val selection: SelectedVariantPaths) {
   /**
-   * Holds a [Variant] along with the [AndroidSubmodule] that contains it.
+   * Holds the path to a [Variant] along with the [AndroidSubmodule] that contains it.
    */
-  data class VariantContext(val submodule: AndroidSubmodule, val variant: Variant)
+  data class VariantContext(val submodule: AndroidSubmodule, val variantPath: SubmodulePath) {
+    /**
+     * Returns an [Artifact] belonging to this variant
+     */
+    fun getArtifact(artifactName: String) : Artifact? = submodule.getArtifact(variantPath + artifactName)
+  }
 
   /**
    * Holds an [Artifact] along with the [AndroidSubmodule] and [Variant] that contains it.
    */
-  data class ArtifactContext(val submodule: AndroidSubmodule, val variant: Variant, val artifact: Artifact)
+  data class ArtifactContext(val submodule: AndroidSubmodule, val artifactPath: SubmodulePath, val artifact: Artifact)
 
   /**
    * Returns the first main artifact in this variant selection.
@@ -83,10 +99,10 @@ data class AndroidModelSubset(val model: AndroidModel, val selection: SelectedVa
    * Returns all selected variants.
    */
   fun selectedVariants(): Sequence<VariantContext> =
-    selection.entries.asSequence().flatMap { entry ->
-      model.getSubmodule(entry.key)?.let { project ->
-        project.variants.asSequence().filter { entry.value.intersects(it.configPath) }.map { VariantContext(project, it) }
-      } ?: emptySequence()
+    flatMapEachSelectedSubmodule { submodule, selection ->
+      submodule.configTable.schema.allVariantPaths(selection).map {
+        VariantContext(submodule, it)
+      }
     }
 
   /**
@@ -94,15 +110,28 @@ data class AndroidModelSubset(val model: AndroidModel, val selection: SelectedVa
    */
   fun selectedArtifacts(artifactName: String): Sequence<ArtifactContext> =
     selectedVariants().mapNotNull { context ->
-      context.variant.artifactNamed(artifactName)?.let { ArtifactContext(context.submodule, context.variant, it) }
+      getArtifactContext(context.submodule, context.variantPath + artifactName)
     }
+
+  private fun getArtifactContext(submodule: AndroidSubmodule, path: SubmodulePath): ArtifactContext? {
+    val artifact = submodule.getArtifact(path) ?: return null
+    return ArtifactContext(submodule, path, artifact)
+  }
+
+  private fun <T> flatMapEachSelectedSubmodule(func: (AndroidSubmodule, ConfigPath) -> Sequence<T>): Sequence<T> = selection.entries.asSequence().flatMap { entry ->
+    model.getSubmodule(entry.key)?.let { project ->
+      func(project, entry.value)
+    } ?: emptySequence()
+  }
 
   /**
    * Returns all selected artifacts in the model.
    */
   fun selectedArtifacts(): Sequence<ArtifactContext> =
-    selectedVariants().flatMap { variantContext ->
-      variantContext.variant.artifacts.asSequence().map { ArtifactContext(variantContext.submodule, variantContext.variant, it) }
+    flatMapEachSelectedSubmodule { submodule, selection ->
+      submodule.configTable.schema.allArtifactPaths(selection).mapNotNull {
+        getArtifactContext(submodule, it)
+      }
     }
 
   /**
@@ -111,7 +140,7 @@ data class AndroidModelSubset(val model: AndroidModel, val selection: SelectedVa
   fun dependsOn(searchCriteria: GradleCoordinate): Boolean =
     selectedArtifacts().flatMap { it.artifact.resolved.compileDeps.orEmpty().asSequence() }
       .visitEach()
-      .any { it.resolvedMavenCoordinate?.matches(searchCriteria) ?: false}
+      .any { it.resolvedMavenCoordinate?.matches(searchCriteria) ?: false }
 
   private fun AndroidSubmodule.findConfigsFor(filter: ConfigPath, vararg artifactName: String): List<ConfigAssociation> =
     if (artifactName.isEmpty()) {
@@ -128,7 +157,7 @@ data class AndroidModelSubset(val model: AndroidModel, val selection: SelectedVa
  */
 fun selectVariant(model: AndroidModel, variant: String): AndroidModelSubset =
   AndroidModelSubset(model,
-                     model.submodules.map { it.name to (it.variants.find { it.name == variant }?.configPath ?: matchNoArtifacts()) }.toMap())
+                     model.submodules.map { it.name to (it.getVariantPathByName(variant)?.toConfigPath() ?: matchNoArtifacts()) }.toMap())
 
 /**
  * Returns an [AndroidModelSubset] that selects everything from the given [AndroidModel].

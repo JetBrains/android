@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.build.invoker;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.progress.ProgressIndicator;
 import org.gradle.tooling.CancellationTokenSource;
+import org.gradle.tooling.GradleConnector;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,12 +43,6 @@ public class BuildStopperTest {
     initMocks(this);
     myId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, EXECUTE_TASK, "id");
     myMapping = new BuildStopper();
-  }
-
-  @Test
-  public void createAndRegisterTokenSource() {
-    CancellationTokenSource tokenSource = myMapping.createAndRegisterTokenSource(myId);
-    assertSame(tokenSource, myMapping.get(myId));
   }
 
   @Test

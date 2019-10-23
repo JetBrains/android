@@ -29,7 +29,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomElementVisitor;
 import com.intellij.util.xml.DomFileElement;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.layout.Fragment;
 import org.jetbrains.android.dom.layout.Include;
@@ -66,7 +66,7 @@ public class LayoutStructureViewBuilder extends TreeBasedStructureViewBuilder {
   private static class FragmentNode extends PsiTreeElementBase<XmlTag> {
     private final Fragment myElement;
 
-    FragmentNode(@NotNull Fragment element) {
+    public FragmentNode(@NotNull Fragment element) {
       super(element.getXmlTag());
       myElement = element;
     }
@@ -79,7 +79,7 @@ public class LayoutStructureViewBuilder extends TreeBasedStructureViewBuilder {
 
     @Override
     public Icon getIcon(boolean open) {
-      return AndroidIcons.Views.Fragment;
+      return StudioIcons.LayoutEditor.Palette.FRAGMENT;
     }
 
     @Nullable
@@ -124,7 +124,7 @@ public class LayoutStructureViewBuilder extends TreeBasedStructureViewBuilder {
 
     @Override
     public Icon getIcon(boolean open) {
-      return AndroidIcons.Views.Include;
+      return StudioIcons.LayoutEditor.Palette.INCLUDE;
     }
 
     @Override
@@ -139,7 +139,7 @@ public class LayoutStructureViewBuilder extends TreeBasedStructureViewBuilder {
   private static class LayoutNode extends PsiTreeElementBase<XmlTag> {
     private final LayoutViewElement myElement;
 
-    LayoutNode(@NotNull LayoutViewElement element) {
+    public LayoutNode(@NotNull LayoutViewElement element) {
       super(element.getXmlTag());
       myElement = element;
     }
@@ -181,7 +181,7 @@ public class LayoutStructureViewBuilder extends TreeBasedStructureViewBuilder {
     @Override
     public String getLocationString() {
       final XmlTag xmlTag = myElement.getXmlTag();
-      final XmlAttribute idAttribute = xmlTag == null ? null : xmlTag.getAttribute("id", SdkConstants.NS_RESOURCES);
+      final XmlAttribute idAttribute = xmlTag == null ? null : xmlTag.getAttribute("id", SdkConstants.ANDROID_URI);
       return idAttribute == null ? null : idAttribute.getValue();
     }
 

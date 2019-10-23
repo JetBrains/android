@@ -19,11 +19,16 @@ import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.structure.configurables.CachingRepositorySearchFactory
 import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
-import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.meta.getValue
+import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
+import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
+import com.android.tools.idea.gradle.util.GradleWrapper
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
+import java.util.Locale
 import java.util.function.Consumer
 import javax.swing.Icon
 
@@ -31,14 +36,16 @@ class PsProjectImpl(
   override val ideProject: Project,
   override val repositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory()
 ) : PsChildModel(), PsProject {
-  override val descriptor by ProjectDescriptors
+  override val descriptor by PsProjectDescriptors
   override var parsedModel: ProjectBuildModel = GradleModelProvider.get().getProjectModel(ideProject); private set
+  @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
+  final override val buildScriptVariables: PsVariables
   @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
   final override val variables: PsVariables
   override val pomDependencyCache: PsPomDependencyCache = PsPomDependencies()
   private var internalResolvedModuleModels: Map<String, PsResolvedModuleModel>? = null
   private val moduleCollection: PsModuleCollection
-
+  val buildScript : PsBuildScript = PsBuildScript(this)
   override val name: String get() = ideProject.name  // Supposedly there is no way to rename the project from within the PSD.
 
   override val parent: PsModel? = null
@@ -47,12 +54,29 @@ class PsProjectImpl(
 
   override val modules: PsModelCollection<PsModule> get() = moduleCollection
   override val modelCount: Int get() = moduleCollection.size
+  override var androidGradlePluginVersion by PsProjectDescriptors.androidGradlePluginVersion
+  override var gradleVersion by PsProjectDescriptors.gradleVersion
+
+  private var gradleVersionModified = false
+  private var newGradleVewrsion: String? = null
 
   init {
     // TODO(b/77695733): Ensure that getProjectBuildModel() is indeed not null.
-    variables = PsVariables(this, "Project: $name", null)
+    buildScriptVariables = PsVariables(buildScript, "$name (build script)", "Build Script: $name", null)
+    variables = PsVariables(this, "$name (project)", "Project: $name", buildScriptVariables)
     moduleCollection = PsModuleCollection(this)
   }
+
+  override fun getBuildScriptArtifactRepositories(): Collection<ArtifactRepository> =
+    (parsedModel
+       .projectBuildModel
+       ?.buildscript()
+       ?.repositories()
+       ?.repositories()
+       .orEmpty()
+       .mapNotNull { it.toArtifactRepository() } +
+     listOfNotNull(AndroidSdkRepositories.getAndroidRepository(), AndroidSdkRepositories.getGoogleRepository())
+    ).toSet()
 
   override fun findModuleByName(moduleName: String): PsModule? =
     moduleCollection.firstOrNull { it -> it.name == moduleName }
@@ -61,13 +85,13 @@ class PsProjectImpl(
     moduleCollection.firstOrNull { it -> it.gradlePath == gradlePath }
 
   override fun forEachModule(consumer: Consumer<PsModule>) {
-    moduleCollection.sortedBy { it.name.toLowerCase() }.forEach(consumer)
+    moduleCollection.sortedBy { it.name.toLowerCase(Locale.US) }.forEach(consumer)
   }
 
   override fun removeModule(gradlePath: String) {
-    parsedModel.projectSettingsModel?.removeModulePath(gradlePath)
-    isModified = true
-    moduleCollection.refresh()
+    findModuleByGradlePath(gradlePath)?.let { module ->
+      moduleCollection.remove(ModuleKey(module.moduleKind, gradlePath))
+    }
   }
 
   override fun applyChanges() {
@@ -75,6 +99,9 @@ class PsProjectImpl(
       object : WriteCommandAction<Nothing>(ideProject, "Applying changes to the project structure.") {
         override fun run(result: Result<Nothing>) {
           parsedModel.applyChanges()
+          if (gradleVersionModified) {
+            GradleWrapper.find(ideProject)?.updateDistributionUrlAndDisplayFailure(newGradleVewrsion!!)
+          }
           isModified = false
         }
       }.execute()
@@ -111,10 +138,18 @@ class PsProjectImpl(
     }
   }
 
-  object ProjectDescriptors: ModelDescriptor<PsProject, Nothing, Nothing> {
-    override fun getResolved(model: PsProject): Nothing? = null
-    override fun getParsed(model: PsProject): Nothing? = null
-    override fun setModified(model: PsProject) { model.isModified = true }
-    override fun enumerateModels(model: PsProject): Collection<PsModel> = model.modules
+  override fun onModuleChanged(disposable: Disposable, handler: (PsModule) -> Unit) {
+    moduleCollection.onModuleChanged(disposable, handler)
+  }
+
+  override fun getGradleVersionValue(notApplied: Boolean): String? =
+    if (notApplied && gradleVersionModified) newGradleVewrsion
+    else GradleWrapper.find(ideProject)?.gradleFullVersion
+
+  override fun setGradleVersionValue(value: String) {
+    if (value == getGradleVersionValue(notApplied = true).orEmpty()) return
+    isModified = true
+    gradleVersionModified = true
+    newGradleVewrsion = value
   }
 }

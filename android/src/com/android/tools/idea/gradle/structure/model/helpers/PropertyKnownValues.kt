@@ -19,10 +19,18 @@ package com.android.tools.idea.gradle.structure.model.helpers
 
 import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.gradle.structure.configurables.ui.readOnPooledThread
+import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ListProperty
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.getText
+import com.android.tools.idea.gradle.structure.model.meta.maybeValue
+import com.android.tools.idea.gradle.structure.model.meta.withFileSelectionRoot
+import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
 import com.google.common.base.Function
@@ -57,7 +65,7 @@ fun languageLevels(model: Any?): ListenableFuture<List<ValueDescriptor<LanguageL
 ))
 
 fun signingConfigs(module: PsAndroidModule): ListenableFuture<List<ValueDescriptor<Unit>>> = immediateFuture(module.signingConfigs.map {
-  ValueDescriptor(ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.${it.name}")))
+  ValueDescriptor(ParsedValue.Set.Parsed(null, DslText.Reference("signingConfigs.${it.name}")))
 })
 
 fun proGuardFileValuesCore(module: PsAndroidModule): List<ValueDescriptor<File>> =
@@ -102,7 +110,7 @@ fun productFlavorMatchingFallbackValuesCore(project: PsProject, dimension: Strin
     .flatMap {
       (it as? PsAndroidModule)
         ?.productFlavors?.asSequence()
-        ?.filter { dimension == null || it.dimension.maybeValue == dimension }
+        ?.filter { dimension == null || it.configuredDimension.maybeValue == dimension }
         ?.map { it.name }
       ?: emptySequence()
     }
@@ -119,9 +127,18 @@ fun productFlavorMatchingFallbackValues(project: PsProject, dimension: String?):
 
 private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
 fun dependencyVersionValues(model: PsDeclaredLibraryDependency): ListenableFuture<List<ValueDescriptor<String>>> =
-  Futures.transform(model.parent.parent.repositorySearchFactory
-                      .create(model.parent.getArtifactRepositories())
-                      .search(SearchRequest(model.spec.name, model.spec.group, MAX_ARTIFACTS_TO_REQUEST, 0)), Function {
+  Futures.transform(
+    model.parent.parent.repositorySearchFactory
+      .create(model.parent.getArtifactRepositories())
+      .search(SearchRequest(SearchQuery(model.spec.group, model.spec.name), MAX_ARTIFACTS_TO_REQUEST, 0)), Function {
+    it!!.toVersionValueDescriptors()
+  }, SameThreadExecutor.INSTANCE)
+
+fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<ValueDescriptor<String>>> =
+  Futures.transform(
+    model.repositorySearchFactory
+      .create(model.getBuildScriptArtifactRepositories())
+      .search(SearchRequest(SearchQuery("com.android.tools.build", "gradle"), MAX_ARTIFACTS_TO_REQUEST, 0)), Function {
     it!!.toVersionValueDescriptors()
   }, SameThreadExecutor.INSTANCE)
 
@@ -132,3 +149,10 @@ fun SearchResult.toVersionValueDescriptors(): List<ValueDescriptor<String>> =
     .distinct()
     .sortedDescending()
     .map { version -> ValueDescriptor(version.toString()) }
+
+
+fun <T : PsChildModel> ListProperty<T, File>.withProFileSelector(module: T.() -> PsAndroidModule) =
+  withFileSelectionRoot(
+    masks = listOf("*.pro", "*.txt"),
+    browseRoot = { module().parent.ideProject.basePath?.let { File(it) } },
+    resolveRoot = { module().rootDir })

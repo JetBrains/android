@@ -167,7 +167,7 @@ public class FakeArtifactElement extends FakeElement {
   @Override
   public boolean isReference() {
     GradleDslSimpleExpression resolved = PropertyUtil.resolveElement(myRealExpression);
-    ArtifactDependencySpec spec = getSpec(resolved);
+    ArtifactDependencySpec spec = getSpec(resolved, false);
     if (spec == null) {
       return false;
     }
@@ -183,7 +183,7 @@ public class FakeArtifactElement extends FakeElement {
   @Override
   public String getReferenceText() {
     GradleDslSimpleExpression resolved = PropertyUtil.resolveElement(myRealExpression);
-    ArtifactDependencySpec spec = getSpec(resolved);
+    ArtifactDependencySpec spec = getSpec(resolved, false);
     if (spec == null) {
       return null;
     }
@@ -209,7 +209,12 @@ public class FakeArtifactElement extends FakeElement {
 
   @Nullable
   private static ArtifactDependencySpec getSpec(@NotNull GradleDslSimpleExpression element) {
-    Object val = element.getUnresolvedValue();
+    return getSpec(element, true);
+  }
+
+  @Nullable
+  private static ArtifactDependencySpec getSpec(@NotNull GradleDslSimpleExpression element, boolean useResolvedValue) {
+    Object val = (useResolvedValue) ? element.getValue() : element.getUnresolvedValue();
     assert val instanceof String;
     String stringValue = (String)val;
     return ArtifactDependencySpec.create(stringValue);

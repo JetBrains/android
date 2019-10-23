@@ -15,22 +15,25 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
-import icons.AndroidArtworkIcons;
+import com.intellij.openapi.vfs.VirtualFile;
+import icons.AndroidIcons;
+import java.awt.Dimension;
+import java.net.URL;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.net.URL;
 
 /**
  * Action to invoke one of the Asset Studio wizards.
@@ -40,18 +43,32 @@ import java.net.URL;
 public abstract class AndroidAssetStudioAction extends AnAction {
 
   protected AndroidAssetStudioAction(@Nullable String text, @Nullable String description) {
-    super(text, description, AndroidArtworkIcons.Icons.Android);
+    super(text, description, AndroidIcons.Android);
   }
 
-  protected static boolean isAvailable(DataContext dataContext) {
-    final Module module = LangDataKeys.MODULE.getData(dataContext);
-    final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
+  protected static boolean isAvailable(@NotNull DataContext dataContext) {
+    Module module = LangDataKeys.MODULE.getData(dataContext);
+    IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
+    VirtualFile location = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
 
     return module != null &&
            view != null &&
+           location != null &&
            view.getDirectories().length > 0 &&
            AndroidFacet.getInstance(module) != null &&
-           ProjectSystemUtil.getProjectSystem(module.getProject()).allowsFileCreation();
+           ProjectSystemUtil.getProjectSystem(module.getProject()).allowsFileCreation() &&
+           getModuleTemplate(module, location) != null;
+  }
+
+  @Nullable
+  private static AndroidModuleTemplate getModuleTemplate(@NotNull Module module, @NotNull VirtualFile location) {
+    for (NamedModuleTemplate namedTemplate : ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(location)) {
+      AndroidModuleTemplate template = namedTemplate.getPaths();
+      if (!template.getResDirectories().isEmpty()) {
+        return template;
+      }
+    }
+    return null;
   }
 
   @Override
@@ -61,15 +78,20 @@ public abstract class AndroidAssetStudioAction extends AnAction {
 
   @Override
   public final void actionPerformed(@NotNull AnActionEvent e) {
-    final DataContext dataContext = e.getDataContext();
+    DataContext dataContext = e.getDataContext();
 
-    final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
+    IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
     if (view == null) {
       return;
     }
 
-    final Module module = LangDataKeys.MODULE.getData(dataContext);
+    Module module = LangDataKeys.MODULE.getData(dataContext);
     if (module == null) {
+      return;
+    }
+
+    VirtualFile location = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+    if (location == null) {
       return;
     }
 
@@ -78,24 +100,29 @@ public abstract class AndroidAssetStudioAction extends AnAction {
       return;
     }
 
-    ModelWizard wizard = createWizard(facet);
+    AndroidModuleTemplate template = getModuleTemplate(module, location);
+    if (template == null) {
+      return;
+    }
+
+    ModelWizard wizard = createWizard(facet, template);
     if (wizard != null) {
       StudioWizardDialogBuilder dialogBuilder = new StudioWizardDialogBuilder(wizard, "Asset Studio");
       dialogBuilder.setProject(facet.getModule().getProject())
-        .setMinimumSize(getWizardMinimumSize())
-        .setPreferredSize(getWizardPreferredSize())
-        .setHelpUrl(getHelpUrl());
+          .setMinimumSize(getWizardMinimumSize())
+          .setPreferredSize(getWizardPreferredSize())
+          .setHelpUrl(getHelpUrl());
       dialogBuilder.build().show();
     }
   }
 
   /**
-   * Create a wizard to show or {@code null} if the showing of a wizard should be aborted. If a
-   * child class aborts showing the wizard, it should still give some visual indication, such as
-   * an error dialog.
+   * Creates a wizard to show or returns {@code null} if the showing of a wizard should be aborted.
+   * If a subclass class aborts showing the wizard, it should still give some visual indication,
+   * such as an error dialog.
    */
   @Nullable
-  protected abstract ModelWizard createWizard(@NotNull AndroidFacet facet);
+  protected abstract ModelWizard createWizard(@NotNull AndroidFacet facet, @NotNull AndroidModuleTemplate template);
 
   @NotNull
   protected abstract Dimension getWizardMinimumSize();

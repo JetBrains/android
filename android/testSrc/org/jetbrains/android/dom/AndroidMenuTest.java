@@ -5,6 +5,7 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
 
 import java.io.IOException;
@@ -183,6 +184,14 @@ public class AndroidMenuTest extends AndroidDomTestCase {
     copyFileToProject("MyProvider.java", "src/p1/p2/MyProvider.java");
     copyFileToProject("MyView.java", "src/p1/p2/MyView.java");
     toTestCompletion("actionProvider.xml", "actionProvider_after.xml");
+  }
+
+  public void testActionProviderAndroidxClass() throws Throwable {
+    myFixture.addClass("package androidx.core.view; public class ActionProvider {}");
+    myFixture.addClass("package p1.p2; public class MyAndroidxActionProvider extends androidx.core.view.ActionProvider {}");
+    copyFileToProject("MyProvider.java", "src/p1/p2/MyProvider.java");
+
+    doTestCompletionVariants("actionProvider.xml", "p1.p2.MyProvider", "p1.p2.MyAndroidxActionProvider");
   }
 
   // Test completion for action providers that are provided by Android framework

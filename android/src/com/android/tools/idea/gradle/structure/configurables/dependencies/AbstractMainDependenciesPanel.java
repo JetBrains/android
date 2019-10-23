@@ -26,9 +26,8 @@ import java.util.List;
 
 public abstract class AbstractMainDependenciesPanel extends AbstractMainPanel {
 
-  protected AbstractMainDependenciesPanel(@NotNull PsContext context,
-                                          @NotNull List<PsModule> extraModules) {
-    super(context, extraModules);
+  protected AbstractMainDependenciesPanel(@NotNull PsContext context) {
+    super(context);
   }
 
   @NotNull

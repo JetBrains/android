@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 
 public class SyncModuleModels implements GradleModuleModels {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
@@ -60,6 +61,7 @@ public class SyncModuleModels implements GradleModuleModels {
   void populate(@NotNull GradleProject gradleProject, @NotNull BuildController controller) {
     addModel(GradleProject.class, gradleProject);
     findAndAddModel(gradleProject, controller, GradlePluginModel.class);
+    findAndAddModel(gradleProject, controller, BuildScriptClasspathModel.class);
     AndroidProject androidProject = findParameterizedAndroidModel(gradleProject, controller, AndroidProject.class);
     if (androidProject != null) {
       // "Native" projects also both AndroidProject and AndroidNativeProject

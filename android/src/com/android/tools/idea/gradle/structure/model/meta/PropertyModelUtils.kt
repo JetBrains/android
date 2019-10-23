@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BIG_DECIMAL_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.REFERENCE_TO_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
@@ -63,35 +66,49 @@ fun ResolvedPropertyModel.asFile(): File? = when (valueType) {
 }
 
 fun ResolvedPropertyModel.asLanguageLevel(): LanguageLevel? =
-  getValue(GradlePropertyModel.STRING_TYPE)?.let { LanguageLevelUtil.parseFromGradleString(it) }
+    when (valueType) {
+      ValueType.STRING -> LanguageLevelUtil.parseFromGradleString("'{${toString()}'")
+      ValueType.BIG_DECIMAL -> LanguageLevelUtil.parseFromGradleString(toString())
+      ValueType.REFERENCE -> LanguageLevelUtil.parseFromGradleString(toString())
+      else -> null
+    }
 
-/**
- * Returns [Unit] if the property is not null and returns [null] otherwise.
- */
 fun ResolvedPropertyModel.asUnit(): Unit? = when (valueType) {
   ValueType.NONE -> null
-  else -> Unit
+  else -> null
 }
 
-fun ResolvedPropertyModel.setLanguageLevel(value: LanguageLevel) =
-  setValue(LanguageLevelUtil.convertToGradleString(value, getValue(GradlePropertyModel.STRING_TYPE)))
+fun ResolvedPropertyModel.setLanguageLevel(value: LanguageLevel) {
+  val exampleString = LanguageLevelUtil.getStringToParse(this)
+  setValue(LanguageLevelUtil.convertToGradleString(value, exampleString))
+}
 
 fun ResolvedPropertyModel.clear() = unresolvedModel.delete()
-fun ResolvedPropertyModel.dslText(): Annotated<DslText>? {
+fun ResolvedPropertyModel.dslText(effectiveValueIsNull: Boolean): Annotated<DslText>? {
   val text = getRawValue(GradlePropertyModel.OBJECT_TYPE)?.toString()
   return when {
     text == null && unresolvedModel.valueType == GradlePropertyModel.ValueType.NONE -> null
     text == null ->
       throw IllegalStateException(
         "The raw value of property '${unresolvedModel.fullyQualifiedName}' is null while its type is: ${unresolvedModel.valueType}")
-    unresolvedModel.valueType == ValueType.REFERENCE && dependencies.isEmpty() -> DslText.Reference(text).annotateWithError(
-      "Unresolved reference: $text")
-    unresolvedModel.valueType == ValueType.UNKNOWN -> DslText.OtherUnparsedDslText(text).annotated()
-    unresolvedModel.valueType == ValueType.REFERENCE -> DslText.Reference(text).annotated()
+
+    unresolvedModel.valueType == ValueType.REFERENCE && (dependencies.isEmpty() && effectiveValueIsNull) ->
+      DslText.Reference(text).annotateWithError("Unresolved reference: $text")
+
+    unresolvedModel.valueType == ValueType.REFERENCE ->
+      DslText.Reference(text).annotated()
+
+    unresolvedModel.valueType == ValueType.UNKNOWN || (dependencies.isEmpty() && effectiveValueIsNull) ->
+      DslText.OtherUnparsedDslText(text).annotated()
+
     dependencies.isEmpty() ||
     unresolvedModel.valueType == ValueType.MAP ||
-    unresolvedModel.valueType == ValueType.LIST -> DslText.Literal.annotated()
-    unresolvedModel.valueType == ValueType.STRING -> DslText.InterpolatedString(text).annotated()
+    unresolvedModel.valueType == ValueType.LIST ->
+      DslText.Literal.annotated()
+
+    unresolvedModel.valueType == ValueType.STRING ->
+      DslText.InterpolatedString(text).annotated()
+
     else -> throw IllegalStateException(
       "Property value of type ${unresolvedModel.valueType} with dependencies is not supported.")
   }
@@ -108,8 +125,10 @@ fun ResolvedPropertyModel.setDslText(value: DslText) =
 
 internal fun <T : Any> ResolvedPropertyModel?.getParsedValue(
   getter: ResolvedPropertyModel.() -> T?
-): Annotated<ParsedValue<T>> =
-  makeAnnotatedParsedValue(this?.getter(), this?.dslText())
+): Annotated<ParsedValue<T>> {
+  val value = this?.getter()
+  return makeAnnotatedParsedValue(value, this?.dslText(effectiveValueIsNull = value == null))
+}
 
 internal fun <T : Any> ResolvedPropertyModel.setParsedValue(
   setter: ResolvedPropertyModel.(T) -> Unit,

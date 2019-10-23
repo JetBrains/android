@@ -203,9 +203,9 @@ public abstract class IconGenerator implements Disposable {
    * an exception will be thrown.
    */
   @NotNull
-  public Map<File, GeneratedIcon> generateIntoIconMap(@NotNull File resDirectory) {
+  public Map<File, GeneratedIcon> generateIntoIconMap(@NotNull AndroidModuleTemplate template) {
     Options options = createOptions(false);
-    return generateIntoIconMap(resDirectory, options);
+    return generateIntoIconMap(template, options);
   }
 
   /**
@@ -214,15 +214,16 @@ public abstract class IconGenerator implements Disposable {
    *
    * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
    * an exception will be thrown.
+   * @param template
    */
   @NotNull
-  public final Map<File, GeneratedIcon> generateIconPlaceholders(@NotNull File resDirectory) {
+  public final Map<File, GeneratedIcon> generateIconPlaceholders(@NotNull AndroidModuleTemplate template) {
     if (myOutputName.get().isEmpty()) {
       return Collections.emptyMap(); // May happen during initialization.
     }
     Options options = createOptions(false);
     options.usePlaceholders = true;
-    return generateIntoIconMap(resDirectory, options);
+    return generateIntoIconMap(template, options);
   }
 
   /**
@@ -233,37 +234,44 @@ public abstract class IconGenerator implements Disposable {
    * an exception will be thrown.
    */
   @NotNull
-  private Map<File, GeneratedIcon> generateIntoIconMap(@NotNull File resDirectory, Options options) {
+  private Map<File, GeneratedIcon> generateIntoIconMap(@NotNull AndroidModuleTemplate template, Options options) {
     if (myOutputName.get().isEmpty()) {
       throw new IllegalStateException("Can't save icons to disk if a filename isn't set first");
-    }
-
-    if (resDirectory.getParentFile() == null) {
-      throw new IllegalArgumentException("Invalid paths used when trying to generate an icon");
     }
 
     IconGeneratorResult icons = generateIcons(options);
     Map<File, GeneratedIcon> outputMap = new HashMap<>();
     icons.getIcons().forEach(icon -> {
-      if (icon.getOutputPath() != null && icon.getCategory() != IconCategory.PREVIEW) {
-        File path = new File(resDirectory.getParentFile(), icon.getOutputPath().getNativePath());
+      PathString relativePath = icon.getOutputPath();
+      if (relativePath != null && icon.getCategory() != IconCategory.PREVIEW) {
+        File path = new File(getBaseDirectory(template, icon.getCategory()), relativePath.getNativePath());
         outputMap.put(path, icon);
       }
     });
     return outputMap;
   }
 
-  /**
-   * Generates icons and writes them to disk.
-   *
-   * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
-   * an exception will be thrown.
-   */
-  public void generateIconsToDisk(@NotNull AndroidModuleTemplate moduleTemplate) {
-    File resDirectory = getResDirectory(moduleTemplate);
-    if (resDirectory != null) {
-      generateIconsToDisk(resDirectory);
+  @NotNull
+  private static File getBaseDirectory(@NotNull AndroidModuleTemplate template, @NotNull IconCategory category) {
+    File dir;
+    if (category == IconCategory.WEB) {
+      dir = template.getManifestDirectory();
+      if (dir != null) {
+        return dir;
+      }
+      dir = getResDirectory(template);
+      if (dir != null) {
+        dir = dir.getParentFile();
+      }
     }
+    else {
+      dir = getResDirectory(template);
+    }
+
+    if (dir == null) {
+      throw new IllegalArgumentException("Invalid paths used when trying to generate an icon");
+    }
+    return dir;
   }
 
   /**
@@ -272,8 +280,8 @@ public abstract class IconGenerator implements Disposable {
    * {@link #sourceAsset()} and {@link #outputName()} must both be set prior to calling this method or
    * an exception will be thrown.
    */
-  public void generateIconsToDisk(@NotNull File resDirectory) {
-    Map<File, GeneratedIcon> pathIconMap = generateIntoIconMap(resDirectory);
+  public void generateIconsToDisk(@NotNull AndroidModuleTemplate template) {
+    Map<File, GeneratedIcon> pathIconMap = generateIntoIconMap(template);
 
     ApplicationManager.getApplication().runWriteAction(() -> {
       for (Map.Entry<File, GeneratedIcon> fileImageEntry : pathIconMap.entrySet()) {
@@ -499,8 +507,6 @@ public abstract class IconGenerator implements Disposable {
   @NotNull
   private static String getIconFolder(@NotNull ResourceFolderType folderType, @NotNull Density density, int apiVersion) {
     StringBuilder buf = new StringBuilder(50);
-    buf.append(SdkConstants.FD_RES);
-    buf.append('/');
     buf.append(folderType.getName());
     if (density != Density.NODPI) {
       buf.append('-');

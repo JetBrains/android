@@ -13,8 +13,8 @@
     <orderEntry type="module" module-name="intellij.java.structuralSearch" />
     <orderEntry type="module" module-name="intellij.platform.colorSchemes" />
     <orderEntry type="module" module-name="intellij.android.plugin" />
-    <orderEntry type="module" module-name="intellij.android.whatsNewAssistant" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.connectionAssistant" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.java.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.androidLayoutInspector" scope="RUNTIME" />
+    <orderEntry type="library" scope="RUNTIME" name="asm-tools" level="project" />
   </component>
 </module>

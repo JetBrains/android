@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.debugger;
 
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -27,6 +28,7 @@ import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.dualView.TreeTableView;
+import java.util.concurrent.TimeUnit;
 import org.fest.reflect.exception.ReflectionError;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.DialogFixture;
@@ -55,10 +57,10 @@ import static org.fest.swing.finder.WindowFinder.findDialog;
 @RunWith(GuiTestRemoteRunner.class)
 public class UpgradeBuildToolsTest extends DebuggerTestBase {
 
-  @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES).settingNdkPath();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
-  private static final String PROJECT_DIR_NAME = "NdkHelloJni";
+  private static final String PROJECT_DIR_NAME = "debugger/NdkHelloJni";
   private static final String OLD_BUILD_TOOLS_VERSION = "22.0.1";
   private static final String INSTALL_SDK_TOOLS_TAB = "SDK Tools";
   private static final String LOOK_FOR_UPDATES = "Looking for updates...";

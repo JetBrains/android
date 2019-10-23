@@ -19,21 +19,33 @@ import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.HoverRowTable;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Insets;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
-import java.awt.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A class that represents a table which includes a timeline axis (that is, a set of ticks and time
@@ -62,6 +74,21 @@ public final class TimelineTable {
   public static JBTable create(@NotNull TableModel model, @NotNull ProfilerTimeline timeline, int column) {
     JBTable table = new HoverRowTable(model);
     table.getTableHeader().setDefaultRenderer(new HeaderRenderer(table, timeline, column));
+
+    AspectObserver timelineObserver = new AspectObserver();
+    table.addHierarchyListener(new HierarchyListener() {
+      @Override
+      public void hierarchyChanged(HierarchyEvent e) {
+        if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
+          if (table.isShowing()) {
+            timeline.getSelectionRange().addDependency(timelineObserver).onChange(Range.Aspect.RANGE, () -> table.repaint());
+          }
+          else {
+            timeline.getSelectionRange().removeDependencies(timelineObserver);
+          }
+        }
+      }
+    });
 
     boolean[] lastIsEmpty = new boolean[] { true };
     table.getModel().addTableModelListener(new TableModelListener() {

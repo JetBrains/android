@@ -15,15 +15,21 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.same;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.mock.MockModule;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.JavaProjectTestCase;
 
 import java.util.Collections;
-
-import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link AndroidGradleProjectStartupActivity}.
@@ -54,10 +60,19 @@ public class AndroidGradleProjectStartupActivityTest extends JavaProjectTestCase
     }
   }
 
-  // http://b/62543184
-  public void testRunActivityWithNewCreatedProject() {
+  public void testRunActivityWithImportedProject() {
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
     when(myGradleProjectInfo.isImportedProject()).thenReturn(true);
+
+    Project project = getProject();
+    myStartupActivity.runActivity(project);
+
+    verify(mySyncInvoker, times(1)).requestProjectSync(same(project), any());
+  }
+
+  public void testRunActivityWithSkipStartupProject() {
+    when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
+    when(myGradleProjectInfo.isSkipStartupActivity()).thenReturn(true);
 
     Project project = getProject();
     myStartupActivity.runActivity(project);
@@ -72,7 +87,7 @@ public class AndroidGradleProjectStartupActivityTest extends JavaProjectTestCase
     Project project = getProject();
     myStartupActivity.runActivity(project);
 
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectLoaded();
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN);
     request.useCachedGradleModels = true;
 
     verify(mySyncInvoker, times(1)).requestProjectSync(project, request);

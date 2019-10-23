@@ -22,9 +22,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureAndroidModuleStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
@@ -47,7 +47,6 @@ import org.junit.runner.RunWith;
 /**
  * Test that newly created Instant App modules do not have errors in them
  */
-@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner.class)
 public class NewInstantAppModuleTest {
   private static final String SAVED_COMPANY_DOMAIN = "SAVED_COMPANY_DOMAIN";
@@ -90,7 +89,6 @@ public class NewInstantAppModuleTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleOldInstantApp");
     addNewFeatureModule("base1", null);
     IdeFrameFixture ideFrame = guiTest.ideFrame();
-    assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
     addNewFeatureModule("feature1", null);
     assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
 
@@ -100,14 +98,16 @@ public class NewInstantAppModuleTest {
     assertNotNull(ideFrame.getModule("instantapp"));
 
     // Verify application attributes are in feature1 (the base feature) and not in feature2
-    ideFrame.getEditor()
+    String baseManifest = ideFrame.getEditor()
       .open("base/src/main/AndroidManifest.xml")
-      .moveBetween("android:label=", "")
-      .moveBetween("android:theme=", "");
+      .getCurrentFileContents();
+    assertThat(baseManifest).contains("android:label=");
+    assertThat(baseManifest).contains("android:theme=");
 
-    ideFrame.getEditor()
+    String featureManifest = ideFrame.getEditor()
       .open("feature/src/main/AndroidManifest.xml")
-      .moveBetween("<application>", "");
+      .getCurrentFileContents();
+    assertThat(featureManifest).contains("<application>");
   }
 
   @Test
@@ -118,7 +118,6 @@ public class NewInstantAppModuleTest {
     addNewFeatureModule("feature2", "Add No Activity");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
-
 
   @Test
   public void testPackageGeneratedCorrectly() throws IOException {
@@ -168,11 +167,15 @@ public class NewInstantAppModuleTest {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     NewModuleWizardFixture newModuleWizardFixture = ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...");
 
+    // Make sure minSdkVersion in the new module is the same with app module.
+    GradleBuildModel buildModel = ProjectBuildModel.get(ideFrame.getProject()).getModuleBuildModel(ideFrame.getModule("app"));
+    assertNotNull(buildModel);
+
     ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> configureAndroidModuleStep = newModuleWizardFixture
       .chooseModuleType("Instant App Feature Module")
       .clickNext() // Selected App
       .getConfigureAndroidModuleStep()
-      .selectMinimumSdkApi("23");
+      .selectMinimumSdkApi(String.valueOf(buildModel.android().defaultConfig().minSdkVersion()));
 
     if (moduleName != null) {
       configureAndroidModuleStep.enterModuleName(moduleName);

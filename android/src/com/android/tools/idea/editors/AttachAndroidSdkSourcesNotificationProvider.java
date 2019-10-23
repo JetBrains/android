@@ -48,6 +48,12 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.updateSdkSourceRoot;
 public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("add sdk sources to class");
 
+  private final Project myProject;
+
+  public AttachAndroidSdkSourcesNotificationProvider(@NotNull Project project) {
+    myProject = project;
+  }
+
   @Override
   @NotNull
   public Key<EditorNotificationPanel> getKey() {
@@ -56,14 +62,14 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
 
   @Override
   @Nullable
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor, @NotNull Project project) {
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
     if (file.getFileType() != JavaClassFileType.INSTANCE) {
       return null;
     }
 
     // Locate the java source of the class file, if not found, then it might come from a SDK.
-    if (JavaEditorFileSwapper.findSourceFile(project, file) == null) {
-      JdkOrderEntry jdkOrderEntry = findAndroidSdkEntryForFile(file, project);
+    if (JavaEditorFileSwapper.findSourceFile(myProject, file) == null) {
+      JdkOrderEntry jdkOrderEntry = findAndroidSdkEntryForFile(file);
 
       if (jdkOrderEntry == null) {
         return null;
@@ -89,7 +95,7 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
         List<String> requested = Lists.newArrayList();
         requested.add(DetailsTypes.getSourcesPath(platform.getApiVersion()));
 
-        ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
+        ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myProject, requested);
         if (dialog != null && dialog.showAndGet()) {
           updateSdkSourceRoot(sdk);
         }
@@ -101,8 +107,8 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
   }
 
   @Nullable
-  private static JdkOrderEntry findAndroidSdkEntryForFile(@NotNull VirtualFile file, @NotNull Project project) {
-    ProjectFileIndex index = ProjectFileIndex.SERVICE.getInstance(project);
+  private JdkOrderEntry findAndroidSdkEntryForFile(@NotNull VirtualFile file) {
+    ProjectFileIndex index = ProjectFileIndex.SERVICE.getInstance(myProject);
     for (OrderEntry entry : index.getOrderEntriesForFile(file)) {
       if (entry instanceof JdkOrderEntry) {
         JdkOrderEntry jdkOrderEntry = (JdkOrderEntry) entry;

@@ -16,8 +16,8 @@
 package com.android.tools.idea.profilers.profilingconfig;
 
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,20 +45,20 @@ public class CpuProfilerConfigConverter {
 
     switch (config.getTechnology()) {
       case SAMPLED_JAVA:
-        protoBuilder.setProfilerType(CpuProfiler.CpuProfilerType.ART);
-        protoBuilder.setProfilerMode(CpuProfiler.CpuProfilerMode.SAMPLED);
+        protoBuilder.setTraceType(Cpu.CpuTraceType.ART);
+        protoBuilder.setTraceMode(Cpu.CpuTraceMode.SAMPLED);
         break;
       case INSTRUMENTED_JAVA:
-        protoBuilder.setProfilerType(CpuProfiler.CpuProfilerType.ART);
-        protoBuilder.setProfilerMode(CpuProfiler.CpuProfilerMode.INSTRUMENTED);
+        protoBuilder.setTraceType(Cpu.CpuTraceType.ART);
+        protoBuilder.setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED);
         break;
       case SAMPLED_NATIVE:
-        protoBuilder.setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF);
-        protoBuilder.setProfilerMode(CpuProfiler.CpuProfilerMode.SAMPLED);
+        protoBuilder.setTraceType(Cpu.CpuTraceType.SIMPLEPERF);
+        protoBuilder.setTraceMode(Cpu.CpuTraceMode.SAMPLED);
         break;
       case ATRACE:
-        protoBuilder.setProfilerType(CpuProfiler.CpuProfilerType.ATRACE);
-        protoBuilder.setProfilerMode(CpuProfiler.CpuProfilerMode.SAMPLED);
+        protoBuilder.setTraceType(Cpu.CpuTraceType.ATRACE);
+        protoBuilder.setTraceMode(Cpu.CpuTraceMode.SAMPLED);
         break;
     }
 
@@ -75,9 +75,9 @@ public class CpuProfilerConfigConverter {
       .setBufferSizeMb(proto.getBufferSizeInMb())
       .setDisableLiveAllocation(proto.getDisableLiveAllocation());
 
-    switch (proto.getProfilerType()) {
+    switch (proto.getTraceType()) {
       case ART:
-        if (proto.getProfilerMode() == CpuProfiler.CpuProfilerMode.SAMPLED) {
+        if (proto.getTraceMode() == Cpu.CpuTraceMode.SAMPLED) {
           config.setTechnology(CpuProfilerConfig.Technology.SAMPLED_JAVA);
         }
         else {
@@ -91,7 +91,7 @@ public class CpuProfilerConfigConverter {
         config.setTechnology(CpuProfilerConfig.Technology.ATRACE);
         break;
       default:
-        throw new IllegalArgumentException("Unsupported trace type: " + proto.getProfilerType());
+        throw new IllegalArgumentException("Unsupported trace type: " + proto.getTraceType());
     }
     return config;
   }

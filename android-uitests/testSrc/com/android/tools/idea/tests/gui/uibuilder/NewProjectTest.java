@@ -15,12 +15,21 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
+import static com.android.tools.idea.tests.gui.instantapp.NewInstantAppTest.verifyOnlyExpectedWarnings;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.InferNullityDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.LanguageLevelModuleExtension;
@@ -29,36 +38,20 @@ import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
 import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-
-import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
-import static com.android.tools.idea.flags.StudioFlags.NPW_DYNAMIC_APPS;
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.android.tools.idea.tests.gui.instantapp.NewInstantAppTest.verifyOnlyExpectedWarnings;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertTrue;
-
-@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner.class)
 public class NewProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
-
-  @After
-  public void tearDown() {
-    NPW_DYNAMIC_APPS.clearOverride();
-  }
 
   @Test
   public void testNoWarningsInNewProjects() {
@@ -84,7 +77,7 @@ public class NewProjectTest {
       .getResults();
 
     verifyOnlyExpectedWarnings(inspectionResults,
-      "Project '" + guiTest.getProjectPath() + "' TestApplication",
+      "InspectionViewTree",
       // This warning is from the "foo" string we created in the Gradle resValue declaration above
       "    Android",
       "        Lint",
@@ -164,30 +157,6 @@ public class NewProjectTest {
     assertTrue(guiTest.getProjectPath(FN_GRADLE_WRAPPER_UNIX).canExecute());
   }
 
-  @Test // http://b.android.com/227918
-  public void scrollingActivityFollowedByBasicActivity() throws Exception {
-    NPW_DYNAMIC_APPS.override(false);
-
-    guiTest.welcomeFrame()
-      .createNewProject()
-      .getConfigureAndroidProjectStep()
-      .enterApplicationName("My Test App")
-      .enterPackageName("com.test.project")
-      .wizard()
-      .clickNext()
-      .clickNext() // Default Form Factor
-      .chooseActivity("Scrolling Activity")
-      .clickNext()
-      .clickPrevious()
-      .chooseActivity("Basic Activity")
-      .clickNext()
-      .clickFinish();
-
-    assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/layout/content_main.xml")).isFile();
-    assertAbout(file()).that(guiTest.getProjectPath("app/src/main/res/layout/activity_main.xml")).isFile();
-    assertAbout(file()).that(guiTest.getProjectPath("app/src/main/java/com/test/project/MainActivity.java")).isFile();
-  }
-
   /**
    * Verifies studio adds latest support library while DND layouts (RecyclerView)
    * <p>
@@ -220,7 +189,7 @@ public class NewProjectTest {
       .open("app/build.gradle")
       .getCurrentFileContents();
 
-    assertThat(contents).contains("implementation \'com.android.support:recyclerview-v7:");
+    assertThat(contents).contains("implementation \'androidx.recyclerview:recyclerview:");
   }
 
   @Test
@@ -233,7 +202,7 @@ public class NewProjectTest {
     @Language("XML")
     String expectedXml =
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-      "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "<androidx.constraintlayout.widget.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
       "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
       "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
       "    android:layout_width=\"match_parent\"\n" +
@@ -249,7 +218,7 @@ public class NewProjectTest {
       "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
       "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
       "\n" +
-      "</android.support.constraint.ConstraintLayout>";
+      "</androidx.constraintlayout.widget.ConstraintLayout>";
 
     assertThat(actualXml).isEqualTo(expectedXml);
   }

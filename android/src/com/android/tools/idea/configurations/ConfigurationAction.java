@@ -19,8 +19,8 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.Toggleable;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
-import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.fileEditor.ex.FileEditorWithProvider;
@@ -39,7 +39,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.FD_RES_LAYOUT;
 
-abstract class ConfigurationAction extends AnAction implements ConfigurationListener {
+abstract class ConfigurationAction extends AnAction implements ConfigurationListener, Toggleable {
   private static final String FILE_ARROW = " \u2192 ";
   protected final ConfigurationHolder myRenderContext;
   private int myFlags;
@@ -61,7 +61,7 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     final ActionManagerEx manager = ActionManagerEx.getInstanceEx();
     final DataContext dataContext = e.getDataContext();
     // Regular actions invoke this method before performing the action. We do so as well since the analytics subsystem hooks into
@@ -122,10 +122,8 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
     FileEditorManagerEx manager = FileEditorManagerEx.getInstanceEx(project);
     FileEditorWithProvider previousSelection = manager.getSelectedEditorWithProvider(old);
     manager.openEditor(descriptor, true);
-
     if (previousSelection != null) {
-      FileEditorProvider provider = previousSelection.getProvider();
-      manager.setSelectedEditor(file, provider.getEditorTypeId());
+      manager.setSelectedEditor(file, previousSelection.getProvider().getEditorTypeId());
     }
   }
 

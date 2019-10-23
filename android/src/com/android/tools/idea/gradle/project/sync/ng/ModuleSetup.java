@@ -84,7 +84,8 @@ public abstract class ModuleSetup<T> {
                                         new ProjectDataNodeSetup(),
                                         new ModuleSetupContext.Factory(),
                                         new ModuleFinder.Factory(),
-                                        new CompositeBuildDataSetup());
+                                        new CompositeBuildDataSetup(),
+                                        new BuildScriptClasspathSetup());
     }
 
     @NotNull
@@ -138,7 +139,12 @@ public abstract class ModuleSetup<T> {
     }
     // Setup AndroidModuleModels.
     for (Map.Entry<AndroidModuleModel, ModuleSetupContext> entry : setupContextByModuleModel.androidSetupContexts.entrySet()) {
+      ModuleSetupContext setupContext = entry.getValue();
       androidModuleSetup.setUpModule(entry.getValue(), entry.getKey(), syncSkipped);
+      GradleModuleModels gradleModels = setupContext.getGradleModels();
+      if (gradleModels != null) {
+        extraModelsManager.applyAndroidModelsToModule(setupContext.getGradleModels(), setupContext.getModule(), myModelsProvider);
+      }
     }
     // Setup JavaModuleModels.
     for (Map.Entry<JavaModuleModel, ModuleSetupContext> entry : setupContextByModuleModel.javaSetupContexts.entrySet()) {
@@ -146,7 +152,7 @@ public abstract class ModuleSetup<T> {
       javaModuleSetup.setUpModule(setupContext, entry.getKey(), syncSkipped);
       GradleModuleModels gradleModels = setupContext.getGradleModels();
       if (gradleModels != null) {
-        extraModelsManager.applyModelsToModule(gradleModels, setupContext.getModule(), myModelsProvider);
+        extraModelsManager.applyJavaModelsToModule(gradleModels, setupContext.getModule(), myModelsProvider);
       }
     }
   }

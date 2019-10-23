@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,51 @@
  */
 package com.android.tools.idea.templates;
 
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.FD_TEMPLATES;
+import static com.android.SdkConstants.FD_TOOLS;
+import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
+import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_TOOLS_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ACTIVITY;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ICONS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_APPLICATION_THEME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_INSTANT_APP;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PROJECT_LOCATION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_RES_OUT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_SOURCE_PROVIDER_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API_STRING;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_THEME_EXISTS;
+import static com.android.tools.idea.templates.TemplateMetadata.getBuildApiString;
+import static com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesForGroovy;
+import static com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories;
+import static com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME;
+import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.truth.Truth.assertWithMessage;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.util.stream.Collectors.toList;
+import static org.mockito.Mockito.mock;
+
+import com.android.SdkConstants;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
@@ -37,6 +82,7 @@ import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
@@ -75,16 +121,6 @@ import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.WaitFor;
-import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.jetbrains.android.inspections.lint.ProblemData;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -95,20 +131,27 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
-import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME;
-import static com.google.common.truth.Truth.assertWithMessage;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.util.stream.Collectors.toList;
-import static org.mockito.Mockito.mock;
+import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.GradleConnector;
+import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.jetbrains.android.inspections.lint.ProblemData;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Ignore;
+import org.w3c.dom.Element;
 
 /**
  * Test for template instantiation.
@@ -130,6 +173,7 @@ import static org.mockito.Mockito.mock;
  * <li>Test creating a project <b>without</b> a template</li>
  * </ul>
  */
+@Ignore // FIXME-ank: super slow (1h)
 @SuppressWarnings("deprecation") // We need to move away from the old Wizard framework usage
 public class TemplateTest extends AndroidGradleTestCase {
   /**
@@ -177,10 +221,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     if (SystemInfo.isWindows) {
       if ("AidlFile".equals(templateName)) return true;
     }
-    if ("WatchFaceService".equals(templateName)) return true; // See https://b.corp.google.com/issues/65062154
-    if ("GoogleAdMobAdsActivity".equals(templateName)) return true;  // b/72260139
-    if ("GoogleMapsActivity".equals(templateName)) return true;  // b/72260139
-    if ("SliceProvider".equals(templateName)) return true;  // b/78197770
     return false;
   }
 
@@ -256,7 +296,10 @@ public class TemplateTest extends AndroidGradleTestCase {
     // Replace the default RepositoryUrlManager with one that enables repository checks in tests. (myForceRepositoryChecksInTests)
     // This is necessary to fully resolve dynamic gradle coordinates such as ...:appcompat-v7:+ => appcompat-v7:25.3.1
     // keeping it exactly the same as they are resolved within the NPW flow.
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), RepositoryUrlManager.class, new RepositoryUrlManager(IdeGoogleMavenRepository.INSTANCE, true), getTestRootDisposable());
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(),
+      RepositoryUrlManager.class,
+      new RepositoryUrlManager(IdeGoogleMavenRepository.INSTANCE, OfflineIdeGoogleMavenRepository.INSTANCE, true),
+      getTestRootDisposable());
   }
 
   @Override
@@ -332,11 +375,13 @@ public class TemplateTest extends AndroidGradleTestCase {
   });
 
   private final ProjectStateCustomizer withAndroidx = ((templateMap, projectMap) -> {
-    Integer targetApi = (Integer) templateMap.get(ATTR_TARGET_API);
-    if (targetApi != null && targetApi >= 22) {
-      projectMap.put(ATTR_ANDROIDX_SUPPORT, true);
-      templateMap.put(ATTR_ANDROIDX_SUPPORT, true);
-    }
+    projectMap.put(ATTR_ANDROIDX_SUPPORT, true);
+    templateMap.put(ATTR_ANDROIDX_SUPPORT, true);
+  });
+
+  private final ProjectStateCustomizer withAndroidxAndKotlin = ((templateMap, projectMap) -> {
+    withAndroidx.customize(templateMap, projectMap);
+    withKotlin.customize(templateMap, projectMap);
   });
 
   //--- Activity templates ---
@@ -344,11 +389,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   @TemplateCheck
   public void testNewBasicActivity() throws Exception {
     checkCreateTemplate("activities", "BasicActivity", false);
-  }
-
-  @TemplateCheck
-  public void testNewBasicActivityWithAndroidx() throws Exception {
-    checkCreateTemplate("activities", "BasicActivity", false, withAndroidx);
   }
 
   @TemplateCheck
@@ -432,8 +472,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  // b/72260139
-  public void ignore_testNewProjectWithTabbedActivityWithKotlin() throws Exception {
+  public void testNewProjectWithTabbedActivityWithKotlin() throws Exception {
     checkCreateTemplate("activities", "TabbedActivity", true, withKotlin);
   }
 
@@ -533,17 +572,18 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   @TemplateCheck
   public void testNewSettingsActivity() throws Exception {
-    checkCreateTemplate("activities", "SettingsActivity", false);
+    // Note: SettingsActivity is only enabled in the UI for androidx projects
+    checkCreateTemplate("activities", "SettingsActivity", false, withAndroidx);
   }
 
   @TemplateCheck
   public void testNewProjectWithSettingsActivity() throws Exception {
-    checkCreateTemplate("activities", "SettingsActivity", true);
+    checkCreateTemplate("activities", "SettingsActivity", true, withAndroidx);
   }
 
   @TemplateCheck
   public void testNewProjectWithSettingsActivityWithKotlin() throws Exception {
-    checkCreateTemplate("activities", "SettingsActivity", true, withKotlin);
+    checkCreateTemplate("activities", "SettingsActivity", true, withAndroidxAndKotlin);
   }
 
   @TemplateCheck
@@ -582,26 +622,22 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  // b/72260139
-  public void ignore_testGoogleAdMobAdsActivity() throws Exception {
+  public void testGoogleAdMobAdsActivity() throws Exception {
     checkCreateTemplate("activities", "GoogleAdMobAdsActivity", false);
   }
 
   @TemplateCheck
-  // b/72260139
-  public void ignore_testNewProjectWithGoogleAdMobAdsActivity() throws Exception {
+  public void testNewProjectWithGoogleAdMobAdsActivity() throws Exception {
     checkCreateTemplate("activities", "GoogleAdMobAdsActivity", true);
   }
 
   @TemplateCheck
-  // b/72260139
-  public void ignore_testGoogleMapsActivity() throws Exception {
+  public void testGoogleMapsActivity() throws Exception {
     checkCreateTemplate("activities", "GoogleMapsActivity", false);
   }
 
   @TemplateCheck
-  // b/72260139
-  public void ignore_testNewProjectWithGoogleMapsActivity() throws Exception {
+  public void testNewProjectWithGoogleMapsActivity() throws Exception {
     checkCreateTemplate("activities", "GoogleMapsActivity", true);
   }
 
@@ -618,6 +654,16 @@ public class TemplateTest extends AndroidGradleTestCase {
   @TemplateCheck
   public void testNewProjectWithGoogleMapsWearActivityWithKotlin() throws Exception {
     checkCreateTemplate("activities", "GoogleMapsWearActivity", true, withKotlin);
+  }
+
+  @TemplateCheck
+  public void testNewAutomotiveProjectWithMediaService() throws Exception {
+    checkCreateTemplate("other", "AutomotiveMediaService", true);
+  }
+
+  @TemplateCheck
+  public void testNewAutomotiveProjectWithMediaServiceWithKotlin() throws Exception {
+    checkCreateTemplate("other", "AutomotiveMediaService", true, withKotlin);
   }
 
   //--- Non-activity templates ---
@@ -650,14 +696,15 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   @TemplateCheck
   public void testNewSliceProvider() throws Exception {
+    // Note: SliceProvider is only enabled in the UI for androidx projects
     myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "SliceProvider", false);
+    checkCreateTemplate("other", "SliceProvider", false, withAndroidx);
   }
 
   @TemplateCheck
   public void testNewSliceProviderWithKotlin() throws Exception {
     myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "SliceProvider", false, withKotlin);
+    checkCreateTemplate("other", "SliceProvider", false, withAndroidxAndKotlin);
   }
 
   @TemplateCheck
@@ -847,6 +894,16 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testAutomotiveMediaService() throws Exception {
+    checkCreateTemplate("other", "AutomotiveMediaService", false);
+  }
+
+  @TemplateCheck
+  public void testAutomotiveMediaServiceWithKotlin() throws Exception {
+    checkCreateTemplate("other", "AutomotiveMediaService", false, withKotlin);
+  }
+
+  @TemplateCheck
   public void testAndroidAutoMessagingService() throws Exception {
     checkCreateTemplate("other", "AndroidAutoMessagingService");
   }
@@ -883,8 +940,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   //--- Special cases ---
 
-  // Fails with > java.lang.NullPointerException (no error message)
-  public void ignore_testCppBasicActivityWithFragments() throws Exception {
+  public void testCppBasicActivityWithFragments() throws Exception {
     // Regression test for https://code.google.com/p/android/issues/detail?id=221824
     if (DISABLED) {
       return;
@@ -952,10 +1008,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkApiTarget(14, 18, target, state, "Test15", null, overrides, null);
   }
 
-  // This test is broken after the IntelliJ 2016.2.4 merge; investigate
-  // whether this is legitimate or whether it's due to changed formatting
-  // preferences in the platform
-  public void ignored_testTemplateFormatting() throws Exception {
+  public void testTemplateFormatting() throws Exception {
     Template template = Template.createFromPath(new File(getTestDataPath(), FileUtil.join("templates", "TestTemplate")).getCanonicalFile());
     RenderingContext context = createRenderingContext(template,
                                                       myFixture.getProject(),
@@ -1322,7 +1375,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     private int minSdk;
     private int minBuild;
 
-    Option(String id, int minSdk, int minBuild) {
+    public Option(String id, int minSdk, int minBuild) {
       this.id = id;
       this.minSdk = minSdk;
       this.minBuild = minBuild;
@@ -1377,6 +1430,13 @@ public class TemplateTest extends AndroidGradleTestCase {
                  !moduleState.getBoolean(ATTR_CREATE_ACTIVITY);
     }
 
+    if (!Boolean.TRUE.equals(moduleState.get(ATTR_ANDROIDX_SUPPORT))) {
+      // Make sure we test all templates against androidx
+      setAndroidSupport(true, moduleState, activityState);
+      checkProjectNow(projectName + "_x", projectState, activityState);
+      setAndroidSupport(false, moduleState, activityState);
+    }
+
     if (checkLib) {
       moduleState.put(ATTR_IS_LIBRARY_MODULE, false);
       activityState.put(ATTR_IS_LIBRARY_MODULE, false);
@@ -1398,9 +1458,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   private void checkProjectNow(@NotNull String projectName,
                                @NotNull TestNewProjectWizardState projectState,
                                @Nullable TestTemplateWizardState activityState) throws Exception {
-    //if (activityState != null && activityState.get(ATTR_ANDROIDX_SUPPORT) != Boolean.TRUE) {
-    //  return;
-    //}
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
     // Do not add non-unicode characters on Windows
     String modifiedProjectName = getModifiedProjectName(projectName, activityState);
@@ -1533,6 +1590,15 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
+  private static void setAndroidSupport(boolean setAndroidx,
+                                        @NotNull TestTemplateWizardState moduleState,
+                                        @Nullable TestTemplateWizardState activityState) {
+    moduleState.put(ATTR_ANDROIDX_SUPPORT, setAndroidx);
+    if (activityState != null) {
+      activityState.put(ATTR_ANDROIDX_SUPPORT, setAndroidx);
+    }
+  }
+
   private static String getModifiedProjectName(@NotNull String projectName, @Nullable TestTemplateWizardState activityState) {
     if (SystemInfo.isWindows) {
       return "app";
@@ -1540,7 +1606,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
     String specialChars = "!@#$^&()_+=-.`~";
     String nonAsciiChars = "你所有的基地都属于我们";
-    return projectName + specialChars + ',' + nonAsciiChars;
+    return projectName + specialChars + nonAsciiChars;
   }
 
   @SuppressWarnings("SameParameterValue")
@@ -1563,10 +1629,17 @@ public class TemplateTest extends AndroidGradleTestCase {
     File projectRoot = new File(moduleState.getString(ATTR_PROJECT_LOCATION));
     assertEquals(projectRoot, virtualToIoFile(myFixture.getProject().getBaseDir()));
     createGradleWrapper(projectRoot);
-    updateVersionAndDependencies(projectRoot);
-    LocalFileSystem.getInstance().refresh(false);
+
+    File gradleFile = new File(projectRoot, SdkConstants.FN_BUILD_GRADLE);
+    String origContent = com.google.common.io.Files.toString(gradleFile, UTF_8);
+    String newContent = updateLocalRepositories(origContent, getLocalRepositoriesForGroovy());
+    if (!newContent.equals(origContent)) {
+      com.google.common.io.Files.write(newContent, gradleFile, UTF_8);
+    }
+
+    refreshProjectFiles();
     if (syncProject) {
-      importProject(moduleState.getString(ATTR_MODULE_NAME), projectRoot, null);
+      importProject(moduleState.getString(ATTR_MODULE_NAME), projectRoot);
     }
   }
 
@@ -1577,13 +1650,17 @@ public class TemplateTest extends AndroidGradleTestCase {
     try {
       moduleState.populateDirectoryParameters();
       String moduleName = moduleState.getString(ATTR_MODULE_NAME);
-      File projectRoot = new File(moduleState.getString(ATTR_PROJECT_LOCATION));
-      File moduleRoot = new File(projectRoot, moduleName);
+      String projectPath = moduleState.getString(ATTR_PROJECT_LOCATION);
+      File projectRoot = new File(projectPath);
+      AndroidModuleTemplate paths = GradleAndroidModuleTemplate.createDefaultTemplateAt(projectPath, moduleName).getPaths();
       if (FileUtilRt.createDirectory(projectRoot)) {
         if (moduleState.getBoolean(ATTR_CREATE_ICONS) && iconGenerator != null) {
-          iconGenerator.generateIconsToDisk(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths());
+          iconGenerator.generateIconsToDisk(paths);
         }
         projectState.updateParameters();
+
+        File moduleRoot = paths.getModuleRoot();
+        assert moduleRoot != null;
 
         // If this is a new project, instantiate the project-level files
         Template projectTemplate = projectState.getProjectTemplate();

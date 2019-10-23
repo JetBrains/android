@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.fonts;
 
+import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
+import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.fonts.FontDetail;
@@ -25,20 +28,23 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import javax.annotation.concurrent.ThreadSafe;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import javax.annotation.concurrent.ThreadSafe;
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.List;
-
-import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
-import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
 
 /**
  * {@link DownloadableFontCacheServiceImpl} is a threadsafe implementation of {link {@link DownloadableFontCacheService}.
@@ -137,10 +143,15 @@ class DownloadableFontCacheServiceImpl extends FontLoader implements Downloadabl
         continue;
       }
       hasAnyDownloadedFonts = true;
-      output.append(String.format("<font android:font=\"%1$s\" android:fontStyle=\"%2$s\" android:fontWeight=\"%3$d\" />",
-                                  cachedFile.getAbsolutePath(),
-                                  detail.getFontStyle(),
-                                  detail.getWeight()));
+      output.append(String.format("<font android:font=\"%s\"", cachedFile.getAbsolutePath()));
+      if (detail.getHasExplicitStyle()) {
+        output.append(String.format(" android:fontStyle=\"%s\"", detail.getFontStyle()));
+      }
+      int weight = detail.getWeight();
+      if (weight != -1) {
+        output.append(String.format(Locale.US, " android:fontWeight=\"%d\"", weight));
+      }
+      output.append(" />");
     }
     if (!hasAnyDownloadedFonts) {
       return null;

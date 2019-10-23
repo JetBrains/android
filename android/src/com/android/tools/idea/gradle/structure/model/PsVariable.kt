@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.concurrent.transform
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.android.PsCollectionBase
+import com.android.tools.idea.gradle.structure.model.helpers.formatAny
 import com.android.tools.idea.gradle.structure.model.helpers.parseAny
 import com.android.tools.idea.gradle.structure.model.meta.*
-import com.android.tools.idea.projectsystem.transform
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
@@ -107,14 +108,14 @@ class PsVariable(
   fun <T : Any, PropertyCoreT : ModelPropertyCore<T>> bindNewPropertyAs(prototype: PropertyCoreT): PropertyCoreT? =
   // Note: the as? test is only to test whether the interface is implemented.
   // If it is, the generic type arguments will match.
-    (prototype as? GradleModelCoreProperty<T, PropertyCoreT>)?.rebind(resolvedProperty!!) { parent.isModified = true }
+    (prototype as? GradleModelCoreProperty<T, PropertyCoreT>)?.rebind(resolvedProperty!!) { block -> block() ; parent.isModified = true }
 
   object Descriptors : ModelDescriptor<PsVariable, Nothing, ResolvedPropertyModel> {
     override fun getResolved(model: PsVariable): Nothing? = null
 
     override fun getParsed(model: PsVariable): ResolvedPropertyModel? = model.resolvedProperty
 
-    override fun setModified(model: PsVariable) {
+    override fun prepareForModification(model: PsVariable) {
       model.pendingListItemContainer?.let {
         val itemProperty = it.addListValue()
         model.property = itemProperty
@@ -127,6 +128,8 @@ class PsVariable(
       model.myMapEntries?.refresh()
     }
 
+    override fun setModified(model: PsVariable) = Unit
+
     val variableValue: SimpleProperty<PsVariable, Any> = property(
       "Value",
       defaultValueGetter = null,
@@ -135,6 +138,7 @@ class PsVariable(
       getter = { asAny() },
       setter = { setValue(it) },
       parser = ::parseAny,
+      formatter = ::formatAny,
       knownValuesGetter = ::variableKnownValues,
       variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
     )
@@ -178,9 +182,9 @@ class PsVariable(
         val value = property.getValue(model, ::FAKE_PROPERTY)
         if (value !is ParsedValue.Set.Parsed || value.dslText !is DslText.Reference) return
         val propertyCore = property.bind(model) as? GradleModelCoreProperty<*, *> ?: return
-        var propertyModel: GradlePropertyModel = propertyCore.getParsedProperty()?.unresolvedModel ?: return
+        var propertyModel: GradlePropertyModel = propertyCore.getParsedPropertyForRead()?.unresolvedModel ?: return
         val seen = mutableSetOf<GradlePropertyModel>()
-        while (propertyModel.valueType == GradlePropertyModel.ValueType.REFERENCE) {
+        while (propertyModel.valueType == GradlePropertyModel.ValueType.REFERENCE && propertyModel.dependencies.isNotEmpty()) {
           if (!seen.add(propertyModel)) return
           propertyModel = propertyModel.dependencies[0]!!
           if (resolvedProperty?.fullyQualifiedName == propertyModel.fullyQualifiedName &&

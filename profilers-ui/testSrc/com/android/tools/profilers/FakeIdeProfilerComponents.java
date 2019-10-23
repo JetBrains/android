@@ -150,7 +150,7 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   @NotNull
   @Override
   public DataViewer createDataViewer(@NotNull byte[] content, @NotNull ContentType contentType, @NotNull DataViewer.Style styleHint) {
-    if (contentType.isImageType()) {
+    if (contentType.isSupportedImageType()) {
       return new ImageDataViewer() {
         private final BufferedImage DUMMY_IMAGE = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
         private final JComponent DUMMY_COMPONENT = new JLabel(new ImageIcon(DUMMY_IMAGE));

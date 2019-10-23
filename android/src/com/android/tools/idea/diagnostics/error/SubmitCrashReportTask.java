@@ -61,7 +61,7 @@ public class SubmitCrashReportTask extends Task.Backgroundable {
 
     CrashReport report =
       new StudioExceptionReport.Builder()
-        .setThrowable(myThrowable)
+        .setThrowable(myThrowable, true)
         .addProductData(getProductData())
         .build();
     CompletableFuture<String> future = StudioCrashReporter.getInstance().submit(report, true);

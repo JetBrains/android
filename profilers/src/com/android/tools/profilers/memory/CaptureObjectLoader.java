@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.google.common.util.concurrent.*;
+import com.intellij.util.concurrency.SameThreadExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,7 +57,7 @@ public class CaptureObjectLoader {
       private void removeTask() {
         myOutstandingLoadingTask = null;
       }
-    }, myExecutorService);
+    }, SameThreadExecutor.INSTANCE);
 
     myExecutorService.submit(task);
     return task;

@@ -16,9 +16,15 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profilers.*
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -33,6 +39,7 @@ import org.junit.rules.ExpectedException
 class CpuCaptureSessionArtifactTest {
 
   private val myCpuService = FakeCpuService()
+  private val myTimer = FakeTimer()
 
   @get:Rule
   val myThrown = ExpectedException.none()
@@ -40,7 +47,8 @@ class CpuCaptureSessionArtifactTest {
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel(
     "CpuCaptureSessionArtifactTestChannel",
-    FakeProfilerService(false),
+    FakeTransportService(myTimer, false),
+    FakeProfilerService(myTimer),
     FakeMemoryService(),
     myCpuService,
     FakeEventService(),
@@ -53,7 +61,7 @@ class CpuCaptureSessionArtifactTest {
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), FakeTimer())
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), FakeIdeProfilerServices(), myTimer)
     mySessionsManager = profilers.sessionsManager
     mySessionsManager.createImportedSession("fake.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 0)
     mySessionsManager.update()
@@ -64,9 +72,9 @@ class CpuCaptureSessionArtifactTest {
 
   @Test
   fun testArtSampledCpuCaptureSessionName() {
-    val artSampledTraceInfo = CpuProfiler.TraceInfo.newBuilder()
-      .setProfilerType(CpuProfiler.CpuProfilerType.ART)
-      .setProfilerMode(CpuProfiler.CpuProfilerMode.SAMPLED)
+    val artSampledTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+      .setTraceType(Cpu.CpuTraceType.ART)
+      .setTraceMode(Cpu.CpuTraceMode.SAMPLED)
       .build()
     myCpuService.addTraceInfo(artSampledTraceInfo)
     mySessionsManager.update()
@@ -75,9 +83,9 @@ class CpuCaptureSessionArtifactTest {
 
   @Test
   fun testArtInstrumentedCpuCaptureSessionName() {
-    val artInstrumentedTraceInfo = CpuProfiler.TraceInfo.newBuilder()
-      .setProfilerType(CpuProfiler.CpuProfilerType.ART)
-      .setProfilerMode(CpuProfiler.CpuProfilerMode.INSTRUMENTED)
+    val artInstrumentedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+      .setTraceType(Cpu.CpuTraceType.ART)
+      .setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED)
       .build()
     myCpuService.clearTraceInfo()
     myCpuService.addTraceInfo(artInstrumentedTraceInfo)
@@ -87,9 +95,9 @@ class CpuCaptureSessionArtifactTest {
 
   @Test
   fun testImportedArtTraceCpuCaptureSessionName() {
-    val artImportedTraceInfo = CpuProfiler.TraceInfo.newBuilder()
-      .setProfilerType(CpuProfiler.CpuProfilerType.ART)
-      .setProfilerMode(CpuProfiler.CpuProfilerMode.UNSPECIFIED_MODE)
+    val artImportedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+      .setTraceType(Cpu.CpuTraceType.ART)
+      .setTraceMode(Cpu.CpuTraceMode.UNSPECIFIED_MODE)
       .build()
     myCpuService.clearTraceInfo()
     myCpuService.addTraceInfo(artImportedTraceInfo)
@@ -99,7 +107,7 @@ class CpuCaptureSessionArtifactTest {
 
   @Test
   fun testSimpleperfCpuCaptureSessionName() {
-    val simpleperfTraceInfo = CpuProfiler.TraceInfo.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF).build()
+    val simpleperfTraceInfo = Cpu.CpuTraceInfo.newBuilder().setTraceType(Cpu.CpuTraceType.SIMPLEPERF).build()
     myCpuService.clearTraceInfo()
     myCpuService.addTraceInfo(simpleperfTraceInfo)
     mySessionsManager.update()
@@ -108,7 +116,7 @@ class CpuCaptureSessionArtifactTest {
 
   @Test
   fun testAtraceCpuCaptureSessionName() {
-    val atraceInfo = CpuProfiler.TraceInfo.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ATRACE).build()
+    val atraceInfo = Cpu.CpuTraceInfo.newBuilder().setTraceType(Cpu.CpuTraceType.ATRACE).build()
     myCpuService.clearTraceInfo()
     myCpuService.addTraceInfo(atraceInfo)
     mySessionsManager.update()
@@ -117,7 +125,7 @@ class CpuCaptureSessionArtifactTest {
 
   @Test
   fun testUnexpectedTraceInfoCpuCaptureSessionName() {
-    val unexpectedTraceInfo = CpuProfiler.TraceInfo.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER).build()
+    val unexpectedTraceInfo = Cpu.CpuTraceInfo.newBuilder().setTraceType(Cpu.CpuTraceType.UNSPECIFIED_TYPE).build()
     myCpuService.clearTraceInfo()
     myCpuService.addTraceInfo(unexpectedTraceInfo)
     mySessionsManager.update()

@@ -88,7 +88,7 @@ public class InstructionsPanel extends JPanel {
     @Nullable private EaseOutModel myEaseOutModel;
     @NotNull private final InstructionsRenderer myRenderer;
 
-    InstructionsComponent(@NotNull Builder builder) {
+    public InstructionsComponent(@NotNull Builder builder) {
       myEaseOutModel = builder.myEaseOutModel;
       myHorizontalPadding = builder.myHorizontalPadding;
       myVerticalPadding = builder.myVerticalPadding;

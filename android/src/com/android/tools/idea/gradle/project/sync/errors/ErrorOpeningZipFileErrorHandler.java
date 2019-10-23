@@ -27,31 +27,31 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CANNOT_OPEN_ZIP_FILE;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 // See https://code.google.com/p/android/issues/detail?id=76797
 public class ErrorOpeningZipFileErrorHandler extends SyncErrorHandler {
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = findErrorMessage(getRootCause(error));
+    String text = findErrorMessage(project, getRootCause(error));
     if (text != null) {
       List<NotificationHyperlink> hyperlinks = new ArrayList<>();
       NotificationHyperlink syncProjectHyperlink = SyncProjectWithExtraCommandLineOptionsHyperlink.syncProjectRefreshingDependencies();
       hyperlinks.add(syncProjectHyperlink);
-      String newText = text + syncProjectHyperlink.toHtml();
-      GradleSyncMessages.getInstance(project).updateNotification(notification, newText, hyperlinks);
+      GradleSyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
       return true;
     }
     return false;
   }
 
   @Nullable
-  private String findErrorMessage(@NotNull Throwable rootCause) {
+  private String findErrorMessage(@NotNull Project project, @NotNull Throwable rootCause) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && text.contains("error in opening zip file")) {
-      updateUsageTracker();
+      updateUsageTracker(project, CANNOT_OPEN_ZIP_FILE);
       return "Failed to open zip file.\n" +
-             "Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)\n";
+             "Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)";
     }
     return null;
   }

@@ -1,5 +1,7 @@
 package org.jetbrains.android.augment;
 
+import static com.android.ide.common.resources.ResourceNameKeyedMap.flattenResourceName;
+
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.StyleableResourceValue;
@@ -8,20 +10,23 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.ArrayUtil;
-import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiPredicate;
+import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for light implementations of inner classes of the R class, e.g. {@code R.string}.
@@ -72,7 +77,13 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
                 fieldNames.put(item.getName() + '_' + attr.getName(), PsiType.INT);
               }
               else {
-                fieldNames.put(item.getName() + '_' + packageName.replace('.', '_') + '_' + attr.getName(), PsiType.INT);
+                String fieldName =
+                  flattenResourceName(item.getName()) +
+                  '_' +
+                  flattenResourceName(packageName) +
+                  '_' +
+                  flattenResourceName(attr.getName());
+                fieldNames.put(fieldName, PsiType.INT);
               }
             }
           }

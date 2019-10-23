@@ -86,13 +86,11 @@ class CachedProjectModelsSetup extends ModuleSetup<CachedProjectModels> {
     notifyModuleConfigurationStarted(indicator);
 
     myCompositeBuildDataSetup.setupCompositeBuildData(projectModels, myProject);
-    List<Module> modules = Arrays.asList(ModuleManager.getInstance(myProject).getModules());
     List<GradleFacet> gradleFacets = new ArrayList<>();
 
     ModuleFinder moduleFinder = myModuleFinderFactory.create(myProject);
 
-    //noinspection deprecation
-    JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, indicator, true /* fail fast */, module -> {
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       GradleFacet gradleFacet = GradleFacet.getInstance(module);
       if (gradleFacet != null) {
         String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
@@ -101,8 +99,7 @@ class CachedProjectModelsSetup extends ModuleSetup<CachedProjectModels> {
           gradleFacets.add(gradleFacet);
         }
       }
-      return true;
-    });
+    }
 
     SetupContextByModuleModel setupContextByModuleModel = new SetupContextByModuleModel();
 

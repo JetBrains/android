@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_BUILD_TOOLS_INSTALLED;
+
 import com.android.repository.Revision;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -26,11 +28,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
-
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+import org.jetbrains.annotations.NotNull;
 
 public class InstallBuildToolsHyperlink extends NotificationHyperlink {
   @NotNull private final String myVersion;
@@ -76,8 +75,7 @@ public class InstallBuildToolsHyperlink extends NotificationHyperlink {
         processor.run();
       }
       else {
-        // TODO Change for plugin changed trigger if created
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_BUILD_TOOLS_INSTALLED);
       }
     }
   }

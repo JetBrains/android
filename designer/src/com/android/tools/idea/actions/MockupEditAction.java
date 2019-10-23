@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.flags.StudioFlags;
@@ -85,7 +85,7 @@ public class MockupEditAction extends AnAction {
     myMockupToggleAction.setSelected(event, true);
     MockUpFileChooser.INSTANCE.chooseMockUpFile(
       component,
-      (path) -> NlWriteCommandAction.run(component, Strings.nullToEmpty(event.getPresentation().getText()), () -> {
+      (path) -> NlWriteCommandActionUtil.run(component, Strings.nullToEmpty(event.getPresentation().getText()), () -> {
         component.setAttribute(TOOLS_URI, ATTR_MOCKUP, path);
         component.setAttribute(TOOLS_URI, ATTR_MOCKUP_CROP, "");
       })

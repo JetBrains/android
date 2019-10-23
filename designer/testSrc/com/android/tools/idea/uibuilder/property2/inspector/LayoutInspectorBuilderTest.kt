@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_WEIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
+import com.android.SdkConstants.ATTR_VISIBILITY
+import com.android.SdkConstants.LINEAR_LAYOUT
+import com.android.SdkConstants.TEXT_VIEW
+import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
-import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -29,24 +34,23 @@ import org.junit.Test
 @RunsInEdt
 class LayoutInspectorBuilderTest {
   @JvmField @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  val projectRule = AndroidProjectRule.withSdk()
 
   @JvmField @Rule
   val edtRule = EdtRule()
 
   @Test
   fun testLinearLayout() {
-    val util = InspectorTestUtil(projectRule, TEXT_VIEW, LINEAR_LAYOUT)
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     val builder = LayoutInspectorBuilder(projectRule.project, util.editorProvider)
-    addLayoutProperties(util)
+    util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(2)
-    assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
-    assertThat(util.inspector.lines[0].title).isEqualTo("layout")
-    assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_LAYOUT_WEIGHT)
-  }
-
-  private fun addLayoutProperties(util: InspectorTestUtil) {
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_WEIGHT, NelePropertyType.DIMENSION)
+    util.checkTitle(0, "Layout")
+    util.checkEditor(1, ANDROID_URI, ATTR_LAYOUT_WIDTH)
+    util.checkEditor(2, ANDROID_URI, ATTR_LAYOUT_HEIGHT)
+    util.checkEditor(3, ANDROID_URI, ATTR_LAYOUT_WEIGHT)
+    util.checkEditor(4, ANDROID_URI, ATTR_VISIBILITY)
+    util.checkEditor(5, TOOLS_URI, ATTR_VISIBILITY)
+    assertThat(util.inspector.lines).hasSize(6)
   }
 }

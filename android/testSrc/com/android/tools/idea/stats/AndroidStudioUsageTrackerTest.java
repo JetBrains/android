@@ -15,11 +15,23 @@
  */
 package com.android.tools.idea.stats;
 
+import static com.android.tools.idea.stats.AndroidStudioUsageTracker.getMachineDetails;
+
 import com.android.ddmlib.IDevice;
+import com.android.tools.analytics.HostData;
+import com.android.tools.analytics.stubs.StubGraphicsDevice;
+import com.android.tools.analytics.stubs.StubGraphicsEnvironment;
+import com.android.tools.analytics.stubs.StubOperatingSystemMXBean;
 import com.google.wireless.android.sdk.stats.DeviceInfo;
+import com.google.wireless.android.sdk.stats.DisplayDetails;
+import com.google.wireless.android.sdk.stats.MachineDetails;
+import java.awt.GraphicsDevice;
+import java.awt.HeadlessException;
+import java.io.File;
 import junit.framework.TestCase;
 import org.easymock.EasyMock;
-import org.junit.Test;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
 
 public class AndroidStudioUsageTrackerTest extends TestCase {
 
@@ -38,7 +50,6 @@ public class AndroidStudioUsageTrackerTest extends TestCase {
     return mockDevice;
   }
 
-  @Test
   public void testDeviceToDeviceInfo() throws Exception {
     DeviceInfo info = AndroidStudioUsageTracker.deviceToDeviceInfo(createMockDevice());
     assertEquals(info.getAnonymizedSerialNumber(), AnonymizerUtil.anonymizeUtf8("serial"));
@@ -52,12 +63,62 @@ public class AndroidStudioUsageTrackerTest extends TestCase {
     assertEquals(info.getModel(), "pixel");
   }
 
-  @Test
   public void testDeviceToDeviceInfoApilLevelOnly() throws Exception {
     DeviceInfo info = AndroidStudioUsageTracker.deviceToDeviceInfoApilLevelOnly(createMockDevice());
     // Test only Api Level is set
     assertEquals(info.getBuildApiLevelFull(), "24");
 
     assertEquals(info.getAnonymizedSerialNumber(), "");
+  }
+
+  public void testGetMachineDetails() {
+    // Use the file root to get a consistent disk size
+    // (we normally use the studio install path).
+    File root = new File(File.separator);
+    // Stub out the Operating System MX Bean to get consistent system info in the test.
+    HostData.setOsBean(new StubOperatingSystemMXBean() {
+      @Override
+      public int getAvailableProcessors() {
+        return 16;
+      }
+
+      @Override
+      public long getTotalPhysicalMemorySize() {
+        return 16L * 1024 * 1024 * 1024;
+      }
+    });
+
+    // Stub out the Graphics Environment to get consistent screen sizes in the test.
+    HostData.setGraphicsEnvironment(new StubGraphicsEnvironment() {
+      @NotNull
+      @Override
+      public GraphicsDevice[] getScreenDevices() throws HeadlessException {
+        return new GraphicsDevice[]{StubGraphicsDevice.withBounds(640, 480),
+          StubGraphicsDevice.withBounds(1024, 768)};
+      }
+
+      @Override
+      public boolean isHeadlessInstance() {
+        return false;
+      }
+    });
+
+    try {
+      MachineDetails expected = MachineDetails.newBuilder()
+        .setAvailableProcessors(16)
+        .setTotalRam(16L * 1024 * 1024 * 1024)
+        .setTotalDisk(root.getTotalSpace())
+        .addDisplay(DisplayDetails.newBuilder().setWidth(640).setHeight(480).setSystemScale(1.0f))
+        .addDisplay(DisplayDetails.newBuilder().setWidth(1024).setHeight(768).setSystemScale(1.0f))
+        .build();
+      MachineDetails result = getMachineDetails(root);
+      Assert.assertEquals(expected, result);
+    }
+    finally {
+      // undo the stubbing of Operating System MX Bean.
+      HostData.setOsBean(null);
+      // undo the stubbing of Graphics Environment.
+      HostData.setGraphicsEnvironment(null);
+    }
   }
 }

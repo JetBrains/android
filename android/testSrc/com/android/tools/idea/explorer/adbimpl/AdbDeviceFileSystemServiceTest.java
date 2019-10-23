@@ -20,8 +20,10 @@ import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.testing.Sdks;
 import com.android.tools.idea.util.FutureUtils;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -59,7 +61,8 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
     // Prepare
     AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(aVoid -> AndroidSdkUtils.getAdb(getProject()),
                                                                         EdtExecutor.INSTANCE,
-                                                                        PooledThreadExecutor.INSTANCE);
+                                                                        PooledThreadExecutor.INSTANCE,
+                                                                        getProject());
     disposeOnTearDown(service);
 
     // Act
@@ -75,7 +78,8 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
     // Prepare
     AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(aVoid -> AndroidSdkUtils.getAdb(getProject()),
                                                                         EdtExecutor.INSTANCE,
-                                                                        PooledThreadExecutor.INSTANCE);
+                                                                        PooledThreadExecutor.INSTANCE,
+                                                                        getProject());
     disposeOnTearDown(service);
     pumpEventsAndWaitForFuture(service.start());
 
@@ -86,6 +90,20 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
     // Note: There is not much we can assert on, other than implicitly the fact we
     // reached this statement.
     assertNotNull(pumpEventsAndWaitForFuture(service.getDevices()));
+  }
+
+  public void testServiceDisposed_afterParentDisposed() throws InterruptedException, ExecutionException, TimeoutException {
+
+    Disposable mockProject = Disposer.newDisposable();
+    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(aVoid -> AndroidSdkUtils.getAdb(getProject()),
+                                                                        EdtExecutor.INSTANCE,
+                                                                        PooledThreadExecutor.INSTANCE,
+                                                                        mockProject);
+    pumpEventsAndWaitForFuture(service.start());
+    assertNotNull(pumpEventsAndWaitForFuture(service.getDevices()));
+    Disposer.dispose(mockProject);
+    // Devices get clean out when service get disposed.
+    assertNullOrEmpty(pumpEventsAndWaitForFuture(service.getDevices()));
   }
 
   private static <V> V pumpEventsAndWaitForFuture(ListenableFuture<V> future)

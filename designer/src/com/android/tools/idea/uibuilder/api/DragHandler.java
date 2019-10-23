@@ -81,13 +81,15 @@ public abstract class DragHandler {
   }
 
   /**
-   * Finishes a drag to the given coordinate
-   *
+   * Finishes a drag to the given coordinate and executes a callback when doing so.
    * @param x         the x coordinate in the Android screen pixel coordinate system
    * @param y         the y coordinate in the Android screen pixel coordinate system
    * @param modifiers the modifier key state
    */
-  public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
+  public void commit(@AndroidCoordinate int x,
+                     @AndroidCoordinate int y,
+                     int modifiers,
+                     @NotNull InsertType insertType) {
     editor.insertChildren(layout.getNlComponent(), components, -1, insertType);
   }
 

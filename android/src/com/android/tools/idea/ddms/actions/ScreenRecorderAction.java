@@ -35,6 +35,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -101,14 +103,31 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
       return;
     }
 
+    // Get the show_touches option in another thread, backed by a ProgressIndicator, before start recording. We do that because running the
+    // "settings put system show_touches" shell command on the device might take a while to run, freezing the UI for a huge amount of time.
+    ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Starting Screen Recording...") {
+      private boolean myShowTouchEnabled;
+
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        myShowTouchEnabled = isShowTouchEnabled(device);
+      }
+
+      @Override
+      public void onSuccess() {
+        startRecordingAsync(dialog, device, myShowTouchEnabled);
+      }
+    });
+  }
+
+  private void startRecordingAsync(@NotNull ScreenRecorderOptionsDialog dialog, @NotNull IDevice device, boolean showTouchEnabled) {
     final ScreenRecorderOptions options = dialog.getOptions();
 
     final CountDownLatch latch = new CountDownLatch(1);
     final CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);
 
-    boolean showTouchEnabled = isShowTouchEnabled(device);
     AvdManager manager = getVirtualDeviceManager();
-    Path hostRecordingFileName = manager == null ? null : getTemporaryVideoPathForVirtualDevice(device, manager);
+    final Path hostRecordingFileName = manager == null ? null : getTemporaryVideoPathForVirtualDevice(device, manager);
 
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       if (options.showTouches != showTouchEnabled) {

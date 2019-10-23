@@ -16,14 +16,20 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorCoreFactory
+import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.*
+import com.intellij.ui.SimpleColoredComponent
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.AbstractTableCellEditor
+import com.intellij.util.ui.UIUtil
 import java.awt.Component
-import java.awt.TextField
 import javax.swing.JTable
+import javax.swing.JTextField
 import javax.swing.table.DefaultTableColumnModel
 import javax.swing.table.DefaultTableModel
+import javax.swing.table.TableCellEditor
+import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableColumn
 import javax.swing.table.TableColumnModel
 
@@ -34,8 +40,9 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<ValueT>,
   editor: PropertyEditorCoreFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
-  variablesScope: PsVariablesScope?
-) : CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesScope),
+  variablesScope: PsVariablesScope?,
+  private val logValueEdited: () -> Unit
+) : CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesScope, logValueEdited),
     ModelPropertyEditor<Map<String, ValueT>>, ModelPropertyEditorFactory<Map<String, ValueT>, ModelPropertyT> {
 
   init {
@@ -93,12 +100,24 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
       addColumn(TableColumn(0, 50).apply {
         headerValue = "Key"
         cellEditor = MyKeyCellEditor()
+        cellRenderer = TableCellRenderer { table, value, isSelected, hasFocus, row, column ->
+          SimpleColoredComponent()
+              .also {
+                if (value != null) {
+                  it.toRenderer()
+                      .toSelectedTextRenderer(isSelected && hasFocus)
+                      .append(value.toString(), SimpleTextAttributes.REGULAR_ATTRIBUTES)
+                }
+                if (isSelected) it.background = UIUtil.getListSelectionBackground(hasFocus)
+              }
+        }
       })
       addColumn(TableColumn(1).apply {
         headerValue = "Value"
         cellEditor = MyCellEditor()
         cellRenderer = MyCellRenderer()
       })
+      columnSelectionAllowed = true
     }
   }
 
@@ -109,25 +128,27 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
   inner class MyKeyCellEditor : AbstractTableCellEditor() {
     private var currentRow: Int = -1
     private var currentKey: String? = null
-    private var lastEditor: TextField? = null
+    private var lastEditor: JTextField? = null
 
-    override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
+    override fun getTableCellEditorComponent(table: JTable, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
       currentRow = row
       currentKey = keyAt(row)
-      lastEditor = TextField().apply {
+      lastEditor = JTextField().apply {
         text = currentKey
       }
+      lastEditor?.let { table.addTabKeySupportTo(it) }
       return lastEditor
     }
 
     override fun stopCellEditing(): Boolean {
       return super.stopCellEditing().also {
-        if (it) {
+        if (it && currentKey != null && lastEditor != null) {
           val oldKey = currentKey!!
           val newKey = lastEditor!!.text!!
           property.changeEntryKey(oldKey, newKey)
           currentRow = -1
           currentKey = null
+          logValueEdited()
         }
       }
     }
@@ -141,7 +162,11 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
     override fun getCellEditorValue(): Any = lastEditor!!.text
   }
 
-  override fun createNew(property: ModelPropertyT): ModelPropertyEditor<Map<String, ValueT>> =
-    MapPropertyEditor(property, propertyContext, editor, variablesScope)
+  override fun createNew(
+    property: ModelPropertyT,
+    cellEditor: TableCellEditor?,
+    isPropertyContext: Boolean
+  ): ModelPropertyEditor<Map<String, ValueT>> =
+    MapPropertyEditor(property, propertyContext, editor, variablesScope) { /* no usage logging */ }
 }
 

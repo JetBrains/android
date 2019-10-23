@@ -17,9 +17,9 @@
 package com.android.tools.idea.diagnostics.error;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
+import com.android.tools.idea.diagnostics.crash.StudioCrashReport;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
-import com.android.tools.idea.diagnostics.crash.StudioPerformanceWatcherReport;
+import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.intellij.diagnostic.AbstractMessage;
@@ -53,6 +53,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ErrorReporter extends ErrorReportSubmitter {
   private static final String FEEDBACK_TASK_TITLE = "Submitting error report";
@@ -154,37 +155,8 @@ public class ErrorReporter extends ErrorReportSubmitter {
       return false;
     }
 
-    Map map = (Map)data;
-    String type = (String)map.get("Type");
-    if ("Exception".equals(type)) {
-      ImmutableMap<String, String> productData = ImmutableMap.of("md5", (String)map.get("md5"),
-                                                                 "summary", (String)map.get("summary"));
-      StudioExceptionReport exceptionReport = new StudioExceptionReport.Builder().setThrowable(t).addProductData(productData).build();
-      StudioCrashReporter.getInstance().submit(exceptionReport);
-    }
-    else if ("ANR".equals(type)) {
-      StudioPerformanceWatcherReport perfReport =
-        new StudioPerformanceWatcherReport.Builder().setFile((String)map.get("file")).setThreadDump((String)map.get("threadDump")).build();
-      // Performance reports are not limited by a rate limiter.
-      StudioCrashReporter.getInstance().submit(perfReport, true);
-    }
-    else if ("Crashes".equals(type)) {
-      /*
-      //noinspection unchecked
-      List<StudioCrashDetails> crashDetails = (List<StudioCrashDetails>)map.get("crashDetails");
-      List<String> descriptions = crashDetails.stream().map(details -> details.getDescription()).collect(Collectors.toList());
-      // If at least one report was JVM crash, submit the batch as a JVM crash
-      boolean isJvmCrash = crashDetails.stream().anyMatch(details -> details.isJvmCrash());
-      // As there may be multiple crashes reported together, take the shortest uptime (most of the time there is only
-      // a single crash anyway).
-      long uptimeInMs = crashDetails.stream().mapToLong(details -> details.getUptimeInMs()).min().orElse(-1);
+    // FIXME-ank: do we need to restore this code in a plugin?
 
-      StudioCrashReport report =
-        new StudioCrashReport.Builder().setDescriptions(descriptions).setIsJvmCrash(isJvmCrash).setUptimeInMs(uptimeInMs).build();
-      // Crash reports are not limited by a rate limiter.
-      StudioCrashReporter.getInstance().submit(report, true);
-      */
-    }
     return true;
   }
 

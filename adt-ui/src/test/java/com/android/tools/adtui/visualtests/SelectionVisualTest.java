@@ -119,7 +119,7 @@ public class SelectionVisualTest extends VisualTest {
     private final DurationDataModel<DefaultConfigurableDurationData> myConstraints;
     private final Color myColor;
 
-    DurationMarkers(DurationDataModel<DefaultConfigurableDurationData> constraints, Color color) {
+    public DurationMarkers(DurationDataModel<DefaultConfigurableDurationData> constraints, Color color) {
       myConstraints = constraints;
       myColor = color;
     }

@@ -1,0 +1,45 @@
+<!--
+  ~ Copyright (C) 2018 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.BrShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingComponentShortNamesCache"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.BrClassFinder" id="dataBinding.BrClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.LayoutBindingClassFinder" id="dataBinding.BindingClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.BindingComponentClassFinder" id="dataBinding.ComponentClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.DataBindingPackageFinder" id="dataBinding.DataBindingPackageFinder" order="last, after java"/>
+    <applicationService serviceImplementation="com.android.tools.idea.databinding.config.DataBindingConfiguration"/>
+    <applicationService serviceImplementation="com.android.tools.idea.databinding.DataBindingModeTrackingService" />
+    <automaticRenamerFactory implementation="com.android.tools.idea.databinding.renamer.DataBindingRenamerFactory"/>
+    <moduleService serviceImplementation="com.android.tools.idea.databinding.ModuleDataBinding" />
+    <xml.elementDescriptorProvider implementation="com.android.tools.idea.databinding.xml.DataBindingDomElementDescriptorProvider" order="first"/>
+    <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
+                    serviceImplementation="com.android.tools.idea.databinding.analytics.DataBindingTracker"
+                    overrides="true"/>
+
+    <intentionAction>
+      <className>com.android.tools.idea.actions.ConvertLayoutToDataBindingAction</className>
+      <category>Android</category>
+    </intentionAction>
+
+    <fileBasedIndex implementation="com.android.tools.idea.databinding.index.DataBindingXmlIndex"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea">
+    <databinding.dataBindingSupport implementation="com.android.tools.idea.databinding.DataBindingSupportImpl"/>
+  </extensions>
+</idea-plugin>

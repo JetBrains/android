@@ -24,7 +24,7 @@ import java.awt.Graphics2D
 import java.awt.geom.Ellipse2D
 import java.awt.geom.Point2D
 
-class DrawCircle(private val myLevel: Int,
+data class DrawCircle(private val myLevel: Int,
                  @SwingCoordinate private val myCenter: Point2D.Float,
                  private val myColor: Color,
                  private val myStroke: BasicStroke,
@@ -53,6 +53,7 @@ class DrawCircle(private val myLevel: Int,
 
     g.color = myColor
     g.stroke = myStroke
+    g.setRenderingHints(HQ_RENDERING_HINTS)
     val circle = Ellipse2D.Float(myCenter.x - r, myCenter.y - r, 2 * r, 2 * r)
     g.draw(circle)
 

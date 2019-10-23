@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.AttributeBrowser;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -25,7 +26,11 @@ import com.android.tools.idea.uibuilder.api.XmlType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,36 +103,37 @@ public final class FragmentHandler extends ViewHandler {
                           @Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
-    if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
-      String className = newChild.getAttribute(ANDROID_URI, ATTR_NAME);
-      if (className != null) {
-        if (className.equals(FQCN_NAV_HOST_FRAGMENT)) {
-          String src = browseNavs(editor, null);
-          if (src != null) {
-            ApplicationManager.getApplication().runWriteAction(() -> {
-              newChild.setAttribute(AUTO_URI, ATTR_NAV_GRAPH, src);
-              newChild.setAttribute(AUTO_URI, ATTR_DEFAULT_NAV_HOST, VALUE_TRUE);
-            });
-            return true;
-          }
-          else {
-            // Remove the view; the insertion was canceled
-            return false;
-          }
-        }
+    if (insertType != InsertType.CREATE) {
+      return true;
+    }
+
+    String className = newChild.getAttribute(ANDROID_URI, ATTR_NAME);
+    if (className != null) {
+      if (!FQCN_NAV_HOST_FRAGMENT.equals(className)) {
         return true;
       }
-      String src = browseClasses(editor, null);
-      if (src != null) {
-        newChild.setAttribute(ANDROID_URI, ATTR_NAME, src);
-        return true;
-      }
-      else {
+
+      String src = browseNavs(editor, null);
+      if (src == null) {
         // Remove the view; the insertion was canceled
         return false;
       }
+
+      return NlWriteCommandActionUtil.compute(newChild, "Create Fragment", () -> {
+        newChild.setAttribute(AUTO_URI, ATTR_NAV_GRAPH, src);
+        newChild.setAttribute(AUTO_URI, ATTR_DEFAULT_NAV_HOST, VALUE_TRUE);
+        return true;
+      });
     }
-    return true;
+    String src = browseClasses(editor, null);
+    if (src == null) {
+      return false;
+    }
+
+    return NlWriteCommandActionUtil.compute(newChild, "Create Fragment", () -> {
+      newChild.setAttribute(ANDROID_URI, ATTR_NAME, src);
+      return true;
+    });
   }
 
   @Nullable

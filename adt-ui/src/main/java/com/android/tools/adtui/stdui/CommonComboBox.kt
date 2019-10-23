@@ -18,9 +18,9 @@ package com.android.tools.adtui.stdui
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.util.ui.JBUI
 import java.awt.event.MouseEvent
-import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JTextField
 import javax.swing.plaf.UIResource
@@ -29,12 +29,22 @@ import javax.swing.plaf.basic.BasicComboBoxEditor
 /**
  * ComboBox controlled by a [CommonComboBoxModel].
  */
-open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : JComboBox<E>(model) {
+open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBox<E>(model) {
+
+  private var textField: CommonTextField<*>? = null
 
   init {
     // Override the editor with a CommonTextField such that the text is also controlled by the model.
     @Suppress("LeakingThis")
     super.setEditor(CommonComboBoxEditor(model, this))
+    textField = editor.editorComponent as CommonTextField<*>
+    textField?.registerActionKey({ moveNext() }, KeyStrokes.DOWN, "moveNext")
+    textField?.registerActionKey({ movePrevious() }, KeyStrokes.UP, "movePrevious", { isPopupVisible })
+    textField?.registerActionKey({ moveNextPage() }, KeyStrokes.PAGE_DOWN, "moveNextPage", { isPopupVisible })
+    textField?.registerActionKey({ movePreviousPage() }, KeyStrokes.PAGE_UP, "movePreviousPage", { isPopupVisible })
+    textField?.registerActionKey({ togglePopup() }, KeyStrokes.ALT_DOWN, "toggle")
+    registerActionKey({}, KeyStrokes.PAGE_DOWN, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({}, KeyStrokes.PAGE_UP, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
 
     setFromModel()
 
@@ -52,6 +62,65 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : JComboB
     isEnabled = model.enabled
     if (isEditable != model.editable) {
       super.setEditable(model.editable)
+    }
+  }
+
+  private fun togglePopup() {
+    if (textField?.lookup?.isVisible == true) {
+      return
+    }
+    if (!isPopupVisible) {
+      showPopup()
+    }
+    else {
+      hidePopup()
+    }
+  }
+
+  private fun moveNext() {
+    if (textField?.lookup?.isVisible == true) {
+      textField?.lookup?.selectNext()
+    }
+    else if (!isPopupVisible) {
+      showPopup()
+    }
+    else {
+      val size = dataModel.size
+      val index = selectedIndex
+      selectedIndex = Integer.min(index + 1, size - 1)
+    }
+  }
+
+  private fun movePrevious() {
+    if (textField?.lookup?.isVisible == true) {
+      textField?.lookup?.selectPrevious()
+    }
+    else if (isPopupVisible) {
+      val minValue = if (dataModel.size == 0) -1 else 0
+      val index = selectedIndex
+      selectedIndex = Integer.max(index - 1, minValue)
+    }
+  }
+
+  private fun moveNextPage() {
+    if (textField?.lookup?.isVisible == true) {
+      textField?.lookup?.selectNextPage()
+    }
+    else if (isPopupVisible) {
+      val size = dataModel.size
+      val index = selectedIndex
+      selectedIndex = Integer.min(index + maximumRowCount, size - 1)
+    }
+  }
+
+  private fun movePreviousPage() {
+    if (textField?.lookup?.isVisible == true) {
+      textField?.lookup?.selectPreviousPage()
+    }
+    else if (isPopupVisible) {
+      val minValue = if (dataModel.size == 0) -1 else 0
+      val index = selectedIndex
+      selectedIndex = Integer.max(index - maximumRowCount, minValue)
     }
   }
 

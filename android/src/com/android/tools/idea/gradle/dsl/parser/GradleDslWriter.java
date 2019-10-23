@@ -66,6 +66,8 @@ public interface GradleDslWriter {
 
   void applyDslExpressionMap(@NotNull GradleDslExpressionMap expressionMap);
 
+  void applyDslPropertiesElement(@NotNull GradlePropertiesDslElement element);
+
   class Adapter implements GradleDslWriter {
     @Override
     public PsiElement moveDslElement(@NotNull GradleDslElement element) { return null; }
@@ -102,5 +104,8 @@ public interface GradleDslWriter {
 
     @Override
     public void applyDslExpressionMap(@NotNull GradleDslExpressionMap expressionMap) { }
+
+    @Override
+    public void applyDslPropertiesElement(@NotNull GradlePropertiesDslElement element) { }
   }
 }

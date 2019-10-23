@@ -16,77 +16,62 @@
 package com.android.tools.idea.res;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.util.Disposer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 /**
- * @see ResourceRepositoryManager#getProjectResources(boolean)
+ * @see ResourceRepositoryManager#getProjectResources()
  */
 final class ProjectResourceRepository extends MultiResourceRepository {
-  private AndroidFacet myFacet;
+  private final AndroidFacet myFacet;
 
-  private ProjectResourceRepository(@NotNull AndroidFacet facet, @NotNull List<? extends LocalResourceRepository> delegates) {
+  private ProjectResourceRepository(@NotNull AndroidFacet facet, @NotNull List<LocalResourceRepository> localResources) {
     super(facet.getModule().getName() + " with modules");
     myFacet = facet;
-    setChildren(delegates);
+    setChildren(localResources, Collections.emptyList());
   }
 
   @NotNull
   public static ProjectResourceRepository create(@NotNull AndroidFacet facet) {
     List<LocalResourceRepository> resources = computeRepositories(facet);
-    ProjectResourceRepository repository = new ProjectResourceRepository(facet, resources);
-
-    ProjectResourceRepositoryRootListener.ensureSubscribed(facet.getModule().getProject());
-    return repository;
+    return new ProjectResourceRepository(facet, resources);
   }
 
   @NotNull
   private static List<LocalResourceRepository> computeRepositories(@NotNull AndroidFacet facet) {
     LocalResourceRepository main = ResourceRepositoryManager.getModuleResources(facet);
 
-    // List of module facets the given module depends on
-    List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
-    if (dependentFacets.isEmpty()) {
+    // List of module facets the given module depends on.
+    List<AndroidFacet> dependencies = AndroidUtils.getAndroidResourceDependencies(facet.getModule());
+    if (dependencies.isEmpty()) {
       return Collections.singletonList(main);
     }
 
-    List<LocalResourceRepository> resources = new ArrayList<>(dependentFacets.size() + 1);
-    // Add the dependent facets in reverse order to the overrides are handled correctly. Resources in n + 1 will override elements in n.
-    for (int i = dependentFacets.size(); --i >= 0;) {
-      resources.add(ResourceRepositoryManager.getModuleResources(dependentFacets.get(i)));
-    }
+    List<LocalResourceRepository> resources = new ArrayList<>(dependencies.size() + 1);
     resources.add(main);
+    for (AndroidFacet dependency : dependencies) {
+      resources.add(ResourceRepositoryManager.getModuleResources(dependency));
+    }
 
     return resources;
   }
 
   void updateRoots() {
     List<LocalResourceRepository> repositories = computeRepositories(myFacet);
-    updateRoots(repositories);
-  }
-
-  private void updateRoots(@NotNull List<LocalResourceRepository> resourceDirectories) {
     invalidateResourceDirs();
-    // If nothing changed (including order), then nothing remaining to do.
-    if (!resourceDirectories.equals(getChildren())) {
-      setChildren(resourceDirectories);
-    }
-  }
-
-  @Override
-  public void dispose() {
-    myFacet = null;
-    super.dispose();
+    setChildren(repositories, Collections.emptyList());
   }
 
   @VisibleForTesting
   @NotNull
   static ProjectResourceRepository createForTest(@NotNull AndroidFacet facet, @NotNull List<LocalResourceRepository> modules) {
-    return new ProjectResourceRepository(facet, modules);
+    ProjectResourceRepository repository = new ProjectResourceRepository(facet, modules);
+    Disposer.register(facet, repository);
+    return repository;
   }
 }

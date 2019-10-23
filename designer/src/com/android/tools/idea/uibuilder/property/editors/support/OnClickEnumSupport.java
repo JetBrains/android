@@ -17,7 +17,8 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
@@ -48,7 +49,7 @@ public class OnClickEnumSupport extends EnumSupport {
     Collection<PsiClass> classes;
     if (activityClassName != null) {
       if (activityClassName.startsWith(".")) {
-        MergedManifest manifest = MergedManifest.get(module);
+        MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(module);
         String pkg = StringUtil.notNullize(manifest.getPackage());
         activityClassName = pkg + activityClassName;
       }

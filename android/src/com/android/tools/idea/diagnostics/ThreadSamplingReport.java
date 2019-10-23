@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.diagnostics;
 
+import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import java.util.function.Consumer;
 
 public class ThreadSamplingReport {
 
   public static final boolean ENABLED =
-    !Boolean.getBoolean("studio.diagnostic.uiFreezeSampling.disable");
+    !Boolean.getBoolean("studio.diagnostic.uiFreezeSampling.disable") &&
+    DiagnosticReportBuilder.MAX_REPORTS != 0;
 
   public static boolean isEnabled() {
     return ENABLED;

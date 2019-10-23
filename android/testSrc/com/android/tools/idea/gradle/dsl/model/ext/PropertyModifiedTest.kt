@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext
 
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_MODIFIED_TEST_FILE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
@@ -22,37 +23,9 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import org.junit.Test
 
 class PropertyModifiedTest : GradleFileModelTestCase() {
-  private val testString = """
-               android {
-                 defaultConfig {
-                   proguardFiles 'proguard-android-1.txt', 'proguard-rules-1.txt'
-                   testInstrumentationRunnerArguments key1:"value1", key2:"value2"
-                 }
-                 signingConfigs {
-                   myConfig {
-                     storeFile file('my_file.txt')
-                     storePassword System.getenv("KSTOREPWD")
-                   }
-                 }
-               }
-
-               ext {
-                 prop1 = 'value'
-                 prop2 = 25
-                 prop3 = prop2
-                 prop4 = [ "key": 'val']
-                 prop5 = [ 'val1', 'val2', "val3"]
-                 prop6 = 25.3
-               }
-
-               dependencies {
-                 testCompile('some:gradle:thing',  'some:other:gradle:thing')
-               }
-               """.trimIndent()
-
   @Test
   fun testIsModifiedLiterals() {
-    writeToBuildFile(testString)
+    writeToBuildFile(PROPERTY_MODIFIED_TEST_FILE)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -72,7 +45,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
   @Test
   fun testIsModifiedReferences() {
-    writeToBuildFile(testString)
+    writeToBuildFile(PROPERTY_MODIFIED_TEST_FILE)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -112,7 +85,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
   @Test
   fun testIsModifiedReferenceDoesNotAffectReferer() {
-    writeToBuildFile(testString)
+    writeToBuildFile(PROPERTY_MODIFIED_TEST_FILE)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -135,7 +108,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
   @Test
   fun testIsModifiedRename() {
-    writeToBuildFile(testString)
+    writeToBuildFile(PROPERTY_MODIFIED_TEST_FILE)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -154,7 +127,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
   @Test
   fun testIsModifiedListValue() {
-    writeToBuildFile(testString)
+    writeToBuildFile(PROPERTY_MODIFIED_TEST_FILE)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -184,7 +157,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
   @Test
   fun testIsModifiedAddListValue() {
-    writeToBuildFile(testString)
+    writeToBuildFile(PROPERTY_MODIFIED_TEST_FILE)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -205,7 +178,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
   @Test
   fun testIsModifiedRemoveListValue() {
-    writeToBuildFile(testString)
+    writeToBuildFile(PROPERTY_MODIFIED_TEST_FILE)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -229,7 +202,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
   @Test
   fun testIsModifiedSetMapValueAndKey() {
-    writeToBuildFile(testString)
+    writeToBuildFile(PROPERTY_MODIFIED_TEST_FILE)
 
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
@@ -259,7 +232,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
   @Test
   fun testIsModifiedChangeMethodArg() {
-    writeToBuildFile(testString)
+    writeToBuildFile(PROPERTY_MODIFIED_TEST_FILE)
 
     val buildModel = gradleBuildModel
 
@@ -275,7 +248,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
   @Test
   fun testIsModifiedMultiType() {
-    writeToBuildFile(testString)
+    writeToBuildFile(PROPERTY_MODIFIED_TEST_FILE)
 
     val buildModel = gradleBuildModel
     val storePassword = buildModel.android().signingConfigs()[0]!!.storePassword()
@@ -297,7 +270,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
   @Test
   fun testIsModifiedDependencies() {
-    writeToBuildFile(testString)
+    writeToBuildFile(PROPERTY_MODIFIED_TEST_FILE)
 
     val buildModel = gradleBuildModel
     val firstDependencyModel = buildModel.dependencies().artifacts()[0]!!
@@ -344,7 +317,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
   @Test
   fun testIsModifiedProguardFiles() {
-    writeToBuildFile(testString)
+    writeToBuildFile(PROPERTY_MODIFIED_TEST_FILE)
 
     val buildModel = gradleBuildModel
     val listModel = buildModel.android().defaultConfig().proguardFiles()

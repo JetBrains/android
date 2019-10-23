@@ -27,8 +27,6 @@ import com.android.tools.idea.gradle.structure.model.android.testResolve
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth
 import com.intellij.openapi.project.Project
-import org.hamcrest.core.IsEqual.equalTo
-import org.junit.Assert.assertThat
 import java.util.function.Consumer
 
 class TargetModulesTreeStructureTest: DependencyTestCase() {

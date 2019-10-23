@@ -563,7 +563,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
 
   @Nullable
   public Icon getIcon() {
-    return AndroidIcons.Wizards.NewProjectMascotGreen;
+    return AndroidIcons.Wizards.StudioProductIcon;
   }
 
   protected static class PathIterator {
@@ -662,7 +662,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
   }
 
   private class WizardUpdate extends Update {
-    WizardUpdate() {
+    public WizardUpdate() {
       super("Wizard Update");
     }
 

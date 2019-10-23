@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.annotations.concurrency.Slow;
 import org.jetbrains.annotations.NotNull;
 
 public interface LaunchCompatibilityChecker {
-  @NotNull LaunchCompatibility validate(@NotNull AndroidDevice device);
+  @Slow
+  @NotNull
+  LaunchCompatibility validate(@NotNull AndroidDevice device);
 }

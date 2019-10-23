@@ -3,6 +3,7 @@ package org.jetbrains.android.augment;
 
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.navigation.NavigationItem;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.ElementPresentationUtil;
 import com.intellij.psi.impl.PsiClassImplUtil;
@@ -46,7 +47,7 @@ public class AndroidLightField extends LightElement implements PsiField, PsiVari
   private volatile String myName;
   private volatile LightModifierList myModifierList;
 
-  AndroidLightField(@NotNull String name,
+  public AndroidLightField(@NotNull String name,
                            @NotNull PsiClass context,
                            @NotNull PsiType type,
                            @NotNull FieldModifier fieldModifier,
@@ -182,5 +183,10 @@ public class AndroidLightField extends LightElement implements PsiField, PsiVari
     final RowIcon baseIcon =
       IconManager.getInstance().createLayeredIcon(this, PlatformIcons.FIELD_ICON, ElementPresentationUtil.getFlags(this, false));
     return ElementPresentationUtil.addVisibilityIcon(this, flags, baseIcon);
+  }
+
+  @Override
+  public TextRange getTextRange() {
+    return TextRange.EMPTY_RANGE;
   }
 }

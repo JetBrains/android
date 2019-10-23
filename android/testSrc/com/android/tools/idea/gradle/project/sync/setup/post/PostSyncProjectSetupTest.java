@@ -15,11 +15,27 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.getMaxJavaLanguageLevel;
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_CACHED_SETUP_FAILED;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.ProjectStructure.AndroidPluginVersionsInProject;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
@@ -41,15 +57,13 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.JavaProjectTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
-
+import com.intellij.openapi.roots.LanguageLevelProjectExtension;
+import com.intellij.pom.java.LanguageLevel;
 import java.util.LinkedList;
 import java.util.List;
-
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link PostSyncProjectSetup}.
@@ -144,7 +158,7 @@ public class PostSyncProjectSetupTest extends JavaProjectTestCase {
     mySetup.setUpProject(request, myProgressIndicator, myTaskId);
 
     verify(mySyncState, times(1)).syncSkipped(lastSyncTimestamp);
-    verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_PROJECT_LOADED);
+    verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_PROJECT_CACHED_SETUP_FAILED);
     verify(myProjectSetup, never()).setUpProject(myProgressIndicator, true);
 
     verify(myGradleProjectInfo, times(1)).setNewProject(false);
@@ -234,6 +248,49 @@ public class PostSyncProjectSetupTest extends JavaProjectTestCase {
     verify(myProjectBuilder).cleanAndGenerateSources();
 
     assertTrue(myProjectStructure.analyzed);
+  }
+
+  public void testJavaLanguageLevelIsUpdated() {
+    // initialize language level to jdk 1.6.
+    LanguageLevelProjectExtension ex = LanguageLevelProjectExtension.getInstance(myProject);
+    ex.setLanguageLevel(LanguageLevel.JDK_1_6);
+    assertEquals(LanguageLevel.JDK_1_6, ex.getLanguageLevel());
+
+    // create two modules with jdk 1.8 and 1.7.
+    createAndroidModuleWithLanguageLevel("app", LanguageLevel.JDK_1_8);
+    createAndroidModuleWithLanguageLevel("lib", LanguageLevel.JDK_1_7);
+
+    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
+    PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
+    mySetup.setUpProject(request, myProgressIndicator, myTaskId);
+
+    // verify java language level was updated to 1.8.
+    assertEquals(LanguageLevel.JDK_1_8, ex.getLanguageLevel());
+  }
+
+  public void testGetMaxJavaLangLevelWithDifferentLevels() {
+    createAndroidModuleWithLanguageLevel("app", LanguageLevel.JDK_1_7);
+    createAndroidModuleWithLanguageLevel("lib", LanguageLevel.JDK_1_8);
+    assertEquals(LanguageLevel.JDK_1_8, getMaxJavaLanguageLevel(getProject()));
+  }
+
+  public void testGetMaxJavaLangLevelWithSameLevel() {
+    createAndroidModuleWithLanguageLevel("app", LanguageLevel.JDK_1_7);
+    createAndroidModuleWithLanguageLevel("lib", LanguageLevel.JDK_1_7);
+    assertEquals(LanguageLevel.JDK_1_7, getMaxJavaLanguageLevel(getProject()));
+  }
+
+  private void createAndroidModuleWithLanguageLevel(@NotNull String moduleName, @NotNull LanguageLevel level) {
+    AndroidFacet facet = createAndAddAndroidFacet(createModule(moduleName));
+    AndroidModuleModel model = mock(AndroidModuleModel.class);
+    facet.getConfiguration().setModel(model);
+    when(model.getJavaLanguageLevel()).thenReturn(level);
+
+    // Setup the fields that are necessary to run mySetup.SetUpProject.
+    IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
+    when(model.getAndroidProject()).thenReturn(androidProject);
+    when(androidProject.getProjectType()).thenReturn(PROJECT_TYPE_APP);
+    when(model.getFeatures()).thenReturn(mock(AndroidModelFeatures.class));
   }
 
   private static class ProjectStructureStub extends ProjectStructure {

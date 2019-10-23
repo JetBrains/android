@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Android implementation of {@link JUnitConfigurable} so some behaviors can be overridden.
  */
-public class AndroidJUnitConfigurable extends JUnitConfigurable {
+public class AndroidJUnitConfigurable extends JUnitConfigurable<AndroidJUnitConfiguration> {
   public AndroidJUnitConfigurable(@NotNull Project project) {
     super(project);
   }

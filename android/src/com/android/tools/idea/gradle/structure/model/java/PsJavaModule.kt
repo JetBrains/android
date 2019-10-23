@@ -17,7 +17,12 @@ package com.android.tools.idea.gradle.structure.model.java
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
-import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.ModuleKind
+import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
+import com.android.tools.idea.gradle.structure.model.PsModel
+import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.gradle.structure.model.PsModuleType
+import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.intellij.icons.AllIcons
@@ -27,7 +32,7 @@ import javax.swing.Icon
 class PsJavaModule(
   parent: PsProject,
   override val gradlePath: String
-  ) : PsModule(parent) {
+  ) : PsModule(parent, ModuleKind.JAVA) {
   override val descriptor by JavaModuleDescriptors
   var resolvedModel: JavaModuleModel? = null ; private set
   override var rootDir: File? = null ; private set
@@ -49,7 +54,33 @@ class PsJavaModule(
   val resolvedDependencies: PsResolvedJavaDependencyCollection
     get() = myResolvedDependencyCollection ?: PsResolvedJavaDependencyCollection(this).also { myResolvedDependencyCollection = it }
 
-  override fun getConfigurations(onlyImportant: Boolean): List<String> = resolvedModel?.configurations.orEmpty()
+  override fun getConfigurations(onlyImportantFor: ImportantFor?): List<String> {
+    val defaultImportant = setOf("implementation",
+                        "annotationProcessor",
+                        "api",
+                        "compile",
+                        "runtime",
+                        "testAnnotationProcessor",
+                        "testImplementation",
+                        "testRuntime")
+    val defaultOther = setOf("implementation",
+                        "annotationProcessor",
+                        "api",
+                        "compile",
+                        "compileOnly",
+                        "runtime",
+                        "runtimeOnly",
+                        "testAnnotationProcessor",
+                        "testCompile",
+                        "testCompileOnly",
+                        "testImplementation",
+                        "testRuntime",
+                        "testRuntimeOnly")
+    return when {
+      onlyImportantFor != null -> defaultImportant.toList()
+      else -> (defaultImportant + defaultOther + resolvedModel?.configurations.orEmpty().toSet()).toList()
+    }
+  }
 
   // Java libraries can depend on any type of modules, including Android apps (when a Java library is actually a 'test'
   // module for the Android app.)
@@ -66,6 +97,7 @@ class PsJavaModule(
   object JavaModuleDescriptors: ModelDescriptor<PsJavaModule, Nothing, Nothing> {
     override fun getResolved(model: PsJavaModule): Nothing? = null
     override fun getParsed(model: PsJavaModule): Nothing? = null
+    override fun prepareForModification(model: PsJavaModule) = Unit
     override fun setModified(model: PsJavaModule) { model.isModified = true }
     override fun enumerateModels(model: PsJavaModule): Collection<PsModel> = model.dependencies.items
   }

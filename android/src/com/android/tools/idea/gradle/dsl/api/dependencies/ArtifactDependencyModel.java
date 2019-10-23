@@ -44,7 +44,8 @@ public interface ArtifactDependencyModel extends DependencyModel {
    * a STRING_TYPE model for compact notation.
    * Note: In teh case where this is of STRING_TYPE, the return value of {@link GradlePropertyModel#isModified()} will be shared between
    * all models returned by this class. I.e if you modify the version, this model along will models for name, group, classifier and
-   * extension will all be modified.
+   * extension will all be modified. Note: this model will contain the exact string that is in the build file and if parts of it contain
+   * references then they will not be resolved.
    */
   @NotNull
   ResolvedPropertyModel completeModel();

@@ -15,45 +15,41 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.tools.adtui.validation.Validator;
-import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
-import com.intellij.icons.AllIcons;
-import com.intellij.ide.GeneralSettings;
-import com.intellij.ide.IdeBundle;
-import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.PathChooserDialog;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.project.DumbAwareAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
-import com.intellij.platform.PlatformProjectOpenProcessor;
-import com.intellij.projectImport.ProjectAttachProcessor;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.EnumSet;
-import java.util.List;
-
-import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
-import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
 import static com.intellij.ide.actions.OpenFileAction.openFile;
-import static com.intellij.ide.impl.ProjectUtil.*;
+import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
+import static com.intellij.ide.impl.ProjectUtil.openOrImport;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFiles;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor;
 import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
 import static com.intellij.openapi.fileTypes.ex.FileTypeChooser.getKnownFileTypeOrAssociate;
 import static com.intellij.openapi.vfs.VfsUtil.getUserHomeDir;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.validation.Validator;
+import com.intellij.icons.AllIcons;
+import com.intellij.ide.IdeBundle;
+import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.PathChooserDialog;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
+import com.intellij.platform.PlatformProjectOpenProcessor;
+import com.intellij.projectImport.ProjectAttachProcessor;
+import java.util.EnumSet;
+import java.util.List;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
- * Opens existing project or file in Android Stduio
+ * Opens existing project or file in Android Studio.
  * This action replaces the default File -> Open action.
  */
 public class AndroidOpenFileAction extends DumbAwareAction {
@@ -74,24 +70,36 @@ public class AndroidOpenFileAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    Project project = e.getProject();
-    boolean showFiles = project != null || PlatformProjectOpenProcessor.getInstanceIfItExists() != null;
-    FileChooserDescriptor descriptor = showFiles ? new ProjectOrFileChooserDescriptor() : new ProjectOnlyFileChooserDescriptor();
-    descriptor.putUserData(PathChooserDialog.PREFER_LAST_OVER_EXPLICIT, showFiles);
+    Disposable disposable = Disposer.newDisposable();
+    try {
+      Project project = e.getProject();
+      boolean showFiles = project != null || PlatformProjectOpenProcessor.getInstanceIfItExists() != null;
+      OpenProjectFileChooserDescriptorWithAsyncIcon descriptor =
+        showFiles ? new ProjectOrFileChooserDescriptor() : new ProjectOnlyFileChooserDescriptor();
+      descriptor.putUserData(PathChooserDialog.PREFER_LAST_OVER_EXPLICIT, showFiles);
+      Disposer.register(disposable, descriptor);
 
-    VirtualFile explicitPreferredDirectory = ((project != null) && !project.isDefault()) ? project.getBaseDir() : getUserHomeDir();
-    chooseFiles(descriptor, project, explicitPreferredDirectory, files -> {
-      ValidationIssue issue = validateFiles(files, descriptor);
-      if (issue.result.getSeverity() != Validator.Severity.OK) {
-        boolean isError = issue.result.getSeverity() == Validator.Severity.ERROR;
-        String title = isError ? IdeBundle.message("title.cannot.open.project") : "Warning Opening Project";
-        Messages.showInfoMessage(project, issue.result.getMessage(), title);
-        if (isError) {
-          return;
+      VirtualFile explicitPreferredDirectory = ((project != null) && !project.isDefault()) ? project.getBaseDir() : getUserHomeDir();
+
+      // The chooseFiles method shows a FileChooserDialog and it doesn't return control until
+      // a user closes the dialog.
+      // Note: this method is invoked from the main thread but chooseFiles uses a nested message
+      // loop to avoid the IDE from freeze.
+      chooseFiles(descriptor, project, explicitPreferredDirectory, files -> {
+        ValidationIssue issue = validateFiles(files, descriptor);
+        if (issue.result.getSeverity() != Validator.Severity.OK) {
+          boolean isError = issue.result.getSeverity() == Validator.Severity.ERROR;
+          String title = isError ? IdeBundle.message("title.cannot.open.project") : "Warning Opening Project";
+          Messages.showInfoMessage(project, issue.result.getMessage(), title);
+          if (isError) {
+            return;
+          }
         }
-      }
-      doOpenFile(e, files);
-    });
+        doOpenFile(e, files);
+      });
+    } finally {
+      Disposer.dispose(disposable);
+    }
   }
 
   /**
@@ -155,28 +163,6 @@ public class AndroidOpenFileAction extends DumbAwareAction {
   }
 
   private static boolean openOrImportProject(@NotNull VirtualFile file, @Nullable Project project) {
-    if (canImportAsGradleProject(file)) {
-      VirtualFile target = findImportTarget(file);
-      if (target != null) {
-        Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-        if (openProjects.length > 0) {
-          int exitCode = confirmOpenNewProject(false);
-          if (exitCode == GeneralSettings.OPEN_PROJECT_SAME_WINDOW) {
-            Project toClose = ((project != null) && !project.isDefault()) ? project : openProjects[openProjects.length - 1];
-            if (!ProjectManagerEx.getInstanceEx().closeAndDispose(toClose)) {
-              return false;
-            }
-          }
-          else if (exitCode != GeneralSettings.OPEN_PROJECT_NEW_WINDOW) {
-            return false;
-          }
-        }
-
-        GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();
-        gradleImporter.importProject(file);
-        return true;
-      }
-    }
     Project opened = openOrImport(file.getPath(), project, false);
     if (opened != null) {
       setLastOpenedFile(opened, file);
@@ -193,24 +179,22 @@ public class AndroidOpenFileAction extends DumbAwareAction {
     @NotNull Validator.Result result;
     @Nullable VirtualFile file;
 
-    ValidationIssue(@NotNull Validator.Result result, @Nullable VirtualFile file) {
+    public ValidationIssue(@NotNull Validator.Result result, @Nullable VirtualFile file) {
       this.result = result;
       this.file = file;
     }
   }
 
-  private static class ProjectOnlyFileChooserDescriptor extends OpenProjectFileChooserDescriptor {
-    ProjectOnlyFileChooserDescriptor() {
-      super(true);
+  private static class ProjectOnlyFileChooserDescriptor extends OpenProjectFileChooserDescriptorWithAsyncIcon {
+    public ProjectOnlyFileChooserDescriptor() {
       setTitle(IdeBundle.message("title.open.project"));
     }
   }
 
-  private static class ProjectOrFileChooserDescriptor extends OpenProjectFileChooserDescriptor {
+  private static class ProjectOrFileChooserDescriptor extends OpenProjectFileChooserDescriptorWithAsyncIcon {
     private final FileChooserDescriptor myStandardDescriptor = createSingleFileNoJarsDescriptor().withHideIgnored(false);
 
-    ProjectOrFileChooserDescriptor() {
-      super(true);
+    public ProjectOrFileChooserDescriptor() {
       setTitle(IdeBundle.message("title.open.file.or.project"));
     }
 

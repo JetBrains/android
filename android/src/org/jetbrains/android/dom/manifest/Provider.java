@@ -19,16 +19,13 @@ import com.intellij.ide.presentation.Presentation;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.Convert;
-import com.intellij.util.xml.ExtendClass;
 import com.intellij.util.xml.Required;
+import java.util.List;
 import org.jetbrains.android.dom.AndroidAttributeValue;
-import org.jetbrains.android.dom.CompleteLibraryClasses;
 import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.structure.manifest.ProviderPresentationProvider;
 import org.jetbrains.android.util.AndroidUtils;
-
-import java.util.List;
 
 @Presentation(provider = ProviderPresentationProvider.class)
 @Styleable("AndroidManifestProvider")
@@ -36,8 +33,7 @@ public interface Provider extends ApplicationComponent {
   @Attribute("name")
   @Required
   @Convert(PackageClassConverter.class)
-  @ExtendClass(AndroidUtils.PROVIDER_CLASS_NAME)
-  @CompleteLibraryClasses
+  @PackageClassConverter.Options(inheriting = AndroidUtils.PROVIDER_CLASS_NAME, completeLibraryClasses = true)
   AndroidAttributeValue<PsiClass> getProviderClass();
 
   @Required

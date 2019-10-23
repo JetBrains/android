@@ -18,21 +18,16 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule;
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable;
-import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.icons.AllIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.List;
 
 public class ProjectDependenciesConfigurable extends AbstractModuleConfigurable<PsAllModulesFakeModule, MainPanel> {
-  @NotNull private final List<PsModule> myExtraModules;
 
   public ProjectDependenciesConfigurable(@NotNull PsAllModulesFakeModule module,
-                                         @NotNull PsContext context,
-                                         @NotNull List<PsModule> extraModules) {
+                                         @NotNull PsContext context) {
     super(context, module);
-    myExtraModules = extraModules;
     setDisplayName("<All Modules>");
   }
 
@@ -43,7 +38,7 @@ public class ProjectDependenciesConfigurable extends AbstractModuleConfigurable<
 
   @Override
   public MainPanel createPanel() {
-    return new MainPanel(getModule(), getContext(), myExtraModules);
+    return new MainPanel(getModule(), getContext());
   }
 
   @Override

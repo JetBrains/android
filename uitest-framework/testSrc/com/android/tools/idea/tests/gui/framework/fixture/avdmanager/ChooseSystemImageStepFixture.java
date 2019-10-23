@@ -18,17 +18,14 @@ package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.intellij.ui.table.TableView;
+import java.awt.Component;
+import javax.swing.JRootPane;
+import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
-import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.exception.ActionFailedException;
+import org.fest.swing.data.TableCellFinder;
+import org.fest.swing.data.TableCellInRowByValue;
 import org.fest.swing.fixture.JTableFixture;
-import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static org.fest.swing.data.TableCellInRowByValue.rowWithValue;
 
 public class ChooseSystemImageStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ChooseSystemImageStepFixture, W> {
@@ -39,36 +36,12 @@ public class ChooseSystemImageStepFixture<W extends AbstractWizardFixture>
 
   @NotNull
   public ChooseSystemImageStepFixture<W> selectSystemImage(@NotNull SystemImage image) {
-    final TableView systemImageList = robot().finder().findByType(target(), TableView.class, true);
-    JTableFixture systemImageListFixture = new JTableFixture(robot(), systemImageList);
-    String[] expectedColumnValues = {
-      image.getReleaseName(),
-      image.getApiLevel(),
-      image.getAbiType(),
-      image.getTargetName()
-    };
+    Robot robot = robot();
 
-    Wait.seconds(5).expecting("The system image list is populated.").until(() -> {
-      try {
-        // Choose to click on column 1 to avoid accidentally clicking the "Download" button.
-        systemImageListFixture.cell(rowWithValue(expectedColumnValues).column(1)).select();
+    String[] values = {image.getReleaseName(), image.getApiLevel(), image.getAbiType(), image.getTargetName()};
+    TableCellFinder finder = TableCellInRowByValue.rowWithValue(values).column(1);
 
-        // Verify that the row selected is the one we want. The table can sometimes update
-        // with new data after we click on our intended target.
-        return GuiQuery.getNonNull(() -> {
-          int selectedRow = systemImageList.getSelectedRow();
-          int numCols = systemImageList.getColumnCount();
-          for (int col = 0; col < numCols; col++) {
-            if (!expectedColumnValues[col].equals(systemImageList.getValueAt(selectedRow, col).toString())) {
-              return false;
-            }
-          }
-          return true;
-        });
-      } catch (ActionFailedException e) {
-        return false;
-      }
-    });
+    new JTableFixture(robot, robot.finder().findByType(target(), TableView.class, true)).cell(finder).select();
     return this;
   }
 

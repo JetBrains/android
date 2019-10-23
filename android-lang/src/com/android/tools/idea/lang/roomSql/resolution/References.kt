@@ -15,17 +15,28 @@
  */
 package com.android.tools.idea.lang.roomSql.resolution
 
-import com.android.tools.idea.lang.roomSql.psi.*
+import com.android.tools.idea.lang.roomSql.RoomAnnotations
+import com.android.tools.idea.lang.roomSql.psi.RoomBindParameter
+import com.android.tools.idea.lang.roomSql.psi.RoomColumnName
+import com.android.tools.idea.lang.roomSql.psi.RoomDefinedTableName
+import com.android.tools.idea.lang.roomSql.psi.RoomNameElement
+import com.android.tools.idea.lang.roomSql.psi.RoomResultColumns
+import com.android.tools.idea.lang.roomSql.psi.RoomSelectCoreSelect
+import com.android.tools.idea.lang.roomSql.psi.RoomSelectedTableName
+import com.android.tools.idea.lang.roomSql.psi.RoomSqlFile
 import com.android.tools.idea.lang.roomSql.refactoring.RoomNameElementManipulator
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceBase
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ArrayUtilRt
+import org.jetbrains.uast.UAnnotated
 import org.jetbrains.uast.UMethod
+import org.jetbrains.uast.getParentOfType
 
 interface RoomColumnPsiReference : PsiReference {
   fun resolveColumn(): SqlColumn?
@@ -35,7 +46,7 @@ interface RoomColumnPsiReference : PsiReference {
 /**
  * A [PsiReference] pointing from the column name in SQL to the PSI element defining the column name.
  *
- * @see EntityColumn.nameElement
+ * @see RoomFieldColumn.nameElement
  */
 class UnqualifiedColumnPsiReference(columnName: RoomColumnName) : PsiReferenceBase<RoomColumnName>(columnName), RoomColumnPsiReference {
   override fun resolve(): PsiElement? = resolveColumn()?.resolveTo
@@ -107,7 +118,7 @@ private fun buildVariants(result: Collection<SqlColumn>): Array<Any> {
 /**
  * A [PsiReference] pointing from the selected table name in SQL to the PSI element defining the table name.
  *
- * @see Entity.nameElement
+ * @see RoomTable.nameElement
  */
 class RoomSelectedTablePsiReference(
   tableName: RoomSelectedTableName
@@ -175,15 +186,22 @@ private fun lookupElementForTable(table: SqlTable): LookupElement {
 class RoomParameterReference(parameter: RoomBindParameter) : PsiReferenceBase<RoomBindParameter>(parameter) {
   override fun resolve(): PsiElement? {
     val parameterName = element.parameterNameAsString ?: return null
-    return findQueryMethod()?.uastParameters?.find { it.name == parameterName }?.psi
+    return findQueryMethod()?.uastParameters?.find { it.name == parameterName }?.sourcePsi
   }
 
-  override fun getVariants(): Array<Any> =
-    findQueryMethod()
-      ?.uastParameters
-      ?.map { LookupElementBuilder.create(it.psi) }
-      ?.toTypedArray<Any>()
-        ?: ArrayUtilRt.EMPTY_OBJECT_ARRAY
+  override fun getVariants(): Array<Any> {
+    return findQueryMethod()
+             ?.uastParameters
+             ?.mapNotNull { (it.sourcePsi as? PsiNamedElement)?.let(LookupElementBuilder::create) }
+             ?.toTypedArray<Any>()
+            ?: ArrayUtilRt.EMPTY_OBJECT_ARRAY
+  }
 
-  private fun findQueryMethod(): UMethod? = (element.containingFile as? RoomSqlFile)?.queryMethod
+  private fun findQueryMethod(): UMethod? {
+    return (element.containingFile as? RoomSqlFile)
+      ?.findHostRoomAnnotation()
+      ?.takeIf { RoomAnnotations.QUERY.isEquals(it.qualifiedName) }
+      ?.getParentOfType<UAnnotated>()
+      as? UMethod
+  }
 }

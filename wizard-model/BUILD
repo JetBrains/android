@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.wizard.model",
     srcs = ["src"],
     iml_files = ["intellij.android.wizard.model.iml"],
+    test_coverage = True,
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/xml-structure-view-impl:intellij.xml.structureView.impl",
@@ -12,7 +13,6 @@ iml_module(
         "//tools/idea/images:intellij.platform.images",
         "//tools/idea/xml/dom-impl:intellij.xml.dom.impl",
         "//tools/idea/spellchecker:intellij.spellchecker",
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/lvcs-impl:intellij.platform.lvcs.impl",
         "//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",

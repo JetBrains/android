@@ -39,6 +39,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Calendar;
+import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -75,7 +76,8 @@ final class ScreenRecorderTask extends Task.Modal {
 
         // update elapsed time in seconds
         elapsedTime++;
-        indicator.setText(String.format("Recording...%1$d %2$s elapsed", elapsedTime, StringUtil.pluralize("second", elapsedTime)));
+        indicator.setText(
+          String.format(Locale.US, "Recording...%1$d %2$s elapsed", elapsedTime, StringUtil.pluralize("second", elapsedTime)));
 
         // If using emulator screen recording feature, stop the recording if the emulator dies
         EmulatorConsole console = null;
@@ -164,6 +166,6 @@ final class ScreenRecorderTask extends Task.Modal {
     Calendar now = Calendar.getInstance();
     String fileName = "device-%tF-%tH%tM%tS";
     // add extension to filename on Mac only see: b/38447816
-    return String.format(SystemInfo.isMac ? fileName + extension : fileName, now, now, now, now);
+    return String.format(Locale.US, SystemInfo.isMac ? fileName + extension : fileName, now, now, now, now);
   }
 }

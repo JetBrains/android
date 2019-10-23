@@ -15,17 +15,26 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-
-import java.util.List;
-
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.FIX_GRADLE_VERSION_IN_WRAPPER_HYPERLINK;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.OPEN_GRADLE_SETTINGS_HYPERLINK;
+
+import com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.project.Project;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link UnsupportedGradleVersionErrorHandler}.
@@ -33,11 +42,13 @@ import static com.google.common.truth.Truth.assertThat;
 public class UnsupportedGradleVersionErrorHandlerTest extends AndroidGradleTestCase {
 
   private GradleSyncMessagesStub mySyncMessagesStub;
+  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject(), getTestRootDisposable());
   }
 
   public void testHandleError() throws Exception {
@@ -55,9 +66,14 @@ public class UnsupportedGradleVersionErrorHandlerTest extends AndroidGradleTestC
 
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
-    assertThat(quickFixes).hasSize(2);
+    assertThat(quickFixes).hasSize(3);
     assertThat(quickFixes.get(0)).isInstanceOf(FixGradleVersionInWrapperHyperlink.class);
-    assertThat(quickFixes.get(1)).isInstanceOf(OpenGradleSettingsHyperlink.class);
+    verifyOpenGradleWrapperPropertiesFile(getProject(), quickFixes.get(1));
+    assertThat(quickFixes.get(2)).isInstanceOf(OpenGradleSettingsHyperlink.class);
+
+    assertEquals(UNSUPPORTED_GRADLE_VERSION, myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(FIX_GRADLE_VERSION_IN_WRAPPER_HYPERLINK, OPEN_FILE_HYPERLINK, OPEN_GRADLE_SETTINGS_HYPERLINK),
+                 myUsageReporter.getCollectedQuickFixes());
   }
 
   // See https://code.google.com/p/android/issues/detail?id=231658
@@ -78,8 +94,20 @@ public class UnsupportedGradleVersionErrorHandlerTest extends AndroidGradleTestC
 
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
-    assertThat(quickFixes).hasSize(2);
+    assertThat(quickFixes).hasSize(3);
     assertThat(quickFixes.get(0)).isInstanceOf(FixGradleVersionInWrapperHyperlink.class);
-    assertThat(quickFixes.get(1)).isInstanceOf(OpenGradleSettingsHyperlink.class);
+    verifyOpenGradleWrapperPropertiesFile(getProject(), quickFixes.get(1));
+    assertThat(quickFixes.get(2)).isInstanceOf(OpenGradleSettingsHyperlink.class);
+
+    assertEquals(UNSUPPORTED_GRADLE_VERSION, myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(FIX_GRADLE_VERSION_IN_WRAPPER_HYPERLINK, OPEN_FILE_HYPERLINK, OPEN_GRADLE_SETTINGS_HYPERLINK),
+                 myUsageReporter.getCollectedQuickFixes());
+  }
+
+  public static void verifyOpenGradleWrapperPropertiesFile(@NotNull Project project, @NotNull NotificationHyperlink link) {
+    assertThat(link).isInstanceOf(OpenFileHyperlink.class);
+    OpenFileHyperlink openFileHyperlink = (OpenFileHyperlink)link;
+    assertTrue(openFileHyperlink.toHtml().contains("Open Gradle wrapper properties"));
+    assertThat(openFileHyperlink.getFilePath()).isEqualTo(GradleWrapper.find(project).getPropertiesFilePath().getAbsolutePath());
   }
 }

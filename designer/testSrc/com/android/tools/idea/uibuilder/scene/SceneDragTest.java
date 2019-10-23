@@ -57,14 +57,14 @@ public class SceneDragTest extends SceneTest {
 
   public void testDragRight() {
     myInteraction.mouseDown("button");
-    myInteraction.mouseRelease(800, 500);
+    myInteraction.mouseRelease(800, 400);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
                  "        android:id=\"@id/button\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
                  "        tools:layout_editor_absoluteX=\"750dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"490dp\" />");
+                 "        tools:layout_editor_absoluteY=\"390dp\" />");
   }
 
   public void testDragTooSmall() {
@@ -84,25 +84,37 @@ public class SceneDragTest extends SceneTest {
     // click on the center, offset by (6, 6) -- so this should be outside of
     // the widget bounds, unless we correctly expanded the target.
     myInteraction.mouseDown("button2", 6, 6);
-    myInteraction.mouseRelease(200, 600);
+    myInteraction.mouseRelease(100, 200);
     myScreen.get("@id/button2")
       .expectXml("<TextView\n" +
                  "        android:id=\"@id/button2\"\n" +
                  "        android:layout_width=\"5dp\"\n" +
                  "        android:layout_height=\"5dp\"\n" +
-                 "        tools:layout_editor_absoluteX=\"195dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"592dp\" />");
+                 "        tools:layout_editor_absoluteX=\"95dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"195dp\" />");
   }
 
   public void testDragLeft() {
     myInteraction.mouseDown("button");
-    myInteraction.mouseRelease(-800, -500);
+    myInteraction.mouseRelease(30, 400);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
                  "        android:id=\"@id/button\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        tools:layout_editor_absoluteX=\"0dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"0dp\" />");
+                 "        tools:layout_editor_absoluteX=\"-20dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"390dp\" />");
+  }
+
+  public void testDragCancel() {
+    myInteraction.mouseDown("button");
+    myInteraction.mouseCancel(100, 200);
+    myScreen.get("@id/button")
+      .expectXml("<TextView\n" +
+                 "    android:id=\"@id/button\"\n" +
+                 "    android:layout_width=\"100dp\"\n" +
+                 "    android:layout_height=\"20dp\"\n" +
+                 "    tools:layout_editor_absoluteX=\"100dp\"\n" +
+                 "    tools:layout_editor_absoluteY=\"200dp\"/>");
   }
 }

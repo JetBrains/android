@@ -6,9 +6,12 @@ iml_module(
     # do not sort: must match IML order
     srcs = ["src"],
     iml_files = ["native-symbolizer.iml"],
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.nativeSymbolizer.NativeSymbolizerTestSuite",
+    test_coverage = True,
     test_data = glob(["testData/**"]) + [
         "//prebuilts/tools:lldb",
+        "//tools/idea:platform-build-info",
     ],
     test_resources = ["testData"],
     test_srcs = ["testSrc"],
@@ -16,7 +19,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
@@ -28,7 +30,7 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",

@@ -16,7 +16,6 @@
 package org.jetbrains.kotlin.android
 
 import com.android.testutils.JarTestSuiteRunner
-import com.android.testutils.TestUtils
 import com.android.tools.tests.IdeaTestSuiteBase
 import org.junit.runner.RunWith
 
@@ -27,17 +26,14 @@ class KotlinAndroidTestSuite : IdeaTestSuiteBase() {
 
     init {
       IdeaTestSuiteBase.symlinkToIdeaHome(
+        "prebuilts/studio/layoutlib",
         "tools/adt/idea/android/annotations",
         "tools/adt/idea/android/lib",
-        "tools/idea/build.txt")
+        "tools/adt/idea/resources-aar/framework_res.jar")
 
       IdeaTestSuiteBase.symlinkToIdeaHome(
         "tools/adt/idea/android-kotlin/android-extensions-idea/testData",
-        "tools/adt/idea/android-kotlin/android-extensions-jps/testData",
         "tools/adt/idea/android-kotlin/idea-android/testData")
-
-      // Enable Kotlin plugin (see PluginManagerCore.PROPERTY_PLUGIN_PATH).
-      System.setProperty("plugin.path", TestUtils.getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin").absolutePath)
     }
   }
 }

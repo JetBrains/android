@@ -16,6 +16,23 @@
  *
   -->
 <idea-plugin>
+<!-- FIXME-ank:  <application-components>-->
+<!-- FIXME-ank:    <component>-->
+<!-- FIXME-ank:      <implementation-class>com.android.tools.idea.stats.LowMemoryReporter</implementation-class>-->
+<!-- FIXME-ank:    </component>-->
+<!-- FIXME-ank:-->
+<!-- FIXME-ank:    <component>-->
+<!-- FIXME-ank:      <implementation-class>com.android.tools.idea.memorysettings.AndroidLowMemoryNotifier</implementation-class>-->
+<!-- FIXME-ank:    </component>-->
+<!-- FIXME-ank:     Unregister DefaultJdkConfigurator b/112481251 -->
+<!-- FIXME-ank:    <component>-->
+<!-- FIXME-ank:      <interface-class>com.intellij.openapi.projectRoots.impl.DefaultJdkConfigurator</interface-class>-->
+<!-- FIXME-ank:      <option name="overrides" value="true"/>-->
+<!-- FIXME-ank:      <headless-implementation-class/>-->
+<!-- FIXME-ank:      <implementation-class/>-->
+<!-- FIXME-ank:    </component>-->
+<!-- FIXME-ank:  </application-components>-->
+
   <extensions defaultExtensionNs="com.intellij">
     <!--
       Startup.AndroidStudioInitializer has to be always first because the first thing it does is checking that the IDE installation is not
@@ -29,6 +46,18 @@
     <iconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioIconProvider" id="androidStudioIcons" order="before javaDirectory"/>
     <fileIconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioFileIconProvider" id="androidFileIcons"/>
   </extensions>
+
+<!-- FIXME-ank:  <application-components>-->
+<!-- FIXME-ank:    <component>-->
+<!-- FIXME-ank:      <implementation-class>com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor</implementation-class>-->
+<!-- FIXME-ank:      <headless-implementation-class/>-->
+<!-- FIXME-ank:    </component>-->
+<!-- FIXME-ank:  </application-components>-->
+<!-- FIXME-ank:  <project-components>-->
+<!-- FIXME-ank:    <component>-->
+<!-- FIXME-ank:      <implementation-class>com.android.tools.idea.stats.UserSentimentProjectComponent</implementation-class>-->
+<!-- FIXME-ank:    </component>-->
+<!-- FIXME-ank:  </project-components>-->
 
   <actions>
     <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
@@ -44,8 +73,14 @@
       <add-to-group group-id="HelpMenu" anchor="before" relative-to-action="Help.KeymapReference" />
     </action>
 
+    <action class="com.android.tools.idea.diagnostics.hprof.action.UserInvokedHeapDumpSnapshotAction" id="UserInvokedHeapDumpSnapshot"
+            text="Analyze Memory Usage">
+      <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="CollectTroubleshootingInformation" />
+    </action>
+
     <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.MakeGradleProjectAction" use-shortcut-of="CompileDirty" icon="AllIcons.Actions.Compile">
       <add-to-group group-id="BuildMenu" anchor="first"/>
+      <add-to-group group-id="TouchBarDefault" anchor="before" relative-to-action="RunConfiguration"/>
     </action>
 
     <group id="AndroidToolbarMakeGroup">
@@ -77,7 +112,7 @@
       <reference id="Android.SyncProject" />
       <reference id="Android.RunAndroidAvdManager" />
       <separator/>
-      <add-to-group group-id="NavBarToolBar" anchor="before" relative-to-action="ShowProjectStructureSettings" />
+      <add-to-group group-id="NavBarToolBar" anchor="before" relative-to-action="SearchEverywhere" />
     </group>
 
     <action id="WelcomeScreen.AndroidStudio.apkProfilingAndDebugging"
@@ -89,6 +124,14 @@
             class="com.android.tools.idea.apk.ImportApkAction" text="Profile or Debug APK...">
       <add-to-group group-id="FileOpenGroup" relative-to-action="OpenFile" anchor="after"/>
     </action>
+
+    <group id="Internal.HeapAnalysis" text="Android Studio Heap Analysis" popup="true" internal="true">
+      <action class="com.android.tools.idea.diagnostics.hprof.action.InternalUserInvokedFullAnalysisAction" id="UserInvokedFullAnalysis"
+              text="Create And Immediately Analyze Heap Dump" internal="true"/>
+      <action class="com.android.tools.idea.diagnostics.hprof.action.InternalNonuserInvokedHeapDumpSnapshotAction" id="SilentHeapDumpSnapshot"
+              text="Create And Schedule Heap Dump Analysis (Non-user invoked)" internal="true"/>
+      <add-to-group group-id="Internal"/>
+    </group>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -102,10 +145,12 @@
                         overrides="true"/>
     <welcomeFrameProvider implementation="com.android.tools.idea.welcome.wizard.FirstRunWizardFrameProvider" order="FIRST"/>
 
-    <localInspection groupPath="Java" language="JAVA" suppressId="deprecation" shortName="Deprecation" displayName="Deprecated API usage"
-                     groupKey="group.names.code.maturity.issues" groupBundle="messages.InspectionsBundle"
-                     enabledByDefault="true" level="WARNING"
-                     implementationClass="org.jetbrains.android.inspections.AndroidDeprecationInspection"/>
+<!--    <localInspection groupPath="Java" language="JAVA" suppressId="deprecation" shortName="Deprecation" displayName="Deprecated API usage"-->
+<!--                     groupKey="group.names.code.maturity.issues" groupBundle="messages.InspectionsBundle"-->
+<!--                     enabledByDefault="true" level="WARNING"-->
+<!--                     implementationClass="org.jetbrains.android.inspections.AndroidDeprecationInspection"/>-->
+<!--    FIXME-ank: duplicate inspection (android's contains filter) -->
+    <langCodeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidXmlLanguageCodeStyleSettingsProvider" order="first"/>
 
     <applicationInitializedListener implementation="com.android.tools.idea.stats.UserSentimentProjectComponent"/>
   </extensions>

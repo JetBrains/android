@@ -16,11 +16,11 @@
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractMultiRootFileDescription;
+import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription;
 import org.jetbrains.android.dom.drawable.LayerList;
 import org.jetbrains.annotations.NonNls;
 
-public class LayerListDomFileDescription extends AbstractMultiRootFileDescription<LayerList> {
+public class LayerListDomFileDescription extends MultipleKnownRootsResourceDomFileDescription<LayerList> {
   @NonNls static final String[] POSSIBLE_ROOT_TAGS = {"layer-list", "transition"};
 
   public LayerListDomFileDescription() {

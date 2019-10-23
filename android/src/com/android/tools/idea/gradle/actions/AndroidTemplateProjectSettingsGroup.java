@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.intellij.execution.actions.EditRunConfigurationsAction;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.TemplateProjectPropertiesAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -32,6 +33,8 @@ public class AndroidTemplateProjectSettingsGroup extends DefaultActionGroup {
     presentation.setIcon(AllIcons.General.Settings);
 
     add(new AndroidTemplateSettingsAction());
+    add(new AndroidTemplateProjectStructureAction());
+    add(new AndroidEditRunConfigurationsAction());
   }
 
   private static class AndroidTemplateSettingsAction extends TemplateProjectPropertiesAction {
@@ -39,6 +42,14 @@ public class AndroidTemplateProjectSettingsGroup extends DefaultActionGroup {
       Presentation p = getTemplatePresentation();
       p.setText("Settings");
       p.setIcon(AllIcons.General.Settings);
+    }
+  }
+
+  private static class AndroidEditRunConfigurationsAction extends EditRunConfigurationsAction {
+    AndroidEditRunConfigurationsAction() {
+      Presentation p = getTemplatePresentation();
+      p.setText("Run Configurations");
+      p.setIcon(AllIcons.ToolbarDecorator.Import);
     }
   }
 }

@@ -375,7 +375,7 @@ public class AdbDeviceCapabilities {
     @NotNull private final String myRemotePath;
     private boolean myDeleteOnClose;
 
-    ScopedRemoteFile(@NotNull String remotePath) {
+    public ScopedRemoteFile(@NotNull String remotePath) {
       myRemotePath = remotePath;
     }
 

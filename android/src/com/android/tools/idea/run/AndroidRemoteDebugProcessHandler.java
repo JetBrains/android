@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.intellij.debugger.DebuggerManager;
 import com.intellij.debugger.engine.DebugProcess;
 import com.intellij.debugger.engine.DebugProcessListener;
+import com.intellij.execution.ExecutionTarget;
+import com.intellij.execution.Executor;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.OutputStream;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@link com.intellij.execution.process.ProcessHandler} associated with an Android app debug process.
@@ -32,7 +37,7 @@ import java.io.OutputStream;
  * We use this instead of {@link com.intellij.debugger.engine.RemoteDebugProcessHandler} to retain
  * {@link AndroidProcessHandler}'s termination semantics when debugging Android processes.
  */
-public class AndroidRemoteDebugProcessHandler extends ProcessHandler {
+public class AndroidRemoteDebugProcessHandler extends ProcessHandler implements SwappableProcessHandler {
 
   private final Project myProject;
   private final boolean myDetachWhenDoneMonitoring;
@@ -40,6 +45,8 @@ public class AndroidRemoteDebugProcessHandler extends ProcessHandler {
   public AndroidRemoteDebugProcessHandler(Project project, boolean detachWhenDoneMonitoring) {
     myProject = project;
     myDetachWhenDoneMonitoring = detachWhenDoneMonitoring;
+
+    putCopyableUserData(SwappableProcessHandler.EXTENSION_KEY, this);
   }
 
   // This is copied from com.intellij.debugger.engine.RemoteDebugProcessHandler#startNotify
@@ -101,5 +108,27 @@ public class AndroidRemoteDebugProcessHandler extends ProcessHandler {
   @Override
   public OutputStream getProcessInput() {
     return null;
+  }
+
+  @Nullable
+  @Override
+  public Executor getExecutor() {
+    AndroidSessionInfo sessionInfo = getUserData(AndroidSessionInfo.KEY);
+    if (sessionInfo == null) {
+      return null;
+    }
+
+    return sessionInfo.getExecutor();
+  }
+
+  @Override
+  public boolean isExecutedWith(@NotNull RunConfiguration runConfiguration, @NotNull ExecutionTarget executionTarget) {
+    AndroidSessionInfo sessionInfo = getUserData(AndroidSessionInfo.KEY);
+    if (sessionInfo == null) {
+      return false;
+    }
+
+    return sessionInfo.getExecutionTarget().getId().equals(executionTarget.getId()) &&
+           sessionInfo.getRunConfigurationId() == runConfiguration.getUniqueID();
   }
 }

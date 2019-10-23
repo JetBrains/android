@@ -61,6 +61,7 @@ public final class NewAndroidComponentActionTest {
 
     Module mockModel = mock(Module.class);
     doReturn(mockFacetManager).when(mockModel).getComponent(FacetManager.class);
+    when(mockModel.getProject()).thenReturn(projectRule.getProject());
 
     DataContext dataContext = mock(DataContext.class);
     when(dataContext.getData(LangDataKeys.MODULE.getName())).thenReturn(mockModel);
@@ -94,6 +95,15 @@ public final class NewAndroidComponentActionTest {
 
     assertThat(myActionEvent.getPresentation().isEnabled()).isFalse();
     assertThat(myActionEvent.getPresentation().getText()).contains("Requires compileSdkVersion");
+  }
+
+
+  @Test
+  public void noAndroidXSupportPresentationShouldBeDisabled() {
+    new NewAndroidComponentAction("templateCategory", "templateName", 0, 0, true).update(myActionEvent);
+
+    assertThat(myActionEvent.getPresentation().isEnabled()).isFalse();
+    assertThat(myActionEvent.getPresentation().getText()).contains("Requires AndroidX support");
   }
 
   @Test
@@ -139,5 +149,15 @@ public final class NewAndroidComponentActionTest {
     new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
 
     assertThat(myActionEvent.getPresentation().isEnabled()).isTrue();
+  }
+
+  @Test
+  public void autoCategoryAndAutomotiveCategoryShouldntBeVisibleAtTheSameTime() {
+    new NewAndroidComponentAction("Automotive", "templateName", 0).update(myActionEvent);
+    boolean automotiveVisible = myActionEvent.getPresentation().isVisible();
+    new NewAndroidComponentAction("Android Auto", "templateName", 0).update(myActionEvent);
+    boolean autoVisible = myActionEvent.getPresentation().isVisible();
+
+    assertThat(automotiveVisible != autoVisible);
   }
 }

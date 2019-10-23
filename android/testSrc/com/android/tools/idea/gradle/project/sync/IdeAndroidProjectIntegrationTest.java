@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
@@ -29,13 +31,10 @@ import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link IdeAndroidProjectImpl}.
@@ -52,7 +51,7 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
       // Verify AndroidProject was copied.
       assertThat(androidProject).isInstanceOf(IdeAndroidProjectImpl.class);
 
-      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
       request.useCachedGradleModels = true;
       SyncListener syncListener = requestSync(request);
       assertTrue(syncListener.isSyncSkipped());
@@ -88,7 +87,7 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
     assertNotNull(wrapper);
     wrapper.updateDistributionUrl("3.5");
 
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.generateSourcesOnSuccess = false;
     request.skipAndroidPluginUpgrade = true;
     requestSyncAndWait(request);

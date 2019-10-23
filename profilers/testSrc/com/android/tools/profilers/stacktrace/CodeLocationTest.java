@@ -21,7 +21,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class CodeLocationTest {
   @Test
-  public void testGetOuterClassName() throws Exception {
+  public void testGetOuterClassName() {
     CodeLocation simpleClass = new CodeLocation.Builder("outerClass").build();
     assertThat(simpleClass.getOuterClassName()).isEqualTo("outerClass");
 

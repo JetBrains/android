@@ -15,18 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
-import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BASELINE_DES;
-import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BOTTOM_DES;
-import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_END_DES;
-import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_START_DES;
-import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_DES;
+import static icons.StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED_CONSTRAINT;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BOTTOM_TO_BOTTOM;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_BOTTOM_TO_TOP;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_END_TO_END;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_END_TO_START;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_START_TO_END;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_START_TO_START;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_TO_BOTTOM;
+import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_TO_TOP;
+
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneComponentHelperKt;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
@@ -40,6 +48,7 @@ import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.ui.PopupMenuListenerAdapter;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -48,9 +57,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.Icon;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.PopupMenuEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,10 +70,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ConstraintAnchorTarget extends AnchorTarget {
 
-  private final boolean myVisibility;
   private final Type myType;
 
-  private boolean myInDrag = false;
   private boolean myRenderingTemporaryConnection = false;
   @AndroidDpCoordinate private int myConnectedX = -1;
   @AndroidDpCoordinate private int myConnectedY = -1;
@@ -73,10 +82,9 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   //region Constructor
   /////////////////////////////////////////////////////////////////////////////
 
-  public ConstraintAnchorTarget(@NotNull Type type, boolean visible) {
-    super(type);
+  public ConstraintAnchorTarget(@NotNull Type type, boolean isEdge) {
+    super(type, isEdge);
     myType = type;
-    myVisibility = visible;
   }
 
   //endregion
@@ -156,10 +164,15 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     return ConstraintComponentUtilities.isAnchorConnected(myType, myComponent.getAuthoritativeNlComponent(), useRtlAttributes(), isRtl());
   }
 
+  @Override
+  public boolean canDisconnect() {
+    return myComponent.getScene().isCtrlMetaDown();
+  }
+
   @SuppressWarnings("UseJBColor")
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
-    if (!myVisibility) {
+    if (myIsEdge) {
       return;
     }
 
@@ -169,16 +182,20 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       if (myLastX != -1 && myLastY != -1) {
         if ((myConnectedX == -1 && myConnectedY == -1)
             || !(myLastX == myConnectedX && myLastY == myConnectedY)) {
-          float x = myLeft + (myRight - myLeft) / 2;
-          float y = myTop + (myBottom - myTop) / 2;
+          float x = getCenterX();
+          float y = getCenterY();
           list.addConnection(sceneContext, x, y, myLastX, myLastY, myType.ordinal());
         }
       }
     }
   }
 
+  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   @Override
-  protected boolean isEnabled() {
+  public boolean isEnabled() {
+    if (!super.isEnabled()) {
+      return false;
+    }
     if (myComponent.getScene().getSelection().size() > 1) {
       return false;
     }
@@ -195,17 +212,46 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     }
 
     Scene.FilterType filerType = myComponent.getScene().getFilterType();
+    boolean matchesFilter;
     switch (filerType) {
       case BASELINE_ANCHOR:
-        return isBaselineAnchor();
+        matchesFilter = isBaselineAnchor();
+        break;
       case VERTICAL_ANCHOR:
-        return isVerticalAnchor();
+        matchesFilter = isVerticalAnchor();
+        break;
       case HORIZONTAL_ANCHOR:
-        return isHorizontalAnchor();
+        matchesFilter = isHorizontalAnchor();
+        break;
       case ANCHOR:
-        return true;
+        matchesFilter = true;
+        break;
       default:
-        return false;
+        matchesFilter = false;
+        break;
+    }
+    Integer state = DecoratorUtilities.getTryingToConnectState(myComponent.getNlComponent());
+    boolean tryingToConnect = state != null && (state & myType.getMask()) != 0 && isTargeted();
+    return  matchesFilter || tryingToConnect;
+  }
+
+  @Override
+  public boolean isConnectible(@NotNull AnchorTarget dest) {
+    if (!(dest instanceof ConstraintAnchorTarget)) {
+      return false;
+    }
+    ConstraintAnchorTarget constraintAnchorDest = (ConstraintAnchorTarget) dest;
+    if (isVerticalAnchor() && !constraintAnchorDest.isVerticalAnchor()) {
+      return false;
+    }
+    if (isHorizontalAnchor() && !constraintAnchorDest.isHorizontalAnchor()) {
+      return false;
+    }
+    if (constraintAnchorDest.isEdge()) {
+      return myComponent.getParent() == constraintAnchorDest.myComponent;
+    }
+    else {
+      return myComponent.getParent() == constraintAnchorDest.myComponent.getParent();
     }
   }
 
@@ -218,44 +264,47 @@ public class ConstraintAnchorTarget extends AnchorTarget {
   @Override
   protected DrawAnchor.Mode getDrawMode() {
     Integer state = DecoratorUtilities.getTryingToConnectState(myComponent.getNlComponent());
+    // While creating a constraint, this anchor is a valid target for the connection.
     boolean can_connect = state != null && (state & myType.getMask()) != 0;
+    // There is a connection being created in the space of this anchor.
+    boolean doing_connection = state != null;
     boolean is_connected = isConnected();
     int drawState =
-      ((can_connect) ? 1 : 0) | (mIsOver ? 2 : 0) | (is_connected ? 4 : 0) | (isTargeted() ? 8 : 0) | (myComponent.isSelected() ? 16 : 0);
+      (can_connect ? 1 : 0) | (mIsOver ? 2 : 0) | (is_connected ? 4 : 0) | (doing_connection ? 8 : 0) | (myComponent.isSelected() ? 16 : 0);
 
     DrawAnchor.Mode[] modeTable = {
       DrawAnchor.Mode.DO_NOT_DRAW, //
-      DrawAnchor.Mode.CAN_CONNECT, // can_connect
-      DrawAnchor.Mode.OVER,        // mIsOver
-      DrawAnchor.Mode.CAN_CONNECT, // can_connect & mIsOver
-      DrawAnchor.Mode.NORMAL,      // is_connected
-      DrawAnchor.Mode.CAN_CONNECT, // is_connected & can_connect
-      DrawAnchor.Mode.OVER,        // is_connected & mIsOver
-      DrawAnchor.Mode.CAN_CONNECT, // is_connected & can_connect & mIsOver
-      DrawAnchor.Mode.NORMAL,      // myThisIsTheTarget
-      DrawAnchor.Mode.NORMAL,      // myThisIsTheTarget & can_connect
-      DrawAnchor.Mode.DO_NOT_DRAW, // myThisIsTheTarget & mIsOver
-      DrawAnchor.Mode.CAN_CONNECT, // myThisIsTheTarget & can_connect & mIsOver
-      DrawAnchor.Mode.NORMAL,      // myThisIsTheTarget & is_connected &
-      DrawAnchor.Mode.NORMAL,      // myThisIsTheTarget & is_connected & can_connect
-      DrawAnchor.Mode.CANNOT_CONNECT, // myThisIsTheTarget & is_connected & mIsOver
-      DrawAnchor.Mode.CAN_CONNECT, // myThisIsTheTarget & is_connected & can_connect & mIsOver
+      DrawAnchor.Mode.NORMAL,      // can_connect
+      DrawAnchor.Mode.DO_NOT_DRAW, // mIsOver
+      DrawAnchor.Mode.NORMAL,      // can_connect & mIsOver
+      DrawAnchor.Mode.DO_NOT_DRAW, // is_connected
+      DrawAnchor.Mode.NORMAL,      // is_connected & can_connect
+      DrawAnchor.Mode.DO_NOT_DRAW, // is_connected & mIsOver
+      DrawAnchor.Mode.NORMAL,      // is_connected & can_connect & mIsOver
+      DrawAnchor.Mode.DO_NOT_DRAW, // doing_connection
+      DrawAnchor.Mode.NORMAL,      // doing_connection & can_connect
+      DrawAnchor.Mode.DO_NOT_DRAW, // doing_connection & mIsOver
+      DrawAnchor.Mode.OVER,        // doing_connection & can_connect & mIsOver
+      DrawAnchor.Mode.DO_NOT_DRAW, // doing_connection & is_connected &
+      DrawAnchor.Mode.NORMAL,      // doing_connection & is_connected & can_connect
+      DrawAnchor.Mode.DO_NOT_DRAW, // doing_connection & is_connected & mIsOver
+      DrawAnchor.Mode.OVER,        // doing_connection & is_connected & can_connect & mIsOver
       DrawAnchor.Mode.NORMAL,      // isSelected
       DrawAnchor.Mode.NORMAL,      // isSelected & can_connect
       DrawAnchor.Mode.OVER,        // isSelected & mIsOver
-      DrawAnchor.Mode.CAN_CONNECT, // isSelected & can_connect & mIsOver
+      DrawAnchor.Mode.NORMAL,      // isSelected & can_connect & mIsOver
       DrawAnchor.Mode.NORMAL,      // isSelected & is_connected
       DrawAnchor.Mode.NORMAL,      // isSelected & is_connected & can_connect
-      DrawAnchor.Mode.OVER,        // isSelected & is_connected & mIsOver
-      DrawAnchor.Mode.CAN_CONNECT, // isSelected & is_connected & can_connect & mIsOver
-      DrawAnchor.Mode.NORMAL,      // isSelected & myThisIsTheTarget
-      DrawAnchor.Mode.NORMAL,      // isSelected & myThisIsTheTarget & can_connect
-      DrawAnchor.Mode.CANNOT_CONNECT,   // isSelected & myThisIsTheTarget & mIsOver
-      DrawAnchor.Mode.CAN_CONNECT, // isSelected & myThisIsTheTarget & can_connect & mIsOver
-      DrawAnchor.Mode.NORMAL,      // isSelected & myThisIsTheTarget & is_connected &
-      DrawAnchor.Mode.NORMAL,      // isSelected & myThisIsTheTarget & is_connected & can_connect
-      DrawAnchor.Mode.OVER,        // isSelected & myThisIsTheTarget & is_connected & mIsOver
-      DrawAnchor.Mode.CAN_CONNECT, // isSelected & myThisIsTheTarget & is_connected & can_connect & mIsOver
+      DrawAnchor.Mode.DELETE,      // isSelected & is_connected & mIsOver
+      DrawAnchor.Mode.OVER,        // isSelected & is_connected & can_connect & mIsOver
+      DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection
+      DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection & can_connect
+      DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection & mIsOver
+      DrawAnchor.Mode.OVER,        // isSelected & doing_connection & can_connect & mIsOver
+      DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection & is_connected &
+      DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection & is_connected & can_connect
+      DrawAnchor.Mode.NORMAL,      // isSelected & doing_connection & is_connected & mIsOver
+      DrawAnchor.Mode.OVER,        // isSelected & doing_connection & is_connected & can_connect & mIsOver
     };
     return modeTable[drawState];
   }
@@ -368,7 +417,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     else if (ConstraintComponentUtilities.ourMapMarginAttributes.get(attribute) != null) {
       Scene scene = myComponent.getScene();
       int marginValue = getDistance(attribute, targetComponent, scene);
-      if (!scene.isControlDown()) {
+      if (!scene.isCtrlMetaDown()) {
         if (marginValue < 0) {
           marginValue = 0;
         }
@@ -379,7 +428,12 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       else {
         marginValue = Math.max(marginValue, 0);
       }
-      String margin = String.format(SdkConstants.VALUE_N_DP, marginValue);
+      String margin;
+      if (Scout.getMarginResource() == null) {
+        margin = String.format(SdkConstants.VALUE_N_DP, marginValue);
+      } else {
+        margin = Scout.getMarginResource();
+      }
       String attr = ConstraintComponentUtilities.ourMapMarginAttributes.get(attribute);
       modification.setAttribute(SdkConstants.ANDROID_URI, attr, margin);
       if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attr)) {
@@ -545,9 +599,6 @@ public class ConstraintAnchorTarget extends AnchorTarget {
                             component.getLiveAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y));
     mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF,
                             component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF));
-    if (myComponent.getParent() != null) {
-      myComponent.getParent().setExpandTargetArea(true);
-    }
     //noinspection EnumSwitchStatementWhichMissesCases
     switch (myType) {
       case LEFT:
@@ -613,8 +664,8 @@ public class ConstraintAnchorTarget extends AnchorTarget {
         break;
       }
     }
-    if (!myInDrag) {
-      myInDrag = true;
+    if (!myIsDragging) {
+      myIsDragging = true;
       DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, true);
     }
 
@@ -640,8 +691,13 @@ public class ConstraintAnchorTarget extends AnchorTarget {
         }
       }
     }
-    revertToPreviousState();
-    myRenderingTemporaryConnection = false;
+    if (myRenderingTemporaryConnection) {
+      revertToPreviousState();
+      myRenderingTemporaryConnection = false;
+      return;
+    }
+
+    myComponent.getScene().needsRebuildList();
   }
 
   /**
@@ -654,9 +710,6 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     super.mouseRelease(x, y, closestTargets);
 
     try {
-      if (myComponent.getParent() != null) {
-        myComponent.getParent().setExpandTargetArea(false);
-      }
       ConstraintAnchorTarget closestTarget = null;
       for (Target target : closestTargets) {
         if (target instanceof ConstraintAnchorTarget && target != this) {
@@ -670,7 +723,9 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       if (closestTarget != null && !closestTarget.isConnected(this)) {
         NlComponent component = myComponent.getAuthoritativeNlComponent();
         if (closestTarget == this) {
-          disconnectMe(component);
+          if (canDisconnect()) {
+            disconnectMe(component);
+          }
         }
         else {
           String attribute = getAttribute(closestTarget);
@@ -696,29 +751,18 @@ public class ConstraintAnchorTarget extends AnchorTarget {
         }
       }
       else {
-
-
-        SceneComponent parent = myComponent.getParent();
         Collection<SceneComponent> components = myComponent.getScene().getSceneComponents();
         Rectangle rectangle = new Rectangle();
         ArrayList<NlComponent> list = new ArrayList<>();
         list.add(myComponent.getAuthoritativeNlComponent());
         list.add(myComponent.getAuthoritativeNlComponent());
         ArrayList<SceneComponent> allItems = new ArrayList<>();
-        int slop = 10;
         for (SceneComponent component : components) {
           rectangle.width = component.getDrawWidth();
           rectangle.height = component.getDrawHeight();
           rectangle.x = component.getDrawX();
           rectangle.y = component.getDrawY();
-          if (rectangle.contains(x, y)) {
-            String id = component.getAuthoritativeNlComponent().getId();
-            if (component.equals(myComponent)) {
-              continue;
-            }
-            if (component.equals(parent)) {
-              continue;
-            }
+          if (rectangle.contains(x, y) && SceneComponentHelperKt.isSibling(myComponent, component)) {
             allItems.add(component);
           }
         }
@@ -728,25 +772,25 @@ public class ConstraintAnchorTarget extends AnchorTarget {
             list.set(1, component.getAuthoritativeNlComponent());
             switch (myType) {
               case LEFT:
-                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToStart, "start ", " start", CONSTRAIN_START_DES);
-                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToEnd, "end ", " start", CONSTRAIN_END_DES);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToStart, "start ", " start", CONSTRAIN_START_TO_START);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectStartToEnd, "end ", " start", CONSTRAIN_START_TO_END);
                 break;
               case RIGHT:
-                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectEndToStart, "End ", " start", CONSTRAIN_START_DES);
-                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectEndToEnd, "End ", " end", CONSTRAIN_END_DES);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectEndToStart, "End ", " start", CONSTRAIN_END_TO_START);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectEndToEnd, "End ", " end", CONSTRAIN_END_TO_END);
                 break;
               case TOP:
-                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectTopToTop, "Top ", " top", CONSTRAIN_TOP_DES);
-                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectTopToBottom, "Top ", " bottom", CONSTRAIN_BOTTOM_DES);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectTopToTop, "Top ", " top", CONSTRAIN_TOP_TO_TOP);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectTopToBottom, "Top ", " bottom", CONSTRAIN_TOP_TO_BOTTOM);
                 break;
               case BOTTOM:
-                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBottomToTop, "Bottom ", " top", CONSTRAIN_TOP_DES);
+                addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBottomToTop, "Bottom ", " top", CONSTRAIN_BOTTOM_TO_TOP);
                 addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBottomToBottom, "Bottom ", " bottom",
-                               CONSTRAIN_BOTTOM_DES);
+                               CONSTRAIN_BOTTOM_TO_BOTTOM);
                 break;
               case BASELINE:
                 addConnectMenu(list, allItems, component, menu, Scout.Connect.ConnectBaseLineToBaseLine, "Baseline ", " baseline",
-                               CONSTRAIN_BASELINE_DES);
+                               BASELINE_ALIGNED_CONSTRAINT);
                 break;
             }
           }
@@ -756,17 +800,60 @@ public class ConstraintAnchorTarget extends AnchorTarget {
           float dx = myComponent.getScene().getDesignSurface().getContentOriginX();
           float dy = myComponent.getScene().getDesignSurface().getContentOriginY();
 
+          // Finish previous dragging setup.
+          myIsDragging = false;
+          DecoratorUtilities.setTryingToConnectState(myComponent.getAuthoritativeNlComponent(), myType, false);
 
-          menu.show(myComponent.getScene().getDesignSurface().getPreferredFocusedComponent(), (int)(x * scale + dx), (int)(y * scale + dy));
+          List<NlComponent> allItemsNlComponents =
+            allItems.stream().map(item -> item.getAuthoritativeNlComponent()).collect(Collectors.toCollection(ArrayList::new));
+          menu.addPopupMenuListener(new PopupMenuListenerAdapter() {
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+              super.popupMenuWillBecomeVisible(e);
+              DecoratorUtilities.setTryingToConnectState(myComponent.getAuthoritativeNlComponent(), allItemsNlComponents, myType, true);
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+              super.popupMenuWillBecomeInvisible(e);
+              DecoratorUtilities.setTryingToConnectState(myComponent.getAuthoritativeNlComponent(), allItemsNlComponents, myType, false);
+              myComponent.getScene().setFilterType(Scene.FilterType.NONE);
+            }
+          });
+          if (menu.getComponentCount() > 0) {
+            menu
+              .show(myComponent.getScene().getDesignSurface().getPreferredFocusedComponent(), (int)(x * scale + dx), (int)(y * scale + dy));
+          }
         }
       }
     }
     finally {
-      if (myInDrag) {
-        myInDrag = false;
+      if (myIsDragging) {
+        myIsDragging = false;
         DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, false);
+        myComponent.getScene().needsRebuildList();
       }
     }
+  }
+
+  @Override
+  public void mouseCancel() {
+    super.mouseCancel();
+    DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, false);
+    revertToPreviousState();
+  }
+
+  /** Append to the existing tooltip a hint to delete constraints. */
+  @Override
+  public String getToolTipText() {
+    StringBuilder builder = new StringBuilder();
+    builder.append(super.getToolTipText());
+    if (isConnected()) {
+      builder.append(" (")
+        .append(AdtUiUtils.getActionKeyText())
+        .append("+Click)");
+    }
+    return builder.toString();
   }
 
   /**
@@ -797,6 +884,8 @@ public class ConstraintAnchorTarget extends AnchorTarget {
     SceneComponent mySrc;
     SceneComponent myDest;
     Scout.Connect myType;
+    @Nullable AnchorTarget myDestTarget;
+
     List<SceneComponent> mAllItems;
 
     public ConnectMenu(List<SceneComponent> allItems,
@@ -808,6 +897,11 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       mySrc = src;
       myDest = dest;
       myType = type;
+      for (Target target : myDest.getTargets()) {
+        if (target instanceof AnchorTarget && ((AnchorTarget)target).getType() == myType.getDstAnchorType()) {
+          myDestTarget = (AnchorTarget)target;
+        }
+      }
       addActionListener(this);
       addChangeListener(this);
     }
@@ -827,8 +921,10 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       for (SceneComponent item : mAllItems) {
         item.setDrawState(SceneComponent.DrawState.NORMAL);
       }
-
-      myDest.setDrawState(SceneComponent.DrawState.DRAG);
+      if (myDestTarget != null) {
+        myDestTarget.setMouseHovered(isSelected() || isArmed());
+      }
+      myDest.setDrawState(isSelected() || isArmed() ? SceneComponent.DrawState.HOVER : SceneComponent.DrawState.NORMAL);
       myDest.getScene().needsRebuildList();
       myDest.getScene().repaint();
     }

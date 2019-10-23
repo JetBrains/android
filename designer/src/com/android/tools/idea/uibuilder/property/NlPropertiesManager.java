@@ -17,7 +17,8 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.adtui.workbench.ToolWindowCallback;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
@@ -47,8 +48,8 @@ import static com.android.tools.idea.uibuilder.property.ToggleXmlPropertyEditor.
 public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> implements RenderListener {
   private NlInspectorProviders myInspectorProviders;
 
-  public NlPropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface) {
-    super(facet, designSurface, NlPropertyEditors.getInstance(facet.getModule().getProject()));
+  public NlPropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface, @NotNull Disposable parentDisposable) {
+    super(facet, designSurface, NlPropertyEditors.getInstance(facet.getModule().getProject()), parentDisposable);
   }
 
   @NotNull
@@ -68,8 +69,8 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
   }
 
   @Override
-  public void setRestoreToolWindow(@NotNull Runnable restoreToolWindowCallback) {
-    getPropertiesPanel().setRestoreToolWindow(restoreToolWindowCallback);
+  public void registerCallbacks(@NotNull ToolWindowCallback toolWindow) {
+    getPropertiesPanel().registerToolWindow(toolWindow);
   }
 
   @NotNull
@@ -158,7 +159,7 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
 
   @Override
   public void logPropertyChange(@NotNull NlProperty property) {
-    NlUsageTrackerManager.getInstance(getDesignSurface()).logPropertyChange(
+    NlUsageTracker.getInstance(getDesignSurface()).logPropertyChange(
       property,
       getPropertiesPanel().getPropertiesViewMode(),
       getPropertiesPanel().getFilterMatchCount());

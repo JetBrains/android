@@ -32,10 +32,12 @@ public interface FeatureConfig {
   boolean isLiveAllocationsSamplingEnabled();
   boolean isMemoryCaptureFilterEnabled();
   boolean isMemorySnapshotEnabled();
+  boolean isPerfettoEnabled();
   boolean isPerformanceMonitoringEnabled();
   boolean isSessionImportEnabled();
-  boolean isSessionsEnabled();
+  boolean isSimpleperfHostEnabled();
   boolean isStartupCpuProfilingEnabled();
+  boolean isUnifiedPipelineEnabled();
   // Add new features alphabetically instead of at the end of the list
   // This reduces the chance of having to deal with an annoying merge conflict.
 }

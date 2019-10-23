@@ -16,9 +16,11 @@
 package org.jetbrains.kotlin.android.configure
 
 import com.android.testutils.TestUtils
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.io.FileUtilRt.loadFile
 import com.intellij.openapi.vfs.CharsetToolkit
 import com.intellij.testFramework.LightCodeInsightTestCase
+import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.jetbrains.kotlin.idea.configuration.createConfigureKotlinNotificationCollector
 import org.jetbrains.kotlin.test.InTextDirectivesUtils.findStringWithPrefixes
 import org.jetbrains.kotlin.test.KotlinTestUtils.assertEqualsToFile
@@ -32,7 +34,7 @@ abstract class ConfigureProjectTest : LightCodeInsightTestCase() {
     private const val GSK_DIR = "idea-android/testData/configuration/android-gsk"
   }
 
-  fun doTest(path: String, extension: String) {
+  fun doTest(path: String, extension: String, useAndroidX: Boolean = false) {
     val testRoot = TestUtils.getWorkspaceFile("tools/adt/idea/android-kotlin")
     val file = File(testRoot, "${path}_before.$extension")
     val fileText = loadFile(file, CharsetToolkit.UTF8, true)
@@ -41,7 +43,15 @@ abstract class ConfigureProjectTest : LightCodeInsightTestCase() {
     val versionFromFile = findStringWithPrefixes(getFile().text, "// VERSION:")
     val version = versionFromFile ?: DEFAULT_VERSION
 
-    val collector = createConfigureKotlinNotificationCollector(getProject())
+    val project = getProject()
+    val collector = createConfigureKotlinNotificationCollector(project)
+
+    if (useAndroidX) {
+      // Enable AndroidX
+      ApplicationManager.getApplication().runWriteAction {
+        project.setAndroidxProperties()
+      }
+    }
 
     val configurator = KotlinAndroidGradleModuleConfigurator()
     configurator.configureModule(getModule(), getFile(), true, version, collector, mutableListOf())
@@ -51,11 +61,19 @@ abstract class ConfigureProjectTest : LightCodeInsightTestCase() {
 
     val afterFile = File(testRoot, "${path}_after.$extension")
     assertEqualsToFile(afterFile, getFile().text.replace(version, "\$VERSION$"))
+
+    if (useAndroidX) {
+      // Disable AndroidX
+      ApplicationManager.getApplication().runWriteAction {
+        project.setAndroidxProperties("false")
+      }
+    }
   }
 
   class AndroidGradle : ConfigureProjectTest() {
     fun testAndroidStudioDefault()                 = doTest("$GRADLE_DIR/androidStudioDefault", "gradle")
     fun testAndroidStudioDefaultShapshot()         = doTest("$GRADLE_DIR/androidStudioDefaultShapshot", "gradle")
+    fun testAndroidStudioDefaultWithAndroidX()     = doTest("$GRADLE_DIR/androidStudioDefaultWithAndroidX", "gradle", true)
     fun testBuildConfigs()                         = doTest("$GRADLE_DIR/buildConfigs", "gradle")
     fun testEmptyDependencyList()                  = doTest("$GRADLE_DIR/emptyDependencyList", "gradle")
     fun testEmptyFile()                            = doTest("$GRADLE_DIR/emptyFile", "gradle")

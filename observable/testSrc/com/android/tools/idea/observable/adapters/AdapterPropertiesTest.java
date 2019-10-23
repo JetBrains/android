@@ -15,20 +15,23 @@
  */
 package com.android.tools.idea.observable.adapters;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
+
 import com.android.tools.idea.observable.BatchInvoker;
 import com.android.tools.idea.observable.BindingsManager;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.DoubleProperty;
+import com.android.tools.idea.observable.core.DoubleValueProperty;
+import com.android.tools.idea.observable.core.IntProperty;
+import com.android.tools.idea.observable.core.IntValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.google.common.truth.Truth;
+import java.util.Locale;
 import org.junit.After;
 import org.junit.Test;
 
-import java.util.Locale;
-
-import static com.google.common.truth.Truth.assertThat;
-import static junit.framework.Assert.fail;
-
 public class AdapterPropertiesTest {
-
   @After
   public void resetLocale() {
     Locale.setDefault(Locale.US);
@@ -70,7 +73,6 @@ public class AdapterPropertiesTest {
     Truth.assertThat(intValue.get()).isEqualTo(-99);
   }
 
-
   @Test
   public void initializingStringToDoubleAdapterWithValidValueWorks() throws Exception {
     StringProperty doubleString = new StringValueProperty("12.34");
@@ -102,7 +104,7 @@ public class AdapterPropertiesTest {
     StringToDoubleAdapterProperty adapterProperty = new StringToDoubleAdapterProperty(doubleString);
     bindings.bindTwoWay(adapterProperty, doubleValue);
 
-    assertThat(doubleString.get()).isEqualTo("20.0");
+    assertThat(doubleString.get()).isEqualTo("20");
     Truth.assertThat(adapterProperty.inSync().get()).isTrue();
 
     doubleString.set("100.5");
@@ -126,10 +128,13 @@ public class AdapterPropertiesTest {
     assertThat(doubleString.get()).isEqualTo("0,988");
 
     doubleValue.set(0.3);
-    assertThat(doubleString.get()).isEqualTo("0,30");
+    assertThat(doubleString.get()).isEqualTo("0,3");
 
     doubleValue.set(0.299);
     assertThat(doubleString.get()).isEqualTo("0,299");
+
+    doubleValue.set(3.0);
+    assertThat(doubleString.get()).isEqualTo("3");
   }
 
   @Test

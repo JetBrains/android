@@ -15,6 +15,17 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_ADD_RESET_STATEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_REMOVE_BLOCK_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_REMOVE_ONLY_ELEMENTS_IN_THE_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_REMOVE_RESET_STATEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_RESET_AND_INITIALIZE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_RESET_NONE_EXISTING;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_RESET_STATEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_SPLITS_TEXT;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.SplitsModel;
@@ -29,37 +40,15 @@ import org.junit.Test;
  * Tests for {@link SplitsModel}.
  */
 public class SplitsModelTest extends GradleFileModelTestCase {
-  private static final String SPLITS_TEXT = "android {\n" +
-                                            "  splits {\n" +
-                                            "    abi {\n" +
-                                            "      enable true\n" +
-                                            "      exclude 'abi-exclude-1', 'abi-exclude-2'\n" +
-                                            "      include 'abi-include-1', 'abi-include-2'\n" +
-                                            "      universalApk false\n" +
-                                            "    }\n" +
-                                            "    density {\n" +
-                                            "      auto false\n" +
-                                            "      compatibleScreens 'screen1', 'screen2'\n" +
-                                            "      enable true\n" +
-                                            "      exclude 'density-exclude-1', 'density-exclude-2'\n" +
-                                            "      include 'density-include-1', 'density-include-2'\n" +
-                                            "    }\n" +
-                                            "    language {\n" +
-                                            "      enable false\n" +
-                                            "      include 'language-include-1', 'language-include-2'\n" +
-                                            "    }\n" +
-                                            "  }\n" +
-                                            "}";
-
   @Test
   public void testParseElements() throws Exception {
-    writeToBuildFile(SPLITS_TEXT);
+    writeToBuildFile(SPLITS_MODEL_SPLITS_TEXT);
     verifySplitsValues();
   }
 
   @Test
   public void testEditElements() throws Exception {
-    writeToBuildFile(SPLITS_TEXT);
+    writeToBuildFile(SPLITS_MODEL_SPLITS_TEXT);
     verifySplitsValues();
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -109,12 +98,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddElements() throws Exception {
-    String text = "android {\n" +
-                  "  splits {\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SPLITS_MODEL_ADD_ELEMENTS);
     verifyNullSplitsValues();
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -167,7 +151,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveElements() throws Exception {
-    writeToBuildFile(SPLITS_TEXT);
+    writeToBuildFile(SPLITS_MODEL_SPLITS_TEXT);
     verifySplitsValues();
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -255,18 +239,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveBlockElements() throws Exception {
-    String text = "android {\n" +
-                  "  splits {\n" +
-                  "    abi {\n" +
-                  "    }\n" +
-                  "    density {\n" +
-                  "    }\n" +
-                  "    language {\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SPLITS_MODEL_REMOVE_BLOCK_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -293,24 +266,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOneOfElementsInTheList() throws Exception {
-    String text = "android {\n" +
-                  "  splits {\n" +
-                  "    abi {\n" +
-                  "      exclude 'abi-exclude-1', 'abi-exclude-2'\n" +
-                  "      include 'abi-include-1', 'abi-include-2'\n" +
-                  "    }\n" +
-                  "    density {\n" +
-                  "      compatibleScreens 'screen1', 'screen2'\n" +
-                  "      exclude 'density-exclude-1', 'density-exclude-2'\n" +
-                  "      include 'density-include-1', 'density-include-2'\n" +
-                  "    }\n" +
-                  "    language {\n" +
-                  "      include 'language-include-1', 'language-include-2'\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SPLITS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -356,24 +312,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOnlyElementsInTheList() throws Exception {
-    String text = "android {\n" +
-                  "  splits {\n" +
-                  "    abi {\n" +
-                  "      exclude 'abi-exclude'\n" +
-                  "      include 'abi-include'\n" +
-                  "    }\n" +
-                  "    density {\n" +
-                  "      compatibleScreens 'screen'\n" +
-                  "      exclude 'density-exclude'\n" +
-                  "      include 'density-include'\n" +
-                  "    }\n" +
-                  "    language {\n" +
-                  "      include 'language-include'\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SPLITS_MODEL_REMOVE_ONLY_ELEMENTS_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -427,20 +366,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResetStatement() throws Exception {
-    String text = "android {\n" +
-                  "  splits {\n" +
-                  "    abi {\n" +
-                  "      include 'abi-include-1', 'abi-include-2'\n" +
-                  "      reset()\n" +
-                  "    }\n" +
-                  "    density {\n" +
-                  "      include 'density-include-1', 'density-include-2'\n" +
-                  "      reset()\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SPLITS_MODEL_RESET_STATEMENT);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -453,20 +379,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResetNoneExisting() throws Exception {
-    String text = "android {\n" +
-                  "  splits {\n" +
-                  "    abi {\n" +
-                  "      reset()\n" +
-                  "      include 'abi-include-2', 'abi-include-3'\n" +
-                  "    }\n" +
-                  "    density {\n" +
-                  "      include 'density-include-1', 'density-include-2'\n" +
-                  "      reset()\n" +
-                  "      include 'density-include-3'\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(SPLITS_MODEL_RESET_NONE_EXISTING);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -479,22 +392,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResetAndInitialize() throws Exception {
-    String text = "android {\n" +
-                  "  splits {\n" +
-                  "    abi {\n" +
-                  "      include 'abi-include-1'\n" +
-                  "      reset()\n" +
-                  "      include 'abi-include-2', 'abi-include-3'\n" +
-                  "    }\n" +
-                  "    density {\n" +
-                  "      include 'density-include-1', 'density-include-2'\n" +
-                  "      reset()\n" +
-                  "      include 'density-include-3'\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SPLITS_MODEL_RESET_AND_INITIALIZE);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -507,18 +405,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddResetStatement() throws Exception {
-    String text = "android {\n" +
-                  "  splits {\n" +
-                  "    abi {\n" +
-                  "      include 'abi-include-1', 'abi-include-2'\n" +
-                  "    }\n" +
-                  "    density {\n" +
-                  "      include 'density-include-1', 'density-include-2'\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SPLITS_MODEL_ADD_RESET_STATEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -542,20 +429,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveResetStatement() throws Exception {
-    String text = "android {\n" +
-                  "  splits {\n" +
-                  "    abi {\n" +
-                  "      include 'abi-include-1', 'abi-include-2'\n" +
-                  "      reset()\n" +
-                  "    }\n" +
-                  "    density {\n" +
-                  "      include 'density-include-1', 'density-include-2'\n" +
-                  "      reset()\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(SPLITS_MODEL_REMOVE_RESET_STATEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();

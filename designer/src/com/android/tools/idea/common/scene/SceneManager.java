@@ -49,7 +49,6 @@ abstract public class SceneManager implements Disposable {
   @SuppressWarnings("NullableProblems")
   @NotNull private SceneView mySceneView;
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
-
   public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface, @NotNull RenderSettings renderSettings) {
     myModel = model;
     myDesignSurface = surface;
@@ -172,9 +171,9 @@ abstract public class SceneManager implements Disposable {
       List<SceneComponent> children = createHierarchy(nlChild);
       oldChildren.removeAll(children);
       for (SceneComponent child : children) {
-        if (child.getParent() != sceneComponent) {
-          sceneComponent.addChild(child);
-        }
+        // Even the parent of child is the same, re-add it to make the order same as NlComponent.
+        child.removeFromParent();
+        sceneComponent.addChild(child);
       }
     }
     for (SceneComponent child : oldChildren) {

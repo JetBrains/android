@@ -15,11 +15,22 @@
  */
 package org.jetbrains.android.inspections.lint;
 
+import static com.android.tools.lint.checks.CheckResultDetector.CHECK_RESULT;
+import static com.android.tools.lint.checks.PermissionDetector.CHECK_PERMISSION;
+import static com.android.tools.lint.checks.PermissionDetector.MISSING_PERMISSION;
+import static com.android.utils.SdkUtils.escapePropertyValue;
+import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
+
 import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeProject;
 import com.android.tools.idea.lint.LintIdeViewTypeDetector;
 import com.android.tools.lint.checks.ViewTypeDetector;
-import com.android.tools.lint.detector.api.*;
+import com.android.tools.lint.detector.api.Detector;
+import com.android.tools.lint.detector.api.Implementation;
+import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.Scope;
+import com.android.tools.lint.detector.api.Severity;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -27,26 +38,21 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.android.AndroidTestCase;
-
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.*;
-
-import static com.android.tools.lint.checks.CheckResultDetector.CHECK_RESULT;
-import static com.android.tools.lint.checks.PermissionDetector.CHECK_PERMISSION;
-import static com.android.tools.lint.checks.PermissionDetector.MISSING_PERMISSION;
-import static com.android.utils.SdkUtils.escapePropertyValue;
-import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import org.jetbrains.android.AndroidTestCase;
 
 // TODO: For inspections that have safe fixes, mark the inspections with the interface
 // com.intellij.codeInspection.CleanupLocalInspectionTool . However, that also requires
 // it to provide a LocalInspectionTool via getSharedLocalInspectionToolWrapper.
-
-// Note that if the test fails with class loading issues, make sure the run config includes
-// this VM option:
-// -Dplugin.path=<some prefix>/prebuilts/tools/common/kotlin-plugin/Kotlin
 
 /** Ensures that all relevant lint checks are available and registered */
 public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {

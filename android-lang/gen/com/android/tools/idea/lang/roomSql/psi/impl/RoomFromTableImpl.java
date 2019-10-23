@@ -92,6 +92,7 @@ public class RoomFromTableImpl extends ASTWrapperPsiElement implements RoomFromT
     return findChildByType(SINGLE_QUOTE_STRING_LITERAL);
   }
 
+  @Override
   @Nullable
   public SqlTable getSqlTable() {
     return PsiImplUtil.getSqlTable(this);

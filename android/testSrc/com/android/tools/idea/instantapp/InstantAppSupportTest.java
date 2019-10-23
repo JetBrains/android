@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.instantapp;
 
-import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.editor.DeepLinkLaunch;
@@ -33,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.List;
 
-import static com.android.tools.idea.fd.gradle.InstantRunGradleUtils.getIrSupportStatus;
 import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIABaseFeature;
 import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIAInstantApp;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
@@ -56,19 +54,12 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
     assertFileHasNoErrors(project, new File("feature/src/test/java/com/example/instantapp/ExampleUnitTest.java"));
   }
 
-  public void testInstantRunDisabled() throws Exception {
-    loadProject(INSTANT_APP, "instant-app");
-
-    // by definition, InstantRunGradleSupport.INSTANT_APP != InstantRunGradleSupport.SUPPORTED
-    assertEquals(InstantRunGradleSupport.INSTANT_APP, getIrSupportStatus(getModel(), null));
-  }
-
   public void testCorrectRunConfigurationsCreated() throws Exception {
     loadProject(INSTANT_APP, "instant-app");
 
     // Create one run configuration
     List<RunConfiguration> configurations =
-      RunManager.getInstance(getProject()).getConfigurationsList(AndroidRunConfigurationType.getInstance());
+      RunManager.getInstance(getProject()).getConfigurationsList(AndroidRunConfigurationType.getInstance().getFactory().getType());
     assertEquals(1, configurations.size());
     RunConfiguration configuration = configurations.get(0);
     assertInstanceOf(configuration, AndroidRunConfiguration.class);
@@ -86,7 +77,6 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
     loadProject(INSTANT_APP, "feature");
     AndroidTestRunConfiguration
       runConfiguration = createAndroidTestConfigurationFromClass(getProject(), "com.example.instantapp.ExampleInstrumentedTest");
-    assertNotNull(runConfiguration);
     runConfiguration.checkConfiguration();
   }
 
@@ -95,7 +85,7 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
 
     // Create one run configuration
     List<RunConfiguration> configurations =
-      RunManager.getInstance(getProject()).getConfigurationsList(AndroidRunConfigurationType.getInstance());
+      RunManager.getInstance(getProject()).getConfigurationsList(AndroidRunConfigurationType.getInstance().getFactory().getType());
     assertEquals(1, configurations.size());
     RunConfiguration configuration = configurations.get(0);
     assertInstanceOf(configuration, AndroidRunConfiguration.class);
@@ -116,7 +106,7 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
     // No exception
   }
 
-  private void assertExceptionInCheckingConfig(@NotNull AndroidRunConfiguration runConfig, @NotNull String url) {
+  private void assertExceptionInCheckingConfig(@NotNull AndroidRunConfiguration runConfig, @NotNull String url) throws Throwable {
     assertException(new AbstractExceptionCase() {
       @Override
       public Class getExpectedExceptionClass() {

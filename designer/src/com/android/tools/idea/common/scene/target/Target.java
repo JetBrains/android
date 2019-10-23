@@ -84,6 +84,13 @@ public interface Target {
   void setComponent(@NotNull SceneComponent component);
 
   /**
+   * Called when the associated {@link SceneComponent} selection state changes.
+   * @param selected true if component is selected, false otherwise.
+   */
+  default void componentSelectionChanged(boolean selected) {
+  }
+
+  /**
    * Implementing classes should add their own {@link DrawCommand} to the provided
    * {@link DisplayList} to draw any needed graphic
    *
@@ -105,14 +112,6 @@ public interface Target {
    * @return Whether the mouse is hovering over this target.
    */
   boolean isMouseHovered();
-
-  /**
-   * Can be used by the target to expand its bounds
-   *
-   * @param expand true to expand
-   */
-  default void setExpandSize(boolean expand) {
-  }
 
   String getToolTipText();
 
@@ -144,6 +143,12 @@ public interface Target {
   default void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
   }
 
+  /**
+   * Implement this method to react when mouse interaction is canceled.
+   */
+  default void mouseCancel() {
+  }
+
   SceneComponent getComponent();
 
   Cursor getMouseCursor();
@@ -165,13 +170,5 @@ public interface Target {
   @Nullable
   default List<SceneComponent> newSelection() {
     return null;
-  }
-
-  /**
-   * Notified when the associated component changes the status of selection.
-   *
-   * @param selection the new selection status of associated component
-   */
-  default void onComponentSelectionChanged(boolean selection) {
   }
 }

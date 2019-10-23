@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear.actions;
 
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
@@ -42,7 +42,7 @@ public class ToggleOrientationAction extends LinearLayoutAction {
     boolean isHorizontal = !handler.isVertical(component);
     String value = isHorizontal ? VALUE_VERTICAL : null; // null: horizontal is the default
 
-    NlWriteCommandAction.run(component, "Change LinearLayout orientation", () ->
+    NlWriteCommandActionUtil.run(component, "Change LinearLayout orientation", () ->
       component.setAttribute(ANDROID_URI, ATTR_ORIENTATION, value));
   }
 

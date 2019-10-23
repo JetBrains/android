@@ -23,7 +23,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.util.PathUtil
 import junit.framework.TestCase
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
 import org.jetbrains.kotlin.idea.jsonUtils.getString
@@ -47,17 +46,7 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
         val intentionClass = if (config.has("intentionClass")) config.getString("intentionClass") else null
         val intentionText = if (config.has("intentionText")) config.getString("intentionText") else null
         val isApplicableExpected = if (config.has("isApplicable")) config.get("isApplicable").asBoolean else true
-        val rFile = if (config.has("rFile")) config.get("rFile").asString else null
         val resDirectory = if (config.has("resDirectory")) config.get("resDirectory").asString else null
-
-        if (rFile != null) {
-            myFixture.copyFileToProject(rFile, "gen/$COM_MYAPP_PACKAGE_PATH" + PathUtil.getFileName(rFile))
-        }
-        else {
-            if (File("$testDataPath/R.java").isFile) {
-                myFixture.copyFileToProject("R.java", "gen/${COM_MYAPP_PACKAGE_PATH}R.java")
-            }
-        }
 
         if (resDirectory != null) {
             myFixture.copyDirectoryToProject(resDirectory, "res")

@@ -28,13 +28,11 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +53,13 @@ public class LocaleMenuAction extends DropDownAction {
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     updatePresentation(presentation);
+  }
+
+  @Override
+  protected boolean hasDropDownArrow() {
+    // This menu always has most of the time at least two options so no need to calculate the actions to show the arrow. In most cases
+    // the actions to Edit translations and switch to RTL locale are always present.
+    return true;
   }
 
   @Override
@@ -195,7 +200,7 @@ public class LocaleMenuAction extends DropDownAction {
       presentation.setText(brief);
     }
     else {
-      presentation.setIcon(AndroidIcons.Globe);
+      presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.LANGUAGE);
     }
     if (visible != presentation.isVisible()) {
       presentation.setVisible(visible);
@@ -252,7 +257,7 @@ public class LocaleMenuAction extends DropDownAction {
   private class SetLocaleAction extends ConfigurationAction {
     private final Locale myLocale;
 
-    SetLocaleAction(ConfigurationHolder renderContext, String title, @NotNull Locale locale, boolean isCurrentLocale) {
+    public SetLocaleAction(ConfigurationHolder renderContext, String title, @NotNull Locale locale, boolean isCurrentLocale) {
       // TODO: Rather than passing in the title, update the code to implement update() instead; that
       // way we can lazily compute the label as part of the list rendering
       super(renderContext, title);
@@ -263,7 +268,7 @@ public class LocaleMenuAction extends DropDownAction {
       // 2. Display flag for locale: Set checked icon for the current locale and set flags for all other locales except default locale.
       // The displaying setting can be get by FlagManager.showFlagsForLanguages().
       if (isCurrentLocale) {
-        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+        getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, true);
       }
       else if (FlagManager.showFlagsForLanguages() && locale != Locale.ANY) {
         getTemplatePresentation().setIcon(locale.getFlagImage());
@@ -311,7 +316,7 @@ public class LocaleMenuAction extends DropDownAction {
 
   private class EditTranslationAction extends AnAction {
 
-    EditTranslationAction() {
+    public EditTranslationAction() {
       super("Edit Translations...", null, null);
     }
 

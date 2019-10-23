@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
+import static junit.framework.TestCase.assertTrue;
+
 import com.android.tools.adtui.workbench.WorkBench;
-import com.android.tools.idea.common.editor.NlEditor;
-import com.android.tools.idea.common.editor.NlEditorPanel;
+import com.android.tools.idea.common.editor.DesignerEditor;
+import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -28,7 +30,12 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceDirectoryDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WorkBenchLoadingPanelFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.*;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlConfigurationToolbarFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesignSurfaceFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlRhsConfigToolbarFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlViewActionToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.HostPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
@@ -37,6 +44,15 @@ import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.event.InputEvent;
+import java.util.List;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
@@ -48,24 +64,18 @@ import org.fest.swing.timing.Pause;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.InputEvent;
-import java.util.List;
-
-import static junit.framework.TestCase.assertTrue;
-
 /**
  * Fixture wrapping the the layout editor for a particular file
+ * TODO(b/119869057): Split logic of NlEditorFixture into NlEditorFixture and NavEditorFixture
  */
-public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorPanel> {
+public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerEditorPanel> {
   private final DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface> myDesignSurfaceFixture;
   private NlPropertyInspectorFixture myPropertyFixture;
   private NlPaletteFixture myPaletteFixture;
   private WorkBenchLoadingPanelFixture myLoadingPanelFixture;
   private final ComponentDragAndDrop myDragAndDrop;
 
-  public NlEditorFixture(@NotNull Robot robot, @NotNull NlEditor editor) {
+  public NlEditorFixture(@NotNull Robot robot, @NotNull DesignerEditor editor) {
     super(NlEditorFixture.class, robot, editor.getComponent());
     DesignSurface surface = editor.getComponent().getSurface();
     if (surface instanceof NlDesignSurface) {
@@ -131,6 +141,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
       return myDesignSurfaceFixture.target().isShowing();
     });
 
+    waitForRenderToFinish(Wait.seconds(90));
+
     return this;
   }
 
@@ -163,7 +175,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
   @NotNull
   public NlConfigurationToolbarFixture<NlEditorFixture> getConfigToolbar() {
-    ActionToolbar toolbar = robot().finder().findByName(target(), "NlConfigToolbar", ActionToolbarImpl.class);
+    ActionToolbar toolbar = GuiTests.waitUntilShowing(robot(), target(), Matchers.byName(ActionToolbarImpl.class, "NlConfigToolbar"));
     return new NlConfigurationToolbarFixture<>(this, robot(), myDesignSurfaceFixture.target(), toolbar);
   }
 
@@ -187,7 +199,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
   @NotNull
   public NlRhsConfigToolbarFixture getRhsConfigToolbar() {
-    ActionToolbarImpl toolbar = robot().finder().findByName(target(), "NlRhsConfigToolbar", ActionToolbarImpl.class);
+    ActionToolbarImpl toolbar =
+      GuiTests.waitUntilShowing(robot(), target(), Matchers.byName(ActionToolbarImpl.class, "NlRhsConfigToolbar"));
     return new NlRhsConfigToolbarFixture(this, toolbar);
   }
 
@@ -208,7 +221,9 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
   @NotNull
   public JPanelFixture getBackNavigationPanel() {
-    return new JPanelFixture(robot(), BackNavigationComponent.BACK_NAVIGATION_COMPONENT_NAME);
+    JPanel backNavPanel = GuiTests.waitUntilShowing(robot(),
+                                                    Matchers.byName(JPanel.class, BackNavigationComponent.BACK_NAVIGATION_COMPONENT_NAME));
+    return new JPanelFixture(robot(), backNavPanel);
   }
 
   @NotNull
@@ -296,7 +311,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   @NotNull
   public NlEditorFixture showOnlyDesignView() {
     getConfigToolbar().selectDesign();
-    getRhsConfigToolbar().zoomToFit();
     return this;
   }
 
@@ -307,7 +321,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   @NotNull
   public NlEditorFixture showOnlyBlueprintView() {
     getConfigToolbar().selectBlueprint();
-    getRhsConfigToolbar().zoomToFit();
     return this;
   }
 
@@ -327,7 +340,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return this;
   }
 
-  public void dragMouseFromCenter(int dx, int dy, @NotNull MouseButton mouseButton, int modifiers) {
+  public void dragMouseFromCenterWithModifier(int dx, int dy, @NotNull MouseButton mouseButton, int modifiers) {
     DesignSurface surface = myDesignSurfaceFixture.target();
     robot().moveMouse(surface);
     robot().pressModifiers(modifiers);
@@ -335,6 +348,16 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     robot().moveMouse(surface, surface.getWidth() / 2 + dx, surface.getHeight() / 2 + dy);
     robot().releaseMouseButtons();
     robot().releaseModifiers(modifiers);
+  }
+
+  public void dragMouseFromCenterWithKeyCode(int dx, int dy, @NotNull MouseButton mouseButton, int keyCode) {
+    DesignSurface surface = myDesignSurfaceFixture.target();
+    robot().moveMouse(surface);
+    robot().pressKey(keyCode);
+    robot().pressMouse(mouseButton);
+    robot().moveMouse(surface, surface.getWidth() / 2 + dx, surface.getHeight() / 2 + dy);
+    robot().releaseMouseButtons();
+    robot().releaseKey(keyCode);
   }
 
   @NotNull
@@ -374,9 +397,9 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    */
   @NotNull
   private static String buildTreePathTo(NlComponent current) {
-    StringBuilder builder = new StringBuilder(current.getTag().getName());
+    StringBuilder builder = new StringBuilder(current.getTagDeprecated().getName());
     while ((current = current.getParent()) != null) {
-      builder.insert(0, current.getTag().getName() + "/");
+      builder.insert(0, current.getTagDeprecated().getName() + "/");
       current = current.getParent();
     }
     return builder.toString();

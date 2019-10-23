@@ -41,22 +41,37 @@ public interface GradleSyncListener extends EventListener {
   /**
    * Invoked when a Gradle project has been synced. It is not guaranteed that the created IDEA project has been compiled.
    *
-   * @param project the IDEA project created from the Gradle one.
+   * @param project the IDEA project created from the Gradle one, classes that implement this method must deal with
+   *                the case where the project has been disposed, this can be checked by calling {@link Project#isDisposed()}.
    */
   default void syncSucceeded(@NotNull Project project) {
   }
 
+  /**
+   * Invoked when the a Gradle project sync has failed. This could be due to many reasons.
+   *
+   * @param project the IDEA project created from the Gradle one,  classes that implement this method must deal with
+   *    *           the case where the project has been disposed, this can be checked by calling {@link Project#isDisposed()}.
+   * @param errorMessage the error message that the Sync failed with.
+   */
   default void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
   }
 
   /**
    * Invoked when the state of a project has been loaded from a disk cache, instead of syncing with Gradle.
    *
-   * @param project the project.
+   * @param project the project, classes that implement this method must deal with
+   *    *           the case where the project has been disposed, this can be checked by calling {@link Project#isDisposed()}.
    */
   default void syncSkipped(@NotNull Project project) {
   }
 
+  /**
+   * Invoked when source generation for the project has finished.
+   *
+   * @param project the project, classes that implement this method must deal with
+   *                the case where the project has been disposed, this can be checked by calling {@link Project#isDisposed()}.
+   */
   default void sourceGenerationFinished(@NotNull Project project) {
   }
 }

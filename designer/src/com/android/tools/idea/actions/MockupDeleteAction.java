@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -40,7 +40,7 @@ public class MockupDeleteAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    NlWriteCommandAction.run(myNlComponent, "Delete mockup attributes", () -> {
+    NlWriteCommandActionUtil.run(myNlComponent, "Delete mockup attributes", () -> {
       myNlComponent.removeAttribute(TOOLS_URI, ATTR_MOCKUP);
       myNlComponent.removeAttribute(TOOLS_URI, ATTR_MOCKUP_CROP);
       myNlComponent.removeAttribute(TOOLS_URI, ATTR_MOCKUP_OPACITY);

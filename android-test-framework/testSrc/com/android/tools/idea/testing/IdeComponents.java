@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.testing;
 
+import static org.mockito.Mockito.mock;
+
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -22,8 +24,6 @@ import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static org.mockito.Mockito.mock;
 
 public final class IdeComponents {
   public IdeComponents(@Nullable Project project, @NotNull Disposable disposable) {
@@ -43,7 +43,7 @@ public final class IdeComponents {
   }
 
   @NotNull
-  public static <T> T mockProjectService(@NotNull Project project, @NotNull Class<T> serviceType, @NotNull Disposable parentDisposable) {
+  public static <T> T mockProjectService(@NotNull Project project, @NotNull Class<T> serviceType, @NotNull Disposable parentDisposable) { // FIXME-ank:
     T mock = mock(serviceType);
     ServiceContainerUtil.replaceService(project, serviceType, mock, parentDisposable);
     return mock;

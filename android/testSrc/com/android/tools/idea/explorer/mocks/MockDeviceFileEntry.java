@@ -48,6 +48,12 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
   private Throwable myDeleteError;
   private int myGetEntriesTimeoutMillis = OPERATION_TIMEOUT_MILLIS;
 
+  @Override
+  @NotNull
+  public String toString() {
+    return getName();
+  }
+
   @NotNull
   public static MockDeviceFileEntry createRoot(@NotNull MockDeviceFileSystem fileSystem) {
     return new MockDeviceFileEntry(fileSystem, null, "", true, false, null);

@@ -80,7 +80,7 @@ class KotlinAndroidLineMarkerProvider : LineMarkerProvider {
 
     private fun KtClass.collectGoToRelatedLayoutItems(androidFacet: AndroidFacet): List<GotoRelatedItem> {
         val resources = mutableSetOf<PsiFile>()
-        val repositoryManager = ResourceRepositoryManager.getOrCreateInstance(androidFacet)
+        val repositoryManager = ResourceRepositoryManager.getInstance(androidFacet)
         val namespace = repositoryManager.namespace
 
         accept(object: KtVisitorVoid() {

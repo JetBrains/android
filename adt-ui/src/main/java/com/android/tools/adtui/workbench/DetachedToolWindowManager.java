@@ -31,8 +31,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 
 /**
  * All {@link WorkBench}es of a specified name will use the same {@link DetachedToolWindow}
@@ -56,18 +56,15 @@ public class DetachedToolWindowManager implements ProjectComponent {
 
   @VisibleForTesting
   DetachedToolWindowManager(@NotNull Application application,
-                                   @NotNull Project project,
+                                   @NotNull Project currentProject,
                                    @NotNull FileEditorManager fileEditorManager) {
     myApplication = application;
-    myProject = project;
+    myProject = currentProject;
     myEditorManager = fileEditorManager;
     myEditorManagerListener = new MyFileEditorManagerListener();
     myWorkBenchMap = new IdentityHashMap<>(13);
     myToolWindowMap = new HashMap<>(8);
-    //noinspection unchecked
     myDetachedToolWindowFactory = DetachedToolWindow::new;
-
-    project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myEditorManagerListener);
   }
 
   @VisibleForTesting
@@ -93,6 +90,25 @@ public class DetachedToolWindowManager implements ProjectComponent {
     if (fileEditor != null) {
       myWorkBenchMap.remove(fileEditor);
     }
+  }
+
+  @NotNull
+  @Override
+  public String getComponentName() {
+    return DetachedToolWindowManager.class.getSimpleName();
+  }
+
+  @Override
+  public void initComponent() {
+  }
+
+  @Override
+  public void disposeComponent() {
+  }
+
+  @Override
+  public void projectOpened() {
+    myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myEditorManagerListener);
   }
 
   @Override

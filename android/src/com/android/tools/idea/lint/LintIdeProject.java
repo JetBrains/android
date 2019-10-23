@@ -17,12 +17,17 @@ package com.android.tools.idea.lint;
 
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
+import com.android.ide.common.gradle.model.GradleModelConverterUtil;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.projectmodel.ProjectType;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.support.AndroidxNameUtils;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -235,6 +240,8 @@ public class LintIdeProject extends Project {
       return;
     }
 
+    project.setIdeaProject(module.getProject());
+
     projects.add(project);
     moduleMap.put(module, project);
     projectMap.put(project, module);
@@ -421,6 +428,15 @@ public class LintIdeProject extends Project {
     return false;
   }
 
+  @Nullable
+  @Override
+  public com.intellij.openapi.project.Project getIdeaProject() {
+    if (client instanceof LintIdeClient) {
+      return ((LintIdeClient)client).myProject;
+    }
+    return super.getIdeaProject();
+  }
+
   private static class LintModuleProject extends LintIdeProject {
     private final Module myModule;
 
@@ -580,6 +596,12 @@ public class LintIdeProject extends Project {
     @Override
     public String getName() {
       return myFacet.getModule().getName();
+    }
+
+    @NonNull
+    @Override
+    public ProjectType getProjectType() {
+      return GradleModelConverterUtil.getProjectType(myFacet.getConfiguration().getProjectType());
     }
 
     @Override
@@ -851,6 +873,26 @@ public class LintIdeProject extends Project {
       }
 
       return proguardFiles;
+    }
+
+
+    @Override
+    public boolean hasDynamicFeatures() {
+      if (getProjectType() != ProjectType.APP) {
+        return false;
+      }
+      if (!GradleProjectInfo.getInstance(myFacet.getModule().getProject()).isBuildWithGradle()) {
+        return false;
+      }
+      if (!myFacet.requiresAndroidModel()) {
+        return false;
+      }
+      AndroidModuleModel model = AndroidModuleModel.get(myFacet);
+      if (model == null) {
+        return false;
+      }
+      IdeAndroidProject project = model.getAndroidProject();
+      return project.isBaseSplit() && !project.getDynamicFeatures().isEmpty();
     }
 
     @NonNull

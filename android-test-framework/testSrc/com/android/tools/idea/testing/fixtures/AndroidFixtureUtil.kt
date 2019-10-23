@@ -17,13 +17,23 @@
 
 package com.android.tools.idea.testing.fixtures
 
-import com.android.projectmodel.*
+import com.android.projectmodel.ARTIFACT_NAME_MAIN
+import com.android.projectmodel.AndroidModel
+import com.android.projectmodel.AndroidPathType
+import com.android.projectmodel.AndroidSubmodule
+import com.android.projectmodel.ArtifactDependency
+import com.android.projectmodel.Config
+import com.android.projectmodel.ProjectLibrary
+import com.android.projectmodel.ProjectType
+import com.android.projectmodel.SourceSet
+import com.android.projectmodel.configTableWith
+import com.android.projectmodel.emptySubmodulePath
+import com.android.projectmodel.submodulePathOf
 import com.android.tools.idea.util.toPathString
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.fixtures.TempDirTestFixture
 
 typealias ModelFactory = (TempDirTestFixture) -> AndroidModel
-const val TEST_VARIANT_NAME = "debug"
 
 object CommonModelFactories {
   val SINGLE_APP_MODULE: ModelFactory = singleModuleProject("app", ProjectType.APP)
@@ -33,27 +43,22 @@ object CommonModelFactories {
     val app = SINGLE_APP_MODULE(fixture).submodules.single()
     val lib = SINGLE_LIB_MODULE(fixture).submodules.single()
 
-    val appVariant = app.variants.single()
-    val newConfig = appVariant.mainArtifact.resolved.copy(
+    val mainArtifactPath = submodulePathOf(ARTIFACT_NAME_MAIN)
+    val mainArtifact = app.getArtifact(mainArtifactPath) ?: error("Main artifact missing")
+    val newConfig = mainArtifact.resolved.copy(
       compileDeps = listOf(
         ArtifactDependency(
           library = ProjectLibrary(
             address = lib.name,
             projectName = lib.name,
-            variant = TEST_VARIANT_NAME
+            variant = emptySubmodulePath.simpleName
           )
         )
       )
     )
 
     val newApp = app.copy(
-      variants = listOf(
-        appVariant.copy(
-          mainArtifact = appVariant.mainArtifact.copy(
-            resolved = newConfig
-          )
-        )
-      )
+      artifacts = app.artifacts + (mainArtifactPath to mainArtifact.copy(resolved = newConfig))
     )
 
     AndroidModel(listOf(newApp, lib))
@@ -70,25 +75,15 @@ private fun singleModuleProject(
   AndroidModel(
     listOf(
       AndroidSubmodule(
-        name= moduleName,
-        type = type,
-        variants = listOf(
-          Variant(
-            name = TEST_VARIANT_NAME,
-            mainArtifact = Artifact(
-              name = ARTIFACT_NAME_MAIN,
-              // TODO: how can packageName be in the model, if it changes with the manifest?
-              resolved = Config(
-                sources = SourceSet(
-                  paths = mapOf(
-                    AndroidPathType.JAVA to listOf(src.toPathString())
-                  )
-                )
-              )
-            )
+        name = moduleName,
+        type = type
+      ).withVariantsGeneratedBy(configTableWith(Config(
+        sources = SourceSet(
+          paths = mapOf(
+            AndroidPathType.JAVA to listOf(src.toPathString())
           )
         )
-      )
+      )))
     )
   )
 }

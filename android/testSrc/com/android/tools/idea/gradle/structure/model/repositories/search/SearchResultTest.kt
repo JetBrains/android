@@ -17,7 +17,9 @@ package com.android.tools.idea.gradle.structure.model.repositories.search
 
 import com.android.ide.common.repository.GradleVersion
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.PSDEvent.PSDRepositoryUsage.PSDRepository
 import org.junit.Test
+import java.time.Duration
 
 class SearchResultTest {
 
@@ -56,6 +58,31 @@ class SearchResultTest {
         ),
         listOf(
           error1, error2
+        )))
+  }
+
+  @Test
+  fun combineSearchResultStats() {
+    fun Int.toRepoStats() = SearchResultRepoStats(Duration.ofMillis(this.toLong()))
+    val searchResult1 =
+      SearchResultStats(mapOf(
+        PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_GOOGLE to 100.toRepoStats(),
+        PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_JCENTER to 300.toRepoStats()
+      ))
+    val searchResult2 =
+      SearchResultStats(mapOf(
+        PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_GOOGLE to 100.toRepoStats(),
+        PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_LOCAL to 10.toRepoStats()
+      ))
+
+    val combined = listOf(searchResult1, searchResult2).combine()
+
+    assertThat(combined).isEqualTo(
+      SearchResultStats(
+        mapOf(
+          PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_GOOGLE to 200.toRepoStats(),
+          PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_JCENTER to 300.toRepoStats(),
+          PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_LOCAL to 10.toRepoStats()
         )))
   }
 }

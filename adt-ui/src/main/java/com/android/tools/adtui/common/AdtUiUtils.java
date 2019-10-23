@@ -15,26 +15,34 @@
  */
 package com.android.tools.adtui.common;
 
-import com.android.tools.adtui.TabularLayout;
+import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
+import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
+import static java.awt.event.InputEvent.META_DOWN_MASK;
+
 import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
+import com.android.tools.adtui.TabularLayout;
+import com.intellij.openapi.keymap.MacKeymapUtil;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import java.awt.*;
+import com.intellij.util.ui.UIUtil;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.awt.event.InputEvent;
 import java.util.function.Predicate;
-
-import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
-import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
-import static java.awt.event.InputEvent.META_DOWN_MASK;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.border.Border;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * ADT-UI utility class to hold constants and function used across the ADT-UI framework.
@@ -50,7 +58,7 @@ public final class AdtUiUtils {
    */
   public static final Color DEFAULT_FONT_COLOR = JBColor.foreground();
 
-  public static final Color DEFAULT_BORDER_COLOR = new JBColor(Gray._201, Gray._40);
+  public static final Color DEFAULT_BORDER_COLOR = StudioColorsKt.getBorder();
   public static final Border DEFAULT_TOP_BORDER = BorderFactory.createMatteBorder(1, 0, 0, 0, DEFAULT_BORDER_COLOR);
   public static final Border DEFAULT_LEFT_BORDER = BorderFactory.createMatteBorder(0, 1, 0, 0, DEFAULT_BORDER_COLOR);
   public static final Border DEFAULT_BOTTOM_BORDER = BorderFactory.createMatteBorder(0, 0, 1, 0, DEFAULT_BORDER_COLOR);
@@ -146,6 +154,17 @@ public final class AdtUiUtils {
    */
   public static int getActionMask() {
     return SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
+  }
+
+  /**
+   * returns the action mask text for the current platform. On mac, we try to display the unicode char for cmd button.
+   */
+  public static String getActionKeyText() {
+    if (SystemInfo.isMac) {
+      Font labelFont = UIUtil.getLabelFont();
+      return (labelFont != null && labelFont.canDisplayUpTo(MacKeymapUtil.COMMAND) == -1) ? MacKeymapUtil.COMMAND : "Cmd";
+    }
+    return "Ctrl";
   }
 
   /**

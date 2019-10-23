@@ -15,17 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPluginVersionUpgradeStep;
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
 public class PluginVersionUpgrade {
   @NotNull private final Project myProject;
-  @NotNull private final PluginVersionUpgradeStep[] myUpgradeSteps;
+  @NotNull private final ForcedPluginVersionUpgradeStep[] myForcedUpgradeSteps;
+  @NotNull private final RecommendedPluginVersionUpgradeStep[] myRecommendedUpgradeSteps;
 
   @NotNull
   public static PluginVersionUpgrade getInstance(@NotNull Project project) {
@@ -33,41 +39,76 @@ public class PluginVersionUpgrade {
   }
 
   public PluginVersionUpgrade(@NotNull Project project) {
-    this(project, PluginVersionUpgradeStep.getExtensions());
+    this(project, ForcedPluginVersionUpgradeStep.getExtensions(), RecommendedPluginVersionUpgradeStep.getExtensions());
   }
 
   @VisibleForTesting
-  PluginVersionUpgrade(@NotNull Project project, @NotNull PluginVersionUpgradeStep... upgradeSteps) {
+  public PluginVersionUpgrade(@NotNull Project project,
+                              @NotNull ForcedPluginVersionUpgradeStep[] forcedUpgradeSteps,
+                              @NotNull RecommendedPluginVersionUpgradeStep[] recommendedUpgradeSteps) {
     myProject = project;
-    myUpgradeSteps = upgradeSteps;
+    myForcedUpgradeSteps = forcedUpgradeSteps;
+    myRecommendedUpgradeSteps = recommendedUpgradeSteps;
   }
 
-  /**
-   * Checks if the Android plugin used in the project needs to be upgraded, and if so, performs the upgrade.
-   *
-   * @return {@code true} if an upgrade was needed and was successfully performed; {@code false} otherwise.
-   */
-  public boolean checkAndPerformUpgrade() {
+  @Slow
+  public boolean isForcedUpgradable() {
+    AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(myProject);
+    if (pluginInfo == null) {
+      return false;
+    }
+    return Arrays.stream(myForcedUpgradeSteps).anyMatch(it -> it.checkUpgradable(myProject, pluginInfo));
+  }
+
+  public boolean isRecommendedUpgradable() {
+    AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(myProject);
+    if (pluginInfo == null) {
+      return false;
+    }
+    return Arrays.stream(myRecommendedUpgradeSteps).anyMatch(it -> it.checkUpgradable(myProject, pluginInfo));
+  }
+
+  public boolean performForcedUpgrade() {
+    return performUpgrade(myForcedUpgradeSteps);
+  }
+
+  public boolean performRecommendedUpgrade() {
+    return performUpgrade(myRecommendedUpgradeSteps);
+  }
+
+  private boolean performUpgrade(@NotNull PluginVersionUpgradeStep[] steps) {
     AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(myProject);
     if (pluginInfo == null) {
       getLog().warn("Unable to obtain application's Android Project");
       return false;
     }
-
     log(pluginInfo);
-    for (PluginVersionUpgradeStep upgradeStep : myUpgradeSteps) {
-      if (upgradeStep.checkAndPerformUpgrade(myProject, pluginInfo)) {
-        // plugin was updated and sync requested. No need to continue.
-        return true;
+    return Arrays.stream(steps).anyMatch(it -> {
+      if (it.checkUpgradable(myProject, pluginInfo)) {
+        return it.performUpgradeAndSync(myProject, pluginInfo);
       }
-    }
+      return false;
+    });
+  }
 
-    return false;
+  /**
+   * Checks if the Android plugin used in the project needs to be upgraded, and if so, performs the upgrade.
+   * TODO(b/127454467): remove this function after StudioFlags.BALLOON_UPGRADE_NOTIFICATION is removed.
+   *
+   * @return {@code true} if an upgrade was needed and was successfully performed; {@code false} otherwise.
+   */
+  @Slow
+  public boolean checkAndPerformUpgrade() {
+    // We try force upgrade first then try recommended upgrade.
+    if (performForcedUpgrade()) {
+      return true;
+    }
+    return performRecommendedUpgrade();
   }
 
   private static void log(@NotNull AndroidPluginInfo pluginInfo) {
     GradleVersion current = pluginInfo.getPluginVersion();
-    String recommended = pluginInfo.getPluginGeneration().getLatestKnownVersion();
+    String recommended = LatestKnownPluginVersionProvider.INSTANCE.get();
     String message = String.format("Gradle model version: %1$s, recommended version for IDE: %2$s", current, recommended);
     getLog().info(message);
   }

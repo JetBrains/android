@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.annotations.NonNull;
+import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
+import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -24,6 +26,7 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
@@ -35,8 +38,7 @@ import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListenableFutureTask;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -50,6 +52,19 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import java.io.IOException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
@@ -59,14 +74,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import java.io.IOException;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
-import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 /**
  * The {@link RenderService} provides rendering and layout information for Android layouts. This is a wrapper around the layout library.
@@ -78,9 +85,6 @@ public class RenderService implements Disposable {
                                                                               ApplicationManager.getApplication().isUnitTestMode()
                                                                               ? 60
                                                                               : 6));
-  /** Number of ms that we will keep the render thread alive when idle */
-  private static final long RENDER_THREAD_IDLE_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(10);
-
   @VisibleForTesting
   public static long ourRenderThreadTimeoutMs = DEFAULT_RENDER_THREAD_TIMEOUT_MS;
   private static final AtomicReference<Thread> ourRenderingThread = new AtomicReference<>();
@@ -99,12 +103,11 @@ public class RenderService implements Disposable {
   private final Project myProject;
 
   private static void innerInitializeRenderExecutor() {
-    ourRenderingExecutor = new ThreadPoolExecutor(0, 1,
-                             RENDER_THREAD_IDLE_TIMEOUT_MS, TimeUnit.MILLISECONDS,
+    ourRenderingExecutor = new ThreadPoolExecutor(1, 1,
+                             0, TimeUnit.MILLISECONDS,
                              new LinkedBlockingQueue<>(),
                              (Runnable r) -> {
-                               Thread renderingThread =
-                                 new Thread(null, r, "Layoutlib Render Thread");
+                               Thread renderingThread = new Thread(null, r, "Layoutlib Render Thread");
                                renderingThread.setDaemon(true);
                                ourRenderingThread.set(renderingThread);
 
@@ -321,14 +324,11 @@ public class RenderService implements Disposable {
    * Runs an action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
    * method.
    * <p/>
-   * This method will run the passed action asynchronously and return a {@link ListenableFuture}
+   * This method will run the passed action asynchronously and return a {@link CompletableFuture}
    */
   @NotNull
-  public static <T> ListenableFuture<T> runAsyncRenderAction(@NotNull Callable<T> callable) {
-    ListenableFutureTask<T> future = ListenableFutureTask.create(callable);
-    ourRenderingExecutor.submit(future);
-
-    return future;
+  public static <T> CompletableFuture<T> runAsyncRenderAction(@NotNull Supplier<T> callable) {
+    return CompletableFuture.supplyAsync(callable, ourRenderingExecutor);
   }
 
   /**
@@ -340,7 +340,6 @@ public class RenderService implements Disposable {
   public static void runAsyncRenderAction(@NotNull Runnable runnable) {
     ourRenderingExecutor.submit(runnable);
   }
-
 
   /**
    * Given a {@link ViewInfo} from a layoutlib rendering, checks that the view info provides
@@ -363,8 +362,8 @@ public class RenderService implements Disposable {
    * @return Normally the {@link ViewInfo} itself, but a dummy 0-bound {@link ViewInfo} if
    * the view bounds are indeed invalid
    */
-  @NonNull
-  public static ViewInfo getSafeBounds(@NonNull ViewInfo view) {
+  @NotNull
+  public static ViewInfo getSafeBounds(@NotNull ViewInfo view) {
     int left = Math.abs(view.getLeft());
     int right = Math.abs(view.getRight());
     int top = Math.abs(view.getTop());
@@ -386,7 +385,7 @@ public class RenderService implements Disposable {
    * @return the corresponding tag, if any
    */
   @Nullable
-  public static XmlTag getXmlTag(@NonNull ViewInfo view) {
+  public static XmlTag getXmlTag(@NotNull ViewInfo view) {
     Object cookie = view.getCookie();
     if (cookie != null) {
       if (cookie instanceof TagSnapshot) {
@@ -437,6 +436,10 @@ public class RenderService implements Disposable {
     private boolean isSecurityManagerEnabled = true;
     private float myDownscaleFactor = 1f;
     private boolean showDecorations = true;
+    private int myMaxRenderWidth = -1;
+    private int myMaxRenderHeight = -1;
+    private boolean isShadowEnabled = StudioFlags.NELE_ENABLE_SHADOW.get();
+    private boolean useHighQualityShadows = StudioFlags.NELE_RENDER_HIGH_QUALITY_SHADOW.get();
 
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
@@ -488,7 +491,15 @@ public class RenderService implements Disposable {
       return this;
     }
 
-
+    /**
+     * @see RenderTask#setMaxRenderSize(int, int)
+     */
+    @NotNull
+    public RenderTaskBuilder withMaxRenderSize(int maxRenderWidth, int maxRenderHeight) {
+      myMaxRenderWidth = maxRenderWidth;
+      myMaxRenderHeight = maxRenderHeight;
+      return this;
+    }
 
     /**
      * Disables the security manager for the {@link RenderTask}.
@@ -515,95 +526,125 @@ public class RenderService implements Disposable {
       return this;
     }
 
+    @NotNull
+    public RenderTaskBuilder disableShadow() {
+      this.isShadowEnabled = false;
+      return this;
+    }
+
+    @NotNull
+    public RenderTaskBuilder disableHighQualityShadow() {
+      this.useHighQualityShadows = false;
+      return this;
+    }
+
     /**
-     * Builds a new {@link RenderTask}
+     * Builds a new {@link RenderTask}. The returned future always completes successfully but the value might be null if the RenderTask
+     * can not be created.
      */
-    @Nullable
-    public RenderTask build() {
+    @NotNull
+    public CompletableFuture<RenderTask> build() {
       if (myLogger == null) {
         withLogger(myService.createLogger(myFacet));
       }
 
-      AndroidPlatform platform = getPlatform(myFacet, myLogger);
-      if (platform == null) {
-        return null;
-      }
-
-      IAndroidTarget target = myConfiguration.getTarget();
-      if (target == null) {
-        myLogger.addMessage(RenderProblem.createPlain(ERROR, "No render target was chosen"));
-        return null;
-      }
-
-      Module module = myFacet.getModule();
-      LayoutLibrary layoutLib;
-      try {
-        layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(module.getProject());
-        if (layoutLib == null) {
-          String message = AndroidBundle.message("android.layout.preview.cannot.load.library.error");
-          myLogger.addMessage(RenderProblem.createPlain(ERROR, message));
+      return CompletableFuture.supplyAsync(() -> {
+        AndroidPlatform platform = getPlatform(myFacet, myLogger);
+        if (platform == null) {
           return null;
         }
-      }
-      catch (UnsupportedJavaRuntimeException e) {
-        RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);
-        javaVersionProblem.getHtmlBuilder()
-                          .add(e.getPresentableMessage())
-                          .newline()
-                          .addLink("Install a supported JDK", JDK_INSTALL_URL);
-        myLogger.addMessage(javaVersionProblem);
-        return null;
-      }
-      catch (RenderingException e) {
-        String message = e.getPresentableMessage();
-        message = message != null ? message : AndroidBundle.message("android.layout.preview.default.error.message");
-        myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), e));
-        return null;
-      }
-      catch (IOException e) {
-        final String message = e.getMessage();
-        myLogger.error(null, "I/O error: " + (message != null ? ": " + message : ""), e, null, null);
-        return null;
-      }
 
-      if (myPsiFile != null &&
-          TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(myPsiFile)) &&
-          !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
-        // This means that user is using an outdated version of layoutlib. A warning to update has already been
-        // presented in warnIfObsoleteLayoutLib(). Just log a plain message asking users to update.
-        myLogger
-          .addMessage(RenderProblem.createPlain(ERROR, "This version of the rendering library does not support rendering Preferences. " +
-                                                       "Update it using the SDK Manager"));
-
-        return null;
-      }
-
-      Device device = myConfiguration.getDevice();
-      if (device == null) {
-        myLogger.addMessage(RenderProblem.createPlain(ERROR, "No device selected"));
-        return null;
-      }
-
-      try {
-        RenderTask task =
-          new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
-                         device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
-                         myParserFactory, isSecurityManagerEnabled, myDownscaleFactor);
-        if (myPsiFile instanceof XmlFile) {
-          task.setXmlFile((XmlFile)myPsiFile);
+        IAndroidTarget target = myConfiguration.getTarget();
+        if (target == null) {
+          myLogger.addMessage(RenderProblem.createPlain(ERROR, "No render target was chosen"));
+          return null;
         }
 
-        task.setDecorations(showDecorations);
-
-        return task;
-      } catch (IllegalStateException | IncorrectOperationException | AssertionError e) {
-        // Ignore the exception if it was generated when the facet is being disposed (project is being closed)
-        if (!module.isDisposed()) {
-          throw e;
+        Module module = myFacet.getModule();
+        LayoutLibrary layoutLib;
+        try {
+          layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(module.getProject());
+          if (layoutLib == null) {
+            String message = AndroidBundle.message("android.layout.preview.cannot.load.library.error");
+            myLogger.addMessage(RenderProblem.createPlain(ERROR, message));
+            return null;
+          }
         }
-      }
+        catch (UnsupportedJavaRuntimeException e) {
+          RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);
+          javaVersionProblem.getHtmlBuilder()
+            .add(e.getPresentableMessage())
+            .newline()
+            .addLink("Install a supported JDK", JDK_INSTALL_URL);
+          myLogger.addMessage(javaVersionProblem);
+          return null;
+        }
+        catch (RenderingException e) {
+          String message = e.getPresentableMessage();
+          message = message != null ? message : AndroidBundle.message("android.layout.preview.default.error.message");
+          myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), e));
+          return null;
+        }
+        catch (IOException e) {
+          final String message = e.getMessage();
+          myLogger.error(null, "I/O error: " + (message != null ? ": " + message : ""), e, null, null);
+          return null;
+        }
 
-      return null;
+        if (myPsiFile != null &&
+            TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(myPsiFile)) &&
+            !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
+          // This means that user is using an outdated version of layoutlib. A warning to update has already been
+          // presented in warnIfObsoleteLayoutLib(). Just log a plain message asking users to update.
+          myLogger
+            .addMessage(RenderProblem.createPlain(ERROR, "This version of the rendering library does not support rendering Preferences. " +
+                                                         "Update it using the SDK Manager"));
+
+          return null;
+        }
+
+        Device device = myConfiguration.getDevice();
+        if (device == null) {
+          myLogger.addMessage(RenderProblem.createPlain(ERROR, "No device selected"));
+          return null;
+        }
+
+        try {
+          RenderTask task =
+            new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
+                           device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
+                           myParserFactory, isSecurityManagerEnabled, myDownscaleFactor);
+          if (myPsiFile instanceof XmlFile) {
+            task.setXmlFile((XmlFile)myPsiFile);
+          }
+
+          task
+            .setDecorations(showDecorations)
+            .setHighQualityShadows(useHighQualityShadows)
+            .setShadowEnabled(isShadowEnabled);
+
+          if (myMaxRenderWidth != -1 && myMaxRenderHeight != -1) {
+            task.setMaxRenderSize(myMaxRenderWidth, myMaxRenderHeight);
+          }
+          return task;
+        } catch (IllegalStateException | IncorrectOperationException | AssertionError e) {
+          // Ignore the exception if it was generated when the facet is being disposed (project is being closed)
+          if (!module.isDisposed()) {
+            throw e;
+          }
+        }
+
+        return null;
+      }, AppExecutorUtil.getAppExecutorService());
+    }
+
+    /**
+     * Builds a new {@link RenderTask}.
+     * @deprecated Use {@link RenderTaskBuilder#build}
+     */
+    @Nullable
+    public RenderTask buildSynchronously() {
+      return Futures.getUnchecked(build());
     }
   }
 }

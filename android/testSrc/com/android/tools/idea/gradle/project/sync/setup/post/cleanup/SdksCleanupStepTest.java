@@ -38,9 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
@@ -188,10 +186,6 @@ public class SdksCleanupStepTest extends JavaProjectTestCase {
     Sdks.allowAccessToSdk(getTestRootDisposable());
     IAndroidTarget target = findLatestAndroidTarget(sdkPath);
 
-    String jdkHomePath = Jdks.getJdkHomePath(null);
-    if (jdkHomePath != null) {
-      VfsRootAccess.allowRootAccess(getTestRootDisposable(), jdkHomePath);
-    }
     Jdks jdks = Jdks.getInstance();
     myJdk = jdks.chooseOrCreateJavaSdk();
 

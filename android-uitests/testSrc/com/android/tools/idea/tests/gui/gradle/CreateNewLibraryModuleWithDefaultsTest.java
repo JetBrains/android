@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,13 +52,13 @@ public class CreateNewLibraryModuleWithDefaultsTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void createNewLibraryModuleWithDefaults() throws Exception {
-    guiTest.importSimpleLocalApplication()
+    guiTest.importSimpleApplication()
            .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
            .chooseModuleType("Android Library")
            .clickNextToStep("Android Library")
            .setModuleName("library_module")
            .clickFinish()
-           .waitForGradleProjectSyncToFinish();
+           .waitForGradleProjectSyncToFinish(Wait.seconds(30));
     assertAbout(file()).that(guiTest.getProjectPath("library_module")).isDirectory();
   }
 }

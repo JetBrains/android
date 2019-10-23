@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,31 @@
  * limitations under the License.
  */
 package com.android.tools.idea.testing;
+
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.testutils.TestUtils.getSdk;
+import static com.android.testutils.TestUtils.getWorkspaceFile;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
+import static com.android.utils.TraceUtils.getCurrentStack;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.util.io.FileUtil.copyDir;
+import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+import static com.intellij.testFramework.PlatformTestCase.synchronizeTempDirVfs;
+import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
@@ -34,6 +59,7 @@ import com.android.tools.idea.sdk.Jdks;
 import com.google.common.collect.Lists;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.idea.IdeaTestApplication;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
@@ -51,6 +77,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -64,39 +91,28 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.Consumer;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.concurrent.CountDownLatch;
-
-import static com.android.SdkConstants.*;
-import static com.android.testutils.TestUtils.getSdk;
-import static com.android.testutils.TestUtils.getWorkspaceFile;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
-import static com.android.utils.TraceUtils.getCurrentStack;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
-import static com.intellij.testFramework.HeavyPlatformTestCase.synchronizeTempDirVfs;
-import static java.util.concurrent.TimeUnit.MINUTES;
-
 /**
  * Base class for unit tests that operate on Gradle projects
- *
+ * <p>
  * TODO: After converting all tests over, check to see if there are any methods we can delete or
  * reduce visibility on.
+ * <p>
+ * NOTE: If you are writing a new test, consider using JUnit4 with {@link AndroidGradleProjectRule}
+ * instead. This allows you to use features introduced in JUnit4 (such as parameterization) while
+ * also providing a more compositional approach - instead of your test class inheriting dozens and
+ * dozens of methods you might not be familiar with, those methods will be constrained to the rule.
  */
 public abstract class AndroidGradleTestCase extends AndroidTestBase {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTestCase.class);
@@ -123,6 +139,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     File buildFilePath = new File(getProjectFolderPath(), join(moduleName, FN_BUILD_GRADLE));
     assertAbout(file()).that(buildFilePath).isFile();
     return buildFilePath;
+  }
+
+  @NotNull
+  protected File getSettingsFilePath() {
+    File settingsFilePath = new File(getProjectFolderPath(), FN_SETTINGS_GRADLE);
+    assertAbout(file()).that(settingsFilePath).isFile();
+    return settingsFilePath;
   }
 
   @Override
@@ -247,8 +270,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   protected String loadProjectAndExpectSyncError(@NotNull String relativePath) throws Exception {
-    prepareProjectForImport(relativePath);
-    return requestSyncAndGetExpectedFailure();
+    return loadProjectAndExpectSyncError(relativePath, request -> {
+    });
+  }
+
+  protected String loadProjectAndExpectSyncError(@NotNull String relativePath,
+                                                 @NotNull Consumer<GradleSyncInvoker.Request> requestConfigurator) throws Exception {
+    prepareMultipleProjectsForImport(relativePath);
+    return requestSyncAndGetExpectedFailure(requestConfigurator);
   }
 
   protected void loadSimpleApplication() throws Exception {
@@ -260,25 +289,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void loadProject(@NotNull String relativePath) throws Exception {
-    loadProject(relativePath, null, null);
-  }
-
-  protected void loadProject(@NotNull String relativePath, @NotNull String chosenModuleName) throws Exception {
-
-    loadProject(relativePath, null, chosenModuleName);
-  }
-
-  protected void loadProject(@NotNull String relativePath, @Nullable GradleSyncListener listener)
-    throws Exception {
-    loadProject(relativePath, listener, null);
+    loadProject(relativePath, null);
   }
 
   protected void loadProject(@NotNull String relativePath,
-                             @Nullable GradleSyncListener listener,
                              @Nullable String chosenModuleName) throws Exception {
     prepareProjectForImport(relativePath);
     Project project = getProject();
-    importProject(project.getName(), getBaseDirPath(project), listener);
+    importProject(project.getName(), getBaseDirPath(project));
 
     AndroidProjectInfo androidProjectInfo = AndroidProjectInfo.getInstance(project);
     assertTrue(androidProjectInfo.requiresAndroidModel());
@@ -320,21 +338,51 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     refreshProjectFiles();
   }
 
+  /**
+   * Prepares multiple projects for import.
+   *
+   * @param relativePath   the relative path of the projects from the the test data directory
+   * @param includedBuilds names of all builds to be included (as well as the main project) these names must
+   *                       all be folders within the {@param relativePath}. If empty imports a single project
+   *                       with the root given by {@param relativePath}. The first path will be used as the main
+   *                       project and copied to the main directory, every other path will be copied to a subfolder.
+   * @return root of the imported project or projects.
+   */
   @NotNull
-  protected File prepareProjectForImport(@NotNull String relativePath) throws IOException {
-    File root = new File(getTestDataPath(), toSystemDependentName(relativePath));
+  protected final File prepareMultipleProjectsForImport(@NotNull String relativePath, @NotNull String... includedBuilds) throws IOException {
+    File root = new File(myFixture.getTestDataPath(), toSystemDependentName(relativePath));
     if (!root.exists()) {
       root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));
     }
 
-    // Sync the model
     File projectRoot = new File(myFixture.getProject().getBasePath());
-    prepareProjectForImport(root, projectRoot);
+
+    List<String> buildNames = new ArrayList<>(Arrays.asList(includedBuilds));
+    if (includedBuilds.length == 0) {
+      buildNames.add(".");
+    }
+
+    prepareProjectForImport(new File(root, buildNames.remove(0)), projectRoot);
+
+    for (String buildName : buildNames) {
+      File includedBuildRoot = new File(root, buildName);
+      File projectBuildRoot = new File(projectRoot, buildName);
+      prepareProjectForImport(includedBuildRoot, projectBuildRoot);
+    }
+    patchPreparedProject(projectRoot);
     return projectRoot;
   }
 
+  protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
+  }
+
   @NotNull
-  protected File prepareProjectForImport(@NotNull File srcRoot, @NotNull File projectRoot) throws IOException {
+  protected File prepareProjectForImport(@NotNull String relativePath) throws IOException {
+    return prepareMultipleProjectsForImport(relativePath);
+  }
+
+  @NotNull
+  protected final File prepareProjectForImport(@NotNull File srcRoot, @NotNull File projectRoot) throws IOException {
     assertTrue(srcRoot.getPath(), srcRoot.exists());
 
     File settings = new File(srcRoot, FN_SETTINGS_GRADLE);
@@ -365,9 +413,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     AndroidGradleTests.updateGradleVersions(projectRoot);
   }
 
-  @NotNull
-  protected GradleInvocationResult generateSources() throws InterruptedException {
-    return invokeGradle(getProject(), GradleBuildInvoker::generateSources);
+  protected void generateSources() throws InterruptedException {
+    GradleInvocationResult result = invokeGradle(getProject(), GradleBuildInvoker::generateSources);
+    assertTrue("Generating sources failed.", result.isBuildSuccessful());
+    refreshProjectFiles();
   }
 
   protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @NotNull String... tasks)
@@ -427,43 +476,52 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void importProject(@NotNull String projectName,
-                               @NotNull File projectRoot,
-                               @Nullable GradleSyncListener listener) throws Exception {
+                               @NotNull File projectRoot) throws Exception {
     Ref<Throwable> throwableRef = new Ref<>();
     SyncListener syncListener = new SyncListener();
+    Disposable subscriptionDisposable = Disposer.newDisposable();
+    try {
+      Project project = getProject();
 
-    Project project = getProject();
-    GradleSyncState.subscribe(project, syncListener);
+      ApplicationManager.getApplication().invokeAndWait(() -> {
+        try {
+          // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously.
+          // This causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
+          GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
+          Project newProject = GradleProjectImporter.getInstance().importProjectNoSync(projectName, projectRoot, request);
 
-    runWriteCommandAction(project, () -> {
-      try {
-        // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously.
-        // This causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
-        GradleProjectImporter.Request request = new GradleProjectImporter.Request();
-        request.project = project;
-        request.generateSourcesOnSuccess = false;
-        GradleProjectImporter.getInstance().importProject(projectName, projectRoot, request, listener);
-      }
-      catch (Throwable e) {
-        throwableRef.set(e);
-      }
-    });
+          // It is essential to subscribe to notifications via [newProject] which may be different from the current project if
+          // a new project was requested.
+          GradleSyncState.subscribe(newProject, syncListener, subscriptionDisposable);
 
-    Throwable throwable = throwableRef.get();
-    if (throwable != null) {
-      if (throwable instanceof IOException) {
-        throw (IOException)throwable;
+          GradleSyncInvoker.Request syncRequest = GradleSyncInvoker.Request.testRequest();
+          syncRequest.generateSourcesOnSuccess = false;
+          GradleSyncInvoker.getInstance().requestProjectSync(newProject, syncRequest, null);
+        }
+        catch (Throwable e) {
+          throwableRef.set(e);
+        }
+      });
+
+      Throwable throwable = throwableRef.get();
+      if (throwable != null) {
+        if (throwable instanceof IOException) {
+          throw (IOException)throwable;
+        }
+        else if (throwable instanceof ConfigurationException) {
+          throw (ConfigurationException)throwable;
+        }
+        else {
+          throw new RuntimeException(throwable);
+        }
       }
-      else if (throwable instanceof ConfigurationException) {
-        throw (ConfigurationException)throwable;
-      }
-      else {
-        throw new RuntimeException(throwable);
-      }
+
+      syncListener.await();
     }
-
-    syncListener.await();
-    if (syncListener.failureMessage != null && listener == null) {
+    finally {
+      Disposer.dispose(subscriptionDisposable);
+    }
+    if (syncListener.failureMessage != null) {
       fail(syncListener.failureMessage);
     }
   }
@@ -500,7 +558,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void requestSyncAndWait() throws Exception {
-    SyncListener syncListener = requestSync();
+    SyncListener syncListener = requestSync(request -> { });
     checkStatus(syncListener);
   }
 
@@ -514,7 +572,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   protected String requestSyncAndGetExpectedFailure() throws Exception {
-    SyncListener syncListener = requestSync();
+    return requestSyncAndGetExpectedFailure(request -> { });
+  }
+
+  @NotNull
+  protected String requestSyncAndGetExpectedFailure(@NotNull Consumer<GradleSyncInvoker.Request> requestConfigurator) throws Exception {
+    SyncListener syncListener = requestSync(requestConfigurator);
     assertFalse(syncListener.success);
     String message = syncListener.failureMessage;
     assertNotNull(message);
@@ -522,9 +585,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  private SyncListener requestSync() throws Exception {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+  private SyncListener requestSync(@NotNull Consumer<GradleSyncInvoker.Request> requestConfigurator) throws Exception {
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.generateSourcesOnSuccess = false;
+    requestConfigurator.consume(request);
     return requestSync(request);
   }
 
@@ -539,15 +603,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     syncListener.await();
     return syncListener;
-  }
-
-  private static void refreshProjectFiles() {
-    // With IJ14 code base, we run tests with NO_FS_ROOTS_ACCESS_CHECK turned on. I'm not sure if that
-    // is the cause of the issue, but not all files inside a project are seen while running unit tests.
-    // This explicit refresh of the entire project fix such issues (e.g. AndroidProjectViewTest).
-    // This refresh must be synchronous and recursive so it is completed before continuing the test and clean everything so indexes are
-    // properly updated. Apparently this solves outdated indexes and stubs problems
-    LocalFileSystem.getInstance().refresh(false /* synchronous */);
   }
 
   @NotNull
@@ -609,6 +664,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     @Override
     public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+      success = false;
       failureMessage = !errorMessage.isEmpty() ? errorMessage : "No errorMessage at:\n" + getCurrentStack();
       myLatch.countDown();
     }

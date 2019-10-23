@@ -1,10 +1,26 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
-import com.android.annotations.concurrency.GuardedBy;
-import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.rendering.api.AttrResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
@@ -13,28 +29,35 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
-import com.android.tools.idea.res.FrameworkResourceRepository;
+import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xml.NanoXmlBuilder;
 import com.intellij.util.xml.NanoXmlUtil;
 import gnu.trove.TIntObjectHashMap;
-import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
-import org.jetbrains.android.resourceManagers.FilteredAttributeDefinitions;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.concurrent.GuardedBy;
+import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
+import org.jetbrains.android.resourceManagers.FilteredAttributeDefinitions;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky
@@ -58,7 +81,6 @@ public class AndroidTargetData {
   private TIntObjectHashMap<String> myPublicResourceIdMap;
 
   private volatile MyStaticConstantsData myStaticConstantsData;
-  private FrameworkResourceRepository myFrameworkResources;
 
   public AndroidTargetData(@NotNull AndroidSdkData sdkData, @NotNull IAndroidTarget target) {
     mySdkData = sdkData;
@@ -142,7 +164,7 @@ public class AndroidTargetData {
 
   @Nullable
   public synchronized LayoutLibrary getLayoutLibrary(@NotNull Project project) throws RenderingException, IOException {
-    if (myLayoutLibrary == null) {
+    if (myLayoutLibrary == null || myLayoutLibrary.isDisposed()) {
       if (myTarget instanceof CompatibilityRenderTarget) {
         IAndroidTarget target = ((CompatibilityRenderTarget)myTarget).getRenderTarget();
         AndroidTargetData targetData = mySdkData.getTargetData(target);
@@ -156,6 +178,7 @@ public class AndroidTargetData {
         LOG.warn("Rendering will not use the StudioEmbeddedRenderTarget");
       }
       myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues());
+      Disposer.register(project, myLayoutLibrary);
     }
 
     return myLayoutLibrary;
@@ -177,7 +200,7 @@ public class AndroidTargetData {
       ResourceValue attr = item.getResourceValue();
       if (attr instanceof AttrResourceValue) {
         Map<String, Integer> valueMap = ((AttrResourceValue)attr).getAttributeValues();
-        if (valueMap != null && !valueMap.isEmpty()) {
+        if (!valueMap.isEmpty()) {
           result.put(attr.getName(), valueMap);
         }
       }
@@ -190,7 +213,7 @@ public class AndroidTargetData {
         List<AttrResourceValue> attrs = ((StyleableResourceValue)styleable).getAllAttributes();
         for (AttrResourceValue attr: attrs) {
           Map<String, Integer> valueMap = attr.getAttributeValues();
-          if (valueMap != null && !valueMap.isEmpty()) {
+          if (!valueMap.isEmpty()) {
             result.put(attr.getName(), valueMap);
           }
         }
@@ -201,7 +224,19 @@ public class AndroidTargetData {
 
   public void clearLayoutBitmapCache(Module module) {
     if (myLayoutLibrary != null) {
-      myLayoutLibrary.clearCaches(module);
+      myLayoutLibrary.clearResourceCaches(module);
+    }
+  }
+
+  public void clearFontCache(String path) {
+    if (myLayoutLibrary != null) {
+      myLayoutLibrary.clearFontCache(path);
+    }
+  }
+
+  public void clearAllCaches(Module module) {
+    if (myLayoutLibrary != null) {
+      myLayoutLibrary.clearAllCaches(module);
     }
   }
 
@@ -220,20 +255,13 @@ public class AndroidTargetData {
 
   @Nullable
   public synchronized ResourceRepository getFrameworkResources(boolean withLocale) {
-    // If the framework resources that we got was created by someone else who didn't need locale data.
-    if (myFrameworkResources != null && withLocale && !myFrameworkResources.isWithLocaleResources()) {
-      myFrameworkResources = null;
+    File resFolderOrJar = myTarget.getFile(IAndroidTarget.RESOURCES);
+    if (!resFolderOrJar.exists()) {
+      LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar.getPath()));
+      return null;
     }
-    if (myFrameworkResources == null) {
-      File resFolder = myTarget.getFile(IAndroidTarget.RESOURCES);
-      if (!resFolder.isDirectory()) {
-        LOG.error(AndroidBundle.message("android.directory.cannot.be.found.error", resFolder.getPath()));
-        return null;
-      }
 
-      myFrameworkResources = FrameworkResourceRepository.create(resFolder, withLocale, true);
-    }
-    return myFrameworkResources;
+    return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(resFolderOrJar, withLocale);
   }
 
   /**
@@ -252,7 +280,9 @@ public class AndroidTargetData {
 
     @Override
     protected boolean isAttributeAcceptable(@NotNull ResourceReference attr) {
-      return attr.getNamespace().equals(ResourceNamespace.ANDROID) && isResourcePublic(ResourceType.ATTR.getName(), attr.getName());
+      return attr.getNamespace().equals(ResourceNamespace.ANDROID)
+             && !attr.getName().startsWith("__removed")
+             && isResourcePublic(ResourceType.ATTR.getName(), attr.getName());
     }
   }
 

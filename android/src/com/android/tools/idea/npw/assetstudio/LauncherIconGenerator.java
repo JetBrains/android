@@ -26,7 +26,6 @@ import com.android.tools.idea.concurrent.FutureUtils;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
-import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
@@ -36,8 +35,10 @@ import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ExceptionUtil;
+import com.intellij.util.ExceptionUtilRt;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -53,6 +54,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,8 +75,6 @@ public class LauncherIconGenerator extends IconGenerator {
   private static final Rectangle IMAGE_SIZE_VIEW_PORT_WEB_PX = new Rectangle(0, 0, 512, 512);
   private static final Rectangle IMAGE_SIZE_FULL_BLEED_WEB_PX = new Rectangle(0, 0, 768, 768);
 
-  private final BoolProperty myUseForegroundColor = new BoolValueProperty(true);
-  private final ObjectProperty<Color> myForegroundColor = new ObjectValueProperty<>(DEFAULT_FOREGROUND_COLOR);
   private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(DEFAULT_BACKGROUND_COLOR);
   private final BoolProperty myGenerateLegacyIcon = new BoolValueProperty(true);
   private final BoolProperty myGenerateRoundIcon = new BoolValueProperty(true);
@@ -96,23 +96,6 @@ public class LauncherIconGenerator extends IconGenerator {
    */
   public LauncherIconGenerator(@NotNull Project project, int minSdkVersion, @Nullable DrawableRenderer renderer) {
     super(project, minSdkVersion, new GraphicGeneratorContext(40, renderer));
-  }
-
-  /**
-   * Whether to use the foreground color. When using images as the source asset for our icons,
-   * you shouldn't apply the foreground color, which would paint over it and obscure the image.
-   */
-  @NotNull
-  public BoolProperty useForegroundColor() {
-    return myUseForegroundColor;
-  }
-
-  /**
-   * A color for rendering the foreground icon.
-   */
-  @NotNull
-  public ObjectProperty<Color> foregroundColor() {
-    return myForegroundColor;
   }
 
   /**
@@ -197,13 +180,16 @@ public class LauncherIconGenerator extends IconGenerator {
   @NotNull
   public LauncherIconOptions createOptions(boolean forPreview) {
     LauncherIconOptions options = new LauncherIconOptions(forPreview);
-    options.useForegroundColor = myUseForegroundColor.get();
-    options.foregroundColor = myForegroundColor.get().getRGB();
     // Set foreground image.
     BaseAsset foregroundAsset = sourceAsset().getValueOrNull();
     if (foregroundAsset != null) {
+      options.useForegroundColor = foregroundAsset.isColorable();
+      Color color = foregroundAsset.isColorable() ? foregroundAsset.color().getValueOrNull() : null;
+      if (color != null) {
+        options.foregroundColor = color.getRGB();
+      }
       double scaleFactor = foregroundAsset.scalingPercent().get() / 100.;
-      if (foregroundAsset instanceof VectorAsset) {
+      if (foregroundAsset instanceof ImageAsset && ((ImageAsset)foregroundAsset).isClipart()) {
         scaleFactor *= 0.58;  // Scale correction for clip art to more or less fit into the safe zone.
       }
       else if (foregroundAsset instanceof TextAsset) {
@@ -216,14 +202,14 @@ public class LauncherIconGenerator extends IconGenerator {
         scaleFactor *= IMAGE_SIZE_SAFE_ZONE_DP.getWidth() / SIZE_FULL_BLEED_DP.getWidth();
       }
       options.foregroundImage =
-          new TransformedImageAsset(foregroundAsset, SIZE_FULL_BLEED_DP, scaleFactor, null, 1, getGraphicGeneratorContext());
+          new TransformedImageAsset(foregroundAsset, SIZE_FULL_BLEED_DP, scaleFactor, color, getGraphicGeneratorContext());
     }
     // Set background image.
     ImageAsset backgroundAsset = myBackgroundImageAsset.getValueOrNull();
     if (backgroundAsset != null) {
       double scaleFactor = backgroundAsset.scalingPercent().get() / 100.;
       options.backgroundImage =
-          new TransformedImageAsset(backgroundAsset, SIZE_FULL_BLEED_DP, scaleFactor, null, 1, getGraphicGeneratorContext());
+          new TransformedImageAsset(backgroundAsset, SIZE_FULL_BLEED_DP, scaleFactor, null, getGraphicGeneratorContext());
     }
 
     options.backgroundColor = myBackgroundColor.get().getRGB();
@@ -394,14 +380,22 @@ public class LauncherIconGenerator extends IconGenerator {
 
     if (options.foregroundImage != null && options.foregroundImage.isDrawable()) {
       // Generate foreground drawable.
+      TransformedImageAsset image = options.foregroundImage;
       tasks.add(() -> {
         LauncherIconOptions iconOptions = options.clone();
         iconOptions.generateWebIcon = false;
         iconOptions.density = Density.ANYDPI;
         iconOptions.iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;
 
-        String xmlDrawableText = options.foregroundImage.getTransformedDrawable();
-        assert xmlDrawableText != null;
+        if (!image.isDrawable()) {
+          getLog().error("Background image is not drawable!", new Throwable());
+        }
+        String xmlDrawableText = image.getTransformedDrawable();
+        if (xmlDrawableText == null) {
+          getLog().error("Transformed foreground drawable is null" + (image.isDrawable() ? " but the image is drawable" : ""),
+                         new Throwable());
+          xmlDrawableText = "<vector/>"; // Use an empty image. It will be recomputed again soon.
+        }
         iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
         return new GeneratedXmlResource(name,
                                         new PathString(getIconPath(iconOptions, iconOptions.foregroundLayerName)),
@@ -412,14 +406,22 @@ public class LauncherIconGenerator extends IconGenerator {
 
     if (options.backgroundImage != null && options.backgroundImage.isDrawable()) {
       // Generate background drawable.
+      TransformedImageAsset image = options.backgroundImage;
       tasks.add(() -> {
         LauncherIconOptions iconOptions = options.clone();
         iconOptions.generateWebIcon = false;
         iconOptions.density = Density.ANYDPI;
         iconOptions.iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;
 
-        String xmlDrawableText = options.backgroundImage.getTransformedDrawable();
-        assert xmlDrawableText != null;
+        if (!image.isDrawable()) {
+          getLog().error("Background image is not drawable!", new Throwable());
+        }
+        String xmlDrawableText = image.getTransformedDrawable();
+        if (xmlDrawableText == null) {
+          getLog().error("Transformed background drawable is null" + (image.isDrawable() ? " but the image is drawable" : ""),
+                         new Throwable());
+          xmlDrawableText = "<vector/>"; // Use an empty image. It will be recomputed again soon.
+        }
         iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
         return new GeneratedXmlResource(name,
                                         new PathString(getIconPath(iconOptions, iconOptions.backgroundLayerName)),
@@ -492,12 +494,24 @@ public class LauncherIconGenerator extends IconGenerator {
         localOptions.generateRoundIcon = (previewShape == PreviewShape.LEGACY_ROUND);
         localOptions.generateWebIcon = (previewShape == PreviewShape.WEB);
 
-        BufferedImage image = generatePreviewImage(context, localOptions);
-        return new GeneratedImageIcon(previewShape.id,
-                                      null, // No path for preview icons.
-                                      IconCategory.PREVIEW,
-                                      localOptions.density,
-                                      image);
+        BufferedImage image;
+        String errorMessage = null;
+        try {
+          image = generatePreviewImage(context, localOptions);
+        } catch (Throwable e) {
+          errorMessage = e.getMessage();
+          Rectangle imageRect = getFullBleedRectangle(localOptions);
+          image = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
+        }
+        GeneratedImageIcon icon = new GeneratedImageIcon(previewShape.id,
+                                                         null, // No path for preview icons.
+                                                         IconCategory.PREVIEW,
+                                                         localOptions.density,
+                                                         image);
+        if (errorMessage != null) {
+          icon.setErrorMessage(errorMessage);
+        }
+        return icon;
       });
     }
   }
@@ -921,15 +935,17 @@ public class LauncherIconGenerator extends IconGenerator {
   @NotNull
   private static BufferedImage generateIconLayer(@NotNull GraphicGeneratorContext context, @NotNull String xmlDrawable,
                                                  @NotNull Rectangle imageRect) {
-    ListenableFuture<BufferedImage> imageFuture = context.renderDrawable(xmlDrawable, imageRect.getSize());
+    Future<BufferedImage> imageFuture = context.renderDrawable(xmlDrawable, imageRect.getSize());
     try {
       BufferedImage image = imageFuture.get();
       if (image != null) {
         return image;
       }
     }
-    catch (InterruptedException | ExecutionException e) {
-      // Ignore to return the default image.
+    catch (ExecutionException e) {
+      ExceptionUtil.rethrow(e.getCause());
+    }
+    catch (InterruptedException ignore) {
     }
 
     return AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
@@ -950,7 +966,7 @@ public class LauncherIconGenerator extends IconGenerator {
   @NotNull
   private static BufferedImage generateIconLayer(@NotNull GraphicGeneratorContext context, @NotNull BufferedImage sourceImage,
                                                  @NotNull Rectangle imageRect, double scaleFactor, boolean useFillColor, int fillColor) {
-    Callable<ListenableFuture<BufferedImage>> generator = () -> FutureUtils.executeOnPooledThread(() -> {
+    Callable<Future<BufferedImage>> generator = () -> FutureUtils.executeOnPooledThread(() -> {
       // Scale the image.
       BufferedImage iconImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
       Graphics2D gIcon = (Graphics2D)iconImage.getGraphics();
@@ -1006,7 +1022,7 @@ public class LauncherIconGenerator extends IconGenerator {
     }
 
     CacheKey cacheKey = new CacheKey(sourceImage, imageRect, scaleFactor, useFillColor, fillColor);
-    ListenableFuture<BufferedImage> imageFuture = context.getFromCacheOrCreate(cacheKey, generator);
+    Future<BufferedImage> imageFuture = context.getFromCacheOrCreate(cacheKey, generator);
     return Futures.getUnchecked(imageFuture);
   }
 
@@ -1165,6 +1181,11 @@ public class LauncherIconGenerator extends IconGenerator {
     return super.getIconPath(options, iconName);
   }
 
+  @NotNull
+  private static Logger getLog() {
+    return Logger.getInstance(LauncherIconGenerator.class);
+  }
+
   /** Options specific to generating launcher icons. */
   public static class LauncherIconOptions extends Options implements Cloneable {
     /** The foreground layer name, used to generate resource paths. */
@@ -1266,7 +1287,7 @@ public class LauncherIconGenerator extends IconGenerator {
     @NotNull public BufferedImage background;
     @NotNull public BufferedImage foreground;
 
-    public Layers(@NotNull BufferedImage background, @NotNull BufferedImage foreground) {
+    Layers(@NotNull BufferedImage background, @NotNull BufferedImage foreground) {
       this.background = background;
       this.foreground = foreground;
     }

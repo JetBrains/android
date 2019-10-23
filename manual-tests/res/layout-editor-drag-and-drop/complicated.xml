@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="196dp"
+        android:layout_height="741dp"
+        android:background="#DDDDFF"
+        android:orientation="vertical">
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="121dp"
+            android:layout_height="441dp"
+            android:background="#FFDDDD">
+
+            <Button
+                android:id="@+id/button16"
+                android:layout_width="100dp"
+                android:layout_height="87dp"
+                android:text="SECOND"
+                tools:layout_editor_absoluteX="10dp"
+                tools:layout_editor_absoluteY="64dp" />
+
+        </android.support.constraint.ConstraintLayout>
+
+        <FrameLayout
+            android:layout_width="187dp"
+            android:layout_height="204dp"
+            android:background="#DDFFFF">
+
+            <ImageView
+                android:id="@+id/imageView7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:srcCompat="@tools:sample/avatars" />
+        </FrameLayout>
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/button15"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="FIRST" />
+
+    <LinearLayout
+        android:layout_width="107dp"
+        android:layout_height="501dp"
+        android:background="#DDFFDD"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textView6"
+            android:layout_width="111dp"
+            android:layout_height="80dp"
+            android:text="FIFTH" />
+
+        <Button
+            android:id="@+id/button10"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FORTH" />
+    </LinearLayout>
+
+</LinearLayout>

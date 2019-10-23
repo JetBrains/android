@@ -75,7 +75,7 @@ public class ConfigureJavaModuleStep extends SkippableWizardStep<NewJavaModuleMo
     TextProperty packageNameText = new TextProperty(myPackageName);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
     myBindings.bind(model.packageName(), packageNameText);
-    myListeners.receive(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
+    myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
     myBindings.bindTwoWay(new SelectedProperty(myCreateIgnoreFile), model.createGitIgnore());
 

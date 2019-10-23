@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
+
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -29,15 +31,13 @@ import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
+import java.util.Collection;
+import java.util.Locale;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Set;
-
-import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
 
 public class TargetApiConverter extends ResolvingConverter<Integer> {
   private final Set<Integer> myAllVariants;
@@ -91,7 +91,7 @@ public class TargetApiConverter extends ResolvingConverter<Integer> {
     try {
       int api = Integer.parseInt(s);
       if (!isLegalApi(api, context)) {
-        return String.format("%d is not a valid API level", api);
+        return String.format(Locale.US, "%d is not a valid API level", api);
       }
     }
     catch (NumberFormatException e) {

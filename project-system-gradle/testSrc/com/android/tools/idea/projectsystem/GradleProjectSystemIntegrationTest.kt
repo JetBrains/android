@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants
 import com.android.projectmodel.ExternalLibrary
+import com.android.testutils.truth.FileSubject.assertThat
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
@@ -37,7 +38,7 @@ class GradleProjectSystemIntegrationTest : AndroidGradleTestCase() {
     val guava = libraries
       .filterIsInstance<ExternalLibrary>()
       .first { library -> library.address.startsWith("com.google.guava") }
-    assertThat(guava.classJars.first()!!.fileName).matches("guava-[\\.\\d]+.jar")
+    assertThat(guava.classJars.first().fileName).matches("guava-[\\.\\d]+.jar")
 
     val appcompat = libraries
       .filterIsInstance<com.android.projectmodel.ExternalLibrary>()
@@ -45,6 +46,6 @@ class GradleProjectSystemIntegrationTest : AndroidGradleTestCase() {
 
     assertThat(appcompat.address).matches("com.android.support:support-compat:[\\.\\d]+@aar")
     assertThat(appcompat.manifestFile?.fileName).isEqualTo(SdkConstants.FN_ANDROID_MANIFEST_XML)
-    assertThat(appcompat.resFolder!!.toFile()!!.isDirectory)
+    assertThat(appcompat.resFolder!!.root.toFile()).isDirectory()
   }
 }

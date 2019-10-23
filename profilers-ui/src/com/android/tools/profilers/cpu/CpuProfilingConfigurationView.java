@@ -18,8 +18,8 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.stdui.menu.CommonSeparatorUI;
 import com.android.tools.adtui.util.SwingUtil;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerMode;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
+import com.android.tools.profiler.proto.Cpu.CpuTraceMode;
+import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.JComboBoxView;
 import com.android.tools.profilers.ProfilerCombobox;
@@ -38,22 +38,22 @@ public class CpuProfilingConfigurationView {
    * Fake configuration to represent "Edit configurations..." entry on the profiling configurations combobox.
    */
   static final ProfilingConfiguration EDIT_CONFIGURATIONS_ENTRY = new ProfilingConfiguration("Edit Configurations...",
-                                                                                             CpuProfilerType.UNSPECIFIED_PROFILER,
-                                                                                             CpuProfilerMode.UNSPECIFIED_MODE);
+                                                                                             CpuTraceType.UNSPECIFIED_TYPE,
+                                                                                             CpuTraceMode.UNSPECIFIED_MODE);
 
   /**
    * Fake configuration to represent a separator on the profiling configurations combobox.
    */
   static final ProfilingConfiguration CONFIG_SEPARATOR_ENTRY = new ProfilingConfiguration("Configuration Separator Entry",
-                                                                                          CpuProfilerType.UNSPECIFIED_PROFILER,
-                                                                                          CpuProfilerMode.UNSPECIFIED_MODE);
+                                                                                          CpuTraceType.UNSPECIFIED_TYPE,
+                                                                                          CpuTraceMode.UNSPECIFIED_MODE);
 
   /**
    * A fake configuration shown when an API-initiated tracing is in progress. It exists for UX purpose only and isn't something
    * we want to preserve across stages. Therefore, it exists inside {@link CpuProfilerStage}.
    */
   private final ProfilingConfiguration API_INITIATED_TRACING_PROFILING_CONFIG =
-    new ProfilingConfiguration("Debug API (Java)", CpuProfilerType.ART, CpuProfilerMode.INSTRUMENTED);
+    new ProfilingConfiguration("Debug API (Java)", CpuTraceType.ART, CpuTraceMode.INSTRUMENTED);
 
   @NotNull private final CpuProfilerStage myStage;
   @NotNull private final IdeProfilerComponents myIdeProfilerComponents;

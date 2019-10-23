@@ -18,14 +18,14 @@ package org.jetbrains.android.dom.drawable.fileDescriptions;
 import com.android.resources.ResourceFolderType;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.dom.AbstractMultiRootFileDescription;
+import org.jetbrains.android.dom.MultipleKnownRootsResourceDomFileDescription;
 import org.jetbrains.android.dom.FileDescriptionUtils;
 import org.jetbrains.android.dom.drawable.AdaptiveIcon;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
 
-public class AdaptiveIconDomFileDescription extends AbstractMultiRootFileDescription<AdaptiveIcon> {
+public class AdaptiveIconDomFileDescription extends MultipleKnownRootsResourceDomFileDescription<AdaptiveIcon> {
   public static final ImmutableSet<String> TAGS = ImmutableSet.of("adaptive-icon", "maskable-icon");
 
   public AdaptiveIconDomFileDescription() {

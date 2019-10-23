@@ -16,20 +16,16 @@
 package com.android.tools.idea.welcome.install;
 
 import com.android.SdkConstants;
-import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.ProgressIndicatorAdapter;
 import com.android.repository.api.RemotePackage;
-import com.android.repository.api.RepoPackage;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.Lists;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.Collection;
 
 /**
  * Android SDK installable component.
@@ -66,10 +62,6 @@ public final class AndroidSdk extends InstallableComponent {
       result.add(buildToolsPath);
     }
 
-    for (SdkMavenRepository repository : SdkMavenRepository.values()) {
-      result.add(repository.getRepositoryLocation(new File(""), false, FileOpUtils.create()).getPath().substring(1)
-                   .replace(File.separatorChar, RepoPackage.PATH_SEPARATOR));
-    }
     return result;
   }
 

@@ -39,18 +39,18 @@ public class GradleTaskFinderTestOnlyModuleTest extends AndroidGradleTestCase {
     myTaskFinder = GradleTaskFinder.getInstance();
   }
 
-  public void testAssembleTasksCorrect() throws Exception {
-    Module[] modules = new Module[] { getModule("test") };
+  public void testAssembleTasksCorrect() {
+    Module[] modules = new Module[]{getModule("test")};
     File projectPath = getBaseDirPath(getProject());
-    ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(projectPath, modules, ASSEMBLE, TestCompileType.ALL);
+    ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(modules, ASSEMBLE, TestCompileType.ALL);
     List<String> tasks = tasksPerProject.get(projectPath.toPath());
     assertThat(tasks).containsExactly(":app:assembleDebug", ":test:assembleDebug");
   }
 
-  public void testAssembleTasksNotDuplicated() throws Exception {
-    Module[] modules = new Module[] { getModule("test"), getModule("app") };
+  public void testAssembleTasksNotDuplicated() {
+    Module[] modules = new Module[]{getModule("test"), getModule("app")};
     File projectPath = getBaseDirPath(getProject());
-    ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(projectPath, modules, REBUILD, TestCompileType.ALL);
+    ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(modules, REBUILD, TestCompileType.ALL);
     List<String> tasks = tasksPerProject.get(projectPath.toPath());
     assertThat(tasks).containsExactly("clean", ":app:assembleDebug", ":test:assembleDebug");
     // Make sure clean is the first task (b/78443416)

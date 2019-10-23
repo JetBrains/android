@@ -76,11 +76,16 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
     super(holder, propertyType, name);
     myTransforms = new LinkedHashMap<>(transformMap);
     myType = defaultType;
-    // This must be called after myType has been assign a default value.
+    // This must be called after myType has been assigned a default value.
     setUpTransforms();
   }
 
   private void setUpTransforms() {
+    // If we don't have an element yet we keep the current type.
+    if (myElement == null) {
+      return;
+    }
+
     for (Map.Entry<T, PropertyTransform> e : myTransforms.entrySet()) {
       if (e.getValue().test(myElement)) {
         myType = e.getKey();

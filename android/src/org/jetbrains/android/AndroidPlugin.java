@@ -5,14 +5,14 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.actions.AndroidStudioGradleAction;
-import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.concurrency.JobScheduler;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.components.BaseComponent;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.startup.Actions.moveAction;
@@ -47,10 +47,9 @@ final class AndroidPlugin {
    * Reduces prominence of the Android related UI elements to keep low profile.
    */
   private static void initializeForNonStudio() {
-    AnalyticsSettings.initialize(new LogWrapper(Logger.getInstance(AndroidPlugin.class)), null);
-    AnalyticsSettings.setOptedIn(false);
+    AnalyticsSettings.disable();
+    UsageTracker.disable();
     UsageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.INTELLIJ);
-    UsageTracker.initialize(JobScheduler.getScheduler());
   }
 
   private static void setUpActionsUnderFlag(@NotNull ActionManager actionManager) {
@@ -70,7 +69,8 @@ final class AndroidPlugin {
     DefaultActionGroup group = new DefaultActionGroup("Build Bundle(s) / APK(s)", true) {
       @Override
       public void update(@NotNull AnActionEvent e) {
-        e.getPresentation().setEnabledAndVisible(AndroidStudioGradleAction.isAndroidGradleProject(e));
+            Project project = e.getProject();
+            e.getPresentation().setEnabledAndVisible(project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel());
       }
     };
     actionManager.registerAction(groupId, group);

@@ -83,7 +83,10 @@ public class MotionSceneStatusPanel extends JPanel {
       @Override
       public void actionPerformed(ActionEvent e) {
         // TODO this should be propagated to the rest of the system
-        myTransitions.get(myTransitionMenu.getSelectedIndex());
+        int transitionIndex = myTransitionMenu.getSelectedIndex();
+        if (transitionIndex >= 0) {
+          myTransitions.get(transitionIndex);
+        }
       }
     });
   }

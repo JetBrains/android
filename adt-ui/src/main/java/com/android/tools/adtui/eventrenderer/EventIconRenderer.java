@@ -16,7 +16,6 @@
 package com.android.tools.adtui.eventrenderer;
 
 import com.android.tools.adtui.model.event.EventAction;
-import com.intellij.openapi.util.IconLoader;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -28,15 +27,6 @@ public class EventIconRenderer<E> implements EventRenderer<E> {
 
   @NotNull private Icon myIcon;
   private int myIconWidth;
-
-  @NotNull
-  private static Icon load(String path) {
-    return IconLoader.getIcon(path, EventIconRenderer.class);
-  }
-
-  public EventIconRenderer(String icon) {
-    this(load(icon));
-  }
 
   public EventIconRenderer(@NotNull Icon icon) {
     myIcon = icon;
@@ -50,7 +40,7 @@ public class EventIconRenderer<E> implements EventRenderer<E> {
                    double length,
                    boolean isMouseOver,
                    EventAction<E> notUsedData) {
-    Icon icon = EventRenderer.createImageIconWithBackgroundBorder(myIcon, BORDER_MARGIN, parent.getBackground());
+    Icon icon = EventRenderer.createImageIconWithBackgroundBorder(myIcon, BORDER_MARGIN, parent.getBackground(), g2d);
     AffineTransform originalTransform = g2d.getTransform();
     g2d.transform(transform);
     icon.paintIcon(parent, g2d, -myIconWidth / 2, 0);

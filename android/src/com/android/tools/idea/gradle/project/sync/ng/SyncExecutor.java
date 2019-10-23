@@ -15,6 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
+import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
+import static com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync.createGradleProjectSettingsIfNotExist;
+import static com.android.tools.idea.gradle.project.sync.ng.GradleSyncProgress.notifyProgress;
+import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC;
+import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.isSingleVariantSync;
+import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.finishFailedSync;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_SVS_NOT_SUPPORTED;
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
+import static java.lang.System.currentTimeMillis;
+import static java.util.Collections.emptyList;
+import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.output.AndroidGradleSyncTextConsoleView;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -25,6 +42,7 @@ import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandlerManager
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncAction;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
+import com.android.tools.tracer.Trace;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.build.BuildEventDispatcher;
 import com.intellij.build.DefaultBuildDescriptor;
@@ -46,6 +64,8 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemEvent
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Function;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.UnsupportedVersionException;
@@ -53,24 +73,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
-
-import java.util.List;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
-import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
-import static com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync.createGradleProjectSettingsIfNotExist;
-import static com.android.tools.idea.gradle.project.sync.ng.GradleSyncProgress.notifyProgress;
-import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC;
-import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.isSingleVariantSync;
-import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.finishFailedSync;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings;
-import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
-import static java.lang.System.currentTimeMillis;
-import static java.util.Collections.emptyList;
-import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
 class SyncExecutor {
   @NotNull private final Project myProject;
@@ -109,13 +111,13 @@ class SyncExecutor {
 
   void syncProject(@NotNull ProgressIndicator indicator,
                    @NotNull SyncExecutionCallback callback) {
-    syncProject(indicator, callback, null /* full gradle sync*/, null, null, false);
+    syncProject(indicator, callback, null /* full gradle sync*/, null, null, null, false);
   }
 
   void syncProject(@NotNull ProgressIndicator indicator,
                    @NotNull SyncExecutionCallback callback,
                    @NotNull VariantOnlySyncOptions options) {
-    syncProject(indicator, callback, options, null, null, options.myShouldGenerateSources);
+    syncProject(indicator, callback, options, null, null, null, options.myShouldGenerateSources);
   }
 
   void syncProject(@NotNull ProgressIndicator indicator,
@@ -123,22 +125,19 @@ class SyncExecutor {
                    @Nullable VariantOnlySyncOptions options,
                    @Nullable GradleSyncListener listener,
                    @Nullable GradleSyncInvoker.Request request,
+                   @Nullable SyncResultHandler resultHandler,
                    boolean shouldGenerateSources) {
     if (myProject.isDisposed()) {
       callback.reject(String.format("Project '%1$s' is already disposed", myProject.getName()));
     }
-
-    createGradleProjectSettingsIfNotExist(myProject);
-    // TODO: Handle sync cancellation.
-
-    GradleExecutionSettings executionSettings = findGradleExecutionSettings();
-
-    Function<ProjectConnection, Void> syncFunction = connection -> {
-      syncProject(connection, executionSettings, indicator, callback, options, listener, request, shouldGenerateSources);
-      return null;
-    };
-
     try {
+      createGradleProjectSettingsIfNotExist(myProject);
+      // TODO: Handle sync cancellation.
+      GradleExecutionSettings executionSettings = findGradleExecutionSettings();
+      Function<ProjectConnection, Void> syncFunction = connection -> {
+        syncProject(connection, executionSettings, indicator, callback, options, listener, request, resultHandler, shouldGenerateSources);
+        return null;
+      };
       myHelper.execute(getBaseDirPath(myProject).getPath(), executionSettings, syncFunction);
     }
     catch (Throwable e) {
@@ -152,7 +151,11 @@ class SyncExecutor {
     // We try to avoid passing JVM arguments, to share Gradle daemons between Gradle sync and Gradle build.
     // If JVM arguments from Gradle sync are different than the ones from Gradle build, Gradle won't reuse daemons. This is bad because
     // daemons are expensive (memory-wise) and slow to start.
-    executionSettings.withArguments(myCommandLineArgs.get(myProject)).withVmOptions(emptyList());
+    List<String> options = new ArrayList<>();
+    // For development purposes we might want to forward a trace agent to gradle
+    // This is a no-op in production
+    Trace.addVmArgs(options);
+    executionSettings.withArguments(myCommandLineArgs.get(myProject)).withVmOptions(options);
     return executionSettings;
   }
 
@@ -163,6 +166,7 @@ class SyncExecutor {
                            @Nullable VariantOnlySyncOptions options,
                            @Nullable GradleSyncListener listener,
                            @Nullable GradleSyncInvoker.Request request,
+                           @Nullable SyncResultHandler resultHandler,
                            boolean shouldGenerateSources) {
     // Create a task id for this sync
     ExternalSystemTaskId id = createId(myProject);
@@ -191,6 +195,9 @@ class SyncExecutor {
             executeFullSyncAndGenerateSources(connection, executionSettings, indicator, id, eventDispatcher, callback,
                                               forceFullVariantsSync);
           }
+          if (resultHandler != null) {
+            resultHandler.onCompoundSyncFinished(listener);
+          }
         }
         else if (options != null) {
           executeVariantOnlySync(connection, executionSettings, indicator, id, eventDispatcher, callback, options);
@@ -208,7 +215,7 @@ class SyncExecutor {
           GradleSyncState.getInstance(myProject).syncEnded();
           generateFailureEvent(id);
           GradleSyncInvoker.getInstance()
-            .requestProjectSync(myProject, request != null ? request : GradleSyncInvoker.Request.projectModified(), listener);
+            .requestProjectSync(myProject, request != null ? request : new GradleSyncInvoker.Request(TRIGGER_SVS_NOT_SUPPORTED), listener);
         }
         else {
           myErrorHandlerManager.handleError(id, e);
@@ -220,7 +227,7 @@ class SyncExecutor {
     }
   }
 
-  private void generateFailureEvent(@NotNull ExternalSystemTaskId id) {
+  void generateFailureEvent(@NotNull ExternalSystemTaskId id) {
     if (isInTestingMode()) {
       finishFailedSync(id, myProject);
     }
@@ -273,7 +280,7 @@ class SyncExecutor {
                                                  @NotNull BuildEventDispatcher buildEventDispatcher,
                                                  @NotNull SyncExecutionCallback callback,
                                                  boolean forceFullVariantsSync) {
-    SyncAction syncAction = createSyncAction(true, isSingleVariantSync(myProject));
+    SyncAction syncAction = createSyncAction(true, !forceFullVariantsSync && isSingleVariantSync(myProject));
     // We have to set an empty collection in #forTasks so Gradle knows we want to execute the build until run tasks step
     BuildActionExecuter<Void> executor = connection.action().projectsLoaded(syncAction, models -> callback.setDone(models, id))
       .build().forTasks(emptyList());

@@ -17,7 +17,6 @@ package com.android.tools.idea.templates;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.collect.*;
 import com.intellij.lexer.LexerPosition;
 import com.intellij.openapi.diagnostic.Logger;
@@ -25,7 +24,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
@@ -89,7 +87,7 @@ public class GradleFileSimpleMerger {
     private GroovyLexer myLexer = new GroovyLexer();
     private IElementType myType = null;
 
-    SimpleGradleBuildFileParser(@NotNull String source) {
+    public SimpleGradleBuildFileParser(@NotNull String source) {
       myLexer = new GroovyLexer();
       myLexer.start(source);
       myType = myLexer.getTokenType();
@@ -365,7 +363,7 @@ public class GradleFileSimpleMerger {
     @Nullable
     protected Ast myParam;  // list of statements
 
-    AstNode(@NotNull String id) {
+    public AstNode(@NotNull String id) {
       myId = id;
     }
 
@@ -438,33 +436,29 @@ public class GradleFileSimpleMerger {
 
       RepositoryUrlManager urlManager = RepositoryUrlManager.get();
 
-      AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-      if (sdk != null) {
-        dependencies.forEach((configurationName, unresolvedDependencies) -> {
-          List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(unresolvedDependencies,
-                                                                                     context.getFilter(),
-                                                                                     sdk,
-                                                                                     FileOpUtils.create());
+      dependencies.forEach((configurationName, unresolvedDependencies) -> {
+        List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(unresolvedDependencies,
+                                                                                   context.getFilter(),
+                                                                                   FileOpUtils.create());
 
-          Ast prev = myParam != null ? findInsertionPoint(configurationName) : null;
-          // Add the resolved dependencies:
-          for (GradleCoordinate coordinate : resolved) {
-            AstNode configurationNode = new AstNode(configurationName);
-            configurationNode.myParam = new ValueAst("'" + coordinate + "'");
-            if (prev == null) {
-              // Put this node as the first in the singly linked list.
-              configurationNode.myNext = myParam;
-              myParam = configurationNode;
-            }
-            else {
-              // Append after "prev".
-              configurationNode.myNext = prev.myNext;
-              prev.myNext = configurationNode;
-            }
-            prev = configurationNode;
+        Ast prev = myParam != null ? findInsertionPoint(configurationName) : null;
+        // Add the resolved dependencies:
+        for (GradleCoordinate coordinate : resolved) {
+          AstNode configurationNode = new AstNode(configurationName);
+          configurationNode.myParam = new ValueAst("'" + coordinate + "'");
+          if (prev == null) {
+            // Put this node as the first in the singly linked list.
+            configurationNode.myNext = myParam;
+            myParam = configurationNode;
           }
-        });
-      }
+          else {
+            // Append after "prev".
+            configurationNode.myNext = prev.myNext;
+            prev.myNext = configurationNode;
+          }
+          prev = configurationNode;
+        }
+      });
 
       Ast prev = myParam != null ? myParam.findLast() : null;
       // Add the dependencies we could not parse (steal the AST nodes from the other parse tree):
@@ -548,7 +542,7 @@ public class GradleFileSimpleMerger {
   private static class ValueAst extends Ast {
     private String myValue;
 
-    ValueAst(@NotNull String value) {
+    public ValueAst(@NotNull String value) {
       myValue = value;
     }
 
@@ -571,7 +565,7 @@ public class GradleFileSimpleMerger {
   private static class ValueListAst extends Ast {
     private Set<String> myValues;
 
-    ValueListAst(@NotNull List<String> values) {
+    public ValueListAst(@NotNull List<String> values) {
       myValues = Sets.newLinkedHashSetWithExpectedSize(values.size() + 5);
       myValues.addAll(values);
     }
@@ -608,7 +602,7 @@ public class GradleFileSimpleMerger {
     @NotNull
     private String myText;
 
-    UnknownAstNode(@NotNull String text) {
+    public UnknownAstNode(@NotNull String text) {
       myText = text;
     }
 
@@ -652,7 +646,7 @@ public class GradleFileSimpleMerger {
     private int myIndent;
     private StringBuilder myBuilder;
 
-    PrintContext() {
+    public PrintContext() {
       myBuilder = new StringBuilder();
       myIndent = 0;
     }
@@ -713,7 +707,7 @@ public class GradleFileSimpleMerger {
     private final Project myProject;
     private final String myFilter;
 
-    MergeContext(@Nullable Project project, @Nullable String supportLibVersionFilter) {
+    public MergeContext(@Nullable Project project, @Nullable String supportLibVersionFilter) {
       myProject = project;
       myFilter = supportLibVersionFilter;
     }

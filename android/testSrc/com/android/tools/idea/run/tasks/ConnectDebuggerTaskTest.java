@@ -32,6 +32,7 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.openapi.command.impl.DummyProject;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -78,7 +79,7 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
     builder.installDefaultCommandHandlers();
 
     // Add the debug commands handler
-    builder.setDeviceCommandHandler(JdwpCommandHandler.COMMAND, JdwpCommandHandler::new);
+    //builder.addDeviceHandler(new JdwpCommandHandler()); // FIXME-ank
     myServer = builder.build();
     myServer.start();
 
@@ -111,7 +112,7 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
     myDevice = deviceOptional.get();
 
     // Add process handlers for the fake device associated with our test application's application id
-    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder()
+    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder(DummyProject.getInstance())
       .setApplicationId(TEST_APP_ID)
       .build();
 
@@ -149,7 +150,7 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
   }
 
   public void testWaitForClientCancelled() {
-    myLaunchStatus.terminateLaunch("Cancelled");
+    myLaunchStatus.terminateLaunch("Cancelled", true);
     assertNull(getConnectDebuggerTask(false).waitForClient());
   }
 
@@ -250,7 +251,7 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
     private int myTickCount = 0;
     @NotNull private final Tickable myOnTick;
 
-    TestConnectDebuggerTask(@NotNull Set<String> applicationIds,
+    public TestConnectDebuggerTask(@NotNull Set<String> applicationIds,
                                    @NotNull AndroidDebugger debugger,
                                    @NotNull Project project,
                                    boolean monitorRemoteProcess,

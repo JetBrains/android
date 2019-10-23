@@ -21,7 +21,6 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
@@ -46,14 +45,16 @@ import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtilRt;
+import java.util.concurrent.CompletableFuture;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.function.Predicate;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 import static com.android.tools.lint.checks.AnnotationDetector.RESTRICT_TO_ANNOTATION;
 
@@ -69,7 +70,6 @@ public class ViewEditorImpl extends ViewEditor {
 
   @VisibleForTesting
   private Collection<ViewInfo> myRootViews;
-  private NlDependencyManager myDependencyManager;
 
   public ViewEditorImpl(@NotNull SceneView sceneView) {
     this(sceneView.getModel(), sceneView.getScene());
@@ -84,7 +84,6 @@ public class ViewEditorImpl extends ViewEditor {
     myModel = model;
     myScene = scene;
     mySceneManager = scene != null ? scene.getSceneManager() : null;
-    myDependencyManager = NlDependencyManager.Companion.get();
   }
 
   @Nullable
@@ -145,36 +144,43 @@ public class ViewEditorImpl extends ViewEditor {
     myRootViews = rootViews;
   }
 
-  @Nullable
+  @NotNull
   @Override
-  public Map<NlComponent, Dimension> measureChildren(@NotNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter) {
+  public CompletableFuture<Map<NlComponent, Dimension>> measureChildren(@NotNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter) {
     // TODO: Reuse snapshot!
-    Map<NlComponent, Dimension> unweightedSizes = Maps.newHashMap();
-    XmlTag parentTag = parent.getTag();
-    if (parentTag.isValid()) {
-      if (parent.getChildCount() == 0) {
-        return Collections.emptyMap();
-      }
-      Map<XmlTag, NlComponent> tagToComponent = Maps.newHashMapWithExpectedSize(parent.getChildCount());
-      for (NlComponent child : parent.getChildren()) {
-        tagToComponent.put(child.getTag(), child);
-      }
+    if (!parent.getBackend().isValid()) {
+      return CompletableFuture.completedFuture(Collections.emptyMap());
+    }
 
-      NlModel model = myModel;
-      XmlFile xmlFile = model.getFile();
-      Module module = model.getModule();
-      RenderService renderService = RenderService.getInstance(module.getProject());
-      final RenderTask task = renderService.taskBuilder(model.getFacet(), getConfiguration())
-                                     .withPsiFile(xmlFile)
-                                     .build();
-      if (task == null) {
-        return null;
-      }
+    if (parent.getChildCount() == 0) {
+      return CompletableFuture.completedFuture(Collections.emptyMap());
+    }
+    Map<XmlTag, NlComponent> tagToComponent = Maps.newHashMapWithExpectedSize(parent.getChildCount());
+    for (NlComponent child : parent.getChildren()) {
+      tagToComponent.put(child.getTagDeprecated(), child);
+    }
 
-      // Measure unweighted bounds
-      Map<XmlTag, ViewInfo> map = task.measureChildren(parentTag, filter);
-      task.dispose();
-      if (map != null) {
+    NlModel model = myModel;
+    XmlFile xmlFile = model.getFile();
+    Module module = model.getModule();
+    RenderService renderService = RenderService.getInstance(module.getProject());
+    final RenderTask task = renderService.taskBuilder(model.getFacet(), getConfiguration())
+      .withPsiFile(xmlFile)
+      .buildSynchronously();
+    if (task == null) {
+      return CompletableFuture.completedFuture(Collections.emptyMap());
+    }
+
+    // Measure unweighted bounds
+    XmlTag parentTag = parent.getTagDeprecated();
+    return task.measureChildren(parentTag, filter)
+      .whenCompleteAsync((map, ex) -> task.dispose(), PooledThreadExecutor.INSTANCE)
+      .thenApply(map -> {
+        if (map == null) {
+          return Collections.emptyMap();
+        }
+
+        Map<NlComponent, Dimension> unweightedSizes = Maps.newHashMap();
         for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
           ViewInfo viewInfo = entry.getValue();
           viewInfo = RenderService.getSafeBounds(viewInfo);
@@ -184,10 +190,9 @@ public class ViewEditorImpl extends ViewEditor {
             unweightedSizes.put(child, size);
           }
         }
-      }
-    }
 
-    return unweightedSizes;
+        return unweightedSizes;
+      });
   }
 
   @Nullable
@@ -267,12 +272,6 @@ public class ViewEditorImpl extends ViewEditor {
   @Override
   public void insertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index, @NotNull InsertType insertType) {
     getModel().addComponents(children, parent, getChild(parent, index), insertType, this.myScene.getDesignSurface());
-  }
-
-  @NotNull
-  @Override
-  public NlDependencyManager getDependencyManager() {
-    return myDependencyManager;
   }
 
   @Nullable

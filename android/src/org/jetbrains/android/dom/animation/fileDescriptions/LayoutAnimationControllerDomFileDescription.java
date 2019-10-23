@@ -16,13 +16,13 @@
 package org.jetbrains.android.dom.animation.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.animation.LayoutAnimation;
 
 /**
  * Framework code: AnimationUtils#loadLayoutAnimation
  */
-public class LayoutAnimationControllerDomFileDescription extends AbstractSingleRootFileDescription<LayoutAnimation> {
+public class LayoutAnimationControllerDomFileDescription extends SingleRootResourceDomFileDescription<LayoutAnimation> {
   public LayoutAnimationControllerDomFileDescription() {
     super(LayoutAnimation.class, "layoutAnimation", ResourceFolderType.ANIM);
   }

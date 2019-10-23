@@ -1,26 +1,23 @@
 package org.jetbrains.android.dom.wrappers;
 
+import com.android.tools.idea.res.psi.ResourceNavigationItem;
 import com.intellij.navigation.ItemPresentation;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiTarget;
 import com.intellij.psi.impl.RenameableFakePsiElement;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.util.IncorrectOperationException;
+import javax.swing.Icon;
 import org.jetbrains.android.resourceManagers.ValueResourceInfo;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.io.File;
-
 /**
 * @author Eugene.Kudelevsky
 */
-public class LazyValueResourceElementWrapper extends RenameableFakePsiElement implements PsiTarget,
-                                                                                         Comparable<LazyValueResourceElementWrapper> {
-
+public class LazyValueResourceElementWrapper extends RenameableFakePsiElement
+    implements PsiTarget, Comparable<LazyValueResourceElementWrapper> {
   private final ValueResourceInfo myResourceInfo;
   private final PsiElement myParent;
 
@@ -31,47 +28,26 @@ public class LazyValueResourceElementWrapper extends RenameableFakePsiElement im
   }
 
   @Override
+  @NotNull
   public String getName() {
     return myResourceInfo.getName();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
-    final XmlAttributeValue element = computeElement();
+    XmlAttributeValue element = computeElement();
     if (element == null) {
       throw new IncorrectOperationException(
-        "Cannot find resource '" + myResourceInfo.getName() + "' in file " + myResourceInfo.getContainingFile().getPath());
+          "Cannot find resource '" + myResourceInfo.getName() + "' in file " + myResourceInfo.getContainingFile().getPath());
     }
     return new ValueResourceElementWrapper(element).setName(name);
   }
 
   @Override
+  @NotNull
   public ItemPresentation getPresentation() {
-    return new ItemPresentation() {
-      @Override
-      @Nullable
-      public String getPresentableText() {
-        final String name = myResourceInfo.getName();
-        final VirtualFile file = myResourceInfo.getContainingFile();
-        final VirtualFile dir = file.getParent();
-        if (dir == null) {
-          return name;
-        }
-        return name + " (..." + File.separatorChar + dir.getName() +
-               File.separatorChar + file.getName() + ')';
-      }
-
-      @Override
-      public String getLocationString() {
-        return null;
-      }
-
-      @Override
-      public Icon getIcon(boolean open) {
-        return null;
-      }
-    };
+    return new ResourceNavigationItem.ResourceItemPresentation(myResourceInfo.getResource(), myResourceInfo.getContainingFile());
   }
 
   @Nullable
@@ -79,10 +55,10 @@ public class LazyValueResourceElementWrapper extends RenameableFakePsiElement im
     return myResourceInfo.computeXmlElement();
   }
 
-  @NotNull
   @Override
+  @NotNull
   public PsiElement getNavigationElement() {
-    final XmlAttributeValue element = myResourceInfo.computeXmlElement();
+    XmlAttributeValue element = myResourceInfo.computeXmlElement();
     return element != null ? element : myParent;
   }
 
@@ -92,11 +68,13 @@ public class LazyValueResourceElementWrapper extends RenameableFakePsiElement im
   }
 
   @Override
+  @NotNull
   public String getTypeName() {
     return "Android Value Resource";
   }
 
   @Override
+  @Nullable
   public Icon getIcon() {
     return null;
   }

@@ -169,7 +169,7 @@ public class GenericLinearDragHandler extends DragHandler {
     myNumPositions = layout.getChildCount() + 1;
     NlComponent component = components.get(0);
     myComponent = new TemporarySceneComponent(layout.getScene(), component);
-    myComponent.setSize(editor.pxToDp(NlComponentHelperKt.getW(component)), editor.pxToDp(NlComponentHelperKt.getH(component)), false);
+    myComponent.setSize(editor.pxToDp(NlComponentHelperKt.getW(component)), editor.pxToDp(NlComponentHelperKt.getH(component)));
   }
 
   @Nullable
@@ -377,7 +377,10 @@ public class GenericLinearDragHandler extends DragHandler {
   }
 
   @Override
-  public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
+  public void commit(@AndroidCoordinate int x,
+                     @AndroidCoordinate int y,
+                     int modifiers,
+                     @NotNull InsertType insertType) {
     editor.insertChildren(layout.getNlComponent(), components, myInsertPos, insertType);
     Scene scene = editor.getScene();
     scene.removeComponent(myComponent);

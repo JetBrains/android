@@ -69,7 +69,7 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
       myBasePerspective.selectModule(myModuleName);
     }
   }

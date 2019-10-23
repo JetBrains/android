@@ -15,16 +15,28 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_MULTI_TYPE_APPLICATION_STATEMENT_DOES_NOT_THROW_EXCEPTION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_DEPENDENCY_ON_ROOT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_MAP_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_REMOVE_WHEN_MULTIPLE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAMES_ON_ITEMS_IN_EXPRESSION_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_ON_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITHOUT_CONFIGURATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_WITH_PATH_HAVING_SAME_SEGMENT_NAMES;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 /**
  * Tests for {@link DependenciesModelImpl} and {@link ModuleDependencyModelImpl}.
@@ -32,28 +44,39 @@ import static com.google.common.truth.Truth.assertThat;
 public class ModuleDependencyTest extends GradleFileModelTestCase {
   @Test
   public void testParsingWithCompactNotation() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile project(':javalib1')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(MODULE_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
     List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
-    assertThat(dependencies).hasSize(1);
+    assertThat(dependencies).hasSize(5);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":javalib1";
     assertMatches(expected, dependencies.get(0));
+
+    ExpectedModuleDependency expected1 = new ExpectedModuleDependency();
+    expected1.configurationName = "test";
+    expected1.path = ":test1";
+    assertMatches(expected1, dependencies.get(1));
+    ExpectedModuleDependency expected2 = new ExpectedModuleDependency();
+    expected2.configurationName = "test";
+    expected2.path = ":test2";
+    assertMatches(expected2, dependencies.get(2));
+    ExpectedModuleDependency expected3 = new ExpectedModuleDependency();
+    expected3.configurationName = "androidTestImplementation";
+    expected3.path = ":test3";
+    assertMatches(expected3, dependencies.get(3));
+    ExpectedModuleDependency expected4 = new ExpectedModuleDependency();
+    expected4.configurationName = "androidTestImplementation";
+    expected4.path = ":test4";
+    assertMatches(expected4, dependencies.get(4));
   }
 
   @Test
   public void testParsingWithDependencyOnRoot() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile project(':')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(MODULE_DEPENDENCY_PARSING_WITH_DEPENDENCY_ON_ROOT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -72,13 +95,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParsingWithMapNotation() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile project(path: ':androidlib1', configuration: 'flavor1Release')\n" +
-                  "    compile project(path: ':androidlib2', configuration: 'flavor2Release')\n" +
-                  "    runtime project(path: ':javalib2')\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(MODULE_DEPENDENCY_PARSING_WITH_MAP_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -106,11 +123,129 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testSetConfigurationWhenSingle() throws Exception {
+    writeToBuildFile(MODULE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependencyModel> modules = buildModel.dependencies().modules();
+    assertSize(4, modules);
+
+    assertThat(modules.get(0).configurationName()).isEqualTo("test");
+    modules.get(0).setConfigurationName("androidTest");
+    assertThat(modules.get(0).configurationName()).isEqualTo("androidTest");
+
+    assertThat(modules.get(1).configurationName()).isEqualTo("compile");
+    modules.get(1).setConfigurationName("zapi");
+    assertThat(modules.get(1).configurationName()).isEqualTo("zapi");
+    modules.get(1).setConfigurationName("api"); // Try twice.
+    assertThat(modules.get(1).configurationName()).isEqualTo("api");
+
+    assertThat(modules.get(2).configurationName()).isEqualTo("api");
+    modules.get(2).setConfigurationName("zompile");
+    assertThat(modules.get(2).configurationName()).isEqualTo("zompile");
+    modules.get(2).setConfigurationName("compile"); // Try twice
+    assertThat(modules.get(2).configurationName()).isEqualTo("compile");
+
+    assertThat(modules.get(3).configurationName()).isEqualTo("testCompile");
+    modules.get(3).setConfigurationName("testImplementation");
+    assertThat(modules.get(3).configurationName()).isEqualTo("testImplementation");
+
+    applyChangesAndReparse(buildModel);
+
+    modules = buildModel.dependencies().modules();
+    assertSize(4, modules);
+
+    assertThat(modules.get(0).configurationName()).isEqualTo("androidTest");
+    assertThat(modules.get(0).path().toString()).isEqualTo(":abc");
+
+    assertThat(modules.get(1).configurationName()).isEqualTo("api");
+    assertThat(modules.get(1).path().toString()).isEqualTo(":xyz");
+
+    assertThat(modules.get(2).configurationName()).isEqualTo("compile");
+    assertThat(modules.get(2).path().toString()).isEqualTo(":klm");
+
+    assertThat(modules.get(3).configurationName()).isEqualTo("testImplementation");
+    assertThat(modules.get(3).path().toString()).isEqualTo(":");
+  }
+
+  @Test
+  public void testSetConfigurationWhenMultiple() throws Exception {
+    writeToBuildFile(MODULE_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependencyModel> modules = buildModel.dependencies().modules();
+    assertSize(5, modules);
+    assertThat(modules.get(0).configurationName()).isEqualTo("testCompile");
+    assertThat(modules.get(0).path().toString()).isEqualTo(":abc");
+
+    assertThat(modules.get(1).configurationName()).isEqualTo("testCompile");
+    assertThat(modules.get(1).path().toString()).isEqualTo(":xyz");
+
+    assertThat(modules.get(2).configurationName()).isEqualTo("compile");
+    assertThat(modules.get(2).path().toString()).isEqualTo(":klm");
+
+    assertThat(modules.get(3).configurationName()).isEqualTo("compile");
+    assertThat(modules.get(3).path().toString()).isEqualTo(":");
+
+    assertThat(modules.get(4).configurationName()).isEqualTo("compile");
+    assertThat(modules.get(4).path().toString()).isEqualTo(":pqr");
+
+    {
+      modules.get(0).setConfigurationName("androidTest");
+      List<ModuleDependencyModel> updatedModules = buildModel.dependencies().modules();
+      assertSize(5, updatedModules);
+      assertThat(updatedModules.get(0).configurationName()).isEqualTo("androidTest");
+      assertThat(updatedModules.get(0).path().toString()).isEqualTo(":abc");
+
+      assertThat(updatedModules.get(1).configurationName()).isEqualTo("testCompile");
+      assertThat(updatedModules.get(1).path().toString()).isEqualTo(":xyz");
+    }
+
+    {
+      // Rename both elements of the same group and rename some of them twice.
+      modules.get(2).setConfigurationName("zapi");
+      modules.get(2).setConfigurationName("api");
+      modules.get(4).setConfigurationName("zimplementation");
+      modules.get(4).setConfigurationName("implementation");
+      List<ModuleDependencyModel> updatedModules = buildModel.dependencies().modules();
+      assertSize(5, updatedModules);
+      // Note: The renamed element becomes the first in the group.
+      assertThat(updatedModules.get(2).configurationName()).isEqualTo("api");
+      assertThat(updatedModules.get(2).path().toString()).isEqualTo(":klm");
+
+      assertThat(updatedModules.get(3).configurationName()).isEqualTo("implementation");
+      assertThat(updatedModules.get(3).path().toString()).isEqualTo(":pqr");
+      assertThat(updatedModules.get(3).configuration().toString()).isEqualTo("config");
+
+      assertThat(updatedModules.get(4).configurationName()).isEqualTo("compile");
+      assertThat(updatedModules.get(4).path().toString()).isEqualTo(":");
+    }
+
+    applyChangesAndReparse(buildModel);
+
+    modules = buildModel.dependencies().modules();
+    assertSize(5, modules);
+
+    assertThat(modules.get(0).configurationName()).isEqualTo("androidTest");
+    assertThat(modules.get(0).path().toString()).isEqualTo(":abc");
+
+    assertThat(modules.get(1).configurationName()).isEqualTo("testCompile");
+    assertThat(modules.get(1).path().toString()).isEqualTo(":xyz");
+
+    assertThat(modules.get(2).configurationName()).isEqualTo("api");
+    assertThat(modules.get(2).path().toString()).isEqualTo(":klm");
+
+    assertThat(modules.get(3).configurationName()).isEqualTo("implementation");
+    assertThat(modules.get(3).path().toString()).isEqualTo(":pqr");
+    assertThat(modules.get(3).configuration().toString()).isEqualTo("config");
+
+    assertThat(modules.get(4).configurationName()).isEqualTo("compile");
+    assertThat(modules.get(4).path().toString()).isEqualTo(":");
+  }
+
+  @Test
   public void testSetNameOnCompactNotation() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile project(':javalib1')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(MODULE_DEPENDENCY_SET_NAME_ON_COMPACT_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -123,6 +258,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
+    dependency = dependencies.get(0);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
@@ -132,11 +268,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetNameOnMapNotationWithConfiguration() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile project(path: ':androidlib1', configuration: 'flavor1Release')\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -149,6 +281,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
+    dependency = dependencies.get(0);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
@@ -158,12 +291,41 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
   }
 
   @Test
-  public void testSetNameOnMapNotationWithoutConfiguration() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile project(path: ':androidlib1')\n" +
-                  "}";
+  public void testSetNamesOnItemsInExpressionList() throws IOException {
+    writeToBuildFile(MODULE_DEPENDENCY_SET_NAMES_ON_ITEMS_IN_EXPRESSION_LIST);
 
-    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
+    ModuleDependencyModel dependency1 = dependencies.get(0);
+    dependency1.setName("newName");
+
+    ModuleDependencyModel dependency2 = dependencies.get(1);
+    dependency2.setName("newName2");
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    dependencies = buildModel.dependencies().modules();
+    assertThat(dependencies).hasSize(2);
+    dependency1 = dependencies.get(0);
+    dependency2 = dependencies.get(1);
+
+    ExpectedModuleDependency expected1 = new ExpectedModuleDependency();
+    expected1.configurationName = "compile";
+    expected1.path = ":newName";
+    expected1.configuration = "flavor1Release";
+
+    ExpectedModuleDependency expected2 = new ExpectedModuleDependency();
+    expected2.configurationName = "compile";
+    expected2.path = ":newName2";
+    assertMatches(expected1, dependency1);
+    assertMatches(expected2, dependency2);
+  }
+
+  @Test
+  public void testSetNameOnMapNotationWithoutConfiguration() throws IOException {
+    writeToBuildFile(MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITHOUT_CONFIGURATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -173,6 +335,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    dependency = dependencies.get(0);
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
@@ -185,11 +348,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetNameWithPathHavingSameSegmentNames() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile project(path: ':name:name')\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(MODULE_DEPENDENCY_SET_NAME_WITH_PATH_HAVING_SAME_SEGMENT_NAMES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -202,6 +361,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
+    dependency = dependencies.get(0);
 
     ModuleDependencyModel actual = dependencies.get(0);
 
@@ -214,11 +374,42 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testRemoveWhenMultiple() throws IOException {
+    writeToBuildFile(MODULE_DEPENDENCY_REMOVE_WHEN_MULTIPLE);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ModuleDependencyModel> dependencies = buildModel.dependencies().modules();
+    assertThat(dependencies).hasSize(2);
+
+    ModuleDependencyModel dependency1 = dependencies.get(0);
+    assertThat(dependency1.path().toString()).isEqualTo(":androidlib1");
+
+    ModuleDependencyModel dependency2 = dependencies.get(1);
+    assertThat(dependency2.path().toString()).isEqualTo(":other");
+
+    buildModel.dependencies().remove(dependency2);
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    dependencies = buildModel.dependencies().modules();
+    assertThat(dependencies).hasSize(1);
+
+    ModuleDependencyModel actual = dependencies.get(0);
+
+    ExpectedModuleDependency expected = new ExpectedModuleDependency();
+    expected.configurationName = "compile";
+    expected.configuration = "flavor1Release";
+    expected.path = ":androidlib1";
+    assertMatches(expected, actual);
+
+    assertEquals("androidlib1", actual.name());
+  }
+
+  @Test
   public void testReset() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile project(':javalib1')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(MODULE_DEPENDENCY_RESET);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -235,6 +426,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
+    dependency = dependencies.get(0);
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
@@ -245,12 +437,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
   // Test for b/68188327
   @Test
   public void testMultiTypeApplicationStatementDoesNotThrowException() throws IOException {
-    String text = "dependencies {\n" +
-                  "    implementation group: 'my.test.dep', name: 'artifact', version: 'version', {\n" +
-                  "        exclude module: 'module1'\n" +
-                  "        exclude module: 'module2'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(MODULE_DEPENDENCY_MULTI_TYPE_APPLICATION_STATEMENT_DOES_NOT_THROW_EXCEPTION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 

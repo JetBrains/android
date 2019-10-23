@@ -30,12 +30,14 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImageManager
-import com.android.testutils.NoErrorsOrWarningsLogger
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Maps
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.AndroidTestCase
+
 import java.io.File
+
+import com.android.testutils.NoErrorsOrWarningsLogger
 
 class AvdOptionsModelTest : AndroidTestCase() {
 
@@ -227,7 +229,7 @@ class AvdOptionsModelTest : AndroidTestCase() {
   }
 
   companion object {
-    private const val SDK_LOCATION = "/sdk"
-    private const val AVD_LOCATION = "/avd"
+    private val SDK_LOCATION = "/sdk"
+    private val AVD_LOCATION = "/avd"
   }
 }

@@ -22,8 +22,6 @@ import static org.junit.Assert.fail;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
@@ -49,7 +47,6 @@ public final class ComponentTreeTest {
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE)  // b/112014283
   public void testDropThatOpensDialog() throws IOException {
     WizardUtils.createNewProject(myGuiTest);
     Path activityMainXmlRelativePath = FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml");
@@ -95,12 +92,11 @@ public final class ComponentTreeTest {
     assertEquals(expected, editor.getCurrentFileContents());
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/80336716
   @Test
   public void multiSelectComponentDoNotJumpToXML() {
     EditorFixture editor = null;
     try {
-      editor = myGuiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest")
+      editor = myGuiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
         .getEditor()
         .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN);
     }
@@ -127,7 +123,7 @@ public final class ComponentTreeTest {
   public void dragDropFromTreeToSurfaceDoNotDelete() {
     EditorFixture editor = null;
     try {
-      editor = myGuiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest")
+      editor = myGuiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
                         .getEditor()
                         .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN);
     }

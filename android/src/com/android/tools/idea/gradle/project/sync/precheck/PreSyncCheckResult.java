@@ -25,7 +25,7 @@ public class PreSyncCheckResult {
   @Nullable private final String myFailureCause;
 
   @NotNull
-  static PreSyncCheckResult failure(@NotNull String cause) {
+  public static PreSyncCheckResult failure(@NotNull String cause) {
     return new PreSyncCheckResult(false, cause);
   }
 

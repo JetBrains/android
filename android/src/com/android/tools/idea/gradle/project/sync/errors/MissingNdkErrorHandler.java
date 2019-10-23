@@ -16,14 +16,21 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.SetNdkDirHyperlink;
+import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.project.Project;
+import java.io.File;
+import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.FAILED_TO_INSTALL_NDK_BUNDLE;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.NDK_NOT_CONFIGURED;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class MissingNdkErrorHandler extends BaseSyncErrorHandler {
@@ -32,11 +39,11 @@ public class MissingNdkErrorHandler extends BaseSyncErrorHandler {
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String message = rootCause.getMessage();
     if (isNotEmpty(message) && matchesNdkNotConfigured(getFirstLineMessage(message))) {
-      updateUsageTracker();
+      updateUsageTracker(project, NDK_NOT_CONFIGURED);
       return "NDK not configured.";
     }
     else if (isNotEmpty(message) && matchesTriedInstall(message)) {
-      updateUsageTracker();
+      updateUsageTracker(project, FAILED_TO_INSTALL_NDK_BUNDLE);
       return message;
     }
     return null;
@@ -62,6 +69,42 @@ public class MissingNdkErrorHandler extends BaseSyncErrorHandler {
   @Override
   @NotNull
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
+    File ndkPath = IdeSdks.getInstance().getAndroidNdkPath();
+    if (ndkPath != null) {
+      // There is an existing NDK on disk. Probably an older gradle plugin was unable to locate it
+      // because it is in the NDK side-by-side folder. Let's offer to set ndk.dir to that value.
+      // go/ndk-sxs
+      File localSettingsNdkDir;
+      try {
+        localSettingsNdkDir = getLocalPropertiesNdkDir(project);
+      }
+      catch (IOException e) {
+        // Couldn't access local.properties. No hyperlink because we likely wouldn't be able to
+        // write to local.properties anyway.
+        return Collections.emptyList();
+      }
+      if (localSettingsNdkDir == null) {
+        return Collections.singletonList(new SetNdkDirHyperlink(
+          ndkPath,
+          String.format("Set ndk.dir in local.properties to %s", ndkPath)));
+      } else {
+        // If the paths are identical then replacing won't help.
+        // This only checks for exactly the same path (not collapsing .., etc)
+        if (ndkPath.getPath() == localSettingsNdkDir.getPath()) {
+          return Collections.emptyList();
+        } else {
+          return Collections.singletonList(new SetNdkDirHyperlink(
+            ndkPath,
+            String.format("Replace ndk.dir in local.properties with %s", ndkPath)));
+        }
+      }
+    }
     return Collections.singletonList(new InstallNdkHyperlink());
+  }
+
+
+  @Nullable
+  protected File getLocalPropertiesNdkDir(Project project) throws IOException {
+    return new LocalProperties(project).getAndroidNdkPath();
   }
 }

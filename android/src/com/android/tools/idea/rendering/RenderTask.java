@@ -15,11 +15,23 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.rendering.api.DrawableParams;
+import com.android.ide.common.rendering.api.Features;
+import com.android.ide.common.rendering.api.HardwareConfig;
+import com.android.ide.common.rendering.api.IImageFactory;
+import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.RenderResources;
+import com.android.ide.common.rendering.api.RenderSession;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.Result;
+import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.ide.common.util.PathString;
@@ -34,9 +46,10 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
+import com.android.tools.idea.model.ActivityAttributesSnapshot;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
+import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
@@ -44,12 +57,14 @@ import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.AssetRepositoryImpl;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceIdManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
-import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -58,18 +73,27 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.concurrency.AppExecutorUtil;
+import java.awt.image.BufferedImage;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.image.BufferedImage;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 /**
  * The {@link RenderTask} provides rendering and layout information for
@@ -82,6 +106,7 @@ public class RenderTask {
    * {@link IImageFactory} that returns a new image exactly of the requested size. It does not do caching or resizing.
    */
   private static final IImageFactory SIMPLE_IMAGE_FACTORY = new IImageFactory() {
+    @NotNull
     @Override
     public BufferedImage getImage(int width, int height) {
       @SuppressWarnings("UndesirableClassUsage")
@@ -102,6 +127,18 @@ public class RenderTask {
    */
   private static final int DOWNSCALED_IMAGE_MAX_BYTES = 2_500_000; // 2.5MB
 
+  /**
+   * Executor to run the dispose tasks. The thread will run them sequentially.
+   */
+  private static final ExecutorService ourDisposeService = new ThreadPoolExecutor(0, 1, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
+                                                                                  new ThreadFactory() {
+                                                                                    @Override
+                                                                                    public Thread newThread(@NotNull Runnable runnable) {
+                                                                                      return new Thread(runnable,
+                                                                                                        "RenderTask dispose thread");
+                                                                                    }
+                                                                                  });
+
   @NotNull private final ImagePool myImagePool;
   @NotNull private final RenderTaskContext myContext;
   @NotNull private final RenderLogger myLogger;
@@ -113,17 +150,19 @@ public class RenderTask {
   @NotNull private RenderingMode myRenderingMode = RenderingMode.NORMAL;
   @Nullable private Integer myOverrideBgColor;
   private boolean myShowDecorations = true;
-  @NotNull private final AssetRepositoryImpl myAssetRepository;
+  private boolean myShadowEnabled = true;
+  private boolean myHighQualityShadow = true;
+  private AssetRepositoryImpl myAssetRepository;
   private long myTimeout;
   @NotNull private final Locale myLocale;
   @NotNull private final Object myCredential;
   private boolean myProvideCookiesForIncludedViews = false;
   @Nullable private RenderSession myRenderSession;
-  @NotNull private IImageFactory myCachingImageFactory;
+  @NotNull private IImageFactory myCachingImageFactory = SIMPLE_IMAGE_FACTORY;
   @Nullable private IImageFactory myImageFactoryDelegate;
   private final boolean isSecurityManagerEnabled;
   @NotNull private CrashReporter myCrashReporter;
-  private final List<ListenableFuture<?>> myRunningFutures = new LinkedList<>();
+  private final List<CompletableFuture<?>> myRunningFutures = new LinkedList<>();
   @NotNull private final AtomicBoolean isDisposed = new AtomicBoolean(false);
   @Nullable private XmlFile myXmlFile;
 
@@ -168,7 +207,7 @@ public class RenderTask {
     Module module = facet.getModule();
     myLayoutlibCallback =
         new LayoutlibCallbackImpl(this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory);
-    if (ResourceIdManager.get(module).getFinalIdsUsed()) {
+    if (ResourceIdManager.get(module).finalIdsUsed()) {
       myLayoutlibCallback.loadAndParseRClass();
     }
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
@@ -246,22 +285,21 @@ public class RenderTask {
       return Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
 
-    FutureTask<Void> disposeTask = new FutureTask<>(() -> {
+    return ourDisposeService.submit(() -> {
       try {
-        ImmutableList<ListenableFuture<?>> currentRunningFutures;
+        CompletableFuture<?>[] currentRunningFutures;
         synchronized (myRunningFutures) {
-          currentRunningFutures = ImmutableList.copyOf(myRunningFutures);
+          currentRunningFutures = myRunningFutures.toArray(new CompletableFuture<?>[0]);
           myRunningFutures.clear();
         }
         // Wait for all current running operations to complete
-        Futures.successfulAsList(currentRunningFutures).get(5, TimeUnit.SECONDS);
+        CompletableFuture.allOf(currentRunningFutures).get(5, TimeUnit.SECONDS);
       }
       catch (InterruptedException | ExecutionException e) {
         // We do not care about these exceptions since we are disposing the task anyway
         LOG.debug(e);
       }
       myLayoutlibCallback.setLogger(IRenderLogger.NULL_LOGGER);
-      myLayoutlibCallback.setResourceResolver(null);
       if (myRenderSession != null) {
         try {
           RenderService.runAsyncRenderAction(myRenderSession::dispose);
@@ -271,12 +309,10 @@ public class RenderTask {
         }
       }
       myImageFactoryDelegate = null;
+      myAssetRepository = null;
 
       return null;
     });
-
-    new Thread(disposeTask, "RenderTask dispose thread").start();
-    return disposeTask;
   }
 
   /**
@@ -365,6 +401,28 @@ public class RenderTask {
     return this;
   }
 
+  /**
+   * Sets the value of the {@link com.android.layoutlib.bridge.android.RenderParamsFlags#FLAG_ENABLE_SHADOW}
+   * which dictates if shadows will be rendered or not by layout lib.
+   * <p>
+   * Default is {@code true}.
+   */
+  public RenderTask setShadowEnabled(boolean shadowEnabled) {
+    myShadowEnabled = shadowEnabled;
+    return this;
+  }
+
+  /**
+   * Sets the value of the {@link com.android.layoutlib.bridge.android.RenderParamsFlags#FLAG_RENDER_HIGH_QUALITY_SHADOW}
+   * which dictates if shadows will be rendered using the high quality algorithm by layout lib.
+   * <p>
+   * Default is {@code true}.
+   */
+  public RenderTask setHighQualityShadows(boolean highQualityShadows) {
+    myHighQualityShadow = highQualityShadows;
+    return this;
+  }
+
   /** Returns whether this parser will provide view cookies for included views. */
   public boolean getProvideCookiesForIncludedViews() {
     return myProvideCookiesForIncludedViews;
@@ -430,6 +488,9 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_DISABLE_BITMAP_CACHING, true);
     params.setFlag(RenderParamsFlags.FLAG_DO_NOT_RENDER_ON_CREATE, true);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RESULT_IMAGE_AUTO_SCALE, true);
+    params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_SHADOW, myShadowEnabled);
+    params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW, myHighQualityShadow);
+
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
@@ -438,7 +499,7 @@ public class RenderTask {
     // same session.
     params.setExtendedViewInfoMode(true);
 
-    MergedManifest manifestInfo = MergedManifest.get(module);
+    MergedManifestSnapshot manifestInfo = MergedManifestManager.getSnapshot(module);
 
     Configuration configuration = context.getConfiguration();
     LayoutDirectionQualifier qualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
@@ -467,7 +528,7 @@ public class RenderTask {
         String activity = configuration.getActivity();
         if (activity != null) {
           params.setActivityName(activity);
-          ActivityAttributes attributes = manifestInfo.getActivityAttributes(activity);
+          ActivityAttributesSnapshot attributes = manifestInfo.getActivityAttributes(activity);
           if (attributes != null) {
             if (attributes.getLabel() != null) {
               appLabel = attributes.getLabel();
@@ -477,7 +538,10 @@ public class RenderTask {
             }
           }
         }
-        params.setAppLabel(params.getResources().resolveResValue(appLabel).getValue());
+        ResourceValue resource = params.getResources().resolveResValue(appLabel);
+        if (resource != null) {
+          params.setAppLabel(resource.getValue());
+        }
       }
       catch (Exception ignored) {
       }
@@ -497,7 +561,6 @@ public class RenderTask {
 
     try {
       myLayoutlibCallback.setLogger(myLogger);
-      myLayoutlibCallback.setResourceResolver(resolver);
 
       RenderSecurityManager securityManager =
           isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, getContext().getPlatform()) : null;
@@ -582,36 +645,33 @@ public class RenderTask {
     return topParser;
   }
 
+  private static <T> CompletableFuture<T> immediateFailedFuture(Throwable exception) {
+    CompletableFuture<T> future = new CompletableFuture<>();
+    future.completeExceptionally(exception);
+    return future;
+  }
+
   /**
    * Executes the passed {@link Callable} as an async render action and keeps track of it. If {@link #dispose()} is called, the call will
    * wait until all the async actions have finished running.
-   * See {@link RenderService#runAsyncRenderAction(Callable)}.
+   * See {@link RenderService#runAsyncRenderAction(Supplier)}.
    */
   @VisibleForTesting
   @NotNull
-  <V> ListenableFuture<V> runAsyncRenderAction(@NotNull Callable<V> callable) {
+  <V> CompletableFuture<V> runAsyncRenderAction(@NotNull Supplier<V> callable) {
     if (isDisposed.get()) {
-      return Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
+      return immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
 
     synchronized (myRunningFutures) {
-      ListenableFuture<V> newFuture = RenderService.runAsyncRenderAction(callable);
-      Futures.addCallback(newFuture, new FutureCallback<V>() {
-        @Override
-        public void onSuccess(@Nullable V result) {
-          synchronized (myRunningFutures) {
-            myRunningFutures.remove(newFuture);
-          }
-        }
-
-        @Override
-        public void onFailure(@Nullable Throwable ignored) {
-          synchronized (myRunningFutures) {
-            myRunningFutures.remove(newFuture);
-          }
-        }
-      }, AppExecutorUtil.getAppExecutorService());
+      CompletableFuture<V> newFuture = RenderService.runAsyncRenderAction(callable);
       myRunningFutures.add(newFuture);
+      newFuture
+        .whenCompleteAsync((result, ex) -> {
+          synchronized (myRunningFutures) {
+            myRunningFutures.remove(newFuture);
+          }
+        });
 
       return newFuture;
     }
@@ -621,31 +681,27 @@ public class RenderTask {
    * Inflates the layout but does not render it.
    * @return A {@link RenderResult} with the result of inflating the inflate call. The result might not contain a result bitmap.
    */
-  @Nullable
-  public RenderResult inflate() {
+  @NotNull
+  public CompletableFuture<RenderResult> inflate() {
     // During development only:
     //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during inflate!";
 
     XmlFile xmlFile = getXmlFile();
     if (xmlFile == null) {
-      throw new IllegalStateException("inflate shouldn't be called on RenderTask without PsiFile");
+      return immediateFailedFuture(new IllegalStateException("inflate shouldn't be called on RenderTask without PsiFile"));
     }
     if (xmlFile.getProject().isDisposed()) {
-      return null;
+      return CompletableFuture.completedFuture(null);
     }
 
     try {
       return runAsyncRenderAction(() -> createRenderSession((width, height) -> {
-        if (xmlFile.getProject().isDisposed()) {
-          return null;
-        }
         if (myImageFactoryDelegate != null) {
           return myImageFactoryDelegate.getImage(width, height);
         }
 
-        //noinspection UndesirableClassUsage
         return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-      })).get();
+      }));
     }
     catch (Exception e) {
       String message = e.getMessage();
@@ -653,17 +709,17 @@ public class RenderTask {
         message = e.toString();
       }
       myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e));
-      return RenderResult.createSessionInitializationError(this, xmlFile, myLogger, e);
+      return CompletableFuture.completedFuture(RenderResult.createSessionInitializationError(this, xmlFile, myLogger, e));
     }
   }
 
   /**
-   * Only do a measure pass using the current render session
+   * Only do a measure pass using the current render session.
    */
   @NotNull
-  public ListenableFuture<RenderResult> layout() {
+  public CompletableFuture<RenderResult> layout() {
     if (myRenderSession == null) {
-      return Futures.immediateFuture(null);
+      return CompletableFuture.completedFuture(null);
     }
 
     assert getXmlFile() != null;
@@ -679,7 +735,7 @@ public class RenderTask {
     catch (Exception e) {
       // nothing
     }
-    return Futures.immediateFuture(null);
+    return CompletableFuture.completedFuture(null);
   }
 
   /**
@@ -687,55 +743,64 @@ public class RenderTask {
    */
   private void reportException(@NotNull Throwable e) {
     // This in an unhandled layoutlib exception, pass it to the crash reporter
-    myCrashReporter.submit(new StudioExceptionReport.Builder().setThrowable(e).build());
+    myCrashReporter.submit(new StudioExceptionReport.Builder().setThrowable(e, false).build());
   }
 
   /**
    * Renders the layout to the current {@link IImageFactory} set in {@link #myImageFactoryDelegate}
    */
   @NotNull
-  private ListenableFuture<RenderResult> renderInner() {
+  private CompletableFuture<RenderResult> renderInner() {
     // During development only:
     //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during render!";
 
-    if (myRenderSession == null) {
-      RenderResult renderResult = inflate();
-      Result result = renderResult != null ? renderResult.getRenderResult() : null;
-      if (result == null || !result.isSuccess()) {
-        if (result != null) {
-          if (result.getException() != null) {
-            reportException(result.getException());
-          }
-          myLogger.error(null, result.getErrorMessage(), result.getException(), null, null);
-        }
-        return Futures.immediateFuture(renderResult);
-      }
-    }
-
     PsiFile psiFile = getXmlFile();
     assert psiFile != null;
-    try {
-      return runAsyncRenderAction(() -> {
-        myRenderSession.render();
-        RenderResult result =
-          RenderResult.create(this, myRenderSession, psiFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()));
-        Result renderResult = result.getRenderResult();
-        if (renderResult.getException() != null) {
-          reportException(renderResult.getException());
-          myLogger.error(null, renderResult.getErrorMessage(), renderResult.getException(), null, null);
-        }
-        return result;
-      });
+
+    CompletableFuture<RenderResult> inflateCompletableResult;
+    if (myRenderSession == null) {
+      inflateCompletableResult = inflate()
+        .whenComplete((renderResult, exception) -> {
+          Result result = renderResult != null ? renderResult.getRenderResult() : null;
+          if (result == null || !result.isSuccess()) {
+            Throwable e = result != null ? result.getException() : exception;
+            if (e != null) {
+              reportException(e);
+            }
+            if (result != null) {
+              myLogger.error(null, result.getErrorMessage(), e, null, null);
+            }
+          }
+        });
     }
-    catch (Exception e) {
-      reportException(e);
-      String message = e.getMessage();
-      if (message == null) {
-        message = e.toString();
+    else {
+      inflateCompletableResult = CompletableFuture.completedFuture(null);
+    }
+
+    return inflateCompletableResult.thenCompose(ignored -> {
+      try {
+        return runAsyncRenderAction(() -> {
+          myRenderSession.render();
+          RenderResult result =
+            RenderResult.create(this, myRenderSession, psiFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()));
+          Result renderResult = result.getRenderResult();
+          if (renderResult.getException() != null) {
+            reportException(renderResult.getException());
+            myLogger.error(null, renderResult.getErrorMessage(), renderResult.getException(), null, null);
+          }
+          return result;
+        });
       }
-      myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e));
-      return Futures.immediateFuture(RenderResult.createSessionInitializationError(this, psiFile, myLogger, e));
-    }
+      catch (Exception e) {
+        reportException(e);
+        String message = e.getMessage();
+        if (message == null) {
+          message = e.toString();
+        }
+        myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e));
+        return CompletableFuture.completedFuture(RenderResult.createSessionInitializationError(this, psiFile, myLogger, e));
+      }
+    });
   }
 
   /**
@@ -745,7 +810,7 @@ public class RenderTask {
    * If {@link #inflate()} hasn't been called before, this method will implicitly call it.
    */
   @NotNull
-  ListenableFuture<RenderResult> render(@NotNull IImageFactory factory) {
+  CompletableFuture<RenderResult> render(@NotNull IImageFactory factory) {
     myImageFactoryDelegate = factory;
 
     return renderInner();
@@ -758,7 +823,7 @@ public class RenderTask {
    * If {@link #inflate()} hasn't been called before, this method will implicitly call it.
    */
   @NotNull
-  public ListenableFuture<RenderResult> render() {
+  public CompletableFuture<RenderResult> render() {
     return render(myCachingImageFactory);
   }
 
@@ -796,15 +861,11 @@ public class RenderTask {
    * Asynchronously renders the given resource value (which should refer to a drawable)
    * and returns it as an image.
    *
-   * @param drawableResourceValue the drawable resource value to be rendered, or null
-   * @return a {@link ListenableFuture} with the BufferedImage of the passed drawable.
+   * @param drawableResourceValue the drawable resource value to be rendered
+   * @return a {@link CompletableFuture} with the BufferedImage of the passed drawable.
    */
   @NotNull
-  public ListenableFuture<BufferedImage> renderDrawable(ResourceValue drawableResourceValue) {
-    if (drawableResourceValue == null) {
-      return Futures.immediateFuture(null);
-    }
-
+  public CompletableFuture<BufferedImage> renderDrawable(@NotNull ResourceValue drawableResourceValue) {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     RenderTaskContext context = getContext();
@@ -816,17 +877,26 @@ public class RenderTask {
     params.setForceNoDecor();
     params.setAssetRepository(myAssetRepository);
 
-    ListenableFuture<Result> futureResult = runAsyncRenderAction(() -> myLayoutLib.renderDrawable(params));
-    return Futures.transform(futureResult, result -> {
-      if (result != null && result.isSuccess()) {
-        Object data = result.getData();
-        if (data instanceof BufferedImage) {
-          return (BufferedImage)data;
-        }
-      }
+    return runAsyncRenderAction(() -> myLayoutLib.renderDrawable(params))
+        .thenCompose(result -> {
+          if (result != null && result.isSuccess()) {
+            Object data = result.getData();
+            if (!(data instanceof BufferedImage)) {
+              data = null;
+            }
+            return CompletableFuture.completedFuture((BufferedImage)data);
+          }
+          else {
+            Throwable exception = result == null ? new RuntimeException("Rendering failed - null result") : result.getException();
+            if (exception == null) {
+              String message = result.getErrorMessage();
+              exception = new RuntimeException(message == null ? "Rendering failed" : "Rendering failed - " + message);
+            }
+            reportException(exception);
+            return immediateFailedFuture(exception);
+          }
 
-      return null;
-    }, AppExecutorUtil.getAppExecutorService());
+        });
   }
 
   /**
@@ -914,39 +984,37 @@ public class RenderTask {
    * @param filter the filter to apply to the attribute values
    * @return a map from the children of the parent to new bounds of the children
    */
-  @Nullable
-  public Map<XmlTag, ViewInfo> measureChildren(@NotNull XmlTag parent, @Nullable AttributeFilter filter) {
+  @NotNull
+  public CompletableFuture<Map<XmlTag, ViewInfo>> measureChildren(@NotNull XmlTag parent, @Nullable AttributeFilter filter) {
     ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter, parent, myLogger);
     Map<XmlTag, ViewInfo> map = new HashMap<>();
-    RenderSession session = null;
-    try {
-      session = RenderService.runRenderAction(() -> measure(modelParser));
-    }
-    catch (Exception ignored) {
-    }
-    if (session != null) {
-      try {
-        Result result = session.getResult();
+    return RenderService.runAsyncRenderAction(() -> measure(modelParser))
+        .thenComposeAsync(session -> {
+          if (session != null) {
+            try {
+              Result result = session.getResult();
 
-        if (result != null && result.isSuccess()) {
-          assert session.getRootViews().size() == 1;
-          ViewInfo root = session.getRootViews().get(0);
-          List<ViewInfo> children = root.getChildren();
-          for (ViewInfo info : children) {
-            XmlTag tag = RenderService.getXmlTag(info);
-            if (tag != null) {
-              map.put(tag, info);
+              if (result != null && result.isSuccess()) {
+                assert session.getRootViews().size() == 1;
+                ViewInfo root = session.getRootViews().get(0);
+                List<ViewInfo> children = root.getChildren();
+                for (ViewInfo info : children) {
+                  XmlTag tag = RenderService.getXmlTag(info);
+                  if (tag != null) {
+                    map.put(tag, info);
+                  }
+                }
+              }
+
+              return CompletableFuture.completedFuture(map);
+            }
+            finally {
+              RenderService.runAsyncRenderAction(session::dispose);
             }
           }
-        }
 
-        return map;
-      } finally {
-        RenderService.runAsyncRenderAction(session::dispose);
-      }
-    }
-
-    return null;
+          return CompletableFuture.completedFuture(Collections.emptyMap());
+        });
   }
 
   /**
@@ -961,7 +1029,8 @@ public class RenderTask {
   public ViewInfo measureChild(@NotNull XmlTag tag, @Nullable AttributeFilter filter) {
     XmlTag parent = tag.getParentTag();
     if (parent != null) {
-      Map<XmlTag, ViewInfo> map = measureChildren(parent, filter);
+      // This should be asynchronous too
+      Map<XmlTag, ViewInfo> map = Futures.getUnchecked(measureChildren(parent, filter));
       if (map != null) {
         for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
           if (entry.getKey() == tag) {
@@ -978,10 +1047,6 @@ public class RenderTask {
   private RenderSession measure(ILayoutPullParser parser) {
     RenderTaskContext context = getContext();
     ResourceResolver resolver = context.getConfiguration().getResourceResolver();
-    if (resolver == null) {
-      // Abort the rendering if the resources are not found.
-      return null;
-    }
 
     myLayoutlibCallback.reset();
 
@@ -1003,7 +1068,7 @@ public class RenderTask {
     params.setLocale(myLocale.toLocaleId());
     params.setAssetRepository(myAssetRepository);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT, true);
-    MergedManifest manifestInfo = MergedManifest.get(module);
+    MergedManifestSnapshot manifestInfo = MergedManifestManager.getSnapshot(module);
     try {
       params.setRtlSupport(manifestInfo.isRtlSupported());
     } catch (Exception ignore) {
@@ -1011,7 +1076,6 @@ public class RenderTask {
 
     try {
       myLayoutlibCallback.setLogger(myLogger);
-      myLayoutlibCallback.setResourceResolver(resolver);
 
       return myLayoutLib.createSession(params);
     }

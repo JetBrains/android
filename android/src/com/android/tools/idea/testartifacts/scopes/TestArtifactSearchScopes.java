@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
+import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
+import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.roots.DependencyScope.TEST;
+import static org.jetbrains.android.facet.IdeaSourceProvider.getAllSourceFolders;
+
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.project.ProjectStructure;
@@ -25,27 +32,19 @@ import com.android.tools.idea.gradle.project.sync.setup.module.dependency.Depend
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
-import static com.android.builder.model.AndroidProject.*;
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.roots.DependencyScope.TEST;
-import static org.jetbrains.android.facet.IdeaSourceProvider.getAllSourceFolders;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Android test artifacts {@code GlobalSearchScope}s:
@@ -56,7 +55,7 @@ import static org.jetbrains.android.facet.IdeaSourceProvider.getAllSourceFolders
  * <li>"Excluded" for unit test source</li>
  * </ul>
  */
-public final class TestArtifactSearchScopes implements Disposable {
+public final class TestArtifactSearchScopes {
   private static final Key<TestArtifactSearchScopes> SEARCH_SCOPES_KEY = Key.create("TEST_ARTIFACT_SEARCH_SCOPES");
 
   @NotNull private final Module myModule;
@@ -82,9 +81,8 @@ public final class TestArtifactSearchScopes implements Disposable {
       return null;
     }
 
-    ProjectFileIndex projectFileIndex = ProjectFileIndex.getInstance(project);
-    Module module = projectFileIndex.getModuleForFile(file);
-    return module == null ? null : get(module);
+    Module module = ModuleUtilCore.findModuleForFile(file, project);
+    return module != null ? get(module) : null;
   }
 
   @Nullable
@@ -99,14 +97,12 @@ public final class TestArtifactSearchScopes implements Disposable {
    */
   public static void initializeScope(@NotNull Module module) {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-    TestArtifactSearchScopes scopes = androidModel != null ? new TestArtifactSearchScopes(module) : null;
+    TestArtifactSearchScopes scopes = androidModel == null ? null : new TestArtifactSearchScopes(module);
     module.putUserData(SEARCH_SCOPES_KEY, scopes);
   }
 
   private TestArtifactSearchScopes(@NotNull Module module) {
     myModule = module;
-    Disposer.register(module, this);
-    module.putUserData(SEARCH_SCOPES_KEY, this);
   }
 
   @NotNull
@@ -161,31 +157,46 @@ public final class TestArtifactSearchScopes implements Disposable {
     return new FileRootSearchScope(myModule.getProject(), roots);
   }
 
+  /**
+   * Returns a {@link com.intellij.psi.search.GlobalSearchScope} that contains files to be excluded from resolution inside android tests.
+   */
   @NotNull
   public FileRootSearchScope getAndroidTestExcludeScope() {
     if (myAndroidTestExcludeScope == null) {
-      FileRootSearchScope exclude = getUnitTestSourceScope().exclude(getAndroidTestSourceScope());
-      myAndroidTestExcludeScope = exclude.merge(getAndroidTestDependencyExcludeScope());
+      // Exclude all unit tests, unless some of them are also android tests (currently that's never the case).
+      FileRootSearchScope exclude = getUnitTestSourceScope().subtract(getAndroidTestSourceScope());
+      // Exclude all dependencies which are only for unit tests.
+      myAndroidTestExcludeScope = exclude.add(getAndroidTestDependencyExcludeScope());
     }
     return myAndroidTestExcludeScope;
   }
 
+  /**
+   * Returns a {@link com.intellij.psi.search.GlobalSearchScope} that contains files to be excluded from resolution inside unit tests.
+   */
   @NotNull
   public FileRootSearchScope getUnitTestExcludeScope() {
     if (myUnitTestExcludeScope == null) {
-      FileRootSearchScope exclude = getAndroidTestSourceScope().exclude(getUnitTestSourceScope());
-      myUnitTestExcludeScope = exclude.merge(getUnitTestDependencyExcludeScope());
+      // Exclude all android tests, unless some of them are also unit tests (currently that's never the case).
+      FileRootSearchScope exclude = getAndroidTestSourceScope().subtract(getUnitTestSourceScope());
+      // Exclude all dependencies which are only for android tests.
+      myUnitTestExcludeScope = exclude.add(getUnitTestDependencyExcludeScope());
     }
     return myUnitTestExcludeScope;
   }
 
+  /**
+   * Returns a {@link com.intellij.psi.search.GlobalSearchScope} that contains files to be excluded from resolution inside shared tests.
+   *
+   * <p>Note that currently there are no shared tests in AGP.
+   */
   @NotNull
   public FileRootSearchScope getSharedTestsExcludeScope() {
     if (mySharedTestsExcludeScope == null) {
       // When a file is shared by both tests, then the test should only access the dependencies that android test and unit test both
-      // have. Since the API requires us return a excluding scope. So we want to exclude all the dependencies android test doesn't
+      // have. Since the API requires us return a excluding scope, we want to exclude all the dependencies android test doesn't
       // includes and the ones that unit test doesn't have.
-      mySharedTestsExcludeScope = getAndroidTestDependencyExcludeScope().merge(getUnitTestDependencyExcludeScope());
+      mySharedTestsExcludeScope = getAndroidTestDependencyExcludeScope().add(getUnitTestDependencyExcludeScope());
     }
     return mySharedTestsExcludeScope;
   }
@@ -338,11 +349,6 @@ public final class TestArtifactSearchScopes implements Disposable {
         }
       }
     }
-  }
-
-  @Override
-  public void dispose() {
-    myModule.putUserData(SEARCH_SCOPES_KEY, null);
   }
 
   @VisibleForTesting

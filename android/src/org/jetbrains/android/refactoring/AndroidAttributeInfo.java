@@ -12,14 +12,14 @@ class AndroidAttributeInfo {
   private final String myName;
   private final String myPackage;
 
-  AndroidAttributeInfo(@NotNull String name, @Nullable String aPackage) {
+  public AndroidAttributeInfo(@NotNull String name, @Nullable String aPackage) {
     myName = name;
     myPackage = aPackage;
   }
 
   public String getNamespace() {
     final boolean system = AndroidUtils.SYSTEM_RESOURCE_PACKAGE.equals(myPackage);
-    return system ? SdkConstants.NS_RESOURCES : null;
+    return system ? SdkConstants.ANDROID_URI : null;
   }
 
   @NotNull

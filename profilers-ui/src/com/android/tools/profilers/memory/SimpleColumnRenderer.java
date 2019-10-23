@@ -30,7 +30,7 @@ class SimpleColumnRenderer<T extends MemoryObject> extends ColoredTreeCellRender
   @NotNull private final Function<MemoryObjectTreeNode<T>, SimpleTextAttributes> myTextAttributesGetter;
   private final int myAlignment;
 
-  SimpleColumnRenderer(@NotNull Function<MemoryObjectTreeNode<T>, String> textGetter,
+  public SimpleColumnRenderer(@NotNull Function<MemoryObjectTreeNode<T>, String> textGetter,
                               @NotNull Function<MemoryObjectTreeNode<T>, Icon> iconGetter,
                               int alignment) {
     this(textGetter, iconGetter, value -> SimpleTextAttributes.REGULAR_ATTRIBUTES, alignment);

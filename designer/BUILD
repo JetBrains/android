@@ -10,7 +10,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
@@ -22,11 +21,7 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea/platform/editor-ui-api:intellij.platform.editor[module]",
-        "//tools/idea/platform/core-api:intellij.platform.core[module]",
-        "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
-        "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module]",
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
         "//tools/base/pixelprobe:studio.android.sdktools.pixelprobe[module]",
         "//tools/idea/images:intellij.platform.images[module]",
@@ -34,7 +29,6 @@ iml_module(
         "//tools/idea/.idea/libraries:jsr305",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
-        "//tools/idea/.idea/libraries:layoutlib",
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/idea/java/java-psi-impl:intellij.java.psi.impl[module]",
         "//tools/idea/java/java-indexing-api:intellij.java.indexing[module]",
@@ -51,13 +45,10 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/idea/java/openapi:intellij.java[module]",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.alg.layered/0.3.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.core/0.3.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.graph/0.3.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.common/2.12.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.12.0:jar",
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
+        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
+        "//tools/adt/idea/resources-aar:intellij.android.resources-aar[module]",
+        "//tools/adt/idea/property-editor:intellij.android.property-editor[module]",
     ],
 )
 
@@ -65,17 +56,16 @@ iml_module(
 iml_module(
     name = "intellij.android.designer.tests",
     iml_files = ["intellij.android.designer.tests.iml"],
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.DesignerTestSuite",
+    test_coverage = True,
+    # keep sorted
     test_data = [
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:constraint-layout_latest",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/studio/sdk:support_latest",
-        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
         "//tools/adt/idea/android:test_deps.zip",
         "//tools/adt/idea/android/annotations",
@@ -83,6 +73,7 @@ iml_module(
         "//tools/adt/idea/android/lib:sampleData",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
+        "//tools/adt/idea/resources-aar:framework_res",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
         "//tools/base/templates",
@@ -94,7 +85,6 @@ iml_module(
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
@@ -114,7 +104,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
-        "//tools/idea/.idea/libraries:KotlinTest[test]",
+        "//tools/idea/.idea/libraries:kotlin-test[test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
@@ -122,7 +112,6 @@ iml_module(
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module, test]",
-        "//tools/idea/.idea/libraries:layoutlib[test]",
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
@@ -142,7 +131,6 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem.tests[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
-        "//tools/idea/xml/dom-impl:intellij.xml.dom.impl[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
@@ -150,5 +138,7 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
+        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
+        "//tools/adt/idea/property-editor:intellij.android.property-editor[module, test]",
     ],
 )

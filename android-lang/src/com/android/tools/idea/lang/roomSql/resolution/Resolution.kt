@@ -15,7 +15,18 @@
  */
 package com.android.tools.idea.lang.roomSql.resolution
 
-import com.android.tools.idea.lang.roomSql.psi.*
+import com.android.tools.idea.lang.roomSql.psi.HasWithClause
+import com.android.tools.idea.lang.roomSql.psi.RoomDeleteStatement
+import com.android.tools.idea.lang.roomSql.psi.RoomExpression
+import com.android.tools.idea.lang.roomSql.psi.RoomFromClause
+import com.android.tools.idea.lang.roomSql.psi.RoomInsertStatement
+import com.android.tools.idea.lang.roomSql.psi.RoomJoinConstraint
+import com.android.tools.idea.lang.roomSql.psi.RoomSelectCoreSelect
+import com.android.tools.idea.lang.roomSql.psi.RoomSelectStatement
+import com.android.tools.idea.lang.roomSql.psi.RoomSqlFile
+import com.android.tools.idea.lang.roomSql.psi.RoomUpdateStatement
+import com.android.tools.idea.lang.roomSql.psi.RoomWithClauseTable
+import com.android.tools.idea.lang.roomSql.psi.SqlTableElement
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.Processor
@@ -119,7 +130,8 @@ private fun pushNextElements(
       is RoomFromClause -> element.tableOrSubqueryList.forEach { stack.push(nextStep(it)) }
       else -> element.children.forEach { stack.push(nextStep(it)) }
     }
-  } else {
+  }
+  else {
     // Stop walking up, no point leaving the SQL tree.
     if (element is RoomSqlFile) return
 
@@ -129,12 +141,20 @@ private fun pushNextElements(
     // Check if something should be pushed on top of the parent, based on the current node.
     when (element) {
       is RoomSelectCoreSelect -> {
-        if (previous != element.fromClause) pushIfNotNull(element.fromClause)
+        // If we came from 'FROM_CLAUSE' we don't want to resolve any columns by using 'FROM_CLAUSE' or 'RESULT_COLUMNS'.
+        if (previous != element.fromClause) {
+          // Prevent infinite loop.
+          if (previous != element.resultColumns) pushIfNotNull(element.resultColumns)
+
+          pushIfNotNull(element.fromClause)
+        }
       }
       is RoomSelectStatement -> {
         if (previous == element.orderClause) {
-          // Start walking down the from clause of the first (mose likely only) "core" select statement.
-          element.selectCoreList.firstOrNull()?.selectCoreSelect?.fromClause?.let { stack.push(nextStep(it, it.context)) }
+          for (selectCore in element.selectCoreList) {
+            pushIfNotNull(selectCore?.selectCoreSelect?.resultColumns)
+            pushIfNotNull(selectCore?.selectCoreSelect?.fromClause)
+          }
         }
       }
       is RoomDeleteStatement -> {
@@ -142,6 +162,11 @@ private fun pushNextElements(
       }
       is RoomUpdateStatement -> {
         pushIfNotNull(element.singleTableStatementTable)
+      }
+      is RoomInsertStatement -> {
+        if (previous == element.insertColumns) {
+          pushIfNotNull(element.singleTableStatementTable)
+        }
       }
       is RoomFromClause -> {
         if (previous is RoomJoinConstraint) element.tableOrSubqueryList.forEach { stack.push(nextStep(it)) }

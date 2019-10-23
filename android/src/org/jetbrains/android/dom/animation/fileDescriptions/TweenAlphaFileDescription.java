@@ -16,13 +16,13 @@
 package org.jetbrains.android.dom.animation.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.animation.Alpha;
 
 /**
  * @see TweenSetFileDescription
  */
-public class TweenAlphaFileDescription extends AbstractSingleRootFileDescription<Alpha> {
+public class TweenAlphaFileDescription extends SingleRootResourceDomFileDescription<Alpha> {
   public TweenAlphaFileDescription() {
     super(Alpha.class, "alpha", ResourceFolderType.ANIM);
   }

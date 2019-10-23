@@ -16,7 +16,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
@@ -33,7 +32,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/platform/editor-ui-api:intellij.platform.editor[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/base/usb-devices:studio.usb-devices[module]",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
@@ -50,19 +49,21 @@ iml_module(
 iml_module(
     name = "connection-assistant-test",
     iml_files = ["connection-assistant-test.iml"],
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.connection.assistant.ConnectionAssistantTestSuite",
+    test_coverage = True,
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
         "//tools/base/templates",
+        "//tools/idea:platform-build-info",
     ],
     test_srcs = ["testSrc"],
     test_tags = ["slow"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
@@ -79,7 +80,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/platform/editor-ui-api:intellij.platform.editor[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/base/usb-devices:studio.usb-devices[module]",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
@@ -96,5 +97,6 @@ iml_module(
         "//tools/adt/idea/connection-assistant[module, test]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
     ],
 )

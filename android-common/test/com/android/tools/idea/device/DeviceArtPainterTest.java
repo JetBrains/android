@@ -147,17 +147,17 @@ public class DeviceArtPainterTest {
     Device device = newDevice();
     for (DeviceArtDescriptor spec : framePainter.getDescriptors()) {
       DeviceData data = new DeviceData(device, spec);
-      Rectangle cropRect = spec.getCrop(ScreenOrientation.LANDSCAPE);
       if (spec.getName().startsWith("Generic ")) {
         // No crop data for generic nine patches since they are stretchable
         continue;
       }
-      if (cropRect != null && !cropRect.getSize().equals(spec.getScreenSize(ScreenOrientation.LANDSCAPE))) {
-        // Already have crop data for this spec; skipping
+      if (spec.getName().startsWith("Android TV") || spec.getName().startsWith("Automotive")) {
+        // These images are already cropped
         continue;
       }
-      if (spec.getName().startsWith("Android TV")) {
-        // These images are already cropped
+      Rectangle cropRect = spec.getCrop(ScreenOrientation.LANDSCAPE);
+      if (cropRect != null && !cropRect.getSize().equals(spec.getScreenSize(ScreenOrientation.LANDSCAPE))) {
+        // Already have crop data for this spec; skipping
         continue;
       }
       System.out.println("for spec " + spec.getName() + " -- " + spec.getId());

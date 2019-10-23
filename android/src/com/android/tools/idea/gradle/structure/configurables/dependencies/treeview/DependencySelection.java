@@ -17,11 +17,12 @@ package com.android.tools.idea.gradle.structure.configurables.dependencies.treev
 
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.intellij.openapi.util.ActionCallback;
+import java.util.Collection;
 import org.jetbrains.annotations.Nullable;
 
 public interface DependencySelection {
   @Nullable
   PsBaseDependency getSelection();
 
-  ActionCallback setSelection(@Nullable PsBaseDependency selection);
+  ActionCallback setSelection(@Nullable Collection<PsBaseDependency> selection);
 }

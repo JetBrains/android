@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              >
+
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="@string/start"
+        android:id="@+id/button_continue"
+        android:layout_gravity="center_horizontal"
+        android:background="#2979D6"
+        android:textColor="#FFF"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:textSize="20sp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/scrollView"
+        android:layout_above="@+id/button_continue"
+        android:layout_alignParentTop="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView style="?android:textAppearanceMedium"
+                android:paddingTop="32dp"
+                android:paddingLeft="24dp"
+                android:paddingRight="24dp"
+                android:id="@+id/textview"
+                android:lineSpacingMultiplier="1.2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Welcome"
+                android:textColor="#2979D6"
+                android:textSize="20sp" />
+
+            <TextView style="?android:textAppearanceMedium"
+                android:paddingTop="5dp"
+                android:paddingLeft="24dp"
+                android:paddingRight="32dp"
+                android:paddingBottom="24dp"
+                android:id="@+id/textview_start"
+                android:lineSpacingMultiplier="1.1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Title"
+                android:textColor="#5E5D5D"
+                android:textSize="20sp" />
+        </LinearLayout>
+
+    </ScrollView>
+
+</RelativeLayout>

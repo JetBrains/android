@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.framework.fixture.translations;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.EditorTextFieldFixture;
-import com.intellij.ui.ColorUtil;
-import com.intellij.ui.JBColor;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.JButtonFixture;
@@ -52,7 +50,6 @@ public final class AddKeyDialogFixture {
   }
 
   public void waitUntilErrorLabelFound(@NotNull String text) {
-    text = "<html><font color='#" + ColorUtil.toHex(JBColor.RED) + "'><left>" + text + "</left><br/></font></html>";
     GuiTests.waitUntilFound(myRobot, myTarget, JLabelMatcher.withText(text));
   }
 

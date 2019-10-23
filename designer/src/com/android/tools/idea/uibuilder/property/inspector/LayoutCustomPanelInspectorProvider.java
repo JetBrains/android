@@ -96,7 +96,7 @@ public class LayoutCustomPanelInspectorProvider implements InspectorProvider<NlP
     private final CustomPanel myPanel;
     private NlComponent myComponent;
 
-    LayoutCustomPanelInspectorComponent(CustomPanel panel) {
+    public LayoutCustomPanelInspectorComponent(CustomPanel panel) {
       myPanel = panel;
     }
 
@@ -127,7 +127,7 @@ public class LayoutCustomPanelInspectorProvider implements InspectorProvider<NlP
 
     @Override
     public void refresh() {
-      myPanel.useComponent(myComponent);
+      myPanel.useComponent(myComponent, null);
     }
   }
 }

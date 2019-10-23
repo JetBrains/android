@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018 Zac Sweers
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~   http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="io.sweers.catchup"
+    >
+
+  <uses-permission android:name="android.permission.INTERNET"/>
+
+  <application
+      android:allowBackup="false"
+      android:colorMode="wideColorGamut"
+      android:icon="@mipmap/ic_launcher"
+      android:label="@string/app_name"
+      android:roundIcon="@mipmap/ic_launcher_round"
+      android:supportsRtl="true"
+      android:theme="@style/CatchUp"
+      tools:ignore="GoogleAppIndexingWarning,UnusedAttribute">
+    <activity
+        android:name=".ui.activity.MainActivity"
+        android:launchMode="singleTask"
+        >
+    </activity>
+
+    <activity
+        android:name=".ui.activity.SettingsActivity"
+        android:label="@string/title_activity_settings"
+        android:launchMode="singleTop"
+        android:parentActivityName=".ui.activity.MainActivity"
+        />
+
+    <activity
+        android:name=".ui.about.AboutActivity"
+        android:label="@string/title_activity_about"
+        android:launchMode="singleTop"
+        android:parentActivityName=".ui.activity.SettingsActivity"
+        />
+
+    <activity
+        android:name=".ui.activity.OrderServicesActivity"
+        android:label="@string/title_activity_about"
+        android:launchMode="singleTop"
+        android:parentActivityName=".ui.activity.SettingsActivity"
+        />
+
+    <activity
+        android:name=".ui.activity.ServiceSettingsActivity"
+        android:label="@string/pref_services"
+        android:launchMode="singleTop"
+        android:parentActivityName=".ui.activity.SettingsActivity"
+        />
+
+    <activity
+        android:name=".ui.activity.LauncherActivity"
+        android:theme="@style/CatchUp.Launcher"/>
+
+    <!-- This activity alias lets us change the main entry point without breaking launcher
+         shortcuts. DO NOT change its android:name attribute. -->
+    <activity-alias
+        android:name=".Launcher"
+        android:label="@string/app_name"
+        android:targetActivity=".ui.activity.LauncherActivity">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+    </activity-alias>
+
+    <activity
+        android:name=".ui.activity.ImageViewerActivity"
+        android:theme="@style/CatchUp.TransparentFullscreen"/>
+
+    <meta-data
+        android:name="preloaded_fonts"
+        android:resource="@array/preloaded_fonts"/>
+
+    <meta-data
+        android:name="fontProviderRequests"
+        android:value="Noto Color Emoji Compat"/>
+  </application>
+
+</manifest>

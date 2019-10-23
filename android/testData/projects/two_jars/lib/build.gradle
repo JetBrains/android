@@ -1,0 +1,10 @@
+apply plugin: 'java-library'
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation files("../lib1/liba.jar")
+    implementation files("../lib2/liba.jar")
+}
+
+sourceCompatibility = "7"
+targetCompatibility = "7"

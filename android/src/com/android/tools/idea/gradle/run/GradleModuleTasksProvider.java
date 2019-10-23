@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.tools.idea.Projects;
-import com.android.tools.idea.fd.InstantRunTasksProvider;
+import static com.android.tools.idea.gradle.project.build.invoker.TestCompileType.UNIT_TESTS;
+
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -25,14 +25,10 @@ import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.nio.file.Path;
-
-import static com.android.tools.idea.gradle.project.build.invoker.TestCompileType.UNIT_TESTS;
-
-public class GradleModuleTasksProvider implements InstantRunTasksProvider {
+public class GradleModuleTasksProvider {
   @NotNull private final Project myProject;
   @NotNull private final Module[] myModules;
 
@@ -48,8 +44,7 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
   public ListMultimap<Path, String> getUnitTestTasks(@NotNull BuildMode buildMode) {
     // Make sure all "intermediates/classes" directories are up-to-date.
     Module[] affectedModules = getAffectedModules(myProject, myModules);
-    File projectPath = Projects.getBaseDirPath(myProject);
-    return GradleTaskFinder.getInstance().findTasksToExecuteForTest(projectPath, affectedModules, myModules, buildMode, UNIT_TESTS);
+    return GradleTaskFinder.getInstance().findTasksToExecuteForTest(affectedModules, myModules, buildMode, UNIT_TESTS);
   }
 
   @NotNull
@@ -59,15 +54,8 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
     return scope.getAffectedModules();
   }
 
-  @Override
-  @NotNull
-  public ListMultimap<Path, String> getFullBuildTasks() {
-    return getTasksFor(BuildMode.ASSEMBLE, TestCompileType.NONE);
-  }
-
   @NotNull
   public ListMultimap<Path, String> getTasksFor(@NotNull BuildMode buildMode, @NotNull TestCompileType testCompileType) {
-    File projectPath = Projects.getBaseDirPath(myProject);
-    return GradleTaskFinder.getInstance().findTasksToExecute(projectPath, myModules, buildMode, testCompileType);
+    return GradleTaskFinder.getInstance().findTasksToExecute(myModules, buildMode, testCompileType);
   }
 }

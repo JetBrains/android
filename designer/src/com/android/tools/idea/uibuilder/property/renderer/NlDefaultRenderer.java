@@ -20,8 +20,8 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableItem;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
@@ -122,7 +122,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
 
     VirtualFile bitmap = ResourceHelper.resolveDrawable(resolver, drawable, property.getModel().getProject());
     bitmap = AndroidAnnotatorUtil.pickBestBitmap(bitmap);
-    return bitmap == null ? null : GutterIconCache.getInstance().getIcon(bitmap.getPath(), resolver);
+    return bitmap == null ? null : GutterIconCache.getInstance().getIcon(bitmap, resolver, property.getModel().getFacet());
   }
 
   @Nullable

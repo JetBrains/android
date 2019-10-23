@@ -15,54 +15,112 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.ddms.DeviceNameProperties;
+import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
+import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.DeploymentApplicationService;
+import com.android.tools.idea.run.DeviceFutures;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.runners.ExecutionUtil;
-import icons.AndroidIcons;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.project.Project;
+import icons.StudioIcons;
+import java.time.Instant;
+import java.util.Objects;
+import java.util.concurrent.Future;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-
 final class PhysicalDevice extends Device {
-  private static final Icon ourIcon = ExecutionUtil.getLiveIndicator(AndroidIcons.Ddms.RealDevice);
-
-  @VisibleForTesting
-  PhysicalDevice(@NotNull String name) {
-    super(name);
-  }
-
-  PhysicalDevice(@NotNull DeviceNameProperties properties) {
-    super(getName(properties));
-  }
+  private static final Icon ourValidIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
+  private static final Icon ourInvalidIcon = ExecutionUtil.getLiveIndicator(AllIcons.General.Error);
 
   @NotNull
+  static PhysicalDevice newDevice(@NotNull ConnectedDevice device,
+                                  @NotNull DeviceNamePropertiesFetcher fetcher,
+                                  @NotNull KeyToConnectionTimeMap map) {
+    String key = device.getKey();
+
+    return new Builder()
+      .setName(device.getPhysicalDeviceName(fetcher))
+      .setValid(device.isValid())
+      .setValidityReason(device.getValidityReason())
+      .setKey(key)
+      .setConnectionTime(map.get(key))
+      .setAndroidDevice(device.getAndroidDevice())
+      .build();
+  }
+
   @VisibleForTesting
-  static String getName(@NotNull DeviceNameProperties properties) {
-    String manufacturer = properties.getManufacturer();
-    String model = properties.getModel();
-
-    if (manufacturer == null && model == null) {
-      return "Unknown Device";
+  static final class Builder extends Device.Builder {
+    @NotNull
+    @VisibleForTesting
+    Builder setName(@NotNull String name) {
+      myName = name;
+      return this;
     }
 
-    if (manufacturer == null) {
-      return model;
+    @NotNull
+    private Builder setValid(boolean valid) {
+      myValid = valid;
+      return this;
     }
 
-    if (model == null) {
-      return manufacturer + " Device";
+    @NotNull
+    private Builder setValidityReason(@Nullable String validityReason) {
+      myValidityReason = validityReason;
+      return this;
     }
 
-    return manufacturer + ' ' + model;
+    @NotNull
+    @VisibleForTesting
+    Builder setKey(@NotNull String key) {
+      myKey = key;
+      return this;
+    }
+
+    @NotNull
+    @VisibleForTesting
+    Builder setConnectionTime(@NotNull Instant connectionTime) {
+      myConnectionTime = connectionTime;
+      return this;
+    }
+
+    @NotNull
+    @VisibleForTesting
+    Builder setAndroidDevice(@NotNull AndroidDevice androidDevice) {
+      myAndroidDevice = androidDevice;
+      return this;
+    }
+
+    @NotNull
+    @Override
+    PhysicalDevice build() {
+      return new PhysicalDevice(this);
+    }
+  }
+
+  private PhysicalDevice(@NotNull Builder builder) {
+    super(builder);
   }
 
   @NotNull
   @Override
   Icon getIcon() {
-    return ourIcon;
+    return isValid() ? ourValidIcon : ourInvalidIcon;
+  }
+
+  /**
+   * @return true. Physical devices come and go as they are connected and disconnected; there are no instances of this class for
+   * disconnected physical devices.
+   */
+  @Override
+  boolean isConnected() {
+    return true;
   }
 
   @NotNull
@@ -71,17 +129,38 @@ final class PhysicalDevice extends Device {
     return ImmutableList.of();
   }
 
+  @NotNull
+  @Override
+  Future<AndroidVersion> getAndroidVersion() {
+    IDevice device = getDdmlibDevice();
+    assert device != null;
+
+    return DeploymentApplicationService.getInstance().getVersion(device);
+  }
+
+  @Override
+  void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable String snapshot) {
+    futures.getDevices().add(getAndroidDevice());
+  }
+
   @Override
   public boolean equals(@Nullable Object object) {
     if (!(object instanceof PhysicalDevice)) {
       return false;
     }
 
-    return getName().equals(((PhysicalDevice)object).getName());
+    Device device = (Device)object;
+
+    return getName().equals(device.getName()) &&
+           isValid() == device.isValid() &&
+           Objects.equals(getValidityReason(), device.getValidityReason()) &&
+           getKey().equals(device.getKey()) &&
+           Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
+           getAndroidDevice().equals(device.getAndroidDevice());
   }
 
   @Override
   public int hashCode() {
-    return getName().hashCode();
+    return Objects.hash(getName(), isValid(), getValidityReason(), getKey(), getConnectionTime(), getAndroidDevice());
   }
 }

@@ -81,7 +81,7 @@ final class MemoryClassSetView extends AspectObserver {
 
   @Nullable private List<FieldObject> myFieldObjectPath;
 
-  MemoryClassSetView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
+  public MemoryClassSetView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
     myTimeline = myStage.getStudioProfilers().getTimeline();
     myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
@@ -652,7 +652,7 @@ final class MemoryClassSetView extends AspectObserver {
   }
 
   static class InstanceTreeNode extends LazyMemoryObjectTreeNode<ValueObject> {
-    InstanceTreeNode(@NotNull InstanceObject adapter) {
+    public InstanceTreeNode(@NotNull InstanceObject adapter) {
       super(adapter, true);
     }
 
@@ -678,7 +678,7 @@ final class MemoryClassSetView extends AspectObserver {
   }
 
   static class FieldTreeNode extends LazyMemoryObjectTreeNode<FieldObject> {
-    FieldTreeNode(@NotNull FieldObject adapter) {
+    public FieldTreeNode(@NotNull FieldObject adapter) {
       super(adapter, true);
     }
 

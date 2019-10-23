@@ -26,12 +26,15 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.protobuf3jarjar.ByteString
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_NAME
-import com.android.tools.profilers.FakeProfilerService.FAKE_PROCESS_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerMode
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
@@ -52,8 +55,6 @@ import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Graphics2D
 import java.awt.Point
-import java.awt.geom.Line2D
-import java.awt.geom.Path2D
 import java.io.File
 import javax.swing.JButton
 import javax.swing.JLabel
@@ -66,7 +67,7 @@ private const val ART_TRACE_FILE = "tools/adt/idea/profilers-ui/testData/valid_t
 
 class CpuProfilerStageViewTest {
 
-  private val myProfilerService = FakeProfilerService()
+  private val myTimer = FakeTimer()
 
   private val myComponents = FakeIdeProfilerComponents()
 
@@ -74,11 +75,10 @@ class CpuProfilerStageViewTest {
 
   private val myCpuService = FakeCpuService()
 
-  private val myTimer = FakeTimer()
 
   @get:Rule
   val myGrpcChannel = FakeGrpcChannel(
-    "CpuCaptureViewTestChannel", myCpuService, myProfilerService,
+    "CpuCaptureViewTestChannel", myCpuService, FakeTransportService(myTimer), FakeProfilerService(myTimer),
     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
   )
 
@@ -88,7 +88,7 @@ class CpuProfilerStageViewTest {
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(myGrpcChannel.client, myIdeServices, myTimer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), myIdeServices, myTimer)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
 
     // One second must be enough for new devices (and processes) to be picked up
@@ -132,8 +132,7 @@ class CpuProfilerStageViewTest {
     val tooltipComponent = treeWalker.descendants().filterIsInstance<RangeTooltipComponent>()[0]
     tooltipComponent.setSize(10, 10)
     // Grab the overlay component and move the mouse to update the last position in the tooltip component.
-    // Note the 0th element here is the overlay component to render the capture lines.
-    val overlayComponent = treeWalker.descendants().filterIsInstance<OverlayComponent>()[1]
+    val overlayComponent = treeWalker.descendants().filterIsInstance<OverlayComponent>()[0]
     val overlayMouseUi = FakeUi(overlayComponent)
     overlayComponent.setBounds(1, 1, 10, 10)
     overlayMouseUi.mouse.moveTo(0, 0)
@@ -157,41 +156,13 @@ class CpuProfilerStageViewTest {
   }
 
   @Test
-  fun selectedCaptureRendersCaptureLines() {
-    val cpuProfilerStageView = CpuProfilerStageView(myProfilersView, myStage)
-    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ART
-    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
-    myCpuService.setValidTrace(true)
-    myCpuService.setTraceId(0)
-    // Ensure we have a valid capture selected.
-    myCpuService.setTrace(ByteString.copyFrom(TestUtils.getWorkspaceFile(ART_TRACE_FILE).readBytes()))
-    myStage.capture = myCpuService.parseTraceFile()
-    myStage.setAndSelectCapture(0)
-    cpuProfilerStageView.timeline.tooltipRange.set(0.0, 0.0)
-    // Ensure our view range will find the capture.
-    cpuProfilerStageView.timeline.viewRange.set(0.0, Double.MAX_VALUE)
-    // Update the DurationDataModel.
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    val treeWalker = TreeWalker(cpuProfilerStageView.component)
-    // Grab the overlay component and move the mouse to update the last position in the tooltip component.
-    val overlayComponent = treeWalker.descendants().filterIsInstance<OverlayComponent>()[0]
-    overlayComponent.setBounds(1, 1, 10, 10)
-    val mockGraphics = Mockito.mock(Graphics2D::class.java)
-    Mockito.`when`(mockGraphics.create()).thenReturn(mockGraphics)
-    // Paint without letting the overlay component think we are over it.
-    overlayComponent.paint(mockGraphics)
-    Mockito.verify(mockGraphics, Mockito.times(2)).draw(Mockito.any(Line2D.Float::class.java))
-  }
-
-  @Test
   fun importTraceModeShouldShowSelectedProcessName() {
-    // Enable import trace and sessions view, both of which are required for import-trace-mode.
+    // Enable import trace flag which is required for import-trace-mode.
     myIdeServices.enableImportTrace(true)
-    myIdeServices.enableSessionsView(true)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
     myStage.enter()
     // Set a capture of type atrace.
-    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ATRACE
+    myCpuService.traceType = Cpu.CpuTraceType.ATRACE
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
     myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
     val cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
@@ -204,9 +175,8 @@ class CpuProfilerStageViewTest {
 
   @Test
   fun importTraceModeShouldShowCpuCaptureView() {
-    // Enable import trace and sessions view, both of which are required for import-trace-mode.
+    // Enable import trace flag which is required for import-trace-mode.
     myIdeServices.enableImportTrace(true)
-    myIdeServices.enableSessionsView(true)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
     myStage.enter()
 
@@ -221,7 +191,7 @@ class CpuProfilerStageViewTest {
   @Test
   fun recordButtonDisabledInDeadSessions() {
     // Create a valid capture and end the current session afterwards.
-    myCpuService.profilerType = CpuProfiler.CpuProfilerType.ART
+    myCpuService.traceType = Cpu.CpuTraceType.ART
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
     myCpuService.setTrace(ByteString.copyFrom(TestUtils.getWorkspaceFile(ART_TRACE_FILE).readBytes()))
     myStage.studioProfilers.sessionsManager.endCurrentSession()

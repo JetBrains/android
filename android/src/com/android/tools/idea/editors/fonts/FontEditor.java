@@ -104,7 +104,7 @@ class FontEditor implements FileEditor {
     return "";
   }
 
-  FontEditor(@NotNull VirtualFile file) {
+  public FontEditor(@NotNull VirtualFile file) {
     myFile = file;
     myRootPanel = new JPanel(new BorderLayout());
     myRootPanel.setBackground(UIUtil.getTextFieldBackground());

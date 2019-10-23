@@ -21,23 +21,22 @@ import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
+import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.GridLayout;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Displays an ART {@link HTreeChart} with Java methods and a simpleperf one with both java and native methods.
@@ -81,22 +80,22 @@ public class CaptureNodeModelRendererVisualTest extends VisualTest {
   }
 
   private static CaptureNode parseArtTraceAndGetHNode() {
-    return parseTraceAndGetHNode("cpu_trace.trace", "main", CpuProfiler.CpuProfilerType.ART);
+    return parseTraceAndGetHNode("cpu_trace.trace", "main", Cpu.CpuTraceType.ART);
   }
 
   private static CaptureNode parseSimpleperfTraceAndGetHNode() {
-    return parseTraceAndGetHNode("simpleperf_trace.trace", "splayingbitmaps", CpuProfiler.CpuProfilerType.SIMPLEPERF);
+    return parseTraceAndGetHNode("simpleperf_trace.trace", "splayingbitmaps", Cpu.CpuTraceType.SIMPLEPERF);
   }
 
   private static CaptureNode parseTraceAndGetHNode(String traceFile, String nodeName,
-                                                   CpuProfiler.CpuProfilerType profilerType) {
+                                                   Cpu.CpuTraceType profilerType) {
     File file = TestUtils.getWorkspaceFile(TEST_RESOURCE_DIR + traceFile);
     TraceParser parser;
     int traceId = 20;
-    if (profilerType == CpuProfiler.CpuProfilerType.ART) {
+    if (profilerType == Cpu.CpuTraceType.ART) {
       parser = new ArtTraceParser();
     }
-    else if (profilerType == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
+    else if (profilerType == Cpu.CpuTraceType.SIMPLEPERF) {
       parser = new SimpleperfTraceParser();
     }
     else {

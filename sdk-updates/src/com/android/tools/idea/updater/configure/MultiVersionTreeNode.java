@@ -37,7 +37,7 @@ class MultiVersionTreeNode extends UpdaterTreeNode {
   private final DetailsTreeNode myMaxVersionNode;
   private final Collection<DetailsTreeNode> myVersionNodes;
 
-  MultiVersionTreeNode(@NotNull Collection<DetailsTreeNode> versionNodes) {
+  public MultiVersionTreeNode(@NotNull Collection<DetailsTreeNode> versionNodes) {
     myVersionNodes = versionNodes;
     RepoPackage greatestPackage = AndroidSdkHandler.getLatestPackageFromPrefixCollection(
       myVersionNodes.stream().map(DetailsTreeNode::getPackage).collect(Collectors.toList()),

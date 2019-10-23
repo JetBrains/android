@@ -34,6 +34,7 @@ public final class StringToIntAdapterProperty extends AdapterProperty<String, In
   @Nullable
   @Override
   protected Integer convertFromSourceType(@NotNull String value) {
+    value = value.trim();
     try {
       return Integer.parseInt(value);
     }

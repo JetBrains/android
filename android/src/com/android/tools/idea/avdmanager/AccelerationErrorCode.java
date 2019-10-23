@@ -35,7 +35,8 @@ public enum AccelerationErrorCode {
   ACCELERATION_NOT_INSTALLED_LINUX(6, "KVM is not installed.", INSTALL_KVM, "Enable Linux KVM for better emulation performance."),
   ACCELERATION_NOT_INSTALLED_WIN_MAC(6, "HAXM is not installed.", INSTALL_HAXM, "Install Intel HAXM for better emulation performance."),
   ACCELERATION_OBSOLETE(7, "Virtual machine acceleration driver is out-of-date.", REINSTALL_HAXM, "A newer HAXM Version is required. Please update."),
-  DEV_NOT_FOUND(8, "/dev/kvm is not found.", NONE, "Enable VT-x in your BIOS security settings, ensure that your Linux distro has working KVM module."),
+  DEV_NOT_FOUND_LINUX(8, "/dev/kvm is not found.", NONE, "Enable VT-x in your BIOS security settings, ensure that your Linux distro has working KVM module."),
+  DEV_NOT_FOUND_WIN_MAC(8, "HAXM device is not found.", NONE, "Enable VT-x in your BIOS security settings, ensure that HAXM is installed properly. Try disabling 3rd party security software if the problem still occurs."),
   VT_DISABLED(9, "VT-x is disabled in BIOS.", NONE, "Enable VT-x in your BIOS security settings (refer to documentation for your computer)."),
   NX_DISABLED(10, "NX is disabled in BIOS.", NONE, "Enable NX in your BIOS settings (refer to documentation for your computer)."),
   DEV_PERMISSION_LINUX(11, "/dev/kvm device: permission denied.", NONE, "Grant current user access to /dev/kvm"),
@@ -98,7 +99,7 @@ public enum AccelerationErrorCode {
       case  5: return NO_CPU_NX_SUPPORT;
       case  6: return SystemInfo.isLinux ? ACCELERATION_NOT_INSTALLED_LINUX : ACCELERATION_NOT_INSTALLED_WIN_MAC;
       case  7: return ACCELERATION_OBSOLETE;
-      case  8: return DEV_NOT_FOUND;
+      case  8: return SystemInfo.isLinux? DEV_NOT_FOUND_LINUX : DEV_NOT_FOUND_WIN_MAC;
       case  9: return VT_DISABLED;
       case 10: return NX_DISABLED;
       case 11: return SystemInfo.isLinux ? DEV_PERMISSION_LINUX : DEV_PERMISSION_WIN_MAC;

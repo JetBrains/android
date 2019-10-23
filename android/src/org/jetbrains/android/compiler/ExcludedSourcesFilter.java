@@ -12,7 +12,7 @@ import java.io.File;
 class ExcludedSourcesFilter implements Condition<File> {
   private final Project myProject;
 
-  ExcludedSourcesFilter(@NotNull Project project) {
+  public ExcludedSourcesFilter(@NotNull Project project) {
     myProject = project;
   }
 

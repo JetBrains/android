@@ -23,7 +23,6 @@ import com.android.tools.idea.uibuilder.api.ScrollHandler;
 import com.android.tools.idea.uibuilder.api.ScrollViewScrollHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,22 +50,6 @@ public class HorizontalScrollViewHandler extends ScrollViewHandler {
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_MATCH_PARENT);
   }
 
-  @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
-                          @NotNull NlComponent node,
-                          @NotNull InsertType insertType) {
-    if (insertType.isCreate()) {
-      // Insert a default linear layout (which will in turn be registered as
-      // a child of this node and the create child method above will set its
-      // fill parent attributes, its id, etc.
-      NlComponent linear = NlComponentHelperKt.createChild(node, editor, FQCN_LINEAR_LAYOUT, null, InsertType.PROGRAMMATIC);
-      linear.setAttribute(ANDROID_URI, ATTR_ORIENTATION, VALUE_VERTICAL);
-    }
-
-    return true;
-  }
-
   @Nullable
   @Override
   public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
@@ -75,7 +58,7 @@ public class HorizontalScrollViewHandler extends ScrollViewHandler {
       return null;
     }
 
-    int maxScrollableWidth = getMaxScrollable(viewGroup, ViewGroup::getWidth, View::getMeasuredWidth);
+    int maxScrollableWidth = ScrollViewScrollHandler.getMaxScrollable(viewGroup, ViewGroup::getWidth, View::getMeasuredWidth);
 
     if (maxScrollableWidth > 0) {
       // There is something to scroll

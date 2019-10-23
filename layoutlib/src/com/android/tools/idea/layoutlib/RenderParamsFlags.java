@@ -82,7 +82,7 @@ public final class RenderParamsFlags {
       new Key<>("renderHighQualityShadow", Boolean.class);
 
     /**
-     * Disales shadow rendering in layoutlib.
+     * Enables shadow rendering in layoutlib.
      */
     public static final Key<Boolean> FLAG_KEY_ENABLE_SHADOW =
         new Key<>("enableShadow", Boolean.class);

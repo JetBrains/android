@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
@@ -43,8 +44,10 @@ public abstract class PreferenceHandler extends ViewHandler {
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
     if (type.equals(InsertType.CREATE)) {
-      newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
-      newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+      NlWriteCommandActionUtil.run(newChild, "Clearing Width and Height", () -> {
+        newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+        newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+      });
     }
 
     return true;

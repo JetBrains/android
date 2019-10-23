@@ -22,19 +22,9 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.sampledata.datasource.ResourceContent;
-import com.google.common.io.Files;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
-import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -43,21 +33,22 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
+import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Finds an asset in all the asset directories and returns the input stream.
  */
-public class AssetRepositoryImpl extends AssetRepository implements Disposable {
-  private static File myFrameworkResDir;
+public class AssetRepositoryImpl extends AssetRepository {
+  private static File myFrameworkResDirOrJar;
   private AndroidFacet myFacet;
 
   public AssetRepositoryImpl(@NotNull AndroidFacet facet) {
     myFacet = facet;
-
-    // LayoutLib keeps a static reference to the AssetRepository that will be replaced once a new project is opened.
-    // In unit tests this will trigger a memory leak error. This makes sure that we do not keep the reference to the facet so
-    // the unit test is happy.
-    Disposer.register(myFacet, this);
   }
 
   @Override
@@ -122,7 +113,7 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
   public InputStream openNonAsset(int cookie, @NotNull String path, int mode) throws IOException {
     assert myFacet != null;
 
-    if (path.startsWith("apk:")) {
+    if (path.startsWith("apk:") || path.startsWith("jar:")) {
       return new ByteArrayInputStream(FileResourceReader.readBytes(path));
     }
 
@@ -195,37 +186,34 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
       .map(path -> manager.findFileByUrl("file://" + path))
       .filter(Objects::nonNull);
 
-    Stream<VirtualFile> frameworkDirs = Stream.of(getSdkResFolder(facet))
+    Stream<VirtualFile> frameworkDirs = Stream.of(getSdkResDirOrJar(facet))
       .filter(Objects::nonNull)
       .map(path -> manager.findFileByUrl("file://" + path))
       .filter(Objects::nonNull);
 
-    Stream<VirtualFile> sampleDataDirs = Stream.of(ResourceContent.getSampleDataBaseDir())
-       .filter(Objects::nonNull)
-       .map(dir -> manager.findFileByUrl("file://" + dir.getAbsolutePath()))
-       .filter(Objects::nonNull);
+    Stream<VirtualFile> sampleDataDirs = Stream.of(
+      ResourceContent.getSampleDataBaseDir(),
+      ResourceContent.getSampleDataUserDir(facet)
+    )
+      .filter(Objects::nonNull)
+      .map(dir -> manager.findFileByUrl("file://" + dir.getAbsolutePath()))
+      .filter(Objects::nonNull);
 
     return Stream.of(dirsFromSources, dirsFromAars, frameworkDirs, sampleDataDirs)
       .flatMap(stream -> stream);
   }
 
   @Nullable
-  private static File getSdkResFolder(@NotNull AndroidFacet facet) {
-    if (myFrameworkResDir == null) {
+  private static File getSdkResDirOrJar(@NotNull AndroidFacet facet) {
+    if (myFrameworkResDirOrJar == null) {
       ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(facet);
       IAndroidTarget target = manager.getHighestApiTarget();
       if (target == null) {
         return null;
       }
       CompatibilityRenderTarget compatibilityTarget = StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
-      String sdkPlatformPath = Files.simplifyPath(compatibilityTarget.getLocation());
-      myFrameworkResDir = new File(sdkPlatformPath + "/data/res");
+      myFrameworkResDirOrJar = compatibilityTarget.getFile(IAndroidTarget.RESOURCES);
     }
-    return myFrameworkResDir;
-  }
-
-  @Override
-  public void dispose() {
-    myFacet = null;
+    return myFrameworkResDirOrJar;
   }
 }

@@ -23,7 +23,6 @@ public class AndroidTryWithIdenticalCatchesInspectionTest extends AndroidInspect
 
   public void testNoIdenticalBranchWarningPre19() {
     addManifest(17);
-    //noinspection all // Sample code
     doTest("" +
            "package test.pkg;\n" +
            "\n" +
@@ -45,7 +44,6 @@ public class AndroidTryWithIdenticalCatchesInspectionTest extends AndroidInspect
 
   public void testIdenticalBranchWarningPost19() {
     addManifest(20);
-    //noinspection all // Sample code
     doTest("" +
            "package test.pkg;\n" +
            "\n" +
@@ -63,6 +61,12 @@ public class AndroidTryWithIdenticalCatchesInspectionTest extends AndroidInspect
            "        }        \n" +
            "    }\n" +
            "}\n");
+  }
+
+  public void testIsEnabled() {
+    // We used to have a fork of this inspection, but now we're using the upstream version combined with AndroidLanguageFeatureProvider.
+    // When migrating from one to the other, this got removed from Studio altogether, so here we check it's in at least one XML file.
+    assertTrue(getInspection().isEnabledByDefault());
   }
 
   @Nullable

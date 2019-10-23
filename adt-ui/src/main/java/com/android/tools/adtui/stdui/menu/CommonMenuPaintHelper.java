@@ -18,9 +18,9 @@ package com.android.tools.adtui.stdui.menu;
 import com.android.tools.adtui.stdui.GraphicsUtilKt;
 import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.adtui.stdui.StandardDimensions;
+import com.intellij.util.ui.UIUtilities;
 import org.jetbrains.annotations.NotNull;
 import sun.swing.MenuItemLayoutHelper;
-import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -81,17 +81,17 @@ public class CommonMenuPaintHelper {
       // *** paint the accText disabled
       if (disabledForeground != null) {
         graphics.setColor(disabledForeground);
-        SwingUtilities2.drawString(layoutHelper.getMenuItem(), graphics,
+        UIUtilities.drawString(layoutHelper.getMenuItem(), graphics,
                                    layoutHelper.getAccText(), layoutResult.getAccRect().x,
                                    layoutResult.getAccRect().y + layoutHelper.getAccFontMetrics().getAscent());
       }
       else {
         graphics.setColor(layoutHelper.getMenuItem().getBackground().brighter());
-        SwingUtilities2.drawString(layoutHelper.getMenuItem(), graphics,
+        UIUtilities.drawString(layoutHelper.getMenuItem(), graphics,
                                    layoutHelper.getAccText(), layoutResult.getAccRect().x,
                                    layoutResult.getAccRect().y + layoutHelper.getAccFontMetrics().getAscent());
         graphics.setColor(layoutHelper.getMenuItem().getBackground().darker());
-        SwingUtilities2.drawString(layoutHelper.getMenuItem(), graphics,
+        UIUtilities.drawString(layoutHelper.getMenuItem(), graphics,
                                    layoutHelper.getAccText(), layoutResult.getAccRect().x - 1,
                                    layoutResult.getAccRect().y + layoutHelper.getFontMetrics().getAscent() - 1);
       }
@@ -106,7 +106,7 @@ public class CommonMenuPaintHelper {
       else {
         graphics.setColor(acceleratorForeground);
       }
-      SwingUtilities2.drawString(layoutHelper.getMenuItem(), graphics, layoutHelper.getAccText(),
+      UIUtilities.drawString(layoutHelper.getMenuItem(), graphics, layoutHelper.getAccText(),
                                  layoutResult.getAccRect().x, layoutResult.getAccRect().y +
                                                               layoutHelper.getAccFontMetrics().getAscent());
     }

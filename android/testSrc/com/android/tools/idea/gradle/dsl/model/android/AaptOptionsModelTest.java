@@ -15,14 +15,21 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_EDIT_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_EDIT_IGNORE_ASSET_PATTERN;
+import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_PARSE_ELEMENTS_ONE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_PARSE_ELEMENTS_TWO;
+import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_REMOVE_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_REMOVE_LAST_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_REMOVE_ONE_ELEMENT;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AaptOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
-
-import static com.android.tools.idea.gradle.dsl.TestFileName.*;
 
 /**
  * Tests for {@link AaptOptionsModel}.

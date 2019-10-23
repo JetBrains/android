@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.annotations.NonNull;
 import com.google.common.collect.ImmutableSortedMap;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;

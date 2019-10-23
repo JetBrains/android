@@ -15,6 +15,46 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_AND_APPLY_LIST_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_AND_APPLY_MAP_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_AND_RESET_LIST_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_AND_RESET_LITERAL_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_AND_RESET_MAP_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_BUILD_TYPE_APPLICATION_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_BUILD_TYPE_ASSIGNMENT_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_APPEND_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_APPLICATION_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_ASSIGNMENT_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_OVERRIDE_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_BUILD_TYPE_MAP_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_EDIT_AND_RESET_LITERAL_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_READ_SIGNING_CONFIG;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_MAP_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_RESET_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_AND_RESET_MAP_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REMOVE_FROM_AND_RESET_LIST_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_REPLACE_AND_RESET_LIST_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_SET_AND_APPLY_MAP_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_SET_AND_RESET_MAP_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_SET_SIGNING_CONFIG;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPE_MODEL_SET_SIGNING_CONFIG_FROM_EMPTY;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.MAP_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.CUSTOM;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
@@ -25,17 +65,9 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
-import java.util.List;
-
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.CUSTOM;
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Tests for {@link BuildTypeModelImpl}.
@@ -43,33 +75,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class BuildTypeModelTest extends GradleFileModelTestCase {
   @Test
   public void testBuildTypeBlockWithApplicationStatements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      applicationIdSuffix \"mySuffix\"\n" +
-                  "      buildConfigField \"abcd\", \"efgh\", \"ijkl\"\n" +
-                  "      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      debuggable true\n" +
-                  "      embedMicroApp true\n" +
-                  "      jniDebuggable true\n" +
-                  "      manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
-                  "      minifyEnabled true\n" +
-                  "      multiDexEnabled true\n" +
-                  "      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      pseudoLocalesEnabled true\n" +
-                  "      renderscriptDebuggable true\n" +
-                  "      renderscriptOptimLevel 1\n" +
-                  "      resValue \"mnop\", \"qrst\", \"uvwx\"\n" +
-                  "      shrinkResources true\n" +
-                  "      testCoverageEnabled true\n" +
-                  "      useJack true\n" +
-                  "      versionNameSuffix \"abc\"\n" +
-                  "      zipAlignEnabled true\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_APPLICATION_STATEMENTS);
 
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
@@ -97,31 +103,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypeBlockWithAssignmentStatements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      applicationIdSuffix = \"mySuffix\"\n" +
-                  "      consumerProguardFiles = ['proguard-android.txt', 'proguard-rules.pro']\n" +
-                  "      debuggable = true\n" +
-                  "      embedMicroApp = true\n" +
-                  "      jniDebuggable = true\n" +
-                  "      manifestPlaceholders = [activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"]\n" +
-                  "      minifyEnabled = true\n" +
-                  "      multiDexEnabled = true\n" +
-                  "      proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']\n" +
-                  "      pseudoLocalesEnabled = true\n" +
-                  "      renderscriptDebuggable = true\n" +
-                  "      renderscriptOptimLevel = 1\n" +
-                  "      shrinkResources = true\n" +
-                  "      testCoverageEnabled = true\n" +
-                  "      useJack = true\n" +
-                  "      versionNameSuffix = \"abc\"\n" +
-                  "      zipAlignEnabled = true\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_ASSIGNMENT_STATEMENTS);
 
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
@@ -147,33 +129,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypeApplicationStatements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}\n" +
-                  "android.buildTypes.xyz.applicationIdSuffix \"mySuffix\"\n" +
-                  "android.buildTypes.xyz.buildConfigField \"abcd\", \"efgh\", \"ijkl\"\n" +
-                  "android.buildTypes.xyz.consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "android.buildTypes.xyz.debuggable true\n" +
-                  "android.buildTypes.xyz.embedMicroApp true\n" +
-                  "android.buildTypes.xyz.jniDebuggable true\n" +
-                  "android.buildTypes.xyz.manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
-                  "android.buildTypes.xyz.minifyEnabled true\n" +
-                  "android.buildTypes.xyz.multiDexEnabled true\n" +
-                  "android.buildTypes.xyz.proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "android.buildTypes.xyz.pseudoLocalesEnabled true\n" +
-                  "android.buildTypes.xyz.renderscriptDebuggable true\n" +
-                  "android.buildTypes.xyz.renderscriptOptimLevel 1\n" +
-                  "android.buildTypes.xyz.resValue \"mnop\", \"qrst\", \"uvwx\"\n" +
-                  "android.buildTypes.xyz.shrinkResources true\n" +
-                  "android.buildTypes.xyz.testCoverageEnabled true\n" +
-                  "android.buildTypes.xyz.useJack true\n" +
-                  "android.buildTypes.xyz.versionNameSuffix \"abc\"\n" +
-                  "android.buildTypes.xyz.zipAlignEnabled true";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_BUILD_TYPE_APPLICATION_STATEMENTS);
 
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
@@ -201,31 +157,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypeAssignmentStatements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}\n" +
-                  "android.buildTypes.xyz.applicationIdSuffix = \"mySuffix\"\n" +
-                  "android.buildTypes.xyz.consumerProguardFiles = ['proguard-android.txt', 'proguard-rules.pro']\n" +
-                  "android.buildTypes.xyz.debuggable = true\n" +
-                  "android.buildTypes.xyz.embedMicroApp = true\n" +
-                  "android.buildTypes.xyz.jniDebuggable = true\n" +
-                  "android.buildTypes.xyz.manifestPlaceholders = [activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"]\n" +
-                  "android.buildTypes.xyz.minifyEnabled = true\n" +
-                  "android.buildTypes.xyz.multiDexEnabled = true\n" +
-                  "android.buildTypes.xyz.proguardFiles = ['proguard-android.txt', 'proguard-rules.pro']\n" +
-                  "android.buildTypes.xyz.pseudoLocalesEnabled = true\n" +
-                  "android.buildTypes.xyz.renderscriptDebuggable = true\n" +
-                  "android.buildTypes.xyz.renderscriptOptimLevel = 1\n" +
-                  "android.buildTypes.xyz.shrinkResources = true\n" +
-                  "android.buildTypes.xyz.testCoverageEnabled = true\n" +
-                  "android.buildTypes.xyz.useJack = true\n" +
-                  "android.buildTypes.xyz.versionNameSuffix = \"abc\"\n" +
-                  "android.buildTypes.xyz.zipAlignEnabled = true";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_BUILD_TYPE_ASSIGNMENT_STATEMENTS);
 
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
@@ -251,51 +183,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypeBlockWithOverrideStatements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      applicationIdSuffix \"mySuffix\"\n" +
-                  "      consumerProguardFiles = ['proguard-android.txt', 'proguard-rules.pro']\n" +
-                  "      debuggable true\n" +
-                  "      embedMicroApp = false\n" +
-                  "      jniDebuggable true\n" +
-                  "      manifestPlaceholders = [activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"]\n" +
-                  "      minifyEnabled false\n" +
-                  "      multiDexEnabled = true\n" +
-                  "      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      pseudoLocalesEnabled = false\n" +
-                  "      renderscriptDebuggable true\n" +
-                  "      renderscriptOptimLevel = 1\n" +
-                  "      shrinkResources false\n" +
-                  "      testCoverageEnabled = true\n" +
-                  "      useJack false\n" +
-                  "      versionNameSuffix = \"abc\"\n" +
-                  "      zipAlignEnabled true\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}\n" +
-                  "android.buildTypes.xyz {\n" +
-                  "  applicationIdSuffix = \"mySuffix-1\"\n" +
-                  "  consumerProguardFiles 'proguard-android-1.txt', 'proguard-rules-1.pro'\n" +
-                  "  debuggable = false\n" +
-                  "  embedMicroApp true\n" +
-                  "  jniDebuggable = false\n" +
-                  "  manifestPlaceholders activityLabel3:\"defaultName3\", activityLabel4:\"defaultName4\"\n" +
-                  "  minifyEnabled = true\n" +
-                  "  multiDexEnabled false\n" +
-                  "  proguardFiles = ['proguard-android-1.txt', 'proguard-rules-1.pro']\n" +
-                  "  pseudoLocalesEnabled true\n" +
-                  "  renderscriptDebuggable = false\n" +
-                  "  renderscriptOptimLevel 2\n" +
-                  "  shrinkResources = true\n" +
-                  "  testCoverageEnabled false\n" +
-                  "  useJack true\n" +
-                  "  versionNameSuffix = \"abc-1\"\n" +
-                  "  zipAlignEnabled = false\n" +
-                  "}\n" +
-                  "android.buildTypes.xyz.applicationIdSuffix = \"mySuffix-3\"";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_OVERRIDE_STATEMENTS);
 
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
     assertEquals("applicationIdSuffix", "mySuffix-3", buildType.applicationIdSuffix());
@@ -321,31 +209,12 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypeBlockWithAppendStatements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      buildConfigField \"abcd\", \"efgh\", \"ijkl\"\n" +
-                  "      proguardFiles 'pro-1.txt', 'pro-2.txt'\n" +
-                  "      resValue \"mnop\", \"qrst\", \"uvwx\"\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}\n" +
-                  "android.buildTypes.xyz {\n" +
-                  "  buildConfigField \"cdef\", \"ghij\", \"klmn\"\n" +
-                  "  manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
-                  "  proguardFile 'pro-3.txt'\n" +
-                  "  resValue \"opqr\", \"stuv\", \"wxyz\"\n" +
-                  "}\n" +
-                  "android.buildTypes.xyz.manifestPlaceholders.activityLabel3 \"defaultName3\"\n" +
-                  "android.buildTypes.xyz.manifestPlaceholders.activityLabel4 = \"defaultName4\"\n" +
-                  "android.buildTypes.xyz.proguardFiles 'pro-4.txt', 'pro-5.txt'\n";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_APPEND_STATEMENTS);
 
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
     verifyFlavorType("buildConfigFields",
-                 ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
-                 buildType.buildConfigFields());
+                     ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
+                     buildType.buildConfigFields());
     assertEquals("manifestPlaceholders",
                  ImmutableMap.of("activityLabel1", "defaultName1", "activityLabel2", "defaultName2", "activityLabel3", "defaultName3",
                                  "activityLabel4", "defaultName4"),
@@ -354,22 +223,13 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
                  ImmutableList.of("pro-1.txt", "pro-2.txt", "pro-3.txt", "pro-4.txt", "pro-5.txt"),
                  buildType.proguardFiles());
     verifyFlavorType("resValues",
-                 ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx"), Lists.newArrayList("opqr", "stuv", "wxyz")),
-                 buildType.resValues());
+                     ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx"), Lists.newArrayList("opqr", "stuv", "wxyz")),
+                     buildType.resValues());
   }
 
   @Test
   public void testBuildTypeMapStatements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}\n" +
-                  "android.buildTypes.xyz.manifestPlaceholders.activityLabel1 \"defaultName1\"\n" +
-                  "android.buildTypes.xyz.manifestPlaceholders.activityLabel2 = \"defaultName2\"\n";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_BUILD_TYPE_MAP_STATEMENTS);
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "defaultName1", "activityLabel2", "defaultName2"),
                  buildType.manifestPlaceholders());
@@ -377,33 +237,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndResetElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      applicationIdSuffix \"mySuffix\"\n" +
-                  "      buildConfigField \"abcd\", \"efgh\", \"ijkl\"\n" +
-                  "      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      debuggable true\n" +
-                  "      embedMicroApp true\n" +
-                  "      jniDebuggable true\n" +
-                  "      manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
-                  "      minifyEnabled true\n" +
-                  "      multiDexEnabled true\n" +
-                  "      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      pseudoLocalesEnabled true\n" +
-                  "      renderscriptDebuggable true\n" +
-                  "      renderscriptOptimLevel 1\n" +
-                  "      resValue \"mnop\", \"qrst\", \"uvwx\"\n" +
-                  "      shrinkResources true\n" +
-                  "      testCoverageEnabled true\n" +
-                  "      useJack true\n" +
-                  "      versionNameSuffix \"abc\"\n" +
-                  "      zipAlignEnabled true\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_AND_RESET_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -494,28 +328,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testEditAndResetLiteralElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      applicationIdSuffix \"mySuffix\"\n" +
-                  "      debuggable true\n" +
-                  "      embedMicroApp false\n" +
-                  "      jniDebuggable true\n" +
-                  "      minifyEnabled false\n" +
-                  "      multiDexEnabled true\n" +
-                  "      pseudoLocalesEnabled false\n" +
-                  "      renderscriptDebuggable true\n" +
-                  "      renderscriptOptimLevel 1\n" +
-                  "      shrinkResources false\n" +
-                  "      testCoverageEnabled true\n" +
-                  "      useJack false\n" +
-                  "      versionNameSuffix \"abc\"\n" +
-                  "      zipAlignEnabled true\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_EDIT_AND_RESET_LITERAL_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -583,14 +396,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndResetLiteralElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_ADD_AND_RESET_LITERAL_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -668,18 +474,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceAndResetListElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      buildConfigField \"abcd\", \"efgh\", \"ijkl\"\n" +
-                  "      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      resValue \"mnop\", \"qrst\", \"uvwx\"\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_REPLACE_AND_RESET_LIST_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -689,10 +484,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.proguardFiles());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx")), buildType.resValues());
 
-    buildType.replaceBuildConfigField("abcd", "efgh", "ijkl","abcd", "mnop", "qrst");
+    buildType.replaceBuildConfigField("abcd", "efgh", "ijkl", "abcd", "mnop", "qrst");
     replaceListValue(buildType.consumerProguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
     replaceListValue(buildType.proguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
-    buildType.replaceResValue("mnop", "qrst", "uvwx","mnop", "efgh", "ijkl");
+    buildType.replaceResValue("mnop", "qrst", "uvwx", "mnop", "efgh", "ijkl");
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "mnop", "qrst")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"),
                  buildType.consumerProguardFiles());
@@ -709,14 +504,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndResetListElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_ADD_AND_RESET_LIST_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -743,23 +531,13 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddToAndResetListElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      buildConfigField \"abcd\", \"efgh\", \"ijkl\"\n" +
-                  "      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      resValue \"mnop\", \"qrst\", \"uvwx\"\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl")), buildType.buildConfigFields());
-    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.consumerProguardFiles());
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
+                 buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.proguardFiles());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx")), buildType.resValues());
 
@@ -768,47 +546,37 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildType.proguardFiles().addListValue().setValue("proguard-android-1.txt");
     buildType.addResValue("opqr", "stuv", "wxyz");
     verifyFlavorType("buildConfigFields",
-                 ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
-                 buildType.buildConfigFields());
-    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"), buildType.consumerProguardFiles());
+                     ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
+                     buildType.buildConfigFields());
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
+                 buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
                  buildType.proguardFiles());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx"), Lists.newArrayList("opqr", "stuv", "wxyz")),
-                 buildType.resValues());
+                     buildType.resValues());
 
     buildModel.resetState();
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl")), buildType.buildConfigFields());
-    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.consumerProguardFiles());
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
+                 buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.proguardFiles());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx")), buildType.resValues());
   }
 
   @Test
   public void testRemoveFromAndResetListElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      buildConfigField \"abcd\", \"efgh\", \"ijkl\"\n" +
-                  "      buildConfigField \"cdef\", \"ghij\", \"klmn\"\n" +
-                  "      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      resValue \"mnop\", \"qrst\", \"uvwx\"\n" +
-                  "      resValue \"opqr\", \"stuv\", \"wxyz\"\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_FROM_AND_RESET_LIST_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
     verifyFlavorType("buildConfigFields",
-                 ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
-                 buildType.buildConfigFields());
-    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.consumerProguardFiles());
+                     ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
+                     buildType.buildConfigFields());
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
+                 buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.proguardFiles());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx"), Lists.newArrayList("opqr", "stuv", "wxyz")),
-                 buildType.resValues());
+                     buildType.resValues());
 
     buildType.removeBuildConfigField("abcd", "efgh", "ijkl");
     removeListValue(buildType.consumerProguardFiles(), "proguard-rules.pro");
@@ -821,25 +589,18 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     buildModel.resetState();
     verifyFlavorType("buildConfigFields",
-                 ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
-                 buildType.buildConfigFields());
-    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.consumerProguardFiles());
+                     ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
+                     buildType.buildConfigFields());
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
+                 buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.proguardFiles());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx"), Lists.newArrayList("opqr", "stuv", "wxyz")),
-                 buildType.resValues());
+                     buildType.resValues());
   }
 
   @Test
   public void testSetAndResetMapElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      manifestPlaceholders key1:\"value1\", key2:\"value2\"\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_SET_AND_RESET_MAP_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -856,14 +617,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndResetMapElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_ADD_AND_RESET_MAP_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -880,15 +634,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndResetMapElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_AND_RESET_MAP_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -906,33 +652,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndApplyElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      applicationIdSuffix \"mySuffix\"\n" +
-                  "      buildConfigField \"abcd\", \"efgh\", \"ijkl\"\n" +
-                  "      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      debuggable true\n" +
-                  "      embedMicroApp true\n" +
-                  "      jniDebuggable true\n" +
-                  "      manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
-                  "      minifyEnabled true\n" +
-                  "      multiDexEnabled true\n" +
-                  "      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      pseudoLocalesEnabled true\n" +
-                  "      renderscriptDebuggable true\n" +
-                  "      renderscriptOptimLevel 1\n" +
-                  "      resValue \"mnop\", \"qrst\", \"uvwx\"\n" +
-                  "      shrinkResources true\n" +
-                  "      testCoverageEnabled true\n" +
-                  "      useJack true\n" +
-                  "      versionNameSuffix \"abc\"\n" +
-                  "      zipAlignEnabled true\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_AND_APPLY_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -945,7 +665,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertTrue(((BuildTypeModelImpl)buildType).hasValidPsiElement());
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl")), buildType.buildConfigFields());
-    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.consumerProguardFiles());
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
+                 buildType.consumerProguardFiles());
     assertEquals("debuggable", Boolean.TRUE, buildType.debuggable());
     assertEquals("embedMicroApp", Boolean.TRUE, buildType.embedMicroApp());
     assertEquals("jniDebuggable", Boolean.TRUE, buildType.jniDebuggable());
@@ -1086,28 +807,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testEditAndApplyLiteralElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      applicationIdSuffix \"mySuffix\"\n" +
-                  "      debuggable true\n" +
-                  "      embedMicroApp false\n" +
-                  "      jniDebuggable true\n" +
-                  "      minifyEnabled false\n" +
-                  "      multiDexEnabled true\n" +
-                  "      pseudoLocalesEnabled false\n" +
-                  "      renderscriptDebuggable true\n" +
-                  "      renderscriptOptimLevel 1\n" +
-                  "      shrinkResources false\n" +
-                  "      testCoverageEnabled true\n" +
-                  "      useJack false\n" +
-                  "      versionNameSuffix \"abc\"\n" +
-                  "      zipAlignEnabled true\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1192,14 +892,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndApplyLiteralElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1289,59 +982,45 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceAndApplyListElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      buildConfigField \"abcd\", \"efgh\", \"ijkl\"\n" +
-                  "      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      resValue \"mnop\", \"qrst\", \"uvwx\"\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl")), buildType.buildConfigFields());
-    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.consumerProguardFiles());
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
+                 buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.proguardFiles());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx")), buildType.resValues());
 
     buildType.replaceBuildConfigField("abcd", "efgh", "ijkl", "abcd", "mnop", "qrst");
     replaceListValue(buildType.consumerProguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
-    replaceListValue(buildType .proguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
+    replaceListValue(buildType.proguardFiles(), "proguard-android.txt", "proguard-android-1.txt");
     buildType.replaceResValue("mnop", "qrst", "uvwx", "mnop", "efgh", "ijkl");
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "mnop", "qrst")), buildType.buildConfigFields());
-    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"), buildType.consumerProguardFiles());
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"),
+                 buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"), buildType.proguardFiles());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "efgh", "ijkl")), buildType.resValues());
 
     applyChanges(buildModel);
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "mnop", "qrst")), buildType.buildConfigFields());
-    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"), buildType.consumerProguardFiles());
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"),
+                 buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"), buildType.proguardFiles());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "efgh", "ijkl")), buildType.resValues());
 
     buildModel.reparse();
     buildType = getXyzBuildType(buildModel);
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "mnop", "qrst")), buildType.buildConfigFields());
-    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"), buildType.consumerProguardFiles());
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"),
+                 buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"), buildType.proguardFiles());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "efgh", "ijkl")), buildType.resValues());
   }
 
   @Test
   public void testAddAndApplyListElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_ADD_AND_APPLY_LIST_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1375,24 +1054,14 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddToAndApplyListElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      buildConfigField \"abcd\", \"efgh\", \"ijkl\"\n" +
-                  "      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      resValue \"mnop\", \"qrst\", \"uvwx\"\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
 
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl")), buildType.buildConfigFields());
-    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.consumerProguardFiles());
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
+                 buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.proguardFiles());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx")), buildType.resValues());
 
@@ -1401,62 +1070,53 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildType.proguardFiles().addListValue().setValue("proguard-android-1.txt");
     buildType.addResValue("opqr", "stuv", "wxyz");
     verifyFlavorType("buildConfigFields",
-                 ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
-                 buildType.buildConfigFields());
-    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"), buildType.consumerProguardFiles());
+                     ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
+                     buildType.buildConfigFields());
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
+                 buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
                  buildType.proguardFiles());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx"), Lists.newArrayList("opqr", "stuv", "wxyz")),
-                 buildType.resValues());
+                     buildType.resValues());
 
     applyChanges(buildModel);
     verifyFlavorType("buildConfigFields",
-                 ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
-                 buildType.buildConfigFields());
-    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"), buildType.consumerProguardFiles());
+                     ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
+                     buildType.buildConfigFields());
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
+                 buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
                  buildType.proguardFiles());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx"), Lists.newArrayList("opqr", "stuv", "wxyz")),
-                 buildType.resValues());
+                     buildType.resValues());
 
     buildModel.reparse();
     buildType = getXyzBuildType(buildModel);
     verifyFlavorType("buildConfigFields",
-                 ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
-                 buildType.buildConfigFields());
-    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"), buildType.consumerProguardFiles());
+                     ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
+                     buildType.buildConfigFields());
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
+                 buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
                  buildType.proguardFiles());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx"), Lists.newArrayList("opqr", "stuv", "wxyz")),
-                 buildType.resValues());
+                     buildType.resValues());
   }
 
   @Test
   public void testRemoveFromAndApplyListElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      buildConfigField \"abcd\", \"efgh\", \"ijkl\"\n" +
-                  "      buildConfigField \"cdef\", \"ghij\", \"klmn\"\n" +
-                  "      consumerProguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      proguardFiles 'proguard-android.txt', 'proguard-rules.pro'\n" +
-                  "      resValue \"mnop\", \"qrst\", \"uvwx\"\n" +
-                  "      resValue \"opqr\", \"stuv\", \"wxyz\"\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
     verifyFlavorType("buildConfigFields",
-                 ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
-                 buildType.buildConfigFields());
-    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.consumerProguardFiles());
+                     ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
+                     buildType.buildConfigFields());
+    assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
+                 buildType.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), buildType.proguardFiles());
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx"), Lists.newArrayList("opqr", "stuv", "wxyz")),
-                 buildType.resValues());
+                     buildType.resValues());
 
     buildType.removeBuildConfigField("abcd", "efgh", "ijkl");
     removeListValue(buildType.consumerProguardFiles(), "proguard-rules.pro");
@@ -1483,16 +1143,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveFromAndApplyListElementsWithSingleElement() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      consumerProguardFiles 'proguard-android.txt'\n" +
-                  "      proguardFiles = ['proguard-rules.pro']\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1516,15 +1167,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetAndApplyMapElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      manifestPlaceholders key1:\"value1\", key2:\"value2\"\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_SET_AND_APPLY_MAP_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1547,14 +1190,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndApplyMapElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_ADD_AND_APPLY_MAP_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1577,15 +1213,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndApplyMapElements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      manifestPlaceholders activityLabel1:\"defaultName1\", activityLabel2:\"defaultName2\"\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_AND_APPLY_MAP_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1608,19 +1236,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReadSigningConfig() throws Exception {
-    String text = "android {\n" +
-                  "  signingConfigs {\n" +
-                  "    myConfig {\n" +
-                  "      storeFile file('config.keystore')\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      signingConfig signingConfigs.myConfig\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_READ_SIGNING_CONFIG);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1632,22 +1248,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetSigningConfig() throws Exception {
-    String text = "android {\n" +
-                  "  signingConfigs {\n" +
-                  "    myConfig {\n" +
-                  "      storeFile file('config.keystore')\n" +
-                  "    }\n" +
-                  "    myBetterConfig {\n" +
-                  "      storeFile file('betterConfig.keystore')\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "  buildTypes {\n" +
-                  "    xyz {\n" +
-                  "      signingConfig signingConfigs.myConfig\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_SET_SIGNING_CONFIG);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1694,14 +1295,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetSigningConfigFromEmpty() throws Exception {
-    String text = "android {\n" +
-                  "  signingConfigs {\n" +
-                  "    myConfig {\n" +
-                  "      storeFile file('config.keystore')\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPE_MODEL_SET_SIGNING_CONFIG_FROM_EMPTY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();

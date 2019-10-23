@@ -15,30 +15,59 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.ProfilersTestData;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import static com.intellij.util.ObjectUtils.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.adtui.model.DataSeries;
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profilers.ProfilerClient;
+import com.android.tools.profilers.ProfilersTestData;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+@RunWith(Parameterized.class)
 public class CpuThreadCountDataSeriesTest {
+  @Parameterized.Parameters(name = "isUnifiedPipeline={0}")
+  public static Collection<Boolean> useNewEventPipelineParameter() {
+    return Arrays.asList(false, true);
+  }
 
+  private final FakeTransportService myTransportService = new FakeTransportService(new FakeTimer(), false);
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuThreadCountDataSeriesTest", new FakeCpuService());
+  public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("CpuThreadCountDataSeriesTest", new FakeCpuService(), myTransportService);
 
-  private CpuThreadCountDataSeries myDataSeries;
+  private boolean myIsUnifiedPipeline;
+  private DataSeries<Long> myDataSeries;
+
+  public CpuThreadCountDataSeriesTest(boolean isUnifiedPipeline) {
+    myIsUnifiedPipeline = isUnifiedPipeline;
+  }
 
   @Before
   public void setUp() {
-    myDataSeries = new CpuThreadCountDataSeries(myGrpcChannel.getClient().getCpuClient(), ProfilersTestData.SESSION_DATA);
+    if (myIsUnifiedPipeline) {
+      ProfilersTestData.populateThreadData(myTransportService, ProfilersTestData.SESSION_DATA.getStreamId());
+
+      myDataSeries = new CpuThreadCountDataSeries(new ProfilerClient(myGrpcChannel.getName()).getTransportClient(),
+                                                  ProfilersTestData.SESSION_DATA.getStreamId(),
+                                                  ProfilersTestData.SESSION_DATA.getPid());
+    }
+    else {
+      myDataSeries = new LegacyCpuThreadCountDataSeries(new ProfilerClient(myGrpcChannel.getName()).getCpuClient(), ProfilersTestData.SESSION_DATA);
+    }
   }
 
   @Test

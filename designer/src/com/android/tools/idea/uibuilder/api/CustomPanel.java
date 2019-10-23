@@ -16,12 +16,13 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.surface.DesignSurface;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 public interface CustomPanel {
   JPanel getPanel();
-  void useComponent(@Nullable NlComponent component);
+  void useComponent(@Nullable NlComponent component, @Nullable DesignSurface surface);
   void refresh();
 }

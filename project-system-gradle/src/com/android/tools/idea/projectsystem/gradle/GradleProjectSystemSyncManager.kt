@@ -21,7 +21,9 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.*
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -97,7 +99,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     return syncResult
   }
 
-  override fun isSyncInProgress() = GradleSyncState.getInstance(project).isSyncInProgress || syncResultPublisher.sourceGenerationExpected
+  override fun isSyncInProgress() = GradleSyncState.getInstance(project).isSyncInProgress || syncResultPublisher.isSourceGenerationInProgress()
   override fun isSyncNeeded() = GradleSyncState.getInstance(project).isSyncNeeded != ThreeState.NO
   override fun getLastSyncResult() = syncResultPublisher.lastSyncResult
 }

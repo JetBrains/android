@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.google.common.io.Closeables;
 import com.intellij.facet.ProjectFacetManager;
@@ -32,21 +32,31 @@ import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
-
 /**
  * Manages a local file cache for ResourceFolderRepository state, for faster project reload.
  */
 class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryFileCache {
-
   private static final String CACHE_DIRECTORY = "resource_folder_cache";
   private static final String INVALIDATE_CACHE_STAMP = "invalidate_caches_stamp.dat";
 
@@ -247,6 +257,9 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
     @Override
     public void performInDumbMode(@NotNull ProgressIndicator indicator) {
+      if (myProject.isDisposed()) {
+        return;
+      }
       maintainLRUCache(MAX_PROJECT_CACHES);
     }
 
@@ -372,6 +385,10 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
     @Override
     public void performInDumbMode(@NotNull ProgressIndicator indicator) {
+      if (myProject.isDisposed()) {
+        return;
+      }
+
       ResourceFolderRepositoryFileCache cache = ResourceFolderRepositoryFileCacheService.get();
       Path projectCacheBase = cache.getProjectDir(myProject);
       if (projectCacheBase == null || !Files.exists(projectCacheBase)) {

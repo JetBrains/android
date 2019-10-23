@@ -15,21 +15,30 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.files;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
+import static com.intellij.internal.psiView.stubtree.StubViewerPsiBasedTree.LOG;
+
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
+import com.google.common.base.Charsets;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
-
+/**
+ * Cache to store a mapping between file paths and their respective {@link GradleDslFileCache} objects, its main purpose it to
+ * prevent the parsing of a file more than once. In large projects without caching the parsed file we can end up parsing the same
+ * file hundreds of times.
+ */
 public class GradleDslFileCache {
   @NotNull private Project myProject;
   @NotNull private Map<String, GradleDslFile> myParsedBuildFiles = new HashMap<>();
@@ -43,12 +52,16 @@ public class GradleDslFileCache {
   }
 
   @NotNull
-  public GradleBuildFile getOrCreateBuildFile(@NotNull VirtualFile file, @NotNull String name, @NotNull BuildModelContext context) {
+  public GradleBuildFile getOrCreateBuildFile(@NotNull VirtualFile file,
+                                              @NotNull String name,
+                                              @NotNull BuildModelContext context,
+                                              boolean isApplied) {
     GradleDslFile dslFile = myParsedBuildFiles.get(file.getUrl());
     if (dslFile == null) {
-      dslFile = GradleBuildModelImpl.parseBuildFile(file, myProject, name, context);
+      dslFile = GradleBuildModelImpl.parseBuildFile(file, myProject, name, context, isApplied);
       myParsedBuildFiles.put(file.getUrl(), dslFile);
-    } else if (!(dslFile instanceof GradleBuildFile)) {
+    }
+    else if (!(dslFile instanceof GradleBuildFile)) {
       throw new IllegalStateException("Found wrong type for build file in cache!");
     }
 
@@ -73,22 +86,43 @@ public class GradleDslFileCache {
     return (GradleSettingsFile)dslFile;
   }
 
-  @Nullable
-  public GradleSettingsFile getOrCreateSettingsFile(@NotNull Project project, @NotNull BuildModelContext context) {
-    VirtualFile file = getGradleSettingsFile(getBaseDirPath(project));
-    if (file == null) {
-      return null;
-    }
-
-    GradleDslFile dslFile = myParsedBuildFiles.get(file.getUrl());
+  @NotNull
+  public GradleSettingsFile getOrCreateSettingsFile(@NotNull VirtualFile settingsFile, @NotNull BuildModelContext context) {
+    GradleDslFile dslFile = myParsedBuildFiles.get(settingsFile.getUrl());
     if (dslFile == null) {
-      dslFile = new GradleSettingsFile(file, myProject, "settings", context);
+      dslFile = new GradleSettingsFile(settingsFile, myProject, "settings", context);
       dslFile.parse();
-      myParsedBuildFiles.put(file.getUrl(), dslFile);
-    } else if (!(dslFile instanceof GradleSettingsFile)) {
+      myParsedBuildFiles.put(settingsFile.getUrl(), dslFile);
+    }
+    else if (!(dslFile instanceof GradleSettingsFile)) {
       throw new IllegalStateException("Found wrong type for settings file in cache!");
     }
     return (GradleSettingsFile)dslFile;
+  }
+
+  @Nullable
+  public GradlePropertiesFile getOrCreatePropertiesFile(@NotNull VirtualFile file, @NotNull String moduleName, @NotNull BuildModelContext context) {
+    GradleDslFile dslFile = myParsedBuildFiles.get(file.getUrl());
+    if (dslFile == null) {
+      try {
+        Properties properties = getProperties(file);
+        dslFile = new GradlePropertiesFile(properties, file, myProject, moduleName, context);
+        myParsedBuildFiles.put(file.getUrl(), dslFile);
+      } catch (IOException e) {
+        LOG.warn("Failed to process properties file " + file.getPath(), e);
+        return null;
+      }
+    }
+    else if (!(dslFile instanceof GradlePropertiesFile)) {
+      throw new IllegalStateException("Found wrong type for properties file in cache!");
+    }
+    return (GradlePropertiesFile)dslFile;
+  }
+
+  private static Properties getProperties(@NotNull VirtualFile file) throws IOException {
+    Properties properties = new Properties();
+    properties.load(new InputStreamReader(file.getInputStream(), Charsets.UTF_8));
+    return properties;
   }
 
   @NotNull

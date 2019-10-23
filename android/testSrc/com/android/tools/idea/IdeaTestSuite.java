@@ -22,8 +22,6 @@ import com.android.tools.tests.LeakCheckerRule;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
-import static com.android.testutils.TestUtils.getWorkspaceFile;
-
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
   com.android.tools.idea.IdeaTestSuite.class,  // a suite mustn't contain itself
@@ -33,7 +31,7 @@ import static com.android.testutils.TestUtils.getWorkspaceFile;
 
   // The following classes had failures when run in Bazel.
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
-  com.android.tools.perf.idea.gradle.project.sync.GradleSyncPerfTest.class, // Sync performance test only runs on perf buildbot
+  com.android.tools.idea.gradle.project.sync.perf.GradleSyncPerfTest.class, // Sync performance test only runs on perf buildbot
   // Require resources with spaces (HTML File template)
   // https://github.com/bazelbuild/bazel/issues/374
   com.android.tools.idea.actions.annotations.InferSupportAnnotationsTest.class,
@@ -52,28 +50,24 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
   static {
     symlinkToIdeaHome(
         "prebuilts/tools/common/offline-m2",
-        "tools/adt/idea/adt-ui/lib/libwebp",
-        "tools/adt/idea/android/annotations",
-        "tools/adt/idea/artwork/resources/device-art-resources",
-        "tools/adt/idea/android/testData",
-        "tools/adt/idea/android/lib",
-        "tools/base/templates",
-        "tools/idea/build.txt",
-        "tools/idea/java",
         "prebuilts/studio/jdk",
         "prebuilts/studio/layoutlib",
-        "prebuilts/studio/sdk");
+        "prebuilts/studio/sdk",
+        "tools/adt/idea/adt-ui/lib/libwebp",
+        "tools/adt/idea/android/annotations",
+        "tools/adt/idea/android/lib",
+        "tools/adt/idea/artwork/resources/device-art-resources",
+        "tools/adt/idea/android/testData",
+        "tools/adt/idea/resources-aar/framework_res.jar",
+        "tools/base/templates",
+        "tools/idea/java");
 
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/adt/idea/android/android-gradle-1.5.0_repo.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/base/build-system/previous-versions/1.5.0.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/base/build-system/previous-versions/3.0.0.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/base/build-system/previous-versions/3.3.2.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/data-binding/data_binding_runtime.zip", "prebuilts/tools/common/m2/repository");
-
-    // Enable Kotlin plugin (see PluginManagerCore.PROPERTY_PLUGIN_PATH).
-    System.setProperty("plugin.path", getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin").getAbsolutePath());
-
-    // Run Kotlin in-process for easier control over its JVM args.
-    System.setProperty("kotlin.compiler.execution.strategy", "in-process");
   }
 }

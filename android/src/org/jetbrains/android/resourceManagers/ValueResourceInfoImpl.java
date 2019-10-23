@@ -26,10 +26,16 @@ public final class ValueResourceInfoImpl implements ValueResourceInfo {
   private final VirtualFile myFile;
   private final Project myProject;
 
-  ValueResourceInfoImpl(@NotNull ResourceItem resourceItem, @NotNull VirtualFile file, @NotNull Project project) {
+  public ValueResourceInfoImpl(@NotNull ResourceItem resourceItem, @NotNull VirtualFile file, @NotNull Project project) {
     this.myResource = resourceItem;
     this.myFile = file;
     myProject = project;
+  }
+
+  @Override
+  @NotNull
+  public ResourceItem getResource() {
+    return myResource;
   }
 
   @Override
@@ -39,18 +45,7 @@ public final class ValueResourceInfoImpl implements ValueResourceInfo {
   }
 
   @Override
-  @NotNull
-  public String getName() {
-    return myResource.getName();
-  }
-
-  @Override
-  @NotNull
-  public ResourceType getType() {
-    return myResource.getType();
-  }
-
-  @Override
+  @Nullable
   public XmlAttributeValue computeXmlElement() {
     ResourceElement resDomElement = computeDomElement();
     return resDomElement != null ? resDomElement.getName().getXmlAttributeValue() : null;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
-import com.android.tools.adtui.ptable.*;
+import com.android.tools.property.ptable.*;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItemValue;
 import com.android.tools.idea.common.property.NlProperty;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;

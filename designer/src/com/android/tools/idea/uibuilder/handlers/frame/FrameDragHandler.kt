@@ -40,8 +40,9 @@ class FrameDragHandler(editor: ViewEditor,
     if (components.size == 1) {
       val selectedNlCmponent = components[0]
       component = TemporarySceneComponent(layout.scene, selectedNlCmponent)
-      component.setSize(editor.pxToDp(selectedNlCmponent.w), editor.pxToDp(selectedNlCmponent.h), false)
-      component.setTargetProvider({ listOf(dragTarget) })
+      component.setSize(editor.pxToDp(selectedNlCmponent.w), editor.pxToDp(selectedNlCmponent.h))
+      component.setTargetProvider { listOf(dragTarget) }
+      component.updateTargets()
       component.setDrawState(SceneComponent.DrawState.DRAG)
       layout.addChild(component)
     }
@@ -69,9 +70,10 @@ class FrameDragHandler(editor: ViewEditor,
     return result
   }
 
-  override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int, insertType: InsertType) {
+  override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int,
+                      insertType: InsertType) {
     if (component != null) {
-      dragTarget.cancel()
+      dragTarget.mouseCancel()
       layout.scene.removeComponent(component)
       editor.insertChildren(layout.nlComponent, components, -1, insertType)
       layout.scene.checkRequestLayoutStatus()
@@ -82,6 +84,6 @@ class FrameDragHandler(editor: ViewEditor,
     if (component != null) {
       layout.scene.removeComponent(component)
     }
-    dragTarget.cancel()
+    dragTarget.mouseCancel()
   }
 }

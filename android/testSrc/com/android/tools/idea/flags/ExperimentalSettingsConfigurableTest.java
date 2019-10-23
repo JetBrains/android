@@ -15,27 +15,25 @@
  */
 package com.android.tools.idea.flags;
 
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.testFramework.JavaProjectTestCase;
 import org.mockito.Mock;
 
-import static org.mockito.MockitoAnnotations.initMocks;
-
 /**
  * Tests for {@link ExperimentalSettingsConfigurable}.
  */
 public class ExperimentalSettingsConfigurableTest extends JavaProjectTestCase {
   @Mock private GradleExperimentalSettings mySettings;
-
   private ExperimentalSettingsConfigurable myConfigurable;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-
     myConfigurable = new ExperimentalSettingsConfigurable(mySettings, new RenderSettings());
   }
 
@@ -63,6 +61,12 @@ public class ExperimentalSettingsConfigurableTest extends JavaProjectTestCase {
     assertTrue(myConfigurable.isModified());
     mySettings.USE_SINGLE_VARIANT_SYNC = true;
     assertFalse(myConfigurable.isModified());
+
+    myConfigurable.setUseNewPsd(true);
+    mySettings.USE_NEW_PSD = false;
+    assertTrue(myConfigurable.isModified());
+    mySettings.USE_NEW_PSD = true;
+    assertFalse(myConfigurable.isModified());
   }
 
   public void testApply() throws ConfigurationException {
@@ -70,6 +74,7 @@ public class ExperimentalSettingsConfigurableTest extends JavaProjectTestCase {
     myConfigurable.setSkipSourceGenOnSync(true);
     myConfigurable.setUseL2DependenciesInSync(true);
     myConfigurable.setUseSingleVariantSync(true);
+    myConfigurable.setUseNewPsd(true);
 
     myConfigurable.apply();
 
@@ -77,11 +82,13 @@ public class ExperimentalSettingsConfigurableTest extends JavaProjectTestCase {
     assertTrue(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
     assertTrue(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     assertTrue(mySettings.USE_SINGLE_VARIANT_SYNC);
+    assertTrue(mySettings.USE_NEW_PSD);
 
     myConfigurable.setMaxModuleCountForSourceGen(8);
     myConfigurable.setSkipSourceGenOnSync(false);
     myConfigurable.setUseL2DependenciesInSync(false);
     myConfigurable.setUseSingleVariantSync(false);
+    myConfigurable.setUseNewPsd(false);
 
     myConfigurable.apply();
 
@@ -89,6 +96,7 @@ public class ExperimentalSettingsConfigurableTest extends JavaProjectTestCase {
     assertFalse(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
     assertFalse(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     assertFalse(mySettings.USE_SINGLE_VARIANT_SYNC);
+    assertFalse(mySettings.USE_NEW_PSD);
   }
 
   public void testReset() {
@@ -96,6 +104,7 @@ public class ExperimentalSettingsConfigurableTest extends JavaProjectTestCase {
     mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 6;
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = true;
     mySettings.USE_SINGLE_VARIANT_SYNC = true;
+    mySettings.USE_NEW_PSD = true;
 
     myConfigurable.reset();
 
@@ -103,11 +112,13 @@ public class ExperimentalSettingsConfigurableTest extends JavaProjectTestCase {
     assertEquals(6, myConfigurable.getMaxModuleCountForSourceGen().intValue());
     assertTrue(myConfigurable.isUseL2DependenciesInSync());
     assertTrue(myConfigurable.isUseSingleVariantSync());
+    assertTrue(myConfigurable.isUseNewPsd());
 
     mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = false;
     mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = 8;
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = false;
     mySettings.USE_SINGLE_VARIANT_SYNC = false;
+    mySettings.USE_NEW_PSD = false;
 
     myConfigurable.reset();
 
@@ -115,5 +126,6 @@ public class ExperimentalSettingsConfigurableTest extends JavaProjectTestCase {
     assertEquals(8, myConfigurable.getMaxModuleCountForSourceGen().intValue());
     assertFalse(myConfigurable.isUseL2DependenciesInSync());
     assertFalse(myConfigurable.isUseSingleVariantSync());
+    assertFalse(myConfigurable.isUseNewPsd());
   }
 }

@@ -75,7 +75,7 @@ public class NlProperties {
 
   @NotNull
   public Table<String, String, NlPropertyItem> getProperties(@NotNull AndroidFacet facet,
-                                                             @NotNull PropertiesManager propertiesManager,
+                                                             @Nullable PropertiesManager propertiesManager,
                                                              @NotNull List<NlComponent> components) {
     assert !EventQueue.isDispatchThread() || ApplicationManager.getApplication().isUnitTestMode();
 
@@ -89,7 +89,7 @@ public class NlProperties {
 
   @NotNull
   private Table<String, String, NlPropertyItem> getPropertiesImpl(@NotNull AndroidFacet facet,
-                                                                  @NotNull PropertiesManager propertiesManager,
+                                                                  @Nullable PropertiesManager propertiesManager,
                                                                   @NotNull List<NlComponent> components) {
     assert !components.isEmpty();
     ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
@@ -109,7 +109,7 @@ public class NlProperties {
     int minApi = AndroidModuleInfo.getInstance(facet).getMinSdkVersion().getFeatureLevel();
 
     for (NlComponent component : components) {
-      XmlTag tag = component.getTag();
+      XmlTag tag = component.getTagDeprecated();
       if (!tag.isValid()) {
         return ImmutableTable.of();
       }
@@ -124,11 +124,11 @@ public class NlProperties {
 
       for (XmlAttributeDescriptor desc : descriptors) {
         XmlName name = getXmlName(desc, tag);
-        if (NS_RESOURCES.equals(name.getNamespaceKey()) && apiLookup != null &&
+        if (ANDROID_URI.equals(name.getNamespaceKey()) && apiLookup != null &&
             apiLookup.getFieldVersion("android/R$attr", name.getLocalName()) > minApi) {
           continue;
         }
-        AttributeDefinitions attrDefs = NS_RESOURCES.equals(name.getNamespaceKey()) ? systemAttrDefs : localAttrDefs;
+        AttributeDefinitions attrDefs = ANDROID_URI.equals(name.getNamespaceKey()) ? systemAttrDefs : localAttrDefs;
         AttributeDefinition attrDef = attrDefs == null ? null : attrDefs.getAttrDefByName(name.getLocalName());
         if (!NlPropertyItem.isDefinitionAcceptable(name, attrDef)) {
           // Ignore attributes we don't have information about.
@@ -202,7 +202,7 @@ public class NlProperties {
       StyleableDefinition styleable = styleableName != null ? localAttrDefs.getStyleableByName(styleableName) : null;
       if (styleable != null) {
         for (AttributeDefinition attrDef : styleable.getAttributes()) {
-          if (properties.contains(NS_RESOURCES, attrDef.getName())) {
+          if (properties.contains(ANDROID_URI, attrDef.getName())) {
             // If the corresponding framework attribute is supported, prefer the framework attribute.
             continue;
           }
@@ -229,7 +229,7 @@ public class NlProperties {
   public static void saveStarState(@Nullable String propertyNamespace,
                                    @NotNull String propertyName,
                                    boolean starred,
-                                   @NotNull PropertiesManager propertiesManager) {
+                                   @Nullable PropertiesManager propertiesManager) {
     String propertyNameWithPrefix = getPropertyNameWithPrefix(propertyNamespace, propertyName);
     List<String> favorites = new ArrayList<>();
     for (String starredProperty : getStarredProperties()) {
@@ -244,7 +244,9 @@ public class NlProperties {
     properties.setValue(STARRED_PROP, Joiner.on(';').join(favorites));
     String added = starred ? propertyNameWithPrefix : "";
     String removed = !starred ? propertyNameWithPrefix : "";
-    propertiesManager.logFavoritesChange(added, removed, favorites);
+    if (propertiesManager != null) {
+      propertiesManager.logFavoritesChange(added, removed, favorites);
+    }
   }
 
   public static String getStarredPropertiesAsString() {

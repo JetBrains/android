@@ -371,6 +371,37 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     }
   }
 
+  public void testFindEmulator() {
+    // Create files that looks like Emulator binaries
+    mFileOp.recordExistingFile("/sdk/emulator/emulator");
+    mFileOp.recordExistingFile("/sdk/tools/emulator");
+
+    File emulatorFile = mAvdManagerConnection.getEmulatorBinary();
+    assertNotNull("Could not find Emulator", emulatorFile);
+    File emulatorDirectory = emulatorFile.getParentFile();
+    assertTrue("Found invalid Emulator", mFileOp.isDirectory(emulatorDirectory));
+    String emulatorDirectoryPath = emulatorDirectory.getAbsolutePath();
+    assertEquals("Found wrong emulator", "/sdk/emulator", emulatorDirectoryPath);
+
+    // Remove the emulator package
+    File emulatorPackage = new File("/sdk/emulator/package.xml");
+    mFileOp.delete(emulatorPackage);
+
+    // Create a new AvdManagerConnection that doesn't remember the
+    // previous list of packages
+    AndroidSdkHandler androidSdkHandler =
+      new AndroidSdkHandler(new File("/sdk"), ANDROID_HOME, mFileOp);
+    AvdManagerConnection managerConnection = new AvdManagerConnection(androidSdkHandler);
+
+    File bogusEmulatorFile = managerConnection.getEmulatorBinary();
+    if (bogusEmulatorFile != null) {
+      // An emulator binary was found. It should not be anything that
+      // we created (especially not anything in /sdk/tools/).
+      String bogusEmulatorPath = bogusEmulatorFile.getAbsolutePath();
+      assertFalse("Should not have found Emulator", bogusEmulatorPath.startsWith("/sdk"));
+    }
+  }
+
   public void testStartAvdSkinless() throws Exception {
     // Note: This only tests a small part of startAvd(). We are not set up
     //       here to actually launch an Emulator instance.
@@ -425,11 +456,25 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
   }
 
   private static void recordEmulatorVersion_23_4_5(MockFileOp fop) {
+    // This creates two 'package' directories.
+    // We do not create a valid Emulator executable, so tests expect
+    // a failure when they try to launch the Emulator.
     fop.recordExistingFile("/sdk/emulator/package.xml",
                            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
                            + "<ns2:repository xmlns:ns2=\"http://schemas.android.com/repository/android/common/01\""
                            + "                xmlns:ns3=\"http://schemas.android.com/repository/android/generic/01\">"
                            + "  <localPackage path=\"emulator\">"
+                           + "    <type-details xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
+                           + "        xsi:type=\"ns3:genericDetailsType\"/>"
+                           + "    <revision><major>23</major><minor>4</minor><micro>5</micro></revision>"
+                           + "    <display-name>Google APIs Intel x86 Atom_64 System Image</display-name>"
+                           + "  </localPackage>"
+                           + "</ns2:repository>");
+    fop.recordExistingFile("/sdk/tools/package.xml",
+                           "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
+                           + "<ns2:repository xmlns:ns2=\"http://schemas.android.com/repository/android/common/01\""
+                           + "                xmlns:ns3=\"http://schemas.android.com/repository/android/generic/01\">"
+                           + "  <localPackage path=\"tools\">"
                            + "    <type-details xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
                            + "        xsi:type=\"ns3:genericDetailsType\"/>"
                            + "    <revision><major>23</major><minor>4</minor><micro>5</micro></revision>"

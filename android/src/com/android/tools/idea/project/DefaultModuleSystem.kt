@@ -23,16 +23,18 @@ import com.android.SdkConstants.FN_RESOURCE_TEXT
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.projectmodel.ExternalLibrary
 import com.android.projectmodel.Library
-import com.android.tools.idea.model.MergedManifest
+import com.android.projectmodel.RecursiveResourceFolder
+import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityNotSupported
 import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.ClassFileFinder
+import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
-import com.android.tools.idea.util.toPathString
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
+import com.android.tools.idea.util.toPathString
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.LibraryOrderEntry
@@ -41,13 +43,23 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidUtils
 
 class DefaultModuleSystem(val module: Module) :
   AndroidModuleSystem,
   ClassFileFinder by ModuleBasedClassFileFinder(module),
   SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
 
-  override fun registerDependency(coordinate: GradleCoordinate) {}
+  override fun canRegisterDependency(type: DependencyType): CapabilityStatus {
+    return CapabilityNotSupported()
+  }
+
+  override fun registerDependency(coordinate: GradleCoordinate) {
+    registerDependency(coordinate, DependencyType.IMPLEMENTATION)
+  }
+
+  override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
+  }
 
   override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
 
@@ -77,7 +89,7 @@ class DefaultModuleSystem(val module: Module) :
             continue
           }
           AndroidFacet.getInstance(moduleForEntry) ?: continue
-          val manifestInfo = MergedManifest.get(moduleForEntry)
+          val manifestInfo = MergedManifestManager.getSnapshot(moduleForEntry)
           if ("android.support.v7.appcompat" == manifestInfo.`package`) {
             return GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
           }
@@ -90,7 +102,12 @@ class DefaultModuleSystem(val module: Module) :
 
   // We don't offer maven artifact support for JPS projects because there aren't any use cases that requires this feature.
   // JPS also import their dependencies as modules and don't translate very well to the original maven artifacts.
-  override fun getLatestCompatibleDependency(mavenGroupId: String, mavenArtifactId: String): GradleCoordinate? = null
+  override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
+    : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
+    return Triple(emptyList(), dependenciesToAdd, "")
+  }
+
+  override fun getResourceModuleDependencies() = AndroidUtils.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)
 
   override fun getResolvedDependentLibraries(): Collection<Library> {
     val libraries = mutableListOf<Library>()
@@ -125,7 +142,7 @@ class DefaultModuleSystem(val module: Module) :
           address = libraryName,
           manifestFile = resFolder.parentOrRoot.resolve(FN_ANDROID_MANIFEST_XML),
           classJars = if (classesJar == null) emptyList() else listOf(classesJar),
-          resFolder = resFolder,
+          resFolder = RecursiveResourceFolder(resFolder),
           symbolFile = resFolder.parentOrRoot.resolve(FN_RESOURCE_TEXT),
           resApkFile = resApk
         ))
@@ -141,10 +158,6 @@ class DefaultModuleSystem(val module: Module) :
   }
 
   override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
-    return CapabilityNotSupported()
-  }
-
-  override fun getInstantRunSupport(): CapabilityStatus {
     return CapabilityNotSupported()
   }
 }

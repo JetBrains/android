@@ -30,7 +30,6 @@ import javax.swing.JComponent
 
 const val DEPENDENCIES_VIEW = "DependenciesView"
 const val DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME = "Dependencies"
-const val DEPENDENCIES_PERSPECTIVE_PLACE_NAME = "dependencies.place"
 
 class DependenciesPerspectiveConfigurable(context: PsContext)
   : BasePerspectiveConfigurable(context, extraModules = listOf(PsAllModulesFakeModule(context.project))), TrackedConfigurable {
@@ -41,13 +40,11 @@ class DependenciesPerspectiveConfigurable(context: PsContext)
   @Nls
   override fun getDisplayName(): String = DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME
 
-  override val navigationPathName: String = DEPENDENCIES_PERSPECTIVE_PLACE_NAME
-
   override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *> =
     when (module) {
-      is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context, extraModules)
-      is PsAndroidModule -> AndroidModuleDependenciesConfigurable(module, context, extraModules)
-      is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context, extraModules)
+      is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context)
+      is PsAndroidModule -> AndroidModuleDependenciesConfigurable(module, context)
+      is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context)
       else -> throw IllegalStateException()
     }
 

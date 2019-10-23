@@ -16,19 +16,22 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.DeviceCount;
+import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.DeviceSelectionUtils;
+import com.android.tools.idea.run.TargetDeviceFilter;
+import com.android.tools.idea.run.TargetSelectionMode;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import java.util.Collection;
+import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.Collection;
 
 public class UsbDeviceTargetProvider extends DeployTargetProvider {
   public static final class State extends DeployTargetState {
@@ -50,6 +53,11 @@ public class UsbDeviceTargetProvider extends DeployTargetProvider {
   @Override
   public DeployTargetState createState() {
     return new State();
+  }
+
+  @Override
+  protected boolean isApplicable(boolean testConfiguration, boolean deviceSnapshotComboBoxVisible) {
+    return !deviceSnapshotComboBoxVisible;
   }
 
   @Override

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.editors;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.stats.UsageTrackerUtils;
@@ -42,7 +41,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 import static javax.swing.SwingConstants.TOP;
 
 /**
@@ -81,33 +79,28 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
 
     if (myGenericSettingsPanel == null) {
       myEditors.clear();
-      if (AndroidPluginGeneration.find(module) == COMPONENT) {
-        myEditors.add(new GenericEditor<>("Information", DslNotSupportedPanel::new));
-      }
-      else {
-        AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null && facet.requiresAndroidModel() && GradleFacet.isAppliedTo(module)) {
-          myEditors.add(new GenericEditor<>("Properties", () -> {
-            SingleObjectPanel panel = new SingleObjectPanel(myProject, myName, null, BUILD_FILE_GENERIC_PROPERTIES);
-            panel.init();
-            return panel;
-          }));
-          myEditors.add(new GenericEditor<>(SIGNING_TAB_TITLE, () -> {
-            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.SIGNING_CONFIGS, "config", panelGroup);
-            panel.init();
-            return panel;
-          }));
-          myEditors.add(new GenericEditor<>(FLAVORS_TAB_TITLE, () -> {
-            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.FLAVORS, "flavor", panelGroup);
-            panel.init();
-            return panel;
-          }));
-          myEditors.add(new GenericEditor<>(BUILD_TYPES_TAB_TITLE, () -> {
-            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.BUILD_TYPES, "buildType", panelGroup);
-            panel.init();
-            return panel;
-          }));
-        }
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null && facet.requiresAndroidModel() && GradleFacet.isAppliedTo(module)) {
+        myEditors.add(new GenericEditor<>("Properties", () -> {
+          SingleObjectPanel panel = new SingleObjectPanel(myProject, myName, null, BUILD_FILE_GENERIC_PROPERTIES);
+          panel.init();
+          return panel;
+        }));
+        myEditors.add(new GenericEditor<>(SIGNING_TAB_TITLE, () -> {
+          NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.SIGNING_CONFIGS, "config", panelGroup);
+          panel.init();
+          return panel;
+        }));
+        myEditors.add(new GenericEditor<>(FLAVORS_TAB_TITLE, () -> {
+          NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.FLAVORS, "flavor", panelGroup);
+          panel.init();
+          return panel;
+        }));
+        myEditors.add(new GenericEditor<>(BUILD_TYPES_TAB_TITLE, () -> {
+          NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.BUILD_TYPES, "buildType", panelGroup);
+          panel.init();
+          return panel;
+        }));
       }
 
       myEditors.add(new GenericEditor<>(ProjectBundle.message("modules.classpath.title"),

@@ -13,13 +13,11 @@ public class AndroidInnerClassFinderTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "values.xml", "res/values/values.xml");
     PsiFile javaFile =
       myFixture.addFileToProject("src/com/example/Foo.java", "package com.example; class Foo {}");
-    copyRJavaToGeneratedSources();
     assertNotNull(myFixture.getJavaFacade().findClass("p1.p2.R.drawable", javaFile.getResolveScope()));
     assertEquals(1, myFixture.getJavaFacade().findClasses("p1.p2.R.drawable", javaFile.getResolveScope()).length);
   }
 
   public void testManifestClasses() {
-    copyManifestJavaToGeneratedSources();
     WriteCommandAction.runWriteCommandAction(getProject(),
                                              () -> myFacet.getManifest().addPermission().getName().setValue("com.example.SEND_MESSAGE"));
     PsiFile javaFile =

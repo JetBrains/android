@@ -73,24 +73,25 @@ public class CLionIntegrationTest {
 
     guiTest.waitForBackgroundTasks();
 
-    EditorFixture editor = ideFrame.getEditor().open(NATIVE_C_FILE_PATH, EditorFixture.Tab.EDITOR);
-
     // Check unused header import and no errors.
     String inspectionResults = ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
       .clickOk()
       .getResults();
     assertThat(inspectionResults).contains("Unused macro");
+
+    EditorFixture editor = ideFrame.getEditor().open(NATIVE_C_FILE_PATH, EditorFixture.Tab.EDITOR);
     assertThat(editor.getHighlights(HighlightSeverity.ERROR)).isEmpty();
 
     // Check code completion.
     editor.moveBetween("int kid_age = 3;", "").enterText("\nBUFFER");
-    ideFrame.invokeMenuPath("Code", "Completion", "Basic");
-    Wait.seconds(5).expecting("")
+    Wait.seconds(10).expecting("Completion to show up").until(() -> editor.getAutoCompleteWindow().contents().length > 0);
+    editor.invokeAction(EditorFixture.EditorAction.COMPLETE_CURRENT_STATEMENT);
+    Wait.seconds(20).expecting("")
       .until(() -> editor.getCurrentLine().contains("BUFFER_OFFSET"));
 
     // Complete the new statement.
     editor.moveBetween("BUFFER_OFFSET(", "")
-      .enterText("kid_age")
+      .typeText("kid_age")
       .invokeAction(EditorFixture.EditorAction.COMPLETE_CURRENT_STATEMENT);
 
     // Check declaration.
@@ -104,7 +105,7 @@ public class CLionIntegrationTest {
     // Check errors.
     List<String> errors = ideFrame.getEditor().open(NATIVE_C_FILE_PATH, EditorFixture.Tab.EDITOR)
       .moveBetween("BUFFER_OFFSET(kid_age);", "")
-      .enterText("\nNOT_DEFINED_FUNC();")
+      .typeText("\nNOT_DEFINED_FUNC();")
       .getHighlights(HighlightSeverity.ERROR);
     assertThat(errors).hasSize(1);
     assertThat(errors.get(0)).contains("Can't resolve variable 'NOT_DEFINED_FUNC'");

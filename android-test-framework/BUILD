@@ -4,6 +4,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.testFramework",
     iml_files = ["intellij.android.testFramework.iml"],
+    test_coverage = True,
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
@@ -14,7 +15,6 @@ iml_module(
     # do not sort: must match IML order
     runtime_deps = [
         "//tools/idea/platform/lvcs-impl:intellij.platform.lvcs.impl",
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
@@ -29,6 +29,7 @@ iml_module(
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",

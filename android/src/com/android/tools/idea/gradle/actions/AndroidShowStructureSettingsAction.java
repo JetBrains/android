@@ -58,7 +58,7 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
   }
 
   private static void showAndroidProjectStructure(@NotNull Project project) {
-    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+    if (ProjectStructureConfigurable.isNewPsdEnabled()) {
       ProjectStructureConfigurable.getInstance(project).show();
     }
     else {

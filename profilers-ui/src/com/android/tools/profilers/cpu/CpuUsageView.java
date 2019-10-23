@@ -45,6 +45,7 @@ import com.android.tools.profilers.ProfilerLayeredPane;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -56,7 +57,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
-import sun.swing.SwingUtilities2;
 
 abstract class CpuUsageView extends JBPanel {
   @NotNull protected final CpuProfilerStage myStage;
@@ -252,7 +252,7 @@ abstract class CpuUsageView extends JBPanel {
       // noinspection UseJBColor
       panel.setBackground(new Color(0, 0, 0, 0));
       InstructionsPanel infoMessage = new InstructionsPanel.Builder(
-        new TextInstruction(SwingUtilities2.getFontMetrics(panel, ProfilerFonts.H3_FONT), "Cpu usage details unavailable"))
+        new TextInstruction(UIUtilities.getFontMetrics(panel, ProfilerFonts.H3_FONT), "Cpu usage details unavailable"))
         .setColors(JBColor.foreground(), null)
         .build();
       panel.add(infoMessage);

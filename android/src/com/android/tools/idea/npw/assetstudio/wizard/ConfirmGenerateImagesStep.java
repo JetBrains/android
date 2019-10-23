@@ -15,11 +15,22 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.getMdpiScaleFactor;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
+import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
+import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.SIZE_FULL_BLEED_DP;
+
 import com.android.resources.Density;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.validation.validators.FalseValidator;
-import com.android.tools.idea.npw.assetstudio.*;
+import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
+import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
+import com.android.tools.idea.npw.assetstudio.GeneratedXmlResource;
+import com.android.tools.idea.npw.assetstudio.GraphicGeneratorContext;
+import com.android.tools.idea.npw.assetstudio.IconCategory;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeCellRenderer;
 import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeModel;
 import com.android.tools.idea.observable.ListenerManager;
@@ -28,6 +39,7 @@ import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -35,7 +47,6 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.editor.Document;
@@ -51,25 +62,34 @@ import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.*;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
-
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.getMdpiScaleFactor;
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
-import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.IMAGE_SIZE_FULL_BLEED_DP;
-import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.SIZE_FULL_BLEED_DP;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
+import javax.swing.SwingConstants;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This step allows the user to select a build variant and provides a preview of the assets that
@@ -192,14 +212,14 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
           myFileTypeTextField.setText(String.format("%s File", extension));
         }
 
-        mySizePxTextField.setText(String.format("%dx%d", icon.getIconWidth(), icon.getIconHeight()));
+        mySizePxTextField.setText(String.format(Locale.US, "%dx%d", icon.getIconWidth(), icon.getIconHeight()));
 
         Density density = generatedImageIcon.getDensity();
         myDensityTextField.setText(density.getResourceValue());
 
         double scaleFactor = getMdpiScaleFactor(density);
         mySizeDpTextField.setText(
-            String.format("%dx%d", Math.round(icon.getIconWidth() / scaleFactor), Math.round(icon.getIconHeight() / scaleFactor)));
+          String.format(Locale.US, "%dx%d", Math.round(icon.getIconWidth() / scaleFactor), Math.round(icon.getIconHeight() / scaleFactor)));
 
         mySizeDetailsRow.setVisible(true);
         mySizePxRow.setVisible(true);
@@ -251,7 +271,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
             mySizeDetailsRow.setVisible(false);
           }
           else {
-            mySizeDpTextField.setText(String.format("%dx%d", dpSize.width, dpSize.height));
+            mySizeDpTextField.setText(String.format(Locale.US, "%dx%d", dpSize.width, dpSize.height));
             mySizeDetailsRow.setVisible(true);
           }
           mySizePxRow.setVisible(false);
@@ -314,7 +334,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
       GraphicGeneratorContext generatorContext = generator.getGraphicGeneratorContext();
       // Use the same scale as a full bleed preview at xhdpi (see LauncherIconGenerator.generatePreviewImage).
       Rectangle rectangle = scaleRectangle(IMAGE_SIZE_FULL_BLEED_DP, getMdpiScaleFactor(Density.XHIGH) * 0.8f);
-      ListenableFuture<BufferedImage> imageFuture = generatorContext.renderDrawable(xmlText, rectangle.getSize());
+      Future<BufferedImage> imageFuture = generatorContext.renderDrawable(xmlText, rectangle.getSize());
       try {
         return imageFuture.get();
       }
@@ -379,15 +399,16 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   @Override
   protected void onEntering() {
     myListeners.release(mySelectedTemplate); // Just in case we're entering this step a second time.
-    myListeners.receiveAndFire(mySelectedTemplate, (NamedModuleTemplate template) -> {
+    myListeners.listenAndFire(mySelectedTemplate, (NamedModuleTemplate namedTemplate) -> {
       IconGenerator iconGenerator = getModel().getIconGenerator();
-      File resDirectory = getResDirectory(template.getPaths());
+      AndroidModuleTemplate template = namedTemplate.getPaths();
+      File resDirectory = getResDirectory(template);
       if (iconGenerator == null || resDirectory == null || resDirectory.getParentFile() == null) {
         return;
       }
 
       myFilesAlreadyExist.set(false);
-      myPathToPreviewImage = iconGenerator.generateIntoIconMap(resDirectory);
+      myPathToPreviewImage = iconGenerator.generateIntoIconMap(template);
 
       // Collect all directory names from all generated file names for sorting purposes.
       // We use this map instead of looking at the file system when sorting, since

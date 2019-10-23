@@ -17,32 +17,35 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler.*;
+import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
+import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
+import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An artifact representation of a CPU capture.
  */
-public class CpuCaptureSessionArtifact implements SessionArtifact<TraceInfo> {
+public class CpuCaptureSessionArtifact implements SessionArtifact<Cpu.CpuTraceInfo> {
 
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private final Common.Session mySession;
   @NotNull private final Common.SessionMetaData mySessionMetaData;
-  @NotNull private final TraceInfo myInfo;
+  @NotNull private final Cpu.CpuTraceInfo myInfo;
   private final boolean myIsOngoingCapture;
 
   public CpuCaptureSessionArtifact(@NotNull StudioProfilers profilers,
                                    @NotNull Common.Session session,
                                    @NotNull Common.SessionMetaData sessionMetaData,
-                                   @NotNull TraceInfo info,
+                                   @NotNull Cpu.CpuTraceInfo info,
                                    boolean isOngoingCapture) {
     myProfilers = profilers;
     mySession = session;
@@ -53,7 +56,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<TraceInfo> {
 
   @NotNull
   @Override
-  public TraceInfo getArtifactProto() {
+  public Cpu.CpuTraceInfo getArtifactProto() {
     return myInfo;
   }
 
@@ -78,7 +81,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<TraceInfo> {
   @Override
   @NotNull
   public String getName() {
-    return ProfilingTechnology.fromTypeAndMode(myInfo.getProfilerType(), myInfo.getProfilerMode()).getName();
+    return ProfilingTechnology.fromTypeAndMode(myInfo.getTraceType(), myInfo.getTraceMode()).getName();
   }
 
   public String getSubtitle() {
@@ -136,7 +139,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<TraceInfo> {
     }
 
     myProfilers.getIdeServices().getFeatureTracker()
-               .trackSessionArtifactSelected(this, myProfilers.getSessionsManager().isSessionAlive());
+      .trackSessionArtifactSelected(this, myProfilers.getSessionsManager().isSessionAlive());
   }
 
   @Override
@@ -164,14 +167,14 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<TraceInfo> {
                                                           @NotNull Common.SessionMetaData sessionMetaData) {
     GetTraceInfoResponse response = profilers.getClient().getCpuClient().getTraceInfo(
       GetTraceInfoRequest.newBuilder()
-                         .setSession(session)
-                         // We need to list imported traces and their timestamps might not be within the session range, so we search for max range.
-                         .setFromTimestamp(Long.MIN_VALUE)
-                         .setToTimestamp(Long.MAX_VALUE)
-                         .build());
+        .setSession(session)
+        // We need to list imported traces and their timestamps might not be within the session range, so we search for max range.
+        .setFromTimestamp(Long.MIN_VALUE)
+        .setToTimestamp(Long.MAX_VALUE)
+        .build());
 
     List<SessionArtifact> artifacts = new ArrayList<>();
-    for (TraceInfo info : response.getTraceInfoList()) {
+    for (Cpu.CpuTraceInfo info : response.getTraceInfoList()) {
       artifacts.add(new CpuCaptureSessionArtifact(profilers, session, sessionMetaData, info, false));
     }
 
@@ -182,11 +185,11 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<TraceInfo> {
         profilers.getClient().getCpuClient().checkAppProfilingState(ProfilingStateRequest.newBuilder().setSession(session).build());
 
       if (profilingStateResponse.getBeingProfiled()) {
-        TraceInfo ongoingTraceInfo = TraceInfo.newBuilder()
-                                              .setProfilerType(profilingStateResponse.getConfiguration().getProfilerType())
-                                              .setProfilerMode(profilingStateResponse.getConfiguration().getProfilerMode())
-                                              .setFromTimestamp(profilingStateResponse.getStartTimestamp())
-                                              .build();
+        Cpu.CpuTraceInfo ongoingTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+          .setTraceType(profilingStateResponse.getConfiguration().getTraceType())
+          .setTraceMode(profilingStateResponse.getConfiguration().getTraceMode())
+          .setFromTimestamp(profilingStateResponse.getStartTimestamp())
+          .build();
         artifacts.add(new CpuCaptureSessionArtifact(profilers, session, sessionMetaData, ongoingTraceInfo, true));
       }
     }

@@ -16,7 +16,13 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.profilers.*;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profilers.NullMonitorStage;
+import com.android.tools.profilers.ProfilerClient;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.network.FakeNetworkService;
@@ -25,25 +31,24 @@ import org.junit.Rule;
 import org.junit.Test;
 
 public class MemoryMonitorTest {
-
-  private final FakeProfilerService myProfilerService = new FakeProfilerService(false);
+  private final FakeTimer myTimer = new FakeTimer();
   private final FakeMemoryService myMemoryService = new FakeMemoryService();
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryMonitorTestChannel", myMemoryService, myProfilerService,
-                                                             new FakeEventService(), new FakeCpuService(),
-                                                             FakeNetworkService.newBuilder().build());
+  public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("MemoryMonitorTestChannel", myMemoryService, new FakeTransportService(myTimer), new FakeProfilerService(myTimer),
+                        new FakeEventService(), new FakeCpuService(), FakeNetworkService.newBuilder().build());
 
   @Test
   public void testName() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer());
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer);
     MemoryMonitor monitor = new MemoryMonitor(profilers);
     Truth.assertThat(monitor.getName()).isEqualTo("MEMORY");
   }
 
   @Test
   public void testExpand() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer());
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer);
     MemoryMonitor monitor = new MemoryMonitor(profilers);
     Truth.assertThat(profilers.getStage().getClass()).isEqualTo(NullMonitorStage.class);
     monitor.expand();

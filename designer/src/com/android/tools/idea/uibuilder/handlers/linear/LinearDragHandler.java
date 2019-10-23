@@ -41,7 +41,7 @@ class LinearDragHandler extends DragHandler {
   private final LinearDragTarget myDragTarget;
   private static final List<Target> ourEmptyTargetList = ImmutableList.of();
 
-  LinearDragHandler(@NotNull ViewEditor editor,
+  public LinearDragHandler(@NotNull ViewEditor editor,
                            @NotNull LinearLayoutHandler handler,
                            @NotNull SceneComponent layout,
                            @NotNull List<NlComponent> components,
@@ -58,7 +58,7 @@ class LinearDragHandler extends DragHandler {
     }
     else {
       component = new TemporarySceneComponent(layout.getScene(), components.get(0));
-      component.setSize(editor.pxToDp(NlComponentHelperKt.getW(dragged)), editor.pxToDp(NlComponentHelperKt.getH(dragged)), false);
+      component.setSize(editor.pxToDp(NlComponentHelperKt.getW(dragged)), editor.pxToDp(NlComponentHelperKt.getH(dragged)));
     }
 
     if (dragTarget == null) {
@@ -68,6 +68,7 @@ class LinearDragHandler extends DragHandler {
     myDragTarget = dragTarget;
     myComponent = component;
     component.setTargetProvider(sceneComponent -> ImmutableList.of(myDragTarget));
+    component.updateTargets();
     myComponent.setDrawState(SceneComponent.DrawState.DRAG);
     layout.addChild(myComponent);
   }
@@ -92,7 +93,7 @@ class LinearDragHandler extends DragHandler {
   public void cancel() {
     Scene scene = editor.getScene();
     scene.removeComponent(myComponent);
-    myDragTarget.cancel();
+    myDragTarget.mouseCancel();
   }
 
   @Nullable
@@ -106,10 +107,13 @@ class LinearDragHandler extends DragHandler {
   }
 
   @Override
-  public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
+  public void commit(@AndroidCoordinate int x,
+                     @AndroidCoordinate int y,
+                     int modifiers,
+                     @NotNull InsertType insertType) {
     Scene scene = editor.getScene();
     if (myComponent != null) {
-      myDragTarget.cancel();
+      myDragTarget.mouseCancel();
       scene.removeComponent(myComponent);
       LinearSeparatorTarget closest = myDragTarget.getClosest();
       int index = closest != null ? closest.getInsertionIndex() : -1;

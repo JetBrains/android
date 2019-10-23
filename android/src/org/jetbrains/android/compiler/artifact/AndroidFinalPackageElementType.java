@@ -9,7 +9,7 @@ import com.intellij.packaging.elements.CompositePackagingElement;
 import com.intellij.packaging.elements.PackagingElement;
 import com.intellij.packaging.elements.PackagingElementType;
 import com.intellij.packaging.ui.ArtifactEditorContext;
-import icons.AndroidArtworkIcons;
+import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +35,7 @@ public class AndroidFinalPackageElementType extends PackagingElementType<Android
 
   @Override
   public Icon getCreateElementIcon() {
-    return AndroidArtworkIcons.Icons.Android;
+    return AndroidIcons.Android;
   }
 
   @Override

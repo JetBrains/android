@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+An ImageView wrapped in a container, useful for embedding into a GridView. The container's tag will
+be used for holding a recycled binding, while the image's tag is reserved by Glide.
+-->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="image"
+            type="test.langdb.bitmaps.Image" />
+        <variable
+            name="clickHandler"
+            type="test.langdb.bitmaps.ImageGridClickHandler" />
+    </data>
+
+    <LinearLayout
+        android:id="@+id/imageLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:adjustViewBounds="true"
+            app:imageUrl="@{image.thumbUrl}"
+            app:placeholder="@{@drawable/bitmaps_empty_photo}"
+            android:onClick="@{() -> clickHandler.handleImageClicked(image)}"
+            tools:ignore="ContentDescription" />
+    </LinearLayout>
+</layout>

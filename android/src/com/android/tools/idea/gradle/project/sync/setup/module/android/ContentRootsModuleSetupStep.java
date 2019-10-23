@@ -71,10 +71,6 @@ public class ContentRootsModuleSetupStep extends AndroidModuleSetupStep {
     ContentEntry contentEntry = moduleModel.addContentEntry(androidModel.getRootDir());
     contentEntries.add(contentEntry);
 
-    File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
-    if (!isAncestor(androidModel.getRootDirPath(), buildFolderPath, false)) {
-      contentEntries.add(moduleModel.addContentEntry(pathToIdeaUrl(buildFolderPath)));
-    }
     return contentEntries;
   }
 

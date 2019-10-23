@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.cpu.*;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import org.jetbrains.annotations.NotNull;
+import trebuchet.io.BufferProducer;
 import trebuchet.model.*;
 import trebuchet.model.base.SliceGroup;
 import trebuchet.task.ImportTask;
@@ -106,7 +107,7 @@ public class AtraceParser implements TraceParser {
   }
 
   @Override
-  public CpuCapture parse(File file, int traceId) throws IOException {
+  public CpuCapture parse(File file, long traceId) throws IOException {
     parseModelIfNeeded(file);
     double startTimestampUs = convertToUserTimeUs(myModel.getBeginTimestamp());
     double endTimestampUs = convertToUserTimeUs(myModel.getEndTimestamp());
@@ -129,9 +130,18 @@ public class AtraceParser implements TraceParser {
    */
   private void parseModelIfNeeded(@NotNull File file) throws IOException {
     if (myModel == null) {
-      AtraceDecompressor reader = new AtraceDecompressor(file);
+      TrebuchetBufferProducer producer;
+      if (AtraceProducer.verifyFileHasAtraceHeader(file)) {
+        producer = new AtraceProducer();
+      } else {
+        producer = new PerfettoProducer();
+      }
+      if (!producer.parseFile(file)) {
+        throw new IOException("Failed to parse file: " + file.getAbsolutePath());
+      }
+
       ImportTask task = new ImportTask(new PrintlnImportFeedback());
-      myModel = task.importBuffer(reader);
+      myModel = task.importBuffer(producer);
       // We check if we have a parent timestamp. If not this could be from an imported trace.
       // In the case it is 0, we use the first timestamp of our capture as a reference point.
       if (Double.compare(myModel.getParentTimestamp(),0.0) == 0) {

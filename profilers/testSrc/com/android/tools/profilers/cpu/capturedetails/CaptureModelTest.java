@@ -18,7 +18,10 @@ package com.android.tools.profilers.cpu.capturedetails;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.*;
@@ -37,13 +40,12 @@ import java.util.*;
 import static com.google.common.truth.Truth.assertThat;
 
 public class CaptureModelTest {
-  private final FakeProfilerService myProfilerService = new FakeProfilerService();
-
+  private final FakeTimer myTimer = new FakeTimer();
   private final FakeCpuService myCpuService = new FakeCpuService();
 
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, myProfilerService,
+    new FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, new FakeTransportService(myTimer), new FakeProfilerService(myTimer),
                         new FakeMemoryService(), new FakeEventService(), FakeNetworkService.newBuilder().build());
 
   private CaptureModel myModel;
@@ -52,10 +54,9 @@ public class CaptureModelTest {
 
   @Before
   public void setUp() {
-    FakeTimer timer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer);
     // One second must be enough for new devices (and processes) to be picked up
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myStage = new CpuProfilerStage(profilers);
     myStage.getStudioProfilers().setStage(myStage);
     myStage.enter();
@@ -114,7 +115,7 @@ public class CaptureModelTest {
                                              new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>()
                                                .put(info, root)
                                                .build(), false);
-    CpuCapture capture = new CpuCapture(parser, 200, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
+    CpuCapture capture = new CpuCapture(parser, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
     myModel.setCapture(capture);
     myModel.setThread(101);
     myModel.setDetails(CaptureDetails.Type.CALL_CHART);
@@ -148,7 +149,7 @@ public class CaptureModelTest {
                                              new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>()
                                                .put(info, root)
                                                .build(), false);
-    CpuCapture capture = new CpuCapture(parser, 200, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
+    CpuCapture capture = new CpuCapture(parser, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
     myModel.setCapture(capture);
     myModel.setThread(101);
     myModel.setDetails(CaptureDetails.Type.CALL_CHART);
@@ -171,9 +172,9 @@ public class CaptureModelTest {
                                                            .put(info, root)
                                                            .build(), true);
 
-    CpuCapture globalOnlyCapture = new CpuCapture(globalOnlyClockSupported, 200, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
-    CpuCapture dualCapture1 = new CpuCapture(dualClockSupported, 200, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
-    CpuCapture dualCapture2 = new CpuCapture(dualClockSupported, 200, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
+    CpuCapture globalOnlyCapture = new CpuCapture(globalOnlyClockSupported, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+    CpuCapture dualCapture1 = new CpuCapture(dualClockSupported, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+    CpuCapture dualCapture2 = new CpuCapture(dualClockSupported, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
     myModel.setCapture(globalOnlyCapture);
     assertThat(myModel.getClockType()).isEqualTo(ClockType.GLOBAL);
     myModel.setClockType(ClockType.THREAD);

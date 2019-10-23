@@ -25,7 +25,7 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
   @NotNull
   @Override
   public ConfigurationFactory getConfigurationFactory() {
-    return AndroidRunConfigurationType.getInstance();
+    return AndroidRunConfigurationType.getInstance().getFactory();
   }
 
   @Nullable

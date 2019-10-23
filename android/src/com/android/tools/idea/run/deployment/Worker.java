@@ -15,44 +15,42 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class Worker<T> {
-  private SwingWorker<T, Void> myDelegate;
+  @NotNull
+  private final Supplier<? extends WorkerDelegate<T>> myDelegateSupplier;
+
+  @Nullable
+  private WorkerDelegate<T> myDelegate;
+
+  @Nullable
   private T myResult;
 
-  @NotNull
-  T get(@NotNull Supplier<SwingWorker<T, Void>> delegateSupplier, @NotNull T defaultResult) {
-    if (myDelegate == null) {
-      myDelegate = delegateSupplier.get();
-      myDelegate.execute();
+  Worker(@NotNull Supplier<? extends WorkerDelegate<T>> delegateSupplier) {
+    myDelegateSupplier = delegateSupplier;
+  }
 
-      myResult = defaultResult;
-      return defaultResult;
+  @NotNull
+  T get() {
+    if (myDelegate == null) {
+      myDelegate = myDelegateSupplier.get();
+      myDelegate.start();
+
+      myResult = myDelegate.getDefault();
     }
 
-    if (!myDelegate.isDone()) {
+    if (!myDelegate.isFinished()) {
+      assert myResult != null;
       return myResult;
     }
 
-    try {
-      myResult = myDelegate.get();
-    }
-    catch (InterruptedException exception) {
-      // This should never happen. The delegate is done and can no longer be interrupted.
-      assert false;
-    }
-    catch (ExecutionException exception) {
-      Logger.getInstance(Worker.class).warn(exception);
-    }
+    myResult = myDelegate.get();
 
-    myDelegate = delegateSupplier.get();
-    myDelegate.execute();
+    myDelegate = myDelegateSupplier.get();
+    myDelegate.start();
 
     return myResult;
   }

@@ -20,10 +20,27 @@ import com.intellij.ui.JBColor
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import java.awt.BasicStroke
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.Polygon
+import java.awt.RenderingHints
+import java.awt.event.ActionEvent
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
+import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.awt.event.MouseWheelEvent
 
-import javax.swing.*
-import java.awt.*
-import java.awt.event.*
+import javax.swing.AbstractAction
+import javax.swing.JComponent
+import javax.swing.KeyStroke
 import kotlin.math.max
 
 private val DEFAULT_HORIZONTAL_PADDING = JBUI.scale(5)
@@ -68,7 +85,7 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
 
   private val polygonToDraw = Polygon()
 
-  private val listeners = ContainerUtil.createLockFreeCopyOnWriteList<(T) -> Unit>()
+  private val listeners = ContainerUtil.createLockFreeCopyOnWriteList<(T, Boolean) -> Unit>()
 
   /**
    * @return size of slider, must be positive value or zero.
@@ -79,20 +96,25 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
   init {
     this.addMouseMotionListener(object : MouseAdapter() {
       override fun mouseDragged(e: MouseEvent) {
-        processMouse(e)
+        processMouse(e, false)
         e.consume()
       }
     })
 
     this.addMouseListener(object : MouseAdapter() {
       override fun mousePressed(e: MouseEvent) {
-        processMouse(e)
+        processMouse(e, false)
+        e.consume()
+      }
+
+      override fun mouseReleased(e: MouseEvent) {
+        processMouse(e, true)
         e.consume()
       }
     })
 
     addMouseWheelListener { e ->
-      runAndUpdateIfNeeded {
+      runAndUpdateIfNeeded({
         val amount = when {
           e.scrollType == MouseWheelEvent.WHEEL_UNIT_SCROLL -> e.unitsToScroll * e.scrollAmount
           e.wheelRotation < 0 -> -e.scrollAmount
@@ -100,7 +122,7 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
         }
         val newKnobPosition = Math.max(0, Math.min(_knobPosition + amount, sliderWidth))
         knobPosition = newKnobPosition
-      }
+      }, true)
       e.consume()
     }
 
@@ -121,16 +143,16 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
 
     with (actionMap) {
       put(ACTION_SLIDE_LEFT, object : AbstractAction() {
-        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded { doSlide(-1) }
+        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded({ doSlide(-1) }, true)
       })
       put(ACTION_SLIDE_LEFT_STEP, object : AbstractAction() {
-        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded { doSlide(-10) }
+        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded({ doSlide(-10) }, true)
       })
       put(ACTION_SLIDE_RIGHT, object : AbstractAction() {
-        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded { doSlide(1) }
+        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded({ doSlide(1) }, true)
       })
       put(ACTION_SLIDE_RIGHT_STEP, object : AbstractAction() {
-        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded { doSlide(10) }
+        override fun actionPerformed(e: ActionEvent) = runAndUpdateIfNeeded({ doSlide(10) }, true)
       })
     }
 
@@ -143,27 +165,25 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
   }
 
   /**
-   * Helper function to execute the code and check if needs to invoke [repaint] and/or [fireValueChanged]
+   * Helper function to execute the code and check if needs to update the color
    */
-  private fun runAndUpdateIfNeeded(task: () -> Unit) {
+  private fun runAndUpdateIfNeeded(task: () -> Unit, commit: Boolean = false) {
     val oldValue = value
     task()
     repaint()
-    if (oldValue != value) {
-      fireValueChanged()
+    if (oldValue != value || commit) {
+      listeners.forEach { it.invoke(value, commit) }
     }
   }
 
-  private fun processMouse(e: MouseEvent) = runAndUpdateIfNeeded {
+  private fun processMouse(e: MouseEvent, commit: Boolean) = runAndUpdateIfNeeded({
     val newKnobPosition = Math.max(0, Math.min(e.x - leftPadding, sliderWidth))
     knobPosition = newKnobPosition
-  }
+  }, commit)
 
-  fun addListener(listener: (T) -> Unit) {
+  fun addListener(listener: (T, Boolean) -> Unit) {
     listeners.add(listener)
   }
-
-  private fun fireValueChanged() = listeners.forEach { it.invoke(value) }
 
   protected abstract fun knobPositionToValue(knobPosition: Int): T
 

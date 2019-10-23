@@ -14,20 +14,19 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
 -->
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
+    xmlns:ns0="http://schemas.android.com/apk/res/android.support.coreui"
+    android:fitsSystemWindows="true" >
 
     <android.support.design.widget.CoordinatorLayout
         android:id="@+id/coordinator"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fitsSystemWindows="true">
+        android:fitsSystemWindows="true" >
 
         <View
             android:id="@+id/touch_outside"
@@ -35,7 +34,7 @@
             android:layout_height="match_parent"
             android:importantForAccessibility="no"
             android:soundEffectsEnabled="false"
-            tools:ignore="UnusedAttribute"/>
+            tools:ignore="UnusedAttribute" />
 
         <FrameLayout
             android:id="@+id/design_bottom_sheet"
@@ -43,8 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal|top"
-            app:layout_behavior="@string/bottom_sheet_behavior"/>
-
+            ns0:layout_behavior="@string/bottom_sheet_behavior" />
     </android.support.design.widget.CoordinatorLayout>
 
 </FrameLayout>

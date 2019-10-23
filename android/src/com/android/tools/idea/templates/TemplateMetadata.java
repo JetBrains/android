@@ -46,6 +46,7 @@ public class TemplateMetadata {
   public static final String ATTR_TARGET_API_STRING = "targetApiString";
   public static final String ATTR_MIN_API = "minApi";
   public static final String ATTR_MIN_BUILD_API = "minBuildApi";
+  public static final String ATTR_REQUIRES_ANDROID_X = "requireAndroidX";
   public static final String ATTR_BUILD_API = "buildApi";
   public static final String ATTR_BUILD_API_STRING = "buildApiString";
   public static final String ATTR_BUILD_API_REVISION = "buildApiRevision";
@@ -84,7 +85,6 @@ public class TemplateMetadata {
   public static final String ATTR_CREATE_ACTIVITY = "createActivity";
   public static final String ATTR_INCLUDE_FORM_FACTOR = "included";
   public static final String ATTR_IS_LOW_MEMORY = "isLowMemory";
-  public static final String ATTR_ESPRESSO_VERSION = "espressoVersion";
   public static final String ATTR_NUM_ENABLED_FORM_FACTORS = "NumberOfEnabledFormFactors";
   public static final String ATTR_USE_OFFLINE_REPO = "useOfflineRepo";
   public static final String ATTR_OFFLINE_REPO_PATH = "offlineRepoPath";
@@ -94,6 +94,11 @@ public class TemplateMetadata {
   public static final String ATTR_DEPENDENCIES_MULTIMAP = "dependenciesMultimap";
 
   public static final String ATTR_IS_DYNAMIC_FEATURE = "isDynamicFeature";
+  public static final String ATTR_DYNAMIC_FEATURE_SUPPORTS_DYNAMIC_DELIVERY = "dynamicFeatureSupportsDynamicDelivery";
+  public static final String ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY = "dynamicFeatureInstallTimeDelivery";
+  public static final String ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY = "dynamicFeatureInstallTimeWithConditionsDelivery";
+  public static final String ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY = "dynamicFeatureOnDemandDelivery";
+  public static final String ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST = "dynamicFeatureDeviceFeatureList";
   public static final String ATTR_DYNAMIC_FEATURE_TITLE = "dynamicFeatureTitle";
   public static final String ATTR_DYNAMIC_FEATURE_ON_DEMAND = "dynamicFeatureOnDemand";
   public static final String ATTR_DYNAMIC_FEATURE_FUSING = "dynamicFeatureFusing";
@@ -114,7 +119,7 @@ public class TemplateMetadata {
   public static final String ATTR_CLASS_NAME = "className";
   public static final String ATTR_MAKE_IGNORE = "makeIgnore";
 
-  public static final String ATTR_NAVIGATION_TYPE = "navigationType";
+  public static final String ATTR_USE_NAV_CONTROLLER = "useNavController";
   public static final String ATTR_KOTLIN_SUPPORT = "includeKotlinSupport";
   public static final String ATTR_ANDROIDX_SUPPORT = "addAndroidXSupport";
   public static final String ATTR_LANGUAGE = "language"; // Java vs Kotlin
@@ -220,6 +225,8 @@ public class TemplateMetadata {
   public int getMinBuildApi() {
     return getInteger(ATTR_MIN_BUILD_API, 1);
   }
+
+  public boolean getAndroidXRequired() { return getBoolean(ATTR_REQUIRES_ANDROID_X, false); }
 
   public int getRevision() {
     return getInteger(ATTR_REVISION, 1);
@@ -373,6 +380,15 @@ public class TemplateMetadata {
       // Templates aren't allowed to contain codenames, should always be an integer
       //LOG.warn(nfe);
       return defaultValue;
+    }
+    catch (RuntimeException e) {
+      return defaultValue;
+    }
+  }
+
+  private boolean getBoolean(@NotNull String attrName, boolean defaultValue) {
+    try {
+      return Boolean.parseBoolean(myDocument.getDocumentElement().getAttribute(attrName));
     }
     catch (RuntimeException e) {
       return defaultValue;

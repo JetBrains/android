@@ -15,6 +15,19 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ID_PREFIX;
+import static com.android.SdkConstants.NEW_ID_PREFIX;
+import static com.android.SdkConstants.NULL_RESOURCE;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VALUE_FALSE;
+import static com.android.SdkConstants.VALUE_MATCH_PARENT;
+import static com.android.SdkConstants.VALUE_TRUE;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+import static com.google.common.base.MoreObjects.firstNonNull;
+import static org.jetbrains.android.util.AndroidResourceUtil.VALUE_RESOURCE_TYPES;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
@@ -43,8 +56,26 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.XmlRecursiveElementVisitor;
-import com.intellij.psi.xml.*;
-import com.intellij.util.xml.*;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlElement;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.xml.ConvertContext;
+import com.intellij.util.xml.ConverterManager;
+import com.intellij.util.xml.CustomReferenceConverter;
+import com.intellij.util.xml.DomElement;
+import com.intellij.util.xml.GenericDomValue;
+import com.intellij.util.xml.ResolvingConverter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jetbrains.android.dom.AdditionalConverter;
 import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -56,14 +87,6 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.*;
-import static com.google.common.base.MoreObjects.firstNonNull;
-import static org.jetbrains.android.util.AndroidResourceUtil.VALUE_RESOURCE_TYPES;
 
 /**
  * @author yole
@@ -303,8 +326,8 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   @NotNull
   public static Set<ResourceType> getResourceTypesInCurrentModule(@NotNull AndroidFacet facet) {
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
-    LocalResourceRepository repository = repositoryManager.getAppResources(true);
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
+    LocalResourceRepository repository = repositoryManager.getAppResources();
     return repository.getResourceTypes(repositoryManager.getNamespace());
   }
 
@@ -366,8 +389,8 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       }
     }
     else {
-      ResourceRepositoryManager repoManager = ResourceRepositoryManager.getOrCreateInstance(facet);
-      LocalResourceRepository appResources = repoManager.getAppResources(true);
+      ResourceRepositoryManager repoManager = ResourceRepositoryManager.getInstance(facet);
+      LocalResourceRepository appResources = repoManager.getAppResources();
       ResourceVisibilityLookup visibilityLookup = repoManager.getResourceVisibility();
 
       if (onlyNamespace == ResourceNamespace.ANDROID || (onlyNamespace == null && !StudioFlags.COLLAPSE_ANDROID_NAMESPACE.get())) {

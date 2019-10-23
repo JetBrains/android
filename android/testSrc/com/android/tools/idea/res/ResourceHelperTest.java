@@ -20,6 +20,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
+import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -35,9 +36,7 @@ import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.TestAndroidModel;
-import com.android.tools.idea.util.FileExtensions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -240,7 +239,7 @@ public class ResourceHelperTest extends AndroidTestCase {
     ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
     ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
     ResourceValue value = rr.getResolvedResource(reference);
-    Icon icon = ResourceHelper.resolveAsIcon(rr, value, getProject());
+    Icon icon = ResourceHelper.resolveAsIcon(rr, value, getProject(), myFacet);
     assertEquals(new ColorIcon(16, new Color(0xEEDDCC)), icon);
   }
 
@@ -252,7 +251,7 @@ public class ResourceHelperTest extends AndroidTestCase {
     ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
     ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
     ResourceValue value = rr.getResolvedResource(reference);
-    Icon icon = ResourceHelper.resolveAsIcon(rr, value, getProject());
+    Icon icon = ResourceHelper.resolveAsIcon(rr, value, getProject(), myFacet);
     assertEquals(new TwoColorsIcon(16, new Color(0xEEDDCC), new Color(0x33123456, true)), icon);
   }
 
@@ -262,7 +261,7 @@ public class ResourceHelperTest extends AndroidTestCase {
     ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
     ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
     ResourceValue value = rr.getResolvedResource(reference);
-    Icon icon = ResourceHelper.resolveAsIcon(rr, value, getProject());
+    Icon icon = ResourceHelper.resolveAsIcon(rr, value, getProject(), myFacet);
     @SuppressWarnings("UndesirableClassUsage")
     BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
     icon.paintIcon(null, image.getGraphics(), 0, 0);
@@ -411,7 +410,6 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertThat(ResourceHelper.getResourceNamespace(projectClass)).isEqualTo(RES_AUTO);
 
     // Project R class:
-    copyRJavaToGeneratedSources();
     PsiClass rClass = myFixture.getJavaFacade().findClass("p1.p2.R", projectClass.getResolveScope());
     assertThat(ResourceHelper.getResourceNamespace(rClass)).isEqualTo(RES_AUTO);
 
@@ -421,7 +419,6 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertThat(ResourceHelper.getResourceNamespace(manifest.getXmlElement().getContainingFile())).isEqualTo(RES_AUTO);
 
     // Project Manifest class:
-    copyManifestJavaToGeneratedSources();
     WriteCommandAction.runWriteCommandAction(getProject(), () -> {
       Permission newPermission = manifest.addPermission();
       newPermission.getName().setValue("p1.p2.NEW_PERMISSION");
@@ -433,14 +430,15 @@ public class ResourceHelperTest extends AndroidTestCase {
     PsiClass frameworkClass = myFixture.getJavaFacade().findClass("android.app.Activity");
     assertThat(ResourceHelper.getResourceNamespace(frameworkClass)).isEqualTo(ANDROID);
 
-    // Framework XML:
-    ResourceItem appIconResourceItem =
-      Iterables.getOnlyElement(ResourceRepositoryManager.getOrCreateInstance(myFacet)
-                                                        .getFrameworkResources(false)
-                                                        .getResources(ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon"));
-    XmlFile appIcon = (XmlFile)PsiManager.getInstance(getProject()).findFile(FileExtensions.toVirtualFile(appIconResourceItem.getSource()));
-    assertThat(ResourceHelper.getResourceNamespace(appIcon)).isEqualTo(ANDROID);
-    assertThat(ResourceHelper.getResourceNamespace(appIcon.getRootTag())).isEqualTo(ANDROID);
+    // Framework XML: API28 has two default app icons: res/drawable-watch/sym_def_app_icon.xml and res/drawable/sym_def_app_icon.xml
+    List<ResourceItem> appIconResourceItems = ResourceRepositoryManager.getInstance(myFacet)
+      .getFrameworkResources(false)
+      .getResources(ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon");
 
+    for (ResourceItem appIconResourceItem : appIconResourceItems) {
+      XmlFile appIcon = (XmlFile)PsiManager.getInstance(getProject()).findFile(toVirtualFile(appIconResourceItem.getSource()));
+      assertThat(ResourceHelper.getResourceNamespace(appIcon)).isEqualTo(ANDROID);
+      assertThat(ResourceHelper.getResourceNamespace(appIcon.getRootTag())).isEqualTo(ANDROID);
+    }
   }
 }

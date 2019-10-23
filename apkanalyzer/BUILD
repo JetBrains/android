@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.apkanalyzer",
     srcs = ["src"],
     iml_files = ["intellij.android.apkanalyzer.iml"],
+    test_coverage = True,
     test_resources = ["testSrc/resources"],
     test_runtime_deps = ["//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl"],
     test_srcs = ["testSrc/java"],
@@ -12,7 +13,6 @@ iml_module(
     # do not sort: must match IML order
     runtime_deps = [
         "//tools/idea/platform/lvcs-impl:intellij.platform.lvcs.impl",
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
@@ -26,7 +26,7 @@ iml_module(
         "//tools/idea/platform/editor-ui-api:intellij.platform.editor[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/idea/.idea/libraries:Guava",
-        "//tools/idea/.idea/libraries:aapt-proto-jarjar",
+        "//tools/idea/.idea/libraries:aapt-proto",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
         "//tools/base/common:studio.android.sdktools.common[module]",

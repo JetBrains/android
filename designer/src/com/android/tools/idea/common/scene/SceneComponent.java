@@ -30,11 +30,11 @@ import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
+import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
-import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,7 +69,6 @@ public class SceneComponent {
   private boolean myIsToolLocked = false;
   private boolean myIsSelected = false;
   protected boolean myDragging = false;
-  private boolean myIsModelUpdateAuthorized = true;
 
   private AnimatedValue myAnimatedDrawX = new AnimatedValue();
   private AnimatedValue myAnimatedDrawY = new AnimatedValue();
@@ -80,7 +79,6 @@ public class SceneComponent {
 
   @GuardedBy("myTargets")
   private final ArrayList<Target> myTargets = new ArrayList<>();
-  private final ActionGroupTarget myActionTargets = new ActionGroupTarget(this);
 
   @GuardedBy("myTargets")
   @Nullable private ImmutableList<Target> myCachedTargetList;
@@ -398,27 +396,13 @@ public class SceneComponent {
    * @param dy Y coordinate in DP
    */
   public void setPosition(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy) {
-    setPosition(dx, dy, false);
-  }
-
-  /**
-   * Immediately set the position unless the update is coming from
-   * a model update and {@link #isModelUpdateAuthorized()} is false.
-   *
-   * @param dx          X coordinate in DP
-   * @param dy          Y coordinate in DP
-   * @param isFromModel Notify the that the given coordinates are coming from a model update
-   */
-  public void setPosition(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy, boolean isFromModel) {
-    if (!isFromModel || myIsModelUpdateAuthorized) {
-      myAnimatedDrawX.setValue(dx);
-      myAnimatedDrawY.setValue(dy);
-      if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
-        NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dx));
-        NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dy));
-      }
-      myScene.needsRebuildList();
+    myAnimatedDrawX.setValue(dx);
+    myAnimatedDrawY.setValue(dy);
+    if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
+      NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dx));
+      NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dy));
     }
+    myScene.needsRebuildList();
   }
 
   /**
@@ -430,19 +414,16 @@ public class SceneComponent {
    * @param dx          The X position to animate the component to
    * @param dy          The Y position to animate the component to
    * @param time        The time when the animation begins
-   * @param isFromModel
    */
-  public void setPositionTarget(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy, long time, boolean isFromModel) {
-    if (!isFromModel || myIsModelUpdateAuthorized) {
-      myAnimatedDrawX.setTarget(dx, time);
-      myAnimatedDrawY.setTarget(dy, time);
-      if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
-        NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dx));
-        NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dy));
-      }
-      else {
-        myScene.needsRebuildList();
-      }
+  public void setPositionTarget(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy, long time) {
+    myAnimatedDrawX.setTarget(dx, time);
+    myAnimatedDrawY.setTarget(dy, time);
+    if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
+      NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dx));
+      NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dy));
+    }
+    else {
+      myScene.needsRebuildList();
     }
   }
 
@@ -450,16 +431,14 @@ public class SceneComponent {
    * Immediately set the size of this {@link SceneComponent} and of the underlying
    * {@link NlComponent}
    */
-  public void setSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height, boolean isFromModel) {
-    if (!isFromModel || myIsModelUpdateAuthorized) {
-      myAnimatedDrawWidth.setValue(width);
-      myAnimatedDrawHeight.setValue(height);
-      if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
-        NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), width));
-        NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), height));
-      }
-      myScene.needsRebuildList();
+  public void setSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height) {
+    myAnimatedDrawWidth.setValue(width);
+    myAnimatedDrawHeight.setValue(height);
+    if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
+      NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), width));
+      NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), height));
     }
+    myScene.needsRebuildList();
   }
 
   /**
@@ -471,16 +450,13 @@ public class SceneComponent {
    * @param width       The width to animate the component to
    * @param height      The height to animate the component to
    * @param time        The time when the animation begins
-   * @param isFromModel
    */
-  public void setSizeTarget(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height, long time, boolean isFromModel) {
-    if (!isFromModel || myIsModelUpdateAuthorized) {
-      myAnimatedDrawWidth.setTarget(width, time);
-      myAnimatedDrawHeight.setTarget(height, time);
-      if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
-        NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), width));
-        NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), height));
-      }
+  public void setSizeTarget(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height, long time) {
+    myAnimatedDrawWidth.setTarget(width, time);
+    myAnimatedDrawHeight.setTarget(height, time);
+    if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
+      NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), width));
+      NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), height));
     }
   }
 
@@ -556,8 +532,9 @@ public class SceneComponent {
     else {
       setDrawState(DrawState.NORMAL);
     }
-    for (Target target : getTargets()) {
-      target.onComponentSelectionChanged(myIsSelected);
+
+    synchronized (myTargets) {
+      myTargets.forEach(it -> it.componentSelectionChanged(selected));
     }
   }
 
@@ -601,13 +578,6 @@ public class SceneComponent {
 
   public void setNotchProvider(@Nullable Notch.Provider notchProvider) {
     myNotchProvider = notchProvider;
-  }
-
-  public void setExpandTargetArea(boolean expandArea) {
-    for (Target target : getTargets()) {
-      target.setExpandSize(expandArea);
-    }
-    myScene.needsRebuildList();
   }
 
   @VisibleForTesting
@@ -685,19 +655,20 @@ public class SceneComponent {
   /**
    * Clear our attributes (delegating the action to our view handler)
    */
-  public void clearAttributes() {
+  void clearAttributes() {
     NlComponent component = getAuthoritativeNlComponent();
-    ViewGroupHandler viewGroupHandler = NlComponentHelperKt.getViewGroupHandler(component);
-    viewGroupHandler.clearAttributes(component);
+    NlComponent parent = component.getParent();
+    if (parent != null) {
+      // Parent is ViewGroup. This cleans layout_xxx attributes.
+      ViewGroupHandler parentHandler = NlComponentHelperKt.getViewGroupHandler(parent);
+      if (parentHandler != null) {
+        parentHandler.clearAttributes(component);
+      }
+    }
   }
 
-  public void addTarget(@NotNull Target target) {
+  protected void addTarget(@NotNull Target target) {
     target.setComponent(this);
-    if (target instanceof ActionTarget) {
-      // Action Targets are laid out by the ActionTargetGroup
-      myActionTargets.addAction((ActionTarget)target);
-      return;
-    }
     synchronized (myTargets) {
       myCachedTargetList = null;
       myTargets.add(target);
@@ -745,13 +716,7 @@ public class SceneComponent {
     myCurrentRight = right;
     myCurrentBottom = bottom;
 
-    boolean animating = false;
-    animating |= myAnimatedDrawX.isAnimating();
-    animating |= myAnimatedDrawY.isAnimating();
-    animating |= myAnimatedDrawWidth.isAnimating();
-    animating |= myAnimatedDrawHeight.isAnimating();
-
-    needsRebuildDisplayList |= animating;
+    needsRebuildDisplayList |= isAnimating();
 
     ImmutableList<Target> targets = getTargets();
     int num = targets.size();
@@ -766,6 +731,14 @@ public class SceneComponent {
       needsRebuildDisplayList |= child.layout(sceneTransform, time);
     }
     return needsRebuildDisplayList;
+  }
+
+  @VisibleForTesting
+  public boolean isAnimating() {
+    return myAnimatedDrawX.isAnimating() ||
+           myAnimatedDrawY.isAnimating() ||
+           myAnimatedDrawWidth.isAnimating() ||
+           myAnimatedDrawHeight.isAnimating();
   }
 
   @AndroidDpCoordinate
@@ -836,6 +809,7 @@ public class SceneComponent {
     return rec;
   }
 
+  @Nullable
   public String getId() {
     return myNlComponent.getId();
   }
@@ -858,8 +832,6 @@ public class SceneComponent {
       return;
     }
     myTargetProvider = targetProvider;
-
-    updateTargets();
   }
 
   /**
@@ -879,8 +851,6 @@ public class SceneComponent {
     synchronized (myTargets) {
       myCachedTargetList = null;
       myTargets.clear();
-      myActionTargets.clear();
-      myTargets.add(myActionTargets);
     }
 
     // update the Targets created by parent's TargetProvider
@@ -906,18 +876,12 @@ public class SceneComponent {
     if (StudioFlags.NELE_DRAG_PLACEHOLDER.get()) {
       boolean hasDragTarget;
       synchronized (myTargets) {
-        hasDragTarget = myTargets.removeIf(it -> it instanceof NonPlaceholderDragTarget);
+        // TODO: http://b/120497918 Remove this when removing flag.
+        hasDragTarget = myTargets.removeIf(CommonDragTarget::isSupported);
       }
       if (hasDragTarget && myScene.getRoot() != this) {
-        addTarget(new CommonDragTarget());
+        addTarget(new CommonDragTarget(this));
       }
     }
-  }
-
-  /**
-   * @param modelUpdateAuthorized
-   */
-  public void setModelUpdateAuthorized(boolean modelUpdateAuthorized) {
-    myIsModelUpdateAuthorized = modelUpdateAuthorized;
   }
 }

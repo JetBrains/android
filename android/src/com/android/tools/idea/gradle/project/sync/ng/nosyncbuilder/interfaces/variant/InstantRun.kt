@@ -50,7 +50,9 @@ interface InstantRun {
     /** Instant Run currently does not support projects with external native build system. */
     NOT_SUPPORTED_FOR_EXTERNAL_NATIVE_BUILD(4),
     /** Instant Run is currently disabled for the experimental plugin. */
-    NOT_SUPPORTED_FOR_EXPERIMENTAL_PLUGIN(5);
+    NOT_SUPPORTED_FOR_EXPERIMENTAL_PLUGIN(5),
+    /** Instant Run was removed  */
+    STATUS_REMOVED(7);
 
     companion object {
       fun fromValue(value: Int): Status = when (value) {
@@ -60,6 +62,7 @@ interface InstantRun {
         OldInstantRun.STATUS_NOT_SUPPORTED_FOR_JACK -> NOT_SUPPORTED_FOR_JACK
         OldInstantRun.STATUS_NOT_SUPPORTED_FOR_EXTERNAL_NATIVE_BUILD -> NOT_SUPPORTED_FOR_EXTERNAL_NATIVE_BUILD
         OldInstantRun.STATUS_NOT_SUPPORTED_FOR_EXPERIMENTAL_PLUGIN -> NOT_SUPPORTED_FOR_EXPERIMENTAL_PLUGIN
+        OldInstantRun.STATUS_REMOVED -> STATUS_REMOVED
         else -> throw IllegalStateException("Nonexistent Instant Run status type")
       }
     }

@@ -15,9 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.build.output;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.blame.*;
+import static com.android.ide.common.blame.parser.JsonEncodedGradleMessageParser.STDOUT_ERROR_TAG;
+import static com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser.ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP;
+import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_ERROR_SUFFIX;
+import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_INFO_SUFFIX;
+import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_STATISTICS_SUFFIX;
+import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_WARNING_SUFFIX;
+
+import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.Message.Kind;
+import com.android.ide.common.blame.MessageJsonSerializer;
+import com.android.ide.common.blame.SourceFilePosition;
+import com.android.ide.common.blame.SourcePosition;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
@@ -28,89 +37,114 @@ import com.intellij.build.events.impl.FileMessageEventImpl;
 import com.intellij.build.events.impl.MessageEventImpl;
 import com.intellij.build.output.BuildOutputInstantReader;
 import com.intellij.build.output.BuildOutputParser;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.SystemProperties;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.function.Consumer;
-
-import static com.android.ide.common.blame.parser.JsonEncodedGradleMessageParser.STDOUT_ERROR_TAG;
 
 /**
  * Parser got errors returned by the Android Gradle Plugin in AGPBI json format.
  */
 public class GradleBuildOutputParser implements BuildOutputParser {
-  private static final String MESSAGES_GROUP = "Android errors";
-  @VisibleForTesting static final String END_DETAIL = "* Try:";
+  @NotNull private static final String DEFAULT_MESSAGE_GROUP = ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP + MESSAGE_GROUP_WARNING_SUFFIX;
 
-  @NotNull private ArrayList<String> myBufferedLines = new ArrayList<>();
-  @Nullable private Object myParentEventId;
+  /**
+   * Contains the future gradle plugin output extracted from the json object per build Id, the json string is outputted before those output
+   * lines. Those lines should be consumed and ignored so no other parsers would consume them.
+   */
+  @NotNull private final Map<Object, Set<String>> futureOutputMap = new HashMap<>();
+
+  @NotNull private final Gson myGson;
+
+  public GradleBuildOutputParser() {
+    // Since the error message can contain characters like <, > and ' we need to disable html escaping so the error message will be the same
+    // after serializing and deserializing.
+    GsonBuilder gsonBuilder = new GsonBuilder().disableHtmlEscaping();
+    MessageJsonSerializer.registerTypeAdapters(gsonBuilder);
+    myGson = gsonBuilder.create();
+  }
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull BuildOutputInstantReader reader, @NotNull Consumer<? super BuildEvent> messageConsumer) {
-    // Clear lines if parent event id changed
-    if (reader.getParentEventId() != myParentEventId) {
-      myBufferedLines.clear();
-      myParentEventId = null;
-    }
-
-    if (line.startsWith(STDOUT_ERROR_TAG)) {
-      // Message started, start storing lines
-      myParentEventId = reader.getParentEventId();
-      myBufferedLines.clear();
-      myBufferedLines.add(line);
-    }
-    else if (line.equals(END_DETAIL)) {
-      // Message just ended
-      if (myParentEventId != null) {
-        processMessage(messageConsumer);
-      }
-      myParentEventId = null;
-      myBufferedLines.clear();
+  public boolean parse(@NotNull String line,
+                       @NotNull BuildOutputInstantReader reader,
+                       @NotNull Consumer<? super BuildEvent> messageConsumer) {
+    String currentLine = line.trim();
+    if (currentLine.startsWith(STDOUT_ERROR_TAG)) {
+      processMessage(currentLine, reader.getParentEventId(), messageConsumer);
       return true;
     }
-    else if (myParentEventId != null) {
-      myBufferedLines.add(line);
+
+    // consume the line without producing a message, and remove it from the map
+    if (futureOutputMap.getOrDefault(reader.getParentEventId(), Collections.emptySet()).contains(currentLine)) {
+      futureOutputMap.get(reader.getParentEventId()).remove(currentLine);
+      return true;
     }
+
     return false;
   }
 
-  /**
-   * Process an error message stored in myBufferedLines
-   * @param messageConsumer
-   */
-  private void processMessage(@NotNull Consumer<? super MessageEvent> messageConsumer) {
-    assert myParentEventId != null;
-    String line = myBufferedLines.get(0);
+  private void processMessage(String line, Object buildId, @NotNull Consumer<? super MessageEvent> messageConsumer) {
     String jsonString = line.substring(STDOUT_ERROR_TAG.length()).trim();
     if (jsonString.isEmpty()) {
       return;
     }
-    String detailMessage = StringUtil.join(myBufferedLines, SystemProperties.getLineSeparator());
-    GsonBuilder gsonBuilder = new GsonBuilder();
-    MessageJsonSerializer.registerTypeAdapters(gsonBuilder);
-    Gson gson = gsonBuilder.create();
     try {
-      Message msg = gson.fromJson(jsonString, Message.class);
+      Message msg = myGson.fromJson(jsonString, Message.class);
+
+      Set<String> futureOutput = futureOutputMap.get(buildId);
+      if (futureOutput == null) {
+        futureOutput = new HashSet<>();
+        futureOutputMap.put(buildId, futureOutput);
+      }
+
+      futureOutput.addAll(Arrays.asList(msg.getRawMessage().split("\\n")));
       boolean validPosition = false;
       for (SourceFilePosition sourceFilePosition : msg.getSourceFilePositions()) {
         FilePosition filePosition = convertToFilePosition(sourceFilePosition);
         if (filePosition != null) {
           validPosition = true;
           messageConsumer.accept(
-            new FileMessageEventImpl(myParentEventId, convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText(), detailMessage, filePosition));
+            new FileMessageEventImpl(buildId, convertKind(msg.getKind()), getMessageGroup(msg), msg.getText(),
+                                     msg.getRawMessage().isEmpty() ? msg.getText() : msg.getRawMessage(),
+                                     filePosition));
         }
       }
       if (!validPosition) {
-        messageConsumer.accept(new MessageEventImpl(myParentEventId, convertKind(msg.getKind()), MESSAGES_GROUP, msg.getText(), detailMessage));
+        messageConsumer
+          .accept(new MessageEventImpl(buildId, convertKind(msg.getKind()), getMessageGroup(msg), msg.getText(),
+                                       msg.getRawMessage().isEmpty() ? msg.getText() : msg.getRawMessage()));
       }
     }
     catch (JsonParseException ignored) {
-      messageConsumer.accept(new MessageEventImpl(myParentEventId, MessageEvent.Kind.WARNING, MESSAGES_GROUP, line, detailMessage));
+      messageConsumer.accept(new MessageEventImpl(buildId, MessageEvent.Kind.WARNING, getMessageGroup(null), line, ""));
+    }
+  }
+
+  @NotNull
+  private static String getMessageGroup(@Nullable Message msg) {
+    if (msg == null) {
+      return DEFAULT_MESSAGE_GROUP;
+    }
+    String messageGroup = msg.getToolName() == null ? ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP : msg.getToolName();
+    switch (msg.getKind()) {
+      case WARNING:
+        return messageGroup + MESSAGE_GROUP_WARNING_SUFFIX;
+      case STATISTICS:
+        return messageGroup + MESSAGE_GROUP_STATISTICS_SUFFIX;
+      case SIMPLE:
+      case INFO:
+        return messageGroup + MESSAGE_GROUP_INFO_SUFFIX;
+      case ERROR:
+      case UNKNOWN:
+      default:
+        return messageGroup + MESSAGE_GROUP_ERROR_SUFFIX;
     }
   }
 
@@ -123,18 +157,16 @@ public class GradleBuildOutputParser implements BuildOutputParser {
   @NotNull
   private static MessageEvent.Kind convertKind(@NotNull Kind kind) {
     switch (kind) {
-      case ERROR:
-        return MessageEvent.Kind.ERROR;
       case WARNING:
         return MessageEvent.Kind.WARNING;
       case INFO:
         return MessageEvent.Kind.INFO;
       case STATISTICS:
         return MessageEvent.Kind.STATISTICS;
-      case UNKNOWN:
-        return MessageEvent.Kind.ERROR;
       case SIMPLE:
         return MessageEvent.Kind.SIMPLE;
+      case ERROR:
+      case UNKNOWN:
       default:
         return MessageEvent.Kind.ERROR;
     }
@@ -157,10 +189,5 @@ public class GradleBuildOutputParser implements BuildOutputParser {
     int startColumn = position.getStartColumn();
     int endColumn = position.getEndColumn();
     return new FilePosition(sourceFile, startLine, startColumn, endLine, endColumn);
-  }
-
-  @VisibleForTesting
-  boolean processingMessage() {
-    return myParentEventId != null;
   }
 }

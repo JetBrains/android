@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.gradle.eclipse;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_TXT;
+import static com.android.tools.idea.templates.TemplateUtils.openEditor;
+import static com.android.tools.idea.util.ToolWindows.activateProjectView;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_IMPORT_ADT_MODULE;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
+
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
@@ -32,21 +40,14 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packaging.artifacts.ModifiableArtifactModel;
 import com.intellij.projectImport.ProjectImportBuilder;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_TXT;
-import static com.android.tools.idea.templates.TemplateUtils.openEditor;
-import static com.android.tools.idea.util.ToolWindows.activateProjectView;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+import javax.swing.Icon;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Importer which can import an ADT project as a Gradle project (it will first
@@ -177,12 +178,13 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
       };
       GradleProjectImporter importer = GradleProjectImporter.getInstance();
       if (myCreateProject) {
-        GradleProjectImporter.Request request = new GradleProjectImporter.Request();
-        request.project = project;
-        importer.importProject(project.getName(), destDir, request, syncListener);
+        GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
+        Project newProject = importer.importProjectNoSync(project.getName(), destDir, request);
+        GradleProjectInfo.getInstance(newProject).setSkipStartupActivity(true);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW, syncListener);
       }
       else {
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, syncListener);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_IMPORT_ADT_MODULE, syncListener);
       }
     }
     catch (Throwable e) {

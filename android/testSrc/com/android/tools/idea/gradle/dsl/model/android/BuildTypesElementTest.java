@@ -13,16 +13,21 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_ADD_BUILD_TYPE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_ADD_EMPTY_BUILD_TYPE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_APPEND_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_APPLICATION_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_ASSIGNMENT_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_OVERRIDE_STATEMENTS;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
-import org.junit.Test;
-
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 /**
  * Tests for {@link BuildTypesDslElement}.
@@ -34,20 +39,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class BuildTypesElementTest extends GradleFileModelTestCase {
   @Test
   public void testBuildTypesWithApplicationStatements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    type1 {\n" +
-                  "      applicationIdSuffix \"suffix1\"\n" +
-                  "      proguardFiles 'proguard-android-1.txt', 'proguard-rules-1.txt'\n" +
-                  "    }\n" +
-                  "    type2 {\n" +
-                  "      applicationIdSuffix \"suffix2\"\n" +
-                  "      proguardFiles 'proguard-android-2.txt', 'proguard-rules-2.txt'\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_APPLICATION_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -65,18 +57,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypesWithAssignmentStatements() throws Exception {
-    String text = "android.buildTypes {\n" +
-                  "  type1 {\n" +
-                  "    applicationIdSuffix = \"suffix1\"\n" +
-                  "    proguardFiles = ['proguard-android-1.txt', 'proguard-rules-1.txt']\n" +
-                  "  }\n" +
-                  "  type2 {\n" +
-                  "    applicationIdSuffix = \"suffix2\"\n" +
-                  "    proguardFiles = ['proguard-android-2.txt', 'proguard-rules-2.txt']\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_ASSIGNMENT_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -95,30 +76,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypesWithOverrideStatements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    type1 {\n" +
-                  "      applicationIdSuffix \"suffix1\"\n" +
-                  "      proguardFiles 'proguard-android-1.txt', 'proguard-rules-1.txt'\n" +
-                  "    }\n" +
-                  "    type2 {\n" +
-                  "      applicationIdSuffix = \"suffix2\"\n" +
-                  "      proguardFiles 'proguard-android-2.txt', 'proguard-rules-2.txt'\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "  buildTypes.type1 {\n" +
-                  "    applicationIdSuffix = \"suffix1-1\"\n" +
-                  "  }\n" +
-                  "  buildTypes.type2 {\n" +
-                  "    proguardFiles = ['proguard-android-4.txt', 'proguard-rules-4.txt']\n" +
-                  "  }\n" +
-                  " buildTypes {\n" +
-                  "  type2.applicationIdSuffix = \"suffix2-1\"\n" +
-                  " }\n" +
-                  "}\n" +
-                  "android.buildTypes.type1.proguardFiles = ['proguard-android-3.txt', 'proguard-rules-3.txt']\n";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_OVERRIDE_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -137,27 +95,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypesWithAppendStatements() throws Exception {
-    String text = "android {\n" +
-                  "  buildTypes {\n" +
-                  "    type1 {\n" +
-                  "      proguardFiles = ['proguard-android-1.txt', 'proguard-rules-1.txt']\n" +
-                  "    }\n" +
-                  "    type2 {\n" +
-                  "      proguardFiles 'proguard-android-2.txt', 'proguard-rules-2.txt'\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "  buildTypes.type1 {\n" +
-                  "    proguardFiles 'proguard-android-3.txt', 'proguard-rules-3.txt'\n" +
-                  "  }\n" +
-                  "  buildTypes.type2 {\n" +
-                  "    testInstrumentationRunnerArguments.key6 \"value6\"\n" +
-                  "  }\n" +
-                  " buildTypes {\n" +
-                  "  type2.proguardFile 'proguard-android-4.txt'\n" +
-                  " }\n" +
-                  "}\n";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_APPEND_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -177,9 +115,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddEmptyBuildType() throws Exception {
-    String text = "android {}\n";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPES_ELEMENT_ADD_EMPTY_BUILD_TYPE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -218,9 +154,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddBuildType() throws Exception {
-    String text = "android {}\n";
-
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_TYPES_ELEMENT_ADD_BUILD_TYPE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();

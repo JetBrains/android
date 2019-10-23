@@ -60,7 +60,7 @@ public class CpuFrameTooltipView extends ProfilerTooltipView {
     myRenderFramePanel = new JPanel(new TabularLayout("*").setVGap(JBUIScale.scale(4)));
 
     JLabel renderThreadLabel = createTooltipLabel();
-    renderThreadLabel.setText("Render Thread");
+    renderThreadLabel.setText("RenderThread");
     myRenderFrameCpuText = createTooltipLabel();
     myRenderTotalTimeText = createTooltipLabel();
 

@@ -21,7 +21,7 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:+'
+    compile 'com.android.support:appcompat-v7:26.+' // Old plugin can't support 28.+
     compile project(':javalib1')
     compile project(':library2')
 }

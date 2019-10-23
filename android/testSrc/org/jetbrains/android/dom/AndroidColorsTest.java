@@ -29,6 +29,7 @@ public class AndroidColorsTest extends AndroidDomTestCase {
   }
 
   public void testColorNoTypos() throws Throwable {
+    copyFileToProject("color_layout.xml", "res/layout/color_layout.xml");
     VirtualFile virtualFile = copyFileToProject("colors_value.xml");
     myFixture.configureFromExistingVirtualFile(virtualFile);
     myFixture.enableInspections(new SpellCheckingInspection());

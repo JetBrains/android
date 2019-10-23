@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
+import com.android.tools.idea.uibuilder.handlers.motion.AttrName;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons;
@@ -46,6 +47,7 @@ public class OnSwipePanel extends TagPanel {
   private DefaultTableModel myTableModel = new OnSwipeTableModel(data, colNames);
   MotionSceneModel.OnSwipeTag myOnSwipeTag;
   private JBPopupMenu myPopupMenu = new JBPopupMenu("Add Attribute");
+  private static final String ATTR_ATTRIBUTE_NAME = "AttributeName";
 
   public OnSwipePanel(MotionLayoutAttributePanel panel) {
     super(panel);
@@ -73,7 +75,6 @@ public class OnSwipePanel extends TagPanel {
         return c;
       }
     });
-
 
     myPopupMenu.add(new JMenuItem("test1"));
     myAddRemovePanel.myAddButton.addMouseListener(new MouseAdapter() {
@@ -110,10 +111,9 @@ public class OnSwipePanel extends TagPanel {
     add(myAddRemovePanel, gbc);
   }
 
-
   @Override
   protected void deleteAttr(int selection) {
-    String attributeName = (String)myTable.getValueAt(selection, 0);
+    AttrName attributeName = (AttrName)myTable.getValueAt(selection, 0);
     if (myOnSwipeTag != null && myOnSwipeTag.deleteAttribute(attributeName)) {
       myTableModel.removeRow(selection);
     }
@@ -129,7 +129,7 @@ public class OnSwipePanel extends TagPanel {
   public ActionListener myAddItemAction = new ActionListener() {
     @Override
     public void actionPerformed(ActionEvent e) {
-      String attributeName = ((JMenuItem)e.getSource()).getText();
+      AttrName attributeName = (AttrName)((JMenuItem)e.getSource()).getClientProperty(ATTR_ATTRIBUTE_NAME);
       String value = "";
       if (myOnSwipeTag != null && myOnSwipeTag.setValue(attributeName, value)) {
         myTableModel.addRow(new Object[]{attributeName, value});
@@ -137,15 +137,16 @@ public class OnSwipePanel extends TagPanel {
     }
   };
 
-  private void setupPopup(MotionSceneModel.OnSwipeTag tag, Set<String> strings) {
+  private void setupPopup(MotionSceneModel.OnSwipeTag tag, Set<AttrName> strings) {
     myOnSwipeTag = tag;
     myPopupMenu.removeAll();
-    String[] names = tag.getPossibleAttr();
+    AttrName[] names = tag.getPossibleAttr();
     for (int i = 0; i < names.length; i++) {
       if (strings.contains(names[i])) {
         continue;
       }
-      JMenuItem menuItem = new JMenuItem(names[i]);
+      JMenuItem menuItem = new JMenuItem(names[i].getName());
+      menuItem.putClientProperty(ATTR_ATTRIBUTE_NAME, names[i]);
       menuItem.addActionListener(myAddItemAction);
       myPopupMenu.add(menuItem);
     }
@@ -157,9 +158,9 @@ public class OnSwipePanel extends TagPanel {
       setVisible(false);
       return;
     }
-    HashMap<String, Object> attr = tag.getAttributes();
+    HashMap<AttrName, Object> attr = tag.getAttributes();
     data.clear();
-    for (String s : attr.keySet()) {
+    for (AttrName s : attr.keySet()) {
       Vector<Object> v = new Vector<>(Arrays.asList(s, attr.get(s)));
       data.add(v);
     }
@@ -177,7 +178,7 @@ public class OnSwipePanel extends TagPanel {
     @Override
     public void setValueAt(@NotNull Object value, int rowIndex, int columnIndex) {
       super.setValueAt(value, rowIndex, columnIndex);
-      String key = getValueAt(rowIndex, 0).toString();
+      AttrName key = (AttrName)getValueAt(rowIndex, 0);
       myOnSwipeTag.setValue(key, (String)value);
     }
 

@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_OFFLINE_MODE_DISABLED;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_OFFLINE_MODE_ENABLED;
+
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 public class ToggleOfflineModeHyperlink extends NotificationHyperlink {
   private final boolean myEnableOfflineMode;
@@ -54,7 +56,8 @@ public class ToggleOfflineModeHyperlink extends NotificationHyperlink {
   @Override
   protected void execute(@NotNull Project project) {
     GradleSettings.getInstance(project).setOfflineWork(myEnableOfflineMode);
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
+    GradleSyncStats.Trigger trigger = myEnableOfflineMode ? TRIGGER_QF_OFFLINE_MODE_ENABLED : TRIGGER_QF_OFFLINE_MODE_DISABLED;
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, trigger);
   }
 
   @TestOnly

@@ -227,7 +227,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     private JPanel myPanel;
     private JBCheckBox myInsertNewLineBeforeTagCheckBox;
 
-    LayoutCodeStylePanel() {
+    public LayoutCodeStylePanel() {
       super("Layout Files", ContextSpecificSettingsProviders.LAYOUT);
       init();
     }

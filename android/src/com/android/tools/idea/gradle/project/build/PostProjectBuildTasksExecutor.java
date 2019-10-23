@@ -15,10 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
+import static com.android.tools.idea.gradle.util.BuildMode.DEFAULT_BUILD_MODE;
+import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
+import static com.android.tools.idea.gradle.util.GradleProjects.isSyncRequestedDuringBuild;
+import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_BUILD_SYNC_NEEDED_AFTER_BUILD;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST_WHILE_BUILDING;
+import static com.intellij.util.ThreeState.YES;
+
 import com.android.ide.common.blame.Message;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -34,34 +42,17 @@ import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessage;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.roots.LanguageLevelProjectExtension;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.pom.java.LanguageLevel;
-import org.jetbrains.android.facet.AndroidFacet;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-
-import java.io.File;
-import java.util.*;
-
-import static com.android.tools.idea.gradle.util.BuildMode.DEFAULT_BUILD_MODE;
-import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
-import static com.android.tools.idea.gradle.util.GradleProjects.*;
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
-import static com.intellij.util.ThreeState.YES;
 
 /**
  * After a build is complete, this class will execute the following tasks:
@@ -74,7 +65,6 @@ import static com.intellij.util.ThreeState.YES;
  * Both JPS and the "direct Gradle invocation" build strategies ares supported.
  */
 public class PostProjectBuildTasksExecutor {
-  private static final Key<Boolean> UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD = Key.create("android.gradle.project.update.java.lang");
   private static final Key<Long> PROJECT_LAST_BUILD_TIMESTAMP_KEY = Key.create("android.gradle.project.last.build.timestamp");
 
   @NotNull private final Project myProject;
@@ -94,7 +84,6 @@ public class PostProjectBuildTasksExecutor {
     if (errorMessages.length > 0) {
       errors = new CompilerMessageIterator(errorMessages);
     }
-    //noinspection TestOnlyProblems
     onBuildCompletion(errors, errorMessages.length);
   }
 
@@ -145,15 +134,12 @@ public class PostProjectBuildTasksExecutor {
     if (!errorMessages.isEmpty()) {
       errors = new MessageIterator(errorMessages);
     }
-    //noinspection TestOnlyProblems
     onBuildCompletion(errors, errorMessages.size());
   }
 
   @VisibleForTesting
   void onBuildCompletion(Iterator<String> errorMessages, int errorCount) {
     if (AndroidProjectInfo.getInstance(myProject).requiresAndroidModel()) {
-      executeProjectChanges(myProject, this::excludeOutputFolders);
-
       if (isOfflineBuildModeEnabled(myProject)) {
         while (errorMessages.hasNext()) {
           String error = errorMessages.next();
@@ -169,14 +155,20 @@ public class PostProjectBuildTasksExecutor {
 
       BuildSettings buildSettings = BuildSettings.getInstance(myProject);
       BuildMode buildMode = buildSettings.getBuildMode();
+      String runConfigurationTypeId = buildSettings.getRunConfigurationTypeId();
       buildSettings.clear();
 
       myProject.putUserData(PROJECT_LAST_BUILD_TIMESTAMP_KEY, System.currentTimeMillis());
 
-      syncJavaLangLevel();
+      // Don't invoke Gradle Sync if the build is invoked by run configuration.
+      // That will cause problems because Gradle Sync and Deploy will both run at the same time.
+      // During Gradle sync, AndroidModuleModel is re-created, while Deploy relies on AndroidModuleModel to know apk location.
+      if (runConfigurationTypeId != null) {
+        return;
+      }
 
       if (isSyncNeeded(buildMode, errorCount)) {
-        GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+        GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_BUILD_SYNC_NEEDED_AFTER_BUILD);
         request.generateSourcesOnSuccess = false;
         // Start sync once other events have finished (b/76017112).
         runWhenEventsFinished(() -> GradleSyncInvoker.getInstance().requestProjectSync(myProject, request));
@@ -186,7 +178,7 @@ public class PostProjectBuildTasksExecutor {
         setSyncRequestedDuringBuild(myProject, null);
         // Sync was invoked while the project was built. Now that the build is finished, request a full sync after previous events have
         // finished (b/76017112).
-        runWhenEventsFinished(() -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_USER_REQUEST));
+        runWhenEventsFinished(() -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_USER_REQUEST_WHILE_BUILDING));
       }
     }
   }
@@ -212,6 +204,7 @@ public class PostProjectBuildTasksExecutor {
 
   /**
    * Run task once other pending events have finished.
+   *
    * @param task to be run
    */
   private static void runWhenEventsFinished(@NotNull Runnable task) {
@@ -221,66 +214,6 @@ public class PostProjectBuildTasksExecutor {
     }
     else {
       application.invokeLater(task);
-    }
-  }
-
-  /**
-   * Even though 'Project sync' already excluded the folders "$buildDir/intermediates" and "$buildDir/outputs" we go through the children of
-   * "$buildDir" and exclude any non-generated folder that may have been created by other plug-ins. We need to be aggressive when excluding
-   * folder to prevent over-indexing files, which will degrade the IDE's performance.
-   */
-  private void excludeOutputFolders() {
-    if (myProject.isDisposed()) {
-      return;
-    }
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    if (myProject.isDisposed()) {
-      return;
-    }
-
-    for (Module module : moduleManager.getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && facet.requiresAndroidModel()) {
-        excludeOutputFolders(facet);
-      }
-    }
-  }
-
-  private static void excludeOutputFolders(@NotNull AndroidFacet facet) {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-    if (androidModel == null) {
-      return;
-    }
-    File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
-    if (!buildFolderPath.isDirectory()) {
-      return;
-    }
-
-    Module module = facet.getModule();
-    if (module.getProject().isDisposed()) {
-      return;
-    }
-
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
-
-    try {
-      ContentEntry[] contentEntries = rootModel.getContentEntries();
-      ContentEntry parent = findParentContentEntry(buildFolderPath, Arrays.stream(contentEntries));
-      if (parent == null) {
-        rootModel.dispose();
-        return;
-      }
-
-      List<File> excludedFolderPaths = androidModel.getExcludedFolderPaths();
-      for (File folderPath : excludedFolderPaths) {
-        parent.addExcludeFolder(pathToIdeaUrl(folderPath));
-      }
-    }
-    finally {
-      if (!rootModel.isDisposed()) {
-        rootModel.commit();
-      }
     }
   }
 
@@ -311,56 +244,5 @@ public class PostProjectBuildTasksExecutor {
         rootDir.refresh(true, true);
       }
     }
-  }
-
-  public void updateJavaLangLevelAfterBuild() {
-    myProject.putUserData(UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD, true);
-  }
-
-  private void syncJavaLangLevel() {
-    Boolean updateJavaLangLevel = myProject.getUserData(UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD);
-    if (updateJavaLangLevel == null || !updateJavaLangLevel.booleanValue()) {
-      return;
-    }
-
-    myProject.putUserData(UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD, null);
-
-    executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
-      @Override
-      public void execute() {
-        if (myProject.isOpen()) {
-          //noinspection TestOnlyProblems
-          LanguageLevel langLevel = getMaxJavaLangLevel();
-          if (langLevel != null) {
-            LanguageLevelProjectExtension ext = LanguageLevelProjectExtension.getInstance(myProject);
-            if (langLevel != ext.getLanguageLevel()) {
-              ext.setLanguageLevel(langLevel);
-            }
-          }
-        }
-      }
-    });
-  }
-
-  @VisibleForTesting
-  @Nullable
-  LanguageLevel getMaxJavaLangLevel() {
-    LanguageLevel maxLangLevel = null;
-
-    Module[] modules = ModuleManager.getInstance(myProject).getModules();
-    for (Module module : modules) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet == null) {
-        continue;
-      }
-      AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-      if (androidModel != null) {
-        LanguageLevel langLevel = androidModel.getJavaLanguageLevel();
-        if (langLevel != null && (maxLangLevel == null || maxLangLevel.compareTo(langLevel) < 0)) {
-          maxLangLevel = langLevel;
-        }
-      }
-    }
-    return maxLangLevel;
   }
 }

@@ -15,11 +15,18 @@
  */
 package com.android.tools.idea.npw.platform;
 
+import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
+import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
+import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
+import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
+
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.repository.api.*;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.api.UpdatablePackage;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidTargetHash;
@@ -46,18 +53,18 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
-import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
-import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
-import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 
 /**
  * Lists the available Android Versions from local, remote, and statically-defined sources.
@@ -68,7 +75,7 @@ public class AndroidVersionsInfo {
 
   /**
    * Call back interface to notify the caller that the requested items were loaded.
-   * @see AndroidVersionsInfo#loadTargetVersions(FormFactor, int, ItemsLoaded)
+   * @see AndroidVersionsInfo#loadRemoteTargetVersions(FormFactor, int, ItemsLoaded)
    */
   public interface ItemsLoaded {
     void onDataLoadedFinished(List<VersionItem> items);
@@ -77,23 +84,46 @@ public class AndroidVersionsInfo {
   private static final ProgressIndicator REPO_LOG = new StudioLoggerProgressIndicator(AndroidVersionsInfo.class);
   private static final IdDisplay NO_MATCH = IdDisplay.create("no_match", "No Match");
 
-  private final List<VersionItem> myTargetVersions = Lists.newArrayList(); // All versions that we know about
+  private final List<VersionItem> myKnownTargetVersions = Lists.newArrayList(); // All versions that we know about
   private final Set<AndroidVersion> myInstalledVersions = Sets.newHashSet();
   private IAndroidTarget myHighestInstalledApiTarget;
 
-  public void load() {
-    loadTargetVersions();
+  /**
+   * Load the list of known Android Versions. The list is made of Android Studio pre-known Android versions, and querying
+   * the SDK manager for extra installed versions (can be third party SDKs). No remote network connection is needed.
+   */
+  public void loadLocalVersions() {
+    loadLocalTargetVersions();
     loadInstalledVersions();
   }
 
   /**
-   * Load the installed android versions from the installed SDK
+   * Gets the list of known Android versions. The list can be loaded by calling
+   * {@link #loadLocalVersions()} and/or {@link #loadRemoteTargetVersions(FormFactor, int, ItemsLoaded)}.
+   */
+  @NotNull
+  public List<VersionItem> getKnownTargetVersions(@NotNull FormFactor formFactor, int minSdkLevel) {
+    List<VersionItem> versionItemList = new ArrayList<>();
+    minSdkLevel = Math.max(minSdkLevel, formFactor.getMinOfflineApiLevel());
+
+    for (VersionItem target : myKnownTargetVersions) {
+      if (isFormFactorAvailable(formFactor, minSdkLevel, target.getMinApiLevel())
+          || (target.getAndroidTarget() != null && target.getAndroidTarget().getVersion().isPreview())) {
+        versionItemList.add(target);
+      }
+    }
+
+    return versionItemList;
+  }
+
+  /**
+   * Load the installed android versions from the installed SDK. No network connection needed.
    */
   private void loadInstalledVersions() {
     myInstalledVersions.clear();
 
     IAndroidTarget highestInstalledTarget = null;
-    for (IAndroidTarget target : getCompilationTargets()) {
+    for (IAndroidTarget target : loadInstalledCompilationTargets()) {
       if (target.isPlatform() && target.getVersion().getFeatureLevel() >= SdkVersionInfo.LOWEST_COMPILE_SDK_VERSION &&
           (highestInstalledTarget == null ||
            target.getVersion().getFeatureLevel() > highestInstalledTarget.getVersion().getFeatureLevel() &&
@@ -121,17 +151,6 @@ public class AndroidVersionsInfo {
   public List<UpdatablePackage> loadInstallPackageList(@NotNull List<AndroidVersionsInfo.VersionItem> installItems) {
     Set<String> requestedPaths = Sets.newHashSet();
     AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-
-    // TODO: remove once maven dependency downloading is available in studio
-    GradleCoordinate constraintCoordinate = GradleCoordinate.parseCoordinateString(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT + ":+");
-    RepositoryPackages packages = sdkHandler.getSdkManager(REPO_LOG).getPackages();
-    RepoPackage constraintPackage = SdkMavenRepository.findBestPackageMatching(constraintCoordinate, packages.getLocalPackages().values());
-    if (constraintPackage == null) {
-      constraintPackage = SdkMavenRepository.findBestPackageMatching(constraintCoordinate, packages.getRemotePackages().values());
-      if (constraintPackage != null) {
-        requestedPaths.add(constraintPackage.getPath());
-      }
-    }
 
     // Install build tools, if not already installed
     requestedPaths.add(DetailsTypes.getBuildToolsPath(getRecommendedBuildToolsRevision(sdkHandler, REPO_LOG)));
@@ -172,35 +191,28 @@ public class AndroidVersionsInfo {
   /**
    * Get the list of versions, notably by populating the available values from local, remote, and statically-defined sources.
    */
-  public void loadTargetVersions(@NotNull FormFactor formFactor, int minSdkLevel, ItemsLoaded itemsLoadedCallback) {
-    List<VersionItem> versionItemList = new ArrayList<>();
-
-    for (VersionItem target : myTargetVersions) {
-      if (isFormFactorAvailable(formFactor, minSdkLevel, target.getMinApiLevel())
-          || (target.getAndroidTarget() != null && target.getAndroidTarget().getVersion().isPreview())) {
-        versionItemList.add(target);
-      }
-    }
-
-    loadRemoteTargets(formFactor, minSdkLevel, versionItemList, itemsLoadedCallback);
+  public void loadRemoteTargetVersions(@NotNull FormFactor formFactor, int minSdkLevel, @NotNull ItemsLoaded itemsLoadedCallback) {
+    minSdkLevel = Math.max(minSdkLevel, formFactor.getMinOfflineApiLevel());
+    List<VersionItem> versionItemList = getKnownTargetVersions(formFactor, minSdkLevel);
+    loadRemoteTargetVersions(formFactor, minSdkLevel, versionItemList, itemsLoadedCallback);
   }
 
   /**
-   * Load the definitions of the android compilation targets
+   * Load the local definitions of the android compilation targets.
    */
-  private void loadTargetVersions() {
-    myTargetVersions.clear();
+  private void loadLocalTargetVersions() {
+    myKnownTargetVersions.clear();
 
     if (AndroidSdkUtils.isAndroidSdkAvailable()) {
       String[] knownVersions = TemplateUtils.getKnownVersions();
       for (int i = 0; i < knownVersions.length; i++) {
-        myTargetVersions.add(new VersionItem(knownVersions[i], i + 1));
+        myKnownTargetVersions.add(new VersionItem(knownVersions[i], i + 1));
       }
     }
 
-    for (IAndroidTarget target : getCompilationTargets()) {
+    for (IAndroidTarget target : loadInstalledCompilationTargets()) {
       if (target.getVersion().isPreview() || !target.getAdditionalLibraries().isEmpty()) {
-        myTargetVersions.add(new VersionItem(target));
+        myKnownTargetVersions.add(new VersionItem(target));
       }
     }
   }
@@ -209,7 +221,7 @@ public class AndroidVersionsInfo {
    * @return a list of android compilation targets (platforms and add-on SDKs)
    */
   @NotNull
-  private static IAndroidTarget[] getCompilationTargets() {
+  private static IAndroidTarget[] loadInstalledCompilationTargets() {
     AndroidTargetManager targetManager = AndroidSdks.getInstance().tryToChooseSdkHandler().getAndroidTargetManager(REPO_LOG);
     List<IAndroidTarget> result = Lists.newArrayList();
     for (IAndroidTarget target : targetManager.getTargets(REPO_LOG)) {
@@ -220,7 +232,7 @@ public class AndroidVersionsInfo {
     return result.toArray(new IAndroidTarget[0]);
   }
 
-  private void loadRemoteTargets(@NotNull FormFactor myFormFactor, int minSdkLevel, @NotNull List<VersionItem> versionItemList,
+  private void loadRemoteTargetVersions(@NotNull FormFactor myFormFactor, int minSdkLevel, @NotNull List<VersionItem> versionItemList,
                                         ItemsLoaded completedCallback) {
     AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
 
@@ -482,11 +494,21 @@ public class AndroidVersionsInfo {
       return myLabel;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+      return obj instanceof VersionItem && ((VersionItem) obj).getLabel().equals(getLabel());
+    }
+
+    @Override
+    public int hashCode() {
+      return getLabel().hashCode();
+    }
+
     @NotNull
     private String getLabel(@NotNull AndroidVersion version, @Nullable IdDisplay tag, @Nullable IAndroidTarget target) {
       int featureLevel = version.getFeatureLevel();
       if (SystemImage.GLASS_TAG.equals(tag)) {
-        return String.format("Glass Development Kit Preview (API %1$d)", featureLevel);
+        return String.format(Locale.US, "Glass Development Kit Preview (API %1$d)", featureLevel);
       }
       if (featureLevel <= HIGHEST_KNOWN_API) {
         if (version.isPreview()) {
@@ -499,7 +521,7 @@ public class AndroidVersionsInfo {
           return SdkVersionInfo.getAndroidName(featureLevel);
         }
         else if (!isEmptyOrSpaces(target.getDescription())) {
-          return String.format("API %1$d: %2$s", featureLevel, target.getDescription());
+          return String.format(Locale.US, "API %1$d: %2$s", featureLevel, target.getDescription());
         }
         else {
           return AndroidTargetHash.getTargetHashString(target);
@@ -507,10 +529,10 @@ public class AndroidVersionsInfo {
       }
       else {
         if (version.isPreview()) {
-          return String.format("API %1$d: Android (%2$s)", featureLevel, version.getCodename());
+          return String.format(Locale.US, "API %1$d: Android (%2$s)", featureLevel, version.getCodename());
         }
         else {
-          return String.format("API %1$d: Android", featureLevel);
+          return String.format(Locale.US, "API %1$d: Android", featureLevel);
         }
       }
     }

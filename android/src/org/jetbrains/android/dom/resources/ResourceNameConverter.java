@@ -16,7 +16,16 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.xml.*;
+import com.intellij.util.xml.ConvertContext;
+import com.intellij.util.xml.CustomReferenceConverter;
+import com.intellij.util.xml.DomElement;
+import com.intellij.util.xml.GenericAttributeValue;
+import com.intellij.util.xml.GenericDomValue;
+import com.intellij.util.xml.ResolvingConverter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
@@ -24,11 +33,6 @@ import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
@@ -89,7 +93,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
     if (manager == null) {
       return Collections.emptyList();
     }
-    LocalResourceRepository appResources = ResourceRepositoryManager.getOrCreateInstance(facet).getAppResources(true);
+    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
     final Collection<String> styleNames = appResources.getResources(ResourceNamespace.TODO(), ResourceType.STYLE).keySet();
     final List<String> result = new ArrayList<>();
 

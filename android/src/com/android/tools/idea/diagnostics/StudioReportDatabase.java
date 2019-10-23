@@ -15,38 +15,50 @@
  */
 package com.android.tools.idea.diagnostics;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
-
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class StudioReportDatabase {
   private final Object myDbLock = new Object();
   @GuardedBy("myDbLock")
   private final Path myDb;
-  private final static long MAX_SUPPORTED_FORMAT_VERSION = 1;
 
   public StudioReportDatabase(@NotNull File databaseFile) {
-    myDb = databaseFile.toPath();
+    this(databaseFile.toPath());
+  }
+
+  public StudioReportDatabase(@NotNull Path databasePath) {
+    myDb = databasePath;
   }
 
   @NotNull
-  public List<DiagnosticReport> reapReportDetails() {
+  public List<DiagnosticReport> reapReports() {
     List<DiagnosticReport> result;
 
     synchronized (myDbLock) {
-      try (Reader reader = new FileReader(myDb.toFile())) {
-        result = DiagnosticReport.Companion.readDiagnosticReports(reader);
+      try {
+        result = getReports();
       }
       catch (Exception e) {
         result = ImmutableList.of();
@@ -61,6 +73,18 @@ public class StudioReportDatabase {
     }
 
     return result;
+  }
+
+  @NotNull
+  public List<DiagnosticReport> getReports() throws IOException {
+    synchronized (myDbLock) {
+      if (!Files.exists(myDb) || Files.size(myDb) == 0L) {
+        return ImmutableList.of();
+      }
+      try (Reader reader = new InputStreamReader(new FileInputStream(myDb.toFile()), UTF_8)) {
+        return DiagnosticReport.Companion.readDiagnosticReports(reader);
+      }
+    }
   }
 
   public void appendReport(DiagnosticReport report) throws IOException {

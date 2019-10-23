@@ -23,14 +23,13 @@ import com.google.common.collect.Lists;
 import com.intellij.concurrency.JobLauncher;
 import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupActivity;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -43,7 +42,6 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.Future;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.Projects.getBaseDirPath;
@@ -74,14 +72,6 @@ public class GradleFiles {
   @NotNull private final SyncListener mySyncListener = new SyncListener();
 
   @NotNull private final FileEditorManagerListener myFileEditorListener;
-
-  public static class UpdateHashesStartupActivity implements StartupActivity.DumbAware {
-    @Override
-    public void runActivity(@NotNull Project project) {
-      // Populate build file hashes on project startup.
-      ApplicationManager.getApplication().executeOnPooledThread(() -> getInstance(project).updateFileHashes());
-    }
-  }
 
   @NotNull
   public static GradleFiles getInstance(@NotNull Project project) {
@@ -120,6 +110,13 @@ public class GradleFiles {
 
 
     GradleSyncState.subscribe(myProject, mySyncListener);
+    // Populate build file hashes on creation.
+    if (myProject.isInitialized()) {
+      updateFileHashes();
+    }
+    else {
+      StartupManager.getInstance(myProject).registerPostStartupActivity(this::updateFileHashes);
+    }
   }
 
   @NotNull
@@ -161,7 +158,7 @@ public class GradleFiles {
   }
 
   private void putHashForFile(@NotNull Map<VirtualFile, Integer> map, @NotNull VirtualFile file) {
-    Integer hash = ReadAction.compute(() -> computeHash(file));
+    Integer hash = computeHash(file);
     if (hash != null) {
       map.put(file, hash);
     }
@@ -211,7 +208,6 @@ public class GradleFiles {
    */
   @Nullable
   private Integer computeHash(@NotNull VirtualFile file) {
-    if (!file.isValid()) return null;
     PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
 
     if (psiFile != null && psiFile.isValid()) {
@@ -278,7 +274,8 @@ public class GradleFiles {
     List<VirtualFile> externalBuildFiles = new ArrayList<>();
 
     List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(myProject).getModules());
-    JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, null, false, false, (module) -> {
+    JobLauncher jobLauncher = JobLauncher.getInstance();
+    jobLauncher.invokeConcurrentlyUnderProgress(modules, null, (module) -> {
       VirtualFile buildFile = getGradleBuildFile(module);
       if (buildFile != null) {
         File path = VfsUtilCore.virtualToIoFile(buildFile);
@@ -378,17 +375,23 @@ public class GradleFiles {
     public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
       maybeProcessSyncStarted(project);
     }
-  }
 
-  @VisibleForTesting
-  public Future<?> maybeProcessSyncStarted(@NotNull Project project) {
-    if (!project.isInitialized() && project.equals(myProject)) {
-      return null;
+    private void maybeProcessSyncStarted(@NotNull Project project) {
+      if (!project.isInitialized() && project.equals(myProject)) {
+        return;
+      }
+
+      if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+        updateFileHashes();
+        removeChangedFiles();
+      }
+      else {
+        ApplicationManager.getApplication().runReadAction(() -> {
+          updateFileHashes();
+          removeChangedFiles();
+        });
+      }
     }
-    return ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      updateFileHashes();
-      removeChangedFiles();
-    });
   }
 
   /**

@@ -15,27 +15,30 @@
  */
 package com.android.tools.idea.configurations;
 
+import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_LOCALE;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TARGET;
+
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.PlatformTarget;
-import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
+import com.android.tools.idea.model.ActivityAttributesSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -43,20 +46,19 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
+import java.util.Collections;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.android.sdk.MessageBuildingSdkLog;
-import org.jetbrains.android.uipreview.UserDeviceManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
-import static com.android.tools.idea.configurations.ConfigurationListener.*;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * A {@linkplain ConfigurationManager} is responsible for managing {@link Configuration}
@@ -73,18 +75,17 @@ public class ConfigurationManager implements Disposable {
   private static final Key<ConfigurationManager> KEY = Key.create(ConfigurationManager.class.getName());
 
   @NotNull private final Module myModule;
-
-  private List<Device> myDevices;
-  private Map<String,Device> myDeviceMap;
-  private final UserDeviceManager myUserDeviceManager;
   private final Map<VirtualFile, Configuration> myCache = ContainerUtil.createSoftValueMap();
-  private List<Locale> myLocales;
+  private final Object myLocalesLock = new Object();
+  @GuardedBy("myLocalesLock")
+  @NotNull private ImmutableList<Locale> myLocales = ImmutableList.of();
+  @GuardedBy("myLocalesLock")
+  private long myLocalesCacheStamp = -1;
   private Device myDefaultDevice;
   private Locale myLocale;
   private IAndroidTarget myTarget;
   private int myStateVersion;
   private ResourceResolverCache myResolverCache;
-  private long myLocaleCacheStamp;
 
   @NotNull
   public static ConfigurationManager getOrCreateInstance(@NotNull AndroidFacet androidFacet) {
@@ -126,17 +127,6 @@ public class ConfigurationManager implements Disposable {
 
   public ConfigurationManager(@NotNull Module module) {
     myModule = module;
-
-    myUserDeviceManager = new UserDeviceManager() {
-      @Override
-      protected void userDevicesChanged() {
-        // Force refresh
-        myDevices = null;
-        myDeviceMap = null;
-        // TODO: How do I trigger changes in the UI?
-      }
-    };
-    Disposer.register(this, myUserDeviceManager);
     Disposer.register(myModule, this);
   }
 
@@ -144,6 +134,7 @@ public class ConfigurationManager implements Disposable {
    * Gets the {@link Configuration} associated with the given file
    * @return the {@link Configuration} for the given file
    */
+  @Slow
   @NotNull
   public Configuration getConfiguration(@NotNull VirtualFile file) {
     Configuration configuration = myCache.get(file);
@@ -155,14 +146,17 @@ public class ConfigurationManager implements Disposable {
     return configuration;
   }
 
-  @VisibleForTesting
+  @TestOnly
   boolean hasCachedConfiguration(@NotNull VirtualFile file) {
     return myCache.get(file) != null;
   }
 
   /**
    * Creates and returns a new {@link Configuration} associated with this manager.
+   * This method might block while finding the correct {@link Device} for the {@link Configuration}. Finding
+   * devices requires accessing (and maybe updating) the repository of existing ones.
    */
+  @Slow
   @NotNull
   private Configuration create(@NotNull VirtualFile file) {
     ConfigurationStateManager stateManager = getStateManager();
@@ -220,66 +214,41 @@ public class ConfigurationManager implements Disposable {
     return ConfigurationStateManager.get(getModule().getProject());
   }
 
-  /** Returns the list of available devices for the current platform, if any */
+  /** Returns the list of available devices for the current platform and any custom user devices, if any */
+  @Slow
   @NotNull
-  public List<Device> getDevices() {
-    if (myDevices == null || myDevices.isEmpty()) {
-      List<Device> devices = null;
-
-      AndroidPlatform platform = AndroidPlatform.getInstance(getModule());
-      if (platform != null) {
-        final AndroidSdkData sdkData = platform.getSdkData();
-        devices = new ArrayList<>();
-        DeviceManager deviceManager = sdkData.getDeviceManager();
-        devices.addAll(deviceManager.getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR)));
-        devices.addAll(myUserDeviceManager.parseUserDevices(new MessageBuildingSdkLog()));
-      }
-
-      if (devices == null) {
-        myDevices = Collections.emptyList();
-      } else {
-        myDevices = devices;
-      }
+  public ImmutableList<Device> getDevices() {
+    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    if (platform == null) {
+      return ImmutableList.of();
     }
-
-    return myDevices;
-  }
-
-  @NotNull
-  private Map<String,Device> getDeviceMap() {
-    if (myDeviceMap == null) {
-      List<Device> devices = getDevices();
-      myDeviceMap = Maps.newHashMapWithExpectedSize(devices.size());
-      for (Device device : devices) {
-        myDeviceMap.put(device.getId(), device);
-      }
-    }
-
-    return myDeviceMap;
+    return ImmutableList.copyOf(platform.getSdkData().getDeviceManager().getDevices(DeviceManager.ALL_DEVICES));
   }
 
   @Nullable
   public Device getDeviceById(@NotNull String id) {
-    return getDeviceMap().get(id);
+    return getDevices()
+      .stream()
+      .filter(device -> device.getId().equals(id))
+      .findFirst()
+      .orElse(null);
   }
 
   @Nullable
   public Device createDeviceForAvd(@NotNull AvdInfo avd) {
-    AndroidFacet facet = AndroidFacet.getInstance(getModule());
-    assert facet != null;
-    for (Device device : getDevices()) {
-      if (device.getManufacturer().equals(avd.getDeviceManufacturer())
-          && (device.getId().equals(avd.getDeviceName()) || device.getDisplayName().equals(avd.getDeviceName()))) {
-
-        String avdName = avd.getName();
-        Device.Builder builder = new Device.Builder(device);
-        builder.setName(avdName);
-        builder.setId(Configuration.AVD_ID_PREFIX + avdName);
-        return builder.build();
-      }
+    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    if (platform == null) {
+      return null;
     }
-
-    return null;
+    Device modelDevice = platform.getSdkData().getDeviceManager().getDevice(avd.getDeviceName(), avd.getDeviceManufacturer());
+    if (modelDevice == null) {
+      return null;
+    }
+    String avdName = avd.getName();
+    Device.Builder builder = new Device.Builder(modelDevice);
+    builder.setName(avdName);
+    builder.setId(Configuration.AVD_ID_PREFIX + avdName);
+    return builder.build();
   }
 
   public static boolean isAvdDevice(@NotNull Device device) {
@@ -337,7 +306,7 @@ public class ConfigurationManager implements Disposable {
    */
   @NotNull
   public String computePreferredTheme(@NotNull Configuration configuration) {
-    MergedManifest manifest = MergedManifest.get(getModule());
+    MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(getModule());
 
     // TODO: If we are rendering a layout in included context, pick the theme from the outer layout instead.
 
@@ -349,7 +318,7 @@ public class ConfigurationManager implements Disposable {
         activityFqcn = pkg + activity;
       }
 
-      ActivityAttributes attributes = manifest.getActivityAttributes(activityFqcn);
+      ActivityAttributesSnapshot attributes = manifest.getActivityAttributes(activityFqcn);
       if (attributes != null) {
         String theme = attributes.getTheme();
         // Check that the theme looks like a reference.
@@ -424,23 +393,28 @@ public class ConfigurationManager implements Disposable {
   }
 
   @NotNull
-  public List<Locale> getLocales() {
+  public ImmutableList<Locale> getLocales() {
     // Get locales from modules, but not libraries!
     LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(getModule());
     assert projectResources != null;
-    if (projectResources.getModificationCount() != myLocaleCacheStamp) {
-      myLocales = null;
-    }
-    if (myLocales == null) {
-      List<Locale> locales = new ArrayList<>();
-      for (LocaleQualifier locale : ResourceRepositoryUtil.getLocales(projectResources)) {
-        locales.add(Locale.create(locale));
+    synchronized (myLocalesLock) {
+      if (projectResources.getModificationCount() == myLocalesCacheStamp) {
+        return myLocales;
       }
-      myLocales = locales;
-      myLocaleCacheStamp = projectResources.getModificationCount();
     }
 
-    return myLocales;
+    long modificationCount = projectResources.getModificationCount();
+    ImmutableList<Locale> locales = ResourceRepositoryUtil.getLocales(projectResources)
+      .stream()
+      .map(Locale::create)
+      .collect(ImmutableList.toImmutableList());
+
+    synchronized (myLocalesLock) {
+      myLocales = locales;
+      myLocalesCacheStamp = modificationCount;
+
+      return myLocales;
+    }
   }
 
   @Nullable
@@ -591,42 +565,6 @@ public class ConfigurationManager implements Disposable {
           configuration.updated(CFG_TARGET);
         }
       }
-    }
-  }
-
-  /**
-   * Synchronizes changes to the given attributes (indicated by the mask
-   * referencing the {@code CFG_} configuration attribute bit flags in
-   * {@link Configuration} to the layout variations of the given updated file.
-   *
-   * @param flags the attributes which were updated
-   * @param updatedFile the file which was updated
-   * @param base the base configuration to base the chooser off of
-   * @param includeSelf whether the updated file itself should be updated
-   * @param async whether the updates should be performed asynchronously
-   */
-  public void syncToVariations(
-    final int flags,
-    final @NotNull VirtualFile updatedFile,
-    final @NotNull Configuration base,
-    final boolean includeSelf,
-    boolean async) {
-    if (async) {
-      ApplicationManager.getApplication().runReadAction(() -> doSyncToVariations(flags, updatedFile, includeSelf, base));
-    } else {
-      doSyncToVariations(flags, updatedFile, includeSelf, base);
-    }
-  }
-
-  private void doSyncToVariations(@SuppressWarnings("UnusedParameters") int flags,
-                                  VirtualFile updatedFile, boolean includeSelf,
-                                  Configuration base) {
-    // Synchronize the given changes to other configurations as well
-    List<VirtualFile> files = ResourceHelper.getResourceVariations(updatedFile, includeSelf);
-    for (VirtualFile file : files) {
-      Configuration configuration = getConfiguration(file);
-      Configuration.copyCompatible(base, configuration);
-      configuration.save();
     }
   }
 

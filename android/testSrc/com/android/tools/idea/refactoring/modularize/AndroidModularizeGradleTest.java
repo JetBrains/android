@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.refactoring.modularize;
 
+import static com.android.tools.idea.testing.TestProjectPaths.MOVE_WITH_RESOURCES;
+
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -22,22 +24,16 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.util.ui.UIUtil;
-
-import static com.android.tools.idea.testing.TestProjectPaths.MOVE_WITH_RESOURCES;
 
 public class AndroidModularizeGradleTest extends AndroidGradleTestCase {
 
   public void test() throws Exception {
     loadProject(MOVE_WITH_RESOURCES);
     generateSources();
-    LocalFileSystem.getInstance().refresh(false /* synchronous */);
-    UIUtil.dispatchAllInvocationEvents();
 
     Project project = getProject();
     PsiElement activity =

@@ -15,6 +15,24 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.SdkConstants.DOT_PNG;
+import static com.android.SdkConstants.DOT_WEBP;
+import static com.android.SdkConstants.FD_EMULATOR;
+import static com.android.SdkConstants.FD_LIB;
+import static com.android.SdkConstants.FD_TOOLS;
+import static com.android.SdkConstants.FN_HARDWARE_INI;
+import static com.android.SdkConstants.FN_SKIN_LAYOUT;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_AVD_ID;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.CHROMEOS_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.PLAY_STORE_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.TV_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
@@ -29,13 +47,13 @@ import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.idea.device.DeviceArtDescriptor;
+import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.android.tools.idea.log.LogWrapper;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -45,20 +63,22 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import javax.imageio.ImageIO;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.*;
-import java.util.List;
-import java.util.Map;
-
-import static com.android.SdkConstants.*;
-import static com.android.sdklib.internal.avd.AvdManager.*;
-import static com.android.sdklib.repository.targets.SystemImage.*;
 
 /**
  * State store keys for the AVD Manager wizards
@@ -123,9 +143,10 @@ public class AvdWizardUtils {
   public static final Font TITLE_FONT = JBFont.create(new Font("Sans", Font.BOLD, 16));
 
   // Tags
-  public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, TV_TAG, CHROMEOS_TAG);
+  public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, TV_TAG, CHROMEOS_TAG, AUTOMOTIVE_TAG);
   public static final List<IdDisplay> TAGS_WITH_GOOGLE_API = ImmutableList.of(GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG,
-                                                                              PLAY_STORE_TAG, TV_TAG, WEAR_TAG, CHROMEOS_TAG);
+                                                                              PLAY_STORE_TAG, TV_TAG, WEAR_TAG, CHROMEOS_TAG,
+                                                                              AUTOMOTIVE_TAG);
 
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
@@ -237,7 +258,7 @@ public class AvdWizardUtils {
     if (uniquify) {
       int i = 1;
       while (connection.avdExists(candidate)) {
-        candidate = String.format("%1$s_%2$d", candidateBase, i++);
+        candidate = String.format(Locale.US, "%1$s_%2$d", candidateBase, i++);
       }
     }
     return candidate;

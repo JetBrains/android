@@ -19,7 +19,7 @@ import com.android.ide.common.sdk.LoadStatus;
 import com.android.repository.api.UpdatablePackage;
 import com.android.tools.idea.npw.ChooseApiLevelDialog;
 import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.npw.module.FormFactorApiComboBox;
+import com.android.tools.idea.npw.module.AndroidApiLevelComboBox;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
@@ -61,14 +61,14 @@ public class FormFactorSdkControls implements Disposable {
   private JPanel myLoadingDataPanel;
   private AsyncProcessIcon myLoadingDataIcon;
   private JLabel myLoadingDataLabel;
-  private FormFactorApiComboBox myMinSdkCombobox;
+  private AndroidApiLevelComboBox myMinSdkCombobox;
   private JPanel myRoot;
 
   public void init(OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo, Disposable parentDisposable) {
     Disposer.register(parentDisposable, this);
 
     myBindings.bind(androidSdkInfo, new SelectedItemProperty<>(myMinSdkCombobox));
-    myListeners.receive(androidSdkInfo, value ->
+    myListeners.listen(androidSdkInfo, value ->
       value.ifPresent(item -> myApiPercentLabel.setText(getApiHelpText(item.getMinApiLevel())))
     );
 
@@ -114,8 +114,9 @@ public class FormFactorSdkControls implements Disposable {
     myStatsDataLoadingStatus = myStatsPanel.isVisible() ? LoadStatus.LOADING : LoadStatus.LOADED;
     updateLoadingProgress();
 
-    myAndroidVersionsInfo.load();
-    myAndroidVersionsInfo.loadTargetVersions(formFactor, minSdk, items -> {
+    myAndroidVersionsInfo.loadLocalVersions();
+    myMinSdkCombobox.init(formFactor, myAndroidVersionsInfo.getKnownTargetVersions(formFactor, minSdk)); // Pre-populate
+    myAndroidVersionsInfo.loadRemoteTargetVersions(formFactor, minSdk, items -> {
       myMinSdkCombobox.init(formFactor, items);
       mySdkDataLoadingStatus = LoadStatus.LOADED;
       updateLoadingProgress();
@@ -162,6 +163,10 @@ public class FormFactorSdkControls implements Disposable {
     else if (myStatsDataLoadingStatus == LoadStatus.FAILED) {
       myLoadingDataLabel.setText(message("android.wizard.project.loading.stats.fail"));
     }
+  }
+
+  public void setEnabled(boolean enabled) {
+    myMinSdkCombobox.setEnabled(enabled);
   }
 
   private static String getApiHelpText(int selectedApi) {

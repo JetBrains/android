@@ -76,7 +76,7 @@ public class ViewActionsSeparatorTest {
 
   @NotNull
   private static ViewAction createAction(boolean visible) {
-    return new ViewAction() {
+    return new AbstractViewAction(null, "") {
 
       @Override
       public void updatePresentation(@NotNull ViewActionPresentation presentation,
@@ -86,6 +86,14 @@ public class ViewActionsSeparatorTest {
                                      @NotNull List<NlComponent> selectedChildren,
                                      int modifiers) {
         presentation.setVisible(visible);
+      }
+
+      @Override
+      public void perform(@NotNull ViewEditor editor,
+                          @NotNull ViewHandler handler,
+                          @NotNull NlComponent component,
+                          @NotNull List<NlComponent> selectedChildren,
+                          int modifiers) {
       }
     };
   }

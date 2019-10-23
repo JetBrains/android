@@ -59,8 +59,8 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.SessionParams;
+import com.android.ide.common.resources.ProtoXmlPullParser;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
@@ -71,7 +71,7 @@ import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.parsers.AaptAttrParser;
@@ -84,7 +84,6 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.res.aar.ProtoXmlPullParser;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.lint.detector.api.Lint;
@@ -120,6 +119,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
@@ -153,6 +153,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   /** Directory name for the gradle build-cache. Exploded AARs will end up there when using build cache */
   public static final String BUILD_CACHE = "build-cache";
 
+  @NotNull private final AndroidFacet myFacet;
   @NotNull private final Module myModule;
   @NotNull private final ResourceIdManager myIdManager;
   @NotNull final private LayoutLibrary myLayoutLib;
@@ -165,7 +166,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @NotNull private final ViewLoader myClassLoader;
   @Nullable private String myLayoutName;
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
-  @Nullable private ResourceResolver myResourceResolver;
   @Nullable private final ActionBarHandler myActionBarHandler;
   @Nullable private final RenderTask myRenderTask;
   @NotNull private final DownloadableFontCacheService myFontCacheService;
@@ -178,6 +178,15 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private String myAdaptiveIconMaskPath;
   @Nullable private final ILayoutPullParserFactory myLayoutPullParserFactory;
   @NotNull private final ResourceNamespace.Resolver myImplicitNamespaces;
+  /**
+   * This stores the current sample data offset for sample data to use when parsing a given layout.
+   * Each time a layout that contains references to sample data is parsed, we want to use a new sample,
+   * but in a way that keeps all the elements inside that layout consistent.
+   * Using this counter as a base index, all sample data inside a given layout can keep in sync.
+   * Increasing the counter for each parsing of a given layout ensures that, if a layout is used several times
+   * (e.g. as an item in a recycler view), each version will use different elements from the sample data.
+   */
+  private final Map<String, AtomicInteger> myLayoutCounterForSampleData = new HashMap<>();
 
   /**
    * Creates a new {@link LayoutlibCallbackImpl} to be used with the layout lib.
@@ -204,6 +213,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
     myIdManager = ResourceIdManager.get(module);
+    myFacet = facet;
     myModule = module;
     myLogger = logger;
     myCredential = credential;
@@ -213,14 +223,14 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7);
     myHasAndroidXAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
 
-    String javaPackage = MergedManifest.get(myModule).getPackage();
+    String javaPackage = MergedManifestManager.getSnapshot(myModule).getPackage();
     if (javaPackage != null && !javaPackage.isEmpty()) {
       myNamespace = URI_PREFIX + javaPackage;
     } else {
       myNamespace = AUTO_URI;
     }
 
-    myNamespacing = ResourceRepositoryManager.getOrCreateInstance(facet).getNamespacing();
+    myNamespacing = ResourceRepositoryManager.getInstance(facet).getNamespacing();
     if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
       myImplicitNamespaces = ResourceNamespace.Resolver.TOOLS_ONLY;
     } else {
@@ -382,20 +392,18 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
             // This is a font-family XML. Now check if it defines a downloadable font. If it is,
             // this is a special case where we generate a synthetic font-family XML file that points
             // to the cached fonts downloaded by the DownloadableFontCacheService.
-            if (myProjectFonts == null && myResourceResolver != null) {
-              myProjectFonts = new ProjectFonts(myResourceResolver);
+            if (myProjectFonts == null) {
+              myProjectFonts = new ProjectFonts(myFacet);
             }
 
-            if (myProjectFonts != null) {
-              FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
-              String fontFamilyXml = myFontCacheService.toXml(family);
-              if (fontFamilyXml == null) {
-                myFontCacheService.download(family);
-                return null;
-              }
-
-              return getParserFromText(fileName, fontFamilyXml);
+            FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
+            String fontFamilyXml = myFontCacheService.toXml(family);
+            if (fontFamilyXml == null) {
+              myFontCacheService.download(family);
+              return null;
             }
+
+            return getParserFromText(fileName, fontFamilyXml);
           }
 
           String psiText = ApplicationManager.getApplication().isReadAccessAllowed()
@@ -526,6 +534,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     // if so directly reuse the PSI parser, such that we pick up the live, edited
     // contents rather than the most recently saved file contents.
     if (xml.getFilesystemUri().getScheme().equals("file")) {
+      AtomicInteger sampleDataCounter = myLayoutCounterForSampleData.get(layoutName);
+      if (sampleDataCounter == null) {
+        sampleDataCounter = new AtomicInteger(0);
+        myLayoutCounterForSampleData.put(layoutName, sampleDataCounter);
+      }
+
       String parentName = xml.getParentFileName();
       String path = xml.getRawPath();
       // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files in build outputs or
@@ -539,7 +553,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
           if (psiFile instanceof XmlFile) {
             // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
             // layout so we already have a parent.
-            LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger, false);
+            LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger, false, sampleDataCounter.getAndIncrement());
             parser.setUseSrcCompat(myHasLegacyAppCompat || myHasAndroidXAppCompat);
             if (parentName.startsWith(FD_RES_LAYOUT)) {
               // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag.
@@ -833,17 +847,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   /**
-   * Sets the {@link ResourceResolver} to be used when looking up resources
-   *
-   * @param resolver the resolver to use
-   */
-  public void setResourceResolver(@Nullable ResourceResolver resolver) {
-    myResourceResolver = resolver;
-  }
-
-  /**
    * Load and parse the R class such that resource references in the layout rendering can refer
-   * to local resources properly
+   * to local resources properly.
+   *
+   * <p>This only needs to be done if the build system compiles code of the given module against R.java files generated with final fields,
+   * which will cause the chosen numeric resource ids to be inlined into the consuming code. In this case we treat the R class bytecode as
+   * the source of truth for mapping resources to numeric ids.
    */
   public void loadAndParseRClass() {
     myClassLoader.loadAndParseRClassSilently();

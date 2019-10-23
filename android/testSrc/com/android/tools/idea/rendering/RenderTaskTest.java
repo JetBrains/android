@@ -42,6 +42,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
@@ -157,7 +158,7 @@ public class RenderTaskTest extends AndroidTestCase {
     }
   }
 
-  private static void checkSimpleLayoutResult(@NotNull ListenableFuture<RenderResult> futureResult) {
+  private static void checkSimpleLayoutResult(@NotNull CompletableFuture<RenderResult> futureResult) {
     checkSimpleLayoutResult(Futures.getUnchecked(futureResult));
   }
 
@@ -202,11 +203,21 @@ public class RenderTaskTest extends AndroidTestCase {
       RenderTask task = RenderTestUtil.createRenderTask(myFacet, layoutFile, configuration, logger);
       Semaphore semaphore = new Semaphore(0);
       task.runAsyncRenderAction(() -> {
-        semaphore.acquire();
+        try {
+          semaphore.acquire();
+        }
+        catch (InterruptedException e) {
+          fail("Failed to acquire semaphore");
+        }
         return null;
       });
       task.runAsyncRenderAction(() -> {
-        semaphore.acquire();
+        try {
+          semaphore.acquire();
+        }
+        catch (InterruptedException e) {
+          fail("Failed to acquire semaphore");
+        }
         return null;
       });
 

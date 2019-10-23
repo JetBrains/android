@@ -18,7 +18,6 @@ package com.android.tools.idea.templates;
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
@@ -32,14 +31,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFileFactory;
-import com.intellij.psi.PsiWhiteSpace;
+import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
@@ -97,7 +93,7 @@ public class GradleFilePsiMerger {
                                                                                                              dest);
     String result = (new WriteCommandAction<String>(project2, "Merge Gradle Files", existingBuildFile) {
       @Override
-      protected void run(@NotNull Result<String> result) {
+      protected void run(@NotNull Result<String> result) throws Throwable {
         // Make sure that the file we are merging in to has a trailing new line. This ensures that
         // any added elements appear at the buttom of the file, it also keeps consistency with
         // how projects created with the Wizards look.
@@ -118,7 +114,8 @@ public class GradleFilePsiMerger {
                                @NotNull PsiElement toRoot,
                                @NotNull Project project,
                                @Nullable String supportLibVersionFilter) {
-    Set<PsiElement> destinationChildren = new HashSet<>(Arrays.asList(toRoot.getChildren()));
+    Set<PsiElement> destinationChildren = new HashSet<>();
+    destinationChildren.addAll(Arrays.asList(toRoot.getChildren()));
 
     // First try and do a string literal replacement.
     // If both toRoot and fromRoot are call expressions
@@ -188,23 +185,19 @@ public class GradleFilePsiMerger {
 
     RepositoryUrlManager urlManager = RepositoryUrlManager.get();
 
-    AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-    if (sdk != null) {
-      dependencies.forEach((configurationName, unresolvedDependencies) -> {
-        List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(unresolvedDependencies,
-                                                                                   supportLibVersionFilter,
-                                                                                   sdk,
-                                                                                   FileOpUtils.create());
-        PsiElement nextElement = findInsertionPoint(toRoot, configurationName);
-        for (GradleCoordinate dependency : resolved) {
-          PsiElement dependencyElement = factory.createStatementFromText(String.format("%s '%s'\n",
-                                                                                       configurationName,
-                                                                                       dependency.toString()));
-          PsiElement newElement = toRoot.addBefore(dependencyElement, nextElement);
-          toRoot.addAfter(factory.createLineTerminator(1), newElement);
-        }
-      });
-    }
+    dependencies.forEach((configurationName, unresolvedDependencies) -> {
+      List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(unresolvedDependencies,
+                                                                                 supportLibVersionFilter,
+                                                                                 FileOpUtils.create());
+      PsiElement nextElement = findInsertionPoint(toRoot, configurationName);
+      for (GradleCoordinate dependency : resolved) {
+        PsiElement dependencyElement = factory.createStatementFromText(String.format("%s '%s'\n",
+                                                                                     configurationName,
+                                                                                     dependency.toString()));
+        PsiElement newElement = toRoot.addBefore(dependencyElement, nextElement);
+        toRoot.addAfter(factory.createLineTerminator(1), newElement);
+      }
+    });
 
     // Unfortunately the "from" and "to" dependencies may not have the same white space formatting
     Set<String> originalSet = originalUnparsedDependencies.stream().map(CharMatcher.whitespace()::removeFrom).collect(Collectors.toSet());

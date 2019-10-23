@@ -58,16 +58,16 @@ public class CreateNewProjectWithCpp1Test {
 
     FakeAdbServer.Builder adbBuilder = new FakeAdbServer.Builder();
     adbBuilder.installDefaultCommandHandlers()
-              .setShellCommandHandler(ActivityManagerCommandHandler.COMMAND, () -> new ActivityManagerCommandHandler(startCmdHandler))
-              .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, JdwpCommandHandler::new);
+              .addDeviceHandler(new ActivityManagerCommandHandler(startCmdHandler))
+              .addDeviceHandler(new JdwpCommandHandler());
 
     fakeAdbServer = adbBuilder.build();
     DeviceState fakeDevice = fakeAdbServer.connectDevice(
       "test_device",
       "Google",
       "Nexus 5X",
-      "8.1",
-      "27",
+      "9.0",
+      "28",
       DeviceState.HostConnectionType.LOCAL
     ).get();
     fakeDevice.setDeviceStatus(DeviceState.DeviceStatus.ONLINE);

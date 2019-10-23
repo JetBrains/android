@@ -25,6 +25,8 @@ import com.android.utils.StringHelper;
 import com.android.utils.TraceUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Futures;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -39,6 +41,7 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -228,11 +231,12 @@ public class RenderErrorContributorTest extends AndroidTestCase {
 
     RenderService renderService = RenderService.getInstance(myModule.getProject());
     RenderLogger logger = renderService.createLogger(facet);
+    RenderLogger.ignoreFidelityWarning("Font$Builder.nAddAxis is not supported.");
     final RenderTask task = renderService.taskBuilder(facet, configuration)
                                    .withLogger(logger)
                                    .withPsiFile(psiFile)
                                    .disableSecurityManager()
-                                   .build();
+                                   .buildSynchronously();
     assertNotNull(task);
     RenderResult render = RenderTestUtil.renderOnSeparateThread(task);
     assertNotNull(render);
@@ -241,7 +245,11 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       logOperation.addErrors(logger, render);
     }
 
-    return RenderErrorModelFactory.createErrorModel(null, render, null).getIssues().stream().sorted().collect(Collectors.toList());
+    // The error model must be created on a background thread.
+    Future<RenderErrorModel> errorModel = ApplicationManager.getApplication().executeOnPooledThread(
+      () -> RenderErrorModelFactory.createErrorModel(null, render, null));
+
+    return Futures.getUnchecked(errorModel).getIssues().stream().sorted().collect(Collectors.toList());
   }
 
   public void testPanel() {
@@ -603,21 +611,21 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at java.io.File.list(File.java:971)<BR/>" +
         "&nbsp;&nbsp;at java.io.File.listFiles(File.java:1051)<BR/>" +
         "&nbsp;&nbsp;at com.example.app.MyButton.onDraw(<A HREF=\"open:com.example.app.MyButton#onDraw;MyButton.java:70\">MyButton.java:70</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-27/android/view/View.java:14433\">View.java:14433</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-27/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-28/android/view/View.java:14433\">View.java:14433</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-28/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-27/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-28/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-27/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-28/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-27/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-27/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-28/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-28/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-27/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-28/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
         "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
         "<BR/>" +
         "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));

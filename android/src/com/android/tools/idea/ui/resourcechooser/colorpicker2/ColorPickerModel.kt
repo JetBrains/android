@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
-import com.intellij.ui.picker.ColorListener
 import java.awt.Color
 
 val DEFAULT_PICKER_COLOR = Color(0xFF, 0xFF, 0xFF, 0xFF)
 
 class ColorPickerModel(originalColor: Color = DEFAULT_PICKER_COLOR) {
 
-  private val listeners = mutableSetOf<ColorListener>()
+  private val listeners = mutableSetOf<ColorPickerListener>()
 
   var color: Color = originalColor
     private set
@@ -32,6 +31,10 @@ class ColorPickerModel(originalColor: Color = DEFAULT_PICKER_COLOR) {
     Color.RGBtoHSB(color.red, color.green, color.blue, hsb)
 
     listeners.forEach { it.colorChanged(color, source) }
+  }
+
+  fun setPickingColor(newPickingColor: Color, source: Any? = null) {
+    listeners.forEach { it.pickingColorChanged(newPickingColor, source) }
   }
 
   private val hsb: FloatArray = Color.RGBtoHSB(color.red, color.green, color.blue, null)
@@ -52,7 +55,7 @@ class ColorPickerModel(originalColor: Color = DEFAULT_PICKER_COLOR) {
 
   val brightness get() = hsb[2]
 
-  fun addListener(listener: ColorListener) = listeners.add(listener)
+  fun addListener(listener: ColorPickerListener) = listeners.add(listener)
 
-  fun removeListener(listener: ColorListener) = listeners.remove(listener)
+  fun removeListener(listener: ColorPickerListener) = listeners.remove(listener)
 }

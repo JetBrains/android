@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,31 @@
 package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.navigator.AndroidProjectTreeBuilder;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
-import com.android.tools.idea.resourceExplorer.editor.ResourceExplorerFile;
 import com.google.common.collect.HashMultimap;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
-
 public class AndroidResFolderNode extends AndroidSourceTypeNode {
   AndroidResFolderNode(@NotNull Project project,
                        @NotNull AndroidFacet androidFacet,
+                       @NotNull AndroidSourceType sourceType,
                        @NotNull ViewSettings settings,
                        @NotNull Set<VirtualFile> sourceRoots,
                        @NotNull AndroidProjectViewPane projectViewPane) {
-    super(project, androidFacet, settings, AndroidSourceType.RES, sourceRoots, projectViewPane);
+    super(project, androidFacet, settings, sourceType, sourceRoots, projectViewPane);
   }
 
   /**
@@ -90,22 +91,5 @@ public class AndroidResFolderNode extends AndroidSourceTypeNode {
     AndroidFacet facet = getValue();
     assert facet != null;
     return facet;
-  }
-
-  @Override
-  public boolean expandOnDoubleClick() {
-    return StudioFlags.RESOURCE_MANAGER_ENABLED.get() ? false : super.expandOnDoubleClick();
-  }
-
-  @Override
-  public boolean canNavigate() {
-    return StudioFlags.RESOURCE_MANAGER_ENABLED.get();
-  }
-
-  @Override
-  public void navigate(boolean requestFocus) {
-    if (myProject != null) {
-      new OpenFileDescriptor(myProject, ResourceExplorerFile.getResourceEditorFile(myProject, getAndroidFacet())).navigate(requestFocus);
-    }
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.profilers
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
@@ -30,7 +31,7 @@ class StageViewTest {
   @Test
   fun testSelectionTimeLabel() {
     val timer = FakeTimer()
-    val profilers = StudioProfilers(grpcChannel.client, FakeIdeProfilerServices(), timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), FakeIdeProfilerServices(), timer)
     val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     val stageView = object : StageView<FakeStage>(profilersView, FakeStage(profilers)) {
       override fun getToolbar(): JComponent? {
@@ -58,7 +59,7 @@ class StageViewTest {
   @Test
   fun testClickSelectionTimeLabel() {
     val timer = FakeTimer()
-    val profilers = StudioProfilers(grpcChannel.client, FakeIdeProfilerServices(), timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), FakeIdeProfilerServices(), timer)
     val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     val stageView = object : StageView<FakeStage>(profilersView, FakeStage(profilers)) {
       override fun getToolbar(): JComponent? {

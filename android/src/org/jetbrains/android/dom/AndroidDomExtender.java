@@ -15,16 +15,16 @@
  */
 package org.jetbrains.android.dom;
 
+import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.reflect.DomExtender;
 import com.intellij.util.xml.reflect.DomExtensionsRegistrar;
-import com.android.ide.common.rendering.api.AttributeFormat;
+import java.util.Set;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Set;
 
 public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   @Override
@@ -49,6 +49,11 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
 
   @Override
   public void registerExtensions(@NotNull AndroidDomElement element, @NotNull final DomExtensionsRegistrar registrar) {
+    if (!areExtensionsKnown()) {
+      return;
+    }
+    AndroidDomUtil.checkThreading();
+
     final AndroidFacet facet = AndroidFacet.getInstance(element);
 
     if (facet == null) {
@@ -61,5 +66,10 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       return registrar.registerGenericAttributeValueChildExtension(xmlName, valueClass);
     });
     SubtagsProcessingUtil.processSubtags(facet, element, registrar::registerCollectionChildrenExtension);
+  }
+
+  public static boolean areExtensionsKnown() {
+    // TODO(b/122487428): Implement computing in the background and caching.
+    return StudioFlags.RUN_DOM_EXTENDER.get();
   }
 }

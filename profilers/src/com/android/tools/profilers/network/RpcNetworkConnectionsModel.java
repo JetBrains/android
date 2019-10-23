@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,97 +17,130 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.NetworkProfiler;
-import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import com.android.tools.profiler.proto.Profiler.BytesRequest;
-import com.android.tools.profiler.proto.Profiler.BytesResponse;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.android.tools.profiler.proto.Network;
+import com.android.tools.profiler.proto.Network.NetworkHttpConnectionData;
+import com.android.tools.profiler.proto.Transport.BytesRequest;
+import com.android.tools.profiler.proto.Transport.BytesResponse;
+import com.android.tools.profiler.proto.Transport.EventGroup;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * A {@link NetworkConnectionsModel} that uses an RPC mechanism to complete its queries. It sent queries to datastore, adding or removing
- * data queries may need change datastore.
+ * A {@link NetworkConnectionsModel} that uses the new event pipeline to fetch http connection data originated from an app.
  */
 public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
-  @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerService;
-  @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
+  @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myTransportService;
   @NotNull private final Common.Session mySession;
 
-  public RpcNetworkConnectionsModel(@NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub profilerService,
-                                    @NotNull NetworkServiceGrpc.NetworkServiceBlockingStub networkService,
+  public RpcNetworkConnectionsModel(@NotNull TransportServiceGrpc.TransportServiceBlockingStub transportService,
                                     @NotNull Common.Session session) {
-    myProfilerService = profilerService;
-    myNetworkService = networkService;
+    myTransportService = transportService;
     mySession = session;
   }
 
   @NotNull
   @Override
   public List<HttpData> getData(@NotNull Range timeCurrentRangeUs) {
-    NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setSession(mySession)
-      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
-      .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax())).build();
-    NetworkProfiler.HttpRangeResponse response = myNetworkService.getHttpRange(request);
+    long queryStartTimeNs = TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin());
+    long queryEndTimeNs = TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax());
+    GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
+      .setStreamId(mySession.getStreamId())
+      .setPid(mySession.getPid())
+      .setKind(Common.Event.Kind.NETWORK_HTTP_CONNECTION)
+      .build();
+    GetEventGroupsResponse response = myTransportService.getEventGroups(request);
 
-    List<HttpData> httpDataList = new ArrayList<>(response.getDataList().size());
-    for (NetworkProfiler.HttpConnectionData connection : response.getDataList()) {
-      long startTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getStartTimestamp());
-      long uploadedTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getUploadedTimestamp());
-      long downloadingTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getDownloadingTimestamp());
-      long endTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getEndTimestamp());
+    GetEventGroupsRequest threadRequest = GetEventGroupsRequest.newBuilder()
+      .setStreamId(mySession.getStreamId())
+      .setPid(mySession.getPid())
+      .setKind(Common.Event.Kind.NETWORK_HTTP_THREAD)
+      .build();
+    Map<Long, List<Common.Event>> connectionThreadMap = myTransportService.getEventGroups(threadRequest)
+      .getGroupsList().stream().collect(Collectors.toMap(EventGroup::getGroupId, EventGroup::getEventsList));
+
+    List<HttpData> httpDataList = new ArrayList<>(response.getGroupsCount());
+    for (EventGroup connectionGroup : response.getGroupsList()) {
+      // Skip event groups that occur before or after the query range.
+      if (connectionGroup.getEvents(0).getTimestamp() > queryEndTimeNs ||
+          (connectionGroup.getEvents(connectionGroup.getEventsCount() - 1).getTimestamp() < queryStartTimeNs &&
+           connectionGroup.getEvents(connectionGroup.getEventsCount() - 1).getIsEnded())) {
+        continue;
+      }
+
+      Map<NetworkHttpConnectionData.UnionCase, Common.Event> events = new HashMap<>();
+      connectionGroup.getEventsList().forEach(e -> events.put(e.getNetworkHttpConnection().getUnionCase(), e));
+      Common.Event requestStartEvent =
+        events.getOrDefault(NetworkHttpConnectionData.UnionCase.HTTP_REQUEST_STARTED, Common.Event.getDefaultInstance());
+      Common.Event requestCompleteEvent =
+        events.getOrDefault(NetworkHttpConnectionData.UnionCase.HTTP_REQUEST_COMPLETED, Common.Event.getDefaultInstance());
+      Common.Event responseStartEvent =
+        events.getOrDefault(NetworkHttpConnectionData.UnionCase.HTTP_RESPONSE_STARTED, Common.Event.getDefaultInstance());
+      Common.Event responseCompleteEvent =
+        events.getOrDefault(NetworkHttpConnectionData.UnionCase.HTTP_RESPONSE_COMPLETED, Common.Event.getDefaultInstance());
+      Common.Event connectionEndEvent =
+        events.getOrDefault(NetworkHttpConnectionData.UnionCase.HTTP_CLOSED, Common.Event.getDefaultInstance());
+
+      // Ingore the group if we missed the starting request event.
+      if (requestStartEvent.equals(Common.Event.getDefaultInstance())) {
+        continue;
+      }
+
+      // We must also have thread information associated with the connection.
+      if (!connectionThreadMap.containsKey(connectionGroup.getGroupId())) {
+        continue;
+      }
+
+      long requestStartTimeUs = TimeUnit.NANOSECONDS.toMicros(requestStartEvent.getTimestamp());
+      long requestCompleteTimeUs = TimeUnit.NANOSECONDS.toMicros(requestCompleteEvent.getTimestamp());
+      long respondStartTimeUs = TimeUnit.NANOSECONDS.toMicros(responseStartEvent.getTimestamp());
+      long respondCompleteTimeUs = TimeUnit.NANOSECONDS.toMicros(responseCompleteEvent.getTimestamp());
+      long connectionEndTimeUs = TimeUnit.NANOSECONDS.toMicros(connectionEndEvent.getTimestamp());
+      List<HttpData.JavaThread> threadData = connectionThreadMap.get(connectionGroup.getGroupId()).stream()
+        .map(e -> e.getNetworkHttpThread()).map(proto -> new HttpData.JavaThread(proto.getId(), proto.getName()))
+        .collect(Collectors.toList());
 
       HttpData.Builder httpBuilder =
         new HttpData.Builder(
-          connection.getConnId(),
-          startTimeUs,
-          uploadedTimeUs,
-          downloadingTimeUs,
-          endTimeUs,
-          requestAccessingThreads(connection.getConnId()));
+          connectionGroup.getGroupId(),
+          requestStartTimeUs,
+          requestCompleteTimeUs,
+          respondStartTimeUs,
+          respondCompleteTimeUs,
+          connectionEndTimeUs,
+          threadData);
 
-      requestHttpRequest(connection.getConnId(), httpBuilder);
+      Network.NetworkHttpConnectionData.HttpRequestStarted requestStartData =
+        requestStartEvent.getNetworkHttpConnection().getHttpRequestStarted();
+      httpBuilder.setUrl(requestStartData.getUrl());
+      httpBuilder.setMethod(requestStartData.getMethod());
+      httpBuilder.setTrace(requestStartData.getTrace());
+      httpBuilder.setRequestFields(requestStartData.getFields());
+      if (!requestCompleteEvent.equals(Common.Event.getDefaultInstance())) {
+        httpBuilder.setRequestPayloadId(requestCompleteEvent.getNetworkHttpConnection().getHttpRequestCompleted().getPayloadId());
+      }
+      if (!responseStartEvent.equals(Common.Event.getDefaultInstance())) {
+        httpBuilder.setResponseFields(responseStartEvent.getNetworkHttpConnection().getHttpResponseStarted().getFields());
+      }
+      if (!responseCompleteEvent.equals(Common.Event.getDefaultInstance())) {
+        httpBuilder.setResponsePayloadId(responseCompleteEvent.getNetworkHttpConnection().getHttpResponseCompleted().getPayloadId());
+        httpBuilder.setResponsePayloadSize(responseCompleteEvent.getNetworkHttpConnection().getHttpResponseCompleted().getPayloadSize());
+      }
 
-      if (connection.getUploadedTimestamp() != 0) {
-        requestHttpRequestBody(connection.getConnId(), httpBuilder);
-      }
-      if (connection.getEndTimestamp() != 0) {
-        requestHttpResponse(connection.getConnId(), httpBuilder);
-        requestHttpResponseBody(connection.getConnId(), httpBuilder);
-      }
       httpDataList.add(httpBuilder.build());
     }
 
     return httpDataList;
-  }
-
-  private void requestHttpRequest(long connectionId, @NotNull HttpData.Builder httpBuilder) {
-    NetworkProfiler.HttpDetailsResponse.Request result =
-      getDetails(connectionId, NetworkProfiler.HttpDetailsRequest.Type.REQUEST).getRequest();
-    httpBuilder.setUrl(result.getUrl());
-    httpBuilder.setMethod(result.getMethod());
-    httpBuilder.setTraceId(result.getTraceId());
-    httpBuilder.setRequestFields(result.getFields());
-  }
-
-  private void requestHttpRequestBody(long connectionId, @NotNull HttpData.Builder httpBuilder) {
-    NetworkProfiler.HttpDetailsResponse result = getDetails(connectionId, NetworkProfiler.HttpDetailsRequest.Type.REQUEST_BODY);
-    httpBuilder.setRequestPayloadId(result.getRequestBody().getPayloadId());
-  }
-
-  private void requestHttpResponseBody(long connectionId, @NotNull HttpData.Builder httpBuilder) {
-    NetworkProfiler.HttpDetailsResponse response = getDetails(connectionId, NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY);
-    String payloadId = response.getResponseBody().getPayloadId();
-    httpBuilder.setResponsePayloadId(payloadId);
-    httpBuilder.setResponsePayloadSize(response.getResponseBody().getPayloadSize());
   }
 
   @NotNull
@@ -118,28 +151,11 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
     }
 
     BytesRequest request = BytesRequest.newBuilder()
+      .setStreamId(mySession.getStartTimestamp())
       .setId(id)
-      .setSession(mySession)
       .build();
 
-    BytesResponse response = myProfilerService.getBytes(request);
+    BytesResponse response = myTransportService.getBytes(request);
     return response.getContents();
-  }
-
-  private void requestHttpResponse(long connectionId, @NotNull HttpData.Builder httpBuilder) {
-    NetworkProfiler.HttpDetailsResponse response = getDetails(connectionId, NetworkProfiler.HttpDetailsRequest.Type.RESPONSE);
-    httpBuilder.setResponseFields(response.getResponse().getFields());
-  }
-
-  private List<HttpData.JavaThread> requestAccessingThreads(long connectionId) {
-    NetworkProfiler.HttpDetailsResponse response = getDetails(connectionId, NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
-    return response.getAccessingThreads().getThreadList().stream().map(proto -> new HttpData.JavaThread(proto.getId(), proto.getName()))
-      .collect(
-        Collectors.toList());
-  }
-
-  private NetworkProfiler.HttpDetailsResponse getDetails(long connectionId, NetworkProfiler.HttpDetailsRequest.Type type) {
-    return myNetworkService.getHttpDetails(
-      NetworkProfiler.HttpDetailsRequest.newBuilder().setConnId(connectionId).setSession(mySession).setType(type).build());
   }
 }

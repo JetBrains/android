@@ -152,7 +152,7 @@ public final class SystemImageDescription {
     private final String myAbi;
     private final AndroidVersion myAndroidVersion;
 
-    RemoteSystemImage(RemotePackage p) {
+    public RemoteSystemImage(RemotePackage p) {
       myRemotePackage = p;
 
       TypeDetails details = myRemotePackage.getTypeDetails();

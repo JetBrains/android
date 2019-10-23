@@ -19,8 +19,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceNamespace.ANDROID
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.resources.ResourceUrl
-import com.android.tools.idea.common.property2.api.EnumSupport
-import com.android.tools.idea.common.property2.api.EnumValue
+import com.android.tools.property.panel.api.EnumSupport
+import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
@@ -41,19 +41,29 @@ const val OTHER_HEADER = "Other"
  *    "Project", "Library", "AppCompat", "Android"
  * where "Project" are the user defined styles.
  */
-open class StyleEnumSupport(val property: NelePropertyItem) : EnumSupport {
+open class StyleEnumSupport(val property: NelePropertyItem) : CachedEnumSupport {
   protected val facet = property.model.facet
   protected val resolver = property.resolver
   protected val derivedStyles = DerivedStyleFinder(facet, resolver)
+  private var lastResult: List<EnumValue>? = null
 
   override val values: List<EnumValue>
     get() {
-      val tagName = property.tagName
-      if (tagName.isEmpty()) return emptyList()
-      val baseStyles = getWidgetBaseStyles(tagName)
-      val styles = derivedStyles.find(baseStyles, { true }, { style -> style.name })
-      return convertStyles(styles)
+      return lastResult ?: cache(generate())
     }
+
+  private fun cache(values: List<EnumValue>): List<EnumValue> {
+    lastResult = values
+    return values
+  }
+
+  protected open fun generate(): List<EnumValue> {
+    val tagName = property.tagName
+    if (tagName.isEmpty()) return emptyList()
+    val baseStyles = getWidgetBaseStyles(tagName)
+    val styles = derivedStyles.find(baseStyles, { true }, { style -> style.name })
+    return convertStyles(styles)
+  }
 
   protected open fun displayName(style: StyleResourceValue) = style.name
 
@@ -61,7 +71,7 @@ open class StyleEnumSupport(val property: NelePropertyItem) : EnumSupport {
    * Convert the sorted list of styles into a sorted list of [EnumValue]s with group headers.
    */
   protected fun convertStyles(styles: List<StyleResourceValue>): List<EnumValue> {
-    val resourceManager = ResourceRepositoryManager.getOrCreateInstance(facet)
+    val resourceManager = ResourceRepositoryManager.getInstance(facet)
     val currentNamespace = resourceManager.namespace
     val namespaceResolver = property.namespaceResolver
     var prev: StyleResourceValue? = null

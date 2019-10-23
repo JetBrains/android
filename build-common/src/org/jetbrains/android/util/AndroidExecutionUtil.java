@@ -78,7 +78,7 @@ public final class AndroidExecutionUtil {
     private final int myExitCode;
     private final Map<AndroidCompilerMessageKind, List<String>> myMessages;
 
-    ProcessResult(List<String> information, List<String> error, int exitCode) {
+    public ProcessResult(List<String> information, List<String> error, int exitCode) {
       myExitCode = exitCode;
       myMessages = new HashMap<>(2);
       myMessages.put(AndroidCompilerMessageKind.INFORMATION, information);

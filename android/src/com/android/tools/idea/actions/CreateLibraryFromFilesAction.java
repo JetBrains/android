@@ -135,7 +135,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
     private final List<OrderRoot> myRoots;
     private GradleSettingsFile mySettingsFile;
 
-    CreateGradleLibraryFromFilesDialog(@NotNull Project project, @NotNull List<OrderRoot> roots) {
+    public CreateGradleLibraryFromFilesDialog(@NotNull Project project, @NotNull List<OrderRoot> roots) {
       super(project, true);
       setTitle(COMMAND_TITLE);
       myProject = project;

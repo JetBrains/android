@@ -25,6 +25,7 @@ import java.awt.Color;
 /**
  * Default color set for the "normal" UI mode
  */
+@SuppressWarnings("UseJBColor")
 public class AndroidColorSet extends ColorSet {
 
     public AndroidColorSet() {
@@ -51,13 +52,14 @@ public class AndroidColorSet extends ColorSet {
 
         // Subdued colors
 
-        mSubduedConstraints = Color.blue;
+        mSubduedConstraints = ColorTheme.updateBrightness(mConstraints, 1.2f);
         mSubduedBackground = Color.white;
         mSubduedText = Color.black;
         mSubduedFrames = Color.black;
 
         // Highlight colors
 
+        mComponentHighlightedBackground = new Color(0x591886F7, true);
         mHighlightedBackground = Color.white;
         mHighlightedFrames = new Color(106, 161, 211);
         mHighlightedSnapGuides = Color.orange;
@@ -66,8 +68,8 @@ public class AndroidColorSet extends ColorSet {
         // Selected colors
 
         mSelectedBackground = mBackground;
-        mSelectedFrames = Color.blue;
-        mSelectedConstraints = Color.blue;
+        mSelectedFrames = new Color(24, 134, 247);
+        mSelectedConstraints = new Color(24, 134, 247);
         mSelectedText = Color.black;
 
         mSelectionColor = Color.black;
@@ -76,7 +78,7 @@ public class AndroidColorSet extends ColorSet {
 
         mAnchorCircle = Color.black;
         mAnchorCreationCircle = Color.white;
-        mAnchorDisconnectionCircle = new Color(180, 0, 0);
+        mAnchorDisconnectionCircle = new Color(0xDB5860);
         mAnchorConnectionCircle = new Color(10, 130, 10);
 
         // Widget actions
@@ -102,9 +104,11 @@ public class AndroidColorSet extends ColorSet {
                 .fadeToColor(ColorTheme.updateBrightness(mBackground, 1.3f),
                         Color.WHITE, 0.1f);
 
-        // Lasso colors
+        // Drag Receiver
 
-        mLassoSelectionBorder = DEFAULT_LASSO_BORDER_COLOR;
-        mLassoSelectionFill = DEFAULT_LASSO_FILL_COLOR;
+        mDragReceiverFrames = new Color(255, 0, 255);
+        mDragReceiverBackground = new Color(255, 0, 255, 102);
+        mDragOtherReceiversFrame = new Color(255, 0, 255, 102);
+        mDragReceiverSiblingBackground = new Color(255, 0, 255, 26);
     }
 }

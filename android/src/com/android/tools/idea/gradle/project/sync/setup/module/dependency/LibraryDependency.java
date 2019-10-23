@@ -20,12 +20,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.LinkedHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Objects;
 
 import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
@@ -40,7 +40,7 @@ public class LibraryDependency extends Dependency {
   @NotNull
   public static final String NAME_PREFIX = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
 
-  @NotNull private final Collection<File> myBinaryPaths = new HashSet<>();
+  @NotNull private final Collection<File> myBinaryPaths = new LinkedHashSet<>();
   @NotNull private final File myArtifactPath;
 
   private String myName;

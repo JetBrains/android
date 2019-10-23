@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.mockup.editor.tools;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
@@ -24,6 +23,7 @@ import com.android.tools.idea.uibuilder.mockup.editor.MockupViewPanel;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.WidgetCreator;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.WidgetCreatorFactory;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ToolRootPanel;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
@@ -321,11 +321,11 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
     Icon myIcon;
     boolean myHandleListComponent;
 
-    CreatorAction(String androidClassName, String title, Icon icon) {
+    public CreatorAction(String androidClassName, String title, Icon icon) {
      this(androidClassName, title, icon, false);
     }
 
-    CreatorAction(String androidClassName, String title, Icon icon, boolean handleListComponent) {
+    public CreatorAction(String androidClassName, String title, Icon icon, boolean handleListComponent) {
       myAndroidClassName = androidClassName;
       myTitle = title;
       myIcon = icon;

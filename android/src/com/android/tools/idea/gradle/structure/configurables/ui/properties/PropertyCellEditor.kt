@@ -30,6 +30,7 @@ abstract class PropertyCellEditor<ValueT : Any> : AbstractTableCellEditor() {
 
   abstract fun initEditorFor(row: Int): ModelPropertyEditor<ValueT>
   abstract fun Annotated<ParsedValue<ValueT>>.toModelValue(): Any
+  open fun valueEdited() = Unit
 
   override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean, row: Int, column: Int): Component? {
     currentRow = row
@@ -40,8 +41,12 @@ abstract class PropertyCellEditor<ValueT : Any> : AbstractTableCellEditor() {
     return editor.component
   }
 
-  override fun stopCellEditing(): Boolean =
-    when (lastEditor?.updateProperty()) {
+  override fun stopCellEditing(): Boolean {
+    val updatePropertyOutcome = lastEditor?.updateProperty()
+    if (updatePropertyOutcome == UpdatePropertyOutcome.UPDATED) {
+      valueEdited()
+    }
+    return when (updatePropertyOutcome) {
       null,
       UpdatePropertyOutcome.UPDATED,
       UpdatePropertyOutcome.NOT_CHANGED -> {
@@ -55,6 +60,7 @@ abstract class PropertyCellEditor<ValueT : Any> : AbstractTableCellEditor() {
       }
       UpdatePropertyOutcome.INVALID -> false
     }
+  }
 
   override fun cancelCellEditing() {
     lastValue = null

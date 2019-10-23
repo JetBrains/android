@@ -15,7 +15,20 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
+import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
+import static com.android.tools.idea.gradle.util.BuildMode.CLEAN;
+import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
+import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ArrayListMultimap;
@@ -26,21 +39,13 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.xdebugger.XDebugSession;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
-
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.BuildMode.*;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link GradleBuildInvoker}.
@@ -85,16 +90,37 @@ public class GradleBuildInvokerTest extends JavaProjectTestCase {
     }
   }
 
-  public void testCleanUp() {
+  public void testCleanUpWithSourceGenerationEnabled() {
+    // Simulate the case when source generation is enabled.
+    GradleProjectBuilder builderMock = new IdeComponents(getProject(),getTestRootDisposable())
+            .mockProjectService(getProject(), GradleProjectBuilder.class, getTestRootDisposable());
+    when(builderMock.isSourceGenerationEnabled()).thenReturn(true);
+
+    // Invoke method to test.
     List<String> tasks = setUpTasksForSourceGeneration();
-
     myBuildInvoker.cleanProject();
-
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
     List<String> expectedTasks = new ArrayList<>(tasks);
     expectedTasks.add(0, "clean");
+    // Verify task list includes source generation tasks and clean.
     assertThat(request.getGradleTasks()).containsExactly(expectedTasks.toArray());
     assertThat(request.getCommandLineArguments()).containsExactly("-Pandroid.injected.generateSourcesOnly=true");
+
+    verifyInteractionWithMocks(CLEAN);
+  }
+
+  public void testCleanUpWithSourceGenerationDisabled() {
+    // Simulate the case when source generation is disabled.
+    GradleProjectBuilder builderMock = new IdeComponents(getProject(), getTestRootDisposable())
+            .mockProjectService(getProject(), GradleProjectBuilder.class, getTestRootDisposable());
+    when(builderMock.isSourceGenerationEnabled()).thenReturn(false);
+
+    // Invoke method to test.
+    myBuildInvoker.cleanProject();
+    GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
+    // Verify source generation tasks are not run.
+    assertThat(request.getGradleTasks()).containsExactly("clean");
+    assertThat(request.getCommandLineArguments()).isEmpty();
 
     verifyInteractionWithMocks(CLEAN);
   }
@@ -149,7 +175,6 @@ public class GradleBuildInvokerTest extends JavaProjectTestCase {
     verify(myBuildSettings, never()).setBuildMode(any());
     verify(myFileDocumentManager, never()).saveAllDocuments();
     verify(myTasksExecutor, never()).queue();
-
   }
 
   public void testCleanAndGenerateSources() {
@@ -182,15 +207,13 @@ public class GradleBuildInvokerTest extends JavaProjectTestCase {
   @NotNull
   private List<String> setUpTasksForSourceGeneration() {
     List<String> tasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
-    File projectPath = getBaseDirPath(getProject());
-    when(myTaskFinder.findTasksToExecute(projectPath, myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(tasks));
+    when(myTaskFinder.findTasksToExecute(myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(tasks));
     return tasks;
   }
 
   public void testCompileJava() {
     List<String> tasks = Arrays.asList("compileJavaTask1", "compileJavaTask2");
-    File projectPath = getBaseDirPath(getProject());
-    when(myTaskFinder.findTasksToExecute(projectPath, myModules, COMPILE_JAVA, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
+    when(myTaskFinder.findTasksToExecute(myModules, COMPILE_JAVA, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
 
     myBuildInvoker.compileJava(myModules, TestCompileType.ALL);
 
@@ -203,8 +226,7 @@ public class GradleBuildInvokerTest extends JavaProjectTestCase {
 
   public void testAssemble() {
     List<String> tasks = Arrays.asList("assembleTask1", "assembleTask2");
-    File projectPath = getBaseDirPath(getProject());
-    when(myTaskFinder.findTasksToExecute(projectPath, myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
+    when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
 
     myBuildInvoker.assemble(myModules, TestCompileType.ALL);
 
@@ -217,8 +239,7 @@ public class GradleBuildInvokerTest extends JavaProjectTestCase {
 
   public void testAssembleWithCommandLineArgs() {
     List<String> tasks = Arrays.asList("assembleTask1", "assembleTask2");
-    File projectPath = getBaseDirPath(getProject());
-    when(myTaskFinder.findTasksToExecute(projectPath, myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
+    when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
 
     List<String> commandLineArgs = Arrays.asList("commandLineArg1", "commandLineArg2");
 
@@ -244,7 +265,7 @@ public class GradleBuildInvokerTest extends JavaProjectTestCase {
     return tasks;
   }
 
-  private static class GradleTasksExecutorFactoryStub extends GradleTasksExecutorFactory {
+  static class GradleTasksExecutorFactoryStub extends GradleTasksExecutorFactory {
     @NotNull private final GradleTasksExecutor myTasksExecutor;
     private GradleBuildInvoker.Request myRequest;
 

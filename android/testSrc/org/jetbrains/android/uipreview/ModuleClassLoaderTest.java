@@ -15,21 +15,27 @@
  */
 package org.jetbrains.android.uipreview;
 
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+
+import com.android.builder.model.AndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.compiler.DummyCompileContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.CompilerModuleExtension;
@@ -42,18 +48,14 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.util.TimeoutUtil;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-
-import javax.tools.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 public class ModuleClassLoaderTest extends AndroidTestCase {
   /**
@@ -126,10 +128,13 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
 
     generateRClass("test", new File(outputDir, "R.class"));
 
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(module);
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
     ResourceNamespace namespace = repositoryManager.getNamespace();
-    List<LocalResourceRepository> repositories = repositoryManager.getAppResourcesForNamespace(namespace);
-    assertEquals(1, repositories.size());
+    List<ResourceRepository> repositories = repositoryManager.getAppResourcesForNamespace(namespace);
+    // In the namespaced case two repositories are returned. The first one is a module repository,
+    // the second one is an empty repository of user-defined sample data. In the non-namespaced case
+    // the app resource repository is returned.
+    assertFalse(repositories.isEmpty());
     ResourceClassRegistry rClassRegistry = ResourceClassRegistry.get(module.getProject());
     rClassRegistry.addLibrary(repositories.get(0), ResourceIdManager.get(module), "test", namespace);
 
@@ -214,5 +219,35 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     PostProjectBuildTasksExecutor.getInstance(getProject()).onBuildCompletion(DummyCompileContext.create(getProject()));
     assertThat(loader.isSourceModified("com.google.example.Modified", null)).isFalse();
     assertThat(loader.isSourceModified("com.google.example.NotModified", null)).isFalse();
+  }
+
+  public void testLibRClass() throws Exception {
+    VirtualFile defaultManifest = myFacet.getManifestFile();
+
+    AndroidProjectStub androidProject = TestProjects.createBasicProject();
+    androidProject.setProjectType(AndroidProject.PROJECT_TYPE_LIBRARY);
+    myFacet.getConfiguration().getState().PROJECT_TYPE = AndroidProject.PROJECT_TYPE_LIBRARY;
+    myFacet.getConfiguration().setModel(
+      new AndroidModuleModel(androidProject.getName(),
+                             Projects.getBaseDirPath(getProject()),
+                             androidProject,
+                             "debug",
+                             new IdeDependenciesFactory()));
+    myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
+    assertThat(myFacet.requiresAndroidModel()).isTrue();
+
+    WriteAction.run(() -> {
+      File sourceProviderManifestFile = myFacet.getMainSourceProvider().getManifestFile();
+      FileUtil.createIfDoesntExist(sourceProviderManifestFile);
+      VirtualFile manifestFile = VfsUtil.findFileByIoFile(sourceProviderManifestFile, true);
+      assertThat(manifestFile).named("Manifest virtual file").isNotNull();
+      byte[] defaultManifestContent = defaultManifest.contentsToByteArray();
+      assertNotNull(defaultManifestContent);
+      manifestFile.setBinaryContent(defaultManifestContent);
+    });
+    assertThat(myFacet.getManifest()).isNotNull();
+
+    ModuleClassLoader loader = ModuleClassLoader.get(new LayoutLibrary() {}, myModule);
+    loader.loadClass("p1.p2.R");
   }
 }

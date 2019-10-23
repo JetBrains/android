@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.JAVA_HEAP_ERROR;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.OUT_OF_MEMORY;
 import static com.intellij.openapi.util.text.StringUtil.*;
 
@@ -70,10 +71,10 @@ public class JavaHeapSpaceErrorHandler extends BaseSyncErrorHandler {
                 "<em>org.gradle.jvmargs=-Xmx1024m</em>";
       if (rootCause instanceof OutOfMemoryError) {
         newMsg = "Out of memory: " + newMsg;
-        updateUsageTracker(OUT_OF_MEMORY);
+        updateUsageTracker(project, OUT_OF_MEMORY);
       }
       else {
-        updateUsageTracker();
+        updateUsageTracker(project, JAVA_HEAP_ERROR);
       }
       return newMsg;
     }

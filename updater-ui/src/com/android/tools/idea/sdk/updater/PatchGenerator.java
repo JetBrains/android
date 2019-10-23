@@ -141,7 +141,7 @@ public class PatchGenerator {
     }
 
     @Override
-    protected void writeDiff(File ignored, File newerFile, OutputStream patchOutput) throws IOException {
+    protected void writeDiff(InputStream olderFileIn, InputStream newerFileIn, OutputStream patchOutput) throws IOException {
       patchOutput.write(DiffAlgorithm.determineDiffAlgorithm(null, true, 0).getId());
       Utils.copyStream(mySrc.getInputStream(myEntry), patchOutput);
     }
@@ -191,12 +191,17 @@ public class PatchGenerator {
     }
 
     @Override
+    public void setDescription(String text) {
+      // unused
+    }
+
+    @Override
     public void askUser(String message) throws OperationCancelledException {
       // unused
     }
 
     @Override
-    public Map<String, ValidationResult.Option> askUser(List<ValidationResult> validationResults) throws OperationCancelledException {
+    public Map<String, ValidationResult.Option> askUser(List<? extends ValidationResult> validationResults) throws OperationCancelledException {
       // unused
       return null;
     }

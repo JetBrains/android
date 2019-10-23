@@ -15,7 +15,18 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.DataSeries;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.DefaultDurationData;
+import com.android.tools.adtui.model.DurationDataModel;
+import com.android.tools.adtui.model.EaseOutModel;
+import com.android.tools.adtui.model.Interpolatable;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.SelectionListener;
+import com.android.tools.adtui.model.SelectionModel;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
@@ -28,11 +39,28 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.CpuProfiler.*;
+import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Cpu.CpuTraceMode;
+import com.android.tools.profiler.proto.Cpu.CpuTraceType;
+import com.android.tools.profiler.proto.Cpu.TraceInitiationType;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartResponse;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceRequest;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceResponse;
+import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
+import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
+import com.android.tools.profiler.proto.CpuProfiler.SaveTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profilers.Stage;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
@@ -45,15 +73,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private static final String HAS_USED_CPU_CAPTURE = "cpu.used.capture";
@@ -62,8 +89,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(1, 5, 1, "");
 
   // Clamp the property value between 5 Seconds and 5 Minutes, otherwise the user could specify arbitrarily small or large value.
-  public static final int CPU_ART_STOP_TIMEOUT_SEC = Math.max(5, Math.min(Integer.getInteger("profiler.cpu.art.stop.timeout.sec", 5),
-                                                                    5 * 60));
+  public static final int CPU_ART_STOP_TIMEOUT_SEC = Math.max(5, Math.min(Integer.getInteger("profiler.cpu.art.stop.timeout.sec", 10),
+                                                                          5 * 60));
   /**
    * Percentage of space on either side of an imported trace.
    */
@@ -159,6 +186,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   private long myCaptureStartTimeNs;
 
+  /**
+   * If there is a capture being stopped, stores the start time of the stop operation.
+   * The time is in the host machine's clock.
+   */
+  private long myStopStartTimeNs;
+
   private CaptureElapsedTimeUpdatable myCaptureElapsedTimeUpdatable;
 
   private final CpuCaptureStateUpdatable myCaptureStateUpdatable;
@@ -213,9 +246,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myImportedTrace = importedTrace;
     mySession = profilers.getSession();
     // Only allow import trace mode if Import CPU trace and sessions flag are enabled.
-    myIsImportTraceMode = getStudioProfilers().getIdeServices().getFeatureConfig().isImportCpuTraceEnabled()
-                          && getStudioProfilers().getIdeServices().getFeatureConfig().isSessionsEnabled()
-                          && importedTrace != null;
+    myIsImportTraceMode = getStudioProfilers().getIdeServices().getFeatureConfig().isImportCpuTraceEnabled() && importedTrace != null;
 
     myCpuTraceDataSeries = new CpuTraceDataSeries();
     myProfilerConfigModel = new CpuProfilerConfigModel(profilers, this);
@@ -280,7 +311,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
             // Track usage for API-initiated tracing.
             // TODO(b/72832167): When more tracing APIs are supported, update the tracking logic.
             getStudioProfilers().getIdeServices().getFeatureTracker()
-                                .trackCpuApiTracing(false, !trace.getTraceFilePath().isEmpty(), -1, -1, -1);
+              .trackCpuApiTracing(false, !trace.getTraceFilePath().isEmpty(), -1, -1, -1);
           }
         }
         // Update xRange's min to the latest end point we have seen. When we query next time, we want new traces only; not all traces.
@@ -427,10 +458,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       getStudioProfilers().getUpdater().register(myCaptureStateUpdatable);
     }
 
-    getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
+    CodeNavigator navigator = getStudioProfilers().getIdeServices().getCodeNavigator();
+    navigator.addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
 
-    getStudioProfilers().addDependency(this).onChange(ProfilerAspect.DEVICES, myProfilerConfigModel::updateProfilingConfigurations);
+    getStudioProfilers().addDependency(this).onChange(ProfilerAspect.PROCESSES, myProfilerConfigModel::updateProfilingConfigurations);
 
     // This actions are here instead of in the constructor, because only after this method the UI (i.e {@link CpuProfilerStageView}
     // will be visible to the user. As well as, the feature tracking will link the correct stage to the events that happened
@@ -499,10 +531,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getCpuClient();
     assert getStudioProfilers().getProcess() != null;
     CpuProfilingAppStartRequest request = CpuProfilingAppStartRequest.newBuilder()
-                                                                     .setSession(mySession)
-                                                                     .setConfiguration(config.toProto())
-                                                                     .setAbiCpuArch(getStudioProfilers().getProcess().getAbiCpuArch())
-                                                                     .build();
+      .setSession(mySession)
+      .setConfiguration(config.toProto())
+      .setAbiCpuArch(getStudioProfilers().getProcess().getAbiCpuArch())
+      .build();
 
     // Set myInProgressTraceInitiationType before calling setCaptureState() because the latter may fire an
     // aspect that depends on the former.
@@ -516,8 +548,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     setCaptureState(CaptureState.STARTING);
     CompletableFuture.supplyAsync(
       () -> cpuService.startProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
-                     .thenAcceptAsync(response -> this.startCapturingCallback(response, config),
-                                      getStudioProfilers().getIdeServices().getMainExecutor());
+      .thenAcceptAsync(response -> this.startCapturingCallback(response, config),
+                       getStudioProfilers().getIdeServices().getMainExecutor());
 
     getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_CPU_CAPTURE, true);
     myInstructionsEaseOutModel.setCurrentPercentage(1);
@@ -547,13 +579,13 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   public void stopCapturing() {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getCpuClient();
     CpuProfilingAppStopRequest request = CpuProfilingAppStopRequest.newBuilder()
-                                                                   .setProfilerType(
-                                                                     myProfilerConfigModel.getProfilingConfiguration().getProfilerType())
-                                                                   .setProfilerMode(
-                                                                     myProfilerConfigModel.getProfilingConfiguration().getMode()
-                                                                   )
-                                                                   .setSession(mySession)
-                                                                   .build();
+      .setTraceType(
+        myProfilerConfigModel.getProfilingConfiguration().getTraceType())
+      .setTraceMode(
+        myProfilerConfigModel.getProfilingConfiguration().getMode()
+      )
+      .setSession(mySession)
+      .build();
     // Setting duration of the in progress trace series, so it's temporarily displayed in the chart while the trace is being parsed.
     myInProgressTraceSeries.clear();
     long captureStartTimeUs = TimeUnit.NANOSECONDS.toMicros(myCaptureStartTimeNs);
@@ -561,9 +593,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myInProgressTraceSeries.add(captureStartTimeUs, new DefaultDurationData(currentTimeUs - captureStartTimeUs));
 
     setCaptureState(CaptureState.STOPPING);
+    myStopStartTimeNs = System.nanoTime();
     CompletableFuture.supplyAsync(
       () -> cpuService.stopProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
-                     .thenAcceptAsync(this::stopCapturingCallback, getStudioProfilers().getIdeServices().getMainExecutor());
+      .thenAcceptAsync(this::stopCapturingCallback, getStudioProfilers().getIdeServices().getMainExecutor());
   }
 
   public long getCaptureElapsedTimeUs() {
@@ -573,14 +606,14 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   /**
    * Returns the list of {@link TraceInfo} that intersect with the given range.
    */
-  private List<TraceInfo> getTraceInfoFromRange(Range rangeUs) {
+  private List<Cpu.CpuTraceInfo> getTraceInfoFromRange(Range rangeUs) {
     // Converts the range to nanoseconds before calling the service.
     long rangeMinNs = TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin());
     long rangeMaxNs = TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax());
     GetTraceInfoResponse response = getCpuClient().getTraceInfo(
       GetTraceInfoRequest.newBuilder().
         setSession(mySession).
-                           setFromTimestamp(rangeMinNs).setToTimestamp(rangeMaxNs).build());
+        setFromTimestamp(rangeMinNs).setToTimestamp(rangeMaxNs).build());
     return response.getTraceInfoList();
   }
 
@@ -603,7 +636,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     handleCaptureNavigation(myTraceIdsIterator.previous());
   }
 
-  private void handleCaptureNavigation(int traceId) {
+  private void handleCaptureNavigation(long traceId) {
     // Sanity check to see if myTraceIdsIterator returned a valid trace. Return early otherwise.
     if (traceId == TraceIdsIterator.INVALID_TRACE_ID) {
       return;
@@ -614,10 +647,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   private void stopCapturingCallback(CpuProfilingAppStopResponse response) {
     CpuCaptureMetadata captureMetadata = new CpuCaptureMetadata(myProfilerConfigModel.getProfilingConfiguration());
-    long estimateDurationMs = TimeUnit.NANOSECONDS.toMicros(currentTimeNs() - myCaptureStartTimeNs);
+    long estimateDurationMs = TimeUnit.NANOSECONDS.toMillis(currentTimeNs() - myCaptureStartTimeNs);
     // Set the estimate duration of the capture, i.e. the time difference between device time when user clicked start and stop.
     // If the capture is successful, it will be overridden by a more accurate time, calculated from the capture itself.
     captureMetadata.setCaptureDurationMs(estimateDurationMs);
+    int stopElapsedTimeMs = (int)TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - myStopStartTimeNs);
+    captureMetadata.setStoppingTimeMs(stopElapsedTimeMs);
     if (!response.getStatus().equals(CpuProfilingAppStopResponse.Status.SUCCESS)) {
       getLogger().warn("Unable to stop tracing: " + response.getStatus());
       getLogger().warn(response.getErrorMessage());
@@ -625,19 +660,51 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
       setCapture(null);
-      captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE);
+      captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.fromStopStatus(response.getStatus()));
       getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
     }
     else {
-      ByteString traceBytes = response.getTrace();
-      captureMetadata.setTraceFileSizeBytes(traceBytes.size());
-      handleCaptureParsing(response.getTraceId(), traceBytes, captureMetadata);
+      // Capture was successful, pre-process the trace and parse it afterwards.
+      CompletableFuture
+        .supplyAsync(() -> preProcessTrace(response.getTrace()), getStudioProfilers().getIdeServices().getPoolExecutor())
+        .thenAcceptAsync((bytes) -> {
+          captureMetadata.setTraceFileSizeBytes(bytes.size());
+          boolean failedToPreProcess = bytes.equals(TracePreProcessor.FAILURE);
+          if (failedToPreProcess) {
+            captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE);
+            getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.PREPROCESS_FAILURE);
+            getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
+            getLogger().warn("Unable to pre-process trace file.");
+            // Return to IDLE state and set the current capture to null. Parsing should not happen.
+            setCaptureState(CaptureState.IDLE);
+            setCapture(null);
+            return;
+          }
+
+          handleCaptureParsing(response.getTraceId(), bytes, captureMetadata);
+        }, getStudioProfilers().getIdeServices().getMainExecutor());
     }
 
     // Re-enable memory live allocation.
     if (myProfilerConfigModel.getProfilingConfiguration().isDisableLiveAllocation()) {
       getStudioProfilers().setMemoryLiveAllocationEnabled(true);
     }
+  }
+
+  private boolean needsPreProcessTrace() {
+    // For simpleperf captures, if the flag is enabled, we need to pre-process the raw traces obtained from the device to the format that
+    // can be parsed by SimpleperfTraceParser.
+    return (getStudioProfilers().getIdeServices().getFeatureConfig().isSimpleperfHostEnabled()
+        && myProfilerConfigModel.getProfilingConfiguration().getTraceType() == CpuTraceType.SIMPLEPERF);
+
+  }
+
+  private ByteString preProcessTrace(ByteString trace) {
+    if (needsPreProcessTrace()) {
+      assert myProfilerConfigModel.getProfilingConfiguration().getTraceType() == CpuTraceType.SIMPLEPERF;
+      return getStudioProfilers().getIdeServices().getSimpleperfTracePreProcessor().preProcessTrace(trace);
+    }
+    return trace;
   }
 
   @NotNull
@@ -690,8 +757,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         // Save trace info if not already saved
         if (!myTraceIdsIterator.contains(CpuCaptureParser.IMPORTED_TRACE_ID)) {
           saveTraceInfo(CpuCaptureParser.IMPORTED_TRACE_ID, parsedCapture,
-                        // We don't know the CpuProfilerMode used to generate the trace.
-                        CpuProfilerMode.UNSPECIFIED_MODE);
+                        // We don't know the CpuTraceMode used to generate the trace.
+                        CpuTraceMode.UNSPECIFIED_MODE,
+                        // No need to update the trace content ever in import-trace mode.
+                        null);
           myTraceIdsIterator.addTrace(CpuCaptureParser.IMPORTED_TRACE_ID);
         }
         // Track import trace success
@@ -706,7 +775,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         setCaptureState(CaptureState.IDLE);
         // Track import trace failure
         // TODO (b/78557952): try to get the profiler type from the trace, which should be possible as long as it has a valid header.
-        getStudioProfilers().getIdeServices().getFeatureTracker().trackImportTrace(CpuProfilerType.UNSPECIFIED_PROFILER, false);
+        getStudioProfilers().getIdeServices().getFeatureTracker().trackImportTrace(CpuTraceType.UNSPECIFIED_TYPE, false);
       }
     };
 
@@ -723,11 +792,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    * and sets the capture in the main executor after it's done. This method also takes care of updating the {@link CpuCaptureMetadata}
    * corresponding to the capture after parsing is finished (successfully or not).
    */
-  private void handleCaptureParsing(int traceId, ByteString traceBytes, CpuCaptureMetadata captureMetadata) {
+  private void handleCaptureParsing(long traceId, ByteString traceBytes, CpuCaptureMetadata captureMetadata) {
     long beforeParsingTime = System.currentTimeMillis();
     myCaptureParser.updateParsingStateWhenStarting();
     CompletableFuture<CpuCapture> capture =
-      myCaptureParser.parse(mySession, traceId, traceBytes, myProfilerConfigModel.getProfilingConfiguration().getProfilerType());
+      myCaptureParser.parse(mySession, traceId, traceBytes, myProfilerConfigModel.getProfilingConfiguration().getTraceType());
     if (capture == null) {
       // Capture parsing was cancelled. Return to IDLE state and don't change the current capture.
       setCaptureState(CaptureState.IDLE);
@@ -743,7 +812,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         setCaptureState(CaptureState.IDLE);
         setAndSelectCapture(parsedCapture);
         setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
-        saveTraceInfo(traceId, parsedCapture, myProfilerConfigModel.getProfilingConfiguration().getMode());
+        ByteString preprocessedTraceBytes = null;
+        if (needsPreProcessTrace()) {
+          preprocessedTraceBytes = traceBytes;
+        }
+        saveTraceInfo(traceId, parsedCapture, myProfilerConfigModel.getProfilingConfiguration().getMode(), preprocessedTraceBytes);
 
         // Update capture metadata
         captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.SUCCESS);
@@ -791,32 +864,28 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return TimeUnit.MICROSECONDS.toMillis((long)maxDataRange.getLength());
   }
 
-  private void saveTraceInfo(int traceId, @NotNull CpuCapture capture, CpuProfilerMode mode) {
+  private void saveTraceInfo(long traceId, @NotNull CpuCapture capture, CpuTraceMode mode, @Nullable ByteString preprocessedTrace) {
     long captureFrom = TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin());
     long captureTo = TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax());
 
-    List<CpuProfiler.Thread> threads = new ArrayList<>();
-    for (CpuThreadInfo thread : capture.getThreads()) {
-      threads.add(CpuProfiler.Thread.newBuilder()
-                                    .setTid(thread.getId())
-                                    .setName(thread.getName())
-                                    .build());
+    List<Integer> threadIds = new ArrayList<>();
+    capture.getThreads().forEach(thread -> threadIds.add(thread.getId()));
+    Cpu.CpuTraceInfo traceInfo = Cpu.CpuTraceInfo.newBuilder()
+      .setTraceId(traceId)
+      .setFromTimestamp(captureFrom)
+      .setToTimestamp(captureTo)
+      .setTraceType(capture.getType())
+      .setTraceMode(mode)
+      .setTraceFilePath(Strings.nullToEmpty(myCaptureParser.getTraceFilePath(traceId)))
+      .addAllTids(threadIds).build();
+
+    SaveTraceInfoRequest.Builder requestBuilder = SaveTraceInfoRequest.newBuilder()
+      .setSession(mySession)
+      .setTraceInfo(traceInfo);
+    if (preprocessedTrace != null) {
+      requestBuilder.setPreprocessedTrace(preprocessedTrace);
     }
-
-    TraceInfo traceInfo = TraceInfo.newBuilder()
-                                   .setTraceId(traceId)
-                                   .setFromTimestamp(captureFrom)
-                                   .setToTimestamp(captureTo)
-                                   .setProfilerType(capture.getType())
-                                   .setProfilerMode(mode)
-                                   .setTraceFilePath(Strings.nullToEmpty(myCaptureParser.getTraceFilePath(traceId)))
-                                   .addAllThreads(threads).build();
-
-    SaveTraceInfoRequest request = SaveTraceInfoRequest.newBuilder()
-                                                       .setSession(mySession)
-                                                       .setTraceInfo(traceInfo)
-                                                       .build();
-    getCpuClient().saveTraceInfo(request);
+    getCpuClient().saveTraceInfo(requestBuilder.build());
   }
 
   /**
@@ -950,7 +1019,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         || (getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING)) {
       // Capture has finished parsing.
       ensureCaptureInViewRange();
-      if (capture.getType() == CpuProfilerType.ATRACE) {
+      if (capture.getType() == CpuTraceType.ATRACE) {
         if (!isImportTraceMode() && ((AtraceCpuCapture)capture).isMissingData()) {
           getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.ATRACE_BUFFER_OVERFLOW);
         }
@@ -972,7 +1041,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     timeline.adjustRangeCloseToMiddleView(new Range(capture.getRange().getMin() - padding, capture.getRange().getMax() + padding));
   }
 
-  private void setCapture(int traceId) {
+  private void setCapture(long traceId) {
     CompletableFuture<CpuCapture> future = getCaptureFuture(traceId);
     if (future != null) {
       future.handleAsync((capture, exception) -> {
@@ -983,7 +1052,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
   }
 
-  public void setAndSelectCapture(int traceId) {
+  public void setAndSelectCapture(long traceId) {
     CompletableFuture<CpuCapture> future = getCaptureFuture(traceId);
     if (future != null) {
       future.handleAsync((capture, exception) -> {
@@ -1134,7 +1203,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   @VisibleForTesting
   @Nullable
-  CompletableFuture<CpuCapture> getCaptureFuture(int traceId) {
+  CompletableFuture<CpuCapture> getCaptureFuture(long traceId) {
     CompletableFuture<CpuCapture> capture = myCaptureParser.getCapture(traceId);
     if (capture == null) {
       // Parser doesn't have any information regarding the capture. We need to request trace data from CPU service and tell the parser
@@ -1146,7 +1215,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       // TODO: investigate if this call can take too much time as it's blocking.
       GetTraceResponse trace = getCpuClient().getTrace(request);
       if (trace.getStatus() == GetTraceResponse.Status.SUCCESS) {
-        capture = myCaptureParser.parse(mySession, traceId, trace.getData(), trace.getProfilerType());
+        capture = myCaptureParser.parse(mySession, traceId, trace.getData(), trace.getTraceType());
       }
     }
     return capture;
@@ -1206,10 +1275,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   class CpuTraceDataSeries implements DataSeries<CpuTraceInfo> {
     @Override
     public List<SeriesData<CpuTraceInfo>> getDataForXRange(Range xRange) {
-      List<TraceInfo> traceInfo = getTraceInfoFromRange(xRange);
+      List<Cpu.CpuTraceInfo> traceInfo = getTraceInfoFromRange(xRange);
 
       List<SeriesData<CpuTraceInfo>> seriesData = new ArrayList<>();
-      for (TraceInfo protoTraceInfo : traceInfo) {
+      for (Cpu.CpuTraceInfo protoTraceInfo : traceInfo) {
         CpuTraceInfo info = new CpuTraceInfo(protoTraceInfo);
         seriesData.add(new SeriesData<>((long)info.getRange().getMin(), info));
       }

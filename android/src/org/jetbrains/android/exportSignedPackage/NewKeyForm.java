@@ -32,6 +32,11 @@ import java.util.Set;
 public abstract class NewKeyForm {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.exportSignedPackage.NewKeyForm");
 
+  private static final String PKCS12_WARNING_PREFIX = "Warning:\nThe JKS keystore uses a proprietary format. It is recommended to" +
+                                                      " migrate to PKCS12 which is an industry standard format using \"keytool" +
+                                                      " -importkeystore -srckeystore";
+  private static final String PKCS12_WARNING_SUFFIX = "-deststoretype pkcs12\".\n";
+
   private JPanel myContentPanel;
   private JTextField myAliasField;
   private JPasswordField myKeyPasswordField;
@@ -176,6 +181,14 @@ public abstract class NewKeyForm {
       LOG.info(e);
       errorBuilder.append(e.getMessage()).append('\n');
     }
+
+    // Do not output the warning about migrating to PKCS12
+    int warningStartIndex = errorBuilder.indexOf(PKCS12_WARNING_PREFIX);
+    int warningEndIndex = errorBuilder.indexOf(PKCS12_WARNING_SUFFIX);
+    if (warningStartIndex >= 0 && warningEndIndex > warningStartIndex) {
+      errorBuilder.delete(warningStartIndex, warningEndIndex + PKCS12_WARNING_SUFFIX.length());
+    }
+
     normalizeBuilder(errorBuilder);
     normalizeBuilder(outBuilder);
 

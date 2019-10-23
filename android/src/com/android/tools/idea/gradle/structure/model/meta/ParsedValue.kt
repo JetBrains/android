@@ -122,8 +122,6 @@ fun <T : Any> makeAnnotatedParsedValue(parsed: T?, annotatedDslText: Annotated<D
 fun <T : Any> makeAnnotatedParsedValue(parsed: T?, dslText: DslText?, annotation: ValueAnnotation?): Annotated<ParsedValue<T>> = when {
   (parsed == null && dslText == null) -> ParsedValue.NotSet.annotateWith(annotation)
   (parsed == null && dslText === DslText.Literal) -> throw IllegalArgumentException()
-  (parsed == null && dslText is DslText.Reference) ->
-    ParsedValue.Set.Parsed(null, dslText).annotateWithError("Unresolved: '${dslText.text}'")
   else -> ParsedValue.Set.Parsed(value = parsed, dslText = dslText ?: DslText.Literal).annotateWith(annotation)
 }
 

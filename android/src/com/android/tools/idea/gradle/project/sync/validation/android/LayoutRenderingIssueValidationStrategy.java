@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.validation.android;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
@@ -26,8 +27,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Arrays;
 
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
@@ -53,8 +52,11 @@ public class LayoutRenderingIssueValidationStrategy extends AndroidProjectValida
       text += " this can lead to layouts not rendering correctly.";
 
       SyncMessage message = new SyncMessage(DEFAULT_GROUP, WARNING, text);
-      message.add(Arrays.asList(new FixAndroidGradlePluginVersionHyperlink(),
-                                new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=170841", "More Info...")));
+      //TODO(b/130224064): need to remove check when kts fully supported
+      if (!GradleUtil.hasKtsBuildFiles(getProject())) {
+        message.add(new FixAndroidGradlePluginVersionHyperlink());
+      }
+      message.add(new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=170841", "More Info..."));
 
       GradleSyncMessages.getInstance(getProject()).report(message);
     }

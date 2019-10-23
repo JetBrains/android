@@ -15,11 +15,35 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.ALLOCATIONS;
+import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.DEALLOCATIONS;
+import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.LABEL;
+import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.SHALLOW_SIZE;
+import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.TOTAL_COUNT;
+import static com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute.ALLOCATION_TIME;
+import static com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute.DEALLOCATION_TIME;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.MemoryProfiler.BatchAllocationSample;
+import com.android.tools.profiler.proto.MemoryProfiler.BatchJNIGlobalRefEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalReferenceEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.NativeBacktrace;
+import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
+import com.android.tools.profiler.proto.MemoryProfiler.ResolveNativeBacktraceRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.memory.MemoryProfiler;
@@ -31,20 +55,25 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TLongObjectHashMap;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
-import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.*;
-import static com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute.ALLOCATION_TIME;
-import static com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute.DEALLOCATION_TIME;
 
 public class LiveAllocationCaptureObject implements CaptureObject {
   private static Logger getLogger() {
@@ -60,6 +89,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private final Map<ClassDb.ClassEntry, LiveAllocationInstanceObject> myClassMap;
   private final TIntObjectHashMap<LiveAllocationInstanceObject> myInstanceMap;
   private final TIntObjectHashMap<AllocationStack> myCallstackMap;
+  // Mapping from unsymbolized addresses to symbolized native frames
+  @NotNull private final TLongObjectHashMap<NativeCallStack.NativeFrame> myNativeFrameMap;
   private final TIntObjectHashMap<ThreadId> myThreadIdMap;
   private final TLongObjectHashMap<StackFrameInfoResponse> myFrameInfoResponseMap;
 
@@ -96,6 +127,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     myClassMap = new HashMap<>();
     myInstanceMap = new TIntObjectHashMap<>();
     myCallstackMap = new TIntObjectHashMap<>();
+    myNativeFrameMap = new TLongObjectHashMap<>();
     myThreadIdMap = new TIntObjectHashMap<>();
     myFrameInfoResponseMap = new TLongObjectHashMap<>();
 
@@ -502,7 +534,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         continue;
       }
       if (event.hasBacktrace()) {
-        refObject.setAllocationBacktrace(event.getBacktrace());
+        refObject.setAllocationCallstack(resolveNativeBacktrace(event.getBacktrace()));
       }
       int threadId = event.getThreadId();
       ThreadId thread = ThreadId.INVALID_THREAD_ID;
@@ -591,10 +623,11 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         case CREATE_GLOBAL_REF:
           if (resetInstance) {
             refObject.setAllocationTime(Long.MIN_VALUE);
-          } else {
+          }
+          else {
             refObject.setAllocationTime(event.getTimestamp());
             if (event.hasBacktrace()) {
-              refObject.setAllocationBacktrace(event.getBacktrace());
+              refObject.setAllocationCallstack(resolveNativeBacktrace(event.getBacktrace()));
             }
             refObject.setAllocThreadId(thread);
           }
@@ -603,10 +636,11 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         case DELETE_GLOBAL_REF:
           if (resetInstance) {
             refObject.setAllocationTime(Long.MAX_VALUE);
-          } else {
+          }
+          else {
             refObject.setDeallocTime(event.getTimestamp());
             if (event.hasBacktrace()) {
-              refObject.setDeallocationBacktrace(event.getBacktrace());
+              refObject.setDeallocationCallstack(resolveNativeBacktrace(event.getBacktrace()));
             }
             refObject.setDeallocThreadId(thread);
           }
@@ -616,5 +650,30 @@ public class LiveAllocationCaptureObject implements CaptureObject {
           assert false;
       }
     }
+  }
+
+  @NotNull
+  private NativeCallStack resolveNativeBacktrace(@Nullable NativeBacktrace backtrace) {
+    if (backtrace == null || backtrace.getAddressesCount() == 0) {
+      return NativeCallStack.getDefaultInstance();
+    }
+    ResolveNativeBacktraceRequest request = ResolveNativeBacktraceRequest.newBuilder()
+      .setSession(getSession())
+      .setBacktrace(backtrace)
+      .build();
+    // The native callstack returned contains the module name and offsets, which we will use below to resolve the actual symbols.
+    NativeCallStack callstack = getClient().resolveNativeBacktrace(request);
+
+    NativeCallStack.Builder resolvedCallstack = NativeCallStack.newBuilder();
+    for (NativeCallStack.NativeFrame unsymbolizedFrame : callstack.getFramesList()) {
+      if (!myNativeFrameMap.containsKey(unsymbolizedFrame.getAddress())) {
+        NativeCallStack.NativeFrame symbolizedFrame = myStage.getStudioProfilers().getIdeServices().getNativeFrameSymbolizer()
+          .symbolize(myStage.getStudioProfilers().getSessionsManager().getSelectedSessionMetaData().getProcessAbi(), unsymbolizedFrame);
+        myNativeFrameMap.put(unsymbolizedFrame.getAddress(), symbolizedFrame);
+      }
+      resolvedCallstack.addFrames(myNativeFrameMap.get(unsymbolizedFrame.getAddress()));
+    }
+
+    return resolvedCallstack.build();
   }
 }

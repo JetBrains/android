@@ -21,15 +21,13 @@ import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
 import com.android.tools.idea.tests.gui.framework.finder
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
-import com.intellij.ui.navigation.Place
 import org.fest.swing.core.Robot
 import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
 import java.awt.Container
-
-import javax.swing.*
 import java.util.Arrays
+import javax.swing.JDialog
 
 class ProjectStructureDialogFixture(
     override val container: JDialog,
@@ -42,31 +40,31 @@ class ProjectStructureDialogFixture(
   fun clickOk(): IdeFrameFixture {
     clickOkAndWaitDialogDisappear()
     // Changing the project structure can cause a Gradle build and Studio re-indexing.
-    return ideFrameFixture.waitForGradleProjectSyncToFinish()
+    return ideFrameFixture.waitForGradleProjectSyncToFinish().also { waitForIdle() }
+  }
+
+  fun clickOkExpectConfirmation(): ErrorsReviewConfirmationDialogFixture {
+    GuiTests.findAndClickOkButton(this)
+    // Changing the project structure can cause a Gradle build and Studio re-indexing.
+    return ErrorsReviewConfirmationDialogFixture.find(ideFrameFixture, "Problems Found")
   }
 
   fun clickCancel(): IdeFrameFixture {
-    GuiTests.findAndClickCancelButton(this)
-    Wait.seconds(10).expecting("dialog to disappear").until { !target().isShowing }
+    clickCancelAndWaitDialogDisappear()
     return ideFrameFixture
   }
 
   fun clickOk(waitForSync: Wait): IdeFrameFixture {
     clickOkAndWaitDialogDisappear()
-    return ideFrameFixture.waitForGradleProjectSyncToFinish(waitForSync)
-  }
-
-  private fun clickOkAndWaitDialogDisappear() {
-    GuiTests.findAndClickOkButton(this)
-    Wait.seconds(10).expecting("dialog to disappear").until { !target().isShowing }
+    // Changing the project structure can cause a Gradle build and Studio re-indexing.
+    return ideFrameFixture.waitForGradleProjectSyncToFinish(waitForSync).also { waitForIdle() }
   }
 
   fun selectConfigurable(viewName: String): ProjectStructureDialogFixture {
     val sidePanel = GuiTests.waitUntilFound(robot(), container, Matchers.byType(SidePanel::class.java))
     val sidePanelList = sidePanel.list
     val listFixture = JListFixture(robot(), sidePanelList)
-    listFixture.replaceCellReader { list, index -> sidePanel.descriptor.getTextFor(list.model.getElementAt(index) as Place) }
-    println(Arrays.toString(listFixture.contents()))
+    listFixture.replaceCellReader { list, index -> sidePanel.descriptor.getTextFor(list.model.getElementAt(index) as SidePanel.PlaceData) }
     listFixture.clickItem(viewName)
     return this
   }
@@ -84,3 +82,23 @@ class ProjectStructureDialogFixture(
   }
 }
 
+fun IdeFrameFixture.openPsd(): ProjectStructureDialogFixture =
+  openFromMenu({ ProjectStructureDialogFixture.find(it) }, arrayOf("File", "Project Structure..."))
+
+internal fun ContainerFixture<*>.clickOkAndWaitDialogDisappear() {
+  GuiTests.findAndClickOkButton(this)
+  Wait.seconds(10).expecting("dialog to disappear").until { !target().isShowing }
+  waitForIdle()
+}
+
+internal fun ContainerFixture<*>.clickCancelAndWaitDialogDisappear() {
+  GuiTests.findAndClickCancelButton(this)
+  Wait.seconds(10).expecting("dialog to disappear").until { !target().isShowing }
+  waitForIdle()
+}
+
+internal fun ContainerFixture<*>.clickButtonAndWaitDialogDisappear(text: String) {
+  GuiTests.findAndClickButton(this, text)
+  Wait.seconds(10).expecting("dialog to disappear").until { !target().isShowing }
+  waitForIdle()
+}

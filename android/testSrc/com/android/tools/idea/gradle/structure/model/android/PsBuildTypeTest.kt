@@ -95,7 +95,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
       assertThat(
         signingConfig.parsedValue,
-        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.myConfig")).annotated()))
+        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference("signingConfigs.myConfig")).annotated()))
 
       assertThat(versionNameSuffix.resolved.asTestValue(), equalTo("vsuffix"))
       assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo("vsuffix"))
@@ -495,7 +495,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     verifyValues(appModule.findBuildType("release")!!, afterSync = true)
   }
 
-  @Ignore("b/72853928")
+  /** TODO(b/72853928): Enable this test */
   fun /*test*/SetListReferences() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 

@@ -15,21 +15,49 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.DOT_KTS;
+import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING_URL;
+import static com.android.tools.idea.gradle.util.GradleUtil.getLastKnownAndroidGradlePluginVersion;
+import static com.android.tools.idea.gradle.util.GradleUtil.getLastSuccessfulAndroidGradlePluginVersion;
+import static com.android.tools.idea.gradle.util.GradleUtil.projectBuildFilesTypes;
+import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_SETUP_STARTED;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_SKIPPED;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_UNKNOWN;
+import static com.intellij.openapi.ui.MessageType.ERROR;
+import static com.intellij.openapi.ui.MessageType.INFO;
+import static com.intellij.openapi.ui.MessageType.WARNING;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.formatDuration;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
+
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
+import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHyperlink;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.project.IndexingSuspender;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.lint.detector.api.Lint;
 import com.google.common.annotations.VisibleForTesting;
@@ -37,8 +65,12 @@ import com.google.common.collect.Ordering;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.google.wireless.android.sdk.stats.KotlinSupport;
+import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.impl.NotificationsConfigurationImpl;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -54,25 +86,21 @@ import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import javax.swing.event.HyperlinkEvent;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.PATH_IN_SETTINGS;
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.*;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_UNKNOWN;
-import static com.intellij.openapi.ui.MessageType.ERROR;
-import static com.intellij.openapi.ui.MessageType.INFO;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.util.text.StringUtil.formatDuration;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
-
 public final class GradleSyncState {
   private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
-  private static final NotificationGroup LOGGING_NOTIFICATION = NotificationGroup.logOnlyGroup("Gradle sync");
+  private static final NotificationGroup SYNC_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("Gradle sync");
+  public static final NotificationGroup
+    JDK_LOCATION_WARNING_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("JDK Location different to JAVA_HOME");
 
   @VisibleForTesting
   static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC = new Topic<>("Project sync with Gradle", GradleSyncListener.class);
@@ -81,7 +109,6 @@ public final class GradleSyncState {
   @NotNull private final MessageBus myMessageBus;
   @NotNull private final StateChangeNotification myChangeNotification;
   @NotNull private final GradleSyncSummary mySummary;
-  @NotNull private final GradleFiles myGradleFiles;
   @NotNull private final ProjectStructure myProjectStructure;
 
   @NotNull private final Object myLock = new Object();
@@ -102,6 +129,7 @@ public final class GradleSyncState {
   private long mySourceGenerationEndedTimeStamp = -1L;
   private long mySyncFailedTimeStamp = -1L;
   private GradleSyncStats.Trigger myTrigger = TRIGGER_UNKNOWN;
+  private boolean myShouldRemoveModelsOnFailure = false;
 
   @GuardedBy("myLock")
   @Nullable private ExternalSystemTaskId myExternalSystemTaskId;
@@ -142,7 +170,6 @@ public final class GradleSyncState {
     myMessageBus = messageBus;
     myChangeNotification = changeNotification;
     mySummary = summary;
-    myGradleFiles = gradleFiles;
     myProjectStructure = projectStructure;
 
     // Call in to make sure IndexingSuspender instance is constructed.
@@ -199,11 +226,13 @@ public final class GradleSyncState {
       mySyncSkipped = syncSkipped;
       mySyncInProgress = true;
     }
+    myShouldRemoveModelsOnFailure = request.variantOnlySyncOptions == null;
 
-    LOG.info(String.format("Started sync with Gradle for project '%1$s'.", myProject.getName()));
+    String syncType = NewGradleSync.isSingleVariantSync(myProject) ? "single-variant" : "IDEA";
+    LOG.info(String.format("Started %1$s sync with Gradle for project '%2$s'.", syncType, myProject.getName()));
 
     setSyncStartedTimeStamp(System.currentTimeMillis(), request.trigger);
-    addInfoToEventLog("Gradle sync started");
+    addInfoToSyncEventLog(String.format("Gradle sync started with %1$s sync", syncType));
 
     if (notifyUser) {
       notifyStateChanged();
@@ -219,9 +248,7 @@ public final class GradleSyncState {
     syncPublisher(
       () -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject, syncSkipped, request.generateSourcesOnSuccess));
 
-    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_STARTED);
-    UsageTracker.log(event);
-
+    logSyncEvent(GRADLE_SYNC_STARTED);
     return true;
   }
 
@@ -251,6 +278,11 @@ public final class GradleSyncState {
   }
 
   @VisibleForTesting
+  public boolean isSourceGenerationFinished() {
+    return mySourceGenerationEndedTimeStamp != -1;
+  }
+
+  @VisibleForTesting
   void setSyncFailedTimeStamp(long timeStampMs) {
     mySyncFailedTimeStamp = timeStampMs;
   }
@@ -259,7 +291,7 @@ public final class GradleSyncState {
     long syncEndTimestamp = System.currentTimeMillis();
     setSyncEndedTimeStamp(syncEndTimestamp);
     String msg = String.format("Gradle sync finished in %1$s (from cached state)", getFormattedSyncDuration(syncEndTimestamp));
-    addInfoToEventLog(msg);
+    addInfoToSyncEventLog(msg);
     LOG.info(msg);
 
     stopSyncInProgress();
@@ -268,8 +300,7 @@ public final class GradleSyncState {
 
     enableNotifications();
 
-    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_SKIPPED);
-    UsageTracker.log(event);
+    logSyncEvent(GRADLE_SYNC_SKIPPED);
   }
 
   public void invalidateLastSync(@NotNull String error) {
@@ -291,17 +322,19 @@ public final class GradleSyncState {
       syncFinished(syncEndTimestamp);
       return;
     }
+    if (myShouldRemoveModelsOnFailure) {
+      removeAndroidModels(myProject);
+    }
     setSyncFailedTimeStamp(syncEndTimestamp);
     String msg = "Gradle sync failed";
     if (isNotEmpty(message)) {
       msg += String.format(": %1$s", message);
     }
     msg += String.format(" (%1$s)", getFormattedSyncDuration(syncEndTimestamp));
-    addToEventLog(msg, ERROR);
+    addToSyncEventLog(msg, ERROR);
     LOG.info(msg);
 
-    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_FAILURE);
-    UsageTracker.log(event);
+    logSyncEvent(GRADLE_SYNC_FAILURE);
 
     syncFinished(syncEndTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message));
@@ -321,20 +354,14 @@ public final class GradleSyncState {
     }
     setSyncEndedTimeStamp(syncEndTimestamp);
     String msg = String.format("Gradle sync finished in %1$s", getFormattedSyncDuration(syncEndTimestamp));
-    addInfoToEventLog(msg);
+    addInfoToSyncEventLog(msg);
     LOG.info(msg);
 
     // Temporary: Clear resourcePrefix flag in case it was set to false when working with
     // an older model. TODO: Remove this when we no longer support models older than 0.10.
     Lint.setTryPrefixLookup(true);
 
-    GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
-    String gradleVersionString = gradleVersion != null ? gradleVersion.toString() : "";
-
-    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_ENDED)
-      .setGradleVersion(gradleVersionString)
-      .setKotlinSupport(generateKotlinSupportProto());
-    UsageTracker.log(event);
+    logSyncEvent(GRADLE_SYNC_ENDED);
 
     syncFinished(syncEndTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject));
@@ -350,12 +377,35 @@ public final class GradleSyncState {
     return formatDuration(getSyncDurationMS(syncEndTimestamp));
   }
 
-  private void addInfoToEventLog(@NotNull String message) {
-    addToEventLog(message, INFO);
+  private void addInfoToSyncEventLog(@NotNull String message) {
+    addToSyncEventLog(message, INFO);
   }
 
-  private void addToEventLog(@NotNull String message, @NotNull MessageType type) {
-    LOGGING_NOTIFICATION.createNotification(message, type).notify(myProject);
+  private void addToSyncEventLog(@NotNull String message, @NotNull MessageType type) {
+    addToEventLog(SYNC_NOTIFICATION_GROUP, message, type, null);
+  }
+
+  private void addWarningToJdkEventLog(@NotNull String message, @Nullable List<NotificationHyperlink> quickFixes) {
+    addToEventLog(JDK_LOCATION_WARNING_NOTIFICATION_GROUP, message, WARNING, quickFixes);
+  }
+
+  private void addToEventLog(@NotNull NotificationGroup notificationGroup, @NotNull String message, @NotNull MessageType type, @Nullable List<NotificationHyperlink> quickFixes) {
+    StringBuilder msg = new StringBuilder(message);
+    NotificationListener listener = null;
+    if (quickFixes != null) {
+      for (NotificationHyperlink quickFix : quickFixes) {
+        msg.append("\n").append(quickFix.toHtml());
+      }
+      listener = new NotificationListener() {
+        @Override
+        public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+          for (NotificationHyperlink quickFix : quickFixes) {
+            quickFix.executeIfClicked(myProject, event);
+          }
+        }
+      };
+    }
+    notificationGroup.createNotification("", msg.toString(), type.toNotificationType(), listener).notify(myProject);
   }
 
   private void syncFinished(long timestamp) {
@@ -364,16 +414,44 @@ public final class GradleSyncState {
     mySummary.setSyncTimestamp(timestamp);
     enableNotifications();
     notifyStateChanged();
-    warnIfSingleVariantSyncIsEnabled();
+    ApplicationManager.getApplication().invokeAndWait(() -> warnIfNotJdkHome());
   }
 
-  private void warnIfSingleVariantSyncIsEnabled() {
-    if (NewGradleSync.isSingleVariantSync(myProject)) {
-      String msg = "Syncing only active variant\n" +
-                   "You can disable this experimental feature from\n"
-                   + PATH_IN_SETTINGS;
-      addInfoToEventLog(msg);
+  private void warnIfNotJdkHome() {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
+      return;
     }
+    if (!NotificationsConfigurationImpl.getSettings(JDK_LOCATION_WARNING_NOTIFICATION_GROUP.getDisplayId()).isShouldLog()) {
+      return;
+    }
+    // using the IdeSdks requires us be on the dispatch thread
+    ApplicationManager.getApplication().assertIsDispatchThread();
+
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    if (ideSdks.isUsingJavaHomeJdk()) {
+      return;
+    }
+    String javaHome = getJdkFromJavaHome();
+    if (javaHome == null) {
+      return;
+    }
+    if (ideSdks.validateJdkPath(new File(javaHome)) == null) {
+      return;
+    }
+    List<NotificationHyperlink> quickFixes = new ArrayList<>();
+    quickFixes.add(new OpenUrlHyperlink(JDK_LOCATION_WARNING_URL, "More info..."));
+    UseJavaHomeAsJdkHyperlink useJavaHomeHyperlink = UseJavaHomeAsJdkHyperlink.create();
+    if (useJavaHomeHyperlink != null) {
+      quickFixes.add(useJavaHomeHyperlink);
+    }
+    quickFixes.add(new DoNotShowJdkHomeWarningAgainHyperlink());
+    String msg = "Android Studio is using this JDK location:\n" +
+                 ideSdks.getJdkPath() + "\n" +
+                 "which is different to what Gradle uses by default:\n" +
+                 javaHome + "\n" +
+                 "Using different locations may spawn multiple Gradle daemons if\n" +
+                 "Gradle tasks are run from command line while using Android Studio.\n";
+    addWarningToJdkEventLog(msg, quickFixes);
   }
 
   private void stopSyncInProgress() {
@@ -451,7 +529,14 @@ public final class GradleSyncState {
    */
   @NotNull
   public ThreeState isSyncNeeded() {
-    return myGradleFiles.areGradleFilesModified() ? ThreeState.YES : ThreeState.NO;
+    return GradleFiles.getInstance(myProject).areGradleFilesModified() ? ThreeState.YES : ThreeState.NO;
+  }
+
+  /**
+   * @return the timestamp (obtained via {@code System.currentTimeMillis()}) of when the last sync finished.
+   */
+  public long getLastSyncEndTimeStamp() {
+    return mySyncEndedTimeStamp;
   }
 
   @NotNull
@@ -462,11 +547,10 @@ public final class GradleSyncState {
   public void setupStarted() {
     long syncSetupTimestamp = System.currentTimeMillis();
     setSyncSetupStartedTimeStamp(syncSetupTimestamp);
-    addInfoToEventLog("Project setup started");
+    addInfoToSyncEventLog("Project setup started");
     LOG.info(String.format("Started setup of project '%1$s'.", myProject.getName()));
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).setupStarted(myProject));
-    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_SETUP_STARTED);
-    UsageTracker.log(event);
+    logSyncEvent(GRADLE_SYNC_SETUP_STARTED);
   }
 
   public void setExternalSystemTaskId(@Nullable ExternalSystemTaskId externalSystemTaskId) {
@@ -485,7 +569,7 @@ public final class GradleSyncState {
   public void sourceGenerationFinished() {
     long sourceGenerationEndedTimestamp = System.currentTimeMillis();
     setSourceGenerationEndedTimeStamp(sourceGenerationEndedTimestamp);
-    addInfoToEventLog(String.format("Source generation ended in %1$s",
+    addInfoToSyncEventLog(String.format("Source generation ended in %1$s",
                                     formatDuration(mySourceGenerationEndedTimeStamp - mySyncSetupStartedTimeStamp)));
     LOG.info(String.format("Finished source generation of project '%1$s'.", myProject.getName()));
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).sourceGenerationFinished(myProject));
@@ -520,20 +604,57 @@ public final class GradleSyncState {
     }
   }
 
+  /**
+   * Logs a syn event using {@link UsageTracker#log(AndroidStudioEvent.Builder)}.
+   *
+   * @param event the type of event to log.
+   */
+  private void logSyncEvent(@NotNull AndroidStudioEvent.EventKind event) {
+    // Do not log an event if the project has been closed, working out the sync type for a disposed project results in
+    // an error.
+    if (myProject.isDisposed()) {
+      return;
+    }
+
+    AndroidStudioEvent.Builder eventBuilder = generateSyncEvent(event);
+    if (event == GRADLE_SYNC_ENDED) {
+      GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
+      String gradleVersionString = gradleVersion != null ? gradleVersion.toString() : "";
+      eventBuilder.setGradleVersion(gradleVersionString)
+                  .setKotlinSupport(generateKotlinSupportProto());
+    }
+    UsageTracker.log(eventBuilder);
+  }
+
   @NotNull
-  private AndroidStudioEvent.Builder generateSyncEvent(@NotNull AndroidStudioEvent.EventKind kind) {
+  public AndroidStudioEvent.Builder generateSyncEvent(@NotNull AndroidStudioEvent.EventKind kind) {
     AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
     GradleSyncStats.Builder syncStats = GradleSyncStats.newBuilder();
+    Set<String> buildFilesTypes = projectBuildFilesTypes(myProject);
     // @formatter:off
     syncStats.setTotalTimeMs(getSyncTotalTimeMs())
              .setIdeTimeMs(getSyncIdeTimeMs())
              .setGradleTimeMs(getSyncGradleTimeMs())
              .setTrigger(myTrigger)
              .setEmbeddedRepoEnabled(AndroidStudioGradleIdeSettings.getInstance().isEmbeddedMavenRepoEnabled())
-             .setSyncType(getSyncType());
+             .setSyncType(getSyncType())
+             .setUsesBuildGradle(buildFilesTypes.contains(DOT_GRADLE))
+             .setUsesBuildGradleKts(buildFilesTypes.contains(DOT_KTS));
     // @formatter:on
+    setAndroidGradlePluginVersions(syncStats);
     event.setCategory(GRADLE_SYNC).setKind(kind).setGradleSyncStats(syncStats);
     return UsageTrackerUtils.withProjectId(event, myProject);
+  }
+
+  private void setAndroidGradlePluginVersions(GradleSyncStats.Builder stats) {
+    String lastKnownVersion = getLastKnownAndroidGradlePluginVersion(myProject);
+    if (lastKnownVersion != null) {
+      stats.setLastKnownAndroidGradlePluginVersion(lastKnownVersion);
+    }
+    String lastSuccessfulVersion = getLastSuccessfulAndroidGradlePluginVersion(myProject);
+    if (lastSuccessfulVersion != null) {
+      stats.setAndroidGradlePluginVersion(lastSuccessfulVersion);
+    }
   }
 
   @NotNull
@@ -641,5 +762,24 @@ public final class GradleSyncState {
     }
     // Gradle part has not been done
     return -1;
+  }
+
+  // See issue: https://code.google.com/p/android/issues/detail?id=64508
+  private static void removeAndroidModels(@NotNull Project project) {
+    if (project.isDisposed()) return;
+    // Remove all Android models from module. Otherwise, if re-import/sync fails, editors will not show the proper notification of the
+    // failure.
+    try {
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    for (Module module : moduleManager.getModules()) {
+      if (module.isDisposed()) continue;
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        facet.getConfiguration().setModel(null);
+      }
+    }
+    } catch (Throwable t) {
+      LOG.error("Failed to remove Android models", t);
+    }
   }
 }

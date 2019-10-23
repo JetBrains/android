@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
 import com.intellij.openapi.project.Project;
@@ -35,7 +35,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProjectTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
-  @Mock private AndroidPluginGeneration myPluginGeneration;
+  @Mock private LatestKnownPluginVersionProvider myLatestKnownPluginVersionProvider;
   @Mock private RecommendedPluginVersionUpgradeDialog.Factory myUpgradeDialogFactory;
   @Mock private RecommendedPluginVersionUpgradeDialog myUpgradeDialog;
   @Mock private TimeBasedUpgradeReminder myUpgradeReminder;
@@ -53,7 +53,6 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProj
     ServiceContainerUtil
       .replaceService(project, AndroidPluginVersionUpdater.class, myVersionUpdater, getTestRootDisposable());
 
-    when(myPluginInfo.getPluginGeneration()).thenReturn(myPluginGeneration);
     when(myUpgradeDialogFactory.create(same(project), any(), any())).thenReturn(myUpgradeDialog);
 
     myUpgradeStep = new RecommendedPluginVersionUpgradeStep(myUpgradeDialogFactory, myUpgradeReminder);
@@ -64,7 +63,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProj
     // Simulate that a day has not passed since the user clicked "Remind me tomorrow".
     when(myUpgradeReminder.shouldRecommendUpgrade(project)).thenReturn(false);
 
-    assertFalse(myUpgradeStep.checkAndPerformUpgrade(project, myPluginInfo));
+    assertFalse(myUpgradeStep.performUpgradeAndSync(project, myPluginInfo));
 
     verifyUpgradeDialogWasNotDisplayed();
     verifyPluginVersionWasNotUpdated();
@@ -75,9 +74,10 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProj
 
     String pluginVersion = "2.2.0";
     when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse(pluginVersion));
-    when(myPluginGeneration.getLatestKnownVersion()).thenReturn(pluginVersion);
+    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
+    when(myLatestKnownPluginVersionProvider.get()).thenReturn(pluginVersion);
 
-    assertFalse(myUpgradeStep.checkAndPerformUpgrade(getProject(), myPluginInfo));
+    assertFalse(myUpgradeStep.performUpgradeAndSync(getProject(), myPluginInfo));
 
     verifyUpgradeDialogWasNotDisplayed();
     verifyPluginVersionWasNotUpdated();
@@ -88,9 +88,10 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProj
 
     // Simulate project's plugin version is lower than latest.
     when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.3.0"));
-    when(myPluginGeneration.getLatestKnownVersion()).thenReturn("2.2.0");
+    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
+    when(myLatestKnownPluginVersionProvider.get()).thenReturn("2.2.0");
 
-    assertFalse(myUpgradeStep.checkAndPerformUpgrade(getProject(), myPluginInfo));
+    assertFalse(myUpgradeStep.performUpgradeAndSync(getProject(), myPluginInfo));
 
     verifyUpgradeDialogWasNotDisplayed();
     verifyPluginVersionWasNotUpdated();
@@ -102,10 +103,11 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProj
     // Current version is a preview
     when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.3.0-alpha1"));
     // Recommended version is same major version, but "snapshot"
-    when(myPluginGeneration.getLatestKnownVersion()).thenReturn("2.3.0-dev");
+    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
+    when(myLatestKnownPluginVersionProvider.get()).thenReturn("2.3.0-dev");
 
     // For this combination of plugin versions, the IDE should not ask for upgrade.
-    assertFalse(myUpgradeStep.checkAndPerformUpgrade(getProject(), myPluginInfo));
+    assertFalse(myUpgradeStep.performUpgradeAndSync(getProject(), myPluginInfo));
 
     verifyUpgradeDialogWasNotDisplayed();
     verifyPluginVersionWasNotUpdated();
@@ -121,12 +123,13 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProj
 
     // Simulate project's plugin version is lower than latest.
     when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.2.0"));
-    when(myPluginGeneration.getLatestKnownVersion()).thenReturn("2.3.0");
+    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
+    when(myLatestKnownPluginVersionProvider.get()).thenReturn("2.3.0");
 
     // Simulate user declined upgrade.
     when(myUpgradeDialog.showAndGet()).thenReturn(false);
 
-    assertFalse(myUpgradeStep.checkAndPerformUpgrade(getProject(), myPluginInfo));
+    assertFalse(myUpgradeStep.performUpgradeAndSync(getProject(), myPluginInfo));
 
     verifyPluginVersionWasNotUpdated();
   }
@@ -140,7 +143,8 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProj
 
     when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.2.0"));
     GradleVersion latestPluginVersion = GradleVersion.parse("2.3.0");
-    when(myPluginGeneration.getLatestKnownVersion()).thenReturn(latestPluginVersion.toString());
+    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
+    when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
 
     // Simulate user accepted upgrade.
     when(myUpgradeDialog.showAndGet()).thenReturn(true);
@@ -148,7 +152,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProj
     // Simulate updating plugin version failed.
     simulatePluginVersionUpdate(latestPluginVersion, false /* update failed */);
 
-    assertFalse(myUpgradeStep.checkAndPerformUpgrade(getProject(), myPluginInfo));
+    assertFalse(myUpgradeStep.performUpgradeAndSync(getProject(), myPluginInfo));
   }
 
   public void testCheckAndPerformUpgradeWhenVersionSucceeds() {
@@ -156,7 +160,8 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProj
 
     when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.2.0"));
     GradleVersion latestPluginVersion = GradleVersion.parse("2.3.0");
-    when(myPluginGeneration.getLatestKnownVersion()).thenReturn(latestPluginVersion.toString());
+    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
+    when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
     doReturn(true).when(myVersionUpdater).canDetectPluginVersionToUpdate(any());
 
     // Simulate user accepted upgrade.
@@ -165,7 +170,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProj
     // Simulate updating plugin version succeeded.
     simulatePluginVersionUpdate(latestPluginVersion, true /* update successful */);
 
-    assertTrue(myUpgradeStep.checkAndPerformUpgrade(getProject(), myPluginInfo));
+    assertTrue(myUpgradeStep.performUpgradeAndSync(getProject(), myPluginInfo));
   }
 
   public void testCheckAndPerformUpgradeFailsWhenWeCannotDetectVersion() {
@@ -173,13 +178,14 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProj
 
     when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.2.0"));
     GradleVersion latestPluginVersion = GradleVersion.parse("2.3.0");
-    when(myPluginGeneration.getLatestKnownVersion()).thenReturn(latestPluginVersion.toString());
+    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
+    when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
     doReturn(false).when(myVersionUpdater).canDetectPluginVersionToUpdate(any());
 
     // Simulate user accepted upgrade.
     when(myUpgradeDialog.showAndGet()).thenReturn(true);
 
-    assertFalse(myUpgradeStep.checkAndPerformUpgrade(getProject(), myPluginInfo));
+    assertFalse(myUpgradeStep.performUpgradeAndSync(getProject(), myPluginInfo));
   }
 
   private void simulateUpgradeReminderIsDue() {

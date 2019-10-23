@@ -52,7 +52,7 @@ public class IdePermissionTest {
   @Test
   @RunIn(TestGroup.FAST_BAZEL)
   public void ideAddsPermissionChecks() throws Exception {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleLocalApplication")
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication")
       .getEditor()
       .open("app/src/main/java/google/simpleapplication/MyActivity.java")
       .moveBetween("setContentView(R.layout.activity_my);\n    ", "}")

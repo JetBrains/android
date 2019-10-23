@@ -17,14 +17,17 @@ package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.idea.notification.GradleNotificationExtension;
 import com.intellij.openapi.project.Project;
+import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_MODEL_VERSION;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class UnsupportedModelVersionErrorHandler extends BaseSyncErrorHandler {
@@ -42,7 +45,7 @@ public class UnsupportedModelVersionErrorHandler extends BaseSyncErrorHandler {
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && text.startsWith(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
-      updateUsageTracker();
+      updateUsageTracker(project, UNSUPPORTED_MODEL_VERSION);
       return text;
     }
     return null;
@@ -51,6 +54,10 @@ public class UnsupportedModelVersionErrorHandler extends BaseSyncErrorHandler {
   @Override
   @NotNull
   protected List<NotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project, @NotNull String text) {
+    //TODO(b/130224064): need to remove check when kts fully supported
+    if (GradleUtil.hasKtsBuildFiles(project)) {
+      return Collections.emptyList();
+    }
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     hyperlinks.add(new FixAndroidGradlePluginVersionHyperlink());
     return hyperlinks;

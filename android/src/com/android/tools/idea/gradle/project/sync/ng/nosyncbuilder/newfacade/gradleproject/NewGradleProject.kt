@@ -36,6 +36,8 @@ data class NewGradleProject(
   private var parent: GradleProject? = null
   private var children: MutableSet<NewGradleProject> = mutableSetOf()
 
+  lateinit var childrenNames: List<String>
+
   constructor(proto: GradleProjectProto.GradleProject, converter: PathConverter): this(
     NewGradleScript(proto.buildScript, converter),
     converter.fileFromProto(proto.buildDirectory),
@@ -46,6 +48,7 @@ data class NewGradleProject(
     if (proto.hasDescription()) proto.description else null
   ) {
     tasks.forEach { it.project = this}
+    childrenNames = proto.childrenList
   }
 
   constructor(

@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.SdkConstants;
-import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableItem;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.uibuilder.property.MockNlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperties;

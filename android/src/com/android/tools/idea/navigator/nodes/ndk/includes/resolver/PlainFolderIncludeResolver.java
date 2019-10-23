@@ -30,7 +30,7 @@ public class PlainFolderIncludeResolver extends IncludeResolver {
   @Nullable
   public SimpleIncludeValue resolve(@NotNull File includeFolder) {
     String displayName = includeFolder.getName();
-    return new SimpleIncludeValue(PackageType.IncludeFolder, displayName, "/", includeFolder,
-                                  includeFolder);
+    return new SimpleIncludeValue(PackageType.IncludeFolder, PackageType.IncludeFolder.myDescription, displayName,
+                                  "/", includeFolder, includeFolder);
   }
 }

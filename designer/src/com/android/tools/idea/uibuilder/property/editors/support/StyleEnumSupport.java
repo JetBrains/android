@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
-import com.android.annotations.VisibleForTesting;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.PREFIX_THEME_REF;
+import static com.android.SdkConstants.REFERENCE_STYLE;
+import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleResourceValue;
@@ -24,35 +28,33 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.android.SdkConstants.*;
-
 public class StyleEnumSupport extends EnumSupport {
-
   protected final StyleFilter myStyleFilter;
-  protected final ResourceRepositoryManager myResourceManager;
+  protected final ResourceNamespace myDefaultNamespace;
 
   public StyleEnumSupport(@NotNull NlProperty property) {
     this(property.getModel().getFacet(), property);
   }
 
   private StyleEnumSupport(@NotNull AndroidFacet facet, @NotNull NlProperty property) {
-    this(property, new StyleFilter(facet, property.getResolver()), ResourceRepositoryManager.getOrCreateInstance(facet));
+    this(property, new StyleFilter(facet, property.getResolver()), ResourceRepositoryManager.getInstance(facet).getNamespace());
   }
 
   @VisibleForTesting
-  StyleEnumSupport(@NotNull NlProperty property, @NotNull StyleFilter styleFilter, @NotNull ResourceRepositoryManager resourceManager) {
+  StyleEnumSupport(@NotNull NlProperty property, @NotNull StyleFilter styleFilter, @NotNull ResourceNamespace defaultNamespace) {
     super(property);
     myStyleFilter = styleFilter;
-    myResourceManager = resourceManager;
+    myDefaultNamespace = defaultNamespace;
   }
 
   @Override
@@ -69,10 +71,9 @@ public class StyleEnumSupport extends EnumSupport {
     if (value != null && !value.startsWith(PREFIX_RESOURCE_REF) && !value.startsWith(PREFIX_THEME_REF)) {
       // The user did not specify a proper style value.
       // Lookup the value specified to see if there is a matching style.
-      ResourceNamespace currentNamespace = myResourceManager.getNamespace();
 
       // Prefer the users styles:
-      StyleResourceValue styleFound = resolve(currentNamespace, value);
+      StyleResourceValue styleFound = resolve(myDefaultNamespace, value);
 
       // Otherwise try each of the namespaces defined in the XML file:
       if (styleFound == null) {
@@ -90,7 +91,7 @@ public class StyleEnumSupport extends EnumSupport {
       }
 
       value = styleFound != null ?
-              styleFound.asReference().getRelativeResourceUrl(currentNamespace, getResolver()).toString() : STYLE_RESOURCE_PREFIX + value;
+              styleFound.asReference().getRelativeResourceUrl(myDefaultNamespace, getResolver()).toString() : STYLE_RESOURCE_PREFIX + value;
     }
     String shortDisplay = StringUtil.substringAfter(resolvedValue, REFERENCE_STYLE);
     String display = shortDisplay != null ? shortDisplay : resolvedValue;
@@ -105,6 +106,9 @@ public class StyleEnumSupport extends EnumSupport {
 
   @NotNull
   protected ResourceNamespace.Resolver getResolver() {
+    // The following assert assures that the XmlTag is still valid when used in ResourceHelper.getNamespaceResolver(tag).
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+
     XmlTag tag = getTagOfFirstComponent();
     return tag != null ? ResourceHelper.getNamespaceResolver(tag) : ResourceNamespace.Resolver.EMPTY_RESOLVER;
   }
@@ -112,7 +116,7 @@ public class StyleEnumSupport extends EnumSupport {
   @Nullable
   private XmlTag getTagOfFirstComponent() {
     List<NlComponent> components = myProperty.getComponents();
-    return !components.isEmpty() ? components.get(0).getTag() : null;
+    return !components.isEmpty() ? components.get(0).getBackend().getTag() : null;
   }
 
   @Nullable

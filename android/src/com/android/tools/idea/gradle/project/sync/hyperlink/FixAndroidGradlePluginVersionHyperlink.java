@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
@@ -36,7 +36,7 @@ public class FixAndroidGradlePluginVersionHyperlink extends NotificationHyperlin
    * {@link SdkConstants#GRADLE_PLUGIN_RECOMMENDED_VERSION} and Gradle to the version in {@link SdkConstants#GRADLE_LATEST_VERSION}.
    */
   public FixAndroidGradlePluginVersionHyperlink() {
-    this(GradleVersion.parse(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion()), GradleVersion.parse(GRADLE_LATEST_VERSION));
+    this(GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()), GradleVersion.parse(GRADLE_LATEST_VERSION));
   }
 
   /**

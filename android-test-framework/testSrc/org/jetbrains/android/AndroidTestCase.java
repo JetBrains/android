@@ -2,12 +2,12 @@
 
 package org.jetbrains.android;
 
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+
 import com.android.SdkConstants;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
@@ -20,7 +20,11 @@ import com.intellij.codeInspection.ex.InspectionManagerEx;
 import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.codeInspection.reference.RefEntity;
 import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap;
-import com.intellij.facet.*;
+import com.intellij.facet.Facet;
+import com.intellij.facet.FacetConfiguration;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.FacetType;
+import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -38,29 +42,36 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import com.intellij.testFramework.*;
+import com.intellij.testFramework.InspectionTestUtil;
+import com.intellij.testFramework.InspectionsKt;
+import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
+import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
-import com.intellij.testFramework.fixtures.*;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
+import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
+import com.intellij.testFramework.fixtures.ModuleFixture;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
 import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetType;
-import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
-import org.jetbrains.android.resourceManagers.LocalResourceManager;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetType;
+import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.formatter.AndroidJavaPredefinedCodeStyle;
+import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
+import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
+import org.jetbrains.android.resourceManagers.LocalResourceManager;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestCase extends AndroidTestBase {
@@ -142,7 +153,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     collectAllowedRoots(allowedRoots);
     registerAllowedRoots(allowedRoots, getTestRootDisposable());
     mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
-    AndroidCodeStyleSettingsModifier.modify(mySettings);
+    // Note: we apply the Android Studio code style so that tests running as the Android plugin in IDEA behave the same.
+    applyAndroidCodeStyleSettings(mySettings);
     CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(mySettings);
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
@@ -264,6 +276,11 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     return AndroidXmlCodeStyleSettings.getInstance(CodeStyleSchemes.getInstance().getDefaultScheme().getCodeStyleSettings());
   }
 
+  public static void applyAndroidCodeStyleSettings(CodeStyleSettings settings) {
+    new AndroidJavaPredefinedCodeStyle().apply(settings);
+    new AndroidXmlPredefinedCodeStyle().apply(settings);
+  }
+
   /**
    * Hook point for child test classes to register directories that can be safely accessed by all
    * of its tests.
@@ -356,9 +373,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     facet.getConfiguration().setModel(TestAndroidModel.namespaced(facet));
     runWriteCommandAction(getProject(), () -> facet.getManifest().getPackage().setValue(appPackageName));
     LocalResourceManager.getInstance(facet.getModule()).invalidateAttributeDefinitions();
-
-    StudioFlags.IN_MEMORY_R_CLASSES.override(true);
-    Disposer.register(getProject(), () -> StudioFlags.IN_MEMORY_R_CLASSES.clearOverride());
   }
 
   protected final void createProjectProperties() throws IOException {

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.suggestions;
 import com.android.tools.adtui.HtmlLabel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
+import com.intellij.ui.components.JBOptionButton;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 
@@ -29,9 +30,11 @@ public abstract class SuggestionViewerUi {
 
   protected JPanel myPanel;
   protected HtmlLabel myText;
-  protected JButton myUpdateButton;
+  protected JBOptionButton myUpdateButton;
   protected JPanel myButtonPanel;
   protected JPanel myTextPanel;
+  protected JLabel myIconLabel;
+  protected JPanel myIconPanel;
 
   public SuggestionViewerUi(boolean isLast) {
     myPanel.setName(SUGGESTION_VIEWER_NAME);
@@ -39,6 +42,7 @@ public abstract class SuggestionViewerUi {
     myPanel.setBackground(UIUtil.getTextFieldBackground());
     myButtonPanel.setBackground(UIUtil.getTextFieldBackground());
     myTextPanel.setBackground(UIUtil.getTextFieldBackground());
+    myIconPanel.setBackground(UIUtil.getTextFieldBackground());
     myText.setBackground(UIUtil.getTextFieldBackground());
     HtmlLabel.setUpAsHtmlLabel(myText, myUpdateButton.getFont());
     // The last item does not need a separator line at the bottom.
@@ -48,6 +52,8 @@ public abstract class SuggestionViewerUi {
   }
 
   private void createUIComponents() {
+    myUpdateButton = new JBOptionButton(null, new Action[0]);
+    myUpdateButton.setBackground(UIUtil.getTextFieldBackground());
     myText = new HtmlLabel();
     ((DefaultCaret)myText.getCaret()).setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
   }

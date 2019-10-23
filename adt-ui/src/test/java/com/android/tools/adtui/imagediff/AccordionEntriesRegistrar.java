@@ -24,7 +24,7 @@ import java.util.List;
 
 class AccordionEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
-  AccordionEntriesRegistrar() {
+  public AccordionEntriesRegistrar() {
     registerVerticalAccordion();
     registerHorizontalAccordion();
     registerVerticalAccordionExpand();

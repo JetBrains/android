@@ -21,17 +21,13 @@ import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.idea.avdmanager.AvdScreenData
-import com.android.tools.idea.common.editor.NlEditor
-import com.android.tools.idea.common.editor.NlEditorProvider
+import com.android.tools.idea.common.editor.DesignerEditor
 import com.android.tools.idea.common.model.AndroidCoordinate
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
-import com.android.tools.idea.model.MergedManifest
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
+import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.util.dependsOnAppCompat
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -46,6 +42,43 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 
 const val CUSTOM_DENSITY_ID: String = "Custom Density"
+
+// TODO: When appropriate move this static methods to appropriate file.
+//  For now keep it here to be closer to [NlModel.overrideConfigurationScreenSize]
+fun updateConfigurationScreenSize(configuration: Configuration, @AndroidCoordinate xDimension: Int, @AndroidCoordinate yDimension: Int) {
+  val original = configuration.device
+  val deviceBuilder = Device.Builder(original) // doesn't copy tag id
+  if (original != null) {
+    deviceBuilder.setTagId(original.tagId)
+  }
+  deviceBuilder.setName("Custom")
+  deviceBuilder.setId(Configuration.CUSTOM_DEVICE_ID)
+  val device = deviceBuilder.build()
+  for (state in device.allStates) {
+    val screen = state.hardware.screen
+    screen.xDimension = xDimension
+    screen.yDimension = yDimension
+
+    val dpi = screen.pixelDensity.dpiValue.toDouble()
+    val width = xDimension / dpi
+    val height = yDimension / dpi
+    val diagonalLength = Math.sqrt(width * width + height * height)
+
+    screen.diagonalLength = diagonalLength
+    screen.size = ScreenSize.getScreenSize(diagonalLength)
+
+    screen.ratio = AvdScreenData.getScreenRatio(xDimension, yDimension)
+
+    screen.screenRound = device.defaultHardware.screen.screenRound
+    screen.chin = device.defaultHardware.screen.chin
+  }
+
+  //Change the orientation of the device depending on the shape of the canvas
+  val newState: State? =
+    if (xDimension > yDimension) device.getState("Landscape")
+    else device.getState("Portrait")
+  configuration.setEffectiveDevice(device, newState)
+}
 
 /**
  * Changes the configuration to use a custom device with screen size defined by xDimension and yDimension.
@@ -78,21 +111,6 @@ fun NlModel.overrideConfigurationScreenSize(@AndroidCoordinate xDimension: Int, 
     screen.chin = device.defaultHardware.screen.chin
   }
 
-  // If a custom device already exists, remove it before adding the latest one
-  val devices = configuration.configurationManager.devices
-  var customDeviceReplaced = false
-  for (i in devices.indices) {
-    if ("Custom" == devices[i].id) {
-      devices[i] = device
-      customDeviceReplaced = true
-      break
-    }
-  }
-
-  if (!customDeviceReplaced) {
-    devices.add(device)
-  }
-
   val better: VirtualFile?
   val newState: State?
   //Change the orientation of the device depending on the shape of the canvas
@@ -112,9 +130,9 @@ fun NlModel.overrideConfigurationScreenSize(@AndroidCoordinate xDimension: Int, 
     val manager = FileEditorManager.getInstance(project)
     val selectedEditor = manager.getSelectedEditor(old)
     manager.openEditor(descriptor, true)
-    // Switch to the same type of editor (XML or Layout Editor) in the target file
-    if (selectedEditor is NlEditor) {
-      manager.setSelectedEditor(better, NlEditorProvider.DESIGNER_ID)
+    // Switch to the same type of editor (XML or Designer Editor) in the target file
+    if (selectedEditor is DesignerEditor) {
+      manager.setSelectedEditor(better, selectedEditor.editorId)
     }
     else if (selectedEditor != null) {
       manager.setSelectedEditor(better, TextEditorProvider.getInstance().editorTypeId)
@@ -163,7 +181,7 @@ fun NlModel.currentActivityIsDerivedFromAppCompatActivity(): Boolean {
       // Assume we are since this is how the default activities are created.
       return true
   if (activityClassName!!.startsWith(".")) {
-    val manifest = MergedManifest.get(this.module)
+    val manifest = MergedManifestManager.getSnapshot(this.module)
     val pkg = StringUtil.notNullize(manifest.`package`)
     activityClassName = pkg + activityClassName
   }
@@ -173,18 +191,4 @@ fun NlModel.currentActivityIsDerivedFromAppCompatActivity(): Boolean {
     activityClass = activityClass.superClass
   }
   return activityClass != null
-}
-
-object NlModelHelper {
-  fun handleDeletion(parent: NlComponent, children: Collection<NlComponent>): Boolean {
-    if (parent.hasNlComponentInfo) {
-      val viewHandlerManager = ViewHandlerManager.get(parent.model.facet)
-
-      val handler = viewHandlerManager.getHandler(parent)
-      if (handler is ViewGroupHandler) {
-        return handler.deleteChildren(parent, children)
-      }
-    }
-    return false
-  }
 }

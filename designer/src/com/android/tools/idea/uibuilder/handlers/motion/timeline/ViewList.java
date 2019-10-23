@@ -15,44 +15,67 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyTypeAttribute;
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyTypeCycle;
+import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyTypePosition;
+import static com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons.ADD_KEYFRAME;
+
 import com.android.tools.adtui.common.StudioColorsKt;
+import com.android.tools.idea.uibuilder.handlers.motion.AttrName;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.JBPopupListener;
 import com.intellij.openapi.ui.popup.LightweightWindowEvent;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.tree.TreePathUtil;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
-
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JTree;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.plaf.basic.BasicTreeUI;
-import javax.swing.tree.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-
-import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyTypeAttribute;
-import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyTypeCycle;
-import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyTypePosition;
-import static com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLineIcons.ADD_KEYFRAME;
+import javax.swing.tree.AbstractLayoutCache;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeCellRenderer;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class ViewList extends JPanel implements Gantt.ChartElement {
   DefaultMutableTreeNode myRootNode = new DefaultMutableTreeNode();
   JTree myTree = new Tree(myRootNode);
   Chart myChart;
   boolean myInternal;
+  private boolean myIgnoreTreeSelections;
   private static boolean USER_STUDY = true;
   private static final Icon mySpacerIcon = JBUI.scale(EmptyIcon.create(0, 0));
 
@@ -132,14 +155,18 @@ class ViewList extends JPanel implements Gantt.ChartElement {
 
     if (myChart != null
         && myChart.myModel != null) {
-      boolean noStartConstraints = myChart.myModel.getStartConstraintSet().myConstraintViews.isEmpty();
-      boolean noEndConstraints = myChart.myModel.getEndConstraintSet().myConstraintViews.isEmpty();
+      boolean noStartConstraints =
+        myChart.myModel.getStartConstraintSet() == null || myChart.myModel.getStartConstraintSet().myConstraintViews.isEmpty();
+      boolean noEndConstraints =
+        myChart.myModel.getEndConstraintSet() == null || myChart.myModel.getEndConstraintSet().myConstraintViews.isEmpty();
       if (noStartConstraints && noEndConstraints) {
-        list = new String[] {"set Start Constraint", "set End Constraint"};
-      } else if (noStartConstraints) {
-        list = new String[] {"set Start Constraint"};
-      } else if (noEndConstraints) {
-        list = new String[] {"set End Constraint"};
+        list = new String[]{"set Start Constraint", "set End Constraint"};
+      }
+      else if (noStartConstraints) {
+        list = new String[]{"set Start Constraint"};
+      }
+      else if (noEndConstraints) {
+        list = new String[]{"set End Constraint"};
       }
     }
     final JList<String> displayedList = new JBList<>(list);
@@ -147,28 +174,40 @@ class ViewList extends JPanel implements Gantt.ChartElement {
       @Override
       public void onClosed(LightweightWindowEvent event) {
         JBPopup popup = event.asPopup();
-        boolean noStartConstraints = myChart.myModel.getStartConstraintSet().myConstraintViews.isEmpty();
-        boolean noEndConstraints = myChart.myModel.getEndConstraintSet().myConstraintViews.isEmpty();
+        boolean noStartConstraints =
+          myChart.myModel.getStartConstraintSet() == null || myChart.myModel.getStartConstraintSet().myConstraintViews.isEmpty();
+        boolean noEndConstraints =
+          myChart.myModel.getEndConstraintSet() == null || myChart.myModel.getEndConstraintSet().myConstraintViews.isEmpty();
+        Gantt.ViewElement v = mySelectedView.getViewElement();
+        String name = v.myName;
         if (noStartConstraints && noEndConstraints) {
           if (displayedList.getSelectedIndex() == 0) {
+            myChart.myModel.createConstraint(name, true);
             myChart.setCursorPosition(0);
-          } else {
+          }
+          else {
+            myChart.myModel.createConstraint(name, false);
             myChart.setCursorPosition(1);
           }
-        } else if (noStartConstraints) {
+        }
+        else if (noStartConstraints) {
+          myChart.myModel.createConstraint(name, true);
           myChart.setCursorPosition(0);
-        } else if (noEndConstraints) {
+        }
+        else if (noEndConstraints) {
+          myChart.myModel.createConstraint(name, false);
           myChart.setCursorPosition(1);
-        } else {
+        }
+        else {
           createKeyFrame(displayedList.getSelectedIndex());
         }
       }
     };
     JBPopup popup =
       JBPopupFactory.getInstance()
-                    .createListPopupBuilder(displayedList)
-                    .setTitle("Create KeyFrame")
-                    .addListener(listener).createPopup();
+        .createListPopupBuilder(displayedList)
+        .setTitle("Create KeyFrame")
+        .addListener(listener).createPopup();
 
     JComponent component = ((JComponent)e.getSource());
 
@@ -182,18 +221,21 @@ class ViewList extends JPanel implements Gantt.ChartElement {
     MotionSceneModel model = v.mKeyFrames.myModel;
     int fpos = (int)(myChart.getTimeCursorMs() * 100 / myChart.myAnimationTotalTimeMs);
     if (fpos == 0) {
-       fpos = 1;
-    } else if (fpos == 100) {
+      fpos = 1;
+    }
+    else if (fpos == 100) {
       fpos = 99;
     }
     String type = (new String[]{KeyTypePosition, KeyTypeAttribute, KeyTypeCycle})[frameType];
 
-    v.mKeyFrames.myModel.createKeyFrame(type, fpos, name);
-    myChart.delayedSelectKeyFrame(type,name,fpos);
-
+    myChart.mySelectedKeyFrameTag = v.mKeyFrames.myModel.createKeyFrame(type, fpos, name);
+    myChart.mySelectedKeyView = name;
   }
 
   void treeSelection(TreeSelectionEvent e) {
+    if (myIgnoreTreeSelections) {
+      return;
+    }
     mySelectedView = null;
     if (e.getPath().getPath().length > 1) {
       mySelectedView = (ViewNode)(e.getPath().getPath()[1]);
@@ -201,6 +243,40 @@ class ViewList extends JPanel implements Gantt.ChartElement {
       myChart.update(Reason.SELECTION_CHANGED);
     }
     myAddPanel.doLayout();
+  }
+
+  public void handleSelection(@NotNull List<String> ids) {
+    myIgnoreTreeSelections = true;
+    try {
+      TreeSelectionModel model = myTree.getSelectionModel();
+      model.clearSelection();
+      for (String id : ids) {
+        ViewNode node = getViewNode(id);
+        if (node != null) {
+          model.addSelectionPath(TreePathUtil.convertArrayToTreePath(myRootNode, node));
+        }
+      }
+      myChart.mySelectedKeyView = ids.isEmpty() ? null : ids.get(0);
+      myChart.update(Reason.SELECTION_CHANGED);
+    }
+    finally {
+      myIgnoreTreeSelections = false;
+    }
+  }
+
+  @Nullable
+  private ViewNode getViewNode(@NotNull String id) {
+    for (int i = 0; i < myTree.getRowCount(); i++) {
+      TreePath path = myTree.getPathForRow(i);
+      Object last = path.getLastPathComponent();
+      if (last instanceof ViewNode) {
+        ViewNode node = (ViewNode)last;
+        if (id.equals(node.getViewElement().toString())) {
+          return node;
+        }
+      }
+    }
+    return null;
   }
 
   private void graph(Chart.GraphElements toGraph) {
@@ -265,7 +341,7 @@ class ViewList extends JPanel implements Gantt.ChartElement {
       myKeyList = keyList;
       myView = viewElement;
       myType = type;
-      String[] list = MotionSceneModel.getGraphAttributes(keyList);
+      AttrName[] list = MotionSceneModel.getGraphAttributes(keyList);
       Arrays.sort(list);
       switch (type) {
         case Position:
@@ -279,7 +355,7 @@ class ViewList extends JPanel implements Gantt.ChartElement {
           break;
       }
       for (int i = 0; i < list.length; i++) {
-        String name = list[i];
+        AttrName name = list[i];
         add(new GraphMode(MotionSceneModel.filterList(keyList, name), type, name));
       }
     }
@@ -289,8 +365,8 @@ class ViewList extends JPanel implements Gantt.ChartElement {
   static class GraphMode extends DefaultMutableTreeNode {
     ArrayList<MotionSceneModel.KeyFrame> myKeyList;
 
-    GraphMode(ArrayList<MotionSceneModel.KeyFrame> keyList, CategoryNode.Type type, String name) {
-      super(name);
+    GraphMode(ArrayList<MotionSceneModel.KeyFrame> keyList, CategoryNode.Type type, AttrName name) {
+      super(name.getName());
       myKeyList = keyList;
     }
   }
@@ -395,11 +471,15 @@ class ViewList extends JPanel implements Gantt.ChartElement {
 
   void reload() {
     myRootNode.removeAllChildren();
-    DefaultMutableTreeNode node = myRootNode;
     DefaultTreeModel model = (DefaultTreeModel)myTree.getModel();
 
     for (Gantt.ViewElement viewElement : myChart.myViewElements) {
-      myRootNode.add(node = new ViewNode(viewElement));
+
+      DefaultMutableTreeNode node = new ViewNode(viewElement);
+      myRootNode.add(node);
+      if (viewElement.mKeyFrames == null) {
+        continue;
+      }
       if (!viewElement.mKeyFrames.myKeyPositions.isEmpty()) {
         node.add(new CategoryNode(viewElement, viewElement.mKeyFrames.myKeyPositions, CategoryNode.Type.Position));
       }

@@ -50,6 +50,7 @@ import com.intellij.psi.impl.source.codeStyle.CodeEditUtil;
 import com.intellij.psi.impl.source.tree.ChangeUtil;
 import com.intellij.psi.impl.source.tree.TreeElement;
 import com.intellij.util.IncorrectOperationException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -375,7 +376,7 @@ public final class GroovyDslUtil {
         unsavedValueText = addQuotes(escapeString((String)unsavedValue, false), false);
       }
     }
-    else if (unsavedValue instanceof Integer || unsavedValue instanceof Boolean) {
+    else if (unsavedValue instanceof Integer || unsavedValue instanceof Boolean || unsavedValue instanceof BigDecimal) {
       unsavedValueText = unsavedValue.toString();
     }
     else if (unsavedValue instanceof RawText) {

@@ -23,9 +23,9 @@ import com.android.ide.common.symbols.SymbolJavaType
 import com.android.ide.common.symbols.SymbolTable
 import com.android.ide.common.symbols.canonicalizeValueResourceName
 import com.android.resources.ResourceType
-import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.roots.libraries.Library
+import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiManager
@@ -81,7 +81,7 @@ private class NamespacedAarInnerRClass(
       FieldModifier.NON_FINAL,
       { _, _ -> true},
       resourceType,
-      containingClass
+      this
     )
   }
 
@@ -155,7 +155,7 @@ private class NonNamespacedInnerRClass(
           map
         },
       resourceType,
-      containingClass,
+      this,
       FieldModifier.NON_FINAL
     )
   }

@@ -200,7 +200,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     int myWrapWidth;
     int myWrapHeight;
 
-    DimensionInfo(NlComponent component, ScoutWidget widget) {
+    public DimensionInfo(NlComponent component, ScoutWidget widget) {
       // Record the bounds for use by Scout
       myWidth = convert(component, ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH);
       myHeight = convert(component, ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT);
@@ -1217,7 +1217,12 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   public boolean isConnected(Direction direction, ScoutWidget to) {
     Anchor anchor = getAnchor(direction);
     if (anchor.isConnected()) {
-      return anchor.getTarget().getOwner() == to;
+      Anchor target = anchor.getTarget();
+      if (target == null) {
+        return false;
+      }
+
+      return target.getOwner() == to;
     }
     return false;
   }

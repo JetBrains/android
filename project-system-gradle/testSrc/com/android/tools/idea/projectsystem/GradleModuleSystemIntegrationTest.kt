@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.projectsystem
 
-import com.android.SdkConstants
+import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
+import com.android.SdkConstants.SUPPORT_LIB_GROUP_ID
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.projectsystem.gradle.CHECK_DIRECT_GRADLE_DEPENDENCIES
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB
 import com.google.common.truth.Truth.assertThat
+import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API as LATEST_API
 
 /**
  * Integration tests for [GradleModuleSystem]; contains tests that require a working gradle project.
@@ -34,10 +37,29 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     verifyProjectDependsOnWildcardAppCompat()
     val moduleSystem = myModules.appModule.getModuleSystem()
 
-    assertThat(isSameArtifact(
-      moduleSystem.getLatestCompatibleDependency("com.android.support", "appcompat-v7"),
-      GradleCoordinate("com.android.support", "appcompat-v7", "+")
-    )).isTrue()
+    val (found, missing, warning) = moduleSystem.analyzeDependencyCompatibility(
+      listOf(GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "+")))
+
+    assertThat(warning).isEmpty()
+    assertThat(missing).isEmpty()
+    assertThat(found).hasSize(1)
+
+    val foundDependency = found.first()
+    assertThat(foundDependency.artifactId).isEqualTo(APPCOMPAT_LIB_ARTIFACT_ID)
+    assertThat(foundDependency.groupId).isEqualTo(SUPPORT_LIB_GROUP_ID)
+    assertThat(foundDependency.version!!.major).isEqualTo(LATEST_API)
+
+    // TODO: b/129297171
+    @Suppress("ConstantConditionIf")
+    if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
+      // When we were checking the parsed gradle file we were able to detect a specified "+" in the version.
+      assertThat(foundDependency.version!!.minorSegment!!.text).isEqualTo("+")
+    }
+    else {
+      // Now that we are using the resolved gradle version we are no longer able to detect a "+" in the version.
+      assertThat(foundDependency.version!!.minor).isLessThan(Integer.MAX_VALUE)
+      assertThat(foundDependency.version!!.micro).isLessThan(Integer.MAX_VALUE)
+    }
   }
 
   @Throws(Exception::class)
@@ -45,7 +67,12 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     loadSimpleApplication()
     val moduleSystem = myModules.appModule.getModuleSystem()
 
-    assertThat(moduleSystem.getLatestCompatibleDependency("nonexistent", "dependency123")).isNull()
+    val (found, missing, warning) = moduleSystem.analyzeDependencyCompatibility(
+      listOf(GradleCoordinate("nonexistent", "dependency123", "+")))
+
+    assertThat(warning).isEmpty()
+    assertThat(missing).containsExactly(GradleCoordinate("nonexistent", "dependency123", "+"))
+    assertThat(found).isEmpty()
   }
 
   @Throws(Exception::class)
@@ -70,40 +97,48 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
 
     // Verify that getRegisteredDependency gets a existing dependency correctly.
     val appCompat = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
-    assertThat(moduleSystem.getRegisteredDependency(appCompat)).isNotNull()
-    assertThat(moduleSystem.getRegisteredDependency(appCompat)?.revision).isEqualTo("+")
+    val foundDependency = moduleSystem.getRegisteredDependency(appCompat)!!
+
+    assertThat(foundDependency.artifactId).isEqualTo(APPCOMPAT_LIB_ARTIFACT_ID)
+    assertThat(foundDependency.groupId).isEqualTo(SUPPORT_LIB_GROUP_ID)
+    assertThat(foundDependency.version!!.major).isEqualTo(LATEST_API)
+
+    // TODO: b/129297171
+    @Suppress("ConstantConditionIf")
+    if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
+      // When we were checking the parsed gradle file we were able to detect a specified "+" in the version.
+      assertThat(foundDependency.version!!.minorSegment!!.text).isEqualTo("+")
+    }
+    else {
+      // Now that we are using the resolved gradle version we are no longer able to detect a "+" in the version.
+      assertThat(foundDependency.version!!.minor).isLessThan(Integer.MAX_VALUE)
+      assertThat(foundDependency.version!!.micro).isLessThan(Integer.MAX_VALUE)
+    }
   }
 
   @Throws(Exception::class)
-  fun testGetRegisteredMatchingDependencies() {
-    loadSimpleApplication()
+  fun testGetRegisteredDependencies() {
+    loadProject(SIMPLE_APP_WITH_OLDER_SUPPORT_LIB)
     val moduleSystem = myModules.appModule.getModuleSystem()
-    val dependencyManager = GradleDependencyManager.getInstance(project)
-    val dummyDependency = GradleCoordinate("a", "b", "4.5.6")
+    val appCompat = GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "25.4.0")
 
-    // Setup: Ensure the above dummy dependency is present in the build.gradle file.
-    assertThat(dependencyManager.addDependenciesWithoutSync(myModules.appModule, listOf(dummyDependency))).isTrue()
-    assertThat(dependencyManager.findMissingDependencies(myModules.appModule, listOf(dummyDependency))).isEmpty()
+    // Matching Dependencies:
+    assertThat(isSameArtifact(moduleSystem.getRegisteredDependency(
+      GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "25.4.0")), appCompat)).isTrue()
+    assertThat(isSameArtifact(moduleSystem.getRegisteredDependency(
+      GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "25.4.+")), appCompat)).isTrue()
+    assertThat(isSameArtifact(moduleSystem.getRegisteredDependency(
+      GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "25.+")), appCompat)).isTrue()
+    assertThat(isSameArtifact(moduleSystem.getRegisteredDependency(
+      GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "+")), appCompat)).isTrue()
 
-    assertThat(isSameArtifact(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "b", "4.5.6")), dummyDependency)).isTrue()
-    assertThat(isSameArtifact(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "b", "4.5.+")), dummyDependency)).isTrue()
-    assertThat(isSameArtifact(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "b", "+")), dummyDependency)).isTrue()
-  }
-
-  @Throws(Exception::class)
-  fun testGetRegisteredNonMatchingDependencies() {
-    loadSimpleApplication()
-    val moduleSystem = myModules.appModule.getModuleSystem()
-    val dependencyManager = GradleDependencyManager.getInstance(project)
-    val dummyDependency = GradleCoordinate("a", "b", "4.5.6")
-
-    // Setup: Ensure the above dummy dependency is present in the build.gradle file.
-    assertThat(dependencyManager.addDependenciesWithoutSync(myModules.appModule, listOf(dummyDependency))).isTrue()
-    assertThat(dependencyManager.findMissingDependencies(myModules.appModule, listOf(dummyDependency))).isEmpty()
-
-    assertThat(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "b", "4.5.7"))).isNull()
-    assertThat(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "b", "4.99.+"))).isNull()
-    assertThat(moduleSystem.getRegisteredDependency(GradleCoordinate("a", "BAD", "4.5.6"))).isNull()
+    // Non Matching Dependencies:
+    assertThat(moduleSystem.getRegisteredDependency(
+      GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "25.0.99"))).isNull()
+    assertThat(moduleSystem.getRegisteredDependency(
+      GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "4.99.+"))).isNull()
+    assertThat(moduleSystem.getRegisteredDependency(
+      GradleCoordinate(SUPPORT_LIB_GROUP_ID, "BAD", "25.4.0"))).isNull()
   }
 
   @Throws(Exception::class)
@@ -112,10 +147,10 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     verifyProjectDependsOnWildcardAppCompat()
     val moduleSystem = myModules.appModule.getModuleSystem()
 
-    // Verify that app-compat is on version 27.1.1 so the checks below make sense.
-    assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))!!.revision).isEqualTo("27.1.1")
+    // Verify that app-compat is on version 28.0.0 so the checks below make sense.
+    assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))!!.revision).isEqualTo("28.0.0")
 
-    val appCompatDependency = GradleCoordinate("com.android.support", "appcompat-v7", "27.+")
+    val appCompatDependency = GradleCoordinate("com.android.support", "appcompat-v7", "$LATEST_API.+")
     val wildcardVersionResolution = moduleSystem.getResolvedDependency(appCompatDependency)
     assertThat(wildcardVersionResolution).isNotNull()
     assertThat(wildcardVersionResolution!!.matches(appCompatDependency)).isTrue()
@@ -127,8 +162,8 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     verifyProjectDependsOnWildcardAppCompat()
     val moduleSystem = myModules.appModule.getModuleSystem()
 
-    // Verify that app-compat is on version 27.1.1 so the checks below make sense.
-    assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))!!.revision).isEqualTo("27.1.1")
+    // Verify that app-compat is on version 28.0.0 so the checks below make sense.
+    assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))!!.revision).isEqualTo("28.0.0")
 
     assertThat(moduleSystem.getResolvedDependency(GradleCoordinate("com.android.support", "appcompat-v7", "26.+"))).isNull()
     assertThat(moduleSystem.getResolvedDependency(GradleCoordinate("com.android.support", "appcompat-v7", "99.9.0"))).isNull()
@@ -155,59 +190,6 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
       GradleCoordinate("com.google.guava", "guava", "+"))).isNotNull()
   }
 
-  @Throws(Exception::class)
-  fun testAddSupportDependencyWithMatchInSubModule() {
-    // In this module app -> library2 -> library1
-    loadProject(TestProjectPaths.TRANSITIVE_DEPENDENCIES)
-
-    // First verify that there is no support library in the app module:
-    val dependency = ProjectBuildModel.get(project).getModuleBuildModel(myModules.appModule)?.dependencies()?.artifacts()
-      ?.firstOrNull { it.group().forceString() == SdkConstants.SUPPORT_LIB_GROUP_ID }
-    assertThat(dependency).isNull()
-
-    // Check that the version is picked up from one of the sub modules
-    val coord = myModules.appModule.getModuleSystem().getLatestCompatibleDependency(SdkConstants.SUPPORT_LIB_GROUP_ID, "recyclerview-v7")
-    assertThat(coord!!.id).isEqualTo(SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT)
-    assertThat(coord.version.toString()).isEqualTo("+")
-
-    checkFindInReverseDependency()
-  }
-
-  // Note this could be a separate test.
-  // It is called from [testDependencyInMultiProject] to save time since these tests are slow.
-  @Throws(Exception::class)
-  private fun checkFindInReverseDependency() {
-    // In this module app -> library2 -> library1
-
-    // First verify that there is no gson library in library1:
-    val groupId = "com.google.code.gson"
-    val dependency = ProjectBuildModel.get(project).getModuleBuildModel(myModules.getModule("library1"))?.dependencies()?.artifacts()
-      ?.firstOrNull { it.group().forceString() == groupId }
-    assertThat(dependency).isNull()
-
-    // Check that the version is picked up from the parent module:
-    val gradleModuleSystem = myModules.getModule("library1").getModuleSystem() as GradleModuleSystem
-    val version = gradleModuleSystem.findVersionOfExistingGroupDependency(groupId)
-    assertThat(version.toString()).isEqualTo("2.2.4")
-  }
-
-  @Throws(Exception::class)
-  fun testDependencyInMultiProject() {
-    // There are 3 independent modules in this project: module1, module2, module3
-    loadProject(TestProjectPaths.SYNC_MULTIPROJECT)
-
-    // First verify that there is a guava library in module3:
-    val groupId = "com.google.guava"
-    val dependency = ProjectBuildModel.get(project).getModuleBuildModel(myModules.getModule("module3"))?.dependencies()?.artifacts()
-      ?.firstOrNull { it.group().forceString() == groupId }
-    assertThat(dependency).isNotNull()
-
-    // Check that the version is not picked up from module3 when testing module2:
-    val gradleModuleSystem = myModules.getModule("module2").getModuleSystem() as GradleModuleSystem
-    val version = gradleModuleSystem.findVersionOfExistingGroupDependency(groupId)
-    assertThat(version).isNull()
-  }
-
   private fun isSameArtifact(first: GradleCoordinate?, second: GradleCoordinate?) =
     GradleCoordinate.COMPARE_PLUS_LOWER.compare(first, second) == 0
 
@@ -221,7 +203,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
         ?.find { "${it.group()}:${it.name().forceString()}" == GoogleMavenArtifactId.APP_COMPAT_V7.toString() }
 
     assertThat(appCompatArtifact).isNotNull()
-    assertThat(appCompatArtifact!!.version().toString()).isEqualTo("+")
+    assertThat(appCompatArtifact!!.version().toString()).isEqualTo("$LATEST_API.+")
   }
 
   private fun verifyProjectDependsOnGuava() {

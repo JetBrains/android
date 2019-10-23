@@ -68,7 +68,7 @@ public class AddAppCompatLibTest {
    *   The line "implementation 'com.android.support:appcompat-v7:xxx'" will be added under Dependencies section in the module build.gradle file.
    * </pre>
    */
-  @RunIn(TestGroup.FAT)
+  @RunIn(TestGroup.FAT_BAZEL)
   @Test
   public void addAppCompatLib() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProject("NoAppCompatLibApp");

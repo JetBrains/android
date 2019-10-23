@@ -24,6 +24,7 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -536,11 +537,11 @@ public final class ConstraintComponentUtilities {
     return false;
   }
 
-  private static boolean hasHorizontalConstraints(NlComponent component) {
+  public static boolean hasHorizontalConstraints(NlComponent component) {
     return hasConstraints(component, SHERPA_URI, ourHorizontalAttributes);
   }
 
-  private static boolean hasVerticalConstraints(NlComponent component) {
+  public static boolean hasVerticalConstraints(NlComponent component) {
     return hasConstraints(component, SHERPA_URI, ourVerticalAttributes);
   }
 
@@ -692,6 +693,55 @@ public final class ConstraintComponentUtilities {
     }
   }
 
+  /**
+   * Clear the currently selected constraint on the design surface. Removes from XML as well.
+   *
+   * @return Whether it deleted a constraint or not.
+   */
+  public static boolean clearSelectedConstraint(@NotNull DesignSurface surface) {
+    // TODO: Move uses to a more common place for deletion.
+    SelectionModel selectionModel = surface.getSelectionModel();
+    Object secondarySelection = selectionModel.getSecondarySelection();
+    Scene scene = surface.getScene();
+    if (secondarySelection instanceof SecondarySelector.Constraint && scene != null) {
+      SecondarySelector.Constraint constraint = (SecondarySelector.Constraint) secondarySelection;
+      AnchorTarget.Type type = null;
+      switch (constraint) {
+        case LEFT:
+          type = AnchorTarget.Type.LEFT;
+          break;
+        case TOP:
+          type = AnchorTarget.Type.TOP;
+          break;
+        case RIGHT:
+          type = AnchorTarget.Type.RIGHT;
+          break;
+        case BOTTOM:
+          type = AnchorTarget.Type.BOTTOM;
+          break;
+        case BASELINE:
+          type = AnchorTarget.Type.BASELINE;
+          break;
+      }
+      SceneComponent component = scene.getSceneComponent(selectionModel.getPrimary());
+      if (component == null) {
+        return false;
+      }
+      ConstraintAnchorTarget selectedTarget = (ConstraintAnchorTarget) AnchorTarget.findAnchorTarget(component, type);
+      if (selectedTarget != null) {
+        NlComponent nlComponent = component.getNlComponent();
+        ComponentModification modification = new ComponentModification(nlComponent, "Constraint Disconnected");
+        clearAnchor(type, modification, component.useRtlAttributes(), scene.isInRTL());
+        cleanup(modification, nlComponent);
+        modification.commit();
+        scene.needsLayout(Scene.ANIMATED_LAYOUT);
+        selectionModel.clearSecondary();
+        return true;
+      }
+    }
+    return false;
+  }
+
   private static void clearAllAttributes(NlComponent component, NlAttributesHolder transaction) {
     if (isWidthConstrained(component) && isHorizontalResizable(component)) {
       String fixedWidth = String.format(VALUE_N_DP, getDpWidth(component));
@@ -800,7 +850,7 @@ public final class ConstraintComponentUtilities {
     GoogleMavenArtifactId artifact = StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get() ?
                                      GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
                                      GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
-    GradleVersion v = editor.getDependencyManager().getModuleDependencyVersion(artifact, editor.getModel().getFacet());
+    GradleVersion v = NlDependencyManager.getInstance().getModuleDependencyVersion(artifact, editor.getModel().getFacet());
     return (versionGreaterThan(v, major,
                                (version.length > 0) ? version[0] : -1,
                                (version.length > 1) ? version[1] : -1, 0, 0));
@@ -1390,13 +1440,13 @@ public final class ConstraintComponentUtilities {
   public static int getMargin(@NotNull NlComponent component, String margin_attr) {
     int margin = 0;
 
-    String marginString = component.getLiveAttribute(NS_RESOURCES, margin_attr);
+    String marginString = component.getLiveAttribute(ANDROID_URI, margin_attr);
     if (marginString == null) {
       if (ATTR_LAYOUT_MARGIN_LEFT.equalsIgnoreCase(margin_attr)) { // left check if it is start
-        marginString = component.getLiveAttribute(NS_RESOURCES, ATTR_LAYOUT_MARGIN_START);
+        marginString = component.getLiveAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_START);
       }
       else { // right check if it is end
-        marginString = component.getLiveAttribute(NS_RESOURCES, ATTR_LAYOUT_MARGIN_END);
+        marginString = component.getLiveAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_END);
       }
     }
     if (marginString != null) {
@@ -1463,7 +1513,7 @@ public final class ConstraintComponentUtilities {
 
   public static boolean isConstraintLayout(@NotNull NlComponent component) {
     return NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT)
-           || CONSTRAINT_LAYOUT.isEquals(component.getTag().getName()); // used during layout conversion
+           || CONSTRAINT_LAYOUT.isEquals(component.getTagDeprecated().getName()); // used during layout conversion
   }
 
   // ordered the same as Direction enum
@@ -1564,7 +1614,7 @@ public final class ConstraintComponentUtilities {
    * @param sourceDirection direction of chain link
    * @param target          target target to link to
    * @param targetDirection direction of target link
-   * @param attrList        additional attributes to add during transaction
+   * @param attrList        fadingValue attributes to add during transaction
    */
   public static void scoutChainConnect(NlComponent source, Direction sourceDirection, NlComponent target, Direction targetDirection,
                                        ArrayList<String[]> attrList) {
@@ -1619,7 +1669,7 @@ public final class ConstraintComponentUtilities {
   }
 
   public static boolean wouldCreateLoop(NlComponent source, Direction sourceDirection, NlComponent target) {
-    HashSet<String> connected;
+    HashSet<NlComponent> connected;
     if (source.getParent() == null) {
       return true;
     }
@@ -1627,16 +1677,19 @@ public final class ConstraintComponentUtilities {
     switch (sourceDirection) {
       case TOP:
       case BOTTOM:
-        connected = getConnected(source, sisters, ourBottomAttributes, ourTopAttributes, ourBaselineAttributes);
-        return connected.contains(target.getId());
+        connected =
+          DecoratorUtilities.getConnectedNlComponents(source, sisters, ourBottomAttributes, ourTopAttributes, ourBaselineAttributes);
+        return connected.contains(target);
       case RIGHT:
       case LEFT:
-        connected = getConnected(source, sisters, ourRightAttributes, ourLeftAttributes, ourStartAttributes, ourEndAttributes);
-        return connected.contains(target.getId());
+        connected = DecoratorUtilities
+          .getConnectedNlComponents(source, sisters, ourRightAttributes, ourLeftAttributes, ourStartAttributes, ourEndAttributes);
+        return connected.contains(target);
 
       case BASELINE:
-        connected = getConnected(source, sisters, ourBottomAttributes, ourTopAttributes, ourBaselineAttributes);
-        return connected.contains(target.getId());
+        connected =
+          DecoratorUtilities.getConnectedNlComponents(source, sisters, ourBottomAttributes, ourTopAttributes, ourBaselineAttributes);
+        return connected.contains(target);
     }
     return false;
   }

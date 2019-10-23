@@ -15,21 +15,29 @@
  */
 package com.android.tools.idea.gradle.notification;
 
+import static com.intellij.util.ThreeState.YES;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.IndexingSensitiveNotificationPanel;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.NotificationPanel.Type;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
+import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.mock.MockDumbService;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
-
-import static com.intellij.util.ThreeState.YES;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link ProjectSyncStatusNotificationProvider}.
@@ -40,6 +48,9 @@ public class ProjectSyncStatusNotificationProviderTest extends JavaProjectTestCa
   @Mock private GradleSyncSummary mySyncSummary;
 
   private ProjectSyncStatusNotificationProvider myNotificationProvider;
+  private VirtualFile myFile;
+  @SuppressWarnings("FieldCanBeLocal")
+  private PropertiesComponent myPropertiesComponent;
 
   @Override
   protected void setUp() throws Exception {
@@ -51,52 +62,92 @@ public class ProjectSyncStatusNotificationProviderTest extends JavaProjectTestCa
     when(myProjectInfo.isBuildWithGradle()).thenReturn(true);
     when(mySyncState.areSyncNotificationsEnabled()).thenReturn(true);
 
-    myNotificationProvider = new ProjectSyncStatusNotificationProvider();
+    myNotificationProvider = new ProjectSyncStatusNotificationProvider(myProjectInfo, mySyncState);
+    myFile = VfsUtil.findFileByIoFile(createTempFile("build.gradle", "whatever"), true);
+
+    myPropertiesComponent = new PropertiesComponentMock();
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), PropertiesComponent.class, myPropertiesComponent, getTestRootDisposable());
   }
 
   public void testNotificationPanelTypeWithProjectNotBuiltWithGradle() {
     when(myProjectInfo.isBuildWithGradle()).thenReturn(false);
 
-    Type type = myNotificationProvider.notificationPanelType(mySyncState);
+    Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.NONE, type);
+    assertNull(createPanel(type));
   }
 
   public void testNotificationPanelTypeWithSyncNotificationsDisabled() {
     when(mySyncState.areSyncNotificationsEnabled()).thenReturn(false);
+    PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
 
-    Type type = myNotificationProvider.notificationPanelType(mySyncState);
+    Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.NONE, type);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
+    // Since Project Structure notification isn't really a sync notification, we will show it here if the flag is enabled.
+    if (ProjectStructureConfigurable.isNewPsdEnabled()) {
+      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
+    }
+    else {
+      assertNull(panel);
+    }
   }
 
   public void testNotificationPanelTypeWithSyncInProgress() {
     when(mySyncState.isSyncInProgress()).thenReturn(true);
 
-    Type type = myNotificationProvider.notificationPanelType(mySyncState);
+    Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.IN_PROGRESS, type);
   }
 
   public void testNotificationPanelTypeWithLastSyncFailed() {
     when(mySyncState.lastSyncFailed()).thenReturn(true);
 
-    Type type = myNotificationProvider.notificationPanelType(mySyncState);
+    Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.FAILED, type);
-    assertInstanceOf(type.create(myProject), IndexingSensitiveNotificationPanel.class);
+    assertInstanceOf(createPanel(type), IndexingSensitiveNotificationPanel.class);
   }
 
   public void testNotificationPanelTypeWithSyncErrors() {
     when(mySyncSummary.hasSyncErrors()).thenReturn(true);
+    PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
 
-    Type type = myNotificationProvider.notificationPanelType(mySyncState);
+    Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.NONE, type);
-    assertNull(type.create(myProject));
+
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
+    if (ProjectStructureConfigurable.isNewPsdEnabled()) {
+      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
+    }
+    else {
+      assertNull(panel);
+    }
+
+    // The reshow timeout should always be too large comparing to the potential time difference between statements below,
+    // e.g. dozens of days.
+    PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP",
+                                               Long.toString(System.currentTimeMillis()));
+    type = myNotificationProvider.notificationPanelType();
+    assertEquals(Type.NONE, type);
+    assertNull(createPanel(type));
   }
 
   public void testNotificationPanelTypeWithSyncNeeded() {
     when(mySyncState.isSyncNeeded()).thenReturn(YES);
 
-    Type type = myNotificationProvider.notificationPanelType(mySyncState);
+    Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.SYNC_NEEDED, type);
-    assertInstanceOf(type.create(myProject), IndexingSensitiveNotificationPanel.class);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
+    assertInstanceOf(panel, IndexingSensitiveNotificationPanel.class);
+  }
+
+  private ProjectSyncStatusNotificationProvider.NotificationPanel createPanel(Type type) {
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = type.create(myProject, myFile, myProjectInfo);
+    // Disposing logic similar to the ProjectSyncStatusNotificationProvider.createNotificationPanel method.
+    if (panel instanceof Disposable) {
+      Disposer.register(getTestRootDisposable(), (Disposable)panel);
+    }
+    return panel;
   }
 
   public void testIndexingSensitiveNotificationPanel() {
@@ -104,12 +155,14 @@ public class ProjectSyncStatusNotificationProviderTest extends JavaProjectTestCa
 
     dumbService.setDumb(true);
     IndexingSensitiveNotificationPanel initiallyInvisibleNotificationPanel =
-      new IndexingSensitiveNotificationPanel(myProject, Type.SYNC_NEEDED, "Test", dumbService);
+        new IndexingSensitiveNotificationPanel(myProject, Type.SYNC_NEEDED, "Test", dumbService);
+    Disposer.register(getTestRootDisposable(), initiallyInvisibleNotificationPanel);
     assertFalse(initiallyInvisibleNotificationPanel.isVisible());
 
     dumbService.setDumb(false);
     IndexingSensitiveNotificationPanel notificationPanel =
-      new IndexingSensitiveNotificationPanel(myProject, Type.SYNC_NEEDED, "Test", dumbService);
+        new IndexingSensitiveNotificationPanel(myProject, Type.SYNC_NEEDED, "Test", dumbService);
+    Disposer.register(getTestRootDisposable(), notificationPanel);
     assertTrue(notificationPanel.isVisible());
 
     dumbService.setDumb(true);

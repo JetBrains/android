@@ -15,55 +15,63 @@
  */
 package com.android.tools.idea.res
 
+import com.android.annotations.concurrency.Slow
+import com.android.ide.common.util.PathString
+import com.android.projectmodel.ExternalLibrary
+import com.android.projectmodel.RecursiveResourceFolder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.res.aar.AarResourceRepositoryCache
+import com.android.tools.idea.resources.aar.AarResourceRepository
 import com.android.tools.idea.util.androidFacet
 import org.jetbrains.android.facet.AndroidFacet
-import java.io.File
 
 class TestAppResourceRepository private constructor(
   facet: AndroidFacet,
-  subRepositories: List<LocalResourceRepository>
+  localResources: List<LocalResourceRepository>,
+  libraryResources: Collection<AarResourceRepository>
 ) : MultiResourceRepository(facet.module.name) {
 
   init {
-    children = subRepositories
+    setChildren(localResources, libraryResources)
   }
 
   companion object {
     @JvmStatic
+    @Slow
     fun create(
       facet: AndroidFacet,
       moduleTestResources: LocalResourceRepository,
       model: AndroidModuleModel
     ): TestAppResourceRepository {
       val project = facet.module.project
-      val subRepositories = mutableListOf(moduleTestResources)
+      val localRepositories = mutableListOf(moduleTestResources)
 
       val dependencies = model.selectedAndroidTestCompileDependencies
       if (dependencies != null) {
-        subRepositories.addAll(
+        localRepositories.addAll(
           dependencies.moduleDependencies.asSequence()
             .mapNotNull { it.projectPath }
             .mapNotNull { GradleUtil.findModuleByGradlePath(project, it) }
             .mapNotNull { it.androidFacet }
-            .map(ModuleResourceRepository::forMainResources)
-        )
-
-        val aarCache = AarResourceRepositoryCache.getInstance()
-        subRepositories.addAll(
-          dependencies.androidLibraries.asSequence()
-            .map { aarCache.getSourceRepository(File(it.resFolder), it.artifactAddress) }
+            .map { ResourceRepositoryManager.getModuleResources(it) }
         )
       }
+
+      val aarCache = AarResourceRepositoryCache.getInstance()
+      val libraryRepositories: Collection<AarResourceRepository> = dependencies?.androidLibraries.orEmpty().asSequence()
+        .map {
+          aarCache.getSourceRepository(
+            ExternalLibrary(address = it.artifactAddress,
+                            resFolder = RecursiveResourceFolder(PathString(it.resFolder))))
+        }
+        .toList()
 
       if (facet.configuration.isLibraryProject) {
         // In library projects, there's only one APK when testing and the test R class contains all resources.
-        subRepositories += ResourceRepositoryManager.getAppResources(facet)
+        localRepositories += ResourceRepositoryManager.getAppResources(facet)
       }
 
-      return TestAppResourceRepository(facet, subRepositories)
+      return TestAppResourceRepository(facet, localRepositories, libraryRepositories)
     }
   }
 }

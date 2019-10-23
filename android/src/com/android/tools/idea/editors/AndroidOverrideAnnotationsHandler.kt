@@ -19,35 +19,65 @@ import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.generation.OverrideImplementsAnnotationsHandler
 import com.intellij.codeInsight.intention.AddAnnotationPsiFix
 import com.intellij.openapi.project.Project
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiNameValuePair
 
 class AndroidOverrideAnnotationsHandler : OverrideImplementsAnnotationsHandler {
-  override fun getAnnotations(project: Project): Array<String> {
+  @Suppress("OverridingDeprecatedMember")
+  override fun getAnnotations(project: Project?): Array<String> {
+    // This method is only here because it's a required member (deprecated but no default provided so won't compile without)
+    assert(false)
+    return emptyArray()
+  }
+
+  override fun getAnnotations(file: PsiFile): Array<String> {
     return arrayOf(
       "androidx.annotation.NonNull",
       "androidx.annotation.Nullable",
       "android.support.annotation.NonNull",
       "android.support.annotation.Nullable",
       "androidx.annotation.RecentlyNonNull",
-      "androidx.annotation.RecentlyNullable")
+      "androidx.annotation.RecentlyNullable",
+      "android.annotation.NonNull",
+      "android.annotation.Nullable")
   }
 
   override fun cleanup(source: PsiModifierListOwner, targetClass: PsiElement?, target: PsiModifierListOwner) {
     // Rename @RecentlyX annotations to @X
     rename(target, "androidx.annotation.RecentlyNullable", "androidx.annotation.Nullable")
     rename(target, "androidx.annotation.RecentlyNonNull", "androidx.annotation.NonNull")
+    // Also, android.annotation.X maps to androidx.annotation.X: the android.annotations are hidden
+    // but part of android.jar rather than the support library, though hidden from app developers
+    rename(target, "android.annotation.Nullable", "androidx.annotation.Nullable")
+    rename(target, "android.annotation.NonNull", "androidx.annotation.NonNull")
   }
 
+  /** Rename the given [old] annotation as the given [new] annotation */
   private fun rename(target: PsiModifierListOwner, old: String, new: String) {
     val modifierList = target.modifierList ?: return
 
     while (true) { // Loop to ensure we remove repeats which can happen with TYPE_USE annotations
-      val annotation = AnnotationUtil.findAnnotation(target, setOf(old), true)
-      if (annotation != null && !AnnotationUtil.isInferredAnnotation(annotation)) {
+      val annotation = AnnotationUtil.findAnnotation(target, setOf(old), true) ?: break
+      if (!AnnotationUtil.isInferredAnnotation(annotation)) {
         annotation.delete()
-        AddAnnotationPsiFix.addPhysicalAnnotation(new, PsiNameValuePair.EMPTY_ARRAY, modifierList)
+
+        // Make sure we have the annotations library available; if not, just delete the override
+        // to keep the code compilable. See b/124983840.
+        val psiFacade = JavaPsiFacade.getInstance(target.project)
+        val missing = psiFacade.findClass(new, target.resolveScope) == null
+        if (missing) {
+          // Using old android.support annotations instead?
+          val prev = new.replace("androidx.", "android.support.")
+          if (psiFacade.findClass(prev, target.resolveScope) != null) {
+            AddAnnotationPsiFix.addPhysicalAnnotation(prev, PsiNameValuePair.EMPTY_ARRAY, modifierList)
+          }
+        }
+        else {
+          AddAnnotationPsiFix.addPhysicalAnnotation(new, PsiNameValuePair.EMPTY_ARRAY, modifierList)
+        }
       }
       else {
         break

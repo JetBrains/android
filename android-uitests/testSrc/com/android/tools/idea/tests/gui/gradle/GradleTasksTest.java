@@ -16,8 +16,6 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
 import com.android.tools.idea.tests.util.NotMatchingPatternMatcher;
@@ -31,7 +29,6 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,10 +39,8 @@ import java.util.regex.Pattern;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static java.util.regex.Pattern.DOTALL;
-import static org.fest.swing.util.Strings.match;
 import static org.junit.Assert.assertTrue;
 
-@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRemoteRunner.class)
 public class GradleTasksTest {
 
@@ -63,7 +58,7 @@ public class GradleTasksTest {
 
     openProjectAndAddToGradleConfig("\n" +
                                     "\n" +
-                                    "task('hello') << {\n" +
+                                    "task('hello') {\n" +
                                     "    10.times {\n" +
                                     "        logger.lifecycle('output entry ' + it)\n" +
                                     "        Thread.sleep(1000)\n" +
@@ -88,7 +83,7 @@ public class GradleTasksTest {
     //   2. Start 'build' task once again (assuming that it takes some time for it to finish)
     //   3. Stop the task
     //   4. Ensure that the task is really finished
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
     guiTest.ideFrame().requestProjectSync();
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
@@ -102,7 +97,7 @@ public class GradleTasksTest {
   }
 
   private void openProjectAndAddToGradleConfig(@NotNull final String textToAdd) throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
     Module module = guiTest.ideFrame().getModule("app");
 
     // Add a long-running task and refresh the project.

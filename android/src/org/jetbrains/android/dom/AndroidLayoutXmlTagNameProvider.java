@@ -15,13 +15,19 @@
  */
 package org.jetbrains.android.dom;
 
+import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
+import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
+
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.completion.InsertHandler;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.completion.XmlTagInsertHandler;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.impl.source.xml.TagNameVariantCollector;
 import com.intellij.psi.meta.PsiPresentableMetaData;
 import com.intellij.psi.xml.XmlFile;
@@ -30,19 +36,15 @@ import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.XmlExtension;
 import com.intellij.xml.XmlTagNameProvider;
 import com.intellij.xml.util.XmlUtil;
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
-import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
-import static com.android.tools.lint.checks.AnnotationDetector.RESTRICT_TO_ANNOTATION;
+import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
+import org.jetbrains.android.facet.LayoutViewClassUtils;
+import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tag name provider that is supposed to work with Java-style fully-qualified names
@@ -93,7 +95,7 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
       LookupElementBuilder lookupElement =
         declaration == null ? LookupElementBuilder.create(qualifiedName) : LookupElementBuilder.create(declaration, qualifiedName);
 
-      if (isDeclarationRestricted(declaration)) {
+      if (declaration instanceof PsiClass && !LayoutViewClassUtils.isViewClassVisibleAsTag((PsiClass)declaration)) {
         continue;
       }
 
@@ -167,22 +169,5 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
     }
 
     return modifierList.hasAnnotation("java.lang.Deprecated");
-  }
-
-  private static boolean isDeclarationRestricted(@Nullable PsiElement declaration) {
-    if (!(declaration instanceof PsiClass)) {
-      return false;
-    }
-
-    final PsiClass aClass = (PsiClass)declaration;
-    final PsiModifierList modifierList = aClass.getModifierList();
-    if (modifierList == null) {
-      return false;
-    }
-
-    if (!modifierList.hasModifierProperty(PsiModifier.PUBLIC)) {
-      return true;
-    }
-    return modifierList.findAnnotation(RESTRICT_TO_ANNOTATION.oldName()) != null || modifierList.findAnnotation(RESTRICT_TO_ANNOTATION.newName()) != null;
   }
 }

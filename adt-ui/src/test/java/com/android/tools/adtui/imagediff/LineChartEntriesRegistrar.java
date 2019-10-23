@@ -33,7 +33,7 @@ import java.util.Map;
 
 class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
-  LineChartEntriesRegistrar() {
+  public LineChartEntriesRegistrar() {
     registerStackedLineChart();
     registerStackedLineChartWithNonZeroMinValue();
     registerSimpleLineChart();

@@ -102,7 +102,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
   private static final class PrepareAction implements Computable<ProcessingItem[]> {
     private final CompileContext myContext;
 
-    PrepareAction(CompileContext context) {
+    public PrepareAction(CompileContext context) {
       myContext = context;
     }
 
@@ -204,7 +204,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
     private final CompileContext myContext;
     private final ProcessingItem[] myItems;
 
-    ProcessAction(CompileContext context, ProcessingItem[] items) {
+    public ProcessAction(CompileContext context, ProcessingItem[] items) {
       myContext = context;
       myItems = items;
     }
@@ -259,7 +259,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
     final int myMaxHeapSize;
     final boolean myOptimize;
 
-    DexItem(@NotNull Module module,
+    public DexItem(@NotNull Module module,
                    @NotNull VirtualFile classDir,
                    @NotNull IAndroidTarget target,
                    Collection<VirtualFile> files,
@@ -293,14 +293,14 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
     private final int myMaxHeapSize;
     private final boolean myOptimize;
 
-    MyValidityState(@NotNull Collection<VirtualFile> files, @NotNull String additionalVmParams, int maxHeapSize, boolean optimize) {
+    public MyValidityState(@NotNull Collection<VirtualFile> files, @NotNull String additionalVmParams, int maxHeapSize, boolean optimize) {
       super(files);
       myAdditionalVmParams = additionalVmParams;
       myMaxHeapSize = maxHeapSize;
       myOptimize = optimize;
     }
 
-    MyValidityState(@NotNull DataInput in) throws IOException {
+    public MyValidityState(@NotNull DataInput in) throws IOException {
       super(in);
       myAdditionalVmParams = in.readUTF();
       myMaxHeapSize = in.readInt();

@@ -42,6 +42,7 @@ public enum ContentType {
   DEFAULT;
 
   private static final ImmutableSet<ContentType> IMAGE_TYPES = ImmutableSet.of(BMP, GIF, JPEG, JPG, PNG, WEBP);
+  private static final ImmutableSet<ContentType> TEXT_TYPES = ImmutableSet.of(CSV, HTML, JSON, XML);
   private static final Map<ContentType, FileType> FILE_TYPE_MAP = new ImmutableMap.Builder<ContentType, FileType>()
     .put(CSV, FileTypeManager.getInstance().getStdFileType("CSV"))
     .put(HTML, StdFileTypes.HTML)
@@ -49,7 +50,29 @@ public enum ContentType {
     .put(XML, StdFileTypes.XML)
     .build();
 
-  public boolean isImageType() {
+  private String myType = "";
+
+  /**
+   * @return the first part of the underlying MIME type.
+   */
+  @NotNull
+  public String getType() {
+    return myType;
+  }
+
+  private ContentType withType(@NotNull String type) {
+    myType = type;
+    return this;
+  }
+
+  /**
+   * @return true if its type is "text" or its subtype is a known text subtype.
+   */
+  public boolean isSupportedTextType() {
+    return "text".equalsIgnoreCase(getType()) || TEXT_TYPES.contains(this);
+  }
+
+  public boolean isSupportedImageType() {
     return IMAGE_TYPES.contains(this);
   }
 
@@ -62,26 +85,26 @@ public enum ContentType {
   }
 
   @NotNull
-  public static ContentType get(@NotNull String type) {
+  private static ContentType get(@NotNull String type, @NotNull String subtype) {
     for (ContentType contentType : ContentType.values()) {
-      if (type.equalsIgnoreCase(contentType.name())) {
-        return contentType;
+      if (subtype.equalsIgnoreCase(contentType.name())) {
+        return contentType.withType(type);
       }
     }
-    return DEFAULT;
+    return DEFAULT.withType(type);
   }
 
   @NotNull
   public static ContentType fromMimeType(@NotNull String mimeType) {
     String[] typeAndSubType = mimeType.split("/", 2);
     if (typeAndSubType.length < 2) {
-      return DEFAULT;
+      return typeAndSubType.length == 1 ? DEFAULT.withType(typeAndSubType[0]) : DEFAULT;
     }
 
     String[] subTypeAndSuffix = typeAndSubType[1].split("\\+", 2);
     // Without suffix: json, xml, html, etc.
     // With suffix: vnd.api+json, svg+xml, etc.
     // See also: https://en.wikipedia.org/wiki/Media_type#Suffix
-    return get(subTypeAndSuffix[subTypeAndSuffix.length - 1]);
+    return get(typeAndSubType[0], subTypeAndSuffix[subTypeAndSuffix.length - 1]);
   }
 }

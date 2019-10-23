@@ -34,6 +34,7 @@ import static com.android.tools.idea.templates.parse.SaxUtils.getPath;
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
@@ -63,6 +64,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -361,6 +363,8 @@ public class Template {
         return TemplateRenderer.ANDROID_INSTANT_APP_MODULE;
       case "Dynamic Feature (Instant App)":
         return TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE;
+      case "Benchmark Module":
+        return TemplateRenderer.BENCHMARK_LIBRARY_MODULE;
       default:
         return TemplateRenderer.CUSTOM_TEMPLATE_RENDERER;
     }
@@ -392,6 +396,7 @@ public class Template {
     TemplateMetadata metadata = getMetadata();
     assert metadata != null;
 
+    context.getParamMap().put(TemplateMetadata.ATTR_USE_NAV_CONTROLLER, StudioFlags.NPW_USE_NAV_CONTROLLER.get());
     enforceParameterTypes(metadata, context.getParamMap());
 
     try {
@@ -447,7 +452,7 @@ public class Template {
     if (warningCount > MAX_WARNINGS + 1) {  // +1 such that the message can say "warnings" in plural...
       // Guard against too many warnings (the dialog may become larger than the screen size)
       messages = messages.subList(0, MAX_WARNINGS);
-      messages.add(String.format("And %1$d more warnings...", warningCount - MAX_WARNINGS));
+      messages.add(String.format(Locale.US, "And %1$d more warnings...", warningCount - MAX_WARNINGS));
     }
     messages.add("\nIf you proceed the resulting project may not compile or not work as intended.");
     return Joiner.on("\n\n").join(messages);

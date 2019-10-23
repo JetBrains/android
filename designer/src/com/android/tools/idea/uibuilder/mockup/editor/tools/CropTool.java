@@ -125,14 +125,14 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
    */
   private void setCropActionsEnabled(boolean enabled) {
     myMatchComponentRatioAction.getTemplatePresentation().setEnabled(enabled);
-    setSelected(false);
+    myMatchComponentRatioAction.setSelected(null, false);
   }
 
   /**
    * ToggleButton to toggle the crop mode
    */
   private class ToggleCrop extends ToggleAction {
-    ToggleCrop() {
+    public ToggleCrop() {
       // TODO: add new Icons to StudioIcons and replace this.
       getTemplatePresentation().setIcon(AndroidIcons.Mockup.Crop);
     }
@@ -161,7 +161,7 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
 
     public static final String TITLE = "Match component ratio";
 
-    MatchComponentRatio() {
+    public MatchComponentRatio() {
       // TODO: add new Icons to StudioIcons and replace this.
       super(TITLE, TITLE, AndroidIcons.Mockup.MatchWidget);
     }
@@ -179,21 +179,17 @@ public class CropTool extends JPanel implements MockupEditor.Tool {
 
     @Override
     public void setSelected(@NotNull AnActionEvent e, boolean state) {
-      CropTool.this.setSelected(state);
-    }
-  }
-
-  void setSelected(boolean state) {
-    if (myMockup == null) {
-      return;
-    }
-    NlComponent component = myMockup.getComponent();
-    SelectionLayer selectionLayer = myMockupViewPanel.getSelectionLayer();
-    selectionLayer.setFixedRatio(state);
-    if (state) {
-      // Set the aspect ratio of the current selection to the same as the component
-      selectionLayer.setAspectRatio(NlComponentHelperKt.getW(component), NlComponentHelperKt.getH(component));
-      saveSelectionToMockup(selectionLayer.getSelection(), myMockup);
+      if (myMockup == null) {
+        return;
+      }
+      NlComponent component = myMockup.getComponent();
+      SelectionLayer selectionLayer = myMockupViewPanel.getSelectionLayer();
+      selectionLayer.setFixedRatio(state);
+      if (state) {
+        // Set the aspect ratio of the current selection to the same as the component
+        selectionLayer.setAspectRatio(NlComponentHelperKt.getW(component), NlComponentHelperKt.getH(component));
+        saveSelectionToMockup(selectionLayer.getSelection(), myMockup);
+      }
     }
   }
 

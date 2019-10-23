@@ -21,7 +21,6 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +39,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
   }
 
   @Test
-  public void exerciseRealWorldExamples() throws IOException {
+  public void exerciseRealWorldExamples() {
     int i = 0;
     for (List<String> includes : RealWorldExamples.getConcreteCompilerIncludeFlags(PATH_TO_NDK) ) {
       IncludeSet set = new IncludeSet();
@@ -55,7 +54,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
   }
 
   @Test
-  public void testRenderscriptExample() throws IOException {
+  public void testRenderscriptExample() {
     List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
       PATH_TO_NDK,
       RealWorldExamples.RENDERSCRIPT_EXAMPLE);
@@ -65,7 +64,6 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
-    System.out.printf(result);
     assertThat(dependencies).hasSize(2);
     assertContainsInOrder(result,
       "NDK Components (/path/to/ndk-bundle)",
@@ -73,7 +71,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
   }
 
   @Test
-  public void twoIncludesSameName() throws IOException {
+  public void twoIncludesSameName() {
     List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
       PATH_TO_NDK,
       RealWorldExamples.TWO_INCLUDES_SAME_BASE_NAME);
@@ -83,7 +81,6 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
-    System.out.printf(result);
     assertThat(dependencies).hasSize(1);
     assertThat(result).contains("Shadow Group\n" +
                                        "        include (Include Folders, /project/include, /)\n" +
@@ -91,7 +88,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
   }
 
   @Test
-  public void twoWindowsIncludesSameName() throws IOException {
+  public void twoWindowsIncludesSameName() {
     List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
       PATH_TO_NDK,
       RealWorldExamples.TWO_WINDOWS_INCLUDES_SAME_BASE_NAME);
@@ -101,7 +98,6 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
-    System.out.printf(result);
     assertThat(dependencies).hasSize(1);
     assertThat(result).contains("Shadow Group\n" +
                                        "        include (Include Folders, D:/project/include, /)\n" +
@@ -109,7 +105,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
   }
 
   @Test
-  public void twoWindowsIncludesSameNameDoubleSlashes() throws IOException {
+  public void twoWindowsIncludesSameNameDoubleSlashes() {
     List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
       PATH_TO_NDK,
       RealWorldExamples.TWO_WINDOWS_INCLUDES_SAME_BASE_NAME_DOUBLE_SLASHES);
@@ -119,7 +115,6 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
-    System.out.printf(result);
     assertThat(dependencies).hasSize(1);
     assertThat(result).contains("Shadow Group\n" +
                                        "        include (Include Folders, D:/project/include, /)\n" +
@@ -127,7 +122,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
   }
 
   @Test
-  public void twoIdenticalIncludes() throws IOException {
+  public void twoIdenticalIncludes() {
     List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
       PATH_TO_NDK,
       RealWorldExamples.TWO_IDENTICAL_INCLUDES);
@@ -137,13 +132,12 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
-    System.out.printf(result);
     assertThat(dependencies).hasSize(1);
     assertThat(result).contains("include (Include Folders, /project/include, /)");
   }
 
   @Test
-  public void testCDepExample() throws IOException {
+  public void testCDepExample() {
     List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
       PATH_TO_NDK,
       RealWorldExamples.CDEP_EXAMPLE);
@@ -153,7 +147,6 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
-    System.out.printf(result);
     assertThat(dependencies).hasSize(3);
     assertContainsInOrder(result,
                           "OpenCV (Third Party Packages, /usr/local/google/home/jomof, /third_party/OpenCV/include/)",
@@ -168,7 +161,26 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
   }
 
   @Test
-  public void testCocosExternalRoot() throws IOException {
+  public void testDolphinExample() {
+    List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
+      PATH_TO_NDK,
+      RealWorldExamples.DOLPHIN_EXAMPLE);
+    IncludeSet set = new IncludeSet();
+    set.addIncludesFromCompilerFlags(includes, ROOT_OF_RELATIVE_INCLUDE_PATHS);
+    List<? extends IncludeValue> dependencies = getRewrittenDependencies(set);
+    StringBuilder sb = new StringBuilder();
+    printDependencies(sb, dependencies, 0);
+    String result = sb.toString();
+    assertThat(dependencies).hasSize(3);
+    assertContainsInOrder(result,
+                          "NDK Components (/path/to/ndk-bundle)",
+                          "Externals (/a/b)",
+                          "    SFML (Externals, /a/b, /Externals/SFML/include/)",
+                          "    minizip (Externals, 2 include paths)");
+  }
+
+  @Test
+  public void testCocosExternalRoot() {
     List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
       PATH_TO_NDK,
       RealWorldExamples.COCOS_EXTERNAL_ROOT_EXAMPLE);
@@ -178,13 +190,12 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
-    System.out.printf(result);
     assertThat(dependencies).hasSize(1);
     assertThat(result).contains("external (Include Folders, /usr/local/google/home/jomof/projects/Game/cocos2d/external, /)");
   }
 
   @Test
-  public void testCocosEditorSupportRoot() throws IOException {
+  public void testCocosEditorSupportRoot() {
     List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
       PATH_TO_NDK,
       RealWorldExamples.COCOS_EDITOR_SUPPORT_ROOT_EXAMPLE);
@@ -194,13 +205,12 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
-    System.out.printf(result);
     assertThat(dependencies).hasSize(1);
     assertThat(result).contains("editor-support (Include Folders, /usr/local/google/home/jomof/projects/Game/cocos2d/cocos/editor-support, /)");
   }
 
   @Test
-  public void testCocosExternal() throws IOException {
+  public void testCocosExternal() {
     List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
       PATH_TO_NDK,
       RealWorldExamples.COCOS_EXTERNAL_EXAMPLE);
@@ -210,13 +220,12 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
-    System.out.printf(result);
     assertThat(dependencies).hasSize(1);
     assertThat(result).contains("xxhash (Cocos Third Party Packages, /usr/local/google/home/jomof/projects/Game/cocos2d, /external/xxhash/)");
   }
 
   @Test
-  public void testNdkSpecialPackagesExample() throws IOException {
+  public void testNdkSpecialPackagesExample() {
     List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
       PATH_TO_NDK,
       RealWorldExamples.NDK_SPECIAL_PACKAGES_EXAMPLE);
@@ -226,13 +235,12 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
-    System.out.printf(result);
     assertThat(dependencies).hasSize(2);
     assertContainsInOrder(result,
                           "jni (Include Folders, /path/to/ndk-bundle/samples/Teapot/jni, /)",
                           "NDK Components (/path/to/ndk-bundle)",
                           "    CPU Features (NDK Components, /path/to/ndk-bundle, /sources/android/cpufeatures/)",
-                          "    NDK Helper (NDK Components, /path/to/ndk-bundle, /sources/android/ndk_helper/)",
+                          "    Helper (NDK Components, /path/to/ndk-bundle, /sources/android/ndk_helper/)",
                           "    Native App Glue (NDK Components, /path/to/ndk-bundle, /sources/android/native_app_glue/)",
                           "    android-21 (NDK Components, /path/to/ndk-bundle, /platforms/android-21/arch-arm64/usr/include/)",
                           "    gabi++ (NDK Components, /path/to/ndk-bundle, /sources/cxx-stl/gabi++/include/)",
@@ -240,7 +248,64 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
   }
 
   @Test
-  public void testMiniCocosExample() throws IOException {
+  public void testNdkSxsExample() {
+    List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
+      PATH_TO_NDK,
+      RealWorldExamples.NDK_R19_SXS_EXAMPLE);
+    IncludeSet set = new IncludeSet();
+    set.addIncludesFromCompilerFlags(includes, ROOT_OF_RELATIVE_INCLUDE_PATHS);
+    List<? extends IncludeValue> dependencies = getRewrittenDependencies(set);
+    StringBuilder sb = new StringBuilder();
+    printDependencies(sb, dependencies, 0);
+    String result = sb.toString();
+    System.out.println(result);
+    assertThat(dependencies).hasSize(1);
+    assertContainsInOrder(result,
+                          "NDK r19c (/usr/local/google/home/jomof/Android/Sdk/ndk/19.2.5345600)",
+                          "LLVM (NDK r19c, /usr/local/google/home/jomof/Android/Sdk/ndk/19.2.5345600, " +
+                          "/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/usr/include/)");
+  }
+
+  @Test
+  public void testNdk18SxsExample() {
+    List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
+      PATH_TO_NDK,
+      RealWorldExamples.NDK_R18_SXS_EXAMPLE);
+    IncludeSet set = new IncludeSet();
+    set.addIncludesFromCompilerFlags(includes, ROOT_OF_RELATIVE_INCLUDE_PATHS);
+    List<? extends IncludeValue> dependencies = getRewrittenDependencies(set);
+    StringBuilder sb = new StringBuilder();
+    printDependencies(sb, dependencies, 0);
+    String result = sb.toString();
+    System.out.println(result);
+    assertThat(dependencies).hasSize(1);
+    assertContainsInOrder(result,
+                          "NDK r18b (/usr/local/google/home/jomof/Android/Sdk/ndk/18.1.5063045)",
+                          "    Support (NDK r18b, /usr/local/google/home/jomof/Android/Sdk/ndk/18.1.5063045, /sources/android/support/include/)",
+                          "    Sysroot (NDK, sysroot/usr/include)");
+  }
+
+  @Test
+  public void testNdkLegacyExample() {
+    List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
+      PATH_TO_NDK,
+      RealWorldExamples.NDK_R19_LEGACY_EXAMPLE);
+    IncludeSet set = new IncludeSet();
+    set.addIncludesFromCompilerFlags(includes, ROOT_OF_RELATIVE_INCLUDE_PATHS);
+    List<? extends IncludeValue> dependencies = getRewrittenDependencies(set);
+    StringBuilder sb = new StringBuilder();
+    printDependencies(sb, dependencies, 0);
+    String result = sb.toString();
+    System.out.println(result);
+    assertThat(dependencies).hasSize(1);
+    assertContainsInOrder(result,
+                          "NDK Components (/path/to/ndk-bundle)",
+                          " LLVM (NDK Components, /path/to/ndk-bundle, " +
+                          "/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/)");
+  }
+
+  @Test
+  public void testMiniCocosExample() {
     List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
       PATH_TO_NDK,
       RealWorldExamples.MINI_COCOS_EXAMPLE);
@@ -250,7 +315,6 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
-    System.out.printf(result);
     assertThat(dependencies).hasSize(1);
     assertContainsInOrder(result,
                           "poly2tri (Cocos Third Party Packages, external/poly2tri)",
@@ -258,7 +322,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
   }
 
   @Test
-  public void testCocosExample() throws IOException {
+  public void testCocosExample() {
     List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
       PATH_TO_NDK,
       RealWorldExamples.COCOS_EXAMPLE);
@@ -268,7 +332,6 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
-    System.out.printf(result);
     assertThat(dependencies).hasSize(5);
     assertThat(result).contains(
       "Shadow Group\n" +
@@ -303,7 +366,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
       }
       if (dependency instanceof PackageValue) {
         PackageValue concrete = (PackageValue) dependency;
-        printDependencies(sb, concrete.myIncludes, indent + 4);
+        printDependencies(sb, concrete.getIncludes(), indent + 4);
         continue;
       }
       if (dependency instanceof SimpleIncludeValue) {
@@ -333,6 +396,6 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
       assert resolved != null;
       simpleIncludes.add(resolved);
     }
-    return IncludeValues.organize(simpleIncludes);
+    return IncludeValues.INSTANCE.organize(simpleIncludes);
   }
 }

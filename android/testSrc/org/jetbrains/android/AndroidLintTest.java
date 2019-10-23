@@ -15,12 +15,108 @@
  */
 package org.jetbrains.android;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.SdkConstants;
 import com.android.testutils.VirtualTimeScheduler;
-import com.android.tools.analytics.*;
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.lint.*;
+import com.android.tools.analytics.AnalyticsSettings;
+import com.android.tools.analytics.AnalyticsSettingsData;
+import com.android.tools.analytics.LoggedUsage;
+import com.android.tools.analytics.TestUsageTracker;
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.lint.AndroidLintAdapterViewChildrenInspection;
+import com.android.tools.idea.lint.AndroidLintAllowBackupInspection;
+import com.android.tools.idea.lint.AndroidLintAlwaysShowActionInspection;
+import com.android.tools.idea.lint.AndroidLintAppCompatCustomViewInspection;
+import com.android.tools.idea.lint.AndroidLintAppCompatMethodInspection;
+import com.android.tools.idea.lint.AndroidLintApplySharedPrefInspection;
+import com.android.tools.idea.lint.AndroidLintAuthLeakInspection;
+import com.android.tools.idea.lint.AndroidLintButtonOrderInspection;
+import com.android.tools.idea.lint.AndroidLintByteOrderMarkInspection;
+import com.android.tools.idea.lint.AndroidLintContentDescriptionInspection;
+import com.android.tools.idea.lint.AndroidLintDeprecatedInspection;
+import com.android.tools.idea.lint.AndroidLintDisableBaselineAlignmentInspection;
+import com.android.tools.idea.lint.AndroidLintDuplicateIdsInspection;
+import com.android.tools.idea.lint.AndroidLintEnforceUTF8Inspection;
+import com.android.tools.idea.lint.AndroidLintExifInterfaceInspection;
+import com.android.tools.idea.lint.AndroidLintExportedContentProviderInspection;
+import com.android.tools.idea.lint.AndroidLintExportedReceiverInspection;
+import com.android.tools.idea.lint.AndroidLintExportedServiceInspection;
+import com.android.tools.idea.lint.AndroidLintGradleDeprecatedInspection;
+import com.android.tools.idea.lint.AndroidLintGradleDynamicVersionInspection;
+import com.android.tools.idea.lint.AndroidLintGridLayoutInspection;
+import com.android.tools.idea.lint.AndroidLintHardcodedTextInspection;
+import com.android.tools.idea.lint.AndroidLintIconDuplicatesInspection;
+import com.android.tools.idea.lint.AndroidLintImpliedTouchscreenHardwareInspection;
+import com.android.tools.idea.lint.AndroidLintIncludeLayoutParamInspection;
+import com.android.tools.idea.lint.AndroidLintInefficientWeightInspection;
+import com.android.tools.idea.lint.AndroidLintInlinedApiInspection;
+import com.android.tools.idea.lint.AndroidLintInnerclassSeparatorInspection;
+import com.android.tools.idea.lint.AndroidLintInvalidImeActionIdInspection;
+import com.android.tools.idea.lint.AndroidLintInvalidPermissionInspection;
+import com.android.tools.idea.lint.AndroidLintInvalidUsesTagAttributeInspection;
+import com.android.tools.idea.lint.AndroidLintInvalidVectorPathInspection;
+import com.android.tools.idea.lint.AndroidLintInvalidWearFeatureAttributeInspection;
+import com.android.tools.idea.lint.AndroidLintManifestOrderInspection;
+import com.android.tools.idea.lint.AndroidLintMenuTitleInspection;
+import com.android.tools.idea.lint.AndroidLintMissingApplicationIconInspection;
+import com.android.tools.idea.lint.AndroidLintMissingIdInspection;
+import com.android.tools.idea.lint.AndroidLintMissingLeanbackSupportInspection;
+import com.android.tools.idea.lint.AndroidLintMissingPrefixInspection;
+import com.android.tools.idea.lint.AndroidLintMissingSuperCallInspection;
+import com.android.tools.idea.lint.AndroidLintMissingTvBannerInspection;
+import com.android.tools.idea.lint.AndroidLintNetworkSecurityConfigInspection;
+import com.android.tools.idea.lint.AndroidLintNewApiInspection;
+import com.android.tools.idea.lint.AndroidLintNotInterpolatedInspection;
+import com.android.tools.idea.lint.AndroidLintObsoleteLayoutParamInspection;
+import com.android.tools.idea.lint.AndroidLintObsoleteSdkIntInspection;
+import com.android.tools.idea.lint.AndroidLintOldTargetApiInspection;
+import com.android.tools.idea.lint.AndroidLintOverrideInspection;
+import com.android.tools.idea.lint.AndroidLintParcelClassLoaderInspection;
+import com.android.tools.idea.lint.AndroidLintParcelCreatorInspection;
+import com.android.tools.idea.lint.AndroidLintPermissionImpliesUnsupportedChromeOsHardwareInspection;
+import com.android.tools.idea.lint.AndroidLintPermissionImpliesUnsupportedHardwareInspection;
+import com.android.tools.idea.lint.AndroidLintProguardInspection;
+import com.android.tools.idea.lint.AndroidLintPropertyEscapeInspection;
+import com.android.tools.idea.lint.AndroidLintPxUsageInspection;
+import com.android.tools.idea.lint.AndroidLintReferenceTypeInspection;
+import com.android.tools.idea.lint.AndroidLintRegisteredInspection;
+import com.android.tools.idea.lint.AndroidLintResourceAsColorInspection;
+import com.android.tools.idea.lint.AndroidLintResourceTypeInspection;
+import com.android.tools.idea.lint.AndroidLintRtlCompatInspection;
+import com.android.tools.idea.lint.AndroidLintScrollViewCountInspection;
+import com.android.tools.idea.lint.AndroidLintScrollViewSizeInspection;
+import com.android.tools.idea.lint.AndroidLintSelectableTextInspection;
+import com.android.tools.idea.lint.AndroidLintSignatureOrSystemPermissionsInspection;
+import com.android.tools.idea.lint.AndroidLintSpUsageInspection;
+import com.android.tools.idea.lint.AndroidLintStopShipInspection;
+import com.android.tools.idea.lint.AndroidLintStringEscapingInspection;
+import com.android.tools.idea.lint.AndroidLintStringShouldBeIntInspection;
+import com.android.tools.idea.lint.AndroidLintSwitchIntDefInspection;
+import com.android.tools.idea.lint.AndroidLintTextFieldsInspection;
+import com.android.tools.idea.lint.AndroidLintTypographyDashesInspection;
+import com.android.tools.idea.lint.AndroidLintTypographyQuotesInspection;
+import com.android.tools.idea.lint.AndroidLintTyposInspection;
+import com.android.tools.idea.lint.AndroidLintUnprotectedSMSBroadcastReceiverInspection;
+import com.android.tools.idea.lint.AndroidLintUnsupportedChromeOsHardwareInspection;
+import com.android.tools.idea.lint.AndroidLintUnusedAttributeInspection;
+import com.android.tools.idea.lint.AndroidLintUnusedResourcesInspection;
+import com.android.tools.idea.lint.AndroidLintUseValueOfInspection;
+import com.android.tools.idea.lint.AndroidLintUselessLeafInspection;
+import com.android.tools.idea.lint.AndroidLintUselessParentInspection;
+import com.android.tools.idea.lint.AndroidLintValidActionsXmlInspection;
+import com.android.tools.idea.lint.AndroidLintWakelockTimeoutInspection;
+import com.android.tools.idea.lint.AndroidLintWearStandaloneAppFlagInspection;
+import com.android.tools.idea.lint.AndroidLintWifiManagerLeakInspection;
+import com.android.tools.idea.lint.AndroidLintWrongCallInspection;
+import com.android.tools.idea.lint.AndroidLintWrongCaseInspection;
+import com.android.tools.idea.lint.AndroidLintWrongViewCastInspection;
+import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.lint.SuppressLintIntentionAction;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.Sdks;
 import com.android.tools.lint.checks.CommentDetector;
 import com.android.tools.lint.checks.IconDetector;
@@ -56,6 +152,12 @@ import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.ProjectViewTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix;
@@ -68,18 +170,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
-import static com.google.common.truth.Truth.assertThat;
-
 public class AndroidLintTest extends AndroidTestCase {
   @NonNls private static final String BASE_PATH = "/lint/";
   @NonNls private static final String BASE_PATH_GLOBAL = BASE_PATH + "global/";
@@ -91,7 +181,6 @@ public class AndroidLintTest extends AndroidTestCase {
     analyticsSettings.setOptedIn(false);
     AnalyticsSettings.setInstanceForTest(analyticsSettings);
 
-    AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false);
     myFixture.allowTreeAccessForAllFiles();
   }
@@ -424,10 +513,6 @@ public class AndroidLintTest extends AndroidTestCase {
                                 "src/p1/pkg/MainActivity.java");
     myFixture.copyFileToProject(getGlobalTestDir() + "/strings.xml", "res/values/strings.xml");
 
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.copyFileToProject(getGlobalTestDir() + "/R.java", "src/p1/pkg/R.java");
-    }
-
     // No highlighting test: the error markers are physically present in the PSI File
     // and confuses the manifest merger, which sees them. (The <caret> tag on the
     // other hand is extracted and removed by CodeInsightTextFixtureImpl#SelectionAndCaretMarkupLoader
@@ -719,8 +804,9 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testOldTargetApi() throws Exception {
     deleteManifest();
+    String expectedTarget = Integer.toString(new LintIdeClient(getProject()).getHighestKnownApiLevel());
     doTestWithFix(new AndroidLintOldTargetApiInspection(),
-                  "Update targetSdkVersion to " + HIGHEST_KNOWN_STABLE_API, "AndroidManifest.xml", "xml");
+                  "Update targetSdkVersion to " + expectedTarget, "AndroidManifest.xml", "xml");
   }
 
   /*
@@ -861,22 +947,32 @@ public class AndroidLintTest extends AndroidTestCase {
       "</lint>\n");
   }
 
+  private static final String CALL_SUPER_SOURCE =
+    "package android.support.annotation;\n" +
+    "\n" +
+    "import java.lang.annotation.Retention;\n" +
+    "import java.lang.annotation.Target;\n" +
+    "\n" +
+    "import static java.lang.annotation.ElementType.METHOD;\n" +
+    "import static java.lang.annotation.RetentionPolicy.SOURCE;\n" +
+    "\n" +
+    "@Retention(SOURCE)\n" +
+    "@Target({METHOD})\n" +
+    "public @interface CallSuper {\n" +
+    "}";
   public void testCallSuper() throws Exception {
     myFixture.addFileToProject("src/android/support/annotation/CallSuper.java",
-                               "package android.support.annotation;\n" +
-                               "\n" +
-                               "import java.lang.annotation.Retention;\n" +
-                               "import java.lang.annotation.Target;\n" +
-                               "\n" +
-                               "import static java.lang.annotation.ElementType.METHOD;\n" +
-                               "import static java.lang.annotation.RetentionPolicy.SOURCE;\n" +
-                               "\n" +
-                               "@Retention(SOURCE)\n" +
-                               "@Target({METHOD})\n" +
-                               "public @interface CallSuper {\n" +
-                               "}");
+                               CALL_SUPER_SOURCE);
     doTestWithFix(new AndroidLintMissingSuperCallInspection(),
                   "Add super call","src/p1/p2/CallSuperTest.java", "java");
+  }
+
+  public void testCallSuper2() throws Exception {
+    // Interfaces
+    myFixture.addFileToProject("src/android/support/annotation/CallSuper.java",
+                               CALL_SUPER_SOURCE);
+    doTestWithFix(new AndroidLintMissingSuperCallInspection(),
+                  "Add super call","src/p1/p2/FooImpl.java", "java");
   }
 
   public void testSuppressingInXml1() throws Exception {

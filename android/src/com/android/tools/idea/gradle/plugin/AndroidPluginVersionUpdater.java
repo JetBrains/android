@@ -15,6 +15,21 @@
  */
 package com.android.tools.idea.gradle.plugin;
 
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
+import static com.android.tools.idea.gradle.util.BuildFileProcessor.getCompositeBuildFolderPaths;
+import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
+import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
+import static com.android.utils.FileUtils.toSystemDependentPath;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.util.ThreeState.NO;
+import static com.intellij.util.ThreeState.UNSURE;
+import static com.intellij.util.ThreeState.YES;
+
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
@@ -29,26 +44,13 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.ThreeState;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
-import static com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
-import static com.android.tools.idea.gradle.util.BuildFileProcessor.getCompositeBuildFolderPaths;
-import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
-import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
-import static com.android.utils.FileUtils.toSystemDependentPath;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.ThreeState.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidPluginVersionUpdater {
   @NotNull private final Project myProject;
@@ -74,6 +76,7 @@ public class AndroidPluginVersionUpdater {
     myTextSearch = textSearch;
   }
 
+  @Slow
   public boolean canDetectPluginVersionToUpdate(@NotNull GradleVersion pluginVersion) {
     final boolean[] foundPlugin = new boolean[1];
     BuildFileProcessor.getInstance().processRecursively(myProject, buildModel -> {
@@ -93,7 +96,7 @@ public class AndroidPluginVersionUpdater {
         }
       }
       return true;
-    }, true);
+    });
     return foundPlugin[0];
   }
 
@@ -136,8 +139,7 @@ public class AndroidPluginVersionUpdater {
         mySyncState.syncEnded();
       }
 
-      // TODO add a trigger when the plug-in version changed (right now let as something changed in the project)
-      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED);
       request.cleanProject = true;
       getGradleSyncInvoker().requestProjectSync(myProject, request);
     }
@@ -180,7 +182,7 @@ public class AndroidPluginVersionUpdater {
   private static ThreeState isUpdatablePluginVersion(@NotNull GradleVersion pluginVersion, @NotNull ArtifactDependencyModel model) {
     String artifactId = model.name().forceString();
     String groupId = model.group().toString();
-    if  (AndroidPluginGeneration.find(artifactId, groupId) == null) {
+    if  (!AndroidPluginInfo.isAndroidPlugin(artifactId, groupId)) {
       return UNSURE;
     }
 
@@ -197,9 +199,6 @@ public class AndroidPluginVersionUpdater {
    */
   private void updateAndroidPluginVersion(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion, @NotNull UpdateResult result) {
     List<GradleBuildModel> modelsToUpdate = new ArrayList<>();
-
-    // Refresh the file system to avoid reading stale cached virtual files.
-    VirtualFileManager.getInstance().refreshWithoutFileWatcher(false /* synchronous */);
 
     BuildFileProcessor.getInstance().processRecursively(myProject, buildModel -> {
       DependenciesModel dependencies = buildModel.buildscript().dependencies();
@@ -222,7 +221,7 @@ public class AndroidPluginVersionUpdater {
         }
       }
       return true;
-    }, true /* process composite builds */);
+    });
 
     boolean updateModels = !modelsToUpdate.isEmpty();
     if (updateModels) {
@@ -340,7 +339,7 @@ public class AndroidPluginVersionUpdater {
                    "Please click 'OK' to perform a textual search and then update the build files manually.";
       ApplicationManager.getApplication().invokeLater(() -> {
         Messages.showErrorDialog(myProject, msg, "Unexpected Error");
-        String textToFind = AndroidPluginGeneration.getGroupId() + ":" + AndroidPluginGeneration.ORIGINAL.getArtifactId();
+        String textToFind = AndroidPluginInfo.GROUP_ID + ":" + AndroidPluginInfo.ARTIFACT_ID;
         searchInBuildFiles(textToFind, myProject);
       });
     }

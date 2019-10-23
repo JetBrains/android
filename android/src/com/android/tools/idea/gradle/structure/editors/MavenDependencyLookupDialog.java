@@ -121,7 +121,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
 
     @Nullable private final String myDescription;
 
-    Artifact(@NotNull String groupId, @NotNull String artifactId, @NotNull String version, @Nullable String description) {
+    public Artifact(@NotNull String groupId, @NotNull String artifactId, @NotNull String version, @Nullable String description) {
       myGroupId = groupId;
       myArtifactId = artifactId;
       myVersion = version;
@@ -475,7 +475,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
 
   @NotNull
   private static List<String> searchMavenCentral(@NotNull String text) {
-    return HttpRequests.request(String.format(MAVEN_CENTRAL_SEARCH_URL, RESULT_LIMIT, text))
+    return HttpRequests.request(String.format(Locale.US, MAVEN_CENTRAL_SEARCH_URL, RESULT_LIMIT, text))
       .accept("application/xml")
       .connect(new HttpRequests.RequestProcessor<List<String>>() {
         @Override

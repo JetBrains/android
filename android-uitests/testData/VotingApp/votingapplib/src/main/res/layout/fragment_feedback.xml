@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+    <ScrollView
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView style="?android:textAppearanceMedium"
+                android:paddingTop="32dp"
+                android:paddingLeft="24dp"
+                android:paddingRight="24dp"
+                android:id="@+id/textview_q"
+                android:lineSpacingMultiplier="1.2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Feedback"
+                android:textColor="#2979D6"
+                android:textSize="20sp" />
+
+            <TextView style="?android:textAppearanceMedium"
+                android:paddingTop="5dp"
+                android:paddingLeft="24dp"
+                android:paddingRight="32dp"
+                android:paddingBottom="24dp"
+                android:id="@+id/textview_q_title"
+                android:lineSpacingMultiplier="1.1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Title"
+                android:textColor="#5E5D5D"
+                android:textSize="20sp" />
+
+            <EditText
+                android:id="@+id/editText_answer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#5E5D5D"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:textSize="20sp"
+                />
+        </LinearLayout>
+
+
+    </ScrollView>
+
+
+    <include
+        layout="@layout/footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"></include>
+
+
+</LinearLayout>

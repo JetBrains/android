@@ -28,6 +28,7 @@ import com.android.ide.common.rendering.api.Result.Status;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.sdk.LoadStatus;
+import com.intellij.openapi.Disposable;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.image.BufferedImage;
@@ -46,9 +47,9 @@ import static com.android.ide.common.rendering.api.Result.Status.ERROR_REFLECTIO
  * <p>
  * Use the layout library with:
  * {@link #init}, {@link #supports(int)}, {@link #createSession(SessionParams)},
- * {@link #dispose()}, {@link #clearCaches(Object)}.
+ * {@link #dispose()}, {@link #clearResourceCaches(Object)}.
  */
-public class LayoutLibrary {
+public class LayoutLibrary implements Disposable {
 
     /** Link to the layout bridge */
     private final Bridge mBridge;
@@ -63,6 +64,7 @@ public class LayoutLibrary {
     private Field mTopMarginField;
     private Field mRightMarginField;
     private Field mBottomMarginField;
+    private boolean mIsDisposed;
 
     /**
      * Returns the classloader used to load the classes in the layoutlib jar file.
@@ -147,17 +149,19 @@ public class LayoutLibrary {
      *
      * @param platformProperties The build properties for the platform.
      * @param fontLocation the location of the fonts in the SDK target.
+     * @param icuDataPath the location of the ICU data used natively.
      * @param enumValueMap map attrName ⇒ { map enumFlagName ⇒ Integer value }. This is typically
      *          read from attrs.xml in the SDK target.
      * @param log a {@link LayoutLog} object. Can be null.
      * @return true if success.
      */
     public boolean init(Map<String, String> platformProperties,
-            File fontLocation,
-            Map<String, Map<String, Integer>> enumValueMap,
-            LayoutLog log) {
+                        File fontLocation,
+                        String icuDataPath,
+                        Map<String, Map<String, Integer>> enumValueMap,
+                        LayoutLog log) {
         if (mBridge != null) {
-            return mBridge.init(platformProperties, fontLocation, enumValueMap, log);
+            return mBridge.init(platformProperties, fontLocation, icuDataPath, enumValueMap, log);
         }
 
         return false;
@@ -168,12 +172,15 @@ public class LayoutLibrary {
      *
      * @see Bridge#dispose()
      */
-    public boolean dispose() {
+    @Override
+    public void dispose() {
         if (mBridge != null) {
-            return mBridge.dispose();
+            mIsDisposed = mBridge.dispose();
         }
+    }
 
-        return true;
+    public boolean isDisposed() {
+        return mIsDisposed;
     }
 
     /**
@@ -231,11 +238,33 @@ public class LayoutLibrary {
      *
      * @param projectKey the key for the project.
      *
-     * @see Bridge#clearCaches(Object)
+     * @see Bridge#clearResourceCaches(Object)
      */
-    public void clearCaches(Object projectKey) {
+    public void clearResourceCaches(Object projectKey) {
         if (mBridge != null) {
-            mBridge.clearCaches(projectKey);
+            mBridge.clearResourceCaches(projectKey);
+        }
+    }
+
+    /**
+     * Removes a font from the Typeface cache inside layoutlib.
+     *
+     * @param path the path of the font file to be removed from the cache.
+     */
+    public void clearFontCache(String path) {
+        if (mBridge != null) {
+            mBridge.clearFontCache(path);
+        }
+    }
+
+    /**
+     * Clears all caches for a specific project.
+     *
+     * @param projectKey the key for the project.
+     */
+    public void clearAllCaches(Object projectKey) {
+        if (mBridge != null) {
+            mBridge.clearAllCaches(projectKey);
         }
     }
 

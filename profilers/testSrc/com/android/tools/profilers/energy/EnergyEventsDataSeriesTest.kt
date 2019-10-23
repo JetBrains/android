@@ -15,7 +15,8 @@ package com.android.tools.profilers.energy
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.proto.EnergyProfiler.*
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
@@ -98,7 +99,7 @@ class EnergyEventsDataSeriesTest {
 
   @Test
   fun testAllDataIncluded() {
-    val dataSeries = EnergyEventsDataSeries(grpcChannel.client, ProfilersTestData.SESSION_DATA)
+    val dataSeries = EnergyEventsDataSeries(ProfilerClient(grpcChannel.name), ProfilersTestData.SESSION_DATA)
 
     val range = Range(0.0, Double.MAX_VALUE)
     val dataList = dataSeries.getDataForXRange(range)
@@ -107,7 +108,7 @@ class EnergyEventsDataSeriesTest {
 
   @Test
   fun testEventsMerged() {
-    val dataSeries = EnergyEventsDataSeries(grpcChannel.client, ProfilersTestData.SESSION_DATA)
+    val dataSeries = EnergyEventsDataSeries(ProfilerClient(grpcChannel.name), ProfilersTestData.SESSION_DATA)
 
     // Filter wakelocks
     run {

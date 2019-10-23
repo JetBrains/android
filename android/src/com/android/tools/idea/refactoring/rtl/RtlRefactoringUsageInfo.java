@@ -33,7 +33,7 @@ class RtlRefactoringUsageInfo extends UsageInfo {
     STYLE
   }
 
-  RtlRefactoringUsageInfo(@NotNull PsiElement element, int startOffset, int endOffset) {
+  public RtlRefactoringUsageInfo(@NotNull PsiElement element, int startOffset, int endOffset) {
     super(element, startOffset, endOffset);
   }
 

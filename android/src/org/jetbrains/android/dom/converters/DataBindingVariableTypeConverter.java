@@ -17,7 +17,7 @@ package org.jetbrains.android.dom.converters;
 
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.DataBindingUtil.ClassReferenceVisitor;
-import com.android.tools.idea.res.DataBindingInfo;
+import com.android.tools.idea.res.DataBindingLayoutInfo;
 import com.android.utils.OffsetTrackingDecodedXmlValue;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
@@ -73,8 +73,8 @@ public class DataBindingVariableTypeConverter extends DataBindingConverter {
       return null;
     }
 
-    DataBindingInfo dataBindingInfo = getDataBindingInfo(context);
-    type = DataBindingUtil.getQualifiedType(type, dataBindingInfo, false);
+    DataBindingLayoutInfo dataBindingLayoutInfo = getDataBindingInfo(context);
+    type = DataBindingUtil.getQualifiedType(type, dataBindingLayoutInfo, false);
     if (type == null) {
       return null;
     }
@@ -94,7 +94,7 @@ public class DataBindingVariableTypeConverter extends DataBindingConverter {
     PsiType[] result = new PsiType[1];
     psiType.accept(new ClassReferenceVisitor() {
       @Override
-      public void visitClassReference(PsiClassReferenceType classType) {
+      public void visitClassReference(@NotNull PsiClassReferenceType classType) {
         if (result[0] == null) {
           PsiClassType rawType = classType.rawType();
           if (rawType.resolve() == null) {
@@ -131,7 +131,7 @@ public class DataBindingVariableTypeConverter extends DataBindingConverter {
     } else {
       psiType.accept(new ClassReferenceVisitor() {
         @Override
-        public void visitClassReference(PsiClassReferenceType classReference) {
+        public void visitClassReference(@NotNull PsiClassReferenceType classReference) {
           PsiJavaCodeReferenceElement reference = classReference.getReference();
           int offset = reference.getTextRange().getStartOffset();
           offset = decodedValue.getEncodedOffset(offset);

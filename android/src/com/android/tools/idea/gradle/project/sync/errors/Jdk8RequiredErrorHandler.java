@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.JDK8_REQUIRED;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public final class Jdk8RequiredErrorHandler extends BaseSyncErrorHandler {
@@ -37,7 +38,7 @@ public final class Jdk8RequiredErrorHandler extends BaseSyncErrorHandler {
         text += ".";
       }
       text += " Please use JDK 8 or newer.";
-      updateUsageTracker();
+      updateUsageTracker(project, JDK8_REQUIRED);
       return text;
     }
     return null;

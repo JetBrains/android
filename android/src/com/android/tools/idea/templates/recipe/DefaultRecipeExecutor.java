@@ -20,6 +20,7 @@ import com.android.manifmerger.XmlElement;
 import com.android.resources.ResourceFolderType;
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
@@ -98,13 +99,18 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     myReadonlyStatusHandler = ReadonlyStatusHandler.getInstance(context.getProject());
   }
 
-  @NotNull
+  @Nullable
   private static GradleBuildModel getBuildModel(@NotNull File buildFile, @NotNull Project project) {
     VirtualFile virtualFile = findFileByIoFile(buildFile, true);
     if (virtualFile == null) {
       throw new RuntimeException("Failed to find " + buildFile.getPath());
     }
-    return parseBuildFile(virtualFile, project, project.getName());
+    ProjectBuildModel projectBuildModel = ProjectBuildModel.getOrLog(project);
+    if (projectBuildModel == null) {
+      return null;
+    }
+
+    return projectBuildModel.getModuleBuildModel(virtualFile);
   }
 
   @Override
@@ -116,21 +122,24 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     File buildFile = getBuildFilePath(myContext);
     if (project.isInitialized()) {
       GradleBuildModel buildModel = getBuildModel(buildFile, project);
-      if (buildModel.plugins().stream().noneMatch(x -> x.name().forceString().equals(name))) {
-        buildModel.applyPlugin(name);
-        myIO.applyChanges(buildModel);
+      if (buildModel != null) {
+        if (buildModel.plugins().stream().noneMatch(x -> x.name().forceString().equals(name))) {
+          buildModel.applyPlugin(name);
+          myIO.applyChanges(buildModel);
+        }
+        return;
       }
     }
-    else {
-      String destinationContents = buildFile.exists() ? nullToEmpty(readTextFile(buildFile)) : "";
-      String applyPluginStatement = "apply plugin: '" + name + "'";
-      String result = destinationContents.isEmpty() ? applyPluginStatement : destinationContents + LINE_SEPARATOR + applyPluginStatement;
-      try {
-        myIO.writeFile(this, result, buildFile);
-      }
-      catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+
+    // The attempt above to add the plugin using the GradleBuildModel failed, now attempt to add the plugin by appending the string.
+    String destinationContents = buildFile.exists() ? nullToEmpty(readTextFile(buildFile)) : "";
+    String applyPluginStatement = "apply plugin: '" + name + "'";
+    String result = destinationContents.isEmpty() ? applyPluginStatement : destinationContents + LINE_SEPARATOR + applyPluginStatement;
+    try {
+      myIO.writeFile(this, result, buildFile);
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -149,34 +158,37 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     File rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project));
     if (project.isInitialized()) {
       GradleBuildModel buildModel = getBuildModel(rootBuildFile, project);
-      DependenciesModel buildscriptDependencies = buildModel.buildscript().dependencies();
-      ArtifactDependencyModel targetDependencyModel = null;
-      for (ArtifactDependencyModel dependencyModel : buildscriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME)) {
-        if (toBeAddedDependency.equalsIgnoreVersion(ArtifactDependencySpec.create(dependencyModel))) {
-          targetDependencyModel = dependencyModel;
+      if (buildModel != null) {
+        DependenciesModel buildscriptDependencies = buildModel.buildscript().dependencies();
+        ArtifactDependencyModel targetDependencyModel = null;
+        for (ArtifactDependencyModel dependencyModel : buildscriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME)) {
+          if (toBeAddedDependency.equalsIgnoreVersion(ArtifactDependencySpec.create(dependencyModel))) {
+            targetDependencyModel = dependencyModel;
+          }
         }
-      }
-      if (targetDependencyModel == null) {
-        buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency);
-      }
-      else {
-        GradleVersion toBeAddedDependencyVersion = GradleVersion.parse(nullToEmpty(toBeAddedDependency.getVersion()));
-        GradleVersion existingDependencyVersion = GradleVersion.parse(nullToEmpty(targetDependencyModel.version().toString()));
-        if (toBeAddedDependencyVersion.compareTo(existingDependencyVersion) > 0) {
-          targetDependencyModel.version().setValue(nullToEmpty(toBeAddedDependency.getVersion()));
+        if (targetDependencyModel == null) {
+          buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency);
         }
+        else {
+          GradleVersion toBeAddedDependencyVersion = GradleVersion.parse(nullToEmpty(toBeAddedDependency.getVersion()));
+          GradleVersion existingDependencyVersion = GradleVersion.parse(nullToEmpty(targetDependencyModel.version().toString()));
+          if (toBeAddedDependencyVersion.compareTo(existingDependencyVersion) > 0) {
+            targetDependencyModel.version().setValue(nullToEmpty(toBeAddedDependency.getVersion()));
+          }
+        }
+        myIO.applyChanges(buildModel);
+        return;
       }
-      myIO.applyChanges(buildModel);
     }
-    else {
-      String destinationContents = rootBuildFile.exists() ? nullToEmpty(readTextFile(rootBuildFile)) : "";
-      String result = myIO.mergeBuildFiles(formatClasspath(mavenUrl), destinationContents, project, "");
-      try {
-        myIO.writeFile(this, result, rootBuildFile);
-      }
-      catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+
+    // The attempt above to merge the classpath using the GradleBuildModel failed, now attempt to merge the classpaths by merging the files.
+    String destinationContents = rootBuildFile.exists() ? nullToEmpty(readTextFile(rootBuildFile)) : "";
+    String result = myIO.mergeBuildFiles(formatClasspath(mavenUrl), destinationContents, project, "");
+    try {
+      myIO.writeFile(this, result, rootBuildFile);
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -385,6 +397,11 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public void addGlobalVariable(@NotNull String id, @NotNull Object value) {
+    myContext.getParamMap().put(id, value);
   }
 
   /**
@@ -738,7 +755,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     @Override
     public String mergeBuildFiles(@NotNull String dependencies,
                                   @NotNull String destinationContents,
-                                  Project project,
+                                  @NotNull Project project,
                                   String compileSdkVersion) {
       return destinationContents;
     }

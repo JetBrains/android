@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.scout;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 
 import java.awt.Rectangle;
 import java.util.*;
@@ -586,6 +587,11 @@ public class ScoutArrange {
       case VerticalPack: {
         NlComponent[] wArray = new NlComponent[widgetList.size()];
         wArray = widgetList.toArray(wArray);
+        for (int i = 0; i < wArray.length; i++) {
+          if (wArray[i].getId() == null) {
+            NlComponentHelperKt.ensureLiveId(wArray[i]);
+          }
+        }
         Arrays.sort(wArray, (w1, w2) -> Integer.compare(getDpY(w1), getDpY(w2)));
         ScoutWidget[] list = ScoutWidget.getWidgetArray(widgetList.get(0).getParent());
         Rectangle bounds = null;
@@ -615,7 +621,12 @@ public class ScoutArrange {
       case HorizontalPack: {
         NlComponent[] wArray = new NlComponent[widgetList.size()];
         wArray = widgetList.toArray(wArray);
-        Arrays.sort(wArray, (w1, w2) -> Integer.compare(getDpX(w1), getDpX(w2)));
+        for (int i = 0; i < wArray.length; i++) {
+          if (wArray[i].getId() == null) {
+            NlComponentHelperKt.ensureLiveId(wArray[i]);
+          }
+        }
+          Arrays.sort(wArray, (w1, w2) -> Integer.compare(getDpX(w1), getDpX(w2)));
         ScoutWidget[] list = ScoutWidget.getWidgetArray(widgetList.get(0).getParent());
         Rectangle bounds = null;
         for (int i = 0; i < wArray.length; i++) {
@@ -667,6 +678,10 @@ public class ScoutArrange {
    * @param apply
    */
   public static void expandVertically(ScoutWidget[] list, ScoutWidget parent, int margin, boolean apply) {
+    // TODO: b/129000498. Expand doesn't work in 0 margin.
+    if (margin <= 0) {
+      margin = 1;
+    }
 
     ScoutWidget[] pears = ScoutWidget.create(parent.mNlComponent.getChildren(), parent);
 
@@ -719,6 +734,11 @@ public class ScoutArrange {
    * @param apply
    */
   public static void expandHorizontally(ScoutWidget[] list, ScoutWidget parent, int margin, boolean apply) {
+    // TODO: b/129000498. Expand doesn't work in 0 margin.
+    if (margin <= 0) {
+      margin = 1;
+    }
+
     ScoutWidget[] pears = ScoutWidget.create(parent.mNlComponent.getChildren(), parent);
     Rectangle selectBounds = getBoundingBox(list);
 

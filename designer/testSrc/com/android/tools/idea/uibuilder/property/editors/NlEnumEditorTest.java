@@ -758,4 +758,16 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .expectText("invisible")
       .expectValue("invisible");
   }
+
+  public void testTypeWhileDropDownIsOpen() {
+    myEditorFixture
+      .setProperty(getProperty(myTextView, ATTR_LAYOUT_WIDTH))
+      .expectText("wrap_content")
+      .showPopup()
+      .selectAll()
+      .type("50dp")
+      .key(VK_ENTER)
+      .expectText("50dp")
+      .expectValue("50dp");
+  }
 }

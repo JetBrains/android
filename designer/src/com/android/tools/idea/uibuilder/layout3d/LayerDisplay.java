@@ -8,8 +8,8 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.List;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -136,7 +136,7 @@ public class LayerDisplay {
       public static final Window FOCUSED_WINDOW = new Window("<Focused Window>", -1);
       private String title;
       private int hashCode;
-      Window(String title, int hashCode) {
+      public Window(String title, int hashCode) {
         this.title = title;
         this.hashCode = hashCode;
       }
@@ -327,7 +327,7 @@ public class LayerDisplay {
     private static class BooleanResultReader extends MultiLineReceiver {
       private final boolean[] mResult;
 
-      BooleanResultReader(boolean[] result) {
+      public BooleanResultReader(boolean[] result) {
         mResult = result;
       }
 

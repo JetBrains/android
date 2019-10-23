@@ -8,7 +8,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
@@ -24,11 +23,12 @@ iml_module(
         "//tools/idea/platform/editor-ui-api:intellij.platform.editor[module]",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/adt/idea/property-editor:intellij.android.property-editor[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/layoutinspector:studio.android.sdktools.layoutinspector[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/idea/images:intellij.platform.images[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
@@ -39,6 +39,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/idea/platform/xdebugger-api:intellij.platform.debugger[module]",
     ],
 )
 
@@ -46,7 +47,9 @@ iml_module(
 iml_module(
     name = "android-layout-inspector-test",
     iml_files = ["android-layout-inspector-test.iml"],
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.LayoutInspectorTestSuite",
+    test_coverage = True,
     # keep sorted
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
@@ -54,13 +57,13 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
         "//tools/base/templates",
+        "//tools/idea:platform-build-info",
     ],
     test_srcs = ["testSrc"],
     test_tags = ["slow"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
@@ -76,12 +79,13 @@ iml_module(
         "//tools/idea/platform/editor-ui-api:intellij.platform.editor[module]",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/adt/idea/property-editor:intellij.android.property-editor[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/layoutinspector:studio.android.sdktools.layoutinspector[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
-        "//tools/idea/.idea/libraries:KotlinTest[test]",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
+        "//tools/idea/.idea/libraries:kotlin-test[test]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/idea/images:intellij.platform.images[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
@@ -97,5 +101,6 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-layout-inspector[module, test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
     ],
 )

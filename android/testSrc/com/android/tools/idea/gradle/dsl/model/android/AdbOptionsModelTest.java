@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.ADB_OPTIONS_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ADB_OPTIONS_MODEL_EDIT_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ADB_OPTIONS_MODEL_PARSE_ELEMENTS_ONE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ADB_OPTIONS_MODEL_PARSE_ELEMENTS_TWO;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ADB_OPTIONS_MODEL_REMOVE_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ADB_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ADB_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT_IN_THE_LIST;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.AdbOptionsModel;
@@ -28,14 +36,7 @@ import org.junit.Test;
 public class AdbOptionsModelTest extends GradleFileModelTestCase {
   @Test
   public void testParseElementsOne() throws Exception {
-    String text = "android {\n" +
-                  "  adbOptions {\n" +
-                  "    installOptions 'abcd'\n" +
-                  "    timeOutInMs 100\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(ADB_OPTIONS_MODEL_PARSE_ELEMENTS_ONE);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -47,14 +48,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseElementsTwo() throws Exception {
-    String text = "android {\n" +
-                  "  adbOptions {\n" +
-                  "    installOptions 'abcd', 'efgh'\n" +
-                  "    timeOutInMs = 200\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(ADB_OPTIONS_MODEL_PARSE_ELEMENTS_TWO);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -66,14 +60,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testEditElements() throws Exception {
-    String text = "android {\n" +
-                  "  adbOptions {\n" +
-                  "    installOptions 'abcd', 'efgh'\n" +
-                  "    timeOutInMs = 200\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(ADB_OPTIONS_MODEL_EDIT_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -97,12 +84,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddElements() throws Exception {
-    String text = "android {\n" +
-                  "  adbOptions {\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(ADB_OPTIONS_MODEL_ADD_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -126,14 +108,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveElements() throws Exception {
-    String text = "android {\n" +
-                  "  adbOptions {\n" +
-                  "    installOptions 'abcd', 'efgh'\n" +
-                  "    timeOutInMs = 200\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(ADB_OPTIONS_MODEL_REMOVE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -159,13 +134,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOneOfElementsInTheList() throws Exception {
-    String text = "android {\n" +
-                  "  adbOptions {\n" +
-                  "    installOptions 'abcd', 'efgh'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(ADB_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -186,13 +155,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOnlyElementInTheList() throws Exception {
-    String text = "android {\n" +
-                  "  adbOptions {\n" +
-                  "    installOptions 'abcd'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(ADB_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();

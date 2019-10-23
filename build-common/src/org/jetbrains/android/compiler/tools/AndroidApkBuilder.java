@@ -494,7 +494,7 @@ public class AndroidApkBuilder {
   private static class MyResourceFilter extends JavaResourceFilter {
     private final Set<String> myExcludedEntries;
 
-    MyResourceFilter(@NotNull Set<String> excludedEntries) {
+    public MyResourceFilter(@NotNull Set<String> excludedEntries) {
       myExcludedEntries = excludedEntries;
     }
 

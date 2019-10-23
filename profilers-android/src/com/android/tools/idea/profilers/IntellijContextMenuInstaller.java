@@ -63,7 +63,7 @@ public class IntellijContextMenuInstaller implements ContextMenuInstaller {
 
     AnAction action = new AnAction() {
       @Override
-      public void update(AnActionEvent e) {
+      public void update(@NotNull AnActionEvent e) {
 
         Presentation presentation = e.getPresentation();
         presentation.setText(contextMenuItem.getText());
@@ -72,7 +72,7 @@ public class IntellijContextMenuInstaller implements ContextMenuInstaller {
       }
 
       @Override
-      public void actionPerformed(AnActionEvent e) {
+      public void actionPerformed(@NotNull AnActionEvent e) {
         callback.accept(myCachedX);
       }
     };

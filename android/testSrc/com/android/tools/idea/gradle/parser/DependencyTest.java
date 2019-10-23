@@ -17,13 +17,14 @@ package com.android.tools.idea.gradle.parser;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import junit.framework.TestCase;
+import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.IdeaTestCase;
 
 import java.util.Map;
 
-public class DependencyTest extends TestCase {
+public class DependencyTest extends IdeaTestCase {
 
-  public void testMavenMatching() {
+  public void testMavenMatching() throws Exception {
     Dependency one = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, "com.foo:artifact:1.0.0@jar");
     Dependency two = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, "com.foo:artifact:1.0.0@aar");
     Dependency three = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, "com.foo:artifact:2.0.0@jar");
@@ -36,8 +37,8 @@ public class DependencyTest extends TestCase {
     assertFalse(one.matches(five));
   }
 
-  public void testFiletreeListMatching() {
-    Map<String, Object> values = ImmutableMap.of("dir", "libs", "include", ImmutableList.of("*.jar", "*.aar"));
+  public void testFiletreeListMatching() throws Exception {
+    Map<String, Object> values = ImmutableMap.of("dir", (Object)"libs", "include", (Object)ImmutableList.of("*.jar", "*.aar"));
     Dependency one = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILETREE, values);
 
     Dependency two = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILES, "libs/foo.jar");
@@ -51,8 +52,8 @@ public class DependencyTest extends TestCase {
     assertFalse(one.matches(five));
   }
 
-  public void testFiletreeSingleMatching() {
-    Map<String, Object> values = ImmutableMap.of("dir", "libs", "include", "*.jar");
+  public void testFiletreeSingleMatching() throws Exception {
+    Map<String, Object> values = ImmutableMap.of("dir", (Object)"libs", "include", "*.jar");
     Dependency one = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILETREE, values);
 
     Dependency two = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILES, "libs/foo.jar");
@@ -64,7 +65,7 @@ public class DependencyTest extends TestCase {
     assertFalse(one.matches(four));
   }
 
-  public void testHardcodedAppcompatSupportMatching() {
+  public void testHardcodedAppcompatSupportMatching() throws Exception {
     Dependency one = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, "com.android.support:appcompat-v7:19.0.1");
     Dependency two = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, "com.android.support:support-v4:19.0.1");
     Dependency three = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, "com.android.support:support-v7:19.0.1");
@@ -73,25 +74,25 @@ public class DependencyTest extends TestCase {
     assertFalse(one.matches(three));
   }
 
-  public void testModulesWithLeadingColons() {
+  public void testModulesWithLeadingColons() throws Exception {
     Dependency one = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.MODULE, ":one");
     Dependency two = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.MODULE, "one");
 
     assertTrue(one.matches(two));
   }
 
-  public void testModulesWithNamedArguments() {
-    Map<String, Object> mapOne = ImmutableMap.of("path", "one", "configuration", "foo");
-    Map<String, Object> mapTwo = ImmutableMap.of("path", "one", "configuration", "foo");
+  public void testModulesWithNamedArguments() throws Exception {
+    Map<String, Object> mapOne = ImmutableMap.of("path", (Object)"one", "configuration", (Object)"foo");
+    Map<String, Object> mapTwo = ImmutableMap.of("path", (Object)"one", "configuration", (Object)"foo");
     Dependency one = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.MODULE, mapOne);
     Dependency two = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.MODULE, mapTwo);
 
     assertTrue(one.matches(two));
   }
 
-  public void testModulesWithNamedArgumentsAndLeadingColons() {
-    Map<String, Object> mapOne = ImmutableMap.of("path", ":one", "configuration", "foo");
-    Map<String, Object> mapTwo = ImmutableMap.of("path", "one", "configuration", "foo");
+  public void testModulesWithNamedArgumentsAndLeadingColons() throws Exception {
+    Map<String, Object> mapOne = ImmutableMap.of("path", (Object)":one", "configuration", (Object)"foo");
+    Map<String, Object> mapTwo = ImmutableMap.of("path", (Object)"one", "configuration", (Object)"foo");
     Dependency one = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.MODULE, mapOne);
     Dependency two = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.MODULE, mapTwo);
 

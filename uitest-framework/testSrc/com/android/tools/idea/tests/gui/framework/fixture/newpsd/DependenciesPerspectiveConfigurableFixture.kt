@@ -22,7 +22,12 @@ import java.awt.Container
 class DependenciesPerspectiveConfigurableFixture(
     ideFrameFixture: IdeFrameFixture,
     container: Container
-) : BasePerspectiveConfigurableFixture(ideFrameFixture, container)
+) : BasePerspectiveConfigurableFixture(ideFrameFixture, container) {
+
+  fun findDependenciesPanel(): DependenciesFixture =
+    DependenciesFixture(ideFrameFixture, container)
+
+}
 
 fun ProjectStructureDialogFixture.selectDependenciesConfigurable(): DependenciesPerspectiveConfigurableFixture {
   selectConfigurable("Dependencies")
@@ -30,6 +35,3 @@ fun ProjectStructureDialogFixture.selectDependenciesConfigurable(): Dependencies
       ideFrameFixture,
       findConfigurable(DEPENDENCIES_VIEW))
 }
-
-
-

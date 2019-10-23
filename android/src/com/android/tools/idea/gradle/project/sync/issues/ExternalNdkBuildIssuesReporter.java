@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
+import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFile;
@@ -23,9 +27,9 @@ import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.util.PositionInFile;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -34,15 +38,10 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.service.JpsServiceManager;
-
-import java.util.List;
-
-import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 class ExternalNdkBuildIssuesReporter extends BaseSyncIssuesReporter {
   @NotNull private final BuildOutputParser myBuildOutputParser;
@@ -69,7 +68,10 @@ class ExternalNdkBuildIssuesReporter extends BaseSyncIssuesReporter {
   }
 
   @Override
-  void report(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
+  void report(@NotNull SyncIssue syncIssue,
+              @NotNull Module module,
+              @Nullable VirtualFile buildFile,
+              @NotNull SyncIssueUsageReporter usageReporter) {
     String group = "External Native Build Issues";
 
     String nativeToolOutput = syncIssue.getData();

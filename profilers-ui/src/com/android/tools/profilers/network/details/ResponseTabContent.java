@@ -38,7 +38,7 @@ final class ResponseTabContent extends TabContent {
   private final NetworkConnectionsModel myModel;
   private JPanel myPanel;
 
-  ResponseTabContent(@NotNull IdeProfilerComponents components,
+  public ResponseTabContent(@NotNull IdeProfilerComponents components,
                             @NotNull NetworkConnectionsModel model) {
     myComponents = components;
     myModel = model;

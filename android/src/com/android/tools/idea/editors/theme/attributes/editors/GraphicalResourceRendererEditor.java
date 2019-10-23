@@ -231,7 +231,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
   protected abstract EnumSet<ResourceType> getAllowedResourceTypes();
 
   private class EditorClickListener extends DumbAwareActionListener {
-    EditorClickListener() {
+    public EditorClickListener() {
       super(myContext.getProject());
     }
 

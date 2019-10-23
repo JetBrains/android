@@ -17,9 +17,9 @@ package com.intellij.testGuiFramework.launcher
 
 import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.tools.idea.tests.gui.framework.AspectsAgentLogger
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.tests.IdeaTestSuiteBase
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testGuiFramework.impl.GuiTestStarter
@@ -84,6 +84,10 @@ object GuiTestLauncher {
     vmOptionsFile?.let {
       processBuilder.environment()["STUDIO_VM_OPTIONS"] = it.canonicalPath
     }
+    val aspectsAgentLogPath = AspectsAgentLogger.getAspectsAgentLog()?.absolutePath
+    if (aspectsAgentLogPath != null) {
+      processBuilder.environment()["ASPECTS_AGENT_LOG"] = aspectsAgentLogPath
+    }
     process = processBuilder.start()
   }
 
@@ -121,12 +125,11 @@ object GuiTestLauncher {
    */
   private fun getVmOptions(port: Int): List<String> {
     // TODO(b/77341383): avoid having to sync manually with studio64.vmoptions
-    var options = listOf(
+    val options = mutableListOf(
       /* studio64.vmoptions */
       "-Xms256m",
       "-Xmx1280m",
       "-XX:ReservedCodeCacheSize=240m",
-      "-XX:+UseConcMarkSweepGC",
       "-XX:SoftRefLRUPolicyMSPerMB=50",
       "-Dsun.io.useCanonCaches=false",
       "-Djava.net.preferIPv4Stack=true",
@@ -139,7 +142,6 @@ object GuiTestLauncher {
       "-Dawt.useSystemAAFontSettings=lcd",
       "-Dsun.java2d.renderer=sun.java2d.marlin.MarlinRenderingEngine",
       /* studio.sh options */
-      "-Xbootclasspath/p:${GuiTestOptions.getBootClasspath()}",
       "-Didea.platform.prefix=AndroidStudio",
       "-Didea.jre.check=true",
       /* testing-specific options */
@@ -151,7 +153,35 @@ object GuiTestLauncher {
       "-Ddisable.android.analytics.consent.dialog.for.test=true",
       "-Ddisable.config.import=true",
       "-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}",
-      "-Didea.gui.test.port=$port")
+      "-Didea.gui.test.port=$port",
+      /* aspects agent options */
+      "-javaagent:${GuiTestOptions.getAspectsAgentJar()}=${GuiTestOptions.getAspectsAgentRules()};${GuiTestOptions.getAspectsAgentBaseline()}",
+      "-Daspects.baseline.export.path=${GuiTestOptions.getAspectsBaselineExportPath()}"
+    )
+    /* options for BLeak */
+    if (System.getProperty("enable.bleak") == "true") {
+      options += "-Denable.bleak=true"
+      options += "-Xmx16g"
+      options += "-XX:+UseG1GC"
+      val instrumentationAgentJar = File(TestUtils.getWorkspaceRoot(),
+                                         "bazel-bin/tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents/ObjectSizeInstrumentationAgent_deploy.jar")
+      if (instrumentationAgentJar.exists()) {
+        options += "-javaagent:${instrumentationAgentJar.absolutePath}"
+      } else {
+        println("Object size instrumentation agent not found - leak share reports will all be 0")
+      }
+      val jvmtiAgent = File(TestUtils.getWorkspaceRoot(),
+                            "bazel-bin/tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents/libjnibleakhelper.so")
+      if (jvmtiAgent.exists()) {
+        options += "-agentpath:${jvmtiAgent.absolutePath}"
+        options += "-Dbleak.jvmti.enabled=true"
+        options += "-Djava.library.path=${System.getProperty("java.library.path")}:${jvmtiAgent.parent}"
+      } else {
+        println("BLeak JVMTI agent not found. Falling back to Java implementation: application threads will not be paused, and traversal roots will be different")
+      }
+    } else {
+      options += "-XX:+UseConcMarkSweepGC"
+    }
     /* debugging options */
     if (GuiTestOptions.isDebug()) {
       options += "-Didea.debug.mode=true"

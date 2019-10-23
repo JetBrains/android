@@ -19,8 +19,10 @@ import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.intellij.openapi.Disposable
+import java.awt.event.FocusListener
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.table.TableCellEditor
 
 /**
  * A model property editor.
@@ -59,6 +61,16 @@ interface ModelPropertyEditor<out ValueT : Any> : Disposable {
    */
   fun reload()
 
+  /**
+   * Reloads the editor from the bound property and keeps the value if it has been modified by the user.
+   */
+  fun reloadIfNotChanged() = reload()
+
+  /**
+   * Adds [listener] to the core editor component(s).
+   */
+  fun addFocusListener(listener: FocusListener)
+
   val property: ModelPropertyCore<out ValueT>
 }
 
@@ -87,14 +99,22 @@ interface EditorExtensionAction<T : Any, ModelPropertyCoreT : ModelPropertyCore<
   val title: String
   val tooltip: String
   val icon: Icon
-  fun invoke(property: ModelPropertyCoreT,
-             editor: ModelPropertyEditor<T>,
-             editorFactory: ModelPropertyEditorFactory<T, ModelPropertyCoreT>)
+  val isMainAction: Boolean
+  fun isAvailableFor(property: ModelPropertyCoreT, isPropertyContext: Boolean): Boolean
+  fun invoke(
+    property: ModelPropertyCoreT,
+    editor: ModelPropertyEditor<T>,
+    editorFactory: ModelPropertyEditorFactory<T, ModelPropertyCoreT>
+  )
 }
 
 /**
  * A factory to create property editors with the preconfigured property context.
  */
 interface ModelPropertyEditorFactory<ValueT : Any, in ModelPropertyCoreT : ModelPropertyCore<ValueT>> {
-  fun createNew(property: ModelPropertyCoreT): ModelPropertyEditor<ValueT>
+  fun createNew(
+    property: ModelPropertyCoreT,
+    cellEditor: TableCellEditor? = null,
+    isPropertyContext: Boolean = true
+  ): ModelPropertyEditor<ValueT>
 }

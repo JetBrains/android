@@ -20,8 +20,8 @@ import com.android.tools.adtui.model.EaseOutModel
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.updater.Updater
 import com.google.common.truth.Truth.assertThat
+import com.intellij.util.ui.UIUtilities
 import org.junit.Test
-import sun.swing.SwingUtilities2
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
@@ -34,7 +34,7 @@ class InstructionsPanelTest {
     val panel = JPanel(BorderLayout())
 
     val instructions = InstructionsPanel.Builder(
-      TextInstruction(SwingUtilities2.getFontMetrics(panel, AdtUiUtils.DEFAULT_FONT), "InstructionsPanelTest"))
+      TextInstruction(UIUtilities.getFontMetrics(panel, AdtUiUtils.DEFAULT_FONT), "InstructionsPanelTest"))
       .setEaseOut(easeOut, { child -> panel.remove(child) })
       .build()
     panel.add(instructions, BorderLayout.CENTER)

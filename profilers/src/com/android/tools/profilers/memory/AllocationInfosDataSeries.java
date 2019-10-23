@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
   @Nullable private MemoryProfilerStage myStage;
 
-  AllocationInfosDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+  public AllocationInfosDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
                                    @NotNull Common.Session session,
                                    @NotNull FeatureTracker featureTracker,
                                    @Nullable MemoryProfilerStage stage) {

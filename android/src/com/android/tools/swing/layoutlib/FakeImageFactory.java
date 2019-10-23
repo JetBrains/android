@@ -18,6 +18,7 @@ package com.android.tools.swing.layoutlib;
 import com.android.ide.common.rendering.api.IImageFactory;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.Graphics2DDelegate;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.Graphics;
@@ -58,6 +59,7 @@ public class FakeImageFactory implements IImageFactory {
     return myRequestedWidth;
   }
 
+  @NotNull
   @Override
   public BufferedImage getImage(final int w, final int h) {
     // BufferedImage can not have a 0 size. We pass 1,1 since we are not really interested in the bitmap,

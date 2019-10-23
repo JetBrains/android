@@ -18,7 +18,6 @@ package com.android.tools.idea.refactoring.modularize;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -41,9 +40,6 @@ public class AndroidModularizeTest extends AndroidTestCase {
     super.setUp();
     myFixture.copyDirectoryToProject(BASE_PATH + "/res", "res/");
     myFixture.copyDirectoryToProject(BASE_PATH + "/src", "src/");
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.copyDirectoryToProject(BASE_PATH + "/gen", "gen/");
-    }
     myFixture.copyFileToProject(BASE_PATH + "/" + SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
 
     myFixture.copyDirectoryToProject(BASE_PATH + "/library/res", LIBRARY_PATH + "res/");

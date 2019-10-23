@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res.psi;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReferenceExpression;
@@ -42,6 +43,15 @@ public interface AndroidResourceToPsiResolver {
   ResolveResult[] resolveToPsi(@NotNull ResourceValue resourceValue,
                                @NotNull XmlElement element,
                                @NotNull AndroidFacet facet);
+
+  /**
+   * Returns the {@link PsiElement}s for "go to declaration" action on XML attributes names.
+   */
+  @NotNull
+  PsiElement[] getXmlAttributeNameGotoDeclarationTargets(@NotNull String attributeName,
+                                                         @NotNull ResourceNamespace namespace,
+                                                         @NotNull PsiElement context,
+                                                         @NotNull AndroidFacet facet);
 
   /**
    * Returns the {@link PsiElement}s for "go to declaration" on fields of R and Manifest classes.

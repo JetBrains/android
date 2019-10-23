@@ -27,11 +27,11 @@ import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
-import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.mock.MockApplication;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
+import org.jetbrains.kotlin.android.ConvertJavaToKotlinProviderImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,11 +42,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.extensions.Extensions.getRootArea;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class TemplateValueInjectorTest{
-
-  private static int PREVIEW_VERSION = 104;
+public class TemplateValueInjectorTest {
+  private static final int PREVIEW_VERSION = 104;
 
   @Mock
   private AndroidVersionsInfo myMockAndroidVersionsInfo;
@@ -61,12 +61,11 @@ public class TemplateValueInjectorTest{
     instance.registerService(EmbeddedDistributionPaths.class, new EmbeddedDistributionPaths());
     ApplicationManager.setApplication(instance, myDisposable);
 
-    PluginManagerCore.getPlugins();
     String kotlinEpName = ConvertJavaToKotlinProvider.EP_NAME.getName();
-    //if (!getRootArea().hasExtensionPoint(kotlinEpName)) {
-    //  getRootArea().registerExtensionPoint(kotlinEpName, ConvertJavaToKotlinProviderImpl.class.getName());
-    //  Disposer.register(myDisposable, () -> getRootArea().unregisterExtensionPoint(kotlinEpName));
-    //}
+    if (!getRootArea().hasExtensionPoint(kotlinEpName)) {
+      getRootArea().registerExtensionPoint(kotlinEpName, ConvertJavaToKotlinProviderImpl.class.getName());
+      Disposer.register(myDisposable, () -> getRootArea().unregisterExtensionPoint(kotlinEpName));
+    }
   }
 
   @After

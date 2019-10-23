@@ -16,11 +16,16 @@
 package com.android.tools.profilers.cpu.simpleperf;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profiler.proto.SimpleperfReport;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
+import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.util.io.FileUtil;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -91,17 +96,20 @@ public class SimpleperfTraceParserTest {
       // and there is no way to predict where they are going to be trimmed.
       if ("Studio:Heartbeat".contains(thread)) {
         studioHeartbeatCount++;
-        // libperfa should be the entry point
+        // libjvmtiagent should be the entry point
+        // TODO: Update file name along with the trace files
         validateRootNodesAndGetEntryPoint(tree.getValue(),"libperfa_arm64.so");
       }
       else if ("Studio:MemoryAgent".contains(thread)) {
         studioMemoryAgentCount++;
-        // libperfa should be the entry point
+        // libjvmtiagent should be the entry point
+        // TODO: Update file name along with the trace files
         validateRootNodesAndGetEntryPoint(tree.getValue(),"libperfa_arm64.so");
       }
       else if ("Studio:Socket".contains(thread)) {
         studioSocketCount++;
-        // libperfa should be the entry point
+        // libjvmtiagent should be the entry point
+        // TODO: Update file name along with the trace files
         validateRootNodesAndGetEntryPoint(tree.getValue(),"libperfa_arm64.so");
       }
       else if ("JVMTI Agent thread".contains(thread)) {
@@ -132,6 +140,55 @@ public class SimpleperfTraceParserTest {
         node = node.getFirstChild();
       }
     }
+  }
+
+  @Test
+  public void cppModelVAddressComesFromParentInCallChain() throws IOException {
+    ByteString traceBytes = traceFileToByteString("simpleperf_callchain.trace");
+    File trace = FileUtil.createTempFile("native_trace", ".trace", true);
+    try (FileOutputStream out = new FileOutputStream(trace)) {
+      out.write(traceBytes.toByteArray());
+    }
+    myParser.parse(trace, 1);
+
+    int mainThread = 7056;
+    SimpleperfReport.Sample mainFirstSample =
+      myParser.mySamples.stream().filter((sample -> sample.getThreadId() == mainThread)).findFirst().orElse(null);
+    assertNotNull(mainFirstSample);
+
+    CaptureNode mainThreadTree = null;
+    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myParser.getCaptureTrees().entrySet()) {
+      if (entry.getKey().getId() == mainFirstSample.getThreadId()) {
+        mainThreadTree = entry.getValue();
+        break;
+      }
+    }
+    assertNotNull(mainThreadTree);
+
+    List<SimpleperfReport.Sample.CallChainEntry> firstCallChain = Lists.reverse(mainFirstSample.getCallchainList());
+    List<CaptureNode> leftMostMainTreeBranch = new ArrayList<>();
+    while (mainThreadTree != null) {
+      leftMostMainTreeBranch.add(mainThreadTree);
+      mainThreadTree = mainThreadTree.getChildCount() > 0 ? mainThreadTree.getChildAt(0) : null;
+    }
+
+    String mainThreadName = "e.sample.tunnel";
+    // tree branch = callchain + special node representing the thread name
+    assertEquals(firstCallChain.size() + 1, leftMostMainTreeBranch.size());
+    assertEquals(mainThreadName, leftMostMainTreeBranch.get(0).getData().getName());
+
+    int cppModelCount = 0;
+    for (int i = 1; i < firstCallChain.size(); i++) {
+      CaptureNode correspondingNode = leftMostMainTreeBranch.get(i + 1);
+      if (correspondingNode.getData() instanceof CppFunctionModel) {
+        cppModelCount++;
+        long parentVAddress = firstCallChain.get(i - 1).getVaddrInFile();
+        assertEquals(parentVAddress, ((CppFunctionModel)correspondingNode.getData()).getVAddress());
+      }
+
+    }
+    // Verify we indeed checked for some addresses
+    assertTrue(cppModelCount > 0);
   }
 
   @Test

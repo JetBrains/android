@@ -1,6 +1,7 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.SdkConstants;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -9,10 +10,9 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.XmlNamespaceHelper;
+import java.util.Collections;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collections;
 
 /**
  * @author Eugene.Kudelevsky
@@ -33,7 +33,7 @@ public class AddMissingPrefixQuickFix implements AndroidLintQuickFix {
       return;
     }
 
-    String androidNsPrefix = tag.getPrefixByNamespace(SdkConstants.NS_RESOURCES);
+    String androidNsPrefix = tag.getPrefixByNamespace(SdkConstants.ANDROID_URI);
 
     if (androidNsPrefix == null) {
       final PsiFile file = tag.getContainingFile();
@@ -51,10 +51,13 @@ public class AddMissingPrefixQuickFix implements AndroidLintQuickFix {
 
       final XmlFile xmlFile = (XmlFile)file;
       final String defaultPrefix = "android";
-      extension.insertNamespaceDeclaration(xmlFile, null, Collections.singleton(SdkConstants.NS_RESOURCES), defaultPrefix, null);
+      extension.insertNamespaceDeclaration(xmlFile, null, Collections.singleton(SdkConstants.ANDROID_URI), defaultPrefix, null);
       androidNsPrefix = defaultPrefix;
     }
-    attribute.setName(androidNsPrefix + ':' + attribute.getLocalName());
+    String finalAndroidNsPrefix = androidNsPrefix;
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      attribute.setName(finalAndroidNsPrefix + ':' + attribute.getLocalName());
+    });
   }
 
   @Override

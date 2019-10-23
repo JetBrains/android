@@ -87,6 +87,8 @@ effects.**
 
 ### Native Code
 
+**(This test is expected to work only on Android O+, API >= 26)**
+
 1. In the "Android Profiler" Toolbar, make sure you are on the CPU profiler.
 1. In the QA App, select the "Native Code" scenario.
 1. In the CPU profiler, make sure the selected configuration is set to
@@ -116,6 +118,8 @@ effects.**
 
 ### Startup Profiling
 
+**(This test is expected to work only on Android O+, API >= 26)**
+
 1. Edit the run configuration for "app", going to the "Profiling" tab.
 1. Check the "Start recording a method trace on startup" option
    * Feel free to leave the particular trace config on "Sampled (Java)", but if
@@ -138,7 +142,7 @@ effects.**
 
 ### System Tracing
 
-(This test is expected to work only on Android O+, API >= 26)
+**(This test is expected to work only on Android O+, API >= 26)**
 
 1. In the "Android Profiler" Toolbar, make sure you are on the CPU profiler.
 1. In the QA App, select the "Code With Trace Markers" scenario.
@@ -163,6 +167,8 @@ effects.**
 
 ### Automatic Recording
 
+**(This test is expected to work only on Android O+, API >= 26)**
+
 1. In the "Android Profiler" Toolbar, make sure you are on the CPU profiler.
 1. In the QA App, select the "Automatic Recording" scenario.
 1. In the QA App, press the "run" button.
@@ -186,6 +192,20 @@ effects.**
 
 ![CPU - Export Trace][cpu-trace-export]
 
+### Trace Selection
+
+1. In the "Android Profiler", perform a CPU recording
+1. Stop recording by clicking the Stop button in the bottom of profiler window (not the button next to profiling config dropdown menu)
+1. Ensure the recording is selected.
+1. Press 'Esc' the selection should clear.
+1. click the clock icon in the lower-left corner of a capture. The capture will be selected.
+1. Press 'Esc' twice
+1. click the clock icon in the lower-left corner of a capture. The capture will be selected.
+1. Press 'Esc' once
+1. **Validate the selection is cleared.**
+
+![CPU - Trace Selection][cpu-trace-selection]
+
 ---
 
 ![CPU - Import Trace][session-import]
@@ -206,7 +226,7 @@ effects.**
 
 ### Live Allocation Sampling
 
-(This test is expected to work only on Android O+, API >= 26)
+**(This test is expected to work only on Android O+, API >= 26)**
 
 1. In the "Android Profiler" Toolbar, make sure you are on the memory profiler.
 1. In the QA App, select the "Java Memory Allocation" scenario.
@@ -252,7 +272,7 @@ effects.**
 
 ### JNI References Allocation
 
-(This test is expected to work only on Android O+, API >= 26)
+**(This test is expected to work only on Android O+, API >= 26)**
 
 1. In the "Android Profiler" Toolbar, make sure you are on the memory profiler.
 1. In the QA App, select the "JNI References Allocation" scenario.
@@ -281,6 +301,16 @@ effects.**
    exported.**
 
 ![Memory - Export Heap Dump][memory-heap-export]
+
+### Heap Selection
+
+1. In the “Android Profiler”, after you’ve performed at least one heap dump.
+1. Go to any other profiler (e.g. network)
+1. Use the sessions panel to navigate to the heap dump you've created (just click on it)
+1. Press 'Esc'
+1. **Validate the selection is cleared.**
+
+![Memory - Heap Selection][memory-heap-selection]
 
 ---
 
@@ -313,7 +343,7 @@ effects.**
 
 ## Energy
 
-(All energy tests are expected to work only on Android O+, API >= 26)
+**(All energy tests are expected to work only on Android O+, API >= 26)**
 
 ### Basic Profiling
 
@@ -448,7 +478,7 @@ of whichever profiler you have selected.
 
 ### Fragment Indicators
 
-(This test is expected to work only on Android O+, API >= 26)
+**(This test is expected to work only on Android O+, API >= 26)**
 
 1. In the QA App, select the "Switch Activities" scenario.
 1. Press the "run" button
@@ -478,6 +508,7 @@ of whichever profiler you have selected.
 [cpu-automatic]: res/perf-tools/cpu-automatic.png
 [cpu-trace-export]: res/perf-tools/cpu-trace-export.png
 [cpu-trace-import]: res/perf-tools/cpu-trace-import.png
+[cpu-trace-selection]: res/perf-tools/cpu-trace-selection.png
 [memory-alloc-java]: res/perf-tools/memory-alloc-java.png
 [memory-alloc-native]: res/perf-tools/memory-alloc-native.png
 [memory-alloc-object]: res/perf-tools/memory-alloc-object.png
@@ -486,6 +517,7 @@ of whichever profiler you have selected.
 [memory-jni-app]: res/perf-tools/memory-jni-app.png
 [memory-jni-studio]: res/perf-tools/memory-jni-studio.png
 [memory-heap-export]: res/perf-tools/memory-heap-export.png
+[memory-heap-selection]: res/perf-tools/memory-alloc-java.png
 [network-httpurl]: res/perf-tools/network-httpurl.png
 [network-okhttp]: res/perf-tools/network-okhttp.png
 [energy-basic-cpu]: res/perf-tools/energy-basic-cpu.png

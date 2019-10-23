@@ -16,8 +16,8 @@
 package com.android.tools.adtui.stdui;
 
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtilities;
 import org.jetbrains.annotations.NotNull;
-import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
@@ -168,7 +168,7 @@ class CommonTabbedPaneUI extends BasicTabbedPaneUI {
     int selectedIndex = tabPane.getSelectedIndex();
     boolean isSelected = selectedIndex == tabIndex;
     Font font = tabPane.getFont();
-    FontMetrics metrics = SwingUtilities2.getFontMetrics(tabPane, g, font);
+    FontMetrics metrics = UIUtilities.getFontMetrics(tabPane, g, font);
 
     if (tabIndex == myHoveredTabIndex) {
       g.setColor(StandardColors.TAB_HOVER_COLOR);

@@ -94,7 +94,7 @@ class GenerateShippedSyncTest : AndroidTestBase() {
     // Replace the default RepositoryUrlManager with one that enables repository checks in tests. (myForceRepositoryChecksInTests)
     // This is necessary to fully resolve dynamic gradle coordinates such as ...:appcompat-v7:+ => appcompat-v7:25.3.1
     // keeping it exactly the same as they are resolved within the NPW flow.
-    ApplicationManager.getApplication().replaceService(RepositoryUrlManager::class.java, RepositoryUrlManager(IdeGoogleMavenRepository, true), testRootDisposable)
+    ApplicationManager.getApplication().replaceService(RepositoryUrlManager::class.java, RepositoryUrlManager(IdeGoogleMavenRepository, OfflineIdeGoogleMavenRepository, true), testRootDisposable)
 
     StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true)
 

@@ -74,7 +74,7 @@ class PsiResourceFile constructor(
     _items.remove(item.key, item)
   }
 
-  var dataBindingInfo: LayoutDataBindingInfo? = null
+  var dataBindingLayoutInfo: DefaultDataBindingLayoutInfo? = null
   val name = _psiFile.name
   val psiFile get() = _psiFile
 

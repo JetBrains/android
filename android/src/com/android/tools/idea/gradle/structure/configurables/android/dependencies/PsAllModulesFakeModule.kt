@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.model.*
 import java.io.File
 
-open class PsAllModulesFakeModule(override val parent: PsProject) : PsModule("<All Modules>", parent) {
+open class PsAllModulesFakeModule(override val parent: PsProject) : PsModule("<All Modules>", ModuleKind.FAKE, parent) {
   override val descriptor get() = PsModelDescriptor.None
-  override val dependencies: PsDependencyCollection<PsModule, Nothing, Nothing> get() = throw UnsupportedOperationException()
+  override val dependencies: PsDependencyCollection<PsModule, Nothing, Nothing, Nothing> get() = throw UnsupportedOperationException()
   override val projectType: PsModuleType = PsModuleType.UNKNOWN
   override val gradlePath: String? = null
   override val rootDir: File? = null
@@ -31,7 +31,7 @@ open class PsAllModulesFakeModule(override val parent: PsProject) : PsModule("<A
 
   override fun applyChanges() = parent.applyChanges()
 
-  override fun getConfigurations(onlyImportant: Boolean): List<String> = throw UnsupportedOperationException()
+  override fun getConfigurations(onlyImportantFor: ImportantFor?): List<String> = throw UnsupportedOperationException()
 
   override fun resetDependencies() = throw UnsupportedOperationException()
 

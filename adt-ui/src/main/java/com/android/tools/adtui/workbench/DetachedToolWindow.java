@@ -15,24 +15,22 @@
  */
 package com.android.tools.adtui.workbench;
 
+import static com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType.DETACHED;
+
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ToolWindowType;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
-
-import static com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType.DETACHED;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a detached tool window which is essentially an Intellij {@link ToolWindowEx}.
@@ -42,27 +40,26 @@ import static com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType.
  * @param <T> Specifies the type of data controlled by the {@link WorkBench}.
  */
 
-class DetachedToolWindow<T> implements Disposable {
+class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
   private final ToolContent<T> myContent;
   private final ToolWindowEx myToolWindow;
   private AttachedToolWindow<T> myCorrespondingToolWindow;
 
   DetachedToolWindow(@NotNull Project project,
-                            @NotNull ToolWindowDefinition<T> definition) {
+                     @NotNull ToolWindowDefinition<T> definition) {
     this(definition, ToolWindowManager.getInstance(project));
   }
 
-  DetachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
-                            @NotNull ToolWindowManager toolWindowManager) {
-    myContent = definition.getFactory().create();
+  private DetachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
+                     @NotNull ToolWindowManager toolWindowManager) {
+    myContent = definition.getFactory().apply(this);
     myToolWindow = createToolWindow(toolWindowManager, definition);
-    Disposer.register(this, myContent);
   }
 
   public void show(@NotNull AttachedToolWindow<T> correspondingWindow) {
     updateState(correspondingWindow);
     myContent.setToolContext(correspondingWindow.getContext());
-    myContent.setRestoreToolWindow(this::restore);
+    myContent.registerCallbacks(this);
     myToolWindow.setAvailable(true, null);
     myToolWindow.setType(toToolWindowType(correspondingWindow), null);
     myToolWindow.setSplitMode(correspondingWindow.isSplit(), null);
@@ -74,7 +71,8 @@ class DetachedToolWindow<T> implements Disposable {
     myToolWindow.setAvailable(false, null);
   }
 
-  private void restore() {
+  @Override
+  public void restore() {
     if (myToolWindow.isAvailable() && !myToolWindow.isVisible()) {
       myToolWindow.show(null);
     }

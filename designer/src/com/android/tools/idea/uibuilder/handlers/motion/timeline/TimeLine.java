@@ -137,7 +137,9 @@ public class TimeLine extends JPanel {
         g.drawLine(ix, top + text_height, ix, h - ins_botom);
         String str = df.format(i);
         int sw = fm.stringWidth(str) / 2;
-
+        if (i == 0) {
+          str = "%" + str;
+        }
         g.drawString(str, ix - sw, ascent + top);
       }
       return tcount;
@@ -158,7 +160,7 @@ public class TimeLine extends JPanel {
     JFrame f = new JFrame("timeline");
     f.setContentPane(p);
     f.setBounds(100, 100, 1200, 800);
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     f.setVisible(true);
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -31,4 +32,7 @@ import org.jetbrains.annotations.Nullable;
 public interface GradleDslExpression extends GradleDslElement {
   @Nullable
   PsiElement getExpression();
+
+  @NotNull
+  GradleDslExpression copy();
 }
