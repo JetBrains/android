@@ -92,7 +92,7 @@ public class NewCustomAttributePanel extends DialogWrapper {
       }
       return CustomAttributeType.CUSTOM_STRING;
     };
-    NlComponent component = selection.getComponent();
+    NlComponent component = selection.getComponentForCustomAttributeCompletions();
     if (component != null) {
       myNewAttributeNameModel.setEditingSupport(new AttributeNameEditingSupport(component, myTypeSupplier));
     }
