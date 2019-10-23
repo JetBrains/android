@@ -21,12 +21,10 @@ import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.navigator.AndroidProjectViewPane
-import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode
 import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode
 import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode
 import com.android.tools.idea.navigator.nodes.other.NonAndroidModuleNode
-import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
