@@ -50,6 +50,7 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API_LEVEL
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_NAME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_PROJECT_OUT
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_RES_OUT
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_SDK_DIR
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_SOURCE_PROVIDER_NAME
@@ -251,7 +252,7 @@ data class ProjectChecker(
       language = Language.fromName(activityState.getString(ATTR_LANGUAGE), Language.KOTLIN)
       kotlinVersion = activityState.getString(ATTR_KOTLIN_VERSION)
       buildToolsVersion = Revision.parseRevision(activityState.getString(ATTR_BUILD_TOOLS_VERSION))
-      topOut = moduleRoot
+      topOut = File(activityState.getString(ATTR_TOP_OUT))
       applicationPackage = null
     }
     val moduleTemplateData = ModuleTemplateData(
@@ -261,7 +262,7 @@ data class ProjectChecker(
       File(activityState.getString(ATTR_MANIFEST_OUT)),
       File(activityState.getString(ATTR_TEST_OUT)),
       File(activityState.getString(ATTR_AIDL_OUT)),
-      File(activityState.getString(ATTR_TOP_OUT)),
+      File(activityState.getString(ATTR_PROJECT_OUT)),
       activityState.getBoolean(ATTR_THEME_EXISTS),
       activityState.getBoolean(ATTR_IS_NEW_MODULE),
       activityState.getBoolean(ATTR_HAS_APPLICATION_THEME),
