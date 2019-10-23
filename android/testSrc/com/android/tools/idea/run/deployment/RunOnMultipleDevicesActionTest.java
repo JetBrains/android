@@ -18,11 +18,10 @@ package com.android.tools.idea.run.deployment;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.android.tools.idea.run.AndroidRunConfiguration;
-import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
+import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -73,12 +72,10 @@ public final class RunOnMultipleDevicesActionTest {
   }
 
   @Test
-  public void updateConfigurationIsntInstanceOfAndroidRunConfiguration() {
+  public void updateWithNonSupportedRunConfigurationTypeShouldDisableAction() {
     // Arrange
-    RunConfiguration configuration = Mockito.mock(AndroidTestRunConfiguration.class);
-
     RunnerAndConfigurationSettings settings = Mockito.mock(RunnerAndConfigurationSettings.class);
-    Mockito.when(settings.getConfiguration()).thenReturn(configuration);
+    Mockito.when(settings.getType()).thenReturn(Mockito.mock(ConfigurationType.class));
 
     myAction = new RunOnMultipleDevicesAction(project -> settings);
     Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
@@ -91,12 +88,10 @@ public final class RunOnMultipleDevicesActionTest {
   }
 
   @Test
-  public void update() {
+  public void updateWithSupportedRunConfigurationTypeShouldNotDisableAction() {
     // Arrange
-    RunConfiguration configuration = Mockito.mock(AndroidRunConfiguration.class);
-
     RunnerAndConfigurationSettings settings = Mockito.mock(RunnerAndConfigurationSettings.class);
-    Mockito.when(settings.getConfiguration()).thenReturn(configuration);
+    Mockito.when(settings.getType()).thenReturn(AndroidRunConfigurationType.getInstance());
 
     myAction = new RunOnMultipleDevicesAction(project -> settings);
     Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());

@@ -659,6 +659,12 @@ public final class StudioFlags {
     "If enabled, Nitrogen test runner configuration becomes available in addition to traditional test runner configurations.",
     false
   );
+
+  public static final Flag<Boolean> MULTIDEVICE_INSTRUMENTATION_TESTS = Flag.create(
+    TESTING, "multidevice.instrumentation.tests", "Allow running instrumentation tests on multiple devices at a time.",
+    "If enabled, you can choose run-on-selected-devices for android instrumentation test run configurations.",
+    false
+  );
   //endregion
 
   //region Translations Editor
