@@ -188,7 +188,9 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     override val label: String = message("android.wizard.gallery.item.add.cpp"),
     override val icon: Icon? = cppIcon,
     override val exists: Boolean = template != null
-  ) : TemplateRendererWithDescription
+  ) : TemplateRendererWithDescription {
+    override fun toString() = label
+  }
 
   private class HandleTemplateRendererWithDescription(
     t: TemplateHandle?
