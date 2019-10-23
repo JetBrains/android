@@ -73,9 +73,10 @@ class SingleDeviceAndroidProcessMonitor(
 
     /**
      * The default timeout for the target application discovery used in milliseconds.
-     * This value is chosen heuristically.
+     * This value (3 minutes) is chosen heuristically. This process monitor is started before APK installation but after the compilation
+     * is done. The installation is typically done much faster than 3 minutes but we chose longer timeout to reduce false-positive error.
      */
-    const val APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS: Long = 10000
+    const val APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS: Long = 180000
   }
 
   /**
@@ -157,8 +158,10 @@ class SingleDeviceAndroidProcessMonitor(
    */
   @Synchronized
   fun detachAndClose() {
-    myState = PROCESS_DETACHED
-    close()
+    if (!myState.isTerminalState()) {
+      myState = PROCESS_DETACHED
+      close()
+    }
   }
 
   /**
