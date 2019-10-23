@@ -414,26 +414,34 @@ private class PreviewEditor(private val psiFile: PsiFile,
   /**
    * Updates the surface visibility and displays the content or an error message depending on the build state. This method is called after
    * certain updates like a build or a preview refresh has happened.
+   * Calling this method will also update the FileEditor notifications.
    */
-  private fun updateSurfaceVisibility() {
+  private fun updateSurfaceVisibilityAndNotifications() {
     if (workbench.isMessageVisible && !hasAtLeastOneValidPreview()) {
+      LOG.debug("No valid previews available")
       showModalErrorMessage(message("panel.needs.build"))
     }
     else {
+      LOG.debug("Show content")
       workbench.hideLoading()
       workbench.showContent()
     }
+
+    // Make sure all notifications are cleared-up
+    EditorNotifications.getInstance(project).updateNotifications(file)
   }
 
   override fun buildFailed() {
+    LOG.debug("buildFailed")
     isRefreshingPreview = false
-    updateSurfaceVisibility()
+    updateSurfaceVisibilityAndNotifications()
   }
 
   /**
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    */
   private fun doRefresh(filePreviewElements: List<PreviewElement>) {
+    if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.size} elements")
     // Only display component border if decorations are not showed
     val showBorder = !RenderSettings.getProjectSettings(project).showDecorations
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
@@ -490,6 +498,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
     // Remove and dispose pre-existing models that were not used.
     // This will happen if the user removes one or more previews.
+    if (LOG.isDebugEnabled) LOG.debug("Removing ${existingModels.size} model(s)")
     existingModels.forEach { surface.removeModel(it) }
 
     val rendersCompletedFuture = if (newModels.isNotEmpty()) {
@@ -530,15 +539,13 @@ private class PreviewEditor(private val psiFile: PsiFile,
         }
 
         previewElements = filePreviewElements
-        updateSurfaceVisibility()
         if (ex != null) {
           LOG.warn(ex)
         }
 
         isRefreshingPreview = false
         hasRenderedAtLeastOnce = true
-        // Make sure all notifications are cleared-up
-        EditorNotifications.getInstance(project).updateNotifications(file)
+        updateSurfaceVisibilityAndNotifications()
 
         onRefresh?.invoke()
       }
@@ -553,6 +560,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
     val filePreviewElements = previewProvider()
 
     if (filePreviewElements == previewElements) {
+      LOG.debug("No updates on the PreviewElements, just refreshing the existing ones")
       // In this case, there are no new previews. We need to make sure that the surface is still correctly
       // configured and that we are showing the right size for components. For example, if the user switches on/off
       // decorations, that will not generate/remove new PreviewElements but will change the surface settings.
@@ -568,8 +576,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
       // There are not elements, skip model creation
       clearCacheAndRefreshSurface(surface).whenComplete { _, _ ->
         isRefreshingPreview = false
-        // Make sure to clear refreshing notification
-        EditorNotifications.getInstance(project).updateNotifications(file)
+        updateSurfaceVisibilityAndNotifications()
       }
       return
     }
