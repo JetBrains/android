@@ -102,13 +102,13 @@ class RenderTemplateModel private constructor(
   lateinit var wizardParameterData: WizardParameterData
   var newTemplate: Template2 = Template2.NoActivity
   set(value) {
+    field = value
     wizardParameterData = WizardParameterData(
       packageName.get(),
       module == null,
       template.get().name,
-      newTemplate.parameters
+      value.parameters
     )
-    field = value
   }
   var iconGenerator: IconGenerator? = null
   val renderLanguage = ObjectValueProperty(getInitialSourceLanguage(project.valueOrNull)).apply {
