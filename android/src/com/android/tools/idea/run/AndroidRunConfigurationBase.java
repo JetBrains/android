@@ -10,6 +10,7 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
@@ -97,7 +98,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     myProfilerState = new ProfilerState();
     myAndroidTests = androidTests;
-    getOptions().setAllowRunningInParallel(!androidTests);
+
+    if (StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get()) {
+      getOptions().setAllowRunningInParallel(true);
+    } else {
+      getOptions().setAllowRunningInParallel(!androidTests);
+    }
   }
 
   @Override
