@@ -303,6 +303,21 @@ class DeviceViewPanel(
             repaint()
           }
         })
+        add(object : ToggleAction("Show View Label") {
+          override fun update(event: AnActionEvent) {
+            super.update(event)
+            event.presentation.isEnabled = client.isConnected
+          }
+
+          override fun isSelected(event: AnActionEvent): Boolean {
+            return viewSettings.drawLabel
+          }
+
+          override fun setSelected(event: AnActionEvent, state: Boolean) {
+            viewSettings.drawLabel = state
+            repaint()
+          }
+        })
       }
     })
     leftGroup.add(PauseLayoutInspectorAction(client))

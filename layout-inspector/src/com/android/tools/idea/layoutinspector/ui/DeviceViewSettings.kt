@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.intellij.openapi.actionSystem.DataKey
 import kotlin.properties.Delegates
 
-class DeviceViewSettings(scalePercent: Int = 100, drawBorders: Boolean = true) {
+class DeviceViewSettings(
+  scalePercent: Int = 100,
+  drawBorders: Boolean = true,
+  drawLabel: Boolean = false
+) {
   val modificationListeners = mutableListOf<() -> Unit>()
 
   /** Scale of the view in percentage: 100 = 100% */
@@ -31,6 +34,10 @@ class DeviceViewSettings(scalePercent: Int = 100, drawBorders: Boolean = true) {
     get() = scalePercent / 100.0
 
   var drawBorders: Boolean by Delegates.observable(drawBorders) {
+    _, _, _ -> modificationListeners.forEach { it() }
+  }
+
+  var drawLabel: Boolean by Delegates.observable(drawLabel) {
     _, _, _ -> modificationListeners.forEach { it() }
   }
 }

@@ -36,6 +36,7 @@ import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
+import javax.imageio.ImageIO
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
@@ -95,21 +96,28 @@ class DeviceViewContentPanelTest {
     panel.setSize(200, 300)
 
     panel.paint(graphics)
-
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint.png"), generatedImage, 0.1)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint.png"), generatedImage, 0.05)
 
     settings.scalePercent = 50
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_scaled.png"), generatedImage, 0.05)
 
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_scaled.png"), generatedImage, 0.1)
     settings.scalePercent = 100
-
     panel.model.rotate(0.3, 0.2)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_rotated.png"), generatedImage, 0.05)
 
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_rotated.png"), generatedImage, 0.1)
+    model.selection = model.root
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_selected.png"), generatedImage, 0.05)
+
+    model.hoveredNode = model.root!!.children[0]
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_hovered.png"), generatedImage, 0.05)
   }
 
   @Test

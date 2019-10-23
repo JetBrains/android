@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.ui.JBColor
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.AlphaComposite
@@ -36,6 +37,10 @@ import java.awt.event.MouseEvent
 
 private const val MARGIN = 50
 
+private const val NORMAL_BORDER_THICKNESS = 1f
+private const val EMPHASIZED_BORDER_THICKNESS = 5f
+private const val LABEL_FONT_SIZE = 30f
+
 class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings: DeviceViewSettings) : AdtPrimaryPanel() {
 
   private val inspectorModel = layoutInspector.layoutInspectorModel
@@ -50,15 +55,8 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
 
   init {
     inspectorModel.modificationListeners.add(::modelChanged)
-    inspectorModel.selectionListeners.add(::selectionChanged)
-    val mouseListener = object : MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent) {
-        inspectorModel.selection = model.findTopRect((e.x - size.width / 2.0) / viewSettings.scaleFraction,
-                                                     (e.y - size.height / 2.0) / viewSettings.scaleFraction)
-        repaint()
-      }
-    }
-    addMouseListener(mouseListener)
+    inspectorModel.selectionListeners.add { _, _ -> repaint() }
+    inspectorModel.hoverListeners.add { _, _ -> repaint() }
     addComponentListener(object : ComponentAdapter() {
       override fun componentResized(e: ComponentEvent?) {
         repaint()
@@ -83,6 +81,17 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
           model.rotate(xRotation, yRotation)
         }
         repaint()
+      }
+
+      private fun nodeAtPoint(e: MouseEvent) = model.findTopRect((e.x - size.width / 2.0) / viewSettings.scaleFraction,
+                                                                 (e.y - size.height / 2.0) / viewSettings.scaleFraction)
+
+      override fun mouseClicked(e: MouseEvent) {
+        inspectorModel.selection = nodeAtPoint(e)
+      }
+
+      override fun mouseMoved(e: MouseEvent) {
+        inspectorModel.hoveredNode = nodeAtPoint(e)
       }
     }
     addMouseListener(listener)
@@ -122,13 +131,19 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
     val selection = inspectorModel.selection
     val view = drawInfo.node
     if (viewSettings.drawBorders) {
-      if (view == selection) {
-        g2.color = JBColor.RED
-        g2.stroke = BasicStroke(3f)
-      }
-      else {
-        g2.color = JBColor.BLUE
-        g2.stroke = BasicStroke(1f)
+      when (view) {
+        selection -> {
+          g2.color = JBColor.RED
+          g2.stroke = BasicStroke(EMPHASIZED_BORDER_THICKNESS)
+        }
+        inspectorModel.hoveredNode -> {
+          g2.color = JBColor.BLUE
+          g2.stroke = BasicStroke(EMPHASIZED_BORDER_THICKNESS)
+        }
+        else -> {
+          g2.color = JBColor.BLUE.brighter()
+          g2.stroke = BasicStroke(NORMAL_BORDER_THICKNESS)
+        }
       }
       g2.draw(drawInfo.bounds)
     }
@@ -144,16 +159,11 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
       UIUtil.drawImage(g2, image, view.x, view.y, null)
       g2.composite = composite
     }
-    if (viewSettings.drawBorders && view == selection) {
+    if (viewSettings.drawLabel && view == selection) {
       g2.color = Color.BLACK
-      g2.font = g2.font.deriveFont(20f)
+      g2.font = g2.font.deriveFont(JBUIScale.scale(LABEL_FONT_SIZE))
       g2.drawString(view.unqualifiedName, view.x + 5, view.y + 25)
     }
-  }
-
-  @Suppress("UNUSED_PARAMETER")
-  private fun selectionChanged(old: ViewNode?, new: ViewNode?) {
-    repaint()
   }
 
   @Suppress("UNUSED_PARAMETER")
