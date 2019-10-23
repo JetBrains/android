@@ -159,7 +159,7 @@ class RenderTemplateModel private constructor(
           moduleTemplateDataBuilder.setModuleRoots(
             paths, projectLocation.get(), moduleName.get(), this@RenderTemplateModel.packageName.get())
 
-          projectTemplateDataBuilder.language = language.get().get()
+          projectTemplateDataBuilder.language = renderLanguage.get()
 
           if (androidFacet == null) {
             return@apply
@@ -247,7 +247,9 @@ class RenderTemplateModel private constructor(
 
         val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
 
-        return newTemplate.render(context, executor)
+        return newTemplate.render(context, executor).also {
+          createdFiles.addAll(context.filesToOpen)
+        }
       }
 
       val template = templateHandle!!.template
