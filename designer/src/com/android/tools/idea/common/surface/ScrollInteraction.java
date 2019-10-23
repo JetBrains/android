@@ -24,6 +24,10 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import java.awt.event.MouseWheelEvent;
+import java.util.EventObject;
+import org.intellij.lang.annotations.JdkConstants;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -80,6 +84,21 @@ public class ScrollInteraction extends Interaction {
   }
 
   @Override
+  public void begin(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
+    assert event instanceof MouseWheelEvent;
+    MouseWheelEvent mouseEvent = (MouseWheelEvent) event;
+    begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
+  }
+
+  @Override
+  public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
+    if (event instanceof MouseWheelEvent) {
+      MouseWheelEvent mouseWheelEvent = (MouseWheelEvent) event;
+      scroll(mouseWheelEvent.getX(), mouseWheelEvent.getY(), mouseWheelEvent.getScrollAmount());
+    }
+  }
+
+  @Override
   public void scroll(@SwingCoordinate int x, @SwingCoordinate int y, int scrollAmount) {
     short currentScrollSign = (short)(scrollAmount < 0 ? -1 : 0);
 
@@ -102,7 +121,13 @@ public class ScrollInteraction extends Interaction {
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiersEx) {
+  public void commit(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+    end(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+  }
+
+  @Override
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     // Reset scroll multiplier back to 1
     myScrollMultiplier = 1;
     myHandler.commit(myScrolledAmount);
@@ -110,7 +135,13 @@ public class ScrollInteraction extends Interaction {
   }
 
   @Override
-  public void cancel(int x, int y, int modifiersEx) {
+  public void cancel(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+    cancel(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+  }
+
+  @Override
+  public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     // Make sure we reset the scroll to where it was
     myHandler.update(0);
     mySceneView.getSceneManager().requestLayoutAndRender(false);
