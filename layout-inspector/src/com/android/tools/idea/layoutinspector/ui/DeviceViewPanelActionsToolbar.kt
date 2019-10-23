@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.adtui.actions.PanSurfaceAction
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomLabelAction
 import com.android.tools.adtui.actions.ZoomOutAction
@@ -64,7 +65,9 @@ object LayoutInspectorToolbarGroups : EditorActionsToolbarActionGroups {
     add(ZoomResetAction)
   }
 
-  override val panControlsGroup: ActionGroup? = null
+  override val panControlsGroup: ActionGroup? = DefaultActionGroup().apply {
+    add(PanSurfaceAction)
+  }
 
   override val zoomControlsGroup = DefaultActionGroup().apply {
     add(ZoomOutAction)

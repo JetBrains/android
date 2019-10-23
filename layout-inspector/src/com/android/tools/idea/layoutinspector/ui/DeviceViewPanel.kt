@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.adtui.PANNABLE_KEY
+import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtPrimaryPanel
+import com.android.tools.adtui.ui.AdtUiCursors
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
@@ -40,13 +43,18 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
+import java.awt.Cursor
 import java.awt.Point
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.awt.event.MouseWheelEvent
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 import kotlin.math.min
 
 private const val MAX_ZOOM = 300
@@ -61,7 +69,7 @@ class DeviceViewPanel(
   val layoutInspector: LayoutInspector,
   val viewSettings: DeviceViewSettings,
   disposableParent: Disposable
-) : JPanel(BorderLayout()), Zoomable, DataProvider {
+) : JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
 
   private val client = layoutInspector.client
 
@@ -71,9 +79,93 @@ class DeviceViewPanel(
   override val screenScalingFactor = 1f
 
   private val contentPanel = DeviceViewContentPanel(layoutInspector, viewSettings)
+  private val panIntercepterPanel = JPanel()
+
   private val scrollPane = JBScrollPane(contentPanel)
   private val layeredPane = JLayeredPane()
   private val deviceViewPanelActionsToolbar: DeviceViewPanelActionsToolbar
+
+  override var isPanning = false
+  private var lastPanMouseLocation: Point? = null
+
+  private val panMouseListener = object : MouseAdapter() {
+    private fun currentlyPanning(e: MouseEvent) = isPanning || SwingUtilities.isMiddleMouseButton(e)
+
+    private fun redispatch(e: MouseEvent?) {
+      val retargetedEvent = SwingUtilities.convertMouseEvent(panIntercepterPanel, e, contentPanel)
+      contentPanel.dispatchEvent(retargetedEvent)
+    }
+
+    override fun mouseClicked(e: MouseEvent?) {
+      redispatch(e)
+    }
+
+    override fun mouseExited(e: MouseEvent?) {
+      redispatch(e)
+    }
+
+    override fun mouseWheelMoved(e: MouseWheelEvent?) {
+      redispatch(e)
+    }
+
+    override fun mouseEntered(e: MouseEvent) {
+      showGrab(e)
+    }
+
+    override fun mouseMoved(e: MouseEvent) {
+      showGrab(e)
+    }
+
+    private fun showGrab(e: MouseEvent) {
+      if (isPanning) {
+        cursor = AdtUiCursors.GRAB
+      }
+      else {
+        cursor = Cursor.getDefaultCursor()
+      }
+      redispatch(e)
+    }
+
+    override fun mousePressed(e: MouseEvent) {
+      if (currentlyPanning(e)) {
+        cursor = AdtUiCursors.GRABBING
+        lastPanMouseLocation = e.point
+      }
+      else {
+        redispatch(e)
+      }
+    }
+
+    override fun mouseDragged(e: MouseEvent) {
+      val lastLocation = lastPanMouseLocation
+      lastPanMouseLocation = e.point
+      if (currentlyPanning(e) && lastLocation != null) {
+        cursor = AdtUiCursors.GRABBING
+        val extent = scrollPane.viewport.extentSize
+        val view = scrollPane.viewport.viewSize
+        val p = scrollPane.viewport.viewPosition
+        p.translate(lastLocation.x - e.x, lastLocation.y - e.y)
+        p.x = p.x.coerceIn(0, view.width - extent.width)
+        p.y = p.y.coerceIn(0, view.height - extent.height)
+
+        scrollPane.viewport.viewPosition = p
+      }
+      else {
+        redispatch(e)
+      }
+    }
+
+    override fun mouseReleased(e: MouseEvent) {
+      if (lastPanMouseLocation != null) {
+        cursor = if (isPanning) AdtUiCursors.GRAB else Cursor.getDefaultCursor()
+        lastPanMouseLocation = null
+      }
+      else {
+        redispatch(e)
+      }
+    }
+  }
+
 
   init {
     scrollPane.border = JBUI.Borders.empty()
@@ -86,8 +178,10 @@ class DeviceViewPanel(
     val floatingToolbar = deviceViewPanelActionsToolbar.designSurfaceToolbar
 
     layeredPane.setLayer(scrollPane, JLayeredPane.DEFAULT_LAYER)
+    layeredPane.setLayer(panIntercepterPanel, 50)
     layeredPane.setLayer(floatingToolbar, JLayeredPane.PALETTE_LAYER)
     layeredPane.add(scrollPane)
+    layeredPane.add(panIntercepterPanel)
     layeredPane.add(floatingToolbar)
 
     layoutInspector.layoutInspectorModel.modificationListeners.add { _, _, structural ->
@@ -109,10 +203,15 @@ class DeviceViewPanel(
         updateLayeredPaneSize()
       }
     })
+
+    panIntercepterPanel.isOpaque = false
+    panIntercepterPanel.addMouseListener(panMouseListener)
+    panIntercepterPanel.addMouseMotionListener(panMouseListener)
   }
 
   private fun updateLayeredPaneSize() {
     scrollPane.size = layeredPane.size
+    panIntercepterPanel.size = layeredPane.size
     val floatingToolbar = deviceViewPanelActionsToolbar.designSurfaceToolbar
     floatingToolbar.size = floatingToolbar.preferredSize
     floatingToolbar.location = Point(layeredPane.width - floatingToolbar.width - TOOLBAR_INSET,
@@ -171,11 +270,14 @@ class DeviceViewPanel(
   override fun canZoomToActual() = viewSettings.scalePercent < 100 && canZoomIn() || viewSettings.scalePercent > 100 && canZoomOut()
 
   override fun getData(dataId: String): Any? {
-    if (ZOOMABLE_KEY.`is`(dataId)) {
+    if (ZOOMABLE_KEY.`is`(dataId) || PANNABLE_KEY.`is`(dataId)) {
       return this
     }
     return null
   }
+
+  override val isPannable: Boolean
+    get() = contentPanel.width > scrollPane.viewport.width || contentPanel.height > scrollPane.viewport.height
 
   private fun createToolbar(): Pair<ActionToolbar, JComponent> {
     val panel = AdtPrimaryPanel(BorderLayout())
