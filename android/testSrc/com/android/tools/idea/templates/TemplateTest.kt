@@ -73,6 +73,11 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareNewEmptyActivity() {
+    checkCreateTemplate("activities", "EmptyActivity", false, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewEmptyActivityWithKotlin() {
     checkCreateTemplate("activities", "EmptyActivity", false, withKotlin)
   }
