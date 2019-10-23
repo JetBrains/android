@@ -44,7 +44,6 @@ public class CreateDefaultActivityTest {
   private static final String APP_BUILD_GRADLE = "app/build.gradle";
   private static final String DEFAULT_ACTIVITY_NAME = "MainActivity";
   private static final String DEFAULT_LAYOUT_NAME = "activity_main";
-  private static final String DEFAULT_ACTIVITY_TITLE = "MainActivity";
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
@@ -67,7 +66,7 @@ public class CreateDefaultActivityTest {
     );
 
     invokeNewActivityMenu();
-    assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, DEFAULT_ACTIVITY_TITLE);
+    assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME);
     assertThat(getSavedKotlinSupport()).isFalse();
     assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.JAVA);
   }
@@ -115,10 +114,9 @@ public class CreateDefaultActivityTest {
     myConfigActivity = myDialog.getConfigureActivityStep();
   }
 
-  private void assertTextFieldValues(@NotNull String activityName, @NotNull String layoutName, @NotNull String title) {
+  private void assertTextFieldValues(@NotNull String activityName, @NotNull String layoutName) {
     assertThat(myConfigActivity.getTextFieldValue(ConfigureBasicActivityStepFixture.ActivityTextField.NAME)).isEqualTo(activityName);
     assertThat(myConfigActivity.getTextFieldValue(ConfigureBasicActivityStepFixture.ActivityTextField.LAYOUT)).isEqualTo(layoutName);
-    assertThat(myConfigActivity.getTextFieldValue(ConfigureBasicActivityStepFixture.ActivityTextField.TITLE)).isEqualTo(title);
   }
 
   private static boolean getSavedKotlinSupport() {
