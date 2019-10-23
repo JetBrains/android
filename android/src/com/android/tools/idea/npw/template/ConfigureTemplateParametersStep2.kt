@@ -230,12 +230,13 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
         // If not evaluating, change comes from the user (or user pressed "Back" and updates are "external". eg Template changed)
         if (evaluationState != EvaluationState.EVALUATING && rootPanel.isShowing) {
           userValues[parameter] = property.get()
+          parameter.value = property.get()
           // Evaluate later to prevent modifying Swing values that are locked during read
           enqueueEvaluateParameters()
         }
       }
       parameterRows[parameter] = row
-      row.setValue(parameter.defaultValue)
+      row.setValue(parameter.value)
     }
 
     if (templates.size > 1) {
@@ -252,14 +253,14 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     validatorPanel.registerMessageSource(invalidParameterMessage)
 
     // TODO do not deduplicate package name etc.
-    // Also pass user value?
     val parameterValues = parameters.filterIsInstance<StringParameter>()
       .associateWith { userValues[it] ?: deduplicate(it) }
 
     parameters.forEach {
       val resolvedValue = parameterValues[it]
-      if (resolvedValue != null)
+      if (resolvedValue != null) {
         parameterRows[it]!!.setValue(resolvedValue)
+      }
     }
 
     evaluateParameters()
@@ -330,12 +331,21 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
       parameterRows[it]!!.setVisible(visible)
     }
 
-    // TODO: use userValues to set parameters back
+    val parameterValues = parameters.filterIsInstance<StringParameter>()
+      .associateWith { userValues[it] ?: deduplicate(it) }
+
+    parameters.forEach {
+      val resolvedValue = parameterValues[it]
+      if (resolvedValue != null) {
+        parameterRows[it]!!.setValue(resolvedValue)
+      }
+    }
 
     // Aggressively update the icon path just in case it changed
     thumbPath.set(thumbnailPath)
 
     evaluationState = EvaluationState.NOT_EVALUATING
+
 
     invalidParameterMessage.set(validateAllParameters() ?: "")
   }
@@ -369,6 +379,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
   private fun resetPanel() {
     parametersPanel.removeAll()
     parameterRows.clear()
+    userValues.clear()
     dispose()
   }
 
@@ -429,7 +440,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     val relatedValues = getRelatedValues(parameter)
     val sourceProvider = model.template.get().getSourceProvider()
     while (!parameter.uniquenessSatisfied(project, model.module, sourceProvider, model.packageName.get(), suggested, relatedValues)) {
-      suggested = filenameJoiner.join(namePart + suffix, Strings.emptyToNull(extPart))
+      suggested = filenameJoiner.join(namePart + suffix, extPart.ifEmpty { null })
       suffix++
     }
     return suggested
