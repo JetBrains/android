@@ -73,11 +73,8 @@ internal class FindReferencesRecipeExecutor2(private val context: RenderingConte
   private fun resolveTargetFile(file: File): File = if (file.isAbsolute) file else File(context.outputRoot, file.path)
 
   override fun addSourceSet(type: SourceSetType, name: String, dir: File) {
-    TODO("not implemented")
   }
 
   override fun setExtVar(name: String, value: Any) {
-    TODO("not implemented")
   }
-
 }
