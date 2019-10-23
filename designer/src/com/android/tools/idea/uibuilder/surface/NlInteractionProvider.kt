@@ -21,12 +21,12 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
-import com.android.tools.idea.common.surface.InteractionProvider
+import com.android.tools.idea.common.surface.InteractionProviderBase
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.model.viewGroupHandler
 import java.awt.Rectangle
 
-class NlInteractionProvider(private val surface: DesignSurface): InteractionProvider {
+class NlInteractionProvider(private val surface: DesignSurface): InteractionProviderBase(surface) {
 
   override fun createInteractionOnClick(mouseX: Int, mouseY: Int): Interaction? {
     val view = surface.getSceneView(mouseX, mouseY) ?: return null

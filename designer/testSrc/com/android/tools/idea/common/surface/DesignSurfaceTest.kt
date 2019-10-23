@@ -138,7 +138,7 @@ class TestActionManager(surface: DesignSurface) : ActionManager<DesignSurface>(s
   override fun getToolbarActions(component: NlComponent?, newSelection: MutableList<NlComponent>) = DefaultActionGroup()
 }
 
-object TestInteractionProvider : InteractionProvider {
+class TestInteractionProvider(surface: DesignSurface) : InteractionProviderBase(surface) {
   override fun createInteractionOnClick(mouseX: Int, mouseY: Int): Interaction? = null
 
   override fun createInteractionOnDrag(draggedSceneComponent: SceneComponent, primarySceneComponent: SceneComponent?): Interaction? = null
@@ -148,7 +148,7 @@ private class TestDesignSurface(project: Project, disposible: Disposable)
   : DesignSurface(project,
                   disposible,
                   java.util.function.Function { TestActionManager(it) },
-                  java.util.function.Function { TestInteractionProvider },
+                  java.util.function.Function { TestInteractionProvider(it) },
                   true) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
