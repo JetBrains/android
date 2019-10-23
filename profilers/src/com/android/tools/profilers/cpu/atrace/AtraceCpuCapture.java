@@ -102,8 +102,8 @@ public class AtraceCpuCapture extends CpuCapture {
   /**
    * @return Data series of frame perf classes sorted by frame start time.
    */
-  public List<SeriesData<AtraceFrame>> getFrames(AtraceFrameFilterConfig filter) {
-    return myFrameManager.getFrames(filter);
+  public List<SeriesData<AtraceFrame>> getFrames(AtraceFrame.FrameThread threadType) {
+    return myFrameManager.getFrames(threadType);
   }
 
   /**

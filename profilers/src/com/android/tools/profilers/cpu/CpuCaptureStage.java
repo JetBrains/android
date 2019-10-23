@@ -32,7 +32,7 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
-import com.android.tools.profilers.cpu.atrace.AtraceFrameFilterConfig;
+import com.android.tools.profilers.cpu.atrace.AtraceFrame;
 import com.android.tools.profilers.event.LifecycleEventDataSeries;
 import com.android.tools.profilers.event.UserEventDataSeries;
 import com.google.common.annotations.VisibleForTesting;
@@ -278,12 +278,9 @@ public class CpuCaptureStage extends Stage {
 
   private static TrackGroupModel createDisplayTrackGroup(@NotNull Range selectionRange, @NotNull AtraceCpuCapture atraceCapture) {
     TrackGroupModel display = TrackGroupModel.newBuilder().setTitle("Display").build();
-    AtraceFrameFilterConfig filterConfig =
-      new AtraceFrameFilterConfig(AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS, atraceCapture.getMainThreadId(),
-                                  CpuFramesModel.SLOW_FRAME_RATE_US);
     display.addTrackModel(
       TrackModel.newBuilder(
-        new CpuFramesModel.FrameState("Main", filterConfig, atraceCapture, selectionRange),
+        new CpuFramesModel.FrameState("Main", atraceCapture.getMainThreadId(), AtraceFrame.FrameThread.MAIN, atraceCapture, selectionRange),
         ProfilerTrackRendererType.FRAMES,
         "Frames"));
     display.addTrackModel(
