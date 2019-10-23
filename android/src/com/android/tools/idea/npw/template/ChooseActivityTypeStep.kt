@@ -61,7 +61,8 @@ class ChooseActivityTypeStep(
     }
     templateRenders = if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get()) {
       val newTemplateNames = newTemplateRenderers.map { it.template.name }
-      (oldTemplateRenderers.filter { it.template?.metadata?.title !in newTemplateNames } + newTemplateRenderers).toList()
+      val unsortedRenderers = (oldTemplateRenderers.filter { it.template?.metadata?.title !in newTemplateNames } + newTemplateRenderers).toList()
+      unsortedRenderers.sortedBy { r -> r.label.takeUnless { it == "No Activity" } ?: "0" } // No Activity should always be first
     }
     else {
       oldTemplateRenderers.toList()
