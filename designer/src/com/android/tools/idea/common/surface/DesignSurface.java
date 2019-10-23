@@ -821,6 +821,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   @Override
+  public boolean isPannable() {
+    return true;
+  }
+
+  @Override
   public boolean canZoomIn() {
     return getScale() < getMaxScale();
   }
