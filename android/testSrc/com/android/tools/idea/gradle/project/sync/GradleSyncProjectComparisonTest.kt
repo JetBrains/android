@@ -388,6 +388,11 @@ b/137231583 */
     assertIsEqualToSnapshot(text)
   }
 
+  fun testCompatibilityWithAndroidStudio36NoImlProject() {
+    val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36_NO_IML)
+    assertIsEqualToSnapshot(text)
+  }
+
   private fun createEmptyGradleSettingsFile() {
     val settingsFilePath = File(projectFolderPath, FN_SETTINGS_GRADLE)
     assertTrue(delete(settingsFilePath))

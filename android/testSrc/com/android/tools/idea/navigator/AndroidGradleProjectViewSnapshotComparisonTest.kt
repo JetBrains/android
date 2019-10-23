@@ -127,6 +127,11 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     assertIsEqualToSnapshot(text)
   }
 
+  fun testCompatibilityWithAndroidStudio36NoImlProject() {
+    val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36_NO_IML)
+    assertIsEqualToSnapshot(text)
+  }
+
   private fun importSyncAndDumpProject(
     projectDir: String,
     patch: ((projectRootPath: File) -> Unit)? = null,
