@@ -19,9 +19,9 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
-import com.android.tools.idea.common.surface.InteractionProvider
+import com.android.tools.idea.common.surface.InteractionProviderBase
 
-class NavInteractionProvider(private val surface: DesignSurface): InteractionProvider {
+class NavInteractionProvider(private val surface: DesignSurface): InteractionProviderBase(surface) {
 
   override fun createInteractionOnClick(mouseX: Int, mouseY: Int): Interaction? {
     val sceneView = surface.getSceneView(mouseX, mouseY) ?: return null

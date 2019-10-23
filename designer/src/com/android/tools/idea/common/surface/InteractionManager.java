@@ -72,7 +72,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
 import javax.swing.JComponent;
@@ -786,61 +785,18 @@ public class InteractionManager implements Disposable {
     // ---- Implements DropTargetListener ----
 
     @Override
-    public void dragEnter(DropTargetDragEvent dragEvent) {
+    public void dragEnter(@NotNull DropTargetDragEvent dragEvent) {
       if (myCurrentInteraction == null) {
-        NlDropEvent event = new NlDropEvent(dragEvent);
-        Point location = event.getLocation();
+        Point location = dragEvent.getLocation();
         myLastMouseX = location.x;
         myLastMouseY = location.y;
-
-        SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
-        if (sceneView == null) {
-          event.reject();
-          return;
-        }
-        NlModel model = sceneView.getModel();
-        DnDTransferItem item = DnDTransferItem.getTransferItem(event.getTransferable(), true /* allow placeholders */);
-        if (item == null) {
-          event.reject();
-          return;
-        }
-        DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
-        InsertType insertType = model.determineInsertType(dragType, item, true /* preview */);
-
-        List<NlComponent> dragged;
-        if (StudioFlags.NELE_DRAG_PLACEHOLDER.get() && !item.isFromPalette()) {
-          // When dragging from ComponentTree, it should reuse the existing NlComponents rather than creating the new ones.
-          // This impacts some Handlers, using StudioFlag to protect for now.
-          // Most of Handlers should be removed once this flag is removed.
-          dragged = new ArrayList<>(mySurface.getSelectionModel().getSelection());
-        }
-        else {
-          if (item.isFromPalette()) {
-            // remove selection when dragging from Palette.
-            mySurface.getSelectionModel().clear();
-          }
-          dragged = model.createComponents(item, insertType, mySurface);
-        }
-
-        if (dragged.isEmpty()) {
-          event.reject();
-          return;
-        }
-
-        DragDropInteraction interaction = new DragDropInteraction(mySurface, dragged);
-        interaction.setType(dragType);
-        interaction.setTransferItem(item);
+        Interaction interaction = myInteractionProvider.createInteractionOnDragEnter(dragEvent);
         if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
           startInteraction(dragEvent, interaction);
         }
         else {
           startInteraction(myLastMouseX, myLastMouseY, interaction, 0);
         }
-
-        // This determines the icon presented to the user while dragging.
-        // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
-        // that reflects the users choice i.e. controlled by the modifier key.
-        event.accept(insertType);
       }
     }
 
