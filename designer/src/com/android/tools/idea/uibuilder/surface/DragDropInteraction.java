@@ -22,6 +22,7 @@ import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
@@ -37,6 +38,9 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.util.EventObject;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -140,6 +144,14 @@ public class DragDropInteraction extends Interaction {
   }
 
   @Override
+  public void begin(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
+    assert event instanceof DropTargetDragEvent;
+    DropTargetDragEvent dropEvent = (DropTargetDragEvent) event;
+    //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+    begin(dropEvent.getLocation().x, dropEvent.getLocation().y, interactionInformation.getModifiersEx());
+  }
+
+  @Override
   public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
     super.begin(x, y, modifiersEx);
     moveTo(x, y, modifiersEx, false);
@@ -147,8 +159,16 @@ public class DragDropInteraction extends Interaction {
   }
 
   @Override
+  public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
+    if (event instanceof DropTargetDragEvent) {
+      DropTargetDragEvent dropEvent = (DropTargetDragEvent) event;
+      //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+      update(dropEvent.getLocation().x, dropEvent.getLocation().y, interactionInformation.getModifiersEx());
+    }
+  }
+
+  @Override
   public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
-    super.update(x, y, modifiersEx);
     moveTo(x, y, modifiersEx, false);
   }
 
@@ -157,6 +177,14 @@ public class DragDropInteraction extends Interaction {
    * @return true if the drop is accepted
    */
   public boolean acceptsDrop() { return myDoesAcceptDropAtLastPosition; }
+
+  @Override
+  public void commit(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    assert event instanceof DropTargetDropEvent;
+    DropTargetDropEvent dropEvent = (DropTargetDropEvent) event;
+    //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+    end(dropEvent.getLocation().x, dropEvent.getLocation().y, interactionInformation.getModifiersEx());
+  }
 
   @Override
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
@@ -176,6 +204,12 @@ public class DragDropInteraction extends Interaction {
       mySceneView.getSelectionModel().setSelection(myDraggedComponents);
     }
     myDesignSurface.stopDragDropInteraction();
+  }
+
+  @Override
+  public void cancel(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+    cancel(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
   }
 
   @Override
@@ -377,6 +411,7 @@ public class DragDropInteraction extends Interaction {
     return myDraggedComponents.stream().allMatch(acceptsChild.and(acceptsParent));
   }
 
+  @NotNull
   @Override
   public List<Layer> createOverlays() {
     return Collections.singletonList(new DragLayer());

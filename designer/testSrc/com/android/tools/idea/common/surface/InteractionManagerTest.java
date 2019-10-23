@@ -48,6 +48,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
@@ -80,6 +81,22 @@ import org.mockito.Mockito;
  */
 public class InteractionManagerTest extends LayoutTestCase {
   private final NlTreeDumper myTreeDumper = new NlTreeDumper(true, false);
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    StudioFlags.NELE_NEW_INTERACTION_INTERFACE.override(false);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      StudioFlags.NELE_NEW_INTERACTION_INTERFACE.clearOverride();
+    }
+    finally {
+      super.tearDown();
+    }
+  }
 
   public void testDragAndDrop() throws Exception {
     // Drops a fragment (xmlFragment below) into the design surface (via drag & drop events) and verifies that

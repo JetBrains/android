@@ -64,8 +64,10 @@ import java.util.List;
  * <li>Link (associate two or more widgets in some way, such as an
  *   "is required" widget linked to a text field)
  * </ul>
+ *
+ * TODO(b/142953949): Remove this class and just use Interaction2
  */
-public abstract class Interaction {
+public abstract class Interaction implements Interaction2 {
   /** Start mouse coordinate, in Swing coordinates */
   @SwingCoordinate protected int myStartX;
 
@@ -75,13 +77,8 @@ public abstract class Interaction {
   /** Initial AWT mask when the interaction started. */
   @InputEventMask protected int myStartMask;
 
-  /**
-   * Returns a list of overlays, from bottom to top (where the later overlays
-   * are painted on top of earlier ones if they overlap).
-   *
-   * @return A list of overlays to buildDisplayList for this interaction, if applicable.
-   * Should not be null, but can be empty.
-   */
+  @Override
+  @NotNull
   public List<Layer> createOverlays() {
     return Collections.emptyList();
   }
