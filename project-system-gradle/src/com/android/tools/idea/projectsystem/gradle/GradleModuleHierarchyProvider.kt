@@ -116,6 +116,12 @@ class GradleModuleHierarchyProvider(private val project: Project) {
       val onlyRootModuleHierarchyId = moduleHierarchyId(emptyOnlyRootModule)
       hierarchyIdToSubmodulesMap[projectRootHierarchyId] = hierarchyIdToSubmodulesMap.remove(onlyRootModuleHierarchyId) ?: mutableListOf()
     }
+    // Workaround for the way module group for the top level module is set up in sync (if the name of the project includes spaces etc).
+    hierarchyIdToSubmodulesMap[projectRootHierarchyId]
+      ?.takeIf { it.size > 1 }
+      ?.removeIf {
+        ModuleRootManager.getInstance(it).sourceRootUrls.isEmpty() && hierarchyIdToSubmodulesMap[moduleHierarchyId(it)]?.isEmpty() == true
+      }
     return hierarchyIdToSubmodulesMap.mapKeys<List<String>, List<Module>, ComponentManager> { hierarchyIdToModuleMap[it.key] ?: project }
   }
 }
