@@ -20,12 +20,10 @@ import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.CpuThreadInfo
-import com.android.tools.profilers.cpu.atrace.AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS
 import com.google.common.collect.Iterables
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 class AtraceParserTest {
 
