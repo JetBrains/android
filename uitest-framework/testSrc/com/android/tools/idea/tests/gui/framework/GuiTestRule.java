@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -24,20 +25,23 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.GuiTestProjectSystem;
-import com.android.tools.idea.tests.gui.framework.guitestsystem.CurrentGuiTestProjectSystem;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.GeneralSettings;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.testGuiFramework.impl.GuiTestThread;
 import com.intellij.testGuiFramework.remote.transport.RestartIdeMessage;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.WaitTimedOutError;
+import org.fest.swing.timing.Wait;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
@@ -77,17 +81,17 @@ public class GuiTestRule implements TestRule {
 
   private IdeFrameFixture myIdeFrameFixture;
   @Nullable private String myTestDirectory;
+  private boolean mySetNdkPath = false;
 
   private final RobotTestRule myRobotTestRule = new RobotTestRule();
   private final LeakCheck myLeakCheck = new LeakCheck();
-  private final CurrentGuiTestProjectSystem myCurrentProjectSystem = new CurrentGuiTestProjectSystem();
 
   /* By nesting a pair of timeouts (one around just the test, one around the entire rule chain), we ensure that Rule code executing
    * before/after the test gets a chance to run, while preventing the whole rule chain from running forever.
    */
   private static final int DEFAULT_TEST_TIMEOUT_MINUTES = 3;
-  private Timeout myInnerTimeout = new Timeout(DEFAULT_TEST_TIMEOUT_MINUTES, TimeUnit.MINUTES);
-  private Timeout myOuterTimeout = new Timeout(DEFAULT_TEST_TIMEOUT_MINUTES + 2, TimeUnit.MINUTES);
+  private Timeout myInnerTimeout = new DebugFriendlyTimeout(DEFAULT_TEST_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+  private Timeout myOuterTimeout = new DebugFriendlyTimeout(DEFAULT_TEST_TIMEOUT_MINUTES + 2, TimeUnit.MINUTES);
 
   private final PropertyChangeListener myGlobalFocusListener = e -> {
     Object oldValue = e.getOldValue();
@@ -107,22 +111,27 @@ public class GuiTestRule implements TestRule {
     return this;
   }
 
+  public GuiTestRule settingNdkPath() {
+    mySetNdkPath = true;
+    return this;
+  }
+
   @NotNull
   @Override
   public Statement apply(final Statement base, final Description description) {
     RuleChain chain = RuleChain.emptyRuleChain()
+      .around(new AspectsAgentLogger())
       .around(new LogStartAndStop())
       .around(myRobotTestRule)
       .around(myOuterTimeout) // Rules should be inside this timeout when possible
       .around(new IdeControl(myRobotTestRule::getRobot))
       .around(new BlockReloading())
       .around(new BazelUndeclaredOutputs())
-      .around(myCurrentProjectSystem)
       .around(myLeakCheck)
+      .around(new BleakLogControl())
       .around(new IdeHandling())
       .around(new NpwControl())
       .around(new ScreenshotOnFailure())
-      .around(new SavePerformanceOnFailure())
       .around(myInnerTimeout);
 
     // Perf logging currently writes data to the Bazel-specific TEST_UNDECLARED_OUTPUTS_DIR. Skipp logging if running outside of Bazel.
@@ -228,18 +237,15 @@ public class GuiTestRule implements TestRule {
     List<AssertionError> errors = new ArrayList<>();
     // We close all modal dialogs left over, because they block the AWT thread and could trigger a deadlock in the next test.
     Dialog modalDialog;
-
-    // Loop can be infinite loop when a modal dialog opens itself again after closing.
-    // Prevent infinite loop without a timeout
-    long startTime = System.currentTimeMillis();
-    long endTime = startTime + TimeUnit.SECONDS.toMillis(10);
-    while ((modalDialog = getActiveModalDialog()) != null && System.currentTimeMillis() < endTime) {
-      robot().close(modalDialog);
+    while ((modalDialog = getActiveModalDialog()) != null) {
       errors.add(new AssertionError(
-        String.format("Modal dialog showing: %s with title '%s'", modalDialog.getClass().getName(), modalDialog.getTitle())));
-    }
-    if (System.currentTimeMillis() >= endTime) {
-      errors.add(new AssertionError("Potential modal dialog infinite loop"));
+        String.format(
+          "Modal dialog %s: %s with title '%s'",
+          modalDialog.isShowing() ? "showing" : "not showing",
+          modalDialog.getClass().getName(),
+          modalDialog.getTitle())));
+      if (!modalDialog.isShowing()) break; // this assumes when the active dialog is not showing, none are showing
+      robot().close(modalDialog);
     }
     return errors;
   }
@@ -280,14 +286,6 @@ public class GuiTestRule implements TestRule {
     field("containerMap").ofType(Hashtable.class).in(manager).get().clear();
   }
 
-  public IdeFrameFixture importSimpleLocalApplication() throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish("SimpleLocalApplication");
-  }
-
-  /**
-   * @deprecated use importSimpleLocalApplication that doesn't use remote repositories.
-   */
-  @Deprecated()
   public IdeFrameFixture importSimpleApplication() throws IOException {
     return importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
   }
@@ -297,22 +295,19 @@ public class GuiTestRule implements TestRule {
   }
 
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null);
-  }
-
-  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @Nullable String buildFilePath) throws IOException {
-    importProject(projectDirName, buildFilePath);
-    testSystem().waitForProjectSyncToFinish(ideFrame());
-    return ideFrame();
+    importProject(projectDirName);
+    return ideFrame().waitForGradleProjectSyncToFinish();
   }
 
   public IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
-    return importProject(projectDirName, null);
-  }
+    VirtualFile toSelect = VfsUtil.findFileByIoFile(setUpProject(projectDirName), true);
+    ApplicationManager.getApplication().invokeAndWait(() -> GradleProjectImporter.getInstance().importProject(toSelect));
 
-  public IdeFrameFixture importProject(@NotNull String projectDirName, @Nullable String buildFilePath) throws IOException {
-    File testProjectDir = setUpProject(projectDirName);
-    testSystem().importProject(testProjectDir, robot(), buildFilePath);
+    Wait.seconds(5).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length != 0);
+
+    // After the project is opened there will be an Index and a Gradle Sync phase, and these can happen in any order.
+    // Waiting for indexing to finish, makes sure Sync will start next or all Sync was done already.
+    GuiTests.waitForProjectIndexingToFinish(ProjectManager.getInstance().getOpenProjects()[0]);
     return ideFrame();
   }
 
@@ -336,7 +331,6 @@ public class GuiTestRule implements TestRule {
   private File setUpProject(@NotNull String projectDirName) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
 
-    testSystem().prepareTestForImport(projectPath);
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
     updateGradleVersions(projectPath);
     updateLocalProperties(projectPath);
@@ -369,6 +363,9 @@ public class GuiTestRule implements TestRule {
   protected void updateLocalProperties(File projectPath) throws IOException {
     LocalProperties localProperties = new LocalProperties(projectPath);
     localProperties.setAndroidSdkPath(IdeSdks.getInstance().getAndroidSdkPath());
+    if (mySetNdkPath) {
+      localProperties.setAndroidNdkPath(TestUtils.getNdk());
+    }
     localProperties.save();
   }
 
@@ -430,10 +427,6 @@ public class GuiTestRule implements TestRule {
     return myRobotTestRule.getRobot();
   }
 
-  public GuiTestProjectSystem testSystem() {
-    return myCurrentProjectSystem.getTestProjectSystem();
-  }
-
   @NotNull
   public File getProjectPath() {
     return ideFrame().getProjectPath();
@@ -456,7 +449,6 @@ public class GuiTestRule implements TestRule {
       // and registers it with GradleSyncState. This keeps adding more and more listeners, and the new recent listeners are only updated
       // with gradle State when that State changes. This means the listeners may have outdated info.
       myIdeFrameFixture = IdeFrameFixture.find(robot());
-      myIdeFrameFixture.setTestProjectSystem(myCurrentProjectSystem.getTestProjectSystem());
       myIdeFrameFixture.requestFocusIfLost();
     }
     return myIdeFrameFixture;

@@ -24,9 +24,9 @@ class GradleModelConverterMergeTest : AndroidGradleTestCase() {
     val input = model.androidProject
     val output = input.toSubmodule()
 
-    for (variant in output.variants) {
-      val artifact = variant.mainArtifact
-      val constituentConfigs = output.configTable.configsIntersecting(variant.mainArtifactConfigPath)
+    for (entry in output.artifacts) {
+      val artifact = entry.value
+      val constituentConfigs = output.configTable.configsIntersecting(entry.key)
       var manualResolvedConfig = constituentConfigs.reduce { a, b -> a.mergeWith(b) }
       assertThat(artifact.resolved.sources).isEqualTo(manualResolvedConfig.sources)
       assertThat(artifact.resolved.manifestValues.versionName).isEqualTo(manualResolvedConfig.manifestValues.versionName)

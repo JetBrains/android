@@ -37,13 +37,13 @@ class AndroidSdkPreSyncCheck extends AndroidStudioSyncCheck {
 
   @NotNull
   @Override
-  PreSyncCheckResult canSync(@NotNull Project project) {
-    return doCheckCanSync(project);
+  PreSyncCheckResult checkCanSyncAndTryToFix(@NotNull Project project) {
+    return doCheckCanSyncAndTryToFix(project);
   }
 
   @Override
   @NotNull
-  PreSyncCheckResult doCheckCanSync(@NotNull Project project) {
+  PreSyncCheckResult doCheckCanSyncAndTryToFix(@NotNull Project project) {
     try {
       mySdkSync.syncIdeAndProjectAndroidSdks(project);
       return SUCCESS;

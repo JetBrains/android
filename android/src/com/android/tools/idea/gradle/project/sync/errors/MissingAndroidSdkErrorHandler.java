@@ -50,7 +50,7 @@ public class MissingAndroidSdkErrorHandler extends BaseSyncErrorHandler {
     if (rootCause instanceof RuntimeException &&
         isNotEmpty(text) &&
         (text.equals(SDK_DIR_PROPERTY_MISSING) || SDK_NOT_FOUND_PATTERN.matcher(text).matches())) {
-      updateUsageTracker(SDK_NOT_FOUND);
+      updateUsageTracker(project, SDK_NOT_FOUND);
       File buildProperties = new File(getBaseDirPath(project), FN_LOCAL_PROPERTIES);
       if (buildProperties.isFile()) {
         text += EMPTY_LINE + FIX_SDK_DIR_PROPERTY;
@@ -94,7 +94,9 @@ public class MissingAndroidSdkErrorHandler extends BaseSyncErrorHandler {
     }
 
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
-    hyperlinks.add(new OpenFileHyperlink(file.getPath(), lineNumber));
+    if (file.exists()) {
+      hyperlinks.add(new OpenFileHyperlink(file.getPath(), lineNumber));
+    }
     return hyperlinks;
   }
 }

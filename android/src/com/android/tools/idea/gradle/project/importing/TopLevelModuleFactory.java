@@ -15,22 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.importing;
 
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
@@ -38,7 +22,29 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.E
 import static com.intellij.openapi.module.StdModuleTypes.JAVA;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
+import com.intellij.openapi.externalSystem.model.project.ModuleData;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.module.ModifiableModuleModel;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleWithNameAlreadyExists;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
+import org.jetbrains.annotations.NotNull;
+
 class TopLevelModuleFactory {
+  private static final Logger LOG = Logger.getInstance(TopLevelModuleFactory.class);
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final IdeSdks myIdeSdks;
 
@@ -55,10 +61,31 @@ class TopLevelModuleFactory {
 
     if (contentRoot != null) {
       File moduleFile = new File(projectRootDir, projectRootDir.getName() + ".iml");
-      Module module = moduleManager.newModule(moduleFile.getPath(), JAVA.getId());
-
+      ModifiableModuleModel projectModifieableModel = moduleManager.getModifiableModel();
+      Module module = projectModifieableModel.newModule(moduleFile.getPath(), JAVA.getId());
+      try {
+        // A top level module name is usually the same as the name of the project it is contained in. If the caller of this method sets
+        // up the project name correctly, we can prevent the root mdule from being disposed by sync if we configure its name correctly.
+        // NOTE: We do not expect the project name to always be correct (i.e. match the name configured by Gradle at this point) and
+        //       therefore it is still possible that the module created here will be disposed and re-created by sync.
+        if (!module.getName().equals(project.getName())) {
+          projectModifieableModel.renameModule(module, project.getName());
+        }
+      }
+      catch (ModuleWithNameAlreadyExists ex) {
+        // The top module only plays a temporary role while project is not properly synced. Ignore any errors and let sync corrent
+        // the problem.
+        LOG.warn(String.format("Failed to rename module '%s' to '%s'", module.getName(), project.getName()), ex);
+      }
+      projectModifieableModel.commit();
       // This prevents the balloon "Unsupported Modules detected".
       module.setOption(EXTERNAL_SYSTEM_ID_KEY, GRADLE_SYSTEM_ID.getId());
+      ExternalSystemModulePropertyManager
+        .getInstance(module)
+        .setExternalOptions(
+          GRADLE_SYSTEM_ID,
+          new ModuleData(":", GRADLE_SYSTEM_ID, JAVA.getId(), projectRootDir.getName(), projectRootDir.getPath(), projectRootDir.getPath()),
+          new ProjectData(GRADLE_SYSTEM_ID, project.getName(), project.getBasePath(), project.getBasePath()));
 
       ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
       model.addContentEntry(contentRoot);

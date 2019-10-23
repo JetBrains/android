@@ -15,12 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
-import com.android.SdkConstants.*
-import com.android.tools.idea.common.property2.api.PropertyEditorModel
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_INDETERMINATE
+import com.android.SdkConstants.ATTR_INDETERMINATE_DRAWABLE
+import com.android.SdkConstants.ATTR_INDETERMINATE_TINT
+import com.android.SdkConstants.ATTR_MAXIMUM
+import com.android.SdkConstants.ATTR_PROGRESS
+import com.android.SdkConstants.ATTR_PROGRESS_DRAWABLE
+import com.android.SdkConstants.ATTR_PROGRESS_TINT
+import com.android.SdkConstants.ATTR_STYLE
+import com.android.SdkConstants.ATTR_VISIBILITY
+import com.android.SdkConstants.PROGRESS_BAR
+import com.android.SdkConstants.VALUE_FALSE
+import com.android.SdkConstants.VALUE_TRUE
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
-import com.android.tools.idea.uibuilder.property2.testutils.LineType
+import com.android.tools.property.panel.api.PropertyEditorModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -40,10 +51,11 @@ class ProgressBarInspectorBuilderTest {
   fun testNotApplicableWhenRequiredPropertyIsMissing() {
     val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
     val builder = ProgressBarInspectorBuilder(util.editorProvider)
+    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     for (missing in ProgressBarInspectorBuilder.REQUIRED_PROPERTIES) {
       addRequiredProperties(util)
       util.removeProperty(ANDROID_URI, missing)
-      builder.attachToInspector(util.inspector, util.properties)
+      builder.attachToInspector(util.inspector, util.properties) { generator.title }
       assertThat(util.inspector.lines).isEmpty()
     }
   }
@@ -52,50 +64,47 @@ class ProgressBarInspectorBuilderTest {
   fun testAvailableWithRequiredPropertiesPresent() {
     val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
     val builder = ProgressBarInspectorBuilder(util.editorProvider)
+    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
-    builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(9)
-    assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
-    assertThat(util.inspector.lines[0].title).isEqualTo("ProgressBar")
-    assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_STYLE)
-    assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS_DRAWABLE)
-    assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE_DRAWABLE)
-    assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_MAXIMUM)
-    assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS)
-    assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
-    assertThat(util.inspector.lines[7].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
-    assertThat(util.inspector.lines[8].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE)
+    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, "", ATTR_STYLE)
+    util.checkEditor(2, ANDROID_URI, ATTR_PROGRESS_DRAWABLE)
+    util.checkEditor(3, ANDROID_URI, ATTR_INDETERMINATE_DRAWABLE)
+    util.checkEditor(4, ANDROID_URI, ATTR_MAXIMUM)
+    util.checkEditor(5, ANDROID_URI, ATTR_PROGRESS)
+    util.checkEditor(6, ANDROID_URI, ATTR_INDETERMINATE)
+    assertThat(util.inspector.lines).hasSize(7)
   }
 
   @Test
   fun testOptionalPropertiesPresent() {
     val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
     val builder = ProgressBarInspectorBuilder(util.editorProvider)
+    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     addOptionalProperties(util)
-    builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(11)
-    assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
-    assertThat(util.inspector.lines[0].title).isEqualTo("ProgressBar")
-    assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_STYLE)
-    assertThat(util.inspector.lines[2].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS_DRAWABLE)
-    assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE_DRAWABLE)
-    assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS_TINT)
-    assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE_TINT)
-    assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_MAXIMUM)
-    assertThat(util.inspector.lines[7].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS)
-    assertThat(util.inspector.lines[8].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
-    assertThat(util.inspector.lines[9].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
-    assertThat(util.inspector.lines[10].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE)
+    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    util.checkTitle(0, "Common Attributes")
+    util.checkEditor(1, "", ATTR_STYLE)
+    util.checkEditor(2, ANDROID_URI, ATTR_PROGRESS_DRAWABLE)
+    util.checkEditor(3, ANDROID_URI, ATTR_INDETERMINATE_DRAWABLE)
+    util.checkEditor(4, ANDROID_URI, ATTR_PROGRESS_TINT)
+    util.checkEditor(5, ANDROID_URI, ATTR_INDETERMINATE_TINT)
+    util.checkEditor(6, ANDROID_URI, ATTR_MAXIMUM)
+    util.checkEditor(7, ANDROID_URI, ATTR_PROGRESS)
+    util.checkEditor(8, ANDROID_URI, ATTR_INDETERMINATE)
+    assertThat(util.inspector.lines).hasSize(9)
   }
 
   @Test
   fun testInitialHiddenLines() {
     val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
     val builder = ProgressBarInspectorBuilder(util.editorProvider)
+    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     addOptionalProperties(util)
-    builder.attachToInspector(util.inspector, util.properties)
+    builder.attachToInspector(util.inspector, util.properties) { generator.title }
     assertThat(getHiddenProperties(util)).containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
   }
 
@@ -103,11 +112,12 @@ class ProgressBarInspectorBuilderTest {
   fun testInitialHiddenLinesWithIndeterminateOn() {
     val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
     val builder = ProgressBarInspectorBuilder(util.editorProvider)
+    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     addOptionalProperties(util)
     util.properties[ANDROID_URI, ATTR_INDETERMINATE].value = VALUE_TRUE
     UIUtil.dispatchAllInvocationEvents()
-    builder.attachToInspector(util.inspector, util.properties)
+    builder.attachToInspector(util.inspector, util.properties) { generator.title }
     assertThat(getHiddenProperties(util)).containsExactly(ATTR_PROGRESS_DRAWABLE, ATTR_PROGRESS_TINT, ATTR_MAXIMUM, ATTR_PROGRESS)
   }
 
@@ -115,11 +125,12 @@ class ProgressBarInspectorBuilderTest {
   fun testInitialHiddenLinesWithIndeterminateOff() {
     val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
     val builder = ProgressBarInspectorBuilder(util.editorProvider)
+    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     addOptionalProperties(util)
     util.properties[ANDROID_URI, ATTR_INDETERMINATE].value = VALUE_FALSE
     UIUtil.dispatchAllInvocationEvents()
-    builder.attachToInspector(util.inspector, util.properties)
+    builder.attachToInspector(util.inspector, util.properties) { generator.title }
     assertThat(getHiddenProperties(util)).containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
   }
 
@@ -128,9 +139,10 @@ class ProgressBarInspectorBuilderTest {
     // setup
     val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
     val builder = ProgressBarInspectorBuilder(util.editorProvider)
+    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     addOptionalProperties(util)
-    builder.attachToInspector(util.inspector, util.properties)
+    builder.attachToInspector(util.inspector, util.properties) { generator.title }
     assertThat(getHiddenProperties(util)).containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
     val model = getIndeterminateModel(util)
 
@@ -148,8 +160,8 @@ class ProgressBarInspectorBuilderTest {
 
   private fun addRequiredProperties(util: InspectorTestUtil) {
     util.addProperty("", ATTR_STYLE, NelePropertyType.STYLE)
-    util.addProperty(ANDROID_URI, ATTR_PROGRESS_DRAWABLE, NelePropertyType.COLOR_OR_DRAWABLE)
-    util.addProperty(ANDROID_URI, ATTR_INDETERMINATE_DRAWABLE, NelePropertyType.COLOR_OR_DRAWABLE)
+    util.addProperty(ANDROID_URI, ATTR_PROGRESS_DRAWABLE, NelePropertyType.DRAWABLE)
+    util.addProperty(ANDROID_URI, ATTR_INDETERMINATE_DRAWABLE, NelePropertyType.DRAWABLE)
     util.addProperty(ANDROID_URI, ATTR_MAXIMUM, NelePropertyType.INTEGER)
     util.addProperty(ANDROID_URI, ATTR_PROGRESS, NelePropertyType.INTEGER)
     util.addProperty(ANDROID_URI, ATTR_INDETERMINATE, NelePropertyType.THREE_STATE_BOOLEAN)
@@ -157,8 +169,8 @@ class ProgressBarInspectorBuilderTest {
   }
 
   private fun addOptionalProperties(util: InspectorTestUtil) {
-    util.addProperty(ANDROID_URI, ATTR_PROGRESS_TINT, NelePropertyType.COLOR_OR_DRAWABLE)
-    util.addProperty(ANDROID_URI, ATTR_INDETERMINATE_TINT, NelePropertyType.COLOR_OR_DRAWABLE)
+    util.addProperty(ANDROID_URI, ATTR_PROGRESS_TINT, NelePropertyType.COLOR_STATE_LIST)
+    util.addProperty(ANDROID_URI, ATTR_INDETERMINATE_TINT, NelePropertyType.COLOR_STATE_LIST)
   }
 
   private fun getHiddenProperties(util: InspectorTestUtil): List<String> {

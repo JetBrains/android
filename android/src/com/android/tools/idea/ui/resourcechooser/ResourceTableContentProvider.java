@@ -28,7 +28,7 @@ class ResourceTableContentProvider extends AbstractTableModel {
   private final int[] myGroupIndices;
   private final int myRowCount;
 
-  ResourceTableContentProvider(ResourceChooserGroup[] groups) {
+  public ResourceTableContentProvider(ResourceChooserGroup[] groups) {
     myGroups = groups;
     myGroupIndices = new int[groups.length];
     int rowCount = 0;

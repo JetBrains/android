@@ -55,7 +55,7 @@ public class SideConstraintHandlingTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testSideConstraintHandling() throws Exception {
-    EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest")
+    EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
                                   .getEditor()
                                   .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN);
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);

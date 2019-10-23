@@ -10,7 +10,7 @@ import java.io.File;
 * @author Eugene.Kudelevsky
 */
 class AndroidFileBasedBuildRootDescriptor extends BuildRootDescriptorImpl {
-  AndroidFileBasedBuildRootDescriptor(@NotNull BuildTarget target, @NotNull File file) {
+  public AndroidFileBasedBuildRootDescriptor(@NotNull BuildTarget target, @NotNull File file) {
     super(target, file);
   }
 }

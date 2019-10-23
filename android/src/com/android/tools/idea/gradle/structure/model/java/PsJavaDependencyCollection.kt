@@ -17,36 +17,56 @@ package com.android.tools.idea.gradle.structure.model.java
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency
-import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.PsDeclaredDependencyCollection
+import com.android.tools.idea.gradle.structure.model.PsDependencyCollection
+import com.android.tools.idea.gradle.structure.model.PsJarDependency
+import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
+import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.gradle.structure.model.PsModuleDependency
+import com.android.tools.idea.gradle.structure.model.PsResolvedDependencyCollection
+import com.android.tools.idea.gradle.structure.model.matchJarDeclaredDependenciesIn
+import com.android.tools.idea.gradle.structure.model.relativeFile
 
-interface PsJavaDependencyCollection<out LibraryDependencyT, out ModuleDependencyT>
-  : PsDependencyCollection<PsJavaModule, LibraryDependencyT, ModuleDependencyT>
+interface PsJavaDependencyCollection<out LibraryDependencyT, out JarDependencyT, out ModuleDependencyT>
+  : PsDependencyCollection<PsJavaModule, LibraryDependencyT, JarDependencyT, ModuleDependencyT>
   where LibraryDependencyT : PsJavaDependency,
         LibraryDependencyT : PsLibraryDependency,
+        JarDependencyT : PsJavaDependency,
+        JarDependencyT : PsJarDependency,
         ModuleDependencyT : PsJavaDependency,
         ModuleDependencyT : PsModuleDependency {
-  override val items: List<PsJavaDependency> get() = modules + libraries
+  override val items: List<PsJavaDependency> get() = modules + libraries + jars
 }
 
 class PsDeclaredJavaDependencyCollection(parent: PsJavaModule)
-  : PsDeclaredDependencyCollection<PsJavaModule, PsDeclaredLibraryJavaDependency, PsDeclaredModuleJavaDependency>(parent),
-    PsJavaDependencyCollection<PsDeclaredLibraryJavaDependency, PsDeclaredModuleJavaDependency> {
+  : PsDeclaredDependencyCollection<PsJavaModule, PsDeclaredLibraryJavaDependency,
+  PsDeclaredJarJavaDependency, PsDeclaredModuleJavaDependency>(parent),
+    PsJavaDependencyCollection<PsDeclaredLibraryJavaDependency, PsDeclaredJarJavaDependency, PsDeclaredModuleJavaDependency> {
 
   override fun createLibraryDependency(artifactDependencyModel: ArtifactDependencyModel): PsDeclaredLibraryJavaDependency =
     PsDeclaredLibraryJavaDependency(parent, artifactDependencyModel)
+
+  override fun createJarFileDependency(fileDependencyModel: FileDependencyModel): PsDeclaredJarJavaDependency =
+    PsDeclaredJarJavaDependency(parent, fileDependencyModel)
+
+  override fun createJarFileTreeDependency(fileTreeDependencyModel: FileTreeDependencyModel): PsDeclaredJarJavaDependency =
+    PsDeclaredJarJavaDependency(parent, fileTreeDependencyModel)
 
   override fun createModuleDependency(moduleDependencyModel: ModuleDependencyModel): PsDeclaredModuleJavaDependency =
     PsDeclaredModuleJavaDependency(parent, moduleDependencyModel)
 }
 
 class PsResolvedJavaDependencyCollection(module: PsJavaModule)
-  : PsResolvedDependencyCollection<PsJavaModule, PsJavaModule, PsResolvedLibraryJavaDependency, PsResolvedModuleJavaDependency>(
+  : PsResolvedDependencyCollection<PsJavaModule, PsJavaModule, PsResolvedLibraryJavaDependency,
+  PsResolvedJarJavaDependency, PsResolvedModuleJavaDependency>(
   container = module,
   module = module
 ),
-    PsJavaDependencyCollection<PsResolvedLibraryJavaDependency, PsResolvedModuleJavaDependency> {
+    PsJavaDependencyCollection<PsResolvedLibraryJavaDependency, PsResolvedJarJavaDependency, PsResolvedModuleJavaDependency> {
   override fun collectResolvedDependencies(container: PsJavaModule) {
     val gradleModel = parent.resolvedModel
     gradleModel
@@ -69,7 +89,7 @@ class PsResolvedJavaDependencyCollection(module: PsJavaModule)
     val coordinates = if (name != null && version != null) GradleCoordinate(group, name, version) else null
     if (coordinates != null) {
       val matchingDeclaredDependencies = parsedDependencies
-        .findLibraryDependencies(coordinates.groupId, coordinates.artifactId!!)
+        .findLibraryDependencies(coordinates.groupId, coordinates.artifactId)
         // TODO(b/110774403): Support Java module dependency scopes.
         .filter { library.moduleVersion != null }
       addLibraryDependency(PsResolvedLibraryJavaDependency(parent, library, matchingDeclaredDependencies).also {
@@ -77,6 +97,13 @@ class PsResolvedJavaDependencyCollection(module: PsJavaModule)
           it.setDependenciesFromPomFile(parent.parent.pomDependencyCache.getPomDependencies(file))
         }
       })
+    } else {
+      val artifactCanonicalFile = library.binaryPath?.canonicalFile ?: return
+      val matchingDeclaredDependencies =
+        matchJarDeclaredDependenciesIn(parsedDependencies, artifactCanonicalFile)
+      val path = parent.relativeFile(artifactCanonicalFile)
+      val jarDependency = PsResolvedJarJavaDependency(parent, this, path.path.orEmpty(), matchingDeclaredDependencies)
+      addJarDependency(jarDependency)
     }
   }
 
@@ -90,4 +117,3 @@ class PsResolvedJavaDependencyCollection(module: PsJavaModule)
     addModuleDependency(PsResolvedModuleJavaDependency(parent, gradlePath, scope, module, matchingParsedDependencies))
   }
 }
-

@@ -15,16 +15,37 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_AND_APPLY_SIGNING_CONFIG;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_CONSOLE_READ_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_CHANGE_CONSOLE_READ_PASSWORD_ELEMENTS_TO_PLAIN_TEXT_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_CHANGE_ENVIRONMENT_VARIABLE_PASSWORD_TO_CONSOLE_READ_PASSWORD;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_EDIT_CONSOLE_READ_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_EDIT_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_MULTIPLE_SIGNING_CONFIGS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_PARSE_CONSOLE_READ_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_PARSE_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SET_AND_APPLY_SIGNING_CONFIG;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SIGNING_CONFIG_APPLICATION_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SIGNING_CONFIG_ASSIGNMENT_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SIGNING_CONFIG_BLOCK_WITH_APPLICATION_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SIGNING_CONFIG_BLOCK_WITH_ASSIGNMENT_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.CONSOLE_READ;
+import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.ENVIRONMENT_VARIABLE;
+import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.PLAIN_TEXT;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import org.junit.Test;
-
 import java.util.List;
-
-import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.*;
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 /**
  * Tests for {@link SigningConfigModel}.
@@ -32,18 +53,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class SigningConfigModelTest extends GradleFileModelTestCase {
   @Test
   public void testSigningConfigBlockWithApplicationStatements() throws Exception {
-    String text = "android {\n" +
-                  "  signingConfigs {\n" +
-                  "    release {\n" +
-                  "      storeFile file(\"release.keystore\")\n" +
-                  "      storePassword \"password\"\n" +
-                  "      storeType \"type\"\n" +
-                  "      keyAlias \"myReleaseKey\"\n" +
-                  "      keyPassword \"releaseKeyPassword\"\n" +
-                  "    }\n" +
-                  "  }" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(SIGNING_CONFIG_MODEL_SIGNING_CONFIG_BLOCK_WITH_APPLICATION_STATEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
@@ -61,18 +71,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSigningConfigBlockWithAssignmentStatements() throws Exception {
-    String text = "android {\n" +
-                  "  signingConfigs {\n" +
-                  "    release {\n" +
-                  "      storeFile = file(\"release.keystore\")\n" +
-                  "      storePassword = \"password\"\n" +
-                  "      storeType = \"type\"\n" +
-                  "      keyAlias = \"myReleaseKey\"\n" +
-                  "      keyPassword = \"releaseKeyPassword\"\n" +
-                  "    }\n" +
-                  "  }" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(SIGNING_CONFIG_MODEL_SIGNING_CONFIG_BLOCK_WITH_ASSIGNMENT_STATEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
@@ -90,12 +89,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSigningConfigApplicationStatements() throws Exception {
-    String text = "android.signingConfigs.release.storeFile file(\"release.keystore\")\n" +
-                  "android.signingConfigs.release.storePassword \"password\"\n" +
-                  "android.signingConfigs.release.storeType \"type\"\n" +
-                  "android.signingConfigs.release.keyAlias \"myReleaseKey\"\n" +
-                  "android.signingConfigs.release.keyPassword \"releaseKeyPassword\"\n";
-    writeToBuildFile(text);
+    writeToBuildFile(SIGNING_CONFIG_MODEL_SIGNING_CONFIG_APPLICATION_STATEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
@@ -113,12 +107,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSigningConfigAssignmentStatements() throws Exception {
-    String text = "android.signingConfigs.release.storeFile = file(\"release.keystore\")\n" +
-                  "android.signingConfigs.release.storePassword = \"password\"\n" +
-                  "android.signingConfigs.release.storeType = \"type\"\n" +
-                  "android.signingConfigs.release.keyAlias = \"myReleaseKey\"\n" +
-                  "android.signingConfigs.release.keyPassword = \"releaseKeyPassword\"\n";
-    writeToBuildFile(text);
+    writeToBuildFile(SIGNING_CONFIG_MODEL_SIGNING_CONFIG_ASSIGNMENT_STATEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
@@ -136,25 +125,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testMultipleSigningConfigs() throws Exception {
-    String text = "android {\n" +
-                  "  signingConfigs {\n" +
-                  "    release {\n" +
-                  "      storeFile file(\"release.keystore\")\n" +
-                  "      storePassword \"password\"\n" +
-                  "      storeType \"type1\"\n" +
-                  "      keyAlias \"myReleaseKey\"\n" +
-                  "      keyPassword \"releaseKeyPassword\"\n" +
-                  "    }\n" +
-                  "    debug {\n" +
-                  "      storeFile file(\"debug.keystore\")\n" +
-                  "      storePassword \"debug_password\"\n" +
-                  "      storeType \"type2\"\n" +
-                  "      keyAlias \"myDebugKey\"\n" +
-                  "      keyPassword \"debugKeyPassword\"\n" +
-                  "    }\n" +
-                  "  }" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(SIGNING_CONFIG_MODEL_MULTIPLE_SIGNING_CONFIGS);
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
 
@@ -179,18 +150,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetAndApplySigningConfig() throws Exception {
-    String text = "android {\n" +
-                  "  signingConfigs {\n" +
-                  "    release {\n" +
-                  "      storeFile file(\"release.keystore\")\n" +
-                  "      storePassword \"password\"\n" +
-                  "      storeType \"type\"\n" +
-                  "      keyAlias \"myReleaseKey\"\n" +
-                  "      keyPassword \"releaseKeyPassword\"\n" +
-                  "    }\n" +
-                  "  }" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(SIGNING_CONFIG_MODEL_SET_AND_APPLY_SIGNING_CONFIG);
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
@@ -222,7 +182,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     verifyPasswordModel(signingConfig.storePassword(), "debug_password", PLAIN_TEXT);
     assertEquals("signingConfig", "debug_type", signingConfig.storeType());
     assertEquals("signingConfig", "myDebugKey", signingConfig.keyAlias());
-    verifyPasswordModel( signingConfig.keyPassword(), "debugKeyPassword", PLAIN_TEXT);
+    verifyPasswordModel(signingConfig.keyPassword(), "debugKeyPassword", PLAIN_TEXT);
 
     buildModel.reparse();
     android = buildModel.android();
@@ -241,18 +201,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndApplySigningConfig() throws Exception {
-    String text = "android {\n" +
-                  "  signingConfigs {\n" +
-                  "    release {\n" +
-                  "      storeFile file(\"release.keystore\")\n" +
-                  "      storePassword \"password\"\n" +
-                  "      storeType \"type\"\n" +
-                  "      keyAlias \"myReleaseKey\"\n" +
-                  "      keyPassword \"releaseKeyPassword\"\n" +
-                  "    }\n" +
-                  "  }" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(SIGNING_CONFIG_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG);
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
@@ -296,13 +245,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndApplySigningConfig() throws Exception {
-    String text = "android {\n" +
-                  "  signingConfigs {\n" +
-                  "    release {\n" +
-                  "    }\n" +
-                  "  }" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(SIGNING_CONFIG_MODEL_ADD_AND_APPLY_SIGNING_CONFIG);
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
@@ -351,15 +294,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseEnvironmentVariablePasswordElements() throws Exception {
-    String text = "android {\n" +
-                  "  signingConfigs {\n" +
-                  "    release {\n" +
-                  "      storePassword System.getenv(\"KSTOREPWD\")\n" +
-                  "      keyPassword System.getenv(\"KEYPWD\")\n" +
-                  "    }\n" +
-                  "  }" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(SIGNING_CONFIG_MODEL_PARSE_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
@@ -374,15 +309,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseConsoleReadPasswordElements() throws Exception {
-    String text = "android {\n" +
-                  "  signingConfigs {\n" +
-                  "    release {\n" +
-                  "      storePassword System.console().readLine(\"\\nKeystore password: \")\n" +
-                  "      keyPassword System.console().readLine(\"\\nKey password: \")" +
-                  "    }\n" +
-                  "  }" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(SIGNING_CONFIG_MODEL_PARSE_CONSOLE_READ_PASSWORD_ELEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
@@ -397,15 +324,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testEditEnvironmentVariablePasswordElements() throws Exception {
-    String text = "android {\n" +
-                  "  signingConfigs {\n" +
-                  "    release {\n" +
-                  "      storePassword System.getenv(\"KSTOREPWD\")\n" +
-                  "      keyPassword System.getenv(\"KEYPWD\")\n" +
-                  "    }\n" +
-                  "  }" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(SIGNING_CONFIG_MODEL_EDIT_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
@@ -414,7 +333,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigs).hasSize(1);
     SigningConfigModel signingConfig = signingConfigs.get(0);
 
-    verifyPasswordModel(signingConfig.storePassword(),"KSTOREPWD", ENVIRONMENT_VARIABLE);
+    verifyPasswordModel(signingConfig.storePassword(), "KSTOREPWD", ENVIRONMENT_VARIABLE);
     verifyPasswordModel(signingConfig.keyPassword(), "KEYPWD", ENVIRONMENT_VARIABLE);
 
     signingConfig.storePassword().setValue(ENVIRONMENT_VARIABLE, "KSTOREPWD1");
@@ -427,21 +346,13 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigs).hasSize(1);
     signingConfig = signingConfigs.get(0);
 
-    verifyPasswordModel(signingConfig.storePassword(),"KSTOREPWD1", ENVIRONMENT_VARIABLE);
+    verifyPasswordModel(signingConfig.storePassword(), "KSTOREPWD1", ENVIRONMENT_VARIABLE);
     verifyPasswordModel(signingConfig.keyPassword(), "KEYPWD1", ENVIRONMENT_VARIABLE);
   }
 
   @Test
   public void testEditConsoleReadPasswordElements() throws Exception {
-    String text = "android {\n" +
-                  "  signingConfigs {\n" +
-                  "    release {\n" +
-                  "      storePassword System.console().readLine(\"\\nKeystore password: \")\n" +
-                  "      keyPassword System.console().readLine(\"\\nKey password: \")" +
-                  "    }\n" +
-                  "  }" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(SIGNING_CONFIG_MODEL_EDIT_CONSOLE_READ_PASSWORD_ELEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
@@ -470,13 +381,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddEnvironmentVariablePasswordElements() throws Exception {
-    String text = "android {\n" +
-                  "  signingConfigs {\n" +
-                  "    release {\n" +
-                  "    }\n" +
-                  "  }" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(SIGNING_CONFIG_MODEL_ADD_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
@@ -504,13 +409,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddConsoleReadPasswordElements() throws Exception {
-    String text = "android {\n" +
-                  "  signingConfigs {\n" +
-                  "    release {\n" +
-                  "    }\n" +
-                  "  }" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(SIGNING_CONFIG_MODEL_ADD_CONSOLE_READ_PASSWORD_ELEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
@@ -539,15 +438,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testChangeEnvironmentVariablePasswordToConsoleReadPassword() throws Exception {
-    String text = "android {\n" +
-                  "  signingConfigs {\n" +
-                  "    release {\n" +
-                  "      storePassword System.getenv(\"KSTOREPWD\")\n" +
-                  "      keyPassword System.getenv(\"KEYPWD\")\n" +
-                  "    }\n" +
-                  "  }" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(SIGNING_CONFIG_MODEL_CHANGE_ENVIRONMENT_VARIABLE_PASSWORD_TO_CONSOLE_READ_PASSWORD);
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
@@ -576,15 +467,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testChangeConsoleReadPasswordElementsToPlainTextPasswordElements() throws Exception {
-    String text = "android {\n" +
-                  "  signingConfigs {\n" +
-                  "    release {\n" +
-                  "      storePassword System.console().readLine(\"\\nKeystore password: \")\n" +
-                  "      keyPassword System.console().readLine(\"\\nKey password: \")" +
-                  "    }\n" +
-                  "  }" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(SIGNING_CONFIG_MODEL_CHANGE_CONSOLE_READ_PASSWORD_ELEMENTS_TO_PLAIN_TEXT_PASSWORD_ELEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
@@ -609,5 +492,54 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
 
     verifyPasswordModel(signingConfig.storePassword(), "store_password", PLAIN_TEXT);
     verifyPasswordModel(signingConfig.keyPassword(), "key_password", PLAIN_TEXT);
+  }
+
+  @Test
+  public void testRenameSigningConfigModel() throws Exception {
+    writeToBuildFile(SIGNING_CONFIG_MODEL_SIGNING_CONFIG_BLOCK_WITH_APPLICATION_STATEMENTS);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = buildModel.android();
+
+    List<SigningConfigModel> signingConfigs = androidModel.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    assertEquals("release", signingConfigs.get(0).name());
+    assertEquals("myReleaseKey", signingConfigs.get(0).keyAlias().toString());
+
+    String expectedName = "newName";
+    signingConfigs.get(0).rename(expectedName);
+
+    applyChangesAndReparse(buildModel);
+
+    androidModel = buildModel.android();
+    assertNotNull(androidModel);
+
+    signingConfigs = androidModel.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    assertEquals("newName", signingConfigs.get(0).name());
+    assertEquals("myReleaseKey", signingConfigs.get(0).keyAlias().toString());
+  }
+
+  @Test
+  public void testSigningConfigAddedToTopOfAndroidBlock() throws Exception {
+    writeToBuildFile(SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = buildModel.android();
+
+    SigningConfigModel signingConfig = androidModel.addSigningConfig("release");
+    signingConfig.storeFile().setValue(new ReferenceTo("keystorefile"));
+    signingConfig.storePassword().setValue("123456");
+    signingConfig.keyAlias().setValue("demo");
+    signingConfig.keyPassword().setValue("123456");
+
+    BuildTypeModel buildType = androidModel.buildTypes().stream().filter(type -> type.name().equals("release")).findFirst().orElse(null);
+    assertNotNull(buildType);
+
+    buildType.signingConfig().setValue(new ReferenceTo(signingConfig));
+
+    applyChangesAndReparse(buildModel);
+
+    verifyFileContents(myBuildFile, SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK_EXPECTED);
   }
 }

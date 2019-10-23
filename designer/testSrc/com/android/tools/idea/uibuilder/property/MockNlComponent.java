@@ -36,6 +36,7 @@ public class MockNlComponent extends NlComponent {
     NlModel mockModel = mock(NlModel.class);
     when(mockModel.getFacet()).thenReturn(facet);
     when(mockModel.getModule()).thenReturn(facet.getModule());
+    when(mockModel.getProject()).thenReturn(facet.getModule().getProject());
     SmartPsiElementPointer<XmlTag> mockTagPointer = mock(SmartPsiElementPointer.class);
     when(mockTagPointer.getElement()).thenReturn(tag);
     NlComponent component = new MockNlComponent(mockModel, tag, mockTagPointer);

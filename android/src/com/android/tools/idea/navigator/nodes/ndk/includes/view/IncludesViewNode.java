@@ -157,7 +157,7 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
                            .resolve(includeFolder));
     }
 
-    List<IncludeValue> includes = IncludeValues.organize(simpleIncludes);
+    List<IncludeValue> includes = IncludeValues.INSTANCE.organize(simpleIncludes);
 
     for (IncludeValue include : includes) {
       if (include instanceof ShadowingIncludeValue) {

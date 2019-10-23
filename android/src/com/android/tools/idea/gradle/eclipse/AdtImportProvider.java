@@ -42,7 +42,6 @@ public class AdtImportProvider extends ProjectImportProvider {
         new AdtImportPrefsStep(context),
         new AdtWorkspaceForm(context),
         new AdtImportSdkStep(context),
-        new AdtRepositoriesStep(context),
         new AdtImportWarningsStep(context)
       };
     } else {
@@ -50,7 +49,6 @@ public class AdtImportProvider extends ProjectImportProvider {
         new AdtImportPrefsStep(context),
         new AdtWorkspaceForm(context),
         new AdtImportSdkStep(context),
-        new AdtRepositoriesStep(context),
         new AdtImportWarningsStep(context)
       };
     }

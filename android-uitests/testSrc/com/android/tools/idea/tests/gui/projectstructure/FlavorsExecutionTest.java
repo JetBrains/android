@@ -21,15 +21,16 @@ import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
-import com.android.fakeadbserver.shellcommandhandlers.ShellCommandHandler;
-import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.fakeadbserver.shellcommandhandlers.SimpleShellHandler;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,17 +83,17 @@ public class FlavorsExecutionTest {
 
     FakeAdbServer.Builder adbBuilder = new FakeAdbServer.Builder();
     adbBuilder.installDefaultCommandHandlers()
-              .setShellCommandHandler(ActivityManagerCommandHandler.COMMAND, () -> new ActivityManagerCommandHandler(startCmdHandler))
-              .setShellCommandHandler(LogcatCommandHandler.COMMAND, LogcatCommandHandler::new)
-              .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, JdwpCommandHandler::new);
+              .addDeviceHandler(new ActivityManagerCommandHandler(startCmdHandler))
+              .addDeviceHandler(new LogcatCommandHandler())
+              .addDeviceHandler(new JdwpCommandHandler());
 
     fakeAdbServer = adbBuilder.build();
     DeviceState fakeDevice = fakeAdbServer.connectDevice(
       "test_device",
       "Google",
       "Nexus 5X",
-      "8.1",
-      "27",
+      "9.0",
+      "28",
       DeviceState.HostConnectionType.LOCAL
     ).get();
     fakeDevice.setDeviceStatus(DeviceState.DeviceStatus.ONLINE);
@@ -128,16 +129,11 @@ public class FlavorsExecutionTest {
   public void runBuildFlavors() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleFlavoredApplication");
 
-    InstantRunSettings.setShowStatusNotifications(false);
-
     ideFrameFixture
       .getBuildVariantsWindow()
       .selectVariantForModule("app", "flavor1Debug");
 
-    ideFrameFixture
-      .runApp("app")
-      .selectDevice("Google Nexus 5X")
-      .clickOk();
+    ideFrameFixture.runApp("app", "Google Nexus 5X");
 
     ExecutionToolWindowFixture.ContentFixture flavor1WindowContent = ideFrameFixture.getRunToolWindow().findContent("app");
     String flavor1LaunchPattern = ACTIVITY_OUTPUT_PATTERN.replace("Main_Activity", FIRST_ACTIVITY_NAME);
@@ -148,14 +144,20 @@ public class FlavorsExecutionTest {
       .selectDevicesTab()
       .selectProcess(PROCESS_NAME);
 
-    ideFrameFixture
-      .getBuildVariantsWindow()
-      .selectVariantForModule("app", "flavor2Debug");
+    BuildVariantsToolWindowFixture buildVariantsWindow = ideFrameFixture.getBuildVariantsWindow();
+    try {
+      buildVariantsWindow.selectVariantForModule("app", "flavor2Debug");
+    } catch (NullPointerException ignore) {
+      // TODO: http://b/130568400
+      // When the build variant is changed, the table is immediately emptied and rebuilt. This causes
+      // the BuildVariantsToolWindowFixture to fail during cell editing by throwing an NPE.
+      // This is not a critical error in a critical user journey test, so we ignore this error.
+      // Fixing this issue by rewriting BuildVariantsToolWindowFixture is a larger task that
+      // requires more free time than currently available.
+    }
+    guiTest.waitForBackgroundTasks();
 
-    ideFrameFixture
-      .runApp("app")
-      .selectDevice("Google Nexus 5X")
-      .clickOk();
+    ideFrameFixture.runApp("app", "Google Nexus 5X");
 
     ExecutionToolWindowFixture.ContentFixture flavor2WindowContent = ideFrameFixture.getRunToolWindow().findContent("app");
     String flavor2LaunchPattern = ACTIVITY_OUTPUT_PATTERN.replace("Main_Activity", SECOND_ACTIVITY_NAME);
@@ -174,20 +176,23 @@ public class FlavorsExecutionTest {
     fakeAdbServer.close();
   }
 
-  private static class LogcatCommandHandler extends ShellCommandHandler {
-    @NotNull public static final String COMMAND = "logcat";
+  private static class LogcatCommandHandler extends SimpleShellHandler {
+
+    private LogcatCommandHandler() {
+      super("logcat");
+    }
 
     @Override
-    public boolean invoke(@NotNull FakeAdbServer fakeAdbServer,
-                          @NotNull Socket responseSocket,
-                          @NotNull DeviceState device,
-                          @Nullable String args) {
+    public void execute(@NotNull FakeAdbServer fakeAdbServer,
+                       @NotNull Socket responseSocket,
+                       @NotNull DeviceState device,
+                       @Nullable String args) {
       try {
         OutputStream output = responseSocket.getOutputStream();
 
         if (args == null) {
           CommandHandler.writeFail(output);
-          return false;
+          return;
         }
 
         CommandHandler.writeOkay(output);
@@ -205,8 +210,6 @@ public class FlavorsExecutionTest {
         // Unable to write to socket. Can't communicate anything with client. Just swallow
         // the exception and move on
       }
-
-      return false;
     }
   }
 }

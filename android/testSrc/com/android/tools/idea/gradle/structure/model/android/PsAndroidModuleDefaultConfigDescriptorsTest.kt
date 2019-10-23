@@ -15,11 +15,19 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.annotated
+import com.android.tools.idea.gradle.structure.model.meta.getText
+import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
-import org.hamcrest.CoreMatchers.*
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.notNullValue
+import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 
 class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
@@ -79,8 +87,8 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       assertThat(maxSdkVersion.resolved.asTestValue(), equalTo(26))
       assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(26))
 
-      assertThat(minSdkVersion.resolved.asTestValue(), equalTo("9"))
-      assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("9"))
+      assertThat(minSdkVersion.resolved.asTestValue(), equalTo("14"))
+      assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("14"))
 
       assertThat(multiDexEnabled.resolved.asTestValue(), nullValue())
       assertThat(multiDexEnabled.parsedValue.asTestValue(), nullValue())
@@ -136,8 +144,13 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       assertThat(module, notNullValue())
       val defaultConfig = module.defaultConfig
 
+      val versionCode = PsAndroidModuleDefaultConfigDescriptors.versionCode.bind(defaultConfig).getValue()
       val resConfigs = PsAndroidModuleDefaultConfigDescriptors.resConfigs.bind(defaultConfig).getValue()
       assertThat(resConfigs.resolved.asTestValue()?.toSet(), equalTo(setOf("en", "fr")))
+
+      assertThat(versionCode.resolved.asTestValue(), equalTo(1))
+      assertThat(versionCode.parsedValue.value,
+                 equalTo<ParsedValue<Int>>(ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText("1.1"))))
       // TODO(b/111779356): Uncommented when fixed.
       // assertThat(resConfigs.parsedValue.asTestValue()?.toSet(), equalTo(setOf("en", "fr")))
     }
@@ -183,9 +196,15 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       val applicationIdSuffix = PsAndroidModuleDefaultConfigDescriptors.applicationIdSuffix.bind(defaultConfig).getValue()
       val maxSdkVersion = PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion.bind(defaultConfig).getValue()
       val minSdkVersion = PsAndroidModuleDefaultConfigDescriptors.minSdkVersion.bind(defaultConfig).getValue()
+      assertThat(
+        PsAndroidModuleDefaultConfigDescriptors.getParsed(defaultConfig)?.minSdkVersion()?.valueType,
+        equalTo(GradlePropertyModel.ValueType.INTEGER))
       val multiDexEnabled = PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled.bind(defaultConfig).getValue()
       val signingConfig = PsAndroidModuleDefaultConfigDescriptors.signingConfig.bind(defaultConfig).getValue()
       val targetSdkVersion = PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion.bind(defaultConfig).getValue()
+      assertThat(
+        PsAndroidModuleDefaultConfigDescriptors.getParsed(defaultConfig)?.targetSdkVersion()?.valueType,
+        equalTo(GradlePropertyModel.ValueType.INTEGER))
       val testApplicationId = PsAndroidModuleDefaultConfigDescriptors.testApplicationId.bind(defaultConfig).getValue()
       val testFunctionalTest = PsAndroidModuleDefaultConfigDescriptors.testFunctionalTest.bind(defaultConfig).getValue()
       val testHandleProfiling = PsAndroidModuleDefaultConfigDescriptors.testHandleProfiling.bind(defaultConfig).getValue()
@@ -204,7 +223,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
       assertThat(
         signingConfig.parsedValue,
-        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.myConfig")).annotated()))
+        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference("signingConfigs.myConfig")).annotated()))
       // TODO(b/71988818)
       assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("21"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid.failed_test"))

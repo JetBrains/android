@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.util.androidFacet
-import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED
 import com.intellij.ide.file.BatchFileChangeListener
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.impl.stores.BatchUpdateListener
@@ -205,7 +205,7 @@ class IndexingSuspenderTest : JavaProjectTestCase() {
     // this tests the correct event handling when build is triggered during sync (e.g., source generation)
     setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
     val syncState = GradleSyncState.getInstance(project)
-    syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
+    syncState.syncStarted(true, GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED))
     syncState.setupStarted()
 
     val buildContext = BuildContext(project, listOf(":app:something"), BuildMode.DEFAULT_BUILD_MODE)
@@ -216,15 +216,15 @@ class IndexingSuspenderTest : JavaProjectTestCase() {
     syncState.syncEnded()
 
     assertFalse(syncState.isSyncInProgress)
-    // must be still within a batch update session - sync has finished, but it should have not deactivated the suspender
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, currentBatchFileUpdateLevel)
+    // Build does not suspend indexing. Indexing should have resumed by this point.
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
 
     buildState.buildStarted(buildContext)
 
-    // must be still within a batch update session - suspender is still active
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, currentBatchFileUpdateLevel)
+    // No change.
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
     buildState.buildFinished(BuildStatus.SUCCESS)
     assertFalse(buildState.isBuildInProgress)
     assertEquals(0, currentBatchUpdateLevel)
@@ -242,7 +242,7 @@ class IndexingSuspenderTest : JavaProjectTestCase() {
 
     setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
     val syncState = GradleSyncState.getInstance(project)
-    syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
+    syncState.syncStarted(true, GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED))
 
     // Perform "setup" by marking the module as namespaced:
     syncState.setupStarted()
@@ -254,12 +254,14 @@ class IndexingSuspenderTest : JavaProjectTestCase() {
     buildState.buildExecutorCreated(buildRequest)
     syncState.syncEnded()
 
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, currentBatchFileUpdateLevel)
+    // Indexing should have resumed by this point.
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
 
     buildState.buildStarted(buildContext)
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, currentBatchFileUpdateLevel)
+    // Build does not suspend indexing.
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
 
     buildState.buildFinished(BuildStatus.SUCCESS)
     assertFalse(buildState.isBuildInProgress)
@@ -282,7 +284,7 @@ class IndexingSuspenderTest : JavaProjectTestCase() {
     assertEquals(1, currentBatchUpdateLevel)
     assertEquals(1, currentBatchFileUpdateLevel)
 
-    syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
+    syncState.syncStarted(true, GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED))
     // No change
     assertEquals(1, currentBatchUpdateLevel)
     assertEquals(1, currentBatchFileUpdateLevel)
@@ -301,13 +303,13 @@ class IndexingSuspenderTest : JavaProjectTestCase() {
 
     syncState.syncEnded()
     // No change
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, currentBatchFileUpdateLevel)
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
 
     buildState.buildStarted(buildContext)
-    // No change even during build (for template-rendering initiated suspension only).
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, currentBatchFileUpdateLevel)
+    // Build does not suspend indexing.
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, currentBatchFileUpdateLevel)
 
     buildState.buildFinished(BuildStatus.SUCCESS)
     assertEquals(0, currentBatchUpdateLevel)
@@ -329,7 +331,7 @@ class IndexingSuspenderTest : JavaProjectTestCase() {
     assertEquals(1, currentBatchUpdateLevel)
     assertEquals(1, currentBatchFileUpdateLevel)
 
-    syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
+    syncState.syncStarted(true, GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED))
     // No change
     assertEquals(1, currentBatchUpdateLevel)
     assertEquals(1, currentBatchFileUpdateLevel)
@@ -348,7 +350,7 @@ class IndexingSuspenderTest : JavaProjectTestCase() {
     setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
 
     val syncState = GradleSyncState.getInstance(project)
-    syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
+    syncState.syncStarted(true, GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED))
     syncState.setupStarted()
 
     assertEquals(1, currentBatchUpdateLevel)
@@ -365,14 +367,16 @@ class IndexingSuspenderTest : JavaProjectTestCase() {
   }
 
   private fun doTestGradleBuildWhen(buildStatus: BuildStatus) {
-    setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
+    // Build does not suspend indexing.
+    setUpIndexingSpecificExpectations(batchUpdateCount = 0, batchFileUpdateCount = 0)
 
     val buildContext = mock(BuildContext::class.java)
     val buildState = GradleBuildState.getInstance(project)
     buildState.buildStarted(buildContext)
 
-    assertEquals(1, currentBatchUpdateLevel)
-    assertEquals(1, actualBatchFileUpdateCount)
+    // Build does not suspend indexing.
+    assertEquals(0, currentBatchUpdateLevel)
+    assertEquals(0, actualBatchFileUpdateCount)
 
     buildState.buildFinished(buildStatus)
     assertEquals(0, currentBatchUpdateLevel)

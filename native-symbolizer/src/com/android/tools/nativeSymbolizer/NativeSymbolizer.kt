@@ -81,17 +81,6 @@ fun getLlvmSymbolizerPath(): String {
   return result.toString()
 }
 
-/**
- * Symbolizer that does nothing
- */
-class NopSymbolizer : NativeSymbolizer {
-  override fun symbolize(abiArch: String, module: String, offset: Long): Symbol? {
-    return null
-  }
-
-  override fun stop() {}
-}
-
 internal fun getLogger(): Logger {
   return Logger.getInstance("NativeSymbolizer")
 }

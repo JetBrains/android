@@ -55,12 +55,15 @@ public class CreateBaselineConnectionTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void createBaselineConnection() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest");
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
     EditorFixture editor = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture design = editor.getLayoutEditor(false)
+    NlEditorFixture design = editor
+      .getLayoutEditor(false)
+      .showOnlyDesignView()
+      .waitForRenderToFinish()
       .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish();
 

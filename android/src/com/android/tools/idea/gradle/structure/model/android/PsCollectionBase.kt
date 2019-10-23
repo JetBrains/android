@@ -100,5 +100,10 @@ abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel
     notifyChanged()
   }
 
-  // TODO(b/111739005): support renames
+  protected fun renamed(model: TModel, newKey: TKey) {
+    entries = entries.entries.map { (k, v) -> if (v === model) newKey to v else k to v}.toMap()
+    update(newKey, model)
+    parent.isModified = true
+    notifyChanged()
+  }
 }

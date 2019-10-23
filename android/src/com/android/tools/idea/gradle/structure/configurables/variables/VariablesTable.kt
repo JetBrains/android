@@ -16,40 +16,72 @@
 package com.android.tools.idea.gradle.structure.configurables.variables
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.PropertyCellEditor
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderAnyTo
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.toSelectedTextRenderer
 import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.*
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.ShadowNode
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.ShadowedTreeNode
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.childNodes
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.initializeNode
 import com.android.tools.idea.gradle.structure.configurables.ui.uiProperty
+import com.android.tools.idea.gradle.structure.model.PsBuildScript
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsVariable
+import com.android.tools.idea.gradle.structure.model.PsVariables
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
-import com.android.tools.idea.gradle.structure.model.helpers.parseAny
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
+import com.android.tools.idea.structure.dialog.logUsagePsdAction
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.ui.popup.ListPopup
+import com.intellij.openapi.ui.popup.PopupStep
+import com.intellij.openapi.ui.popup.util.BaseListPopupStep
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.TableUtil
+import com.intellij.ui.awt.RelativePoint
+import com.intellij.ui.components.JBTextField
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
+import com.intellij.ui.treeStructure.treetable.TreeTableModelAdapter
 import com.intellij.util.ui.AbstractTableCellEditor
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import org.jetbrains.kotlin.utils.addToStdlib.cast
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.awt.Component
-import java.awt.event.*
-import java.util.*
-import javax.swing.*
+import java.awt.Point
+import java.awt.event.ActionEvent
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
+import java.awt.event.KeyEvent
+import java.awt.event.MouseEvent
+import java.util.EventObject
+import javax.swing.Box
+import javax.swing.BoxLayout
+import javax.swing.Icon
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JTable
+import javax.swing.JTree
+import javax.swing.KeyStroke
 import javax.swing.SwingUtilities.invokeLater
 import javax.swing.border.EmptyBorder
 import javax.swing.event.ChangeEvent
@@ -59,6 +91,7 @@ import javax.swing.table.TableCellRenderer
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.DefaultTreeSelectionModel
+import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 
 private const val NAME = 0
@@ -67,8 +100,16 @@ private const val UNRESOLVED_VALUE = 1
 /**
  * Main table for the Variables view in the Project Structure Dialog
  */
-class VariablesTable(private val project: Project, private val psProject: PsProject, private val parentDisposable: Disposable) :
-  TreeTable(createTreeModel(ProjectShadowNode(psProject), parentDisposable)) {
+class VariablesTable private constructor(
+  private val project: Project,
+  private val context: PsContext,
+  private val psProject: PsProject,
+  private val variablesTreeModel: VariablesTableModel
+) :
+  TreeTable(variablesTreeModel) {
+
+  constructor (project: Project, context: PsContext, psProject: PsProject, parentDisposable: Disposable) :
+    this(project, context, psProject, createTreeModel(ProjectShadowNode(psProject), parentDisposable))
 
   private val iconGap = JBUI.scale(2)
   private val editorInsets = JBUI.insets(1, 2)
@@ -90,23 +131,35 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     tree.selectionModel = DefaultTreeSelectionModel()
 
     setTreeCellRenderer(object : NodeRenderer() {
-      override fun customizeCellRenderer(tree: JTree,
-                                         value: Any?,
-                                         selected: Boolean,
-                                         expanded: Boolean,
-                                         leaf: Boolean,
-                                         row: Int,
-                                         hasFocus: Boolean) {
+      override fun customizeCellRenderer(
+        tree: JTree,
+        value: Any?,
+        selected: Boolean,
+        expanded: Boolean,
+        leaf: Boolean,
+        row: Int,
+        hasFocus: Boolean
+      ) {
         super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
-        if (value is EmptyMapItemNode) {
-          append("Insert new key", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+        val emptyName = when {
+          value is EmptyNamedNode -> value.emptyName
+          value is EmptyValueNode && editingRow == row -> value.emptyName
+          else -> null
+        }
+        if (emptyName != null) {
+          append(
+            emptyName,
+            if (selected) SimpleTextAttributes.SELECTED_SIMPLE_CELL_ATTRIBUTES
+            else SimpleTextAttributes.GRAYED_ATTRIBUTES
+          )
         }
         val userObject = (value as VariablesBaseNode).userObject
         if (userObject is NodeDescription) {
           icon = userObject.icon
           iconTextGap = iconGap
           ipad = editorInsets
-        } else {
+        }
+        else {
           icon = EmptyIcon.ICON_16
         }
       }
@@ -121,33 +174,96 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     columnSelectionAllowed = false
     setCellSelectionEnabled(true)
     setRowHeight(calculateMinRowHeight())
+    selectionModel.setSelectionInterval(0, 0)
   }
 
+  override fun adapt(treeTableModel: TreeTableModel): TreeTableModelAdapter =
+    object : TreeTableModelAdapter(treeTableModel, tree, this) {
+      override fun fireTableDataChanged() {
+        // have to restore table selection since AbstractDataModel.fireTableDataChanged() clears all selection
+        val selectedColumn = this@VariablesTable.selectedColumn
+        val selectedRow = this@VariablesTable.selectedRow
+        super.fireTableDataChanged()
+        if (selectedRow != -1) {
+          selectionModel.setSelectionInterval(selectedRow, selectedRow)
+        }
+        if (selectedColumns.size != -1) {
+          columnModel.selectionModel.setSelectionInterval(selectedColumn, selectedColumn)
+        }
+      }
+    }
+
+  private inline fun <reified T: VariablesBaseNode> getSelectedNodes() =
+    selectedRows
+      .map { tree.getPathForRow(it)?.lastPathComponent as? T }
+      .filterNotNull()
+
   fun deleteSelectedVariables() {
+    fun VariableNode.moduleName() = when (this.variable.parent) {
+      is PsProject -> "project '${this.variable.parent.name}'"
+      is PsBuildScript -> "the build script of project '${this.variable.parent.parent.name}'"
+      is PsModule -> "module '${this.variable.parent.name}'"
+      else -> ""
+    }
+
     removeEditor()
-    tree.getSelectedNodes(BaseVariableNode::class.java, null).map { it.variable }.forEach { it.delete() }
+    val variableNodes = getSelectedNodes<BaseVariableNode>()
+    val message = when {
+      variableNodes.isEmpty() -> return
+      variableNodes.size == 1 -> variableNodes[0].let { node ->
+        when (node) {
+          is VariableNode -> "Remove variable '${variableNodes[0].variable.name}' from ${node.moduleName()}?"
+          is ListItemNode -> "Remove list item ${node.index} from '${node.variable.parent.name}'?"
+          is MapItemNode -> "Remove map entry '${node.key}' from '${node.variable.parent.name}'?"
+          else -> return
+        }
+      }
+      else -> "Remove ${variableNodes.size} items from project '${psProject.name}'?"
+    }
+    if (Messages.showYesNoDialog(
+        project,
+        message,
+        if (variableNodes.size > 1) "Remove Variables" else "Remove Variable",
+        Messages.getQuestionIcon()
+      ) == Messages.YES) {
+      variableNodes.map { it.variable }.forEach { it.delete() }
+      project.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_REMOVE)
+    }
   }
 
   fun addVariable(type: ValueType) {
-    getCellEditor()?.stopCellEditing()
-    val selectedNodes = tree.getSelectedNodes(VariablesBaseNode::class.java, null)
-    if (selectedNodes.isEmpty()) {
-      return
-    }
-    val moduleNode = let {
-      var last = selectedNodes.last()
-      while (last !is ModuleNode) {
+    fun findModuleNode(): ModuleNode? {
+      var last = getSelectedNodes<VariablesBaseNode>().takeUnless { it.isEmpty() }?.last()
+      while (last != null && last !is ModuleNode) {
         last = last.parent as VariablesBaseNode
       }
-      last as ModuleNode
+      return last as? ModuleNode
     }
-    val emptyNode = EmptyVariableNode(moduleNode.variables, type)
-    moduleNode.add(emptyNode)
-    (tableModel as DefaultTreeModel).nodesWereInserted(moduleNode, IntArray(1) { moduleNode.getIndex(emptyNode) })
+
+    fun ModuleNode.findEmptyVariableNode() = children()?.toList()?.last()?.safeAs<EmptyVariableNode>()
+
+    val moduleNode = findModuleNode() ?: return
+    val emptyNode = moduleNode.findEmptyVariableNode() ?: return
+
+    emptyNode.type = type
+
     tree.expandPath(TreePath(moduleNode.path))
     val emptyNodePath = TreePath(emptyNode.path)
-    scrollRectToVisible(tree.getPathBounds(emptyNodePath))
-    editCellAt(tree.getRowForPath(emptyNodePath), 0, NewVariableEvent(emptyNode))
+    val emptyNodeRow = tree.getRowForPath(emptyNodePath)
+
+    if (editingRow != emptyNodeRow || editingColumn != 0) {
+      getCellEditor()?.stopCellEditing()
+      scrollRectToVisible(tree.getPathBounds(emptyNodePath))
+      val selectedRow = tree.getRowForPath(TreePath(emptyNode.path))
+      selectionModel.setSelectionInterval(selectedRow, selectedRow)
+      editCellAt(emptyNodeRow, 0, NewVariableEvent(emptyNode))
+      project.logUsagePsdAction(
+        when (type) {
+          ValueType.LIST -> AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_ADD_LIST
+          ValueType.MAP -> AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_ADD_MAP
+          else -> AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_ADD_SIMPLE
+        })
+    }
   }
 
   private val coloredComponent = SimpleColoredComponent()
@@ -156,20 +272,28 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     TableCellRenderer { table, value, isSelected, _, rowIndex, columnIndex ->
 
       fun getDefaultComponent() =
-        super.getCellRenderer(row, column).getTableCellRendererComponent(table, value, isSelected, false, rowIndex, columnIndex)
+        super
+          .getCellRenderer(row, column)
+          .getTableCellRendererComponent(table, value, isSelected, false, rowIndex, columnIndex)
 
       fun getNodeRendered() = tree.getPathForRow(rowIndex).lastPathComponent as VariablesBaseNode
 
       when {
-        column == UNRESOLVED_VALUE && getNodeRendered() is EmptyListItemNode ->
-          (getDefaultComponent() as JLabel).apply { text = "Insert new value"; foreground = UIUtil.getInactiveTextColor() }
+        column == UNRESOLVED_VALUE && getNodeRendered() is EmptyValueNode ->
+          (getDefaultComponent() as JLabel).apply {
+            text = getNodeRendered().cast<EmptyValueNode>().emptyValue
+            foreground =
+              if (isSelected) SimpleTextAttributes.SELECTED_SIMPLE_CELL_ATTRIBUTES.fgColor
+              else UIUtil.getInactiveTextColor()
+          }
 
         column == NAME -> getDefaultComponent()
 
         else -> {
           coloredComponent.clear()
           if (!tree.isExpanded(rowIndex)) {
-            (value as? ParsedValue<Any>)?.renderAnyTo(coloredComponent.toRenderer(), mapOf())
+            val textRenderer = coloredComponent.toRenderer().toSelectedTextRenderer(isSelected)
+            (value as? ParsedValue<Any>)?.renderAnyTo(textRenderer, mapOf())
           }
           val rowSelected = table.isRowSelected(rowIndex)
           coloredComponent.foreground = if (rowSelected) table.selectionForeground else table.foreground
@@ -191,45 +315,54 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
       val rows = selectedRows
       if (rows.size == 1) {
         val selectedRow = rows[0]
-        if (isCellEditable(selectedRow, 0)) {
-          editCellAt(selectedRow, 0)
-          return
+        val selectedColumn = this.selectedColumn
+        if (isCellEditable(selectedRow, selectedColumn)) {
+          editCellAt(selectedRow, selectedColumn)
         }
-        if (isCellEditable(selectedRow, 1)) {
-          editCellAt(selectedRow, 1)
-          return
+        else {
+          nextCell(e, selectedRow, selectedColumn)
         }
+        return
       }
     }
-    val isCollapseKey = e?.keyCode == KeyEvent.VK_LEFT || e?.keyCode == KeyEvent.VK_MINUS
-    val isExpandKey = e?.keyCode == KeyEvent.VK_RIGHT || e?.keyCode == KeyEvent.VK_PLUS
-    fun currentNodeCanExpand() = (tree.selectionPath.lastPathComponent as? VariablesBaseNode)?.isLeaf == false
-    val toBeExpandedOrCollapsed =
-      !isEditing && selectedColumn == 0 &&
-      (isCollapseKey && tree.isExpanded(selectedRow) ||
-       (isExpandKey && !tree.isExpanded(selectedRow) && currentNodeCanExpand()))
-    setProcessCursorKeys(toBeExpandedOrCollapsed)
     super.processKeyEvent(e)
-    if (toBeExpandedOrCollapsed) {
-      columnModel.selectionModel.setSelectionInterval(0, 0)
-    }
   }
 
-  override fun editingStopped(e: ChangeEvent?) {
-    val rowBeingEdited = editingRow
-    super.editingStopped(e)
-    val nodeBeingEdited = tree.getPathForRow(rowBeingEdited)?.lastPathComponent
-    if (nodeBeingEdited is EmptyVariableNode) {
-      (tableModel as DefaultTreeModel).removeNodeFromParent(nodeBeingEdited)
+  override fun prepareEditor(editor: TableCellEditor?, row: Int, column: Int): Component? {
+    val editorComponent = super.prepareEditor(editor, row, column)
+    if (column == NAME) {
+      val node = tree.getPathForRow(row).lastPathComponent as? EmptyVariableNode
+      if (node != null && node.type == null) {
+        invokeLater {
+          createChooseVariableTypePopup()
+            .show(
+              RelativePoint(this, getCellRect(row, column, true).let { Point(it.x, it.y + it.height) }))
+        }
+        return null
+      }
     }
+    maybeScheduleNameRepaint(row, column)
+    return editorComponent
   }
 
   override fun editingCanceled(e: ChangeEvent?) {
     val rowBeingEdited = editingRow
+    val columnBeingEdited = editingColumn
     super.editingCanceled(e)
     val nodeBeingEdited = tree.getPathForRow(rowBeingEdited)?.lastPathComponent
     if (nodeBeingEdited is EmptyVariableNode) {
-      (tableModel as DefaultTreeModel).removeNodeFromParent(nodeBeingEdited)
+      nodeBeingEdited.type = null
+    }
+    maybeScheduleNameRepaint(rowBeingEdited, columnBeingEdited)
+  }
+
+  private fun maybeScheduleNameRepaint(row: Int, column: Int) {
+    if (column == UNRESOLVED_VALUE) {
+      tree.getPathForRow(row)?.lastPathComponent?.safeAs<TreeNode>()?.let { treeNode ->
+        if (treeNode is EmptyValueNode) {
+          invokeLater { variablesTreeModel.nodeChanged(treeNode) }
+        }
+      }
     }
   }
 
@@ -237,13 +370,10 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
    * Table cell editor that reproduces the layout of a tree element
    */
   inner class NameCellEditor(private val row: Int) : AbstractTableCellEditor() {
-    private val textBox = VariableAwareTextBox(project)
+    private val textBox = JBTextField()
 
     init {
       addTabKeySupportTo(textBox)
-      textBox.addTextListener(ActionListener { stopCellEditing() })
-      textBox.border = BorderFactory.createMatteBorder(editorInsets.top, editorInsets.left, editorInsets.bottom, editorInsets.right,
-                                                       this@VariablesTable.selectionBackground)
       textBox.componentPopupMenu = null
     }
 
@@ -252,9 +382,6 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
       val bounds = tree.getRowBounds(row)
       if (e is MouseEvent && e.x < bounds.x) {
         return false
-      }
-      if (e is NewVariableEvent) {
-        textBox.setPlaceholder("Variable name")
       }
       return super.isCellEditable(e)
     }
@@ -300,85 +427,107 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     override fun getCellEditorValue(): Any? = textBox.text
   }
 
-  private fun calculateMinRowHeight() = SimplePropertyEditor(SimplePropertyStub(), PropertyContextStub<Any>(), null,
-                                                             listOf()).component.minimumSize.height
+  private fun calculateMinRowHeight() = JBUI.scale(24)
 
   inner class VariableCellEditor : PropertyCellEditor<Any>() {
     override fun initEditorFor(row: Int): ModelPropertyEditor<Any> {
       val node = tree.getPathForRow(row).lastPathComponent
       val variable = when (node) {
         is BaseVariableNode -> node.variable
-        is EmptyListItemNode -> node.createVariable(ParsedValue.NotSet)
+        is EmptyValueNode -> node.createVariable(ParsedValue.NotSet)
         else -> throw IllegalStateException()
       }
-      val uiProperty = uiProperty(PsVariable.Descriptors.variableValue, ::simplePropertyEditor)
-      return uiProperty.createEditor(psProject, null, variable).also { addTabKeySupportTo(it.component) }
+      val uiProperty = uiProperty(PsVariable.Descriptors.variableValue, ::simplePropertyEditor, psdUsageLogFieldId = null)
+      val enterHandlingProxyCellEditor =
+        object : TableCellEditor by this {
+          override fun stopCellEditing(): Boolean {
+            val editingRow = editingRow
+            val editingColumn = editingColumn
+            return this@VariableCellEditor.stopCellEditing()
+              .also { invokeLater { nextCell(ActionEvent(this, ActionEvent.ACTION_PERFORMED, null), editingRow, editingColumn) } }
+          }
+        }
+      val editor = uiProperty.createEditor(context, psProject, null, variable, enterHandlingProxyCellEditor)
+      addTabKeySupportTo(editor.component)
+      return editor
     }
 
     override fun Annotated<ParsedValue<Any>>.toModelValue(): Any = this
+
+    override fun valueEdited() {
+      project.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_MODIFY_VALUE)
+    }
+  }
+
+  private fun selectCell(row: Int, column: Int) {
+    this.selectionModel.setSelectionInterval(row, row)
+    this.columnModel.selectionModel.setSelectionInterval(column, column)
+  }
+
+  private fun nextCell(e: ActionEvent) {
+    nextCell(e, editingRow, editingColumn)
+  }
+
+  private fun nextCell(e: EventObject, row: Int, col: Int) {
+    val editPosition = row to col
+    TableUtil.stopEditing(this)
+    generateSequence(editPosition) {
+      tree.expandRow(it.first)
+      (if (it.second >= 1) it.first + 1 to 0 else it.first to it.second + 1)
+    }
+      .drop(1)
+      .takeWhile { it.first < tree.rowCount }
+      .firstOrNull { model.isCellEditable(it.first, it.second) }
+      ?.let { (row, column) ->
+        selectionModel.setSelectionInterval(row, row)
+        scrollRectToVisible(this.getCellRect(row, column, true))
+        selectCell(row, column)
+        invokeLater { editCellAt(row, column, null) }
+      }
+  }
+
+  private fun prevCell(e: ActionEvent) {
+    val editPosition = editingRow to editingColumn
+    TableUtil.stopEditing(this)
+    generateSequence(editPosition) {
+      var (nextRow, nextColumn) = if (it.second <= 0) it.first - 1 to 1 else it.first to it.second - 1
+      var totalRows = tree.rowCount
+      while (!tree.isExpanded(nextRow)) {
+        tree.expandRow(nextRow)
+        if (totalRows == tree.rowCount) {
+          break
+        }
+        else {
+          nextRow += tree.rowCount - totalRows
+        }
+        totalRows = tree.rowCount
+      }
+      nextRow to nextColumn
+    }
+      .drop(1)
+      .takeWhile { it.first >= 0 }
+      .firstOrNull { model.isCellEditable(it.first, it.second) }
+      ?.let { (row, column) ->
+        selectionModel.setSelectionInterval(row, row)
+        scrollRectToVisible(this.getCellRect(row, column, true))
+        selectCell(row, column)
+        invokeLater { editCellAt(row, column, e) }
+      }
   }
 
   private fun addTabKeySupportTo(editor: JComponent) {
-    fun selectCell(row: Int, column: Int) {
-      this.selectionModel.setSelectionInterval(row, row)
-      this.columnModel.selectionModel.setSelectionInterval(column, column)
-    }
-
-    fun nextCell(e: ActionEvent) {
-      if (isEditing) {
-        val editPosition = editingRow to editingColumn
-        TableUtil.stopEditing(this)
-        generateSequence(editPosition) {
-          tree.expandRow(it.first)
-          (if (it.second >= 1) it.first + 1 to 0 else it.first to it.second + 1)
-        }
-          .drop(1)
-          .takeWhile { it.first < tree.rowCount }
-          .firstOrNull { model.isCellEditable(it.first, it.second) }
-          ?.let { (row, column) ->
-            selectionModel.setSelectionInterval(row, row)
-            scrollRectToVisible(this.getCellRect(row, column, true))
-            selectCell(row, column)
-            invokeLater { editCellAt(row, column, e) }
-          }
-      }
-    }
-
-    fun prevCell(e: ActionEvent) {
-      if (isEditing) {
-        val editPosition = editingRow to editingColumn
-        TableUtil.stopEditing(this)
-        generateSequence(editPosition) {
-          var (nextRow, nextColumn) = if (it.second <= 0) it.first - 1 to 1 else it.first to it.second - 1
-          var totalRows = tree.rowCount
-          while (!tree.isExpanded(nextRow)) {
-            tree.expandRow(nextRow)
-            if (totalRows == tree.rowCount) {
-              break
-            }
-            else {
-              nextRow += tree.rowCount - totalRows
-            }
-            totalRows = tree.rowCount
-          }
-          nextRow to nextColumn
-        }
-          .drop(1)
-          .takeWhile { it.first >= 0 }
-          .firstOrNull { model.isCellEditable(it.first, it.second) }
-          ?.let { (row, column) ->
-            selectionModel.setSelectionInterval(row, row)
-            scrollRectToVisible(this.getCellRect(row, column, true))
-            selectCell(row, column)
-            invokeLater { editCellAt(row, column, e) }
-          }
-      }
-    }
     editor.registerKeyboardAction(::nextCell, KeyStroke.getKeyStroke("TAB"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     editor.registerKeyboardAction(::prevCell, KeyStroke.getKeyStroke("shift pressed TAB"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    editor.registerKeyboardAction(::nextCell, KeyStroke.getKeyStroke("ENTER"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }
 
-  class VariablesTableModel internal constructor(internal val root: VariablesBaseNode) : DefaultTreeModel(root), TreeTableModel {
+  fun addVariableAvailable(): Boolean = getSelectedNodes<VariablesBaseNode>().isNotEmpty()
+  fun removeVariableAvailable(): Boolean = getSelectedNodes<BaseVariableNode>().isNotEmpty()
+
+  class VariablesTableModel internal constructor(
+    private val project: PsProject,
+    internal val root: VariablesBaseNode
+  ) : DefaultTreeModel(root), TreeTableModel {
     private var tableTree: JTree? = null
 
     override fun getColumnCount(): Int = 2
@@ -406,14 +555,14 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
 
     override fun isCellEditable(node: Any?, column: Int): Boolean =
       when (column) {
-        NAME -> node is VariableNode || node is MapItemNode || node is EmptyVariableNode || node is EmptyMapItemNode
+        NAME -> node is VariableNode || node is MapItemNode || node is EmptyVariableNode || node is EmptyNamedNode
         UNRESOLVED_VALUE -> {
           if (node is VariableNode) {
             val literalValue = node.variable.value.maybeLiteralValue
             literalValue !is Map<*, *> && literalValue !is List<*>
           }
           else {
-            node is BaseVariableNode || node is EmptyListItemNode
+            node is BaseVariableNode || node is EmptyValueNode
           }
         }
         else -> false
@@ -427,25 +576,24 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
           node is EmptyVariableNode && column == NAME -> {
             val parentNode = node.parent as? ShadowedTreeNode
             val variable = node.createVariable(aValue)
-            if (parentNode != null) {
-              tableTree?.expandPath(
-                TreePath(
-                  getPathToRoot(
-                    parentNode
-                      .childNodes
-                      .find { (it.shadowNode as? VariableShadowNode)?.variable === variable }
-                  )))
-            }
+            val newNode =
+              parentNode
+                ?.childNodes
+                ?.find { (it.shadowNode as? VariableShadowNode)?.variable === variable }
+                ?.let { newNode ->
+                  tableTree?.expandPath(TreePath(getPathToRoot(newNode)))
+                }
           }
-          node is EmptyMapItemNode && column == NAME -> node.createVariable(aValue)
+          node is EmptyNamedNode && column == NAME -> node.createVariable(aValue)
           node is BaseVariableNode && column == NAME -> {
             node.setName(aValue)
             nodeChanged(node)
+            project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_RENAME)
           }
 
         }
         is Annotated<*> -> when {
-          node is EmptyListItemNode && column == UNRESOLVED_VALUE && aValue.value is ParsedValue.Set<Any> ->
+          node is EmptyValueNode && column == UNRESOLVED_VALUE && aValue.value is ParsedValue.Set<Any> ->
             node.createVariable(aValue.value)
           node !is BaseVariableNode -> Unit
           column == UNRESOLVED_VALUE && aValue.value is ParsedValue<Any> -> {
@@ -460,6 +608,22 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
       tableTree = tree
     }
   }
+}
+
+fun VariablesTable.createChooseVariableTypePopup(): ListPopup {
+  val actions = listOf(
+    VariablesConfigurable.AddAction("1. Simple value", ValueType.STRING),
+    VariablesConfigurable.AddAction("2. List", ValueType.LIST),
+    VariablesConfigurable.AddAction("3. Map", ValueType.MAP)
+  )
+  val icons = listOf<Icon>(EmptyIcon.ICON_0, EmptyIcon.ICON_0, EmptyIcon.ICON_0)
+  return JBPopupFactory
+    .getInstance()
+    .createListPopup(
+      object : BaseListPopupStep<VariablesConfigurable.AddAction>(null, actions, icons) {
+        override fun onChosen(selectedValue: VariablesConfigurable.AddAction?, finalChoice: Boolean): PopupStep<*>? =
+          doFinalStep { selectedValue?.type?.let { addVariable(it) } }
+      })
 }
 
 open class VariablesBaseNode(override val shadowNode: ShadowNode) : DefaultMutableTreeNode(null), ShadowedTreeNode {
@@ -481,12 +645,31 @@ abstract class BaseVariableNode(znode: ShadowNode, val variable: PsVariable) : V
   }
 }
 
-class EmptyVariableNode(private val variablesScope: PsVariablesScope, val type: ValueType) : VariablesBaseNode(FakeShadowNode) {
-  fun createVariable(name: String): PsVariable =
+class EmptyVariableNode(znode: ShadowNode, private val variablesScope: PsVariablesScope) : VariablesBaseNode(znode), EmptyNamedNode {
+  var type: ValueType? = null
+    set(value) {
+      field = value
+      setIconFor(value)
+    }
+
+  override val emptyName = "+New variable"
+  override fun createVariable(key: String): PsVariable =
     when (type) {
-      ValueType.LIST -> variablesScope.addNewListVariable(name)
-      ValueType.MAP -> variablesScope.addNewMapVariable(name)
-      else -> variablesScope.addNewVariable(name)
+      ValueType.LIST -> variablesScope.addNewListVariable(key)
+      ValueType.MAP -> variablesScope.addNewMapVariable(key)
+      else -> variablesScope.addNewVariable(key)
+    }
+      .also {
+        type = null
+      }
+
+  private fun setIconFor(value: ValueType?) {
+    userObject = NodeDescription("", when (value) {
+      ValueType.MAP -> AllIcons.Json.Object
+      ValueType.LIST -> AllIcons.Json.Array
+      null -> EmptyIcon.ICON_16
+      else -> StudioIcons.Misc.GRADLE_VARIABLE
+    })
   }
 }
 
@@ -507,7 +690,7 @@ class VariableNode(znode: ShadowNode, variable: PsVariable) : BaseVariableNode(z
   }
 }
 
-class ListItemNode(znode: ShadowNode, index: Int, variable: PsVariable) : BaseVariableNode(znode, variable) {
+class ListItemNode(znode: ShadowNode, val index: Int, variable: PsVariable) : BaseVariableNode(znode, variable) {
   init {
     userObject = index
   }
@@ -519,11 +702,13 @@ class ListItemNode(znode: ShadowNode, index: Int, variable: PsVariable) : BaseVa
   }
 }
 
-class EmptyListItemNode(znode: ShadowNode, private val containingList: PsVariable) : VariablesBaseNode(znode) {
-  fun createVariable(value: ParsedValue<Any>): PsVariable = containingList.addListValue(value)
+class EmptyListItemNode(znode: ShadowNode, private val containingList: PsVariable) : VariablesBaseNode(znode), EmptyValueNode {
+  override val emptyName get() = this.parent.getIndex(this).toString()
+  override val emptyValue = "+New value"
+  override fun createVariable(value: ParsedValue<Any>): PsVariable = containingList.addListValue(value)
 }
 
-class MapItemNode(znode: ShadowNode, key: String, variable: PsVariable) : BaseVariableNode(znode, variable) {
+class MapItemNode(znode: ShadowNode, val key: String, variable: PsVariable) : BaseVariableNode(znode, variable) {
   init {
     userObject = key
   }
@@ -538,8 +723,20 @@ class MapItemNode(znode: ShadowNode, key: String, variable: PsVariable) : BaseVa
   }
 }
 
-class EmptyMapItemNode(znode: ShadowNode, private val containingMap: PsVariable) : VariablesBaseNode(znode) {
-  fun createVariable(key: String) = containingMap.addMapValue(key)
+interface EmptyNamedNode {
+  val emptyName: String
+  fun createVariable(key: String): PsVariable?
+}
+
+interface EmptyValueNode {
+  val emptyName: String
+  val emptyValue: String
+  fun createVariable(value: ParsedValue<Any>): PsVariable
+}
+
+class EmptyMapItemNode(znode: ShadowNode, private val containingMap: PsVariable) : VariablesBaseNode(znode), EmptyNamedNode {
+  override val emptyName = "+New entry"
+  override fun createVariable(key: String) = containingMap.addMapValue(key)
 }
 
 class NodeDescription(var name: String, val icon: Icon) {
@@ -551,26 +748,31 @@ class NewVariableEvent(source: Any) : EventObject(source)
 /**
  * Creates a tree model from a tree of shadow nodes which is auto-updated on changes made to the shadow tree.
  */
-internal fun createTreeModel(root: ShadowNode, parentDisposable: Disposable): VariablesTable.VariablesTableModel =
-  VariablesTable.VariablesTableModel(VariablesBaseNode(root).also { Disposer.register(parentDisposable, it) })
+internal fun createTreeModel(root: ProjectShadowNode, parentDisposable: Disposable): VariablesTable.VariablesTableModel =
+  VariablesTable.VariablesTableModel(root.project, VariablesBaseNode(root).also { Disposer.register(parentDisposable, it) })
     .also { it.initializeNode(it.root, from = root) }
 
 internal data class ProjectShadowNode(val project: PsProject) : ShadowNode {
   override fun getChildrenModels(): Collection<ShadowNode> =
-    listOf(RootModuleShadowNode(project)) + project.modules.sortedBy { it.name }.map { ModuleShadowNode(it) }
+    listOf(RootModuleShadowNode(project.buildScriptVariables)) +
+    listOf(RootModuleShadowNode(project.variables)) +
+    project.modules.sortedBy { it.name }.map { ModuleShadowNode(it) }
 
   override fun createNode(): VariablesBaseNode = VariablesBaseNode(this)
   override fun onChange(disposable: Disposable, listener: () -> Unit) = project.modules.onChange(disposable, listener)
 }
 
-internal data class RootModuleShadowNode(val project: PsProject) : ShadowNode {
-  override fun getChildrenModels(): Collection<ShadowNode> = project.variables.map { VariableShadowNode(it) }
-  override fun createNode(): VariablesBaseNode = ModuleNode(this, project.variables)
-  override fun onChange(disposable: Disposable, listener: () -> Unit) = project.variables.onChange(disposable, listener)
+internal data class RootModuleShadowNode(val scope: PsVariables) : ShadowNode {
+  override fun getChildrenModels(): Collection<ShadowNode> =
+    scope.map { VariableShadowNode(it) } + VariableEmptyShadowNode(scope)
+
+  override fun createNode(): VariablesBaseNode = ModuleNode(this, scope)
+  override fun onChange(disposable: Disposable, listener: () -> Unit) = scope.onChange(disposable, listener)
 }
 
 internal data class ModuleShadowNode(val module: PsModule) : ShadowNode {
-  override fun getChildrenModels(): Collection<ShadowNode> = module.variables.map { VariableShadowNode(it) }
+  override fun getChildrenModels(): Collection<ShadowNode> =
+    module.variables.map { VariableShadowNode(it) } + VariableEmptyShadowNode(module.variables)
   override fun createNode(): VariablesBaseNode = ModuleNode(this, module.variables)
   override fun onChange(disposable: Disposable, listener: () -> Unit) = module.variables.onChange(disposable, listener)
 }
@@ -613,6 +815,6 @@ internal data class VariableShadowNode(val variable: PsVariable) : ShadowNode {
   }
 }
 
-private object VariablePropertyContextStub: PropertyContextStub<Any>() {
-  override fun parse(value: String) = parseAny(value)
+internal data class VariableEmptyShadowNode(val variablesScope: PsVariablesScope) : ShadowNode {
+  override fun createNode(): VariablesBaseNode = EmptyVariableNode(this, variablesScope)
 }

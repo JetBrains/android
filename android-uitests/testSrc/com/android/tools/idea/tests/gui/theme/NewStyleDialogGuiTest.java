@@ -31,6 +31,7 @@ import java.io.IOException;
 
 import static junit.framework.Assert.assertEquals;
 
+@RunIn(TestGroup.THEME)
 @RunWith(GuiTestRemoteRunner.class)
 public class NewStyleDialogGuiTest {
 

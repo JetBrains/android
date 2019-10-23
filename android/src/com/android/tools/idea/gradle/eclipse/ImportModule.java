@@ -19,10 +19,10 @@ package com.android.tools.idea.gradle.eclipse;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.repository.io.FileOpUtils;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
@@ -185,15 +185,13 @@ public abstract class ImportModule implements Comparable<ImportModule> {
       compileVersion = 18;
     }
 
-    if (myImporter.getSdkLocation() != null) {
-      int requiredVersion = compileVersion;
-      GradleCoordinate max =
-          SdkMavenRepository.ANDROID.getHighestInstalledVersion(myImporter.getSdkLocation(), SUPPORT_GROUP_ID, artifact,
-                                                                (v) -> v.getMajor() == requiredVersion, true,
-                                                                FileOpUtils.create());
-      if (max != null) {
-        return max;
-      }
+    int requiredVersion = compileVersion;
+    String max =
+      RepositoryUrlManager.get().getLibraryRevision(SUPPORT_GROUP_ID, artifact,
+                                                    (v) -> v.getMajor() == requiredVersion, true,
+                                                    FileOpUtils.create());
+    if (max != null) {
+      return GradleCoordinate.parseCoordinateString(SUPPORT_GROUP_ID + ':' + artifact + ':' + max);
     }
 
     String coordinate = SUPPORT_GROUP_ID + ':' + artifact + ':' + compileVersion + ".+";

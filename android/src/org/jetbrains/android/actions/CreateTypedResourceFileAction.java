@@ -266,7 +266,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
     @NotNull
     private final IdeResourceNameValidator myNameValidator;
 
-    MyValidator(Project project, PsiDirectory directory) {
+    public MyValidator(Project project, PsiDirectory directory) {
       super(project, directory);
       myNameValidator = IdeResourceNameValidator.forFilename(myResourceFolderType, SdkConstants.DOT_XML);
     }

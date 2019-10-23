@@ -15,21 +15,20 @@
  */
 package com.android.tools.idea.tests.gui;
 
+import static com.android.testutils.TestUtils.getWorkspaceRoot;
+
 import com.android.testutils.ClassSuiteRunner;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.XDisplayRule;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import org.junit.ClassRule;
-import org.junit.runner.RunWith;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.android.testutils.TestUtils.getWorkspaceRoot;
+import org.junit.ClassRule;
+import org.junit.runner.RunWith;
 
 @RunWith(ClassSuiteRunner.class)
 public class GuiJarTestSuite extends IdeaTestSuiteBase {
@@ -41,19 +40,19 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
   static {
     optSymlinkToIdeaHome(
       "prebuilts/tools/common/offline-m2",
-      "tools/adt/idea/adt-ui/lib/libwebp",
-      "tools/adt/idea/android/annotations",
-      "tools/adt/idea/android-uitests/testData",
-      "tools/adt/idea/artwork/resources/device-art-resources",
-      "tools/adt/idea/android/lib",
-      "tools/base/templates",
-      "tools/external/gradle",
-      "tools/idea/build.txt",
-      "tools/idea/java",
-      "tools/idea/bin",
       "prebuilts/studio/jdk",
       "prebuilts/studio/layoutlib",
-      "prebuilts/studio/sdk");
+      "prebuilts/studio/sdk",
+      "tools/adt/idea/adt-ui/lib/libwebp",
+      "tools/adt/idea/android/annotations",
+      "tools/adt/idea/android/lib",
+      "tools/adt/idea/android-uitests/testData",
+      "tools/adt/idea/artwork/resources/device-art-resources",
+      "tools/adt/idea/resources-aar/framework_res.jar",
+      "tools/base/templates",
+      "tools/external/gradle",
+      "tools/idea/java",
+      "tools/idea/bin");
 
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
@@ -79,13 +78,7 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
   }
 
   private static List<File> getExternalPlugins() {
-    List<File> plugins = new ArrayList<>(2);
-
-    // Enable Kotlin plugin if available(see PluginManagerCore.PROPERTY_PLUGIN_PATH).
-    File kotlin = new File(getWorkspaceRoot(), "prebuilts/tools/common/kotlin-plugin/Kotlin");
-    if (kotlin.exists()) {
-      plugins.add(kotlin);
-    }
+    List<File> plugins = new ArrayList<>(1);
 
     // Enable Bazel plugin if it's available
     File aswb = new File(getWorkspaceRoot(), "tools/adt/idea/android-uitests/aswb");

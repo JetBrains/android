@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.dom.navigation;
 
+import static com.android.SdkConstants.TAG_DEEP_LINK;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.NavTestUtil;
 import com.google.common.collect.HashMultimap;
@@ -23,7 +25,9 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -32,25 +36,23 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.util.indexing.UnindexedFilesUpdater;
 import com.intellij.util.io.ZipUtil;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-
-import static com.android.SdkConstants.TAG_DEEP_LINK;
 
 /**
  * Tests for {@link NavigationSchema}.
  */
 public class NavigationSchemaTest extends AndroidTestCase {
   private static final String[] LEAF_DESTINATIONS = new String[] {
-    "fragment", "fragment_sub", "fragment_sub_sub", "other_1", "other_2"
+    "fragment", "fragment_sub", "fragment_sub_sub", "other_1", "other_2", "duplicate"
   };
   private static final String[] ACTIVITIES = new String[] {"activity", "activity_sub"};
   private static final String[] EMPTIES = new String[] {"include" };
@@ -61,13 +63,27 @@ public class NavigationSchemaTest extends AndroidTestCase {
     super.setUp();
     myFixture.copyDirectoryToProject("navschematest", "src");
 
-    for (String prebuiltPath : NavTestUtil.getNavEditorAarPaths()) {
+    for (String prebuiltPath : NavTestUtil.getNavEditorAarPaths().keySet()) {
       File aar = new File(PathManager.getHomePath(), prebuiltPath);
       File tempDir = FileUtil.createTempDirectory("NavigationSchemaTest", null);
       ZipUtil.extract(aar, tempDir, null);
       PsiTestUtil.addLibrary(myFixture.getModule(), new File(tempDir, "classes.jar").getPath());
     }
     NavigationSchema.createIfNecessary(myModule);
+  }
+
+  public void testDumbMode() throws Exception {
+    DumbServiceImpl.getInstance(getProject()).setDumb(true);
+    try {
+      NavigationSchema schema = NavigationSchema.get(myModule);
+      CompletableFuture<NavigationSchema> future = schema.rebuildSchema();
+      DumbServiceImpl.getInstance(getProject()).setDumb(false);
+      schema = future.get();
+      assertNotNull(schema);
+    }
+    finally {
+      DumbServiceImpl.getInstance(getProject()).setDumb(false);
+    }
   }
 
   public void testSubtags() {
@@ -115,7 +131,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     PsiClass activity = findClass(SdkConstants.CLASS_ACTIVITY);
     PsiClass fragment = findClass(SdkConstants.CLASS_V4_FRAGMENT.oldName());
     PsiClass navGraph = findClass("androidx.navigation.NavGraph");
-    // TODO: update custom navs so some have custom destination classes in the release after alpha06
+    PsiClass custom = findClass("OtherNavigatorWithDestination.MyActualDestination");
 
     assertSameElements(schema.getDestinationClassesForTag("activity"), activity);
     assertSameElements(schema.getDestinationClassesForTag("activity_sub"), activity);
@@ -126,6 +142,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     assertSameElements(schema.getDestinationClassesForTag("navigation_sub"), navGraph);
     assertEmpty(schema.getDestinationClassesForTag("other_1"));
     assertEmpty(schema.getDestinationClassesForTag("other_2"));
+    assertSameElements(schema.getDestinationClassesForTag("duplicate"), fragment, custom);
   }
 
   @NotNull
@@ -135,7 +152,6 @@ public class NavigationSchemaTest extends AndroidTestCase {
   }
 
   public void testDestinationType() {
-    // TODO: update custom navs so some have multiple types in the release after alpha06
     NavigationSchema schema = NavigationSchema.get(myModule);
     assertSameElements(schema.getDestinationTypesForTag("activity"), NavigationSchema.DestinationType.ACTIVITY);
     assertSameElements(schema.getDestinationTypesForTag("activity_sub"), NavigationSchema.DestinationType.ACTIVITY);
@@ -146,10 +162,11 @@ public class NavigationSchemaTest extends AndroidTestCase {
     assertSameElements(schema.getDestinationTypesForTag("navigation_sub"), NavigationSchema.DestinationType.NAVIGATION);
     assertSameElements(schema.getDestinationTypesForTag("other_1"), NavigationSchema.DestinationType.OTHER);
     assertSameElements(schema.getDestinationTypesForTag("other_2"), NavigationSchema.DestinationType.OTHER);
+    assertSameElements(schema.getDestinationTypesForTag("duplicate"), NavigationSchema.DestinationType.OTHER,
+                       NavigationSchema.DestinationType.FRAGMENT);
   }
 
   public void testTagByType() {
-    // TODO: update custom navs so some have "OTHER" type in the release after alpha06
     NavigationSchema schema = NavigationSchema.get(myModule);
     assertEquals("activity", schema.getDefaultTag(NavigationSchema.DestinationType.ACTIVITY));
     assertEquals("navigation", schema.getDefaultTag(NavigationSchema.DestinationType.NAVIGATION));
@@ -157,7 +174,6 @@ public class NavigationSchemaTest extends AndroidTestCase {
   }
 
   public void testTagLabel() {
-    // TODO: update custom navs so some have multiple types in the release after alpha06
     NavigationSchema schema = NavigationSchema.get(myModule);
     assertEquals("Activity", schema.getTagLabel("activity"));
     assertEquals("Activity (activity_sub)", schema.getTagLabel("activity_sub"));
@@ -172,6 +188,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     assertEquals("other_2", schema.getTagLabel("other_2"));
     assertEquals("Include Graph", schema.getTagLabel("include"));
     assertEquals("Action", schema.getTagLabel("action"));
+    assertEquals("Ambiguous Type", schema.getTagLabel("duplicate"));
   }
 
   private PsiClass addClass(@Language("JAVA") @NotNull String content) {
@@ -229,16 +246,24 @@ public class NavigationSchemaTest extends AndroidTestCase {
                       true);
   }
 
-  public void testQuickValidateWithDelete() throws Exception {
+  // b/117295488
+  public void ignore_testQuickValidateWithDelete() throws Exception {
     @Language("JAVA")
     String content = "import androidx.navigation.*;\n" +
                      "@Navigator.Name(\"fragment_sub\")\n" +
                      "public class QuickValidateWithDelete extends ActivityNavigator {}\n";
     PsiClass navigator = addClass(content);
+    WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
+
     NavigationSchema schema = NavigationSchema.get(myModule).rebuildSchema().get();
     assertTrue(schema.quickValidate());
 
     WriteCommandAction.runWriteCommandAction(getProject(), () -> navigator.getContainingFile().delete());
+    WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
+    DumbService dumbService = DumbService.getInstance(getProject());
+    dumbService.queueTask(new UnindexedFilesUpdater(getProject()));
+    dumbService.completeJustSubmittedTasks();
+
     assertFalse(schema.quickValidate());
   }
 

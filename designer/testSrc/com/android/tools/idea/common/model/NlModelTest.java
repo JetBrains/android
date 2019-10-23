@@ -15,6 +15,29 @@
  */
 package com.android.tools.idea.common.model;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.ATTR_ORIENTATION;
+import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.EDIT_TEXT;
+import static com.android.SdkConstants.FRAME_LAYOUT;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.RECYCLER_VIEW;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.VALUE_VERTICAL;
+import static com.android.tools.idea.projectsystem.TestRepositories.NON_PLATFORM_SUPPORT_LAYOUT_LIBS;
+import static com.android.tools.idea.projectsystem.TestRepositories.PLATFORM_SUPPORT_LIBS;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -32,6 +55,7 @@ import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
+import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -45,20 +69,13 @@ import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.ServiceContainerUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.projectsystem.TestRepositories.NON_PLATFORM_SUPPORT_LAYOUT_LIBS;
-import static com.android.tools.idea.projectsystem.TestRepositories.PLATFORM_SUPPORT_LIBS;
-import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Model tests. This checks that when a model is updated, we correctly
@@ -126,7 +143,7 @@ public class NlModelTest extends LayoutTestCase {
     ModelBuilder modelBuilder = createDefaultModelBuilder(true);
     NlModel model = modelBuilder.build();
     NlComponent component1 = model.find("myText1");
-    XmlAttribute attribute = component1.getTag().getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI);
+    XmlAttribute attribute = component1.getTagDeprecated().getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI);
 
     NlComponent component2 = model.findViewByPsi(attribute.getFirstChild());
     assertThat(component1).isSameAs(component2);
@@ -136,7 +153,7 @@ public class NlModelTest extends LayoutTestCase {
     ModelBuilder modelBuilder = createDefaultModelBuilder(true);
     NlModel model = modelBuilder.build();
     NlComponent component1 = model.find("myText1");
-    XmlAttribute attribute = component1.getTag().getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI);
+    XmlAttribute attribute = component1.getTagDeprecated().getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI);
 
     ResourceReference reference = model.findAttributeByPsi(attribute.getFirstChild());
     assertThat(reference.getName()).isEqualTo(ATTR_LAYOUT_WIDTH);
@@ -388,7 +405,8 @@ public class NlModelTest extends LayoutTestCase {
     assertThat(frameLayout).isNotNull();
 
     XmlTag recyclerViewTag =
-      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW.defaultName() + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
+      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW.defaultName() + " xmlns:android=\"" +
+                                                                    ANDROID_URI + "\"/>");
 
     WriteCommandAction.runWriteCommandAction(
       model.getProject(), null, null,
@@ -403,13 +421,14 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
   }
 
-  public void testAddComponentsWithDependencyCheck() {
+  // b/126334920
+  public void ignore_testAddComponentsWithDependencyCheck() {
     List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
       .addAll(NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
-    TestProjectSystem projectSytem = new TestProjectSystem(getProject(), accessibleDependencies);
-    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(), projectSytem, getTestRootDisposable());
+    TestProjectSystem projectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
+    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(), projectSystem, getTestRootDisposable());
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
@@ -428,10 +447,22 @@ public class NlModelTest extends LayoutTestCase {
     assertThat(frameLayout).isNotNull();
 
     XmlTag recyclerViewTag =
-      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW.defaultName() + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
+      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW.defaultName() + " xmlns:android=\"" +
+                                                                    ANDROID_URI + "\"/>");
     NlComponent recyclerView =
       model.createComponent(model.getSurface(), recyclerViewTag, null, null, InsertType.CREATE);
     model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE, model.getSurface());
+    // addComponents indirectly makes a network request through NlDependencyManager#addDependencies. As it should not block, components are
+    // effectively added by another thread via a callback passed to addDependencies. This concurrency flow might cause this test to fail
+    // sporadically if we immediately check the components hierarchy. Instead, we sleep until the RecyclerView is added by the other thread.
+    while (frameLayout.getChildren().isEmpty()) {
+      try {
+        Thread.sleep(1000);
+      }
+      catch (InterruptedException e) {
+        fail("Failed while waiting for RecyclerView to be added.");
+      }
+    }
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
@@ -439,13 +470,14 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
   }
 
-  public void testAddComponentsNoDependencyCheckOnMove() {
+  // b/126334920
+  public void ignore_testAddComponentsNoDependencyCheckOnMove() {
     List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
       .addAll(NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
-    TestProjectSystem projectSytem = new TestProjectSystem(getProject(), accessibleDependencies);
-    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(), projectSytem, getTestRootDisposable());
+    TestProjectSystem projectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
+    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(), projectSystem, getTestRootDisposable());
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
@@ -471,6 +503,17 @@ public class NlModelTest extends LayoutTestCase {
     assertThat(frameLayout).isNotNull();
 
     model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE_INTO, model.getSurface());
+    // addComponents indirectly makes a network request through NlDependencyManager#addDependencies. As it should not block, components are
+    // effectively added by another thread via a callback passed to addDependencies. This concurrency flow might cause this test to fail
+    // sporadically if we immediately check the components hierarchy. Instead, we sleep until the RecyclerView is added by the other thread.
+    while (frameLayout.getChildren().isEmpty()) {
+      try {
+        Thread.sleep(1000);
+      }
+      catch (InterruptedException e) {
+        fail("Failed while waiting for RecyclerView to be added.");
+      }
+    }
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
@@ -618,9 +661,7 @@ public class NlModelTest extends LayoutTestCase {
                                                   "     android:layout_width=\"match_parent\"" +
                                                   "     android:layout_height=\"match_parent\" />" +
                                                   "</merge>");
-    DesignSurface surface = createSurface(NlDesignSurface.class);
-    NlModel model = SyncNlModel.create(surface, myFixture.getProject(), myFacet, mergeXml.getVirtualFile());
-    when(surface.getModel()).thenReturn(model);
+    NlModel model = createModel(mergeXml);
 
     XmlTag parentRoot = parentXml.getRootTag();
     TagSnapshot parentRootSnapshot = TagSnapshot.createTagSnapshot(parentRoot, null);
@@ -653,9 +694,7 @@ public class NlModelTest extends LayoutTestCase {
                                                             "               android:layout_width=\"match_parent\"" +
                                                             "               android:layout_height=\"48dp\" />" +
                                                             "</LinearLayout>");
-    DesignSurface surface = createSurface(NlDesignSurface.class);
-    NlModel model = SyncNlModel.create(surface, myFixture.getProject(), myFacet, modelXml.getVirtualFile());
-    when(surface.getModel()).thenReturn(model);
+    NlModel model = createModel(modelXml);
 
     TagSnapshot rootSnapshot = TagSnapshot.createTagSnapshot(modelXml.getRootTag(), null);
     ViewInfo rootViewInfo = new ViewInfo("android.widget.LinearLayout", rootSnapshot, 0, 0, 500, 500);
@@ -676,7 +715,7 @@ public class NlModelTest extends LayoutTestCase {
                                                            "         android:layout_width=\"match_parent\"" +
                                                            "         android:layout_height=\"match_parent\">" +
                                                            "</LinearLayout>");
-    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml.getVirtualFile());
+    NlModel model = createModel(modelXml);
     ModelListener listener1 = mock(ModelListener.class);
     ModelListener remove1 = mock(ModelListener.class, invocation -> {
       model.removeListener((ModelListener)invocation.getMock());
@@ -729,7 +768,7 @@ public class NlModelTest extends LayoutTestCase {
                                                            "         android:layout_width=\"match_parent\"" +
                                                            "         android:layout_height=\"match_parent\">" +
                                                            "</LinearLayout>");
-    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml.getVirtualFile());
+    NlModel model = createModel(modelXml);
 
     notifyAndCheckListeners(model, NlModel::notifyListenersModelUpdateComplete, listener -> listener.modelDerivedDataChanged(any()));
     notifyAndCheckListeners(model, m -> m.notifyModified(NlModel.ChangeType.EDIT), listener -> listener.modelChanged(any()));
@@ -742,7 +781,7 @@ public class NlModelTest extends LayoutTestCase {
                                                            "         android:layout_width=\"match_parent\"" +
                                                            "         android:layout_height=\"match_parent\">" +
                                                            "</LinearLayout>");
-    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml.getVirtualFile());
+    NlModel model = createModel(modelXml);
     ModelListener listener1 = mock(ModelListener.class);
     ModelListener remove1 = mock(ModelListener.class, invocation -> {
       model.removeListener((ModelListener)invocation.getMock());
@@ -777,7 +816,7 @@ public class NlModelTest extends LayoutTestCase {
                                                            "         android:layout_width=\"match_parent\"" +
                                                            "         android:layout_height=\"match_parent\">" +
                                                            "</LinearLayout>");
-    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml.getVirtualFile());
+    NlModel model = createModel(modelXml);
     ModelListener listener1 = mock(ModelListener.class);
     model.addListener(listener1);
 
@@ -816,7 +855,7 @@ public class NlModelTest extends LayoutTestCase {
                                                            "         android:layout_width=\"match_parent\"" +
                                                            "         android:layout_height=\"match_parent\">" +
                                                            "</RelativeLayout>");
-    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml.getVirtualFile());
+    NlModel model = createModel(modelXml);
 
     long expectedModificationCount = model.getModificationCount();
     for (NlModel.ChangeType changeType : NlModel.ChangeType.values()) {
@@ -826,22 +865,11 @@ public class NlModelTest extends LayoutTestCase {
     }
   }
 
-  public void testNotUsingMaterial2Theme() {
-    ModelBuilder modelBuilder = createDefaultModelBuilder(false);
-    SyncNlModel model = modelBuilder.build();
-    assertFalse(model.usingMaterial2Theme());
-  }
-
-  public void testUsingMaterial2Theme() {
-    myFixture.addFileToProject("res/values/styles.xml",
-                               "<resources>\n" +
-                               "  <style name=\"Platform.MaterialComponents\" parent=\"Theme.Material\"/>\n" +
-                               "  <style name=\"Theme.MaterialComponents\" parent=\"Platform.MaterialComponents\"/>\n" +
-                               "</resources>\n");
-    ModelBuilder modelBuilder = createDefaultModelBuilder(false);
-    SyncNlModel model = modelBuilder.build();
-    model.getConfiguration().setTheme("Theme.MaterialComponents");
-    assertTrue(model.usingMaterial2Theme());
+  @NotNull
+  private SyncNlModel createModel(XmlFile modelXml) {
+    DesignSurface surface = createSurface(NlDesignSurface.class);
+    when(surface.getComponentRegistrar()).thenReturn(component -> NlComponentHelper.INSTANCE.registerComponent(component));
+    return SyncNlModel.create(surface, myFixture.getProject(), myFacet, modelXml.getVirtualFile());
   }
 
   @Override

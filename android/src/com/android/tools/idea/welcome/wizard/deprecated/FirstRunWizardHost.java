@@ -421,7 +421,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
     private final Runnable myOperation;
     private final JButton myDefaultButton;
 
-    LongRunningOperationWrapper(Runnable operation, boolean cancellable, JButton defaultButton) {
+    public LongRunningOperationWrapper(Runnable operation, boolean cancellable, JButton defaultButton) {
       super(null, FirstRunWizardHost.this.myWizard.getWizardActionDescription(), cancellable);
       myOperation = operation;
       myDefaultButton = defaultButton;

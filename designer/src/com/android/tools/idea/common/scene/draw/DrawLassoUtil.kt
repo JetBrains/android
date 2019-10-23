@@ -26,6 +26,7 @@ import java.awt.Graphics2D
 private const val SIZE_TIP_TO_MOUSE_DISTANCE = 5
 private const val SIZE_TIP_MARGIN = 6
 private const val SIZE_TIP_BACKGROUND_ARC = 5
+private const val SIZE_FONT = 12
 
 private val SIZE_TIP_TEXT_COLOR = Color.WHITE
 private val SIZE_TIP_TEXT_BACKGROUND = Color(0x80, 0x80, 0x80, 0xB0)
@@ -51,7 +52,7 @@ fun drawLasso(g: Graphics2D,
 
   if (showSize) {
     val originalFont = g.font
-    g.font = Font(originalFont.name, Font.PLAIN, (originalFont.size * 0.9f).toInt())
+    g.font = Font(originalFont.name, Font.PLAIN, (SIZE_FONT * 0.9f).toInt())
 
     val sizeText = "$dpWidth x $dpHeight"
     val fm = g.fontMetrics

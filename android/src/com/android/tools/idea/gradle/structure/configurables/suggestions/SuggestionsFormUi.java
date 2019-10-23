@@ -32,7 +32,8 @@ public abstract class SuggestionsFormUi {
   protected JCheckBox myShowDismissedSuggestionsCheckBox;
 
   protected void setViewComponent(JPanel issuesViewerPanel) {
-    JScrollPane scrollPane = createScrollPane(issuesViewerPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+    JScrollPane scrollPane =
+      createScrollPane(issuesViewerPanel, VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     scrollPane.setViewportBorder(IdeBorderFactory.createEmptyBorder());
     myContentsPanel.add(scrollPane, BorderLayout.CENTER);

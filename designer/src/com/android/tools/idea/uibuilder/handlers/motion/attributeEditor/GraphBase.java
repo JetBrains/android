@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.attributeEditor;
 
-
 import com.intellij.ui.JBColor;
 
 import java.awt.BasicStroke;
@@ -43,6 +42,7 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.WindowConstants;
 
 public class GraphBase extends JPanel {
   int myInsTop = 30;
@@ -102,7 +102,6 @@ public class GraphBase extends JPanel {
     calcRange();
     repaint();
   }
-
 
   public void addGraph(int n, double[][] p, Color c, int mode) {
     float[] xf = new float[p.length];
@@ -382,7 +381,7 @@ public class GraphBase extends JPanel {
 
     JFrame f = new JFrame(title);
     f.setBounds(new Rectangle(200, 200));
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     JPanel base = new JPanel(new BorderLayout());
     JPanel ctl = new JPanel();
     base.add(ctl, BorderLayout.SOUTH);

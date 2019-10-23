@@ -53,6 +53,6 @@ public class CanvasResizeLayer extends Layer {
 
   @Override
   public boolean isHidden() {
-    return !myDesignSurface.hasCustomDevice();
+    return !myDesignSurface.isResizeAvailable();
   }
 }

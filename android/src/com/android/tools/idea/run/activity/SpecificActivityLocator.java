@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.activity;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -71,14 +71,14 @@ public class SpecificActivityLocator extends ActivityLocator {
     PsiClass c = JavaExecutionUtil.findMainClass(project, myActivityName, GlobalSearchScope.projectScope(project));
     Element element;
     if (c == null || !c.isInheritor(activityClass, true)) {
-      element = MergedManifest.get(module).findActivityAlias(myActivityName);
+      element = MergedManifestManager.getSnapshot(module).findActivityAlias(myActivityName);
       if (element == null) {
         throw new ActivityLocatorException(AndroidBundle.message("not.activity.subclass.error", myActivityName));
       }
     }
     else {
       // check whether activity is declared in the manifest
-      element = MergedManifest.get(module).findActivity(ActivityLocatorUtils.getQualifiedActivityName(c));
+      element = MergedManifestManager.getSnapshot(module).findActivity(ActivityLocatorUtils.getQualifiedActivityName(c));
       if (element == null) {
         throw new ActivityLocatorException(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
       }

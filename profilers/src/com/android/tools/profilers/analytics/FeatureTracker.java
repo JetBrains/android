@@ -16,7 +16,7 @@
 package com.android.tools.profilers.analytics;
 
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
 import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata;
@@ -30,11 +30,33 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A service for tracking events that occur in our profilers, in order to understand and evaluate
  * how our users are using them.
- *
+ * <p>
  * The class that implements this should be sure to let users opt out of sending this information,
  * at which point all these methods should become no-ops.
  */
 public interface FeatureTracker {
+
+  /**
+   * Track when the TransportDeviceManager detects an ddmlib device and is about to begin the logic
+   * to launch the transport daemon.
+   */
+  void trackPreTransportDaemonStarts(@NotNull Common.Device transportDevice);
+
+  /**
+   * Track when the transport daemon fails to launch.
+   */
+  void trackTransportDaemonFailed(@NotNull Common.Device transportDevice, Exception exception);
+
+  /**
+   * Track when the transport proxy fails to connect the datastore and the daemon server.
+   */
+  void trackTransportProxyCreationFailed(@NotNull Common.Device transportDevice, Exception exception);
+
+  /**
+   * Track when the profilers failed to initiailize. This happens when the ProfilerService is
+   * unavailable. (e.g. more than one Studio instance access profilers)
+   */
+  void trackProfilerInitializationFailed();
 
   /**
    * Track when we enter a new stage. The stage should always be included as state with all other
@@ -47,6 +69,17 @@ public interface FeatureTracker {
    * This is in contrast to when the user attaches profilers to an app that was already running.
    */
   void trackRunWithProfiling();
+
+  /**
+   * Track when auto profiling is requested. e.g. when the user clicks "Profile", or "Run"/"Debug"
+   * while the profilers window is opened.
+   */
+  void trackAutoProfilingRequested();
+
+  /**
+   * Track when auto profiling has found the matching process.
+   */
+  void trackAutoProfilingSucceeded();
 
   /**
    * Track when we begin profiling a target process.
@@ -71,6 +104,11 @@ public interface FeatureTracker {
    * if the process actually changes.
    */
   void trackChangeProcess(@Nullable Common.Process process);
+
+  /**
+   * Track when user presses the "+" button in the Sessions panel.
+   */
+  void trackSessionDropdownClicked();
 
   /**
    * Track when the user explicitly creates a new session via the Sessions UI.
@@ -146,7 +184,7 @@ public interface FeatureTracker {
   /**
    * Track the user importing a method trace.
    */
-  void trackImportTrace(@NotNull CpuProfiler.CpuProfilerType profilerType, boolean success);
+  void trackImportTrace(@NotNull Cpu.CpuTraceType traceType, boolean success);
 
   /**
    * Track the startup CPU profiling that was started with the given {@param configuration}.
@@ -160,7 +198,7 @@ public interface FeatureTracker {
    * @param flags        Flags as a given API argument (-1 if unavailable).
    * @param intervalUs   Sampling interval as a given API argument (-1 if unavailable).
    */
-  public void trackCpuApiTracing(boolean sampling, boolean pathProvided, int bufferSize, int flags, int intervalUs);
+  void trackCpuApiTracing(boolean sampling, boolean pathProvided, int bufferSize, int flags, int intervalUs);
 
   /**
    * Track the user clicking on one of the threads in the thread list.

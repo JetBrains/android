@@ -21,11 +21,13 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.content.ContentManager;
+import org.apache.http.concurrent.FutureCallback;
 import org.jetbrains.annotations.NotNull;
 
 public final class AssistToolWindowFactory implements ToolWindowFactory {
   private AssistSidePanel myAssistSidePanel;
   private String myActionId;
+  private Content content;
 
   public AssistToolWindowFactory(@NotNull String actionId) {
     myActionId = actionId;
@@ -41,19 +43,33 @@ public final class AssistToolWindowFactory implements ToolWindowFactory {
    */
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow, boolean usePanelTitle) {
     if (myAssistSidePanel == null) {
-      myAssistSidePanel = new AssistSidePanel(myActionId, project);
+      if (usePanelTitle)
+        myAssistSidePanel = new AssistSidePanel(myActionId, project, new PanelTitleCallback());
+      else
+        myAssistSidePanel = new AssistSidePanel(myActionId, project, null);
     }
 
-    String tabTitle = null;
-    if (usePanelTitle)
-      tabTitle = myAssistSidePanel.getTitle();
-
     ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-    Content content = contentFactory.createContent(myAssistSidePanel, tabTitle, false);
+    content = contentFactory.createContent(myAssistSidePanel.getLoadingPanel(), null, false);
     ContentManager contentManager = toolWindow.getContentManager();
     contentManager.removeAllContents(true);
     contentManager.addContent(content);
     contentManager.setSelectedContent(content);
     toolWindow.show(null);
+  }
+
+  class PanelTitleCallback implements FutureCallback<String> {
+
+    @Override
+    public void completed(String result) {
+      if (content != null)
+        content.setDisplayName(result);
+    }
+
+    @Override
+    public void failed(Exception ex) {}
+
+    @Override
+    public void cancelled() {}
   }
 }

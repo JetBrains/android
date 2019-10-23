@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgradeStep;
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -44,12 +45,12 @@ public class AndroidRunConfigurationGradleTest extends AndroidGradleTestCase {
 
     super.setUp();
 
-    ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getConfigurationFactories()[0];
+    ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
     myRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
 
     // We override the default extension point to prevent the "Gradle Update" UI to show during the test
-    ExtensionTestUtil.maskExtensions(PluginVersionUpgradeStep.EXTENSION_POINT_NAME,
-                                     Collections.<PluginVersionUpgradeStep>singletonList(new MyPluginVersionUpgradeStep()),
+    ExtensionTestUtil.maskExtensions(RecommendedPluginVersionUpgradeStep.EXTENSION_POINT_NAME,
+                                     Collections.singletonList(new MyPluginVersionUpgradeStep()),
                                      getTestRootDisposable());
   }
 
@@ -87,11 +88,16 @@ public class AndroidRunConfigurationGradleTest extends AndroidGradleTestCase {
     assertThat(errors.get(0).getMessage()).isEqualTo("This option requires a newer version of the Android Gradle Plugin");
   }
 
-  private static class MyPluginVersionUpgradeStep extends PluginVersionUpgradeStep {
+  private static class MyPluginVersionUpgradeStep extends RecommendedPluginVersionUpgradeStep {
 
     @Override
-    public boolean checkAndPerformUpgrade(@NotNull Project project,
-                                          @NotNull AndroidPluginInfo pluginInfo) {
+    public boolean checkUpgradable(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
+      // Returning {@code false} means "project is all good, no update needed".
+      return false;
+    }
+
+    @Override
+    public boolean performUpgradeAndSync(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
       // Returning {@code false} means "project is all good, no update needed or performed".
       return false;
     }

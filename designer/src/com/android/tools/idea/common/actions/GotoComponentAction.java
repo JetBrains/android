@@ -15,20 +15,21 @@
  */
 package com.android.tools.idea.common.actions;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.DumbAwareAction;
-import com.intellij.psi.PsiElement;
-import com.intellij.util.PsiNavigateUtil;
+import com.intellij.openapi.util.SystemInfo;
+import java.awt.event.MouseEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.awt.event.InputEvent;
 
 /**
@@ -44,38 +45,31 @@ public class GotoComponentAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    if (e.getInputEvent().getModifiers() == (InputEvent.BUTTON1_MASK | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) {
-      // We don't want to navigation on ctrl-click
-      return;
+    InputEvent inputEvent = e.getInputEvent();
+    if (inputEvent instanceof MouseEvent) {
+      if (mySurface.getInteractionManager().interceptPanInteraction((MouseEvent)inputEvent) || AdtUiUtils.isActionKeyDown(inputEvent)) {
+        // We don't want to perform navigation while holding some modifiers on mouse event.
+        return;
+      }
     }
     SelectionModel selectionModel = mySurface.getSelectionModel();
     NlComponent primary = selectionModel.getPrimary();
-    PsiElement psiElement = null;
     NlModel model = mySurface.getModel();
 
-    // Use the selected component or fallback to the root if none is selected
+    NlComponent componentToNavigate = null;
     if (primary != null) {
-      psiElement = primary.getTag();
-    }
-    else if (model != null) {
+      componentToNavigate = primary;
+    } else if (model != null) {
       ImmutableList<NlComponent> components = model.getComponents();
-      psiElement = !components.isEmpty() ? components.get(0).getTag() : null;
+      if (!components.isEmpty()) {
+        componentToNavigate = components.get(0);
+      }
     }
 
     mySurface.deactivate();
-    if (psiElement != null && psiElement.isValid()) {
-      switchTabAndNavigate(psiElement);
-    }
-    else if (model != null) {
+    if (componentToNavigate == null || !NlComponentHelperKt.navigateTo(componentToNavigate)) {
       switchTab(model);
     }
-  }
-
-  /**
-   * Navigate to the given {@link PsiElement}
-   */
-  private static void switchTabAndNavigate(@NotNull PsiElement psiElement) {
-    PsiNavigateUtil.navigate(psiElement);
   }
 
   /**

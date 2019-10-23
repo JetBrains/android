@@ -24,13 +24,11 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
@@ -42,6 +40,8 @@ import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.rendering.Locale;
@@ -52,8 +52,8 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceNotificationManager;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
@@ -63,10 +63,10 @@ import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.application.ApplicationManager;
@@ -96,6 +96,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -138,8 +139,6 @@ public class LayoutlibSceneManager extends SceneManager {
   private final ReentrantReadWriteLock myRenderResultLock = new ReentrantReadWriteLock();
   @GuardedBy("myRenderResultLock")
   private RenderResult myRenderResult;
-  @GuardedBy("myRenderResultLock")
-  private RenderResult myLastSuccessfulRenderResult;
   // Variables to track previous values of the configuration bar for tracking purposes
   private String myPreviousDeviceName;
   private Locale myPreviousLocale;
@@ -157,6 +156,11 @@ public class LayoutlibSceneManager extends SceneManager {
    * pooled threads.
    */
   @NotNull private final Executor myRenderTaskDisposerExecutor;
+  /**
+   * True if we are currently in the middle of a render. This attribute is used to prevent listeners from triggering unnecessary renders.
+   * If we try to schedule a new render while this is true, we simply re-use the last render in progress.
+   */
+  private final AtomicBoolean myIsCurrentlyRendering = new AtomicBoolean(false);
 
   protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable NlModel.ChangeType changeType) {
     if (changeType == null) {
@@ -213,7 +217,7 @@ public class LayoutlibSceneManager extends SceneManager {
       SceneComponent root = hierarchy.isEmpty() ? null : hierarchy.get(0);
       updateFromComponent(root, new HashSet<>());
       scene.setRoot(root);
-      addTargets(root);
+      updateTargets();
       scene.setAnimated(previous);
     }
 
@@ -241,7 +245,7 @@ public class LayoutlibSceneManager extends SceneManager {
     assert scene.getRoot() != null;
 
     TemporarySceneComponent tempComponent = new TemporarySceneComponent(getScene(), component);
-    tempComponent.addTarget(new ConstraintDragDndTarget());
+    tempComponent.setTargetProvider(sceneComponent -> ImmutableList.of(new ConstraintDragDndTarget()));
     scene.setAnimated(false);
     scene.getRoot().addChild(tempComponent);
     updateFromComponent(tempComponent);
@@ -263,6 +267,7 @@ public class LayoutlibSceneManager extends SceneManager {
       getDesignSurface().getSelectionModel().removeListener(mySelectionChangeListener);
       model.getConfiguration().removeListener(myConfigurationChangeListener);
       model.removeListener(myModelChangeListener);
+      model.removeListener(myModelChangeListener);
     }
     myRenderListeners.clear();
 
@@ -282,11 +287,7 @@ public class LayoutlibSceneManager extends SceneManager {
         if (myRenderResult != null) {
           myRenderResult.dispose();
         }
-        if (myLastSuccessfulRenderResult != null) {
-          myLastSuccessfulRenderResult.dispose();
-        }
         myRenderResult = null;
-        myLastSuccessfulRenderResult = null;
       }
       finally {
         myRenderResultLock.writeLock().unlock();
@@ -315,9 +316,9 @@ public class LayoutlibSceneManager extends SceneManager {
   protected SceneView doCreateSceneView() {
     NlModel model = getModel();
 
-    NlLayoutType type = model.getType();
+    DesignerEditorFileType type = model.getType();
 
-    if (type.equals(NlLayoutType.MENU)) {
+    if (type == MenuFileType.INSTANCE) {
       return createSceneViewsForMenu();
     }
 
@@ -325,9 +326,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     SceneView primarySceneView = mode.createPrimarySceneView(getDesignSurface(), this);
 
-    if (!type.equals(NlLayoutType.PREFERENCE_SCREEN)) {
-      mySecondarySceneView = mode.createSecondarySceneView(getDesignSurface(), this);
-    }
+    mySecondarySceneView = mode.createSecondarySceneView(getDesignSurface(), this);
 
     getDesignSurface().updateErrorDisplay();
     getDesignSurface().getLayeredPane().setPreferredSize(primarySceneView.getPreferredSize());
@@ -378,48 +377,34 @@ public class LayoutlibSceneManager extends SceneManager {
       long time = System.currentTimeMillis();
       sceneComponent.setPositionTarget(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getX(component)),
                                        Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getY(component)),
-                                       time, true);
+                                       time);
       sceneComponent.setSizeTarget(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getW(component)),
                                    Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getH(component)),
-                                   time, true);
+                                   time);
     }
     else {
       sceneComponent.setPosition(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getX(component)),
-                                 Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getY(component)), true);
+                                 Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getY(component)));
       sceneComponent.setSize(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getW(component)),
-                             Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getH(component)), true);
+                             Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getH(component)));
     }
   }
 
-  @Override
-  public void update() {
-    super.update();
-    SelectionModel selectionModel = getDesignSurface().getSelectionModel();
-    if (getScene().getRoot() != null && selectionModel.isEmpty()) {
-      addTargets(getScene().getRoot());
+  public void updateTargets() {
+    SceneComponent root = getScene().getRoot();
+    if (root != null) {
+      updateTargetProviders(root);
+      root.updateTargets();
     }
   }
 
-  /**
-   * Add targets to the given component (by asking the associated
-   * {@linkplain ViewGroupHandler} to do it)
-   */
-  public void addTargets(@NotNull SceneComponent component) {
-    ViewHandler componentHandler = NlComponentHelperKt.getViewHandler(component.getNlComponent());
-    if (componentHandler != null) {
-      component.setTargetProvider(componentHandler);
-    }
 
-    SceneComponent parent = component.getParent();
-    if (parent == null) {
-      parent = getScene().getRoot();
-    }
-    if (parent == null) {
-      return;
-    }
-    ViewHandler parentHandler = NlComponentHelperKt.getViewHandler(parent.getNlComponent());
-    if (parentHandler instanceof ViewGroupHandler) {
-      parent.setTargetProvider(parentHandler);
+  private static void updateTargetProviders(@NotNull SceneComponent component) {
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(component.getNlComponent());
+    component.setTargetProvider(handler);
+
+    for (SceneComponent child : component.getChildren()) {
+      updateTargetProviders(child);
     }
   }
 
@@ -432,9 +417,11 @@ public class LayoutlibSceneManager extends SceneManager {
         layout(true);
       }
       else {
-        render(getTriggerFromChangeType(model.getLastChangeType()));
-        mySelectionChangeListener
-          .selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection());
+        requestRender(getTriggerFromChangeType(model.getLastChangeType()))
+          .thenRunAsync(() ->
+            // Selection change listener should run in UI thread not in the layoublib rendering thread. This avoids race condition.
+            mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection())
+          , EdtExecutor.INSTANCE);
       }
     }
 
@@ -501,33 +488,8 @@ public class LayoutlibSceneManager extends SceneManager {
   private class SelectionChangeListener implements SelectionListener {
     @Override
     public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-      SceneComponent root = getScene().getRoot();
-      if (root != null) {
-        clearChildTargets(root);
-        // After a new selection, we need to figure out the context
-        if (!selection.isEmpty()) {
-          NlComponent primary = selection.get(0);
-          SceneComponent component = getScene().getSceneComponent(primary);
-          if (component != null) { // TODO only add "static" target here (the ones that are not part of any an interaction
-            addTargets(component); // or dependent on a specific state
-          }
-          else {
-            addTargets(root);
-          }
-        }
-        else {
-          addTargets(root);
-        }
-      }
+      updateTargets();
       getScene().needsRebuildList();
-    }
-
-    void clearChildTargets(SceneComponent component) {
-      component.setTargetProvider(null);
-      for (SceneComponent child : component.getChildren()) {
-        child.setTargetProvider(null);
-        clearChildTargets(child);
-      }
     }
   }
 
@@ -537,6 +499,11 @@ public class LayoutlibSceneManager extends SceneManager {
     synchronized (myRenderFutures) {
       myRenderFutures.add(callback);
     }
+
+    if (myIsCurrentlyRendering.get()) {
+      return callback;
+    }
+
     // This update is low priority so the model updates take precedence
     getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
       @Override
@@ -596,7 +563,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
   void doRequestLayoutAndRender(boolean animate) {
     requestRender(getTriggerFromChangeType(getModel().getLastChangeType()))
-      .whenComplete((result, ex) -> getModel().notifyListenersModelLayoutComplete(animate));
+      .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(animate), PooledThreadExecutor.INSTANCE);
   }
 
   /**
@@ -622,15 +589,12 @@ public class LayoutlibSceneManager extends SceneManager {
         }
         DumbService.getInstance(project).runWhenSmart(() -> {
           if (model.getVirtualFile().isValid() && !model.getFacet().isDisposed()) {
-            try {
-              updateModel();
-            }
-            catch (Throwable e) {
-              Logger.getInstance(NlModel.class).error(e);
-            }
+            updateModel()
+              .whenComplete((result, ex) -> stopProgressIndicator());
           }
-
-          stopProgressIndicator();
+          else {
+            stopProgressIndicator();
+          }
         });
       }
 
@@ -686,11 +650,11 @@ public class LayoutlibSceneManager extends SceneManager {
 
       if (result != null) {
         updateHierarchy(result);
-        getModel().notifyListenersModelLayoutComplete(animate);
+        notifyListenersModelLayoutComplete(animate);
       }
     }
     catch (InterruptedException | ExecutionException e) {
-      Logger.getInstance(NlModel.class).warn("Unable to run layout()", e);
+      Logger.getInstance(LayoutlibSceneManager.class).warn("Unable to run layout()", e);
     }
   }
 
@@ -756,7 +720,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
   @NotNull
   private List<ViewInfo> getRootViews(@NotNull RenderResult result) {
-    return getModel().getType() == NlLayoutType.MENU ? result.getSystemRootViews() : result.getRootViews();
+    return getModel().getType() == MenuFileType.INSTANCE ? result.getSystemRootViews() : result.getRootViews();
   }
 
   @VisibleForTesting
@@ -794,12 +758,12 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param force forces the model to be re-inflated even if a previous version was already inflated
    * @returns whether the model was inflated in this call or not
    */
-  private boolean inflate(boolean force) {
+  private CompletableFuture<Boolean> inflate(boolean force) {
     Configuration configuration = getModel().getConfiguration();
 
     Project project = getModel().getProject();
     if (project.isDisposed()) {
-      return false;
+      return CompletableFuture.completedFuture(false);
     }
     ResourceNotificationManager resourceNotificationManager = ResourceNotificationManager.getInstance(project);
 
@@ -808,72 +772,78 @@ public class LayoutlibSceneManager extends SceneManager {
     // disk contents, so we have to push any edits to disk before rendering)
     LayoutPullParsers.saveFileIfNecessary(getModel().getFile());
 
-    RenderResult result = null;
-    RenderTask resultTask;
     synchronized (myRenderingTaskLock) {
       if (myRenderTask != null && !force) {
         // No need to inflate
-        return false;
+        return CompletableFuture.completedFuture(false);
       }
+    }
 
-      // Record the current version we're rendering from; we'll use that in #activate to make sure we're picking up any
-      // external changes
-      AndroidFacet facet = getModel().getFacet();
-      myRenderedVersion = resourceNotificationManager.getCurrentVersion(facet, getModel().getFile(), configuration);
+    // Record the current version we're rendering from; we'll use that in #activate to make sure we're picking up any
+    // external changes
+    AndroidFacet facet = getModel().getFacet();
+    myRenderedVersion = resourceNotificationManager.getCurrentVersion(facet, getModel().getFile(), configuration);
 
-      RenderService renderService = RenderService.getInstance(getModel().getProject());
-      if (myRenderTask != null && !myRenderTask.isDisposed()) {
-        myRenderTask.dispose();
-      }
+    RenderService renderService = RenderService.getInstance(getModel().getProject());
+    RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
+      .withPsiFile(getModel().getFile());
+    return setupRenderTaskBuilder(renderTaskBuilder).build()
+      .thenCompose(newTask -> {
+        if (newTask != null) {
+          newTask.getLayoutlibCallback()
+            .setAdaptiveIconMaskPath(getDesignSurface().getAdaptiveIconShape().getPathDescription());
+          return newTask.inflate().whenComplete((result, exception) -> {
+            if (exception != null) {
+              Logger.getInstance(LayoutlibSceneManager.class).warn(exception);
+            }
 
-      RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
-                                                                       .withPsiFile(getModel().getFile());
-      myRenderTask = setupRenderTaskBuilder(renderTaskBuilder).build();
-      if (myRenderTask != null) {
-        myRenderTask.getLayoutlibCallback()
-          .setAdaptiveIconMaskPath(getDesignSurface().getAdaptiveIconShape().getPathDescription());
-        result = myRenderTask.inflate();
-        if (result == null || !result.getRenderResult().isSuccess()) {
-          myRenderTask.dispose();
-          myRenderTask = null;
+            if (result == null || !result.getRenderResult().isSuccess()) {
+              newTask.dispose();
+            }
+            else {
+              // Update myRenderTask with the new task
+              synchronized (myRenderingTaskLock) {
+                if (myRenderTask != null && !myRenderTask.isDisposed()) {
+                  myRenderTask.dispose();
+                }
+                myRenderTask = newTask;
+              }
+            }
+          })
+            .thenApply(result -> result != null ? result : RenderResult.createBlank(getModel().getFile()))
+            .thenApply(result -> {
+              if (project.isDisposed()) {
+                return false;
+              }
 
-          if (result == null) {
-            result = RenderResult.createBlank(getModel().getFile());
+              updateHierarchy(result);
+              myRenderResultLock.writeLock().lock();
+              try {
+                updateCachedRenderResult(result);
+              }
+              finally {
+                myRenderResultLock.writeLock().unlock();
+              }
+
+              return true;
+            });
+        }
+        else {
+          synchronized (myRenderingTaskLock) {
+            if (myRenderTask != null && !myRenderTask.isDisposed()) {
+              myRenderTask.dispose();
+            }
           }
         }
-      }
 
-      resultTask = myRenderTask;
-    }
-
-    updateHierarchy(result);
-    myRenderResultLock.writeLock().lock();
-    try {
-      updateCachedRenderResult(result);
-    }
-    finally {
-      myRenderResultLock.writeLock().unlock();
-    }
-
-    return resultTask != null;
+        return CompletableFuture.completedFuture(false);
+      });
   }
 
   @GuardedBy("myRenderResultLock")
   private void updateCachedRenderResult(RenderResult result) {
-    if (result != null && result.getRenderResult().isSuccess()) {
-      if (myLastSuccessfulRenderResult != null) {
-        myLastSuccessfulRenderResult.dispose();
-      }
-      myLastSuccessfulRenderResult = null;
-      if (myRenderResult != null) {
-        myRenderResult.dispose();
-      }
-    }
-    else if (myRenderResult != null && myRenderResult.getRenderResult().isSuccess()) {
-      if (myLastSuccessfulRenderResult != null) {
-        myLastSuccessfulRenderResult.dispose();
-      }
-      myLastSuccessfulRenderResult = myRenderResult;
+    if (myRenderResult != null && myRenderResult != result) {
+      myRenderResult.dispose();
     }
     myRenderResult = result;
   }
@@ -898,112 +868,154 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
-   * Synchronously update the model. This will inflate the layout and notify the listeners using
+   * Asynchronously update the model. This will inflate the layout and notify the listeners using
    * {@link ModelListener#modelDerivedDataChanged(NlModel)}.
    */
-  protected void updateModel() {
-    inflate(true);
+  protected CompletableFuture<Void> updateModel() {
+    return inflate(true)
+      .whenCompleteAsync((result, exception) -> notifyListenersModelUpdateComplete(), PooledThreadExecutor.INSTANCE)
+      .thenApply(result -> null);
+  }
+
+  protected void notifyListenersModelLayoutComplete(boolean animate) {
+    getModel().notifyListenersModelLayoutComplete(animate);
+  }
+
+  protected void notifyListenersModelUpdateComplete() {
     getModel().notifyListenersModelUpdateComplete();
   }
 
-  /**
-   * Renders the current model synchronously. Once the render is complete, the render callbacks will be called.
-   * <p/>
-   * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
-   * <p/>
-   * <b>Do not call this method from the dispatch thread!</b>
-   */
-  protected void render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
-    try {
-      renderImpl(trigger);
-    }
-    catch (Throwable e) {
-      if (!getModel().getFacet().isDisposed()) {
-        throw e;
-      }
-    } finally {
-      ImmutableList<CompletableFuture<Void>> callbacks;
-      synchronized (myRenderFutures) {
-        callbacks = ImmutableList.copyOf(myRenderFutures);
-        myRenderFutures.clear();
-      }
-      callbacks.forEach(callback -> callback.complete(null));
-    }
-  }
-
-  private void renderImpl(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+  private void logConfigurationChange(@NotNull DesignSurface surface) {
     Configuration configuration = getModel().getConfiguration();
-    DesignSurface surface = getDesignSurface();
+
     if (getModel().getConfigurationModificationCount() != configuration.getModificationCount()) {
       // usage tracking (we only pay attention to individual changes where only one item is affected since those are likely to be triggered
       // by the user
       if (!StringUtil.equals(configuration.getTheme(), myPreviousTheme)) {
         myPreviousTheme = configuration.getTheme();
-        NlUsageTrackerManager.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.THEME_CHANGE);
+        NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.THEME_CHANGE);
       }
       else if (configuration.getTarget() != null && !StringUtil.equals(configuration.getTarget().getVersionName(), myPreviousVersion)) {
         myPreviousVersion = configuration.getTarget().getVersionName();
-        NlUsageTrackerManager.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.API_LEVEL_CHANGE);
+        NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.API_LEVEL_CHANGE);
       }
       else if (!configuration.getLocale().equals(myPreviousLocale)) {
         myPreviousLocale = configuration.getLocale();
-        NlUsageTrackerManager.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.LANGUAGE_CHANGE);
+        NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.LANGUAGE_CHANGE);
       }
       else if (configuration.getDevice() != null && !StringUtil.equals(configuration.getDevice().getDisplayName(), myPreviousDeviceName)) {
         myPreviousDeviceName = configuration.getDevice().getDisplayName();
-        NlUsageTrackerManager.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEVICE_CHANGE);
+        NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEVICE_CHANGE);
       }
     }
+  }
 
-    getModel().resetLastChange();
-    long renderStartTimeMs = System.currentTimeMillis();
-    boolean inflated = inflate(false);
-    long elapsedFrameTimeMs = myElapsedFrameTimeMs;
-
-    Future<RenderResult> futureResult;
-    synchronized (myRenderingTaskLock) {
-      if (myRenderTask == null) {
-        getDesignSurface().updateErrorDisplay();
-        return;
-      }
-      if (elapsedFrameTimeMs != -1) {
-        myRenderTask.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(elapsedFrameTimeMs));
-      }
-      futureResult = myRenderTask.render();
-    }
-
-    RenderResult result = Futures.getUnchecked(futureResult);
-    // When the layout was inflated in this same call, we do not have to update the hierarchy again
-    if (result != null && !inflated) {
-      updateHierarchy(result);
-    }
-    myRenderResultLock.writeLock().lock();
+  /**
+   * Renders the current model asynchronously. Once the render is complete, the render callbacks will be called.
+   * <p/>
+   * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
+   */
+  @NotNull
+  protected CompletableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+    myIsCurrentlyRendering.set(true);
     try {
-      updateCachedRenderResult(result);
-      // Downgrade the write lock to read lock
-      myRenderResultLock.readLock().lock();
-    }
-    finally {
-      myRenderResultLock.writeLock().unlock();
-    }
-    try {
-      long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
-      NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
-                                                                  myRenderResult.getRenderedImage().getWidth() * myRenderResult.getRenderedImage().getHeight() * 4);
-      NlUsageTrackerManager.getInstance(surface).logRenderResult(trigger,
-                                                                 myRenderResult,
-                                                                 renderTimeMs);
-    }
-    finally {
-      myRenderResultLock.readLock().unlock();
-    }
+      DesignSurface surface = getDesignSurface();
+      logConfigurationChange(surface);
+      getModel().resetLastChange();
 
-    UIUtil.invokeLaterIfNeeded(() -> {
-      if (!Disposer.isDisposed(this)) {
-        update();
+      long renderStartTimeMs = System.currentTimeMillis();
+      return renderImpl()
+        .thenApply(result -> {
+          if (result == null) {
+            completeRender();
+            return null;
+          }
+
+          myRenderResultLock.writeLock().lock();
+          try {
+            updateCachedRenderResult(result);
+            // Downgrade the write lock to read lock
+            myRenderResultLock.readLock().lock();
+          }
+          finally {
+            myRenderResultLock.writeLock().unlock();
+          }
+          try {
+            long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
+            NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
+                                                                        myRenderResult.getRenderedImage().getWidth() * myRenderResult.getRenderedImage().getHeight() * 4);
+            NlUsageTracker.getInstance(surface).logRenderResult(trigger,
+                                                                myRenderResult,
+                                                                renderTimeMs);
+          }
+          finally {
+            myRenderResultLock.readLock().unlock();
+          }
+
+          UIUtil.invokeLaterIfNeeded(() -> {
+            if (!Disposer.isDisposed(this)) {
+              update();
+            }
+          });
+          fireRenderListeners();
+          completeRender();
+
+          return result;
+        });
+    }
+    catch (Throwable e) {
+      if (!getModel().getFacet().isDisposed()) {
+        completeRender();
+        throw e;
       }
-    });
-    fireRenderListeners();
+    }
+    completeRender();
+    return CompletableFuture.completedFuture(null);
+  }
+
+  /**
+   * Completes all the futures created by {@link #requestRender()} and signals the current render as finished by
+   * setting {@link #myIsCurrentlyRendering} to false.
+   */
+  private void completeRender() {
+    ImmutableList<CompletableFuture<Void>> callbacks;
+    synchronized (myRenderFutures) {
+      callbacks = ImmutableList.copyOf(myRenderFutures);
+      myRenderFutures.clear();
+    }
+    callbacks.forEach(callback -> callback.complete(null));
+    myIsCurrentlyRendering.set(false);
+  }
+
+  @NotNull
+  private CompletableFuture<RenderResult> renderImpl() {
+    return inflate(false)
+      .whenCompleteAsync((result, ex) -> {
+        if (result) {
+          notifyListenersModelUpdateComplete();
+        }
+      }, PooledThreadExecutor.INSTANCE)
+      .thenCompose(inflated -> {
+        long elapsedFrameTimeMs = myElapsedFrameTimeMs;
+
+        synchronized (myRenderingTaskLock) {
+          if (myRenderTask == null) {
+            getDesignSurface().updateErrorDisplay();
+            return CompletableFuture.completedFuture(null);
+          }
+          if (elapsedFrameTimeMs != -1) {
+            myRenderTask.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(elapsedFrameTimeMs));
+          }
+          return myRenderTask.render().thenApply(result -> {
+            // When the layout was inflated in this same call, we do not have to update the hierarchy again
+            if (result != null && !inflated) {
+              updateHierarchy(result);
+            }
+
+            return result;
+          });
+        }
+      });
   }
 
   public void setElapsedFrameTimeMs(long ms) {
@@ -1056,7 +1068,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     private final ViewInfo myViewInfo;
 
-    ViewInfoTagSnapshotNode(ViewInfo info) {
+    public ViewInfoTagSnapshotNode(ViewInfo info) {
       myViewInfo = info;
     }
 
@@ -1085,7 +1097,7 @@ public class LayoutlibSceneManager extends SceneManager {
     Map<TagSnapshot, NlComponent> snapshotToComponent =
       model.flattenComponents().collect(Collectors.toMap(NlComponent::getSnapshot, Function.identity(), (n1, n2) -> n1));
     Map<XmlTag, NlComponent> tagToComponent =
-      model.flattenComponents().collect(Collectors.toMap(NlComponent::getTag, Function.identity()));
+      model.flattenComponents().collect(Collectors.toMap(NlComponent::getTagDeprecated, Function.identity()));
 
     // Update the bounds. This is based on the ViewInfo instances.
     for (ViewInfo view : rootViews) {

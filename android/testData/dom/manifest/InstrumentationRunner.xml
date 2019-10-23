@@ -3,5 +3,5 @@
           xmlns:android="http://schemas.android.com/apk/res/android">
   <application>
   </application>
-  <instrumentation android:name="android.test.InstrumentationTestRunner" android:targetPackage="<error>p1.p2</error>"/>
+  <instrumentation android:name="android.app.Instrumentation" android:targetPackage="<error>p1.p2</error>"/>
 </manifest>

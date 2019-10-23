@@ -32,11 +32,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,33 +82,85 @@ class SyncResultHandler {
                       @Nullable GradleSyncListener syncListener) {
     SyncProjectModels models = callback.getSyncModels();
     ExternalSystemTaskId taskId = callback.getTaskId();
+
+    setUpProject(setupRequest, indicator, ProjectSetup::setUpProject, models, syncListener, taskId);
+    // Error is logged inside setUpProject
+    if (models == null) {
+      return;
+    }
+
+    Runnable runnable = () -> {
+      boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
+      boolean isImportedProject = myProjectInfo.isImportedProject();
+      if (isImportedProject && (!isTest || !GradleProjectImporter.ourSkipSetupFromTest)) {
+        open(myProject);
+      }
+      if (!isTest) {
+        CommandProcessor.getInstance().runUndoTransparentAction(() -> myProject.save());
+      }
+      if (isImportedProject) {
+        // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
+        // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
+        // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
+        // listeners to be registered.
+        AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(myProject);
+        projectComponent.configureGradleProject();
+      }
+    };
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      runnable.run();
+    }
+    else {
+      invokeLater(myProject, runnable);
+    }
+  }
+
+  /**
+   * Represents a function that sets up a given type of model.
+   *
+   * @param <T> the type of model this instance can handle
+   */
+  @FunctionalInterface
+  private interface SetupConsumer<T> {
+    void setup(ProjectSetup setup, T models, ProgressIndicator indicator);
+  }
+
+  /**
+   * Runs project setup for the given module type.
+   *
+   * @param models       the models
+   * @param setupRequest the setup request used to perform setup
+   * @param indicator    the progress indicator of this sync
+   * @param setupFunc    the setup function used to setup the models, this should be a call into
+   *                     {@link ProjectSetup} with the correct model type
+   * @param syncListener the listener that should handle sync events, if required
+   * @param taskId       external system ID if present
+   * @param <T>          the type of models that should be setup
+   */
+  private <T> void setUpProject(@NotNull PostSyncProjectSetup.Request setupRequest,
+                                @NotNull ProgressIndicator indicator,
+                                @NotNull SetupConsumer<T> setupFunc,
+                                @Nullable T models,
+                                @Nullable GradleSyncListener syncListener,
+                                @Nullable ExternalSystemTaskId taskId) {
     if (models != null) {
       try {
-        setUpProject(models, setupRequest, indicator, syncListener, taskId);
-        Runnable runnable = () -> {
-          boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
-          boolean isImportedProject = myProjectInfo.isImportedProject();
-          if (isImportedProject && (!isTest || !GradleProjectImporter.ourSkipSetupFromTest)) {
-            open(myProject);
-          }
-          if (!isTest) {
-            CommandProcessor.getInstance().runUndoTransparentAction(() -> myProject.save());
-          }
-          if (isImportedProject) {
-            // We need to do this because AndroidGradleProjectComponent#projectOpened is being called when the project is created, instead
-            // of when the project is opened. When 'projectOpened' is called, the project is not fully configured, and it does not look
-            // like it is Gradle-based, resulting in listeners (e.g. modules added events) not being registered. Here we force the
-            // listeners to be registered.
-            AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(myProject);
-            projectComponent.configureGradleProject();
-          }
-        };
-        if (ApplicationManager.getApplication().isUnitTestMode()) {
-          runnable.run();
+        if (syncListener != null) {
+          syncListener.setupStarted(myProject);
         }
-        else {
-          invokeLater(myProject, runnable);
+        mySyncState.setupStarted();
+
+        ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
+        setupFunc.setup(projectSetup, models, indicator);
+        projectSetup.commit();
+        SyncIssuesReporter.getInstance().report(myProject);
+        scheduleExternalViewStructureUpdate(myProject, SYSTEM_ID);
+
+        if (syncListener != null) {
+          syncListener.syncSucceeded(myProject);
         }
+
+        runWhenProjectInitializedOnPooledThreadIfNotUnderTest(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
       }
       catch (Throwable e) {
         notifyAndLogSyncError(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
@@ -119,35 +169,6 @@ class SyncResultHandler {
     else {
       // SyncAction.ProjectModels should not be null. Something went wrong.
       notifyAndLogSyncError("Gradle did not return any project models", null /* no exception */, syncListener);
-    }
-  }
-
-  private void setUpProject(@NotNull SyncProjectModels models,
-                            @NotNull PostSyncProjectSetup.Request setupRequest,
-                            @NotNull ProgressIndicator indicator,
-                            @Nullable GradleSyncListener syncListener,
-                            @Nullable ExternalSystemTaskId taskId) {
-    try {
-      if (syncListener != null) {
-        syncListener.setupStarted(myProject);
-      }
-      mySyncState.setupStarted();
-
-      ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
-      projectSetup.setUpProject(models, indicator);
-      projectSetup.commit();
-      SyncIssuesReporter.getInstance().report(ModuleManager.getInstance(myProject).getModules());
-      scheduleExternalViewStructureUpdate(myProject, SYSTEM_ID);
-
-      if (syncListener != null) {
-        syncListener.syncSucceeded(myProject);
-      }
-
-      StartupManager.getInstance(myProject)
-                    .runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
-    }
-    catch (Throwable e) {
-      notifyAndLogSyncError(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
     }
   }
 
@@ -163,14 +184,13 @@ class SyncResultHandler {
     ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
     projectSetup.setUpProject(projectModelsCache, indicator);
     projectSetup.commit();
-    SyncIssuesReporter.getInstance().report(ModuleManager.getInstance(myProject).getModules());
+    SyncIssuesReporter.getInstance().report(myProject);
 
     if (syncListener != null) {
       syncListener.syncSkipped(myProject);
     }
 
-    StartupManager.getInstance(myProject)
-                  .runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
+    runWhenProjectInitializedOnPooledThreadIfNotUnderTest(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
   }
 
   void onSyncFailed(@NotNull SyncExecutionCallback callback, @Nullable GradleSyncListener syncListener) {
@@ -178,6 +198,10 @@ class SyncResultHandler {
     String errorMessage = error != null ? getRootCauseMessage(error) : callback.getError();
     errorMessage = nullToUnknownErrorCause(errorMessage);
     notifyAndLogSyncError(errorMessage, error, syncListener);
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      // Fails to obtain a model from Gradle, signal myLatch so onCompoundSyncFinished can be unblocked.
+      myCompoundSyncTestManager.myLatch.countDown();
+    }
   }
 
   private void notifyAndLogSyncError(@NotNull String errorMessage, @Nullable Throwable error, @Nullable GradleSyncListener syncListener) {
@@ -185,8 +209,6 @@ class SyncResultHandler {
       // This is extremely handy when debugging sync errors in tests. Do not remove.
       //noinspection UseOfSystemOutOrSystemErr
       System.out.println("***** sync error: " + error.getMessage());
-      //noinspection CallToPrintStackTrace
-      error.printStackTrace();
     }
 
     if (syncListener != null) {
@@ -228,29 +250,7 @@ class SyncResultHandler {
                                  @Nullable GradleSyncListener syncListener) {
     VariantOnlyProjectModels models = callback.getVariantOnlyModels();
     ExternalSystemTaskId taskId = callback.getTaskId();
-    if (models != null) {
-      try {
-        mySyncState.setupStarted();
-
-        ProjectSetup projectSetup = myProjectSetupFactory.create(myProject);
-        projectSetup.setUpProject(models, indicator);
-        projectSetup.commit();
-        SyncIssuesReporter.getInstance().report(ModuleManager.getInstance(myProject).getModules());
-
-        if (syncListener != null) {
-          syncListener.syncSucceeded(myProject);
-        }
-        StartupManager.getInstance(myProject)
-                      .runWhenProjectIsInitialized(() -> myPostSyncProjectSetup.setUpProject(setupRequest, indicator, taskId));
-      }
-      catch (Throwable e) {
-        notifyAndLogSyncError(nullToUnknownErrorCause(getRootCauseMessage(e)), e, syncListener);
-      }
-    }
-    else {
-      // SyncAction.ProjectModels should not be null. Something went wrong.
-      notifyAndLogSyncError("Gradle did not return any project models", null /* no exception */, syncListener);
-    }
+    setUpProject(setupRequest, indicator, ProjectSetup::setUpProject, models, syncListener, taskId);
   }
 
   void onCompoundSyncModels(@NotNull SyncExecutionCallback callback,
@@ -288,11 +288,14 @@ class SyncResultHandler {
         myCompoundSyncTestManager.reset();
         throw new RuntimeException(e);
       }
-      myCompoundSyncTestManager.myModelsCallback.get().run();
+      Runnable setupCallback = myCompoundSyncTestManager.myModelsCallback.get();
+      // SetupCallback can be null if Gradle failed to return a model.
+      if (setupCallback != null) {
+        setupCallback.run();
+      }
       myCompoundSyncTestManager.reset();
     }
 
-    LocalFileSystem.getInstance().refresh(true);
     if (syncListener != null) {
       syncListener.sourceGenerationFinished(myProject);
     }
@@ -312,12 +315,28 @@ class SyncResultHandler {
     return true;
   }
 
+  private void runWhenProjectInitializedOnPooledThreadIfNotUnderTest(@NotNull Runnable runnable) {
+    StartupManager.getInstance(myProject)
+      .runWhenProjectIsInitialized(() -> {
+        // For unit tests we run the runnable on the dispatch thread, during PostSyncProjectSetup we dispatch a number of other
+        // threads to perform tasks. If this thread is not run on the EDT then we will end up checking assertions before the thread this
+        // runs on returns which leads to a bunch of unit test failures.
+        // TODO: Refine the threading of sync and ensure that tests have a way to wait for everything.
+        if (ApplicationManager.getApplication().isDispatchThread() && !ApplicationManager.getApplication().isUnitTestMode()) {
+          ApplicationManager.getApplication().executeOnPooledThread(runnable);
+        }
+        else {
+          runnable.run();
+        }
+      });
+  }
+
   /**
    * When unit testing, there might be some concurrency problems:
    * - Test code starts in EDT -> registers a callback to be invoked by Gradle -> invokes Gradle in EDT (or thread forked from EDT)
    * - Gradle (before finishing execution and thus returning to EDT) calls the callback via proxy, in a different thread -> invokes callback
    * containing project setup code (which contains code that must be run in EDT, which is busy waiting for Gradle invocation completion)
-   *
+   * <p>
    * To solve this, instead of really calling the setup code in the callback when in unit test mode, we register a runnable to be run after
    * Gradle returns, in the EDT.
    */

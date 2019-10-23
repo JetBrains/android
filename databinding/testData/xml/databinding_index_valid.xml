@@ -1,0 +1,7 @@
+<layout>
+  <data>
+    <import type="C"/>
+    <variable type="A" name="ex1"/>
+    <variable type="B" name ="ex2"/>
+  </data>
+</layout>

@@ -15,10 +15,10 @@
  */
 package com.android.tools.adtui.common
 
+import com.intellij.util.IconUtil
 import java.awt.Color
-import java.awt.image.BufferedImage
+import java.awt.image.RGBImageFilter
 import javax.swing.Icon
-import javax.swing.ImageIcon
 
 /**
  * Generator of icons where all colors are replaced with the given color.
@@ -31,21 +31,8 @@ object ColoredIconGenerator {
   }
 
   fun generateColoredIcon(icon: Icon, color: Int): Icon {
-    //noinspection UndesirableClassUsage
-    val image = generateColoredImage(icon, color)
-    return ImageIcon(image)
-  }
-
-  private fun generateColoredImage(icon: Icon, color: Int): BufferedImage {
-    val image = BufferedImage(icon.iconWidth, icon.iconHeight, BufferedImage.TYPE_INT_ARGB)
-    val g2 = image.graphics
-    icon.paintIcon(null, g2, 0, 0)
-    g2.dispose()
-    for (i in 0 until image.width) {
-      for (j in 0 until image.height) {
-        image.setRGB(i, j, (image.getRGB(i, j) or 0xffffff) and color)
-      }
-    }
-    return image
+    return IconUtil.filterIcon(icon, { object: RGBImageFilter() {
+      override fun filterRGB(x: Int, y: Int, rgb: Int) = (rgb or 0xffffff) and color
+    } }, null) ?: icon
   }
 }

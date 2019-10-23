@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.statelist;
 
-import com.android.tools.idea.common.actions.SetZoomAction;
-import com.android.tools.idea.common.actions.ZoomLabelAction;
+import com.android.tools.adtui.actions.SetZoomAction;
+import com.android.tools.adtui.actions.ZoomInAction;
+import com.android.tools.adtui.actions.ZoomLabelAction;
+import com.android.tools.adtui.actions.ZoomOutAction;
+import com.android.tools.adtui.actions.ZoomToFitAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.ZoomType;
+import com.android.tools.adtui.actions.ZoomType;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
@@ -45,10 +48,10 @@ public final class StateListActionGroups extends ToolbarActionGroups {
   protected ActionGroup getNorthEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    group.add(new SetZoomAction(mySurface, ZoomType.OUT));
-    group.add(new ZoomLabelAction(mySurface));
-    group.add(new SetZoomAction(mySurface, ZoomType.IN));
-    group.add(new SetZoomAction(mySurface, ZoomType.FIT));
+    group.add(ZoomOutAction.INSTANCE);
+    group.add(ZoomLabelAction.INSTANCE);
+    group.add(ZoomInAction.INSTANCE);
+    group.add(ZoomToFitAction.INSTANCE);
 
     return group;
   }

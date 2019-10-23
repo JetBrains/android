@@ -15,22 +15,27 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
+import static java.util.Objects.requireNonNull;
+
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.level2.GlobalLibraryMap;
 import com.android.java.model.GradlePluginModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.Serializable;
-import java.util.*;
-
-import static java.util.Objects.requireNonNull;
 
 public class SyncProjectModels implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
@@ -75,10 +80,16 @@ public class SyncProjectModels implements Serializable {
     // add the included builds.
     gradleBuilds.addAll(rootBuild.getIncludedBuilds());
 
-    // fail early if Kotlin plugin is applied to any of the sub-projects.
+    // Fail early if Kotlin plugin is applied to any of the sub-projects, and they don't contain a KotlinProject model.
+    // This implies that the Gradle project applies a version of the Kotlin plugin that doesn't support the new Sync models.
     for (GradleBuild gradleBuild : gradleBuilds) {
       GradleProject gradleProject = controller.findModel(gradleBuild.getRootProject(), GradleProject.class);
-      failIfKotlinPluginApplied(controller, gradleProject);
+
+      failIfKotlinPluginAppliedAndKotlinModelIsMissing(controller, gradleProject);
+      // fail if any project contains buildSrc module.
+      if (gradleProject != null && hasBuildSrcModule(gradleProject.getProjectDirectory().getPath())) {
+        throw new NewGradleSyncNotSupportedException("containing buildSrc module");
+      }
     }
 
     for (GradleBuild gradleBuild : gradleBuilds) {
@@ -95,18 +106,39 @@ public class SyncProjectModels implements Serializable {
     populateGlobalLibraryMap(controller);
   }
 
-  private static void failIfKotlinPluginApplied(@NotNull BuildController controller, @Nullable GradleProject gradleProject) {
-    if (gradleProject != null) {
-      GradlePluginModel pluginModel = controller.findModel(gradleProject, GradlePluginModel.class);
-      if (pluginModel != null && pluginModel.getGraldePluginList()
-                                            .stream()
-                                            .anyMatch(p -> p.startsWith("org.jetbrains.kotlin"))) {
+  /**
+   * Returns {@code true} if the given path has subfolder named "buildSrc", and buildSrc folder contains
+   * build.gradle or build.gradle.kts file.
+   *
+   * @param projectPath directory of root project
+   */
+  public static boolean hasBuildSrcModule(@NotNull String projectPath) {
+    File buildSrcDir = new File(projectPath, "buildSrc");
+    File buildFile = new File(buildSrcDir, FN_BUILD_GRADLE);
+    File ktsBuildFile = new File(buildSrcDir, FN_BUILD_GRADLE_KTS);
+    return buildFile.isFile() || ktsBuildFile.isFile();
+  }
+
+  private static void failIfKotlinPluginAppliedAndKotlinModelIsMissing(@NotNull BuildController controller,
+                                                                       @Nullable GradleProject gradleProject) {
+    if (gradleProject == null) {
+      return;
+    }
+
+    GradlePluginModel pluginModel = controller.findModel(gradleProject, GradlePluginModel.class);
+    if (pluginModel != null) {
+      if (isKotlinProject(pluginModel)) {
         throw new NewGradleSyncNotSupportedException("containing Kotlin modules");
       }
-      for (GradleProject child : gradleProject.getChildren()) {
-        failIfKotlinPluginApplied(controller, child);
-      }
     }
+
+    for (GradleProject child : gradleProject.getChildren()) {
+      failIfKotlinPluginAppliedAndKotlinModelIsMissing(controller, child);
+    }
+  }
+
+  private static boolean isKotlinProject(@NotNull GradlePluginModel pluginModel) {
+    return pluginModel.getGradlePluginList().stream().anyMatch(p -> p.startsWith("org.jetbrains.kotlin"));
   }
 
   private void populateModelsForModule(@Nullable GradleProject project,

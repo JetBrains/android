@@ -38,7 +38,7 @@ public class FileRootSearchScopeTest extends HeavyPlatformTestCase {
     File genSrcRoot = createTempDir("genSrcRoot");
     FileRootSearchScope scope2 = new FileRootSearchScope(getProject(), ImmutableList.of(genSrcRoot));
 
-    FileRootSearchScope unitedScope = scope1.merge(scope2);
+    FileRootSearchScope unitedScope = scope1.add(scope2);
     assertTrue(unitedScope.accept(getVirtualFile(srcRoot)));
     assertTrue(unitedScope.accept(getVirtualFile(genSrcRoot)));
   }
@@ -49,7 +49,7 @@ public class FileRootSearchScopeTest extends HeavyPlatformTestCase {
     searchScope.accept(new File(root, "notexist"));
   }
 
-  public void testAcceptNotExistedFileInNonExistedRoot() {
+  public void testAcceptNotExistedFileInNonExistedRoot() throws Exception {
     File root = new File("root");
     FileRootSearchScope searchScope = new FileRootSearchScope(getProject(), ImmutableList.of(root));
     searchScope.accept(new File(root, "notexist"));

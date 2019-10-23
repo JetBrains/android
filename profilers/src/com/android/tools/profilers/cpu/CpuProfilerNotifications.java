@@ -42,6 +42,13 @@ final class CpuProfilerNotifications {
     true);
 
   @NotNull
+  static final Notification PREPROCESS_FAILURE = createError(
+    "Trace data was not recorded",
+    "The profiler was unable to pre-process the method trace data. " +
+    "Try recording another method trace, or ",
+    true);
+
+  @NotNull
   static final Notification PARSING_ABORTED = createError(
     "Parsing trace file aborted",
     "The CPU profiler was closed before the recorded trace file could be " +

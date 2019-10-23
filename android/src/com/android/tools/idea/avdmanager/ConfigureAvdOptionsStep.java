@@ -16,7 +16,6 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.emulator.SnapshotProtoException;
 import com.android.emulator.SnapshotProtoParser;
 import com.android.repository.io.FileOpUtils;
@@ -24,27 +23,39 @@ import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.devices.*;
-import com.android.sdklib.internal.avd.*;
+import com.android.sdklib.devices.Abi;
+import com.android.sdklib.devices.CameraLocation;
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.Hardware;
+import com.android.sdklib.devices.Storage;
+import com.android.sdklib.internal.avd.AvdCamera;
+import com.android.sdklib.internal.avd.AvdNetworkLatency;
+import com.android.sdklib.internal.avd.AvdNetworkSpeed;
+import com.android.sdklib.internal.avd.EmulatedProperties;
+import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.observable.*;
+import com.android.tools.idea.observable.AbstractProperty;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.InvalidationListener;
+import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
@@ -70,24 +81,48 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Consumer;
-import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
+import icons.StudioIcons;
+import java.awt.Dimension;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import java.awt.*;
-import java.awt.event.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.*;
 
 /**
  * Options panel for configuring various AVD options. Has an "advanced" mode and a "simple" mode.
@@ -103,8 +138,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   // @formatter:off
   private static final Map<ScreenOrientation, NamedIcon> ORIENTATIONS = ImmutableMap.of(
-    ScreenOrientation.PORTRAIT, new NamedIcon("Portrait", AndroidIcons.Portrait),
-    ScreenOrientation.LANDSCAPE, new NamedIcon("Landscape", AndroidIcons.Landscape));
+    ScreenOrientation.PORTRAIT, new NamedIcon("Portrait", StudioIcons.Avd.PORTRAIT),
+    ScreenOrientation.LANDSCAPE, new NamedIcon("Landscape", StudioIcons.Avd.LANDSCAPE));
   // @formatter:on
 
   final AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
@@ -177,6 +212,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private JRadioButton myFastBootRadioButton;
   private JRadioButton myChooseBootRadioButton;
   private JComboBox myChosenSnapshotComboBox;
+  private JBLabel myDeviceFrameTitle;
   private Iterable<JComponent> myAdvancedOptionsComponents;
 
   private Project myProject;
@@ -357,7 +393,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     int numNotShown = mySnapshotList.size() - snapshotModel.getSize();
     String finalLine = (mySnapshotList.isEmpty()) ? "(no snapshots)" :
                        (numNotShown == 0) ? "  Details ..." :
-                       String.format("  Details ... (+%d others)", numNotShown);
+                       String.format(Locale.US, "  Details ... (+%d others)", numNotShown);
     snapshotModel.add(finalLine);
     myChosenSnapshotComboBox.setModel(snapshotModel);
     myChosenSnapshotComboBox.setSelectedIndex(0);
@@ -546,7 +582,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
                                                       : EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES;
   }
 
-  private void addListeners() {
+  @VisibleForTesting
+  void addListeners() {
     myAvdId.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent mouseEvent) {
@@ -576,7 +613,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myOrientationToggle.setOpaque(false);
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(FOCUS_OWNER, myPropertyChangeListener);
 
-    myListeners.receive(getModel().device(), device -> {
+    myListeners.listen(getModel().device(), device -> {
       toggleOptionals(device, true);
       if (device.isPresent()) {
         myDeviceName.setIcon(DeviceDefinitionPreview.getIcon(getModel().getAvdDeviceData()));
@@ -599,30 +636,35 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
             if (FileUtil.filesEqual(skin, AvdWizardUtils.NO_SKIN)) {
               myDeviceFrameCheckbox.setSelected(false);
             }
+            else {
+              myDeviceFrameCheckbox.setSelected(true);
+            }
           }
           else {
             getModel().getAvdDeviceData().customSkinFile().setValue(AvdWizardUtils.NO_SKIN);
+            myDeviceFrameCheckbox.setSelected(false);
           }
         }
+        Device device = getModel().device().getValueOrNull();
+        boolean enabled = true;
+        if (device != null && device.getDefaultHardware().getScreen().isFoldable()) {
+          enabled = false;
+          // Only override the value for Folded device; otherwise, respect the assignment from above
+          myDeviceFrameCheckbox.setSelected(false);
+        }
+        myDeviceFrameCheckbox.setEnabled(enabled);
+        myDeviceFrameTitle.setEnabled(enabled);
+        mySkinDefinitionLabel.setEnabled(enabled);
+        mySkinComboBox.setEnabled(enabled);
       }
     });
 
-    myListeners.listen(getModel().systemImage(), new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        updateSystemImageData();
-      }
-    });
+    myListeners.listen(getModel().systemImage(), () -> updateSystemImageData());
 
-    myListeners.listen(getModel().useQemu2(), new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        toggleSystemOptionals(true);
-      }
-    });
+    myListeners.listen(getModel().useQemu2(), () -> toggleSystemOptionals(true));
 
-    myListeners.receive(getModel().selectedAvdOrientation(),
-                        screenOrientation -> myOrientationToggle.setSelectedElement(screenOrientation));
+    myListeners.listen(getModel().selectedAvdOrientation(),
+                       screenOrientation -> myOrientationToggle.setSelectedElement(screenOrientation));
   }
 
   @VisibleForTesting
@@ -660,6 +702,26 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       updateGpuControlsAfterSystemImageChange();
       toggleSystemOptionals(false);
     }
+  }
+
+  @VisibleForTesting
+  JBLabel getDeviceFrameTitle() {
+    return myDeviceFrameTitle;
+  }
+
+  @VisibleForTesting
+  JCheckBox getDeviceFrameCheckbox() {
+    return myDeviceFrameCheckbox;
+  }
+
+  @VisibleForTesting
+  JBLabel getSkinDefinitionLabel() {
+    return mySkinDefinitionLabel;
+  }
+
+  @VisibleForTesting
+  SkinChooser getSkinComboBox() {
+    return mySkinComboBox;
   }
 
   @VisibleForTesting
@@ -755,7 +817,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
      */
     private boolean launchEmulatorForSnapshotControl(@NotNull File paramFileForEmulator) {
       File emulatorBinary = connection.getEmulatorBinary();
-      if (!emulatorBinary.isFile()) {
+      if (emulatorBinary == null) {
         return false;
       }
       GeneralCommandLine commandLine = new GeneralCommandLine();
@@ -851,7 +913,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings.bindTwoWay(myBuiltInSdCardStorage.storage(), ObjectProperty.wrap(getModel().sdCardStorage()));
 
     myBindings.bindTwoWay(new SelectedItemProperty<>(myHostGraphics), getModel().hostGpuMode());
-
     myBindings.bindTwoWay(new SelectedProperty(myDeviceFrameCheckbox), getModel().hasDeviceFrame());
     myBindings.bindTwoWay(new SelectedProperty(myColdBootRadioButton), getModel().useColdBoot());
     myBindings.bindTwoWay(new SelectedProperty(myFastBootRadioButton), getModel().useFastBoot());
@@ -927,7 +988,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         String errorMessage = myModel.isPlayStoreCompatible() ?
                               "Internal storage for Play Store devices must be at least %s." :
                               "Internal storage must be at least %s.";
-        return new Result(Severity.ERROR, String.format(errorMessage, myModel.minInternalMemSize()));
+        return new Result(Severity.ERROR, String.format(Locale.US, errorMessage, myModel.minInternalMemSize()));
       }
     });
 
@@ -1112,7 +1173,14 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myVmHeapStorage.setEnabled(enable);
     myBuiltInRadioButton.setEnabled(enable);
     myExternalRadioButton.setEnabled(enable);
-    mySkinComboBox.setEnabled(enable);
+    Device device = getModel().device().getValueOrNull();
+    if (device != null && device.getDefaultHardware().getScreen().isFoldable()) {
+      mySkinComboBox.setEnabled(false);
+    }
+    else {
+      mySkinComboBox.setEnabled(enable);
+    }
+
     if (!enable) {
       // Selectively disable, but don't enable
       myCoreCount.setEnabled(false);
@@ -1183,10 +1251,10 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   }
 
   private void createUIComponents() {
-    Function<ScreenOrientation, Image> orientationIconFunction = new Function<ScreenOrientation, Image>() {
+    Function<ScreenOrientation, Icon> orientationIconFunction = new Function<ScreenOrientation, Icon>() {
       @Override
-      public Image apply(ScreenOrientation input) {
-        return IconUtil.toImage(ORIENTATIONS.get(input).myIcon);
+      public Icon apply(ScreenOrientation input) {
+        return ORIENTATIONS.get(input).myIcon;
       }
     };
     Function<ScreenOrientation, String> orientationNameFunction = new Function<ScreenOrientation, String>() {
@@ -1197,7 +1265,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     };
     myOrientationToggle =
       new ASGallery<>(JBList.createDefaultListModel(ScreenOrientation.PORTRAIT, ScreenOrientation.LANDSCAPE),
-                      orientationIconFunction, orientationNameFunction, JBUI.size(50, 50), null);
+                      orientationIconFunction, orientationNameFunction, JBUI.size(48, 48), null);
 
     myOrientationToggle.setCellMargin(JBUI.insets(5, 20, 4, 20));
     myOrientationToggle.setBackground(JBColor.background());
@@ -1213,7 +1281,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     @NotNull private final Icon myIcon;
 
-    NamedIcon(@NotNull String name, @NotNull Icon icon) {
+    public NamedIcon(@NotNull String name, @NotNull Icon icon) {
       myName = name;
       myIcon = icon;
     }
@@ -1364,5 +1432,4 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     }
   };
-
 }

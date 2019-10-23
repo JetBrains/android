@@ -37,7 +37,6 @@ import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.SdkConstants.VIEW
 import com.android.SdkConstants.VIEW_INCLUDE
 import com.android.SdkConstants.VIEW_MERGE
-import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.ide.common.rendering.api.StyleResourceValue
@@ -45,7 +44,7 @@ import com.android.ide.common.rendering.api.ViewInfo
 import com.android.resources.ResourceType
 import com.android.support.AndroidxName
 import com.android.tools.idea.common.api.InsertType
-import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.DnDTransferComponent
 import com.android.tools.idea.common.model.NlComponent
@@ -58,9 +57,13 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableSet
+import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.Computable
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.pom.Navigatable
+import com.intellij.util.PsiNavigateUtil
 
 /*
  * Layout editor-specific helper methods and data for NlComponent
@@ -169,7 +172,7 @@ fun NlComponent.ensureLiveId(): String {
   val id = assignId()
   attributes.apply()
 
-  NlWriteCommandAction.run(this, "Added ID", { attributes.commit() })
+  NlWriteCommandActionUtil.run(this, "Added ID", { attributes.commit() })
   return id
 }
 
@@ -313,7 +316,7 @@ fun NlComponent.isOrHasAndroidxSuperclass(): Boolean {
   val viewInfo = viewInfo
   if (viewInfo != null) {
     val viewObject = viewInfo.viewObject ?: return ApplicationManager.getApplication().isUnitTestMode && tagName.startsWith(
-        ANDROIDX_PKG_PREFIX)
+      ANDROIDX_PKG_PREFIX)
     var viewClass: Class<*> = viewObject.javaClass
     while (viewClass != Any::class.java) {
       if (viewClass.name.startsWith(ANDROIDX_PKG_PREFIX)) {
@@ -347,43 +350,22 @@ fun NlComponent.getMostSpecificClass(classNames: Set<String>): String? {
 }
 
 val NlComponent.viewHandler: ViewHandler?
-  get() {
-    return ApplicationManager.getApplication().runReadAction(Computable{
-      if (!tag.isValid) {
-        null
-      }
-      else {
-        ViewHandlerManager.get(tag.project).getHandler(this)
-      }
-    })
-  }
+  get() = ViewHandlerManager.get(model.project).getHandler(this)
 
 val NlComponent.viewGroupHandler: ViewGroupHandler?
-  get() {
-    @Suppress("SENSELESS_COMPARISON")
-    // tag can be null for a mock component. To avoid the need of creating a fully functionnal mock XmlTag
-    // that passes all tests, we check the nullity.
-    if (tag == null || !tag.isValid) {
-      return null
-    }
-    return ViewHandlerManager.get(tag.project).findLayoutHandler(this, false)
-  }
+  get() = ViewHandlerManager.get(model.project).findLayoutHandler(this, false)
 
 /**
  * Creates a new child of the given type, and inserts it before the given sibling (or null to append at the end).
  * Note: This operation can only be called when the caller is already holding a write lock. This will be the
- * case from [ViewHandler] callbacks such as [ViewHandler.onCreate]
- * and [DragHandler.commit].
+ * case from [ViewHandler] callbacks such as [ViewHandler.onCreate] and [DragHandler.commit].
 
  * @param editor     The editor showing the component
- * *
  * @param fqcn       The fully qualified name of the widget to insert, such as `android.widget.LinearLayout`
- * *                   You can also pass XML tags here (this is typically the same as the fully qualified class name
- * *                   of the custom view, but for Android framework views in the android.view or android.widget packages,
- * *                   you can omit the package.)
- * *
+ *                   You can also pass XML tags here (this is typically the same as the fully qualified class name
+ *                   of the custom view, but for Android framework views in the android.view or android.widget packages,
+ *                   you can omit the package.)
  * @param before     The sibling to insert immediately before, or null to append
- * *
  * @param insertType The type of insertion
  */
 fun NlComponent.createChild(editor: ViewEditor,
@@ -392,13 +374,62 @@ fun NlComponent.createChild(editor: ViewEditor,
                             insertType: InsertType
 ): NlComponent? {
   val tagName = NlComponentHelper.viewClassToTag(fqcn)
-  val tag = tag.createChildTag(tagName, null, null, false)
+  return createChild(tagName, false, null, null, editor.scene.designSurface, before, insertType)
+}
 
-  return model.createComponent(editor.scene.designSurface, tag, this, before, insertType)
+/**
+ * See [createChild]
+ *
+ * @param tagName                 The new tag name of the child. Not the fully qualified name such as 'android.widget.LinearLayout' but
+ *                                rather 'LinearLayout'.
+ * @param enforceNamespacesDeep   If you pass some xml tags to {@code bodyText} parameter, this flag sets namespace prefixes for them.
+ * @param namespace               Namespaces of the tag name.
+ * @param surface                 The surface showing the component
+ * @param before                  The sibling to insert immediately before, or null to append
+ * @param insertType              The type of insertion
+ */
+fun NlComponent.createChild(tagName: String,
+                            enforceNamespacesDeep: Boolean = false,
+                            namespace: String? = null,
+                            bodyText: String? = null,
+                            surface: DesignSurface? = null,
+                            before: NlComponent? = null,
+                            insertType: InsertType = InsertType.CREATE
+): NlComponent? {
+  if (!ApplicationManager.getApplication().isWriteAccessAllowed) {
+    Logger.getInstance(NlWriteCommandActionUtil::class.java).error(
+        Throwable("Unable to create child NlComponent ${tagName}. The createChild method must be called within a write action."))
+    return null
+  }
+
+  val tag = backend.tag ?: return null
+  val childTag = tag.createChildTag(tagName, namespace, bodyText, enforceNamespacesDeep)
+  return model.createComponent(surface, childTag, this, before, insertType)
+}
+
+fun NlComponent.navigateTo(): Boolean {
+  val element = backend.tag ?: return false
+  PsiNavigateUtil.navigate(element)
+  return true
 }
 
 fun NlComponent.clearAttributes() {
   viewGroupHandler?.clearAttributes(this)
+}
+
+/**
+ * Temporary API to help remoe XmlTag dependencies. One navigate functionality to support both needs later.
+ * Warp to the text editor and show the corresponding XML for the clicked widget.
+ *
+ * @param needsFocusEditor true for focusing the editor after navigation. false otherwise.
+ */
+fun NlComponent.tryNavigateTo(needsFocusEditor: Boolean): Boolean {
+  val element = backend.tag?.navigationElement ?: return false
+  if (PsiNavigationSupport.getInstance().canNavigate(element) && element is Navigatable) {
+    (element as Navigatable).navigate(needsFocusEditor)
+    return true
+  }
+  return false
 }
 
 val NlComponent.hasNlComponentInfo: Boolean
@@ -423,17 +454,28 @@ private val NlComponent.nlComponentData: NlComponentData
   }
 
 internal data class NlComponentData(
-    var x: Int = 0,
-    var y: Int = 0,
-    var w: Int = 0,
-    var h: Int = 0,
-    var viewInfo: ViewInfo? = null,
-    var margins: Insets? = null,
-    var padding: Insets? = null)
+  var x: Int = 0,
+  var y: Int = 0,
+  var w: Int = 0,
+  var h: Int = 0,
+  var viewInfo: ViewInfo? = null,
+  var margins: Insets? = null,
+  var padding: Insets? = null)
 
 @VisibleForTesting
 class NlComponentMixin(component: NlComponent)
   : NlComponent.XmlModelComponentMixin(component) {
+
+  override fun maybeHandleDeletion(children: Collection<NlComponent>): Boolean {
+    val viewHandlerManager = ViewHandlerManager.get(component.model.facet)
+
+    val handler = viewHandlerManager.getHandler(this.component)
+    if (handler is ViewGroupHandler) {
+      return handler.deleteChildren(component, children)
+    }
+    return false
+  }
+
   internal val data: NlComponentData = NlComponentData()
 
   override fun toString(): String {
@@ -485,7 +527,7 @@ class NlComponentMixin(component: NlComponent)
   override fun getDependencies(): Set<String> {
     val artifacts = mutableSetOf<String>()
     val handler = ViewHandlerManager.get(component.model.project).getHandler(component) ?: return emptySet()
-    val artifactId = handler.getGradleCoordinateId(component.tag.name)
+    val artifactId = handler.getGradleCoordinateId(component.tagDeprecated.name)
     if (artifactId != PaletteComponentHandler.IN_PLATFORM) {
       artifacts.add(artifactId)
     }
@@ -524,7 +566,7 @@ class NlComponentMixin(component: NlComponent)
     if (surface == null) {
       return false
     }
-    val realTag = component.tag
+    val realTag = component.tagDeprecated
     if (component.parent != null) {
       // Required attribute for all views; drop handlers can adjust as necessary
       if (realTag.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI) == null) {
@@ -552,7 +594,7 @@ class NlComponentMixin(component: NlComponent)
     if (childHandler != null) {
       var ok = childHandler.onCreate(editor, component.parent, component, insertType)
       if (component.parent != null) {
-        ok = ok and NlDependencyManager.get().addDependencies((listOf(component)), component.model.facet)
+        ok = ok and NlDependencyManager.getInstance().addDependencies((listOf(component)), component.model.facet).dependenciesPresent
       }
       if (!ok) {
         component.parent?.removeChild(component)
@@ -586,13 +628,13 @@ object NlComponentHelper {
 
   // TODO Add a needsId method to the handler classes
   val TAGS_THAT_DONT_NEED_DEFAULT_IDS: Collection<String> = ImmutableSet.Builder<String>()
-      .add(REQUEST_FOCUS)
-      .add(SPACE)
-      .add(TAG_ITEM)
-      .add(VIEW_INCLUDE)
-      .add(VIEW_MERGE)
-      .addAll(PreferenceUtils.VALUES)
-      .build()
+    .add(REQUEST_FOCUS)
+    .add(SPACE)
+    .add(TAG_ITEM)
+    .add(VIEW_INCLUDE)
+    .add(VIEW_MERGE)
+    .addAll(PreferenceUtils.VALUES)
+    .build()
 
   /**
    * Maps a custom view class to the corresponding layout tag;
@@ -623,8 +665,8 @@ object NlComponentHelper {
    */
   private fun viewNeedsPackage(fqcn: String): Boolean {
     return !(fqcn.startsWith(ANDROID_WIDGET_PREFIX)
-        || fqcn.startsWith(ANDROID_VIEW_PKG)
-        || fqcn.startsWith(ANDROID_WEBKIT_PKG))
+             || fqcn.startsWith(ANDROID_VIEW_PKG)
+             || fqcn.startsWith(ANDROID_WEBKIT_PKG))
   }
 
   fun hasNlComponentInfo(component: NlComponent): Boolean {

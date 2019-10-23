@@ -68,6 +68,12 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   }
 
   @Override
+  public void rename(@NotNull String newName) {
+    myDslElement.getNameElement().rename(newName);
+    myDslElement.setModified();
+  }
+
+  @Override
   @NotNull
   public ResolvedPropertyModel applicationIdSuffix() {
     return getModelForProperty(APPLICATION_ID_SUFFIX);

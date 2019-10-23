@@ -89,15 +89,15 @@ class CoordinatorSnapTarget constructor(type: Type) : BaseTarget(), NonPlacehold
 
   fun snap(attributes: NlAttributesHolder) {
     val value = when (myType) {
-      Type.LEFT -> "left|center"
-      Type.RIGHT -> "right|center"
+      Type.LEFT -> "start|center"
+      Type.RIGHT -> "end|center"
       Type.TOP -> "top|center"
       Type.BOTTOM -> "bottom|center"
-      Type.LEFT_TOP -> "left|top"
-      Type.LEFT_BOTTOM -> "left|bottom"
+      Type.LEFT_TOP -> "start|top"
+      Type.LEFT_BOTTOM -> "start|bottom"
       Type.CENTER -> "center"
-      Type.RIGHT_TOP -> "right|top"
-      Type.RIGHT_BOTTOM -> "right|bottom"
+      Type.RIGHT_TOP -> "end|top"
+      Type.RIGHT_BOTTOM -> "end|bottom"
     }
     attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY, value)
     attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR, SdkConstants.NEW_ID_PREFIX + myComponent.nlComponent.ensureLiveId())

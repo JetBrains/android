@@ -26,11 +26,10 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class FileTreeDependencyModelImpl extends DependencyModelImpl implements FileTreeDependencyModel {
   @NonNls public static final String FILE_TREE = "fileTree";
@@ -38,17 +37,16 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
   @NonNls private static final String INCLUDE = "include";
   @NonNls private static final String EXCLUDE = "exclude";
 
-  @NotNull private String myConfigurationName;
-  @NotNull private final GradleDslMethodCall myDslElement;
+  @NotNull private GradleDslMethodCall myDslElement;
 
   @NotNull
-  static FileTreeDependencyModel create(@NotNull GradlePropertiesDslElement parent,
-                                        @NotNull String configurationName,
-                                        @NotNull String dir,
-                                        @Nullable List<String> includes,
-                                        @Nullable List<String> excludes) {
+  static FileTreeDependencyModel createNew(@NotNull GradlePropertiesDslElement parent,
+                                           @NotNull String configurationName,
+                                           @NotNull String dir,
+                                           @Nullable List<String> includes,
+                                           @Nullable List<String> excludes) {
     GradleDslMethodCall newElement = new GradleDslMethodCall(parent, GradleNameElement.create(configurationName), FILE_TREE);
-    FileTreeDependencyModel fileTreeModel = create(parent, newElement, configurationName);
+    FileTreeDependencyModel fileTreeModel = create(newElement, configurationName, DependenciesModelImpl.Maintainers.SINGLE_ITEM_MAINTAINER);
     // Since we just created the method call with the FILE_TREE name, create should never return null.
     assert fileTreeModel != null;
     fileTreeModel.dir().setValue(dir);
@@ -67,19 +65,19 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
   }
 
   @Nullable
-  static FileTreeDependencyModel create(@NotNull GradlePropertiesDslElement parent,
-                                        @NotNull GradleDslMethodCall methodCall,
-                                        @NotNull String configName) {
+  static FileTreeDependencyModel create(@NotNull GradleDslMethodCall methodCall,
+                                        @NotNull String configName,
+                                        @NotNull Maintainer maintainer) {
     if (!methodCall.getMethodName().equals(FILE_TREE)) {
       return null;
     }
-    return new FileTreeDependencyModelImpl(parent, configName, methodCall);
+    return new FileTreeDependencyModelImpl(configName, methodCall, maintainer);
   }
 
-  private FileTreeDependencyModelImpl(@NotNull GradlePropertiesDslElement holder,
-                                      @NotNull String configurationName,
-                                      @NotNull GradleDslMethodCall dslElement) {
-    myConfigurationName = configurationName;
+  private FileTreeDependencyModelImpl(@NotNull String configurationName,
+                                      @NotNull GradleDslMethodCall dslElement,
+                                      @NotNull Maintainer maintainer) {
+    super(configurationName, maintainer);
     myDslElement = dslElement;
   }
 
@@ -90,29 +88,28 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
   }
 
   @Override
-  @NotNull
-  public String configurationName() {
-    return myConfigurationName;
+  void setDslElement(@NotNull GradleDslElement dslElement) {
+    myDslElement = (GradleDslMethodCall)dslElement;
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel dir() {
     return GradlePropertyModelBuilder.create(myDslElement).addTransform(new MapMethodTransform(FILE_TREE, DIR))
-                                     .addTransform(new SingleArgumentMethodTransform(FILE_TREE)).asMethod(true).buildResolved();
+      .addTransform(new SingleArgumentMethodTransform(FILE_TREE)).asMethod(true).buildResolved();
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel includes() {
-    return GradlePropertyModelBuilder.create(myDslElement).addTransform(new SingleArgToMapTransform(DIR ,INCLUDE))
-                                     .addTransform(new MapMethodTransform(FILE_TREE, INCLUDE)).asMethod(true).buildResolved();
+    return GradlePropertyModelBuilder.create(myDslElement).addTransform(new SingleArgToMapTransform(DIR, INCLUDE))
+      .addTransform(new MapMethodTransform(FILE_TREE, INCLUDE)).asMethod(true).buildResolved();
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel excludes() {
     return GradlePropertyModelBuilder.create(myDslElement).addTransform(new SingleArgToMapTransform(DIR, EXCLUDE))
-                                     .addTransform(new MapMethodTransform(FILE_TREE, EXCLUDE)).asMethod(true).buildResolved();
+      .addTransform(new MapMethodTransform(FILE_TREE, EXCLUDE)).asMethod(true).buildResolved();
   }
 }

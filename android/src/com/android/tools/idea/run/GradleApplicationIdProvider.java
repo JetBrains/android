@@ -15,31 +15,28 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
+import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
+
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.InstantAppVariantBuildOutput;
 import com.android.builder.model.TestedTargetVariant;
-import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import java.util.Collection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
-import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 
 /**
  * Application id provider for Gradle projects.
  */
 public class GradleApplicationIdProvider implements ApplicationIdProvider {
-
-  /** Default suffix for test packages (as added by Android Gradle plugin) */
+  /** Default suffix for test packages (as added by Android Gradle plugin). */
   private static final String DEFAULT_TEST_PACKAGE_SUFFIX = ".test";
 
   @NotNull private final AndroidFacet myFacet;
@@ -116,12 +113,11 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
     }
 
     AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
-    assert androidModel != null; // This is a Gradle project, there must be an AndroidGradleModel.
+    // This is a Gradle project, there must be an AndroidGradleModel, but to avoid NPE we gracefully handle a null androidModel.
     // In the case of Gradle projects, either the merged flavor provides a test package name,
-    // or we just append ".test" to the source package name
-    Variant selectedVariant = androidModel.getSelectedVariant();
-    String testPackageName = selectedVariant.getMergedFlavor().getTestApplicationId();
-    return (testPackageName != null) ? testPackageName : getPackageName() + DEFAULT_TEST_PACKAGE_SUFFIX;
+    // or we just append ".test" to the source package name.
+    String testPackageName = androidModel == null ? null : androidModel.getSelectedVariant().getMergedFlavor().getTestApplicationId();
+    return testPackageName != null ? testPackageName : getPackageName() + DEFAULT_TEST_PACKAGE_SUFFIX;
   }
 
   @Nullable
@@ -133,7 +129,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
 
     Collection<TestedTargetVariant> targetVariants = androidModel.getSelectedVariant().getTestedTargetVariants();
     if (targetVariants.size() != 1) {
-      // There is no tested variant or more than one (what should never happen currently) and then we can't get package name
+      // There is no tested variant or more than one (what should never happen currently) and then we can't get package name.
       return null;
     }
 

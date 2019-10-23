@@ -15,29 +15,89 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.project.Project;
+import java.util.Collection;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Objects;
-
 final class SelectDeviceAndSnapshotAction extends AnAction {
   private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
+  private final Project myProject;
   private final Device myDevice;
-  private final String mySnapshot;
+  private String mySnapshot;
 
-  SelectDeviceAndSnapshotAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction, @NotNull Device device) {
-    super(device.getName(), null, device.getIcon());
+  static final class Builder {
+    private DeviceAndSnapshotComboBoxAction myComboBoxAction;
+    private Project myProject;
+    private Device myDevice;
+    private String mySnapshot;
 
-    myComboBoxAction = comboBoxAction;
-    myDevice = device;
+    @NotNull
+    Builder setComboBoxAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
+      myComboBoxAction = comboBoxAction;
+      return this;
+    }
 
-    Collection<String> snapshots = device.getSnapshots();
+    @NotNull
+    Builder setProject(@NotNull Project project) {
+      myProject = project;
+      return this;
+    }
 
-    if (snapshots.isEmpty()) {
+    @NotNull
+    Builder setDevice(@NotNull Device device) {
+      myDevice = device;
+      return this;
+    }
+
+    @NotNull
+    Builder setSnapshot(@Nullable String snapshot) {
+      mySnapshot = snapshot;
+      return this;
+    }
+
+    @NotNull
+    SelectDeviceAndSnapshotAction build() {
+      return new SelectDeviceAndSnapshotAction(this);
+    }
+  }
+
+  private SelectDeviceAndSnapshotAction(@NotNull Builder builder) {
+    configurePresentation(builder);
+
+    myComboBoxAction = builder.myComboBoxAction;
+    myProject = builder.myProject;
+    myDevice = builder.myDevice;
+
+    initSnapshot(builder);
+  }
+
+  private void configurePresentation(@NotNull Builder builder) {
+    Presentation presentation = getTemplatePresentation();
+
+    if (builder.mySnapshot != null) {
+      presentation.setText(builder.mySnapshot, false);
+      return;
+    }
+
+    presentation.setText(Devices.getName(builder.myDevice, builder.myComboBoxAction.getDevices(builder.myProject)), false);
+    presentation.setIcon(builder.myDevice.getIcon());
+  }
+
+  private void initSnapshot(@NotNull Builder builder) {
+    if (builder.mySnapshot != null) {
+      mySnapshot = builder.mySnapshot;
+      return;
+    }
+
+    Collection<String> snapshots = builder.myDevice.getSnapshots();
+
+    if (snapshots.isEmpty() || !builder.myComboBoxAction.areSnapshotsEnabled()) {
       mySnapshot = null;
       return;
     }
@@ -47,15 +107,7 @@ final class SelectDeviceAndSnapshotAction extends AnAction {
       return;
     }
 
-    throw new IllegalArgumentException(device.toString());
-  }
-
-  SelectDeviceAndSnapshotAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction, @NotNull Device device, @NotNull String snapshot) {
-    super(snapshot);
-
-    myComboBoxAction = comboBoxAction;
-    myDevice = device;
-    mySnapshot = snapshot;
+    throw new IllegalArgumentException(builder.toString());
   }
 
   @Nullable
@@ -66,7 +118,7 @@ final class SelectDeviceAndSnapshotAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    myComboBoxAction.setSelectedDevice(myDevice);
+    myComboBoxAction.setSelectedDevice(myProject, myDevice);
     myComboBoxAction.setSelectedSnapshot(mySnapshot);
   }
 
@@ -79,6 +131,7 @@ final class SelectDeviceAndSnapshotAction extends AnAction {
     SelectDeviceAndSnapshotAction action = (SelectDeviceAndSnapshotAction)object;
 
     return myComboBoxAction.equals(action.myComboBoxAction) &&
+           myProject.equals(action.myProject) &&
            myDevice.equals(action.myDevice) &&
            Objects.equals(mySnapshot, action.mySnapshot);
   }
@@ -87,6 +140,7 @@ final class SelectDeviceAndSnapshotAction extends AnAction {
   public int hashCode() {
     int hashCode = myComboBoxAction.hashCode();
 
+    hashCode = 31 * hashCode + myProject.hashCode();
     hashCode = 31 * hashCode + myDevice.hashCode();
     hashCode = 31 * hashCode + Objects.hashCode(mySnapshot);
 

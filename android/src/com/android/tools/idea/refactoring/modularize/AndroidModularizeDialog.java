@@ -21,6 +21,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.refactoring.ui.RefactoringDialog;
 import com.intellij.ui.CollectionComboBoxModel;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +58,8 @@ public class AndroidModularizeDialog extends RefactoringDialog {
 
     panel.add(
       new JLabel(
-        String.format("Move %1$d classes and %2$d resources to:", myProcessor.getClassesCount(), myProcessor.getResourcesCount())),
+        String.format(Locale.US, "Move %1$d classes and %2$d resources to:", myProcessor.getClassesCount(),
+                      myProcessor.getResourcesCount())),
       BorderLayout.NORTH);
 
     ComboBoxModel<Module> model = new CollectionComboBoxModel<>(myTargetModules);

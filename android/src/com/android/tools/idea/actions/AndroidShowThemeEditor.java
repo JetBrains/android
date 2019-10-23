@@ -20,15 +20,16 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
-import icons.AndroidIcons;
+import icons.StudioIcons;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidShowThemeEditor extends AnAction {
   public AndroidShowThemeEditor() {
-    super("Theme Editor", null, AndroidIcons.Themes);
+    super("Theme Editor", null, StudioIcons.Shell.Menu.THEME_EDITOR);
   }
 
   @Override
-  public void update(final AnActionEvent e) {
+  public void update(@NotNull final AnActionEvent e) {
     if (!StudioFlags.THEME_EDITOR_ENABLED.get()) {
       e.getPresentation().setVisible(false);
       return;
@@ -38,7 +39,7 @@ public class AndroidShowThemeEditor extends AnAction {
   }
 
   @Override
-  public void actionPerformed(final AnActionEvent e) {
+  public void actionPerformed(@NotNull final AnActionEvent e) {
     Project project = e.getProject();
     if (project == null) {
       return;

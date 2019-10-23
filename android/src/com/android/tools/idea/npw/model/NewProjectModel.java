@@ -19,14 +19,13 @@ import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NewProjectExtraInfo;
-import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NewProjectExtraInfoBuilder;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.instantapp.InstantApps;
-import com.android.tools.idea.npw.platform.NavigationType;
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.DomainToPackageExpression;
@@ -57,7 +56,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.util.ui.UIUtil;
+import java.util.Optional;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -74,14 +73,20 @@ import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
+import static com.android.tools.idea.npw.platform.Language.JAVA;
+import static com.android.tools.idea.npw.platform.Language.KOTLIN;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class NewProjectModel extends WizardModel {
+  static final String PROPERTIES_ANDROID_PACKAGE_KEY = "SAVED_ANDROID_PACKAGE";
+  static final String PROPERTIES_KOTLIN_SUPPORT_KEY = "SAVED_PROJECT_KOTLIN_SUPPORT";
+  static final String PROPERTIES_NPW_LANGUAGE_KEY = "SAVED_ANDROID_NPW_LANGUAGE";
+  static final String PROPERTIES_NPW_ASKED_LANGUAGE_KEY = "SAVED_ANDROID_NPW_ASKED_LANGUAGE";
+
   private static final String PROPERTIES_DOMAIN_KEY = "SAVED_COMPANY_DOMAIN";
-  private static final String PROPERTIES_ANDROID_PACKAGE_KEY = "SAVED_ANDROID_PACKAGE";
   private static final String PROPERTIES_CPP_SUPPORT_KEY = "SAVED_PROJECT_CPP_SUPPORT";
-  private static final String PROPERTIES_KOTLIN_SUPPORT_KEY = "SAVED_PROJECT_KOTLIN_SUPPORT";
   private static final String EXAMPLE_DOMAIN = "example.com";
   private static final Pattern DISALLOWED_IN_DOMAIN = Pattern.compile("[^a-zA-Z0-9_]");
 
@@ -96,12 +101,9 @@ public class NewProjectModel extends WizardModel {
   private final Set<NewModuleModel> myNewModels = new HashSet<>();
   private final ProjectSyncInvoker myProjectSyncInvoker;
   private final MultiTemplateRenderer myMultiTemplateRenderer;
-  private final BoolProperty myEnableKotlinSupport = new BoolValueProperty();
+  private final OptionalValueProperty<Language> myLanguage = new OptionalValueProperty<>();
   private final BoolProperty myUseOfflineRepo = new BoolValueProperty();
   private final BoolProperty myUseAndroidx = new BoolValueProperty();
-  private final OptionalProperty<NavigationType> myNavigationType  = new OptionalValueProperty<>(NavigationType.NONE);
-
-  private  NewProjectExtraInfo myNewProjectExtraInfo;
 
   private static Logger getLogger() {
     return Logger.getInstance(NewProjectModel.class);
@@ -115,7 +117,7 @@ public class NewProjectModel extends WizardModel {
     myProjectSyncInvoker = projectSyncInvoker;
     myMultiTemplateRenderer = new MultiTemplateRenderer(null, myProjectSyncInvoker);
     // Save entered company domain
-    myCompanyDomain.addListener(sender -> {
+    myCompanyDomain.addListener(() -> {
       String domain = myCompanyDomain.get();
       if (AndroidUtils.isValidAndroidPackageName(domain)) {
         PropertiesComponent.getInstance().setValue(PROPERTIES_DOMAIN_KEY, domain);
@@ -123,7 +125,7 @@ public class NewProjectModel extends WizardModel {
     });
 
     // Save entered android package
-    myPackageName.addListener(sender -> {
+    myPackageName.addListener(() -> {
       String androidPackage = myPackageName.get();
       int lastDotIdx = androidPackage.lastIndexOf('.');
       if (lastDotIdx >= 0) {
@@ -137,8 +139,8 @@ public class NewProjectModel extends WizardModel {
     myApplicationName.addConstraint(String::trim);
 
     myEnableCppSupport.set(getInitialCppSupport());
-    myEnableKotlinSupport.set(getInitialKotlinSupport());
     myUseAndroidx.set(getInitialUseAndroidxSupport());
+    myLanguage.set(calculateInitialLanguage(PropertiesComponent.getInstance()));
   }
 
   @NotNull
@@ -168,8 +170,8 @@ public class NewProjectModel extends WizardModel {
     return myCppFlags;
   }
 
-  public BoolProperty enableKotlinSupport() {
-    return myEnableKotlinSupport;
+  public OptionalValueProperty<Language> language() {
+    return myLanguage;
   }
 
   @NotNull
@@ -207,11 +209,6 @@ public class NewProjectModel extends WizardModel {
   @NotNull
   public Map<String, Object> getTemplateValues() {
     return myTemplateValues;
-  }
-
-  @NotNull
-  public OptionalProperty<NavigationType> navigationType() {
-    return myNavigationType;
   }
 
   /**
@@ -281,12 +278,33 @@ public class NewProjectModel extends WizardModel {
   }
 
   /**
-   * Loads saved value for Kotlin support.
+   * Calculates the initial values for the language and updates the {@link PropertiesComponent}
+   * @return If Language was previously saved, just return that saved value.
+   *         If User used the old UI check-box to select "Use Kotlin" or the User is using the Wizard for the first time => Kotlin
+   *         otherwise Java (ie user used the wizards before, and un-ticked the check-box)
    */
-  private static boolean getInitialKotlinSupport() {
-    return PropertiesComponent.getInstance().isTrueValue(PROPERTIES_KOTLIN_SUPPORT_KEY);
-  }
+  @NotNull
+  static Optional<Language> calculateInitialLanguage(@NotNull PropertiesComponent props) {
+    Language initialLanguage;
+    String languageValue = props.getValue(PROPERTIES_NPW_LANGUAGE_KEY);
+    if (languageValue == null) {
+      boolean selectedOldUseKotlin = props.getBoolean(PROPERTIES_KOTLIN_SUPPORT_KEY);
+      boolean isFirstUsage = !props.isValueSet(PROPERTIES_ANDROID_PACKAGE_KEY);
+      initialLanguage = (selectedOldUseKotlin || isFirstUsage) ? KOTLIN : JAVA;
 
+      // Save now, otherwise the user may cancel the wizard, but the property for "isFirstUsage" will be set just because it was shown.
+      props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, initialLanguage.getName());
+      props.unsetValue(PROPERTIES_KOTLIN_SUPPORT_KEY);
+    }
+    else  {
+      // We have this value saved already, nothing to do
+      initialLanguage = Language.fromName(languageValue, KOTLIN);
+    }
+
+    boolean askedBefore = props.getBoolean(PROPERTIES_NPW_ASKED_LANGUAGE_KEY);
+    // After version 3.5, we force the user to select the language if we didn't ask before or if the selection was not Kotlin.
+    return initialLanguage == KOTLIN || askedBefore ? Optional.of(initialLanguage) : Optional.empty();
+  }
 
   /**
    * Returns the initial value of the androidx support property. The value is true if we allow androidx to be the default
@@ -300,8 +318,10 @@ public class NewProjectModel extends WizardModel {
   public void onWizardFinished(@NotNull ModelWizard.WizardResult wizardResult) {
     if (wizardResult == ModelWizard.WizardResult.FINISHED) {
       // Set the property value
-      PropertiesComponent.getInstance().setValue(PROPERTIES_CPP_SUPPORT_KEY, myEnableCppSupport.get());
-      PropertiesComponent.getInstance().setValue(PROPERTIES_KOTLIN_SUPPORT_KEY, myEnableKotlinSupport.get());
+      PropertiesComponent props = PropertiesComponent.getInstance();
+      props.setValue(PROPERTIES_CPP_SUPPORT_KEY, myEnableCppSupport.get());
+      props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, myLanguage.getValue().getName());
+      props.setValue(PROPERTIES_NPW_ASKED_LANGUAGE_KEY, true);
     }
   }
 
@@ -348,7 +368,8 @@ public class NewProjectModel extends WizardModel {
       return false;
     });
     if (couldEnsureLocationExists) {
-      Project project = UIUtil.invokeAndWaitIfNeeded(() -> ProjectManager.getInstance().createProject(projectName, projectLocation));
+      Project project = ProjectManager.getInstance().createProject(projectName, projectLocation);
+      assert project != null;
       project().setValue(project);
       myMultiTemplateRenderer.setProject(project);
     }
@@ -356,9 +377,6 @@ public class NewProjectModel extends WizardModel {
       String msg =
         "Could not ensure the target project location exists and is accessible:\n\n%1$s\n\nPlease try to specify another path.";
       Messages.showErrorDialog(String.format(msg, projectLocation), "Error Creating Project");
-      // TODO: Is this available on the New Wizard?
-      //navigateToNamedStep(com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.STEP_NAME, true);
-      //myHost.shakeWindow();
     }
 
     myMultiTemplateRenderer.requestRender(new ProjectTemplateRenderer());
@@ -399,8 +417,7 @@ public class NewProjectModel extends WizardModel {
       myTemplateValues.put(ATTR_CPP_SUPPORT, myEnableCppSupport.get());
       myTemplateValues.put(ATTR_CPP_FLAGS, myCppFlags.get());
       myTemplateValues.put(ATTR_TOP_OUT, project.getBasePath());
-      myTemplateValues.put(ATTR_KOTLIN_SUPPORT, myEnableKotlinSupport.get());
-      myTemplateValues.put(ATTR_NAVIGATION_TYPE, myNavigationType.getValue());
+      myTemplateValues.put(ATTR_KOTLIN_SUPPORT, myLanguage.getValue() == KOTLIN);
 
       if (StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get()) {
         String offlineReposString = getOfflineReposString();
@@ -409,13 +426,6 @@ public class NewProjectModel extends WizardModel {
         if (myUseOfflineRepo.get()) {
           myTemplateValues.put(ATTR_USE_OFFLINE_REPO, true);
         }
-      }
-
-      boolean shouldUseNewExtraProjectInfo = !dryRun & StudioFlags.SHIPPED_SYNC_ENABLED.get();
-
-      NewProjectExtraInfoBuilder newProjectExtraInfoBuilder = null;
-      if (shouldUseNewExtraProjectInfo) {
-        newProjectExtraInfoBuilder = new NewProjectExtraInfoBuilder();
       }
 
       myTemplateValues.put(ATTR_ANDROIDX_SUPPORT, myUseAndroidx.get());
@@ -428,23 +438,6 @@ public class NewProjectModel extends WizardModel {
         Map<String, Object> renderTemplateValues = newModuleModel.getRenderTemplateValues().getValue();
         renderTemplateValues.putAll(myTemplateValues);
         newModuleModel.getTemplateValues().putAll(myTemplateValues);
-
-        if (shouldUseNewExtraProjectInfo) {
-          newProjectExtraInfoBuilder.fill(renderTemplateValues);
-        }
-      }
-
-      if (shouldUseNewExtraProjectInfo) {
-        newProjectExtraInfoBuilder.fill(params);
-      }
-
-      if (shouldUseNewExtraProjectInfo) {
-        try {
-          myNewProjectExtraInfo = newProjectExtraInfoBuilder.build();
-        }
-        catch (IllegalStateException e) {
-          getLogger().warn("Failed to build NewProjectExtraInfo", e);
-        }
       }
 
       Template projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
@@ -505,16 +498,15 @@ public class NewProjectModel extends WizardModel {
           }
         }
 
-        GradleProjectImporter.Request request = new GradleProjectImporter.Request();
+        GradleProjectImporter.Request request = new GradleProjectImporter.Request(project().getValue());
         request.isNewProject = true;
         request.javaLanguageLevel = initialLanguageLevel;
-        request.project = project().getValue();
-        request.extraInfo = myNewProjectExtraInfo;
 
         // The GradleSyncListener will take care of creating the Module top level module and opening Android Studio if gradle sync fails,
         // otherwise the project will be created but Android studio will not open - http://b.android.com/335265
-        projectImporter.importProject(applicationName().get(), rootLocation, request, new GradleSyncListener() {
-        });
+        Project newProject = projectImporter.importProjectNoSync(applicationName().get(), rootLocation, request);
+        GradleProjectInfo.getInstance(newProject).setSkipStartupActivity(true);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW);
       }
       catch (IOException e) {
         Messages.showErrorDialog(e.getMessage(), message("android.wizard.project.create.error"));

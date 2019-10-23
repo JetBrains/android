@@ -19,12 +19,11 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.ConfigurableDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.profiler.proto.CpuProfiler;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.android.tools.profiler.proto.Cpu;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CpuCapture implements ConfigurableDurationData {
 
@@ -39,21 +38,29 @@ public class CpuCapture implements ConfigurableDurationData {
   /**
    * ID of the trace used to generate the capture.
    */
-  private final int myTraceId;
+  private final long myTraceId;
 
   /**
    * Technology used to generate the capture.
    */
-  private final CpuProfiler.CpuProfilerType myType;
+  private final Cpu.CpuTraceType myType;
 
-  public CpuCapture(@NotNull TraceParser parser, int traceId, CpuProfiler.CpuProfilerType type) {
+  public CpuCapture(@NotNull TraceParser parser, long traceId, Cpu.CpuTraceType type) {
     myParser = parser;
     myTraceId = traceId;
     myType = type;
 
+    // Sometimes a capture may fail and return a file that is incomplete. This results in the parser not having any capture trees.
+    // If this happens then we don't have any thread info to determine which is the main thread
+    // so we throw an error and let the capture pipeline handle this and present a dialog to the user.
+    Map<CpuThreadInfo, CaptureNode> captureTrees = myParser.getCaptureTrees();
+    if (captureTrees.isEmpty()) {
+      throw new IllegalStateException("Trace file contained no CPU data.");
+    }
+
     // Try to find the main thread. If there is no actual main thread, we will fall back to the thread with the most information.
     Map.Entry<CpuThreadInfo, CaptureNode> main = null;
-    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myParser.getCaptureTrees().entrySet()) {
+    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : captureTrees.entrySet()) {
       if (entry.getKey().isMainThread()) {
         main = entry;
         break;
@@ -63,7 +70,7 @@ public class CpuCapture implements ConfigurableDurationData {
         main = entry;
       }
     }
-    assert main != null;
+
     myMainThreadId = main.getKey().getId();
 
     // Set clock type
@@ -110,7 +117,7 @@ public class CpuCapture implements ConfigurableDurationData {
     return false;
   }
 
-  public int getTraceId() {
+  public long getTraceId() {
     return myTraceId;
   }
 
@@ -145,7 +152,7 @@ public class CpuCapture implements ConfigurableDurationData {
     return myParser.supportsDualClock();
   }
 
-  public CpuProfiler.CpuProfilerType getType() {
+  public Cpu.CpuTraceType getType() {
     return myType;
   }
 }

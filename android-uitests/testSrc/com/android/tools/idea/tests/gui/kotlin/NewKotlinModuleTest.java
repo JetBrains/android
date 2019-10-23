@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.kotlin;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -31,7 +29,6 @@ import java.util.Locale;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner.class)
 public class NewKotlinModuleTest {
 
@@ -53,33 +50,16 @@ public class NewKotlinModuleTest {
   }
 
   private void createNewBasicProject(boolean hasKotlinSupport) {
-    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
-      guiTest
-        .welcomeFrame()
-        .createNewProject()
-        .clickNext()
-        .getConfigureNewAndroidProjectStep()
-        .enterName(APP_NAME)
-        .enterPackageName("android.com")
-        .setSourceLanguage(hasKotlinSupport ? "Kotlin" : "Java")
-        .wizard()
-        .clickFinish();
-    }
-    else {
-      guiTest
-        .welcomeFrame()
-        .createNewProject()
-        .getConfigureAndroidProjectStep()
-        .enterPackageName("android.com")
-        .enterApplicationName(APP_NAME)
-        .setCppSupport(false)
-        .setKotlinSupport(hasKotlinSupport) // Default "App name", "company domain" and "package name"
-        .wizard()
-        .clickNext()
-        .clickNext() // Skip "Select minimum SDK Api" step
-        .clickNext() // Skip "Add Activity" step
-        .clickFinish();
-    }
+    guiTest
+      .welcomeFrame()
+      .createNewProject()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .enterName(APP_NAME)
+      .enterPackageName("android.com")
+      .setSourceLanguage(hasKotlinSupport ? "Kotlin" : "Java")
+      .wizard()
+      .clickFinish();
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(30)); // Kotlin projects take longer to sync
 
@@ -93,21 +73,16 @@ public class NewKotlinModuleTest {
 
   private void addNewKotlinModule() {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
-    NewModuleWizardFixture newModuleWizardFixture = ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...");
 
-    newModuleWizardFixture
+    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Phone & Tablet Module")
       .clickNext() // Selected App
       .getConfigureAndroidModuleStep()
-      .enterModuleName(NEW_KOTLIN_MDULE_NAME);
-
-    newModuleWizardFixture
+      .enterModuleName(NEW_KOTLIN_MDULE_NAME)
+      .setSourceLanguage("Kotlin")
+      .wizard()
       .clickNext() // Default options
       .clickNext() // Default Activity
-      .getConfigureActivityStep()
-      .setSourceLanguage("Kotlin");
-
-    newModuleWizardFixture
       .clickFinish();
 
     ideFrame

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.intellij.openapi.ui.ValidationInfo
@@ -25,13 +26,16 @@ import javax.swing.JComponent
 
 const val ADD_LIBRARY_DEPENDENCY_DIALOG_TITLE = "Add Library Dependency"
 
-class AddLibraryDependencyDialog(module: PsModule) : AbstractAddDependenciesDialog(module) {
+class AddLibraryDependencyDialog(private val context: PsContext, module: PsModule) : AbstractAddDependenciesDialog(module) {
 
   private var libraryDependenciesForm: LibraryDependenciesForm? = null
 
   init {
     title = ADD_LIBRARY_DEPENDENCY_DIALOG_TITLE
+    init()
   }
+
+  override fun postponeValidation(): Boolean = true
 
   override fun addNewDependencies() {
     val library = libraryDependenciesForm!!.selectedLibrary
@@ -47,7 +51,7 @@ class AddLibraryDependencyDialog(module: PsModule) : AbstractAddDependenciesDial
 
   override fun getDependencySelectionView(): JComponent {
     if (libraryDependenciesForm == null) {
-      libraryDependenciesForm = LibraryDependenciesForm(module)
+      libraryDependenciesForm = LibraryDependenciesForm(context, module)
     }
     return libraryDependenciesForm!!.panel
   }
@@ -69,6 +73,10 @@ class AddLibraryDependencyDialog(module: PsModule) : AbstractAddDependenciesDial
   }
 
   override fun doValidate(): ValidationInfo? {
+    val selectedLibrary = libraryDependenciesForm!!.selectedLibrary
+    // Do not validate search query if a specifi library has been already selected.
+    if (selectedLibrary != ParsedValue.NotSet) return scopesPanel.validateInput()
+
     val searchErrors = libraryDependenciesForm!!.searchErrors
     if (!searchErrors.isEmpty()) {
       return ValidationInfo(buildString {
@@ -79,12 +87,11 @@ class AddLibraryDependencyDialog(module: PsModule) : AbstractAddDependenciesDial
       }, libraryDependenciesForm!!.preferredFocusedComponent)
     }
 
-    val selectedLibrary = libraryDependenciesForm!!.selectedLibrary
-    return if (selectedLibrary == ParsedValue.NotSet) {
-      ValidationInfo("Please specify the library to add as dependency", libraryDependenciesForm!!.preferredFocusedComponent)
-    }
-    else scopesPanel.validateInput()
+    return ValidationInfo("Please specify the library to add as dependency", libraryDependenciesForm!!.preferredFocusedComponent)
   }
+
+  override fun createDependencyScopesPanel(module: PsModule): AbstractDependencyScopesPanel =
+    DependencyScopePanel(module, PsModule.ImportantFor.LIBRARY)
 }
 
 private fun getErrorMessage(error: Exception): String =

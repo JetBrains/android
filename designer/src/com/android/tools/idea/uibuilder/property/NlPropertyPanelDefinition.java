@@ -31,6 +31,6 @@ public class NlPropertyPanelDefinition extends ToolWindowDefinition<DesignSurfac
     // TODO: Get a different 13x13 tool window icon
     super("Attributes", AllIcons.Toolwindows.ToolWindowStructure, "PROPERTIES", side, split, autoHide,
           PropertiesManager.MINIMUM_WIDTH, ToolWindowDefinition.DEFAULT_BUTTON_SIZE,
-          () -> new NlPropertiesManager(facet, null));
+          (disposable) -> new NlPropertiesManager(facet, null, disposable));
   }
 }

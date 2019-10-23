@@ -15,15 +15,15 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.FakeTracePreProcessor;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.TracePreProcessor;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.FakeCodeNavigator;
+import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
@@ -43,7 +45,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public static final String FAKE_ATRACE_NAME = "Atrace";
 
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
+  private final NativeFrameSymbolizer myFakeSymbolizer = (abi, nativeFrame) -> nativeFrame;
   private final CodeNavigator myFakeNavigationService = new FakeCodeNavigator(myFakeFeatureTracker);
+  private final TracePreProcessor myFakeTracePreProcessor = new FakeTracePreProcessor();
 
   /**
    * Callback to be run after the executor calls its execute() method.
@@ -64,6 +68,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myAtraceEnabled = false;
 
   /**
+   * Can toggle for tests via {@link #enablePerfetto(boolean)}, but each test starts with this defaulted to false. Enabling this flag
+   * assumes that {@link #myAtraceEnabled} is true.
+   */
+  private boolean myPerfettoEnabled = false;
+
+  /**
    * Toggle for including an energy profiler in our profiler view.
    */
   private boolean myEnergyProfilerEnabled = false;
@@ -82,6 +92,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    * Can toggle for tests via {@link #enableImportTrace(boolean)}, but each test starts with this defaulted to false.
    */
   private boolean myImportCpuTraceEnabled = false;
+
+  /**
+   * Can toggle for tests via {@link #enableSimpleperfHost(boolean)}, but each test starts with this defaulted to false.
+   */
+  private boolean mySimpleperfHostEnabled = false;
 
   /**
    * JNI references alloc/dealloc events are tracked and shown.
@@ -109,11 +124,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myShouldParseLongTraces = false;
 
   /**
-   * Toggle for faking sessions UI support in tests.
-   */
-  private boolean mySessionsViewEnabled = true;
-
-  /**
    * Toggle for faking session import support in tests.
    */
   private boolean mySessionsImportEnabled = true;
@@ -127,6 +137,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    * Can toggle for tests via {@link #enableCpuApiTracing(boolean)}, but each test starts with this defaulted to false.
    */
   private boolean myIsCpuApiTracingEnabled = false;
+
+  /**
+   * Whether the new pipeline is used or the old one for devices / processes / sessions.
+   */
+  private boolean myEventsPipelineEnabled = false;
 
   /**
    * Toggle for faking {@link FeatureConfig#isCpuNewRecordingWorkflowEnabled()} in tests.
@@ -187,6 +202,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @Override
   public void saveFile(@NotNull File file, @NotNull Consumer<FileOutputStream> fileOutputStreamConsumer, @Nullable Runnable postRunnable) {
+  }
+
+  @NotNull
+  @Override
+  public NativeFrameSymbolizer getNativeFrameSymbolizer() {
+    return myFakeSymbolizer;
   }
 
   @NotNull
@@ -279,6 +300,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isPerfettoEnabled() { return myPerfettoEnabled; }
+
+      @Override
       public boolean isPerformanceMonitoringEnabled() {
         return false;
       }
@@ -289,13 +313,18 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isSessionsEnabled() {
-        return mySessionsViewEnabled;
+      public boolean isSimpleperfHostEnabled() {
+        return mySimpleperfHostEnabled;
       }
 
       @Override
       public boolean isStartupCpuProfilingEnabled() {
         return myStartupCpuProfilingEnabled;
+      }
+
+      @Override
+      public boolean isUnifiedPipelineEnabled() {
+        return myEventsPipelineEnabled;
       }
     };
   }
@@ -333,6 +362,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     return null;
   }
 
+  @NotNull
+  @Override
+  public TracePreProcessor getSimpleperfTracePreProcessor() {
+    return myFakeTracePreProcessor;
+  }
+
   /**
    * Sets the listbox options return element index. If this is set to an index out of bounds null is returned.
    */
@@ -344,9 +379,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myShouldParseLongTraces = shouldParseLongTraces;
   }
 
-  public void addCustomProfilingConfiguration(String name, CpuProfiler.CpuProfilerType type) {
+  public void addCustomProfilingConfiguration(String name, Cpu.CpuTraceType type) {
     ProfilingConfiguration config =
-      new ProfilingConfiguration(name, type, CpuProfiler.CpuProfilerMode.UNSPECIFIED_MODE);
+      new ProfilingConfiguration(name, type, Cpu.CpuTraceMode.UNSPECIFIED_MODE);
     myCustomProfilingConfigurations.add(config);
   }
 
@@ -358,17 +393,17 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs() {
     ProfilingConfiguration artSampled = new ProfilingConfiguration(FAKE_ART_SAMPLED_NAME,
-                                                                   CpuProfiler.CpuProfilerType.ART,
-                                                                   CpuProfiler.CpuProfilerMode.SAMPLED);
+                                                                   Cpu.CpuTraceType.ART,
+                                                                   Cpu.CpuTraceMode.SAMPLED);
     ProfilingConfiguration artInstrumented = new ProfilingConfiguration(FAKE_ART_INSTRUMENTED_NAME,
-                                                                        CpuProfiler.CpuProfilerType.ART,
-                                                                        CpuProfiler.CpuProfilerMode.INSTRUMENTED);
+                                                                        Cpu.CpuTraceType.ART,
+                                                                        Cpu.CpuTraceMode.INSTRUMENTED);
     ProfilingConfiguration simpleperf = new ProfilingConfiguration(FAKE_SIMPLEPERF_NAME,
-                                                                   CpuProfiler.CpuProfilerType.SIMPLEPERF,
-                                                                   CpuProfiler.CpuProfilerMode.SAMPLED);
+                                                                   Cpu.CpuTraceType.SIMPLEPERF,
+                                                                   Cpu.CpuTraceMode.SAMPLED);
     ProfilingConfiguration atrace = new ProfilingConfiguration(FAKE_ATRACE_NAME,
-                                                               CpuProfiler.CpuProfilerType.ATRACE,
-                                                               CpuProfiler.CpuProfilerMode.SAMPLED);
+                                                               Cpu.CpuTraceType.ATRACE,
+                                                               Cpu.CpuTraceMode.SAMPLED);
     return ImmutableList.of(artSampled, artInstrumented, simpleperf, atrace);
   }
 
@@ -408,6 +443,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myAtraceEnabled = enabled;
   }
 
+  public void enablePerfetto(boolean enabled) {
+    myPerfettoEnabled = enabled;
+  }
+
   public void enableEnergyProfiler(boolean enabled) {
     myEnergyProfilerEnabled = enabled;
   }
@@ -420,10 +459,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableLiveAllocationTracking(boolean enabled) {
     myLiveTrackingEnabled = enabled;
-  }
-
-  public void enableSessionsView(boolean enabled) {
-    mySessionsViewEnabled = enabled;
   }
 
   public void enableStartupCpuProfiling(boolean enabled) {
@@ -440,6 +475,14 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableImportTrace(boolean enabled) {
     myImportCpuTraceEnabled = enabled;
+  }
+
+  public void enableSimpleperfHost(boolean enabled) {
+    mySimpleperfHostEnabled = enabled;
+  }
+
+  public void enableEventsPipeline(boolean enabled) {
+    myEventsPipelineEnabled = enabled;
   }
 
   public void enableCpuNewRecordingWorkflow(boolean enabled) {

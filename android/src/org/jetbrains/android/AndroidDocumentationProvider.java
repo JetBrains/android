@@ -181,7 +181,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
 
   @VisibleForTesting
   static class MyDocExternalFilter extends JavaDocExternalFilter {
-    MyDocExternalFilter(Project project) {
+    public MyDocExternalFilter(Project project) {
       super(project);
     }
 

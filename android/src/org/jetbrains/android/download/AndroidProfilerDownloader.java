@@ -1,9 +1,11 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.download;
 
 import com.android.tools.idea.IdeInfo;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
@@ -24,17 +26,18 @@ import java.util.List;
 public class AndroidProfilerDownloader {
 
   private static final Logger LOG = Logger.getInstance(AndroidProfilerDownloader.class);
-  private static final String VERSION = "3.3.0";
+  private static final String VERSION = "26.5.0.1";
 
   public static boolean makeSureProfilerIsInPlace() {
+    if (ApplicationManager.getApplication() == null) return false; // to support regular junit tests with no Application initialized
     if (IdeInfo.getInstance().isAndroidStudio()) return true;
     File pluginDir = getPluginDir();
     if (pluginDir.exists()) return true;
 
     DownloadableFileService service = DownloadableFileService.getInstance();
-    String fileName = "android-profiler-" + VERSION + ".zip";
+    String fileName = "android-plugin-resources-" + VERSION + ".zip";
     DownloadableFileDescription
-      description = service.createFileDescription("https://download.jetbrains.com/idea/android-profiler/" + VERSION + "/" + fileName, fileName);
+      description = service.createFileDescription("https://repo.labs.intellij.net/intellij-third-party-dependencies/org/jetbrains/intellij/deps/android/tools/android-plugin-resources/" + VERSION + "/" + fileName, fileName);
     FileDownloader downloader = service.createDownloader(Collections.singletonList(description), "Download Android Profiler");
     try {
       Path tempDir = Files.createTempDirectory("android-profiler-download");

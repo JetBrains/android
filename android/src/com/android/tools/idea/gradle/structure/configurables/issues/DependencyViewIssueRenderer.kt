@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.issues
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsPath
+import com.android.tools.idea.gradle.structure.model.getHyperlinkDestination
 import com.android.tools.idea.gradle.structure.model.parents
 import com.intellij.openapi.util.text.StringUtil
 
@@ -29,13 +30,14 @@ class DependencyViewIssueRenderer(
   override fun renderIssue(buffer: StringBuilder, issue: PsIssue, scope: PsPath?) {
     (issue.path.parents + issue.path).asReversed().takeWhile { it != scope }.asReversed().forEach { parentPath ->
       val parentPathHref = parentPath.getHyperlinkDestination(context)
-      val parentPathText = parentPath.toString().makeTextWrappable()
-      buffer.append("<a href=\"$parentPathHref\">$parentPathText</a>: ")
+      if (parentPathHref != null) {
+        val parentPathText = parentPath.toString().makeTextWrappable()
+        buffer.append("<a href=\"$parentPathHref\">$parentPathText</a>: ")
+      }
     }
     buffer.append(issue.text)
-    val quickFixPath = issue.quickFix
-    if (quickFixPath != null) {
-      buffer.append(" ").append(quickFixPath.getHtml(context))
+    issue.quickFixes.forEach { quickFix ->
+      buffer.append(" <a href='${quickFix.getHyperlinkDestination()}'>[${quickFix.text}]</a>")
     }
     if (renderDescription) {
       val description = issue.description

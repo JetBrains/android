@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+import static com.google.common.base.Strings.nullToEmpty;
+
 import com.android.repository.Revision;
 import com.android.repository.io.FileOpUtils;
 import com.android.resources.Density;
@@ -24,9 +27,25 @@ import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.Storage;
-import com.android.sdklib.internal.avd.*;
+import com.android.sdklib.internal.avd.AvdCamera;
+import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.AvdNetworkLatency;
+import com.android.sdklib.internal.avd.AvdNetworkSpeed;
+import com.android.sdklib.internal.avd.EmulatedProperties;
+import com.android.sdklib.internal.avd.GpuMode;
+import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.android.tools.idea.observable.core.ObservableObject;
+import com.android.tools.idea.observable.core.ObservableString;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.wizard.model.WizardModel;
@@ -42,18 +61,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
-import static com.google.common.base.Strings.nullToEmpty;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link WizardModel} containing useful configuration settings for defining an AVD image.
@@ -156,7 +171,7 @@ public final class AvdOptionsModel extends WizardModel {
     else {
       updateValuesFromHardwareProperties();
     }
-    myDevice.addListener(sender -> {
+    myDevice.addListener(() -> {
       if (myDevice.get().isPresent()) {
         myAvdDeviceData.updateValuesFromDevice(myDevice.getValue(), mySystemImage.getValueOrNull());
 
@@ -169,7 +184,7 @@ public final class AvdOptionsModel extends WizardModel {
         myVmHeapStorage.set(vmHeapSize);
       }
     });
-    mySystemImage.addListener(sender -> {
+    mySystemImage.addListener(() -> {
       if (myDevice.get().isPresent()) {
         myAvdDeviceData.updateSkinFromDeviceAndSystemImage(myDevice.getValue(), mySystemImage.getValueOrNull());
       }
@@ -211,7 +226,7 @@ public final class AvdOptionsModel extends WizardModel {
    * corresponding size.
    */
   @Nullable
-  private static Storage getStorageFromIni(@Nullable String iniString) {
+  private static Storage getStorageFromIni(@Nullable String iniString, boolean isInternalStorage) {
     if (iniString == null) {
       return null;
     }
@@ -225,7 +240,7 @@ public final class AvdOptionsModel extends WizardModel {
       }
     }
     if (selectedUnit == null) {
-      selectedUnit = Storage.Unit.MiB; // Values expressed without a unit read as MB
+      selectedUnit = isInternalStorage ? Storage.Unit.B : Storage.Unit.MiB; // Values expressed without a unit read as B for internal storage
       numString = iniString;
     }
     try {
@@ -261,7 +276,7 @@ public final class AvdOptionsModel extends WizardModel {
   public static String toIniString(@NotNull Storage storage, boolean convertToMb) {
     Storage.Unit unit = convertToMb ? Storage.Unit.MiB : storage.getAppropriateUnits();
     String unitString = convertToMb ? "" : unit.toString().substring(0, 1);
-    return String.format("%1$d%2$s", storage.getSizeAsUnit(unit), unitString);
+    return String.format(Locale.US, "%1$d%2$s", storage.getSizeAsUnit(unit), unitString);
   }
 
   /**
@@ -472,15 +487,15 @@ public final class AvdOptionsModel extends WizardModel {
     String cpuCoreCount = properties.get(AvdWizardUtils.CPU_CORES_KEY);
     myCpuCoreCount.setValue(cpuCoreCount==null ? 1 : Integer.parseInt(cpuCoreCount));
 
-    Storage storage = getStorageFromIni(properties.get(AvdWizardUtils.RAM_STORAGE_KEY));
+    Storage storage = getStorageFromIni(properties.get(AvdWizardUtils.RAM_STORAGE_KEY), false);
     if (storage != null) {
       myAvdDeviceData.ramStorage().set(storage);
     }
-    storage = getStorageFromIni(properties.get(AvdWizardUtils.VM_HEAP_STORAGE_KEY));
+    storage = getStorageFromIni(properties.get(AvdWizardUtils.VM_HEAP_STORAGE_KEY), false);
     if (storage != null) {
       myVmHeapStorage.set(storage);
     }
-    storage = getStorageFromIni(properties.get(AvdWizardUtils.INTERNAL_STORAGE_KEY));
+    storage = getStorageFromIni(properties.get(AvdWizardUtils.INTERNAL_STORAGE_KEY), true);
     if (storage != null) {
       myInternalStorage.set(storage);
     }
@@ -564,11 +579,11 @@ public final class AvdOptionsModel extends WizardModel {
    */
   private void updateValuesFromHardwareProperties() {
     AvdManagerConnection conn = AvdManagerConnection.getDefaultAvdManagerConnection();
-    Storage storage = getStorageFromIni(conn.getSdCardSizeFromHardwareProperties());
+    Storage storage = getStorageFromIni(conn.getSdCardSizeFromHardwareProperties(), false);
     if (storage != null) {
       mySdCardStorage.setValue(storage);
     }
-    storage = getStorageFromIni(conn.getInternalStorageSizeFromHardwareProperties());
+    storage = getStorageFromIni(conn.getInternalStorageSizeFromHardwareProperties(), true);
     // TODO (b/65811265) Currently, internal storage size in hardware-properties.ini is defaulted
     // to 0. In this case, We will skip this default value. When the hardware-properties.ini is
     // updated, we will delete the redundant value check.

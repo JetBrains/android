@@ -16,37 +16,38 @@
 package com.android.tools.idea.common.scene.draw;
 
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
-
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.Stroke;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Draw the frame of a SceneComponent
  */
 public class DrawNlComponentFrame extends DrawRegion {
-  public static final int SUBDUED = 0;
-  public static final int NORMAL = 1;
-  public static final int OVER = 2;
-  public static final int SELECTED = 3;
 
-  static Stroke myNormalStroke = new BasicStroke(1);
-  static Stroke myProblemStroke = new BasicStroke(2);
-  static Stroke myWrapStroke =  new BasicStroke(1);
-  static Stroke myMatchParentStroke = new BasicStroke(1);
-  static Stroke myDragReceiverStroke = new BasicStroke(3);
-  static Stroke myMatchConstraintStroke = new FancyStroke(FancyStroke.Type.SPRING, 2, 2, 1);
+  private static final Stroke myNormalStroke = new BasicStroke(1);
+  private static final Stroke myWrapStroke =  new BasicStroke(1);
+  private static final Stroke myMatchParentStroke = new BasicStroke(1);
+  private static final Stroke myDragReceiverStroke = new BasicStroke(3);
+  private static final Stroke myMatchConstraintStroke = new BasicStroke(1);
 
-  int myMode;
-  int myLayoutWidth;
-  int myLayoutHeight;
-  int myLevel = COMPONENT_LEVEL;
+  @NotNull private SceneComponent.DrawState myMode;
+  private int myLayoutWidth;
+  private int myLayoutHeight;
+  private int myLevel = COMPONENT_LEVEL;
 
   public DrawNlComponentFrame(String s) {
     String[] sp = s.split(",");
     int c = 0;
     c = super.parse(sp, c);
-    myMode = Integer.parseInt(sp[c++]);
+    myMode = SceneComponent.DrawState.values()[Integer.parseInt(sp[c++])];
     myLayoutWidth = Integer.parseInt(sp[c++]);
     myLayoutHeight = Integer.parseInt(sp[c++]);
   }
@@ -57,22 +58,80 @@ public class DrawNlComponentFrame extends DrawRegion {
   }
 
   public DrawNlComponentFrame(@AndroidDpCoordinate int x,
-                            @AndroidDpCoordinate int y,
-                            @AndroidDpCoordinate int width,
-                            @AndroidDpCoordinate int height,
-                            int mode,
-                            int layout_width,
-                            int layout_height) {
+                              @AndroidDpCoordinate int y,
+                              @AndroidDpCoordinate int width,
+                              @AndroidDpCoordinate int height,
+                              @NotNull SceneComponent.DrawState mode,
+                              int layout_width,
+                              int layout_height) {
     super(x, y, width, height);
     myMode = mode;
     myLayoutWidth = layout_width;
     myLayoutHeight = layout_height;
-    if (mode == SELECTED) {
+    if (mode == SceneComponent.DrawState.SELECTED) {
       myLevel = COMPONENT_SELECTED_LEVEL;
     }
   }
 
-  private Stroke getStroke(int dim) {
+  @Override
+  public void paint(Graphics2D g, SceneContext sceneContext) {
+    ColorSet colorSet = sceneContext.getColorSet();
+    Stroke previousStroke = g.getStroke();
+    Color previousColor = g.getColor();
+
+    g.setStroke(myNormalStroke);
+    g.setColor(getFrameColor(colorSet, myMode));
+
+    if (myMode == SceneComponent.DrawState.DRAG) {
+      g.setStroke(myDragReceiverStroke);
+      g.drawRect(x, y, width, height);
+    }
+    else {
+      Shape clipping = g.getClip();
+      if (clipping != null && !clipping.contains(x, y, x + width, x + height)) {
+        // Draw dot line
+        g.setClip(sceneContext.getRenderableBounds());
+        g.setStroke(ColorSet.sDashedStroke);
+        g.drawLine(x, y, x, y + height);
+        g.drawLine(x + width, y, x + width, y + height);
+        g.drawLine(x, y, x + width, y);
+        g.drawLine(x, y + height, x + width, y + height);
+        g.setClip(clipping);
+      }
+
+      g.setStroke(getStroke(myLayoutHeight));
+      g.drawLine(x, y, x, y + height);
+      g.drawLine(x + width, y, x + width, y + height);
+      g.setStroke(getStroke(myLayoutWidth));
+      g.drawLine(x, y, x + width, y);
+      g.drawLine(x, y + height, x + width, y + height);
+    }
+
+    g.setColor(previousColor);
+    g.setStroke(previousStroke);
+  }
+
+  @NotNull
+  private static Color getFrameColor(@NotNull ColorSet colorSet, @NotNull SceneComponent.DrawState mode) {
+    switch (mode) {
+      case SUBDUED:
+        return colorSet.getSubduedFrames();
+      case NORMAL:
+        return colorSet.getFrames();
+      case HOVER:
+        return colorSet.getHighlightedFrames();
+      case SELECTED:
+        return colorSet.getSelectedFrames();
+      case DRAG:
+        return colorSet.getDragReceiverFrames();
+      default:
+        // Should not happen.
+        return colorSet.getFrames();
+    }
+  }
+
+  @NotNull
+  private static Stroke getStroke(int dim) {
     if (dim == 0) {
       return myMatchConstraintStroke;
     }
@@ -86,42 +145,14 @@ public class DrawNlComponentFrame extends DrawRegion {
   }
 
   @Override
-  public void paint(Graphics2D g, SceneContext sceneContext) {
-    ColorSet colorSet = sceneContext.getColorSet();
-    Color[] colorFrame = {colorSet.getSubduedFrames(), colorSet.getFrames(), colorSet.getHighlightedFrames(), colorSet.getSelectedFrames(), colorSet.getDragReceiverFrames()};
-    Stroke previousStroke = g.getStroke();
-    g.setStroke(myNormalStroke);
-    g.setColor(colorFrame[myMode]);
-    if (myLayoutWidth == myLayoutHeight || myMode == 4) {
-      if (myMode == 4) {
-        g.setStroke(myDragReceiverStroke);
-      } else {
-        g.setStroke(getStroke(myLayoutWidth));
-      }
-      g.drawRect(x, y, width, height);
-    }
-    else {
-      g.setColor(colorFrame[myMode]);
-      g.setStroke(getStroke(myLayoutHeight));
-      g.drawLine(x, y, x, y + height);
-      g.drawLine(x + width, y, x + width, y + height);
-      g.setColor(colorFrame[myMode]);
-      g.setStroke(getStroke(myLayoutWidth));
-      g.drawLine(x, y, x + width, y);
-      g.drawLine(x, y + height, x + width, y + height);
-    }
-    g.setStroke(previousStroke);
-  }
-
-  @Override
   public String serialize() {
-    return super.serialize() + "," + myMode+ "," + myLayoutHeight+ "," + myLayoutHeight;
+    return super.serialize() + "," + myMode.ordinal() + "," + myLayoutHeight+ "," + myLayoutHeight;
   }
 
   public static void add(DisplayList list,
                          SceneContext sceneContext,
                          @AndroidDpCoordinate Rectangle rect,
-                         int mode,
+                         @NotNull SceneComponent.DrawState mode,
                          int layout_width,
                          int layout_height) {
     int l = sceneContext.getSwingXDip(rect.x);

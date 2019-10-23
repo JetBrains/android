@@ -16,9 +16,14 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.structure.model.PsChildModel
+import com.android.tools.idea.gradle.structure.model.PsPath
+import com.android.tools.idea.gradle.structure.navigation.PsFlavorDimensionNavigationPath
+import icons.StudioIcons.Misc.PRODUCT_FLAVOR_DIMENSION
+import javax.swing.Icon
 
 class PsFlavorDimension(
-  override val parent: PsAndroidModule
+  override val parent: PsAndroidModule,
+  val isInvalid: Boolean = false
 ) : PsChildModel() {
   var parsedName: String? = null
 
@@ -26,8 +31,8 @@ class PsFlavorDimension(
     this.parsedName = parsedName
   }
 
-  override val name get() = parsedName.orEmpty()
-
+  override val name get() = if (isInvalid) "(invalid)" else parsedName.orEmpty()
+  override val path: PsFlavorDimensionNavigationPath get() = PsFlavorDimensionNavigationPath(parent.path.productFlavorsPath, name)
   override val isDeclared: Boolean get() = parsedName != null
-
+  override val icon: Icon = PRODUCT_FLAVOR_DIMENSION
 }

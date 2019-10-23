@@ -32,7 +32,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ThreeState;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -110,6 +110,8 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
         return SystemImage.WEAR_TAG.equals(myAvdInfo.getTag());
       case TV:
         return SystemImage.TV_TAG.equals(myAvdInfo.getTag());
+      case AUTOMOTIVE:
+        return SystemImage.AUTOMOTIVE_TAG.equals(myAvdInfo.getTag());
       default:
         return true;
     }
@@ -123,7 +125,7 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
 
   @Override
   public boolean renderLabel(@NotNull SimpleColoredComponent component, boolean isCompatible, @Nullable String searchPrefix) {
-    component.setIcon(AndroidIcons.Ddms.EmulatorDevice);
+    component.setIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
     SimpleTextAttributes attr = isCompatible ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAY_ATTRIBUTES;
     SearchUtil.appendFragments(searchPrefix, getName(), attr.getStyle(), attr.getFgColor(), attr.getBgColor(), component);
     return true;
@@ -136,9 +138,15 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   @Override
   @NotNull
   public ListenableFuture<IDevice> launch(@NotNull Project project) {
+    return launch(project, null);
+  }
+
+  @Override
+  @NotNull
+  public ListenableFuture<IDevice> launch(@NotNull Project project, @Nullable String snapshot) {
     synchronized (myLock) {
       if (myLaunchedEmulator == null) {
-        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myAvdInfo);
+        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myAvdInfo, snapshot);
       }
       return myLaunchedEmulator;
     }

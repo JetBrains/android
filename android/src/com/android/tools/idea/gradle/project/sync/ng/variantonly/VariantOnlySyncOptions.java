@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng.variantonly;
 
-import com.android.tools.layoutlib.annotations.Nullable;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class VariantOnlySyncOptions implements Serializable {
   @NotNull public final File myBuildId;

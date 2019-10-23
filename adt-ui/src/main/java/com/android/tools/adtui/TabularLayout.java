@@ -424,7 +424,7 @@ public final class TabularLayout implements LayoutManager2 {
      *                 have an index even greater than that, then {@code numRules} will be updated
      *                 to contain it.
      */
-    SizeCalculator(Map<Integer, SizingRule> sparseRules, int numRules, int gap) {
+    public SizeCalculator(Map<Integer, SizingRule> sparseRules, int numRules, int gap) {
       this(fromSparseRules(sparseRules, numRules), gap);
     }
 
@@ -453,7 +453,7 @@ public final class TabularLayout implements LayoutManager2 {
      * to fill it out with real values, and then call {@link #getBounds(int, int)} to pull out the
      * final sizing values.
      */
-    SizeCalculator(List<SizingRule> rules, int gap) {
+    public SizeCalculator(List<SizingRule> rules, int gap) {
       myRules = rules;
       myGap = gap;
       mySizes = Stream.generate(() -> 0).limit(rules.size()).collect(Collectors.toList());
@@ -609,7 +609,7 @@ public final class TabularLayout implements LayoutManager2 {
     public final SizeCalculator rowCalculator;
     public final SizeCalculator colCalculator;
 
-    LayoutResult(Container container) {
+    public LayoutResult(Container container) {
       List<Component> components = new ArrayList<>();
 
       int numRows = 0;

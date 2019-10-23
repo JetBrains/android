@@ -94,13 +94,13 @@ public class ThemeEditorTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void themeEditor() throws Exception {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     themeEditor.chooseTheme("Theme.AppCompat.NoActionBar")
       .chooseApiLevel("API 25", "25")
-      .chooseDevice("Nexus 5", "Nexus 5")
+      .chooseDevice("Nexus 5X", "Nexus 5X")
       .switchOrientation("Landscape")
       .switchOrientation("Portrait")
       .createNewTheme("NewTheme", "Theme.AppCompat.NoActionBar");

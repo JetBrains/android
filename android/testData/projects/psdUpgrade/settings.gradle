@@ -1,0 +1,1 @@
+include ':app', ':instantApp', ':obsoleteScopesLibrary', ':obsoleteScopesTest', ':obsoleteScopesJava', ':obsoleteScopesFeature'

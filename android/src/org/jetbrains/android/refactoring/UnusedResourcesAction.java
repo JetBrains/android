@@ -49,7 +49,7 @@ public class UnusedResourcesAction extends BaseRefactoringAction {
   }
 
   @Override
-  protected boolean isEnabledOnDataContext(DataContext dataContext) {
+  protected boolean isEnabledOnDataContext(@NotNull DataContext dataContext) {
     return true;
   }
 

@@ -43,11 +43,13 @@ public class RoomColumnDefinitionNameImpl extends AbstractRoomNameElement implem
     else super.accept(visitor);
   }
 
+  @Override
   @NotNull
   public String getName() {
     return PsiImplUtil.getName(this);
   }
 
+  @Override
   @NotNull
   public RoomColumnDefinitionName setName(@NotNull String newName) {
     return PsiImplUtil.setName(this, newName);

@@ -42,7 +42,7 @@ public class SyncExecutorTest extends JavaProjectTestCase {
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    myExtraGradleSyncModelsManager = new ExtraGradleSyncModelsManager(new ArrayList<>());
+    myExtraGradleSyncModelsManager = new ExtraGradleSyncModelsManager(new ArrayList<>(), new ArrayList<>());
     mySyncExecutor = new SyncExecutor(myProject, myExtraGradleSyncModelsManager, myCommandLineArgs, mySyncErrorHandlerManager,
                                       mySelectedVariantCollector);
 
@@ -82,8 +82,8 @@ public class SyncExecutorTest extends JavaProjectTestCase {
     assertNull(options.getSelectedVariants());
   }
 
-  public void testCompoundSyncShouldBeDisabledByDefault() {
-    assertFalse(StudioFlags.COMPOUND_SYNC_ENABLED.get());
+  public void testCompoundSyncShouldBeEnabledByDefault() {
+    assertTrue(StudioFlags.COMPOUND_SYNC_ENABLED.get());
   }
 
   public void testCreateSyncActionWithCompoundSync() {

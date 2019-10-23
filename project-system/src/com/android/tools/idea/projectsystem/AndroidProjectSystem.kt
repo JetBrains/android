@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.projectsystem
 
-import com.intellij.openapi.extensions.ProjectExtensionPointName
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -59,15 +59,6 @@ interface AndroidProjectSystem {
   fun getModuleSystem(module: Module): AndroidModuleSystem
 
   /**
-   * Attempts to upgrade the project to support instant run. If the project already supported
-   * instant run, this will report failure without modifying the project.
-   * <p>
-   * Returns true iff the upgrade was successful. Callers must sync the
-   * project via [ProjectSystemSyncManager] after calling this method if it returns true.
-   */
-  fun upgradeProjectToSupportInstantRun(): Boolean
-
-  /**
    * Merge new dependencies into a (potentially existing) build file. Build files are build-system-specific
    * text files describing the steps for building a single android application or library.
    *
@@ -101,17 +92,12 @@ interface AndroidProjectSystem {
   fun getPsiElementFinders(): Collection<PsiElementFinder>
 
   /**
-   * Whether R classes found in the PSI should additionally be augmented to reflect current state of resources.
-   */
-  fun getAugmentRClasses(): Boolean
-
-  /**
    * [LightResourceClassService] instance used by this project system (if used at all).
    */
   fun getLightResourceClassService(): LightResourceClassService
 }
 
-val EP_NAME = ProjectExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
+val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
 
 /**
  * Returns the instance of {@link AndroidProjectSystem} that applies to the given {@link Project}.

@@ -30,6 +30,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
+import java.lang.ref.WeakReference;
 import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintUtil;
@@ -38,16 +39,27 @@ import org.jetbrains.android.inspections.lint.State;
 import org.jetbrains.annotations.NotNull;
 
 public class LintHighlightingPass implements HighlightingPass {
-  private final DesignSurface mySurface;
+  private final WeakReference<DesignSurface> mySurfaceRef;
   private LintAnnotationsModel myLintAnnotationsModel;
 
+  /**
+   * @param surface the surface to add the lint annotations to. This class will keep a {@link WeakReference} to the
+   *                surface so it won't stop it from being disposed.
+   */
   public LintHighlightingPass(@NotNull DesignSurface surface) {
-    mySurface = surface;
+    mySurfaceRef = new WeakReference<>(surface);
   }
 
   @Override
   public void collectInformation(@NotNull ProgressIndicator progress) {
-    SceneView sceneView = mySurface.getCurrentSceneView();
+    myLintAnnotationsModel = null;
+    DesignSurface surface = mySurfaceRef.get();
+    if (surface == null) {
+      // The surface is gone, no need to keep going
+      return;
+    }
+
+    SceneView sceneView = surface.getCurrentSceneView();
     if (sceneView == null) {
       return;
     }
@@ -57,13 +69,19 @@ public class LintHighlightingPass implements HighlightingPass {
 
   @Override
   public void applyInformationToEditor() {
-    SceneView sceneView = mySurface.getCurrentSceneView();
+    DesignSurface surface = mySurfaceRef.get();
+    if (surface == null) {
+      // The surface is gone, no need to keep going
+      return;
+    }
+
+    SceneView sceneView = surface.getCurrentSceneView();
     if (sceneView == null || myLintAnnotationsModel == null) {
       return;
     }
 
     sceneView.getModel().setLintAnnotationsModel(myLintAnnotationsModel);
-    mySurface.setLintAnnotationsModel(myLintAnnotationsModel);
+    surface.setLintAnnotationsModel(myLintAnnotationsModel);
     // Ensure that the layers are repainted to reflect the latest model
     // (updating the lint annotations associated with a model doesn't actually rev the model
     // version.)
@@ -79,7 +97,7 @@ public class LintHighlightingPass implements HighlightingPass {
 
     AndroidLintExternalAnnotator annotator = new AndroidLintExternalAnnotator();
     State state = annotator.collectInformation(xmlFile);
-// TODO: Separate analytics mode here?
+    // TODO: Separate analytics mode here?
     if (state != null) {
       state = annotator.doAnnotate(state);
     }

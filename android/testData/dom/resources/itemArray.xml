@@ -1,0 +1,5 @@
+<resources>
+  <item name="names" type="array">
+    <item>foo</item>
+  </item>
+</resources>

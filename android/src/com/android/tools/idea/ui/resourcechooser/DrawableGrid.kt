@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.resourcechooser
 
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.tools.idea.concurrent.EdtExecutor
-import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
+import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager
 import com.google.common.cache.CacheBuilder
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtil
@@ -25,9 +25,21 @@ import com.intellij.ui.JBColor
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.*
+import java.awt.AlphaComposite
+import java.awt.Color
+import java.awt.Component
+import java.awt.Dimension
+import java.awt.Graphics
+import java.awt.Graphics2D
 import java.io.File
-import javax.swing.*
+import java.util.function.BiConsumer
+import javax.swing.BorderFactory
+import javax.swing.Icon
+import javax.swing.ImageIcon
+import javax.swing.JLabel
+import javax.swing.JList
+import javax.swing.ListCellRenderer
+import javax.swing.ListModel
 
 
 private const val ITEM_BORDER_WIDTH = 4
@@ -124,22 +136,22 @@ internal class DrawableCellRenderer(private val module: Module,
 
     val file = VfsUtil.findFileByIoFile(File(value.value), true) ?: return label
 
-    val image = DesignAssetRendererManager.getInstance()
+    DesignAssetRendererManager.getInstance()
       .getViewer(file)
       .getImage(file, module, imageDimension)
+      .whenCompleteAsync(BiConsumer { image, ex ->
+        if (ex == null) {
+          cache.put(value, ImageIcon(image))
+          val cellBounds = list.getCellBounds(index, index)
+          if (cellBounds != null) {
+            list.repaint(cellBounds)
+          }
+          else {
+            list.repaint()
+          }
+        }
+      }, EdtExecutor.INSTANCE)
 
-    image.addListener(Runnable {
-      if (!image.isCancelled) {
-        cache.put(value, ImageIcon(image.get()))
-        val cellBounds = list.getCellBounds(index, index)
-        if (cellBounds != null) {
-          list.repaint(cellBounds)
-        }
-        else {
-          list.repaint()
-        }
-      }
-    }, EdtExecutor.INSTANCE)
     return label
   }
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.assetstudio;
 
 import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.ColorPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
@@ -24,6 +25,10 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.ColorPanel;
+import com.intellij.ui.components.fields.ExtendableTextField;
+import javax.swing.text.JTextComponent;
+import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JRadioButtonFixture;
 import org.fest.swing.fixture.JSliderFixture;
@@ -71,21 +76,11 @@ public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioW
   }
 
   @NotNull
-  public AssetStudioWizardFixture enableOverrideDefaultSize() {
-    String title = "Override";
-    JCheckBox box = GuiTests.waitUntilShowing(robot(), target(), Matchers.byText(JCheckBox.class, title));
-    robot().click(box);
-    Wait.seconds(1).expecting("button " + title + " to be enabled").until(() -> box.isEnabled());
-    return this;
-  }
-
-  @NotNull
-  public AssetStudioWizardFixture setSize(int width, int height) {
+  public AssetStudioWizardFixture setWidth(int width) {
     Collection<JFormattedTextField> all =
       robot().finder().findAll(target(), Matchers.byType(JFormattedTextField.class).andIsShowing().andIsEnabled());
     assertThat(all).hasSize(2);
     new JTextComponentFixture(robot(), Iterables.get(all, 0)).setText(Integer.toString(width));
-    new JTextComponentFixture(robot(), Iterables.get(all, 1)).setText(Integer.toString(height));
     return this;
   }
 
@@ -100,9 +95,15 @@ public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioW
   public AssetStudioWizardFixture switchToLocalFile() {
     JRadioButton radioButton =
       GuiTests.waitUntilShowingAndEnabled(robot(), target(), Matchers.byText(JRadioButton.class, "Local file (SVG, PSD)"));
-    JRadioButtonFixture fixture = new JRadioButtonFixture(robot(), radioButton);
-    if (!radioButton.isSelected())
-      fixture.select();
+    new JRadioButtonFixture(robot(), radioButton).select();
+    return this;
+  }
+
+  @NotNull
+  public AssetStudioWizardFixture switchToClipArt() {
+    JRadioButton radioButton =
+      GuiTests.waitUntilShowingAndEnabled(robot(), target(), Matchers.byText(JRadioButton.class, "Clip Art"));
+    new JRadioButtonFixture(robot(), radioButton).select();
     return this;
   }
 
@@ -120,9 +121,29 @@ public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioW
   }
 
   @NotNull
+  public AssetStudioWizardFixture useLocalFile(@NotNull String localFilePath) {
+    switchToLocalFile();
+
+    ExtendableTextField extendableTextField = GuiTests.waitUntilShowingAndEnabled(robot(), target(), Matchers.byType(ExtendableTextField.class));
+    JTextComponent jTextComponent = robot().finder().find(extendableTextField, JTextComponentMatcher.any());
+    new JTextComponentFixture(robot(), jTextComponent).selectAll().enterText(localFilePath);
+
+    return this;
+  }
+
+  @NotNull
   public AssetStudioWizardFixture setName(@NotNull String name) {
     JTextField field =  robot().finder().findByLabel(target(), "Name:", JTextField.class);
     new JTextComponentFixture(robot(), field).setText(name);
+    return this;
+  }
+
+  @NotNull
+  public AssetStudioWizardFixture setColor(@NotNull String hexColor) {
+    new ColorPanelFixture(robot(), GuiTests.waitUntilShowing(robot(), target(), Matchers.byType(ColorPanel.class))).click();
+    ColorPickerDialogFixture.find(robot())
+      .setHexColor(hexColor)
+      .clickChoose();
     return this;
   }
 

@@ -182,7 +182,7 @@ public final class StringResourceTable extends FrozenColumnTable {
   }
 
   static class ThreeStateTableRowSorter<M extends TableModel> extends TableRowSorter<M> {
-    ThreeStateTableRowSorter(M model) {
+    public ThreeStateTableRowSorter(M model) {
       super(model);
     }
 

@@ -22,25 +22,34 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.datastore.DataStoreDatabase
 import com.android.tools.datastore.DataStoreService
-import com.android.tools.datastore.DeviceId
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.poller.PollRunner
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.WindowDeviationAnalyzer
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profilers.*
-import com.android.tools.profilers.cpu.CpuThreadCountDataSeries
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.CpuUsage
 import com.android.tools.profilers.cpu.CpuUsageDataSeries
 import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.cpu.ThreadStateDataSeries
+import com.android.tools.profilers.cpu.LegacyCpuThreadCountDataSeries
+import com.android.tools.profilers.cpu.LegacyCpuThreadStateDataSeries
 import com.android.tools.profilers.energy.EnergyDuration
 import com.android.tools.profilers.energy.EnergyEventsDataSeries
 import com.android.tools.profilers.energy.EnergyUsageDataSeries
 import com.android.tools.profilers.energy.MergedEnergyEventsDataSeries
 import com.android.tools.profilers.event.LifecycleEventDataSeries
 import com.android.tools.profilers.event.UserEventDataSeries
-import com.android.tools.profilers.memory.*
+import com.android.tools.profilers.memory.AllocStatsDataSeries
+import com.android.tools.profilers.memory.FakeMemoryService
+import com.android.tools.profilers.memory.GcStatsDataSeries
+import com.android.tools.profilers.memory.MemoryDataSeries
+import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject
 import com.android.tools.profilers.network.NetworkOpenConnectionsDataSeries
 import com.android.tools.profilers.network.NetworkTrafficDataSeries
@@ -68,16 +77,11 @@ class DataSeriesPerformanceTest {
   private lateinit var session: Common.Session
   private val cpuBenchmark = Benchmark.Builder("DataSeries Query Timings (Nanos)").setProject("Android Studio Profilers").build()
   private val memoryBenchmark = Benchmark.Builder("DataSeries Memory (kb)").setProject("Android Studio Profilers").build()
-  @get:Rule
-  var grpcChannel = FakeGrpcChannel("DataSeriesPerformanceTest", FakeCpuService(), FakeMemoryService())
 
   @Before
   fun setup() {
     service = DataStoreService("TestService", TestUtils.createTempDirDeletedOnExit().absolutePath,
                                Consumer<Runnable> { ticker.run(it) }, FakeLogService())
-    val channel = InProcessChannelBuilder.forName("DataSeriesPerformanceTest").build()
-    service.connect(channel)
-    service.setConnectedClients(DeviceId.of(-1), channel)
     for (namespace in service.databases.keys) {
       val db = service.databases[namespace]!!
       val performantDatabase = namespace.myCharacteristic == DataStoreDatabase.Characteristic.PERFORMANT
@@ -102,26 +106,28 @@ class DataSeriesPerformanceTest {
   @Test
   fun runPerformanceTest() {
     val timer = FakeTimer()
-    val studioProfilers = StudioProfilers(grpcChannel.getClient(), FakeIdeProfilerServices(), timer)
-    studioProfilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
-    val dataSeriesToTest = mapOf(Pair("Event-Activities",
-                                      LifecycleEventDataSeries(client, session, false)),
-                                 Pair("Event-Interactions", UserEventDataSeries(client, session)),
+    val studioProfilers = StudioProfilers(client, FakeIdeProfilerServices(), timer)
+    studioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
+    val dataSeriesToTest = mapOf(Pair("Event-Activities", LifecycleEventDataSeries(studioProfilers, false)),
+                                 Pair("Event-Interactions", UserEventDataSeries(studioProfilers)),
                                  Pair("Energy-Usage", EnergyUsageDataSeries(client, session)),
                                  Pair("Energy-Events",
                                       MergedEnergyEventsDataSeries(EnergyEventsDataSeries(client, session), EnergyDuration.Kind.WAKE_LOCK,
                                                                    EnergyDuration.Kind.JOB)),
-                                 Pair("Cpu-Usage", CpuUsageDataSeries(client.cpuClient, false, session)),
-                                 Pair("Cpu-Thread-Count", CpuThreadCountDataSeries(client.cpuClient, session)),
-                                 Pair("Cpu-Thread-State", ThreadStateDataSeries(client.cpuClient, session, 1)),
+                                 Pair("Cpu-Usage",
+                                      CpuUsageDataSeries(client.cpuClient, session) { dataList -> CpuUsage.extractData(dataList, false) }),
+                                 Pair("Cpu-Thread-Count",
+                                      LegacyCpuThreadCountDataSeries(client.cpuClient, session)),
+                                 Pair("Cpu-Thread-State",
+                                      LegacyCpuThreadStateDataSeries(client.cpuClient, session, 1)),
                                  Pair("Network-Open-Connections", NetworkOpenConnectionsDataSeries(client.networkClient, session)),
                                  Pair("Network-Traffic", NetworkTrafficDataSeries(client.networkClient, session,
                                                                                   NetworkTrafficDataSeries.Type.BYTES_RECEIVED)),
                                  Pair("Memory-GC-Stats", GcStatsDataSeries(client.memoryClient, session)),
-                                 Pair("Memory-Series", MemoryDataSeries(client.memoryClient, session, { sample -> sample.timestamp })),
+                                 Pair("Memory-Series", MemoryDataSeries(client.memoryClient, session) { sample -> sample.timestamp }),
                                  Pair("Memory-Allocation",
-                                      AllocStatsDataSeries(studioProfilers, client.memoryClient, { sample -> sample.timestamp })),
-                                 Pair("Memory-LiveAllocation", TestLiveAllocationSeries(grpcChannel, client, session))
+                                      AllocStatsDataSeries(studioProfilers, client.memoryClient) { sample -> sample.timestamp }),
+                                 Pair("Memory-LiveAllocation", TestLiveAllocationSeries(studioProfilers, session))
     )
     val nameToMetrics = mutableMapOf<String, Metric>()
     val queryStep = QUERY_INTERVAL / 2
@@ -137,8 +143,8 @@ class DataSeriesPerformanceTest {
     }
     nameToMetrics.values.forEach {
       it.setAnalyzers(cpuBenchmark, setOf(WindowDeviationAnalyzer.Builder()
-                                         .addMeanTolerance(WindowDeviationAnalyzer.MeanToleranceParams.Builder().build())
-                                         .build()))
+                                            .addMeanTolerance(WindowDeviationAnalyzer.MeanToleranceParams.Builder().build())
+                                            .build()))
       it.commit()
     }
     logMemoryUsed("After-Query-Memory-Used")
@@ -159,7 +165,7 @@ class DataSeriesPerformanceTest {
     }
   }
 
-  private class TestLiveAllocationSeries(grpcChannel: FakeGrpcChannel, client: ProfilerClient, session: Common.Session) : DataSeries<Long> {
+  private class TestLiveAllocationSeries(profilers: StudioProfilers, session: Common.Session) : DataSeries<Long> {
     companion object {
       val LOAD_JOINER = MoreExecutors.directExecutor()
     }
@@ -172,8 +178,9 @@ class DataSeriesPerformanceTest {
     val liveAllocation: LiveAllocationCaptureObject
 
     init {
-      val stage = MemoryProfilerStage(StudioProfilers(grpcChannel.getClient(), FakeIdeProfilerServices(), FakeTimer()))
-      liveAllocation = LiveAllocationCaptureObject(client.memoryClient, session, 0, MoreExecutors.newDirectExecutorService(), stage)
+      val stage = MemoryProfilerStage(profilers)
+      liveAllocation = LiveAllocationCaptureObject(profilers.client.memoryClient, session, 0, MoreExecutors.newDirectExecutorService(),
+                                                   stage)
     }
   }
 

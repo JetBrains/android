@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.common.model;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.resourceExplorer.view.ResourceDragHandlerKt;
-
+import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManagerKt;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -37,12 +35,12 @@ public class DnDTransferItemTest {
 
       @Override
       public DataFlavor[] getTransferDataFlavors() {
-        return new DataFlavor[]{ResourceDragHandlerKt.RESOURCE_URL_FLAVOR};
+        return new DataFlavor[]{ResourceDataManagerKt.RESOURCE_URL_FLAVOR};
       }
 
       @Override
       public boolean isDataFlavorSupported(DataFlavor flavor) {
-        return flavor == ResourceDragHandlerKt.RESOURCE_URL_FLAVOR;
+        return flavor == ResourceDataManagerKt.RESOURCE_URL_FLAVOR;
       }
 
       @NotNull
@@ -56,6 +54,32 @@ public class DnDTransferItemTest {
                  "    android:layout_width=\"wrap_content\"\n" +
                  "    android:layout_height=\"wrap_content\"\n" +
                  "    android:src=\"@namespace:drawable/name\"/>",
+                 item.getComponents().get(0).getRepresentation());
+  }
+
+  @Test
+  public void getLayoutTransferItem() {
+
+    Transferable transferable = new Transferable() {
+      @Override
+      public DataFlavor[] getTransferDataFlavors() {
+        return new DataFlavor[]{ResourceDataManagerKt.RESOURCE_URL_FLAVOR};
+      }
+
+      @Override
+      public boolean isDataFlavorSupported(DataFlavor flavor) {
+        return flavor == ResourceDataManagerKt.RESOURCE_URL_FLAVOR;
+      }
+
+      @NotNull
+      @Override
+      public Object getTransferData(DataFlavor flavor) {
+        return ResourceUrl.create("namespace", ResourceType.LAYOUT, "name");
+      }
+    };
+
+    DnDTransferItem item = DnDTransferItem.getTransferItem(transferable, false);
+    assertEquals("<include layout=\"@namespace:layout/name\"/>",
                  item.getComponents().get(0).getRepresentation());
   }
 }

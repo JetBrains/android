@@ -72,9 +72,6 @@ public class DependenciesExtractorTest extends JavaProjectTestCase {
         myAndroidProject.dispose();
       }
     }
-    catch (Throwable e) {
-      addSuppressedException(e);
-    }
     finally {
       super.tearDown();
     }

@@ -25,6 +25,9 @@ object RoomAnnotations {
   val COLUMN_INFO = AndroidxName.of(PACKAGE_NAME, "ColumnInfo")
   val IGNORE = AndroidxName.of(PACKAGE_NAME, "Ignore")
   val QUERY = AndroidxName.of(PACKAGE_NAME, "Query")
+  val DATABASE_VIEW = AndroidxName.of(PACKAGE_NAME, "DatabaseView")
   val EMBEDDED = AndroidxName.of(PACKAGE_NAME, "Embedded")
+  val FTS3 = AndroidxName.of(PACKAGE_NAME, "Fts3")
+  val FTS4 = AndroidxName.of(PACKAGE_NAME, "Fts4")
 }
 

@@ -1,0 +1,60 @@
+apply plugin: 'com.android.library'
+
+
+android {
+    compileSdkVersion 25
+
+    defaultConfig {
+        minSdkVersion 25
+        targetSdkVersion 25
+        versionCode 3
+        versionName "1.3"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'surveylib'
+
+    publishedGroupId = 'com.androidadvance.surveylib'
+    libraryName = 'surveylib'
+    artifact = 'surveylib'
+    libraryDescription = 'The best survey library for Android'
+
+    siteUrl = 'https://github.com/AndreiD/surveylib'
+    gitUrl = 'https://github.com/AndreiD/surveylib.git'
+
+    libraryVersion = '0.0.1'
+
+    developerId = 'andreid'
+    developerName = 'Andrei Dan'
+    developerEmail = 'danandreist@gmail.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+
+//apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+//apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
+
+
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    testCompile 'junit:junit:+'
+    compile 'com.android.support:appcompat-v7:+'
+    compile 'uk.co.chrisjenx:calligraphy:+'
+    compile 'com.google.code.gson:gson:+'
+    compile 'com.jaeger.statusbarutil:library:+'
+    compile 'com.squareup.okhttp3:okhttp:+'
+    compile project(':uilib')
+}
+

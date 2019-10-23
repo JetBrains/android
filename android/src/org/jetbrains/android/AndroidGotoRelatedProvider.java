@@ -8,6 +8,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.navigation.GotoRelatedItem;
 import com.intellij.navigation.GotoRelatedProvider;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -52,8 +53,21 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
   @NotNull
   @Override
   public List<? extends GotoRelatedItem> getItems(@NotNull PsiElement element) {
-    final Computable<List<GotoRelatedItem>> items = getLazyItemsComputable(element);
-    return items != null ? items.compute() : Collections.emptyList();
+    final Computable<List<GotoRelatedItem>> lazyItems = getLazyItemsComputable(element);
+    if (lazyItems == null) {
+      return Collections.emptyList();
+    }
+
+    List<GotoRelatedItem> computedItems = lazyItems.compute();
+
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      for (GotoRelatedItem item : computedItems) {
+        assert item != null : "Null in computedItems.";
+        assert item.getGroup() != null : "Item with null group: " + item;
+      }
+    }
+
+    return computedItems;
   }
 
   @Nullable
@@ -290,7 +304,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
   private static class MyGotoRelatedLayoutItem extends GotoRelatedItem {
     private final PsiFile myFile;
 
-    MyGotoRelatedLayoutItem(@NotNull PsiFile file) {
+    public MyGotoRelatedLayoutItem(@NotNull PsiFile file) {
       super(file, "Layout Files");
       myFile = file;
     }
@@ -305,7 +319,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
 
   private static class MyGotoManifestItem extends GotoRelatedItem {
 
-    MyGotoManifestItem(@NotNull XmlAttributeValue attributeValue) {
+    public MyGotoManifestItem(@NotNull XmlAttributeValue attributeValue) {
       super(attributeValue);
     }
 

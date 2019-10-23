@@ -25,14 +25,14 @@ import static com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckRe
 abstract class AndroidStudioSyncCheck extends SyncCheck {
   @Override
   @NotNull
-  PreSyncCheckResult canSync(@NotNull Project project) {
+  PreSyncCheckResult checkCanSyncAndTryToFix(@NotNull Project project) {
     if (IdeInfo.getInstance().isAndroidStudio()) {
-      return doCheckCanSync(project);
+      return doCheckCanSyncAndTryToFix(project);
     }
     return SUCCESS;
   }
 
   @VisibleForTesting
   @NotNull
-  abstract PreSyncCheckResult doCheckCanSync(@NotNull Project project);
+  abstract PreSyncCheckResult doCheckCanSyncAndTryToFix(@NotNull Project project);
 }

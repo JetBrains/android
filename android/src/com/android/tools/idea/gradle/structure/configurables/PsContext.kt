@@ -23,7 +23,9 @@ import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
+import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.options.ConfigurationException
 
 interface PsContext : Disposable {
   val analyzerDaemon: PsAnalyzerDaemon
@@ -41,5 +43,21 @@ interface PsContext : Disposable {
   fun setSelectedModule(moduleName: String, source: Any)
   fun add(listener: GradleSyncListener, parentDisposable: Disposable)
   fun applyRunAndReparse(runnable: () -> Boolean)
-}
 
+  /**
+   * Validates and applies changes to the [project].
+   */
+  @Throws(ConfigurationException::class)
+  fun applyChanges()
+
+  /**
+   * Records [fieldId] for inclusion in the modified field list of the [PSDEvent] reported to [UsageTracker]. This method is supposed to be
+   * called from the UI elements in response to the user's actions
+   */
+  fun logFieldEdited(fieldId: PSDEvent.PSDField)
+
+  /**
+   * Returns a copy of the list of the field ids recorded by [logFieldEdited] and clears the list.
+   */
+  fun getEditedFieldsAndClear(): List<PSDEvent.PSDField>
+}

@@ -15,6 +15,14 @@
  */
 package com.android.tools.profilers;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
+import static com.android.tools.profilers.ProfilerFonts.H4_FONT;
+import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_HEIGHT;
+import static com.android.tools.profilers.sessions.SessionsView.SESSION_EXPANDED_WIDTH;
+import static com.android.tools.profilers.sessions.SessionsView.SESSION_IS_COLLAPSED;
+import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
+import static java.awt.event.InputEvent.META_DOWN_MASK;
+
 import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.AspectObserver;
@@ -22,7 +30,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
@@ -37,12 +44,12 @@ import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.openapi.wm.IdeGlassPaneUtil;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -52,23 +59,27 @@ import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.update.Activatable;
 import com.intellij.util.ui.update.UiNotifyConnector;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.function.BiFunction;
-
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
-import static com.android.tools.profilers.ProfilerFonts.H4_FONT;
-import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
-import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_HEIGHT;
-import static com.android.tools.profilers.sessions.SessionsView.SESSION_EXPANDED_WIDTH;
-import static com.android.tools.profilers.sessions.SessionsView.SESSION_IS_COLLAPSED;
-import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
-import static java.awt.event.InputEvent.META_DOWN_MASK;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JToggleButton;
+import javax.swing.KeyStroke;
+import javax.swing.LayoutFocusTraversalPolicy;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
 
 public class StudioProfilersView extends AspectObserver implements Disposable {
   private final static String LOADING_VIEW_CARD = "LoadingViewCard";
@@ -97,7 +108,6 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   private SessionsView mySessionsView;
   private JPanel myToolbar;
   private JPanel myStageToolbar;
-  private JPanel myMonitoringToolbar;
   private JPanel myCommonToolbar;
   private JPanel myGoLiveToolbar;
   private JToggleButton myGoLive;
@@ -133,53 +143,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     Disposer.register(this, mySplitter);
 
     myLayeredPane = new ProfilerLayeredPane(mySplitter);
-
-    if (myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
-      mySessionsView = new SessionsView(myProfiler, ideProfilerComponents);
-      JComponent sessionsComponent = mySessionsView.getComponent();
-      mySplitter.setFirstComponent(sessionsComponent);
-      mySessionsView.addExpandListener(e -> {
-        toggleSessionsPanel(false);
-        myProfiler.getIdeServices().getFeatureTracker().trackSessionsPanelStateChanged(true);
-      });
-      mySessionsView.addCollapseListener(e -> {
-        toggleSessionsPanel(true);
-        myProfiler.getIdeServices().getFeatureTracker().trackSessionsPanelStateChanged(false);
-      });
-      boolean initiallyCollapsed =
-        myProfiler.getIdeServices().getPersistentProfilerPreferences().getBoolean(SESSION_IS_COLLAPSED, false);
-      toggleSessionsPanel(initiallyCollapsed);
-
-      // Track Sessions UI resize event.
-      // The divider mechanism within ThreeComponentsSplitter consumes the mouse event so we cannot use regular mouse listeners on the
-      // splitter itself. Instead, we mirror the logic that the divider uses to capture mouse event and check whether the width of the
-      // sessions UI has changed between mouse press and release. Using Once here to mimic ThreeComponentsSplitter's implementation, as
-      // we only need to add the MousePreprocessor to the glassPane once when the UI shows up.
-      new UiNotifyConnector.Once(mySplitter, new Activatable.Adapter() {
-        @Override
-        public void showNotify() {
-          IdeGlassPane glassPane = IdeGlassPaneUtil.find(mySplitter);
-          glassPane.addMousePreprocessor(new MouseAdapter() {
-            private int mySessionsUiWidth;
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-              mySessionsUiWidth = sessionsComponent.getWidth();
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-              int width = sessionsComponent.getWidth();
-              if (mySessionsUiWidth != width) {
-                myProfiler.getIdeServices().getPersistentProfilerPreferences().setInt(SESSION_EXPANDED_WIDTH, width);
-                myProfiler.getIdeServices().getFeatureTracker().trackSessionsPanelResized();
-              }
-            }
-          }, mySplitter);
-        }
-      });
-    }
-
+    initializeSessionUi();
     initializeStageUi();
 
     myBinder = new ViewBinder<>();
@@ -191,9 +155,9 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myBinder.bind(EnergyProfilerStage.class, EnergyProfilerStageView::new);
 
     myProfiler.addDependency(this)
-              .onChange(ProfilerAspect.STAGE, this::updateStageView)
-              .onChange(ProfilerAspect.AGENT, this::toggleStageLayout)
-              .onChange(ProfilerAspect.PREFERRED_PROCESS, this::toggleStageLayout);
+      .onChange(ProfilerAspect.STAGE, this::updateStageView)
+      .onChange(ProfilerAspect.AGENT, this::toggleStageLayout)
+      .onChange(ProfilerAspect.PREFERRED_PROCESS, this::toggleStageLayout);
     updateStageView();
     toggleStageLayout();
   }
@@ -249,6 +213,52 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     return mySessionsView;
   }
 
+  private void initializeSessionUi() {
+    mySessionsView = new SessionsView(myProfiler, myIdeProfilerComponents);
+    JComponent sessionsComponent = mySessionsView.getComponent();
+    mySplitter.setFirstComponent(sessionsComponent);
+    mySessionsView.addExpandListener(e -> {
+      toggleSessionsPanel(false);
+      myProfiler.getIdeServices().getFeatureTracker().trackSessionsPanelStateChanged(true);
+    });
+    mySessionsView.addCollapseListener(e -> {
+      toggleSessionsPanel(true);
+      myProfiler.getIdeServices().getFeatureTracker().trackSessionsPanelStateChanged(false);
+    });
+    boolean initiallyCollapsed =
+      myProfiler.getIdeServices().getPersistentProfilerPreferences().getBoolean(SESSION_IS_COLLAPSED, false);
+    toggleSessionsPanel(initiallyCollapsed);
+
+    // Track Sessions UI resize event.
+    // The divider mechanism within ThreeComponentsSplitter consumes the mouse event so we cannot use regular mouse listeners on the
+    // splitter itself. Instead, we mirror the logic that the divider uses to capture mouse event and check whether the width of the
+    // sessions UI has changed between mouse press and release. Using Once here to mimic ThreeComponentsSplitter's implementation, as
+    // we only need to add the MousePreprocessor to the glassPane once when the UI shows up.
+    new UiNotifyConnector.Once(mySplitter, new Activatable.Adapter() {
+      @Override
+      public void showNotify() {
+        IdeGlassPane glassPane = IdeGlassPaneUtil.find(mySplitter);
+        glassPane.addMousePreprocessor(new MouseAdapter() {
+          private int mySessionsUiWidth;
+
+          @Override
+          public void mousePressed(MouseEvent e) {
+            mySessionsUiWidth = sessionsComponent.getWidth();
+          }
+
+          @Override
+          public void mouseReleased(MouseEvent e) {
+            int width = sessionsComponent.getWidth();
+            if (mySessionsUiWidth != width) {
+              myProfiler.getIdeServices().getPersistentProfilerPreferences().setInt(SESSION_EXPANDED_WIDTH, width);
+              myProfiler.getIdeServices().getFeatureTracker().trackSessionsPanelResized();
+            }
+          }
+        }, mySplitter);
+      }
+    });
+  }
+
   private void initializeStageUi() {
     myToolbar = new JPanel(new BorderLayout());
     JPanel leftToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
@@ -257,7 +267,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myToolbar.setPreferredSize(new Dimension(0, TOOLBAR_HEIGHT));
 
     myCommonToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
-    JButton button = new CommonButton(StudioIcons.Common.BACK_ARROW);
+    JButton button = new CommonButton(AllIcons.Actions.Back);
     button.addActionListener(action -> {
       myProfiler.setMonitoringStage();
       myProfiler.getIdeServices().getFeatureTracker().trackGoBack();
@@ -278,29 +288,6 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     stages.bind();
     myCommonToolbar.add(stageCombo);
     myCommonToolbar.add(new FlatSeparator());
-
-    myMonitoringToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
-    if (!myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
-      JComboBox<Common.Device> deviceCombo = new FlatComboBox<>();
-      JComboBoxView devices = new JComboBoxView<>(deviceCombo, myProfiler, ProfilerAspect.DEVICES,
-                                                  myProfiler::getDevices,
-                                                  myProfiler::getDevice,
-                                                  myProfiler::setDevice);
-      devices.bind();
-      deviceCombo.setRenderer(new DeviceComboBoxRenderer());
-
-      JComboBox<Common.Process> processCombo = new FlatComboBox<>();
-      JComboBoxView processes = new JComboBoxView<>(processCombo, myProfiler, ProfilerAspect.PROCESSES,
-                                                    myProfiler::getProcesses,
-                                                    myProfiler::getProcess,
-                                                    myProfiler::setProcess);
-      processes.bind();
-      processCombo.setRenderer(new ProcessComboBoxRenderer());
-
-      myMonitoringToolbar.add(deviceCombo);
-      myMonitoringToolbar.add(processCombo);
-      leftToolbar.add(myMonitoringToolbar);
-    }
     leftToolbar.add(myCommonToolbar);
     myToolbar.add(leftToolbar, BorderLayout.WEST);
 
@@ -308,44 +295,34 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myToolbar.add(rightToolbar, BorderLayout.EAST);
     rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
 
-    if (!myProfiler.getIdeServices().getFeatureConfig().isSessionsEnabled()) {
-      CommonButton endSession = new CommonButton("End Session");
-      endSession.setFont(STANDARD_FONT);
-      endSession.setBorder(new JBEmptyBorder(4, 7, 4, 7));
-      endSession.addActionListener(event -> myProfiler.stop());
-      endSession.setToolTipText("Stop profiling and close tab");
-      rightToolbar.add(endSession);
-      rightToolbar.add(new FlatSeparator());
-    }
-
     ProfilerTimeline timeline = myProfiler.getTimeline();
-    myZoomOut = new CommonButton(StudioIcons.Common.ZOOM_OUT);
-    myZoomOut.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_OUT));
+    myZoomOut = new CommonButton(AllIcons.General.ZoomOut);
+    myZoomOut.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.General.ZoomOut));
     myZoomOut.addActionListener(event -> {
       timeline.zoomOut();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomOut();
     });
     ProfilerAction zoomOutAction =
-      new ProfilerAction.Builder(ZOOM_OUT).setContainerComponent(myStageComponent).setActionRunnable(() -> myZoomOut.doClick(0))
-                                            .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, SHORTCUT_MODIFIER_MASK_NUMBER),
-                                                           KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, SHORTCUT_MODIFIER_MASK_NUMBER))
-                                            .build();
+      new ProfilerAction.Builder(ZOOM_OUT).setContainerComponent(mySplitter).setActionRunnable(() -> myZoomOut.doClick(0))
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, SHORTCUT_MODIFIER_MASK_NUMBER),
+                       KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, SHORTCUT_MODIFIER_MASK_NUMBER))
+        .build();
 
     myZoomOut.setToolTipText(zoomOutAction.getDefaultToolTipText());
     rightToolbar.add(myZoomOut);
 
-    myZoomIn = new CommonButton(StudioIcons.Common.ZOOM_IN);
-    myZoomIn.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_IN));
+    myZoomIn = new CommonButton(AllIcons.General.ZoomIn);
+    myZoomIn.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.General.ZoomIn));
     myZoomIn.addActionListener(event -> {
       timeline.zoomIn();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomIn();
     });
     ProfilerAction zoomInAction =
-      new ProfilerAction.Builder(ZOOM_IN).setContainerComponent(myStageComponent)
-                                           .setActionRunnable(() -> myZoomIn.doClick(0))
-                                           .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
-                                                          KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
-                                                          KeyStroke.getKeyStroke(KeyEvent.VK_ADD, SHORTCUT_MODIFIER_MASK_NUMBER)).build();
+      new ProfilerAction.Builder(ZOOM_IN).setContainerComponent(mySplitter)
+        .setActionRunnable(() -> myZoomIn.doClick(0))
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
+                       KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
+                       KeyStroke.getKeyStroke(KeyEvent.VK_ADD, SHORTCUT_MODIFIER_MASK_NUMBER)).build();
     myZoomIn.setToolTipText(zoomInAction.getDefaultToolTipText());
     rightToolbar.add(myZoomIn);
 
@@ -356,10 +333,10 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myProfiler.getIdeServices().getFeatureTracker().trackResetZoom();
     });
     ProfilerAction resetZoomAction =
-      new ProfilerAction.Builder("Reset zoom").setContainerComponent(myStageComponent)
-                                              .setActionRunnable(() -> myResetZoom.doClick(0))
-                                              .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0),
-                                                             KeyStroke.getKeyStroke(KeyEvent.VK_0, 0)).build();
+      new ProfilerAction.Builder("Reset zoom").setContainerComponent(mySplitter)
+        .setActionRunnable(() -> myResetZoom.doClick(0))
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0),
+                       KeyStroke.getKeyStroke(KeyEvent.VK_0, 0)).build();
     myResetZoom.setToolTipText(resetZoomAction.getDefaultToolTipText());
     rightToolbar.add(myResetZoom);
 
@@ -369,14 +346,14 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       timeline.frameViewToRange(timeline.getSelectionRange());
     });
     myFrameSelectionAction = new ProfilerAction.Builder("Zoom to Selection")
-      .setContainerComponent(myStageComponent)
+      .setContainerComponent(mySplitter)
       .setActionRunnable(() -> myFrameSelection.doClick(0))
       .setEnableBooleanSupplier(() -> !timeline.getSelectionRange().isEmpty())
       .build();
     myFrameSelection.setToolTipText(myFrameSelectionAction.getDefaultToolTipText());
     rightToolbar.add(myFrameSelection);
     timeline.getSelectionRange().addDependency(this)
-            .onChange(Range.Aspect.RANGE, () -> myFrameSelection.setEnabled(myFrameSelectionAction.isEnabled()));
+      .onChange(Range.Aspect.RANGE, () -> myFrameSelection.setEnabled(myFrameSelectionAction.isEnabled()));
 
     myGoLiveToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myGoLiveToolbar.add(new FlatSeparator());
@@ -389,22 +366,22 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myGoLive.setBorder(new JBEmptyBorder(3, 7, 3, 7));
     // Configure shortcuts for GoLive.
     ProfilerAction attachAction =
-      new ProfilerAction.Builder(ATTACH_LIVE).setContainerComponent(myStageComponent)
-                                                  .setActionRunnable(() -> myGoLive.doClick(0))
-                                                  .setEnableBooleanSupplier(
-                                                    () -> myGoLive.isEnabled() &&
-                                                          !myGoLive.isSelected() &&
-                                                          myStageView.navigationControllersEnabled())
-                                                  .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER))
-                                                  .build();
+      new ProfilerAction.Builder(ATTACH_LIVE).setContainerComponent(mySplitter)
+        .setActionRunnable(() -> myGoLive.doClick(0))
+        .setEnableBooleanSupplier(
+          () -> myGoLive.isEnabled() &&
+                !myGoLive.isSelected() &&
+                myStageView.navigationControllersEnabled())
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER))
+        .build();
     ProfilerAction detachAction =
-      new ProfilerAction.Builder(DETACH_LIVE).setContainerComponent(myStageComponent)
-                                                    .setActionRunnable(() -> myGoLive.doClick(0))
-                                                    .setEnableBooleanSupplier(
-                                                      () -> myGoLive.isEnabled() &&
-                                                            myGoLive.isSelected() &&
-                                                            myStageView.navigationControllersEnabled())
-                                                    .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)).build();
+      new ProfilerAction.Builder(DETACH_LIVE).setContainerComponent(mySplitter)
+        .setActionRunnable(() -> myGoLive.doClick(0))
+        .setEnableBooleanSupplier(
+          () -> myGoLive.isEnabled() &&
+                myGoLive.isSelected() &&
+                myStageView.navigationControllersEnabled())
+        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)).build();
 
     myGoLive.setToolTipText(detachAction.getDefaultToolTipText());
     myGoLive.addActionListener(event -> {
@@ -421,7 +398,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     rightToolbar.add(myGoLiveToolbar);
 
     ProfilerContextMenu.createIfAbsent(myStageComponent)
-                       .add(attachAction, detachAction, ContextMenuItem.SEPARATOR, zoomInAction, zoomOutAction);
+      .add(attachAction, detachAction, ContextMenuItem.SEPARATOR, zoomInAction, zoomOutAction);
     myProfiler.getSessionsManager().addDependency(this).onChange(SessionAspect.SELECTED_SESSION, this::toggleTimelineButtons);
     toggleTimelineButtons();
 
@@ -437,8 +414,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   private void toggleTimelineButtons() {
     boolean isAlive = myProfiler.getSessionsManager().isSessionAlive();
     if (isAlive) {
-      Profiler.AgentStatusResponse agentStatus = myProfiler.getAgentStatus();
-      boolean waitForAgent = agentStatus.getStatus() != Profiler.AgentStatusResponse.Status.ATTACHED && agentStatus.getIsAgentAttachable();
+      Common.AgentData agentData = myProfiler.getAgentData();
+      boolean waitForAgent = agentData.getStatus() == Common.AgentData.Status.UNSPECIFIED;
       if (waitForAgent) {
         // Disable all controls if the agent is still initialization/attaching.
         myZoomOut.setEnabled(false);
@@ -497,7 +474,12 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     }
 
     myStageView = myBinder.build(this, stage);
-    SwingUtilities.invokeLater(() -> myStageView.getComponent().requestFocusInWindow());
+    SwingUtilities.invokeLater(() -> {
+      Component focussed = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+      if (focussed == null || !SwingUtilities.isDescendingFrom(focussed, mySplitter)) {
+        mySplitter.requestFocusInWindow();
+      }
+    });
 
     myStageCenterComponent.removeAll();
     myStageCenterComponent.add(myStageView.getComponent(), STAGE_VIEW_CARD);
@@ -510,7 +492,6 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myGoLiveToolbar.setVisible(myStageView.navigationControllersEnabled());
 
     boolean topLevel = myStageView == null || myStageView.needsProcessSelection();
-    myMonitoringToolbar.setVisible(topLevel);
     myCommonToolbar.setVisible(!topLevel && myStageView.navigationControllersEnabled());
   }
 
@@ -518,8 +499,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     // Show the loading screen if StudioProfilers is waiting for a process to profile or if it is waiting for an agent to attach.
     boolean loading = (myProfiler.getAutoProfilingEnabled() && myProfiler.getPreferredProcessName() != null) &&
                       !myProfiler.getSessionsManager().isSessionAlive();
-    Profiler.AgentStatusResponse agentStatus = myProfiler.getAgentStatus();
-    loading |= agentStatus.getStatus() != Profiler.AgentStatusResponse.Status.ATTACHED && agentStatus.getIsAgentAttachable();
+    Common.AgentData agentData = myProfiler.getAgentData();
+    loading |= (agentData.getStatus() == Common.AgentData.Status.UNSPECIFIED && myProfiler.getSessionsManager().isSessionAlive());
     if (loading) {
       myStageLoadingPanel.startLoading();
       myStageCenterCardLayout.show(myStageCenterComponent, LOADING_VIEW_CARD);
@@ -544,7 +525,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   public void installCommonMenuItems(@NotNull JComponent component) {
     ContextMenuInstaller contextMenuInstaller = getIdeProfilerComponents().createContextMenuInstaller();
     ProfilerContextMenu.createIfAbsent(myStageComponent).getContextMenuItems()
-                       .forEach(item -> contextMenuInstaller.installGenericContextMenu(component, item));
+      .forEach(item -> contextMenuInstaller.installGenericContextMenu(component, item));
   }
 
   @VisibleForTesting
@@ -560,90 +541,6 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   @VisibleForTesting
   final JComponent getStageViewComponent() {
     return myStageView.getComponent();
-  }
-
-  @VisibleForTesting
-  public static class DeviceComboBoxRenderer extends ColoredListCellRenderer<Common.Device> {
-
-    @NotNull
-    private final String myEmptyText = "No connected devices";
-
-    @Override
-    protected void customizeCellRenderer(@NotNull JList list, Common.Device value, int index,
-                                         boolean selected, boolean hasFocus) {
-      if (value != null) {
-        renderDeviceName(value);
-      }
-      else {
-        append(getEmptyText(), SimpleTextAttributes.ERROR_ATTRIBUTES);
-      }
-    }
-
-    public void renderDeviceName(@NotNull Common.Device d) {
-      // TODO: Share code between here and DeviceRenderer#renderDeviceName
-      String manufacturer = d.getManufacturer();
-      String model = d.getModel();
-      String serial = d.getSerial();
-      String suffix = String.format("-%s", serial);
-      if (model.endsWith(suffix)) {
-        model = model.substring(0, model.length() - suffix.length());
-      }
-      if (!StringUtil.isEmpty(manufacturer)) {
-        append(String.format("%s ", manufacturer), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-      }
-      append(model, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-      append(String.format(" (%1$s)", serial), SimpleTextAttributes.GRAY_ATTRIBUTES);
-
-      Common.Device.State state = d.getState();
-      if (state != Common.Device.State.ONLINE && state != Common.Device.State.UNSPECIFIED) {
-        append(String.format(" [%s]", state), SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
-      }
-    }
-
-    @NotNull
-    @VisibleForTesting
-    public String getEmptyText() {
-      return myEmptyText;
-    }
-  }
-
-  @VisibleForTesting
-  public static class ProcessComboBoxRenderer extends ColoredListCellRenderer<Common.Process> {
-
-    @NotNull
-    private final String myEmptyText = "No debuggable processes";
-
-    @Override
-    protected void customizeCellRenderer(@NotNull JList list, Common.Process value, int index,
-                                         boolean selected, boolean hasFocus) {
-      if (value != null) {
-        renderProcessName(value);
-      }
-      else {
-        append(getEmptyText(), SimpleTextAttributes.ERROR_ATTRIBUTES);
-      }
-    }
-
-    private void renderProcessName(@NotNull Common.Process process) {
-      // TODO: Share code between here and ClientCellRenderer#renderClient
-      String name = process.getName();
-      // Highlight the last part of the process name.
-      int index = name.lastIndexOf('.');
-      append(name.substring(0, index + 1), SimpleTextAttributes.REGULAR_ATTRIBUTES);
-      append(name.substring(index + 1), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-
-      append(String.format(" (%1$d)", process.getPid()), SimpleTextAttributes.GRAY_ATTRIBUTES);
-
-      if (process.getState() != Common.Process.State.ALIVE) {
-        append(" [DEAD]", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
-      }
-    }
-
-    @NotNull
-    @VisibleForTesting
-    public String getEmptyText() {
-      return myEmptyText;
-    }
   }
 
   @VisibleForTesting

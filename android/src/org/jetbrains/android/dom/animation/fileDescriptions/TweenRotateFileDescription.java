@@ -16,13 +16,13 @@
 package org.jetbrains.android.dom.animation.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.drawable.Rotate;
 
 /**
  * @see TweenSetFileDescription
  */
-public class TweenRotateFileDescription extends AbstractSingleRootFileDescription<Rotate> {
+public class TweenRotateFileDescription extends SingleRootResourceDomFileDescription<Rotate> {
   public TweenRotateFileDescription() {
     super(Rotate.class, "rotate", ResourceFolderType.ANIM);
   }

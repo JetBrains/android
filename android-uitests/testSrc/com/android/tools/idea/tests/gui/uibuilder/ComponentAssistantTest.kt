@@ -46,7 +46,7 @@ class ComponentAssistantTest {
 
   @Test
   fun testRecyclerViewAssistantAvailable() {
-    val layout = guiTest.importSimpleLocalApplication()
+    val layout = guiTest.importSimpleApplication()
       .editor
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutEditor(true)
@@ -57,7 +57,8 @@ class ComponentAssistantTest {
       .waitForGradleProjectSyncToFinish()
       .editor
 
-    layout.findView("android.support.v7.widget.RecyclerView", 0)
+    layout.waitForRenderToFinish()
+      .findView("android.support.v7.widget.RecyclerView", 0)
       .click()
       .openComponentAssistant()
       .getRecyclerViewAssistant().apply {
@@ -88,7 +89,7 @@ class ComponentAssistantTest {
 
   @Test
   fun testTextViewAssistantAvailable() {
-    val layout = guiTest.importSimpleLocalApplication()
+    val layout = guiTest.importSimpleApplication()
       .editor
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutEditor(true)
@@ -106,5 +107,14 @@ class ComponentAssistantTest {
     editor.selectEditorTab(EditorFixture.Tab.EDITOR)
     val contents = editor.currentFileContents
     assertTrue(contents.contains("tools:text=\"@tools:sample/first_names\""))
+    editor.selectEditorTab(EditorFixture.Tab.DESIGN)
+
+    // Verify that the element still displays as selected in the assistant panel
+    layout.findView("TextView", 1)
+      .click()
+      .openComponentAssistant()
+      .getTextViewAssistant()
+      .combo
+      .requireSelection("first_names")
   }
 }

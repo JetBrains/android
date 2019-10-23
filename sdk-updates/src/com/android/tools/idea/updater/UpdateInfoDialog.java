@@ -118,7 +118,7 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
     private JEditorPane mySettingsLink;
     private JBScrollPane myScrollPane;
 
-    UpdateInfoPanel(List<RemotePackage> packages) {
+    public UpdateInfoPanel(List<RemotePackage> packages) {
       configureMessageArea(mySettingsLink);
       myDownloadSize.setText(WelcomeUIUtils.getSizeLabel(computeDownloadSize(packages)));
 

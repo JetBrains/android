@@ -28,7 +28,12 @@ import org.jetbrains.kotlin.idea.versions.bundledRuntimeVersion
 
 class ConvertJavaToKotlinProviderImpl : ConvertJavaToKotlinProvider {
     override fun configureKotlin(project: Project) {
-        val configurator = KotlinProjectConfigurator.EP_NAME.findExtension(KotlinAndroidGradleModuleConfigurator::class.java)
+        val configurator =
+          KotlinProjectConfigurator.EP_NAME.findExtension(KotlinAndroidGradleModuleConfigurator::class.java)
+          ?: throw RuntimeException("""
+            Could not find a KotlinProjectConfigurator, even though the Kotlin plugin is bundled with Studio.
+            Is the Kotlin plugin disabled?
+            """.trimIndent())
         val nonConfiguredModules = getCanBeConfiguredModules(project, configurator)
         configurator.configureSilently(project, nonConfiguredModules, bundledRuntimeVersion())
     }

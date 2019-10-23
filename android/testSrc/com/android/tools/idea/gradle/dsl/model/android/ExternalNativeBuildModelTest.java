@@ -15,6 +15,23 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_APPLY_CHANGES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_APPLY_CHANGES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_C_MAKE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_C_MAKE_WITH_NEW_FILE_PATH;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_NDK_BUILD;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_NDK_BUILD_WITH_NEW_FILE_PATH;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_C_MAKE_AND_APPLY_CHANGES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_C_MAKE_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_NDK_BUILD_AND_APPLY_CHANGES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_NDK_BUILD_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_SET_CONSTRUCTOR_TO_FUNCTION;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
+
 import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -25,25 +42,13 @@ import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMake
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.NdkBuildModelImpl;
 import org.junit.Test;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
-
 /**
  * Tests for {@link ExternalNativeBuildModelImpl}.
  */
 public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
   @Test
   public void testCMake() throws Exception {
-    String text = "android {\n" +
-                  "  externalNativeBuild {\n" +
-                  "    cmake {\n" +
-                  "      path file(\"foo/bar\")\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_C_MAKE);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -57,15 +62,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testCMakeWithNewFilePath() throws Exception {
-    String text = "android {\n" +
-                  "  externalNativeBuild {\n" +
-                  "    cmake {\n" +
-                  "      path new File(\"foo/bar\")\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_C_MAKE_WITH_NEW_FILE_PATH);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -79,14 +76,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveCMakeAndReset() throws Exception {
-    String text = "android {\n" +
-                  "  externalNativeBuild {\n" +
-                  "    cmake {\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_C_MAKE_AND_RESET);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -107,14 +97,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveCMakeAndApplyChanges() throws Exception {
-    String text = "android {\n" +
-                  "  externalNativeBuild {\n" +
-                  "    cmake {\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_C_MAKE_AND_APPLY_CHANGES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -143,10 +126,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddCMakePathAndReset() throws Exception {
-    String text = "android {\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_RESET);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -165,10 +145,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddCMakePathAndApplyChanges() throws Exception {
-    String text = "android {\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_APPLY_CHANGES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -193,15 +170,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testNdkBuild() throws Exception {
-    String text = "android {\n" +
-                  "  externalNativeBuild {\n" +
-                  "    ndkBuild {\n" +
-                  "      path file(\"foo/Android.mk\")\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_NDK_BUILD);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -215,15 +184,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testNdkBuildWithNewFilePath() throws Exception {
-    String text = "android {\n" +
-                  "  externalNativeBuild {\n" +
-                  "    ndkBuild {\n" +
-                  "      path new File(\"foo\", \"Android.mk\")\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_NDK_BUILD_WITH_NEW_FILE_PATH);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -237,14 +198,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveNdkBuildAndReset() throws Exception {
-    String text = "android {\n" +
-                  "  externalNativeBuild {\n" +
-                  "    ndkBuild {\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_NDK_BUILD_AND_RESET);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -265,14 +219,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveNdkBuildAndApplyChanges() throws Exception {
-    String text = "android {\n" +
-                  "  externalNativeBuild {\n" +
-                  "    ndkBuild {\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_NDK_BUILD_AND_APPLY_CHANGES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -301,10 +248,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddNdkBuildPathAndReset() throws Exception {
-    String text = "android {\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_RESET);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -322,10 +266,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddNdkBuildPathAndApplyChanges() throws Exception {
-    String text = "android {\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_APPLY_CHANGES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -350,14 +291,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetConstructorToFunction() throws Exception {
-    String text = "android {\n" +
-                  "  externalNativeBuild {\n" +
-                  "    ndkBuild {\n" +
-                  "      path new File(\"foo\", \"Android.mk\")\n" +
-                  "    }\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(EXTERNAL_NATIVE_BUILD_MODEL_SET_CONSTRUCTOR_TO_FUNCTION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();

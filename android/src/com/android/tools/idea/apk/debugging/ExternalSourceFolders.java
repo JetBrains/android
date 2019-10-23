@@ -16,6 +16,7 @@
 package com.android.tools.idea.apk.debugging;
 
 import com.intellij.ide.util.projectWizard.importSources.JavaModuleSourceRoot;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -84,7 +85,8 @@ public class ExternalSourceFolders {
 
     Project project = myModuleModel.getProject();
     ProgressIndicator progressIndicator;
-    boolean unitTestMode = ApplicationManager.getApplication().isUnitTestMode();
+    Application application = ApplicationManager.getApplication();
+    boolean unitTestMode = application.isUnitTestMode();
     if (unitTestMode) {
       progressIndicator = new EmptyProgressIndicator();
     }
@@ -102,7 +104,14 @@ public class ExternalSourceFolders {
           entryToRootMap.put(fileToEntryMap.get(file), roots);
         }
       };
-      ProgressManager.getInstance().runProcess(process, progressIndicator);
+      if (application.isDispatchThread()) {
+        ProgressManager.getInstance().runProcess(process, progressIndicator);
+      }
+      else {
+        application.invokeLater(() -> {
+          ProgressManager.getInstance().runProcess(process, progressIndicator);
+        });
+      }
     };
 
     Runnable addSourcesTask = () -> {

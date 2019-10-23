@@ -15,7 +15,7 @@
  */
 package com.intellij.testGuiFramework.framework
 
-import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Ref
 import com.intellij.testGuiFramework.impl.GuiTestStarter
@@ -26,11 +26,9 @@ import com.intellij.testGuiFramework.remote.transport.*
 import org.apache.log4j.Level
 import org.junit.AssumptionViolatedException
 import org.junit.internal.runners.model.EachTestNotifier
-import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
 import org.junit.runners.BlockJUnit4ClassRunner
 import org.junit.runners.model.FrameworkMethod
-import org.junit.runners.model.InitializationError
 import java.lang.reflect.InvocationTargetException
 import java.net.SocketException
 
@@ -47,10 +45,7 @@ import java.net.SocketException
  *   - notifies the [RunNotifier] ([JUnitClientListener] in particular) when a test finishes, fails, or is ignored
  *   - sends a RESTART_IDE message back to the server if the IDE has fatal errors
  */
-open class GuiTestRemoteRunner @Throws(InitializationError::class)
-  constructor(testClass: Class<*>, val myBuildSystem: TargetBuildSystem.BuildSystem = TargetBuildSystem.BuildSystem.GRADLE) : BlockJUnit4ClassRunner(testClass) {
-
-  constructor(testClass: Class<*>) : this(testClass, TargetBuildSystem.BuildSystem.GRADLE)
+open class GuiTestRemoteRunner(testClass: Class<*>): BlockJUnit4ClassRunner(testClass) {
 
   val criticalError = Ref<Boolean>(false)
 
@@ -68,11 +63,23 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
 
     val server = JUnitServerHolder.getServer(notifier)
 
+    // Running tests with BLeak requires passing additional JVM options to the client, primarily to increase
+    // the max heap size. The client must be restarted for this to take effect, if it's already running.
+    val usesBleak = description.getAnnotation(UseBleak::class.java) != null
+    val bleakCurrentlyEnabled = System.getProperty("enable.bleak") == "true"
+    if (usesBleak != bleakCurrentlyEnabled) {
+      System.setProperty("enable.bleak", usesBleak.toString())
+      if (server.isRunning()) {
+        server.closeIdeAndStop()
+      }
+      server.launchIdeAndStart()
+    }
+
     try {
       if (!server.isRunning()) {
         server.launchIdeAndStart()
       }
-      val jUnitTestContainer = JUnitTestContainer(method.declaringClass, method.name, buildSystem = myBuildSystem)
+      val jUnitTestContainer = JUnitTestContainer(method.declaringClass, method.name)
       server.send(RunTestMessage(jUnitTestContainer))
     }
     catch (e: Exception) {
@@ -82,6 +89,7 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
       return
     }
     var testIsRunning = true
+    var hasRequestedNonResumeRestart = false
     while(testIsRunning) {
       val message = try {
         server.receive()
@@ -106,13 +114,22 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
             else -> throw UnsupportedOperationException("Bad message type from client: $message.content.type")
           }
         is RestartIdeMessage -> {
+          if (!message.resumeTest) {
+            if (hasRequestedNonResumeRestart) {
+              // fail now to avoid infinite restart loops
+              eachNotifier.addFailure(Exception("Already restarted once due to the welcome frame not showing or modal dialogs left open - not doing it again to prevent infinite looping"))
+              eachNotifier.fireTestFinished()
+              return
+            }
+            hasRequestedNonResumeRestart = true
+          }
           val ex = restartIdeAndServer(server, method, message.resumeTest)
           if (ex != null) {
             eachNotifier.addFailure(ex)
             eachNotifier.fireTestFinished()
             return
           }
-          server.send(RunTestMessage(JUnitTestContainer(method.declaringClass, method.name, message.index, myBuildSystem)))
+          server.send(RunTestMessage(JUnitTestContainer(method.declaringClass, method.name, message.index)))
         }
 
       }

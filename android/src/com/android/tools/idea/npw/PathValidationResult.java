@@ -37,7 +37,6 @@ import java.util.Set;
  *
  * @deprecated Use {@link PathValidator} instead.
  */
-@Deprecated
 public final class PathValidationResult {
   public static final PathValidationResult OK = new PathValidationResult(Status.OK, null, "any");
 

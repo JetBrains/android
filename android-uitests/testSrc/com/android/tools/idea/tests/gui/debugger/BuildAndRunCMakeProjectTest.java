@@ -17,22 +17,23 @@ package com.android.tools.idea.tests.gui.debugger;
 
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture.ContentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RunToolWindowFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.regex.Pattern;
-
 @RunWith(GuiTestRemoteRunner.class)
 public class BuildAndRunCMakeProjectTest {
-  @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES).settingNdkPath();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String RUN_CONFIG_NAME = "app";
@@ -57,7 +58,7 @@ public class BuildAndRunCMakeProjectTest {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void testBuildAndRunCMakeProject() throws Exception {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/BasicCmakeAppForUI");
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
@@ -65,15 +66,13 @@ public class BuildAndRunCMakeProjectTest {
 
     ideFrame.invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD);
 
-    ideFrame.runApp(RUN_CONFIG_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
-      .clickOk();
+    ideFrame.runApp(RUN_CONFIG_NAME, emulator.getDefaultAvdName());
 
     // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
     guiTest.waitForBackgroundTasks();
 
     RunToolWindowFixture runToolWindowFixture = new RunToolWindowFixture(ideFrame);
-    Pattern LAUNCH_APP_PATTERN = Pattern.compile(".*Launching app.*", Pattern.DOTALL);
+    Pattern LAUNCH_APP_PATTERN = Pattern.compile(".*Launching 'app'.*", Pattern.DOTALL);
     Pattern CONNECTED_APP_PATTERN = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
     ContentFixture contentFixture = runToolWindowFixture.findContent(RUN_CONFIG_NAME);
     contentFixture.waitForOutput(new PatternTextMatcher(LAUNCH_APP_PATTERN), 10);

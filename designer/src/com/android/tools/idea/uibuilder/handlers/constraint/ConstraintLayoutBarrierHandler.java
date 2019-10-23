@@ -53,10 +53,10 @@ public class ConstraintLayoutBarrierHandler extends ConstraintHelperHandler {
       return super.getIcon(component);
     }
     if (isVertical(component)) {
-      return StudioIcons.LayoutEditor.Toolbar.BARRIER_VERTICAL;
+      return StudioIcons.LayoutEditor.Palette.BARRIER_VERTICAL;
     }
     else {
-      return StudioIcons.LayoutEditor.Toolbar.BARRIER_HORIZONTAL;
+      return StudioIcons.LayoutEditor.Palette.BARRIER_HORIZONTAL;
     }
   }
 

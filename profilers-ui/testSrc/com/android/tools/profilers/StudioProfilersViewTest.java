@@ -15,13 +15,20 @@
  */
 package com.android.tools.profilers;
 
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_ID;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.swing.FakeUi;
+import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.energy.EnergyMonitorTooltip;
@@ -35,23 +42,18 @@ import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.truth.Truth;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import icons.StudioIcons;
+import java.awt.Point;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
+import javax.swing.JToggleButton;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import javax.swing.*;
-import java.awt.*;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE;
-import static com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_ID;
-import static com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_NAME;
-import static com.android.tools.profilers.FakeProfilerService.FAKE_PROCESS_NAME;
-import static com.google.common.truth.Truth.assertThat;
 
 public class StudioProfilersViewTest {
   private static final Common.Session SESSION_O = Common.Session.newBuilder().setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS)
@@ -59,20 +61,23 @@ public class StudioProfilersViewTest {
   private static final Common.SessionMetaData SESSION_O_METADATA = Common.SessionMetaData.newBuilder().setSessionId(2).setJvmtiEnabled(true)
     .setSessionName("App Device").setType(Common.SessionMetaData.SessionType.FULL).setStartTimestampEpochMs(1).build();
 
-  private final FakeProfilerService myService = new FakeProfilerService();
-  @Rule public FakeGrpcServer myGrpcChannel = new FakeGrpcServer("StudioProfilerTestChannel", myService);
+  private final FakeTimer myTimer = new FakeTimer();
+  private final FakeTransportService myService = new FakeTransportService(myTimer);
+  private final FakeProfilerService myProfilerService = new FakeProfilerService(myTimer);
+  @Rule public FakeGrpcServer myGrpcChannel =
+    FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", myService, myProfilerService);
   private StudioProfilers myProfilers;
   private FakeIdeProfilerServices myProfilerServices = new FakeIdeProfilerServices();
-  private FakeTimer myTimer;
   private StudioProfilersView myView;
   private FakeUi myUi;
 
   @Before
   public void setUp() {
-    myTimer = new FakeTimer();
     myProfilerServices.enableEnergyProfiler(true);
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), myProfilerServices, myTimer);
+    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
+    // We setup and profile a process, we assume that process has an agent attached by default.
+    myService.setAgentStatus(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build());
     // Make sure a process is selected
     myView = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
     myView.bind(FakeStage.class, FakeView::new);
@@ -95,7 +100,7 @@ public class StudioProfilersViewTest {
   @Test
   public void testMonitorExpansion() {
     // Set session to enable Energy Monitor.
-    myService.addSession(SESSION_O, SESSION_O_METADATA);
+    myProfilerService.addSession(SESSION_O, SESSION_O_METADATA);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myProfilers.getSessionsManager().setSession(SESSION_O);
     myUi.layout();
@@ -136,7 +141,7 @@ public class StudioProfilersViewTest {
   @Test
   public void testMonitorTooltip() {
     // Set Session to enable Energy monitor tooltip.
-    myService.addSession(SESSION_O, SESSION_O_METADATA);
+    myProfilerService.addSession(SESSION_O, SESSION_O_METADATA);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myProfilers.getSessionsManager().setSession(SESSION_O);
     myUi.layout();
@@ -190,108 +195,6 @@ public class StudioProfilersViewTest {
   }
 
   @Test
-  public void testDeviceRendering() throws IOException {
-    StudioProfilersView.DeviceComboBoxRenderer renderer = new StudioProfilersView.DeviceComboBoxRenderer();
-    JList<Common.Device> list = new JList<>();
-    // Null device
-    Common.Device device = null;
-    Component component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertThat(component.toString()).isEqualTo(renderer.getEmptyText());
-
-    // Standard case
-    device = Common.Device.newBuilder()
-      .setModel("Model")
-      .setSerial("1234")
-      .setState(Common.Device.State.ONLINE)
-      .build();
-    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertThat(component.toString()).isEqualTo("Model (1234)");
-
-    // Suffix not serial
-    device = Common.Device.newBuilder()
-      .setModel("Model-9999")
-      .setSerial("1234")
-      .setState(Common.Device.State.ONLINE)
-      .build();
-    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertThat(component.toString()).isEqualTo("Model-9999 (1234)");
-
-    // Suffix serial
-    device = Common.Device.newBuilder()
-      .setModel("Model-1234")
-      .setSerial("1234")
-      .setState(Common.Device.State.ONLINE)
-      .build();
-    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertThat(component.toString()).isEqualTo("Model (1234)");
-
-    // With manufacturer
-    device = Common.Device.newBuilder()
-      .setManufacturer("Manufacturer")
-      .setModel("Model")
-      .setSerial("1234")
-      .setState(Common.Device.State.ONLINE)
-      .build();
-    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertThat(component.toString()).isEqualTo("Manufacturer Model (1234)");
-
-    // Disconnected
-    device = Common.Device.newBuilder()
-      .setModel("Model")
-      .setSerial("1234")
-      .setState(Common.Device.State.DISCONNECTED)
-      .build();
-    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertThat(component.toString()).isEqualTo("Model (1234) [DISCONNECTED]");
-
-    // Offline
-    device = Common.Device.newBuilder()
-      .setModel("Model")
-      .setSerial("1234")
-      .setState(Common.Device.State.OFFLINE)
-      .build();
-    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertThat(component.toString()).isEqualTo("Model (1234) [OFFLINE]");
-
-    // Unspecifed
-    device = Common.Device.newBuilder()
-      .setModel("Model")
-      .setSerial("1234")
-      .setState(Common.Device.State.UNSPECIFIED)
-      .build();
-    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertThat(component.toString()).isEqualTo("Model (1234)");
-  }
-
-  @Test
-  public void testProcessRendering() throws IOException {
-    StudioProfilersView.ProcessComboBoxRenderer renderer = new StudioProfilersView.ProcessComboBoxRenderer();
-    JList<Common.Process> list = new JList<>();
-    // Null process
-    Common.Process process = null;
-    Component component = renderer.getListCellRendererComponent(list, process, 0, false, false);
-    assertThat(component.toString()).isEqualTo(renderer.getEmptyText());
-
-    // Process
-    process = Common.Process.newBuilder()
-      .setName("MyProcessName")
-      .setPid(1234)
-      .setState(Common.Process.State.ALIVE)
-      .build();
-    component = renderer.getListCellRendererComponent(list, process, 0, false, false);
-    assertThat(component.toString()).isEqualTo("MyProcessName (1234)");
-
-    // Dead process
-    process = Common.Process.newBuilder()
-      .setName("MyDeadProcessName")
-      .setPid(4444)
-      .setState(Common.Process.State.DEAD)
-      .build();
-    component = renderer.getListCellRendererComponent(list, process, 0, false, false);
-    assertThat(component.toString()).isEqualTo("MyDeadProcessName (4444) [DEAD]");
-  }
-
-  @Test
   public void testMonitorStage() throws Exception {
     transitionStage(new StudioMonitorStage(myProfilers));
   }
@@ -324,35 +227,13 @@ public class StudioProfilersViewTest {
   }
 
   @Test
-  public void testSessionsViewHiddenBehindFlag() {
-    FakeTimer timer = new FakeTimer();
-    FakeIdeProfilerServices services = new FakeIdeProfilerServices();
-    services.enableSessionsView(false);
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), services, timer);
-    StudioProfilersView view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
-    assertThat(view.getComponent().getComponentCount()).isEqualTo(1);
-    Component splitter = view.getComponent().getComponent(0);
-    assertThat(splitter).isInstanceOf(ThreeComponentsSplitter.class);
-    assertThat(((ThreeComponentsSplitter)splitter).getFirstComponent()).isNull();
-
-    // Test the true case as well.
-    services.enableSessionsView(true);
-    profilers = new StudioProfilers(myGrpcChannel.getClient(), services, timer);
-    view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
-    assertThat(view.getComponent().getComponentCount()).isEqualTo(1);
-    splitter = view.getComponent().getComponent(0);
-    assertThat(splitter).isInstanceOf(ThreeComponentsSplitter.class);
-    assertThat(((ThreeComponentsSplitter)splitter).getFirstComponent()).isNotNull();
-  }
-
-  @Test
   public void testRememberSessionUiStates() {
     // Check that sessions is initially expanded
     assertThat(myView.getSessionsView().getCollapsed()).isFalse();
 
     // Fake a collapse action and re-create the StudioProfilerView, the session UI should now remain collapsed.
     myView.getSessionsView().getCollapseButton().doClick();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myProfilerServices, myTimer);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myProfilerServices, myTimer);
     StudioProfilersView profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     assertThat(profilersView.getSessionsView().getCollapsed()).isTrue();
 
@@ -364,7 +245,7 @@ public class StudioProfilersViewTest {
     FakeUi ui = new FakeUi(splitter);
     myUi.mouse.drag(splitter.getFirstSize(), 0, 10, 0);
 
-    profilers = new StudioProfilers(myGrpcChannel.getClient(), myProfilerServices, myTimer);
+    profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myProfilerServices, myTimer);
     profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     assertThat(profilersView.getSessionsView().getCollapsed()).isFalse();
     assertThat(((ThreeComponentsSplitter)profilersView.getComponent().getComponent(0)).getFirstSize()).isEqualTo(splitter.getFirstSize());
@@ -491,8 +372,7 @@ public class StudioProfilersViewTest {
     // Starting a session that is waiting for an agent to initialize should have all controls disabled.
     Common.Device onlineDevice = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build();
     Common.Process onlineProcess = Common.Process.newBuilder().setPid(2).setState(Common.Process.State.ALIVE).build();
-    myService.setAgentStatus(
-      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.DETACHED).setIsAgentAttachable(true).build());
+    myService.setAgentStatus(Common.AgentData.getDefaultInstance());
     myProfilers.getSessionsManager().beginSession(onlineDevice, onlineProcess);
     assertThat(zoomInButton.isEnabled()).isFalse();
     assertThat(zoomOutButton.isEnabled()).isFalse();
@@ -502,7 +382,7 @@ public class StudioProfilersViewTest {
 
     // Controls should be enabled after agent is attached.
     myService.setAgentStatus(
-      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).setIsAgentAttachable(true).build());
+      Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(zoomInButton.isEnabled()).isTrue();
     assertThat(zoomOutButton.isEnabled()).isTrue();
@@ -533,11 +413,11 @@ public class StudioProfilersViewTest {
     assertThat(myView.getStageLoadingComponent().isVisible()).isTrue();
 
     Common.Process process = Common.Process.newBuilder()
-                                           .setPid(2)
-                                           .setDeviceId(FAKE_DEVICE_ID)
-                                           .setState(Common.Process.State.ALIVE)
-                                           .setName(FAKE_PROCESS_2)
-                                           .build();
+      .setPid(2)
+      .setDeviceId(FAKE_DEVICE_ID)
+      .setState(Common.Process.State.ALIVE)
+      .setName(FAKE_PROCESS_2)
+      .build();
     myService.addProcess(FAKE_DEVICE, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
@@ -553,23 +433,23 @@ public class StudioProfilersViewTest {
     assertThat(myView.getStageLoadingComponent().isVisible()).isFalse();
 
     myService.setAgentStatus(
-      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.DETACHED).setIsAgentAttachable(true).build());
+      Common.AgentData.getDefaultInstance());
     Common.Process process = Common.Process.newBuilder()
-                                           .setPid(2)
-                                           .setDeviceId(FAKE_DEVICE_ID)
-                                           .setState(Common.Process.State.ALIVE)
-                                           .setName(FAKE_PROCESS_2)
-                                           .build();
+      .setPid(2)
+      .setDeviceId(FAKE_DEVICE_ID)
+      .setState(Common.Process.State.ALIVE)
+      .setName(FAKE_PROCESS_2)
+      .build();
     myService.addProcess(FAKE_DEVICE, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myProfilers.setProcess(process);
+    myProfilers.setProcess(FAKE_DEVICE, process);
 
     // Agent is detached, the UI should wait and show the loading panel.
     assertThat(myView.getStageViewComponent().isVisible()).isFalse();
     assertThat(myView.getStageLoadingComponent().isVisible()).isTrue();
 
     myService.setAgentStatus(
-      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).setIsAgentAttachable(true).build());
+      Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Attach status is detected, loading should stop.
@@ -593,7 +473,7 @@ public class StudioProfilersViewTest {
 
   static class FakeView extends StageView<FakeStage> {
 
-    FakeView(@NotNull StudioProfilersView profilersView, @NotNull FakeStage stage) {
+    public FakeView(@NotNull StudioProfilersView profilersView, @NotNull FakeStage stage) {
       super(profilersView, stage);
     }
 

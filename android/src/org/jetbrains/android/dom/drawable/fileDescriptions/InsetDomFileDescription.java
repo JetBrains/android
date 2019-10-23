@@ -16,10 +16,10 @@
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.drawable.Inset;
 
-public class InsetDomFileDescription extends AbstractSingleRootFileDescription<Inset> {
+public class InsetDomFileDescription extends SingleRootResourceDomFileDescription<Inset> {
 
   public InsetDomFileDescription() {
     super(Inset.class, "inset", ResourceFolderType.DRAWABLE);

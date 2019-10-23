@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,75 +15,29 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.builder.model.*;
-import com.android.builder.model.level2.Library;
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeBaseArtifact;
-import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.level2.IdeDependencies;
-import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.project.AndroidNotification;
-import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.projectsystem.FilenameConstants;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.utils.SdkUtils;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.CharMatcher;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ex.ApplicationEx;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ArrayUtilRt;
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
-
-import javax.swing.*;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.*;
-import static com.android.builder.model.AndroidProject.*;
+import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.DOT_KTS;
+import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
+import static com.android.SdkConstants.FD_RES_CLASS;
+import static com.android.SdkConstants.FD_SOURCE_GEN;
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
+import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
+import static com.android.tools.idea.gradle.util.GradleProjects.isGradleProjectModule;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.notification.NotificationType.ERROR;
@@ -99,11 +53,88 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.util.SystemProperties.getUserHome;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
-import static icons.StudioIcons.Shell.Filetree.*;
+import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
+import static icons.StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT;
+import static icons.StudioIcons.Shell.Filetree.FEATURE_MODULE;
+import static icons.StudioIcons.Shell.Filetree.INSTANT_APPS;
+import static icons.StudioIcons.Shell.Filetree.LIBRARY_MODULE;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.jps.model.serialization.PathMacroUtil.DIRECTORY_STORE_NAME;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
+
+import com.android.SdkConstants;
+import com.android.annotations.NonNull;
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.BaseArtifact;
+import com.android.builder.model.MavenCoordinates;
+import com.android.builder.model.NativeAndroidProject;
+import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.project.AndroidNotification;
+import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.utils.FileUtils;
+import com.android.utils.SdkUtils;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.CharMatcher;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.intellij.facet.ProjectFacetManager;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ex.ApplicationEx;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ArrayUtilRt;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import javax.swing.Icon;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
  * Utilities related to Gradle.
@@ -274,7 +305,7 @@ public final class GradleUtil {
 
   /**
    * @return list of the module dependencies in the given variant. This method checks dependencies in the main and test (as currently selected
-   * in the UI) artifacts.
+   * in the UI) artifacts. The returned list does not contain any duplicates.
    */
   @NotNull
   public static List<Library> getModuleDependencies(@NotNull IdeVariant variant) {
@@ -288,7 +319,7 @@ public final class GradleUtil {
       dependencies = testArtifact.getLevel2Dependencies();
       libraries.addAll(dependencies.getModuleDependencies());
     }
-    return libraries;
+    return libraries.stream().distinct().collect(Collectors.toList());
   }
 
   @Nullable
@@ -312,26 +343,54 @@ public final class GradleUtil {
 
   /**
    * Returns the build.gradle file in the given module. This method first checks if the Gradle model has the path of the build.gradle
-   * file for the given module. If it doesn't find it, it tries to find a build.gradle inside the module's root directory.
+   * file for the given module. If it doesn't find it, it tries to find a build.gradle inside the module's root directory (folder with .iml
+   * file). If it is a root module without sources, it looks inside project's base path before looking in the module's root directory.
    *
    * @param module the given module.
    * @return the build.gradle file in the given module, or {@code null} if it cannot be found.
    */
   @Nullable
   public static VirtualFile getGradleBuildFile(@NotNull Module module) {
-    GradleFacet gradleFacet = GradleFacet.getInstance(module);
-    if (gradleFacet != null && gradleFacet.getGradleModuleModel() != null) {
-      return gradleFacet.getGradleModuleModel().getBuildFile();
+    GradleModuleModel moduleModel = getGradleModuleModel(module);
+    if (moduleModel != null) {
+      return moduleModel.getBuildFile();
     }
+
+    if (isGradleProjectModule(module)) {
+      VirtualFile buildFile = getGradleBuildFileFromProjectModule(module);
+      if (buildFile != null) {
+        return buildFile;
+      }
+    }
+
     // At the time we're called, module.getModuleFile() may be null, but getModuleFilePath returns the path where it will be created.
     File moduleFilePath = new File(module.getModuleFilePath());
     File parentFile = moduleFilePath.getParentFile();
     return parentFile != null ? getGradleBuildFile(parentFile) : null;
   }
 
+  @Nullable
+  private static GradleModuleModel getGradleModuleModel(Module module) {
+    GradleFacet gradleFacet = GradleFacet.getInstance(module);
+    if (gradleFacet == null) {
+      return null;
+    }
+    return gradleFacet.getGradleModuleModel();
+  }
+
+  @Nullable
+  private static VirtualFile getGradleBuildFileFromProjectModule(@NotNull Module module) {
+    String basePath = module.getProject().getBasePath();
+    if (isEmptyOrSpaces(basePath)) {
+      return null;
+    }
+    return getGradleBuildFile(new File(basePath));
+  }
+
   /**
    * Returns the build.gradle file that is expected right in the directory at the given path. For example, if the directory path is
-   * '~/myProject/myModule', this method will look for the file '~/myProject/myModule/build.gradle'.
+   * '~/myProject/myModule', this method will look for the file '~/myProject/myModule/build.gradle'. This method does not cause a VFS
+   * refresh of the file, this should be done by the caller if it is likely that the file has just been created on disk.
    * <p>
    * <b>Note:</b> Only use this method if you do <b>not</b> have a reference to a {@link Module}. Otherwise use
    * {@link #getGradleBuildFile(Module)}.
@@ -344,35 +403,61 @@ public final class GradleUtil {
   @Nullable
   public static VirtualFile getGradleBuildFile(@NotNull File dirPath) {
     File gradleBuildFilePath = getGradleBuildFilePath(dirPath);
-    return findFileByIoFile(gradleBuildFilePath, true);
+    VirtualFile result = findFileByIoFile(gradleBuildFilePath, false);
+    return (result != null && result.isValid()) ? result : null;
   }
 
   /**
-   * Returns the path of a build.gradle file in the directory at the given path. For example, if the directory path is
-   * '~/myProject/myModule', this method will return the path '~/myProject/myModule/build.gradle'. Please note that a build.gradle file
-   * may not exist at the returned path.
+   * Returns the path of a build.gradle or build.gradle.kts file in the directory at the given path.
+   * build.gradle.kts is only returned when build.gradle doesn't exist and build.gradle.kts exists.
+   * <p>
+   * Please note that the build.gradle file may not exist at the returned path.
    * <p>
    * <b>Note:</b> Only use this method if you do <b>not</b> have a reference to a {@link Module}. Otherwise use
    * {@link #getGradleBuildFile(Module)}.
    * </p>
    *
    * @param dirPath the given directory path.
-   * @return the path of a build.gradle file in the directory at the given path.
+   * @return the path of a build.gradle or build.gradle.kts file in the directory at the given path.
    */
   @NotNull
   public static File getGradleBuildFilePath(@NotNull File dirPath) {
-    return new File(dirPath, FN_BUILD_GRADLE);
+    File defaultBuildFile = new File(dirPath, FN_BUILD_GRADLE);
+    if (!defaultBuildFile.isFile()) {
+      File ktsBuildFile = new File(dirPath, FN_BUILD_GRADLE_KTS);
+      if (ktsBuildFile.isFile()) {
+        return ktsBuildFile;
+      }
+    }
+    return defaultBuildFile;
   }
 
+  /**
+   * Returns the VirtualFile corresponding to the Gradle settings file for the given directory, this method will not attempt to refresh the
+   * file system which means it is safe to be called from a read action. If the most up to date information is needed then the caller
+   * should use {@link #getGradleSettingsFilePath(File)} along with {@link com.intellij.openapi.vfs.VfsUtil#findFileByIoFile(File, boolean)}
+   * to ensure a refresh occurs.
+   *
+   * @param dirPath the path to find the Gradle settings file for.
+   * @return the VirtualFile representing the Gradle settings file or null if it was unable to be found or the file is invalid.
+   */
   @Nullable
   public static VirtualFile getGradleSettingsFile(@NotNull File dirPath) {
     File gradleSettingsFilePath = getGradleSettingsFilePath(dirPath);
-    return findFileByIoFile(gradleSettingsFilePath, true);
+    VirtualFile result = findFileByIoFile(gradleSettingsFilePath, false);
+    return (result != null && result.isValid()) ? result : null;
   }
 
   @NotNull
-  private static File getGradleSettingsFilePath(@NotNull File dirPath) {
-    return new File(dirPath, FN_SETTINGS_GRADLE);
+  public static File getGradleSettingsFilePath(@NotNull File dirPath) {
+    File defaultSettingsFile = new File(dirPath, FN_SETTINGS_GRADLE);
+    if (!defaultSettingsFile.isFile()) {
+      File ktsSettingsFile = new File(dirPath, FN_SETTINGS_GRADLE_KTS);
+      if (ktsSettingsFile.isFile()) {
+        return ktsSettingsFile;
+      }
+    }
+    return defaultSettingsFile;
   }
 
   @NotNull
@@ -892,26 +977,30 @@ public final class GradleUtil {
    * generate/not_namespaced_r_class_sources) but in reality this is where aapt output goes, so this includes Manifest.java if custom
    * permissions are defined in the manifest.
    */
-  public static boolean isAaptGeneratedSourcesFolder(@NotNull File folder, @NotNull AndroidModuleModel androidModuleModel) {
-    try {
-      File generatedFolder = new File(androidModuleModel.getAndroidProject().getBuildFolder(), "generated");
-      if (FileUtil.namesEqual(folder.getParentFile().getName(), FD_RES_CLASS)) {
-        // Naming convention used in 3.1 and below.
-        return filesEqual(folder.getParentFile().getParentFile(),
-                          new File(generatedFolder, FD_SOURCE_GEN));
-      }
-      else if (FileUtil.namesEqual(folder.getName(), FD_RES_CLASS)) {
-        // Naming convention used in 3.2 and above.
-        return filesEqual(folder.getParentFile().getParentFile().getParentFile(),
-                          new File(generatedFolder, FilenameConstants.NOT_NAMESPACED_R_CLASS_SOURCES));
-      }
-      else {
-        return false;
-      }
-    }
-    catch (NullPointerException e) {
-      return false;
-    }
+  public static boolean isAaptGeneratedSourcesFolder(@NotNull File folder, @NotNull File buildFolder) {
+    File generatedFolder = new File(buildFolder, FilenameConstants.GENERATED);
+
+    // Folder used in 3.1 and below. Additional level added below for androidTest.
+    File generatedSourceR = FileUtils.join(generatedFolder, FD_SOURCE_GEN, FD_RES_CLASS);
+    // Naming convention used in 3.2 and above, if R.java files are generated at all.
+    File rClassSources = new File(generatedFolder, FilenameConstants.NOT_NAMESPACED_R_CLASS_SOURCES);
+
+    return FileUtil.isAncestor(generatedSourceR, folder, false) || FileUtil.isAncestor(rClassSources, folder, false);
+  }
+
+  /**
+   * Checks if the given folder contains "Binding" base classes generated by data binding. The IDE provides light versions of these classes,
+   * so it can be useful to ignore them as source folders.
+   *
+   * See {@link FilenameConstants#DATA_BINDING_BASE_CLASS_SOURCES} for a bit more detail.
+   *
+   * TODO(b/129543943): Investigate moving this logic into the data binding module
+   */
+  @VisibleForTesting
+  public static boolean isDataBindingGeneratedBaseClassesFolder(@NotNull File folder, @NotNull File buildFolder) {
+    File generatedFolder = new File(buildFolder, FilenameConstants.GENERATED);
+    File dataBindingSources = new File(generatedFolder, FilenameConstants.DATA_BINDING_BASE_CLASS_SOURCES);
+    return FileUtil.isAncestor(dataBindingSources, folder, false);
   }
 
   /**
@@ -919,13 +1008,97 @@ public final class GradleUtil {
    * IDE.
    */
   public static Collection<File> getGeneratedSourceFoldersToUse(@NotNull IdeBaseArtifact artifact, @NotNull AndroidModuleModel model) {
-    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      return artifact.getGeneratedSourceFolders()
-        .stream()
-        .filter(folder -> !isAaptGeneratedSourcesFolder(folder, model))
-        .collect(Collectors.toList());
-    } else {
-      return artifact.getGeneratedSourceFolders();
+    File buildFolder = model.getAndroidProject().getBuildFolder();
+    return artifact.getGeneratedSourceFolders()
+      .stream()
+      .filter(folder -> !isAaptGeneratedSourcesFolder(folder, buildFolder))
+      .filter(folder -> !isDataBindingGeneratedBaseClassesFolder(folder, buildFolder))
+      .collect(Collectors.toList());
+  }
+
+  /**
+   * Given a project, return what types of build files are used.
+   *
+   * @param   project Project to analyse
+   * @return  A set containing values from {{@link{DOT_GRADLE}, {@link{DOT_KTS}}
+   */
+  public static Set<String> projectBuildFilesTypes(@NotNull Project project) {
+    HashSet<String> result = new HashSet<>();
+    addBuildFileType(result, getGradleBuildFile(getBaseDirPath(project)));
+    for(Module module : ModuleManager.getInstance(project).getModules()) {
+      addBuildFileType(result, getGradleBuildFile(module));
     }
+    return result;
+  }
+
+  public static boolean hasKtsBuildFiles(@NotNull Project project) {
+    return projectBuildFilesTypes(project).contains(DOT_KTS);
+  }
+
+  public static boolean isKtsFile(@Nullable VirtualFile file) {
+    // We deal with the null case in this method for the callers convenience.
+    if (file == null) {
+      return false;
+    }
+
+    HashSet<String> result = new HashSet<>();
+    addBuildFileType(result, file);
+    return result.contains(DOT_KTS);
+  }
+
+  private static void addBuildFileType(@NotNull HashSet<String> result, @Nullable VirtualFile buildFile) {
+    if (buildFile != null) {
+      String buildFileExtension = buildFile.getExtension();
+      if (buildFileExtension == null) {
+        return;
+      }
+      buildFileExtension = "." + buildFileExtension;
+      if (buildFileExtension.equalsIgnoreCase(DOT_GRADLE)) {
+        result.add(DOT_GRADLE);
+      }
+      else if (buildFileExtension.equalsIgnoreCase(DOT_KTS)) {
+        result.add(DOT_KTS);
+      }
+    }
+  }
+
+  /**
+   * Get last known AGP version from a project. It can be null if it has not been setup.
+   */
+  @Nullable
+  public static String getLastKnownAndroidGradlePluginVersion(@NotNull Project project) {
+    for (Module module : ProjectFacetManager.getInstance(project).getModulesWithFacet(GradleFacet.getFacetTypeId())) {
+      GradleFacet gradleFacet = GradleFacet.getInstance(module);
+      if (gradleFacet == null) {
+        continue;
+      }
+      GradleFacetConfiguration configuration = gradleFacet.getConfiguration();
+      String version = configuration.LAST_KNOWN_AGP_VERSION;
+      if (version != null) {
+        // All versions should be the same, return version from first module found
+        return version;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get last successful AGP version from a project. It can be null if sync has never been successful.
+   */
+  @Nullable
+  public static String getLastSuccessfulAndroidGradlePluginVersion(@NotNull Project project) {
+    for (Module module : ProjectFacetManager.getInstance(project).getModulesWithFacet(GradleFacet.getFacetTypeId())) {
+      GradleFacet gradleFacet = GradleFacet.getInstance(module);
+      if (gradleFacet == null) {
+        continue;
+      }
+      GradleFacetConfiguration configuration = gradleFacet.getConfiguration();
+      String version = configuration.LAST_SUCCESSFUL_SYNC_AGP_VERSION;
+      if (version != null) {
+        // All versions should be the same, return version from first module found
+        return version;
+      }
+    }
+    return null;
   }
 }

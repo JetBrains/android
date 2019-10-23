@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.SdkConstants.ANDROID_PREFIX;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
@@ -35,18 +38,29 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
-import com.intellij.psi.*;
-import com.intellij.psi.xml.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiErrorElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiTreeChangeEvent;
+import com.intellij.psi.PsiTreeChangeListener;
+import com.intellij.psi.PsiWhiteSpace;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlComment;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.XmlText;
+import com.intellij.psi.xml.XmlToken;
 import com.intellij.util.messages.MessageBusConnection;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.concurrent.GuardedBy;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
-
-import static com.android.SdkConstants.ANDROID_PREFIX;
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 
 /**
  * The {@linkplain ResourceNotificationManager} provides notifications to editors that
@@ -73,7 +87,6 @@ import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
  * <li>Add listener or remove listener can be done from any thread</li>
  * </ul>
  */
-@SuppressWarnings({"SynchronizeOnThis", "UseOfSystemOutOrSystemErr"})
 public class ResourceNotificationManager {
   private final Project myProject;
 
@@ -95,7 +108,11 @@ public class ResourceNotificationManager {
   /**
    * Project wide observer: a single one will do
    */
-  private ProjectEventObserver myProjectEventObserver;
+  @GuardedBy("this")
+  @Nullable
+  private ProjectPsiTreeObserver myProjectPsiTreeObserver;
+
+  private final ProjectBuildObserver myProjectBuildObserver = new ProjectBuildObserver();
 
   /**
    * Whether we've already been notified about a change and we'll be firing it shortly
@@ -163,19 +180,18 @@ public class ResourceNotificationManager {
      *                      you can listen for changes in (must be a configuration corresponding to the file)
      * @return the current resource modification stamp of the given module
      */
-  public ResourceVersion addListener(@NotNull ResourceChangeListener listener,
-                                     @NotNull AndroidFacet facet,
-                                     @Nullable VirtualFile file,
-                                     @Nullable Configuration configuration) {
-    synchronized (this) {
+    public synchronized ResourceVersion addListener(@NotNull ResourceChangeListener listener,
+                                                    @NotNull AndroidFacet facet,
+                                                    @Nullable VirtualFile file,
+                                                    @Nullable Configuration configuration) {
       Module module = facet.getModule();
       ModuleEventObserver moduleEventObserver = myModuleToObserverMap.get(module);
       if (moduleEventObserver == null) {
         if (myModuleToObserverMap.isEmpty()) {
-          if (myProjectEventObserver == null) {
-            myProjectEventObserver = new ProjectEventObserver();
+          if (myProjectPsiTreeObserver == null) {
+            myProjectPsiTreeObserver = new ProjectPsiTreeObserver();
           }
-          myProjectEventObserver.registerListeners();
+          myProjectBuildObserver.startListening();
         }
         moduleEventObserver = new ModuleEventObserver(facet);
         myModuleToObserverMap.put(module, moduleEventObserver);
@@ -204,7 +220,6 @@ public class ResourceNotificationManager {
       }
 
       return getCurrentVersion(facet, file != null ? AndroidPsiUtils.getPsiFileSafely(myProject, file) : null, configuration);
-    }
   }
 
   /**
@@ -215,11 +230,10 @@ public class ResourceNotificationManager {
    * @param file          the file passed in to the corresponding {@link #addListener} call
    * @param configuration the configuration passed in to the corresponding {@link #addListener} call
    */
-  public void removeListener(@NotNull ResourceChangeListener listener,
-                             @NonNull AndroidFacet facet,
-                             @Nullable VirtualFile file,
-                             @Nullable Configuration configuration) {
-    synchronized (this) {
+  public synchronized void removeListener(@NotNull ResourceChangeListener listener,
+                                          @NonNull AndroidFacet facet,
+                                          @Nullable VirtualFile file,
+                                          @Nullable Configuration configuration) {
       if (file != null) {
         if (configuration != null) {
           ConfigurationEventObserver configurationEventObserver = myConfigurationToObserverMap.get(configuration);
@@ -248,12 +262,23 @@ public class ResourceNotificationManager {
         moduleEventObserver.removeListener(listener);
         if (!moduleEventObserver.hasListeners()) {
           myModuleToObserverMap.remove(module);
-          if (myModuleToObserverMap.isEmpty() && myProjectEventObserver != null) {
-            myProjectEventObserver.unregisterListeners();
+          if (myModuleToObserverMap.isEmpty() && myProjectPsiTreeObserver != null) {
+            myProjectBuildObserver.stopListening();
+            myProjectPsiTreeObserver = null;
           }
         }
       }
-    }
+  }
+
+  /**
+   * Returns a implementation of {@link PsiTreeChangeListener} that is not registered and is used as a
+   * delegate (e.g in {@link PsiProjectListener}).
+   * <p>
+   * If no listener has been added to the {@link ResourceNotificationManager}, this method returns null.
+   */
+  @Nullable
+  public synchronized PsiTreeChangeListener getPsiListener() {
+      return myProjectPsiTreeObserver;
   }
 
   private final Object CHANGE_PENDING_LOCK = new Object();
@@ -309,6 +334,10 @@ public class ResourceNotificationManager {
   private class ModuleEventObserver implements ModificationTracker, ResourceFolderManager.ResourceFolderListener {
     private final AndroidFacet myFacet;
     private long myGeneration;
+    private final Object myListenersLock = new Object();
+    private MessageBusConnection myConnection;
+
+    @GuardedBy("myListenersLock")
     private final List<ResourceChangeListener> myListeners = Lists.newArrayListWithExpectedSize(4);
 
     private ModuleEventObserver(@NotNull AndroidFacet facet) {
@@ -322,34 +351,42 @@ public class ResourceNotificationManager {
     }
 
     private void addListener(@NotNull ResourceChangeListener listener) {
-      if (myListeners.isEmpty()) {
-        registerListeners();
+      synchronized (myListenersLock) {
+        if (myListeners.isEmpty()) {
+          registerListeners();
+        }
+        myListeners.add(listener);
       }
-      myListeners.add(listener);
     }
 
     private void removeListener(@NotNull ResourceChangeListener listener) {
-      myListeners.remove(listener);
+      synchronized (myListenersLock) {
+        myListeners.remove(listener);
 
-      if (myListeners.isEmpty()) {
-        unregisterListeners();
+        if (myListeners.isEmpty()) {
+          unregisterListeners();
+        }
       }
     }
 
     private void registerListeners() {
       if (myFacet.requiresAndroidModel()) {
-        // Ensure that the app resources have been initialized first, since
-        // we want it to add its own variant listeners before ours (such that
+        // Ensure that project resources have been initialized first, since
+        // we want all repos to add their own variant listeners before ours (such that
         // when the variant changes, the project resources get notified and updated
         // before our own update listener attempts a re-render)
-        ResourceRepositoryManager.getModuleResources(myFacet);
-        ResourceFolderManager.getInstance(myFacet).addListener(this);
+        ResourceRepositoryManager.getProjectResources(myFacet);
+
+        assert myConnection == null;
+        myConnection = myFacet.getModule().getMessageBus().connect(myFacet);
+        myConnection.subscribe(ResourceFolderManager.TOPIC, this);
+        ResourceFolderManager.getInstance(myFacet); // Make sure ResourceFolderManager is initialized.
       }
     }
 
     private void unregisterListeners() {
-      if (!myFacet.isDisposed() && myFacet.requiresAndroidModel()) {
-        ResourceFolderManager.getInstance(myFacet).removeListener(this);
+      if (myConnection != null) {
+        myConnection.disconnect();
       }
     }
 
@@ -368,7 +405,7 @@ public class ResourceNotificationManager {
       myGeneration = generation;
       ApplicationManager.getApplication().assertIsDispatchThread();
       List<ResourceChangeListener> listeners;
-      synchronized (this) {
+      synchronized (myListenersLock) {
         listeners = Lists.newArrayList(myListeners);
       }
       for (ResourceChangeListener listener : listeners) {
@@ -377,41 +414,45 @@ public class ResourceNotificationManager {
     }
 
     private boolean hasListeners() {
-      return !myListeners.isEmpty();
+      synchronized (myListenersLock) {
+        return !myListeners.isEmpty();
+      }
     }
 
     // ---- Implements ResourceFolderManager.ResourceFolderListener ----
 
     @Override
-    public void resourceFoldersChanged(@NotNull AndroidFacet facet,
-                                       @NotNull List<VirtualFile> folders,
-                                       @NotNull Collection<VirtualFile> added,
-                                       @NotNull Collection<VirtualFile> removed) {
+    public void mainResourceFoldersChanged(@NotNull AndroidFacet facet,
+                                           @NotNull List<? extends VirtualFile> folders,
+                                           @NotNull Collection<? extends VirtualFile> added,
+                                           @NotNull Collection<? extends VirtualFile> removed) {
+      myModificationCount++;
+      notice(Reason.GRADLE_SYNC);
+    }
+
+    @Override
+    public void testResourceFoldersChanged(@NotNull AndroidFacet facet,
+                                           @NotNull List<? extends VirtualFile> folders,
+                                           @NotNull Collection<? extends VirtualFile> added,
+                                           @NotNull Collection<? extends VirtualFile> removed) {
       myModificationCount++;
       notice(Reason.GRADLE_SYNC);
     }
   }
 
-  private class ProjectEventObserver implements PsiTreeChangeListener, AndroidProjectBuildNotifications.AndroidProjectBuildListener {
+  private class ProjectBuildObserver implements AndroidProjectBuildNotifications.AndroidProjectBuildListener {
     private boolean myAlreadyAddedBuildListener;
     private boolean myIgnoreBuildEvents;
 
-    private ProjectEventObserver() {
-    }
-
-    private void registerListeners() {
-      if (!myAlreadyAddedBuildListener) { // See comment in unregisterListeners
+    private void startListening() {
+      if (!myAlreadyAddedBuildListener) { // See comment in stopListening
         myAlreadyAddedBuildListener = true;
         AndroidProjectBuildNotifications.subscribe(myProject, this);
       }
       myIgnoreBuildEvents = false;
-
-      PsiManager.getInstance(myProject).addPsiTreeChangeListener(this);
     }
 
-    private void unregisterListeners() {
-      PsiManager.getInstance(myProject).removePsiTreeChangeListener(this);
-
+    private void stopListening() {
       // Unfortunately, we can't remove build tasks once they've been added.
       //    https://youtrack.jetbrains.com/issue/IDEA-139893
       // Therefore, we leave the listeners around, and make sure we only add
@@ -429,8 +470,12 @@ public class ResourceNotificationManager {
         notice(Reason.PROJECT_BUILD);
       }
     }
+  }
 
-    // ---- Implements PsiTreeChangeEvent. These are fired project-wide. ----
+  private class ProjectPsiTreeObserver implements PsiTreeChangeListener {
+
+    private ProjectPsiTreeObserver() {
+    }
 
     @Override
     public void beforeChildAddition(@NotNull PsiTreeChangeEvent event) {
@@ -478,7 +523,8 @@ public class ResourceNotificationManager {
         }
         else if (parent instanceof XmlAttribute && child instanceof XmlAttributeValue) {
           XmlAttributeValue attributeValue = (XmlAttributeValue)child;
-          if (attributeValue.getValue() == null || attributeValue.getValue().isEmpty()) {
+          attributeValue.getValue();
+          if (attributeValue.getValue().isEmpty()) {
             // Just added a new blank attribute; nothing to render yet
             return;
           }
@@ -521,7 +567,7 @@ public class ResourceNotificationManager {
           // Typing in attribute name. Don't need to do any rendering until there
           // is an actual value
           XmlAttributeValue valueElement = ((XmlAttribute)parent).getValueElement();
-          if (valueElement == null || valueElement.getValue() == null || valueElement.getValue().isEmpty()) {
+          if (valueElement == null || valueElement.getValue().isEmpty()) {
             return;
           }
         }
@@ -547,7 +593,7 @@ public class ResourceNotificationManager {
           // Typing in attribute name. Don't need to do any rendering until there
           // is an actual value
           XmlAttributeValue valueElement = ((XmlAttribute)parent).getValueElement();
-          if (valueElement == null || valueElement.getValue() == null || valueElement.getValue().isEmpty()) {
+          if (valueElement == null || valueElement.getValue().isEmpty()) {
             return;
           }
         }
@@ -594,8 +640,22 @@ public class ResourceNotificationManager {
 
     @Override
     public void propertyChanged(@NotNull PsiTreeChangeEvent event) {
+      // When renaming a PsiFile, if the file extension stays the same (i.e the file type
+      // stays the same) the generated PsiTreeChangeEvent will trigger "propertyChanged()" (this method) with
+      // the changed file set as the event's element.
+      // On the other hand, if the file extension is changed, a new object is created and the event will
+      // trigger "childReplaced()" instead, the parent being the file's directory and the renamed
+      // file being the new child.
+      if (PsiTreeChangeEvent.PROP_FILE_NAME.equals(event.getPropertyName())) {
+        notice(Reason.RESOURCE_EDIT);
+      }
     }
 
+    /**
+     * Returns true if the event's file is being observed by a listener (addListener(...) has
+     * been called with a non-null VirtualFile.)
+     * @see ResourceNotificationManager#addListener(ResourceChangeListener, AndroidFacet, VirtualFile, Configuration)
+     */
     private boolean isRelevantFile(PsiTreeChangeEvent event) {
       if (!myFileToObserverMap.isEmpty()) {
         final PsiFile file = event.getFile();
@@ -659,7 +719,7 @@ public class ResourceNotificationManager {
     private Module myModule;
     private MessageBusConnection myMessageBusConnection;
 
-    FileEventObserver(Module module) {
+    private FileEventObserver(Module module) {
       myModule = module;
     }
 
@@ -718,7 +778,7 @@ public class ResourceNotificationManager {
     private final Configuration myConfiguration;
     private List<ResourceChangeListener> myListeners = Lists.newArrayListWithExpectedSize(2);
 
-    ConfigurationEventObserver(Configuration configuration) {
+    private ConfigurationEventObserver(Configuration configuration) {
       myConfiguration = configuration;
     }
 

@@ -40,13 +40,19 @@ public class SelectParentAction extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     boolean enabled;
-    SceneView screenView = mySurface.getCurrentSceneView();
-    if (screenView != null) {
-      List<NlComponent> selection = screenView.getSelectionModel().getSelection();
-      enabled = selection.size() == 1 && !selection.get(0).isRoot();
+    if (mySurface.getInteractionManager().isInteractionInProgress()) {
+      // Interaction should consume escape event first
+      enabled = false;
     }
     else {
-      enabled = false;
+      SceneView screenView = mySurface.getCurrentSceneView();
+      if (screenView != null) {
+        List<NlComponent> selection = screenView.getSelectionModel().getSelection();
+        enabled = selection.size() == 1 && !selection.get(0).isRoot();
+      }
+      else {
+        enabled = false;
+      }
     }
     e.getPresentation().setEnabled(enabled);
   }

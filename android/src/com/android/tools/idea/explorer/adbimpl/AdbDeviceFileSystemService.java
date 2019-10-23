@@ -27,7 +27,9 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,10 +62,12 @@ public final class AdbDeviceFileSystemService implements DeviceFileSystemService
 
   public AdbDeviceFileSystemService(@NotNull Function<Void, File> adbProvider,
                                     @NotNull Executor edtExecutor,
-                                    @NotNull Executor taskExecutor) {
+                                    @NotNull Executor taskExecutor,
+                                    @NonNull Disposable parent) {
     myAdbProvider = adbProvider;
     myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
     myTaskExecutor = new FutureCallbackExecutor(taskExecutor);
+    Disposer.register(parent, this);
   }
 
   public enum State {

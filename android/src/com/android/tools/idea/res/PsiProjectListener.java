@@ -15,36 +15,59 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.SdkConstants.FD_RES_RAW;
+
+import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.fileTypes.FontFileType;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
+import com.android.tools.idea.lang.aidl.AidlFileType;
+import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
+import com.google.common.collect.Iterables;
+import com.intellij.openapi.fileTypes.FileNameMatcher;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiTreeChangeEvent;
+import com.intellij.psi.PsiTreeChangeListener;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.Consumer;
+import java.util.Arrays;
+import java.util.List;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.FD_RES_RAW;
+import org.jetbrains.kotlin.idea.KotlinFileType;
 
 /**
  * A project-wide {@link PsiTreeChangeListener} that tracks events that are potentially relevant to
- * the {@link ResourceFolderRepository} and/or {@link SampleDataResourceRepository} corresponding to the
- * file being changed.
+ * the {@link ResourceFolderRepository}, {@link com.android.ide.common.resources.ResourceRepository}
+ * and/or {@link SampleDataResourceRepository} corresponding to the file being changed.
  *
  * For {@link ResourceFolderRepository}, this is accomplished by passing the event to {{@link ResourceFolderRepository#getPsiListener()}}.
  * In the case of sample data, the event is forwarded to the project's {@link SampleDataListener}.
+ *
+ * All event happening on resources file are also forwarded to the {@link ResourceNotificationManager}.
  *
  * PsiProjectListener also notifies {@link EditorNotifications} when it detects that a Gradle file has been modified.
  */
 public final class PsiProjectListener implements PsiTreeChangeListener {
   private final ResourceFolderRegistry myRegistry;
   private SampleDataListener mySampleDataListener;
-  private final Project myProject;
+  @NotNull private final Project myProject;
+  @NotNull private final ResourceNotificationManager myResourceNotificationManager;
+
+  private static final List<FileNameMatcher> RENDERSCRIPT_MATCHERS = Arrays.asList(AndroidRenderscriptFileType.fileNameMatchers());
 
   @NotNull
   public static PsiProjectListener getInstance(@NotNull Project project) {
@@ -53,6 +76,7 @@ public final class PsiProjectListener implements PsiTreeChangeListener {
 
   public PsiProjectListener(@NotNull Project project) {
     myProject = project;
+    myResourceNotificationManager = ResourceNotificationManager.getInstance(project);
     PsiManager.getInstance(project).addPsiTreeChangeListener(this);
     myRegistry = ResourceFolderRegistry.getInstance(project);
   }
@@ -68,13 +92,13 @@ public final class PsiProjectListener implements PsiTreeChangeListener {
    *
    * @param sampleDataListener the project's {@link SampleDataListener}
    */
-   void setSampleDataListener(SampleDataListener sampleDataListener) {
+  void setSampleDataListener(SampleDataListener sampleDataListener) {
     assert mySampleDataListener == null: "SampleDataListener already set!";
     mySampleDataListener = sampleDataListener;
   }
 
   static boolean isRelevantFileType(@NotNull FileType fileType) {
-    if (fileType == StdFileTypes.JAVA) { // fail fast for vital file type
+    if (fileType == StdFileTypes.JAVA || fileType == KotlinFileType.INSTANCE) { // fail fast for vital file type
       return false;
     }
     if (fileType == StdFileTypes.XML) {
@@ -84,15 +108,41 @@ public final class PsiProjectListener implements PsiTreeChangeListener {
     // TODO: ensure that only android compatible images are recognized.
     if (fileType.isBinary()) {
       return fileType == ImageFileTypeManager.getInstance().getImageFileType() ||
-             fileType == FontFileType.INSTANCE;
+              fileType == FontFileType.INSTANCE;
     }
 
     return false;
   }
 
-  static boolean isRelevantFile(@NotNull VirtualFile file) {
+  public static boolean isRelevantFile(@NotNull VirtualFile file) {
+    // VirtualFile#getFileType will try to read from the file the first time it's
+    // called so we try to avoid it as much as possible. Instead we will just
+    // try to infer the type based on the extension.
+    String extension = file.getExtension();
+    if (StringUtil.isEmpty(extension)) {
+      return false;
+    }
+
+    if (StdFileTypes.JAVA.getDefaultExtension().equals(extension) || KotlinFileType.EXTENSION.equals(extension)) {
+      return false;
+    }
+
+    if (StdFileTypes.XML.getDefaultExtension().equals(extension)) {
+      return true;
+    }
+
+    String fileName = file.getName();
+    if (AidlFileType.DEFAULT_ASSOCIATED_EXTENSION.equals(extension) || SdkConstants.FN_ANDROID_MANIFEST_XML.equals(fileName)) {
+      return true;
+    }
+
+    if (Iterables.any(RENDERSCRIPT_MATCHERS, (matcher) -> matcher != null && matcher.accept(fileName))) {
+      return true;
+    }
+
+    // Unable to determine based on filename, use old slow method
     FileType fileType = file.getFileType();
-    if (fileType == StdFileTypes.JAVA) {
+    if (fileType == StdFileTypes.JAVA || fileType == KotlinFileType.INSTANCE) {
       return false;
     }
 
@@ -113,7 +163,7 @@ public final class PsiProjectListener implements PsiTreeChangeListener {
 
   static boolean isRelevantFile(@NotNull PsiFile file) {
     FileType fileType = file.getFileType();
-    if (fileType == StdFileTypes.JAVA) {
+    if (fileType == StdFileTypes.JAVA || fileType == KotlinFileType.INSTANCE) {
       return false;
     }
 
@@ -134,9 +184,14 @@ public final class PsiProjectListener implements PsiTreeChangeListener {
 
 
   private void dispatch(@Nullable VirtualFile file, @NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
-    if (file == null) {
-      return;
+    if (file != null) {
+      dispatchToRegistry(file, invokeCallback);
     }
+    dispatchToResourceNotificationManager(invokeCallback);
+  }
+
+  private void dispatchToRegistry(@NotNull VirtualFile file,
+          @NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
     while (file != null) {
       ResourceFolderRegistry.CachedRepositories cached = myRegistry.getCached(file);
       if (cached != null) {
@@ -153,6 +208,13 @@ public final class PsiProjectListener implements PsiTreeChangeListener {
     }
   }
 
+  private void dispatchToResourceNotificationManager(@NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
+    PsiTreeChangeListener resourceNotificationPsiListener = myResourceNotificationManager.getPsiListener();
+    if (resourceNotificationPsiListener != null) {
+      invokeCallback.consume(resourceNotificationPsiListener);
+    }
+  }
+
   @Override
   public void beforeChildAddition(@NotNull PsiTreeChangeEvent event) {
   }
@@ -164,8 +226,11 @@ public final class PsiProjectListener implements PsiTreeChangeListener {
       PsiElement child = event.getChild();
       if (child instanceof PsiFile) {
         VirtualFile file = ((PsiFile)child).getVirtualFile();
-        if (file != null && isRelevantFile(file)) {
-          dispatchChildAdded(event, file);
+        if (file != null) {
+          computeModulesToInvalidateAttributeDefs(file);
+          if (isRelevantFile(file)) {
+            dispatchChildAdded(event, file);
+          }
         }
       } else if (child instanceof PsiDirectory) {
         PsiDirectory directory = (PsiDirectory)child;
@@ -192,6 +257,11 @@ public final class PsiProjectListener implements PsiTreeChangeListener {
   @Override
   public void childRemoved(@NotNull PsiTreeChangeEvent event) {
     PsiFile psiFile = event.getFile();
+
+    if (psiFile != null && psiFile.getVirtualFile() != null) {
+      computeModulesToInvalidateAttributeDefs(psiFile.getVirtualFile());
+    }
+
     if (psiFile == null) {
       PsiElement child = event.getChild();
       if (child instanceof PsiFile) {
@@ -230,8 +300,13 @@ public final class PsiProjectListener implements PsiTreeChangeListener {
   public void childReplaced(@NotNull PsiTreeChangeEvent event) {
     PsiFile psiFile = event.getFile();
     if (psiFile != null) {
+      VirtualFile file = psiFile.getVirtualFile();
+      if (file != null) {
+        computeModulesToInvalidateAttributeDefs(file);
+      }
+
       if (isRelevantFile(psiFile)) {
-        dispatchChildReplaced(event, psiFile.getVirtualFile());
+        dispatchChildReplaced(event, file);
       } else if (isGradleFileEdit(psiFile)) {
         notifyGradleEdit(psiFile);
       }
@@ -277,8 +352,12 @@ public final class PsiProjectListener implements PsiTreeChangeListener {
   public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
     PsiFile psiFile = event.getFile();
     if (psiFile != null) {
+      VirtualFile file = psiFile.getVirtualFile();
+      if (file != null) {
+        computeModulesToInvalidateAttributeDefs(file);
+      }
+
       if (isRelevantFile(psiFile)) {
-        VirtualFile file = psiFile.getVirtualFile();
         dispatchChildrenChanged(event, file);
       }
 
@@ -319,6 +398,7 @@ public final class PsiProjectListener implements PsiTreeChangeListener {
       // Change inside a file
       VirtualFile file = psiFile.getVirtualFile();
       if (file != null) {
+        computeModulesToInvalidateAttributeDefs(file);
         if (isRelevantFile(file)) {
           dispatchChildMoved(event, file);
         }
@@ -380,6 +460,26 @@ public final class PsiProjectListener implements PsiTreeChangeListener {
 
   private void dispatchPropertyChanged(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
     dispatch(virtualFile, listener -> listener.propertyChanged(event));
+  }
+
+  /**
+   * Invalidates attribute definitions of relevant modules after changes to a given file
+   */
+  private void computeModulesToInvalidateAttributeDefs(@NotNull VirtualFile file) {
+    if (!isRelevantFile(file)) {
+      return;
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(file, myProject);
+    if (facet != null) {
+      for (Module module : AndroidUtils.getSetWithBackwardDependencies(facet.getModule())) {
+        AndroidFacet moduleFacet = AndroidFacet.getInstance(module);
+
+        if (moduleFacet != null) {
+          ModuleResourceManagers.getInstance(moduleFacet).getLocalResourceManager().invalidateAttributeDefinitions();
+        }
+      }
+    }
   }
 }
 

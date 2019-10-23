@@ -17,22 +17,19 @@ package com.android.tools.idea.testartifacts.junit;
 
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
-import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.junit.AbstractTestClassConfigurationProducer;
 import com.intellij.execution.junit.JUnitConfiguration;
-import com.intellij.execution.testframework.AbstractInClassConfigurationProducer;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.isFromContext;
 import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.shouldUseAndroidJUnitConfigurations;
 
 /**
- * Android implementation of {@link AbstractInClassConfigurationProducer} so some behaviors can be overridden.
+ * Android implementation of {@link AbstractTestClassConfigurationProducer} so some behaviors can be overridden.
  */
-final class TestClassAndroidConfigurationProducer extends AbstractInClassConfigurationProducer<JUnitConfiguration> implements AndroidJUnitConfigurationProducer {
-  @NotNull
-  @Override
-  public ConfigurationFactory getConfigurationFactory() {
-    return AndroidJUnitConfigurationType.getInstance();
+public class TestClassAndroidConfigurationProducer extends AbstractTestClassConfigurationProducer implements AndroidJUnitConfigurationProducer {
+  protected TestClassAndroidConfigurationProducer() {
+    super(AndroidJUnitConfigurationType.getInstance());
   }
 
   @Override

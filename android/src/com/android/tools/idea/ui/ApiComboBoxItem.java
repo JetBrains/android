@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui;
 
 import com.google.common.base.Objects;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,12 +78,13 @@ public class ApiComboBoxItem<T> {
   public final String validate(int projectApi, int projectBuildApi) {
     if (myMinApi > projectApi) {
       return String
-        .format("The feature \"%1$s\" requires a minimum API level of %2$d (project currently set to %3$d)", myLabel, myMinApi, projectApi);
+        .format(Locale.US, "The feature \"%1$s\" requires a minimum API level of %2$d (project currently set to %3$d)", myLabel,
+                myMinApi, projectApi);
     }
     if (myMinBuildApi > projectBuildApi) {
       return String
-        .format("The feature \"%1$s\" requires a minimum build API level of %2$d (project currently set to %3$d)", myLabel, myMinBuildApi,
-                projectBuildApi);
+        .format(Locale.US, "The feature \"%1$s\" requires a minimum build API level of %2$d (project currently set to %3$d)",
+                myLabel, myMinBuildApi, projectBuildApi);
     }
 
     return null;

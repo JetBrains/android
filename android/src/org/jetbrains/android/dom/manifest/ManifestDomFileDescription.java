@@ -1,6 +1,7 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.dom.manifest;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.xml.AndroidManifest;
 import com.intellij.openapi.module.Module;
@@ -16,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
-import static com.android.SdkConstants.NS_RESOURCES;
 
 /**
  * @author yole
@@ -65,6 +65,6 @@ public class ManifestDomFileDescription extends DomFileDescription<Manifest> {
 
   @Override
   protected void initializeFileDescription() {
-    registerNamespacePolicy(AndroidUtils.NAMESPACE_KEY, NS_RESOURCES);
+    registerNamespacePolicy(AndroidUtils.NAMESPACE_KEY, SdkConstants.ANDROID_URI);
   }
 }

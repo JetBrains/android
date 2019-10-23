@@ -72,6 +72,8 @@ fun getSqlTable(subquery: RoomSelectSubquery): SqlTable? {
   return if (alias == null) subqueryTable else AliasedTable(subqueryTable, name = alias.nameAsString, resolveTo = alias)
 }
 
+fun getSqlTable(resultColumns: RoomResultColumns): SqlTable? = AliasColumnsTable(resultColumns)
+
 fun getTableDefinition(withClauseTable: RoomWithClauseTable): SqlTable? {
   return if (withClauseTable.withClauseTableDef.columnDefinitionNameList.isNotEmpty()) {
     WithClauseTable(withClauseTable)
@@ -113,5 +115,39 @@ fun getName(columnDefinitionName: RoomColumnDefinitionName) = columnDefinitionNa
 fun setName(columnDefinitionName: RoomColumnDefinitionName, newName: String): RoomColumnDefinitionName {
   RoomNameElementManipulator().handleContentChange(columnDefinitionName, newName)
   return columnDefinitionName
+}
+
+/**
+ * Returns corresponding [SqlColumn] if column is defined by [RoomExpression] otherwise (SELECT *, tablename.* FROM ...) returns null
+ */
+fun getColumn(resultColumn: RoomResultColumn): SqlColumn? {
+
+  fun wrapInAlias(column: SqlColumn, alias: RoomColumnAliasName?): SqlColumn {
+    if (alias == null) return column
+    return AliasedColumn(column, alias.nameAsString, alias)
+  }
+
+  if (resultColumn.expression != null) {
+    if (resultColumn.expression is RoomColumnRefExpression) { // "SELECT id FROM ..."
+      val columnRefExpr = resultColumn.expression as RoomColumnRefExpression
+      val referencedColumn = columnRefExpr.columnName.reference.resolveColumn()
+      val sqlColumn = when {
+        referencedColumn != null -> referencedColumn
+        resultColumn.columnAliasName != null -> {
+          // We have an invalid reference which is given a name, we can still define a named column so that errors don't propagate.
+          ExprColumn(columnRefExpr.columnName)
+        }
+        else -> return null
+      }
+
+      return wrapInAlias(sqlColumn, resultColumn.columnAliasName)
+    }
+
+    // "SELECT id * 2 FROM ..."
+    return wrapInAlias(ExprColumn(resultColumn.expression!!), resultColumn.columnAliasName)
+  }
+
+  // "SELECT * FROM ..."; "SELECT tablename.* FROM ..."
+  return null
 }
 

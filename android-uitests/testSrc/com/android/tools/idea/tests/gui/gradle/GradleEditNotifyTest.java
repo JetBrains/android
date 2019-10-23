@@ -16,8 +16,6 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,7 +25,6 @@ import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.BACK_SPACE;
 
-@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRemoteRunner.class)
 public class GradleEditNotifyTest {
 
@@ -42,7 +39,6 @@ public class GradleEditNotifyTest {
     guiTest.importSimpleApplication()
       .getEditor()
       .open("app/build.gradle").waitUntilErrorAnalysisFinishes()
-      .checkNoNotification()
       .moveBetween("versionCode ", "")
       .enterText("1")
       .awaitNotification(
@@ -50,7 +46,6 @@ public class GradleEditNotifyTest {
       .performAction("Sync Now")
       .waitForGradleProjectSyncToFinish()
       .getEditor()
-      .checkNoNotification()
       .invokeAction(BACK_SPACE)
       .awaitNotification(
         "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");

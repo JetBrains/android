@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,74 @@
  */
 package org.jetbrains.android.dom;
 
+import static com.android.SdkConstants.ADAPTER_VIEW;
+import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
+import static com.android.SdkConstants.ANDROID_ARCH_PKG_PREFIX;
+import static com.android.SdkConstants.ANDROID_PKG;
+import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
+import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ACTION_BAR_NAV_MODE;
+import static com.android.SdkConstants.ATTR_CONTEXT;
+import static com.android.SdkConstants.ATTR_DISCARD;
+import static com.android.SdkConstants.ATTR_ITEM_COUNT;
+import static com.android.SdkConstants.ATTR_KEEP;
+import static com.android.SdkConstants.ATTR_LAYOUT;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.ATTR_LISTFOOTER;
+import static com.android.SdkConstants.ATTR_LISTHEADER;
+import static com.android.SdkConstants.ATTR_LISTITEM;
+import static com.android.SdkConstants.ATTR_MENU;
+import static com.android.SdkConstants.ATTR_MOCKUP;
+import static com.android.SdkConstants.ATTR_MOCKUP_CROP;
+import static com.android.SdkConstants.ATTR_MOCKUP_OPACITY;
+import static com.android.SdkConstants.ATTR_OPEN_DRAWER;
+import static com.android.SdkConstants.ATTR_PARENT_TAG;
+import static com.android.SdkConstants.ATTR_SHOW_AS_ACTION;
+import static com.android.SdkConstants.ATTR_SHOW_IN;
+import static com.android.SdkConstants.ATTR_SHRINK_MODE;
+import static com.android.SdkConstants.ATTR_STYLE;
+import static com.android.SdkConstants.ATTR_TARGET_API;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.CLASS_DRAWER_LAYOUT;
+import static com.android.SdkConstants.CLASS_NESTED_SCROLL_VIEW;
+import static com.android.SdkConstants.CLASS_PERCENT_FRAME_LAYOUT;
+import static com.android.SdkConstants.CLASS_PERCENT_RELATIVE_LAYOUT;
+import static com.android.SdkConstants.CLASS_PREFERENCE;
+import static com.android.SdkConstants.CLASS_PREFERENCE_ANDROIDX;
+import static com.android.SdkConstants.CLASS_VIEWGROUP;
+import static com.android.SdkConstants.FQCN_GRID_LAYOUT_V7;
+import static com.android.SdkConstants.GRID_LAYOUT;
+import static com.android.SdkConstants.RECYCLER_VIEW;
+import static com.android.SdkConstants.REQUEST_FOCUS;
+import static com.android.SdkConstants.SCROLL_VIEW;
+import static com.android.SdkConstants.TABLE_LAYOUT;
+import static com.android.SdkConstants.TABLE_ROW;
+import static com.android.SdkConstants.TAG;
+import static com.android.SdkConstants.TAG_DATA;
+import static com.android.SdkConstants.TAG_IMPORT;
+import static com.android.SdkConstants.TAG_LAYOUT;
+import static com.android.SdkConstants.TAG_RESOURCES;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.URI_PREFIX;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.SdkConstants.VIEW_GROUP;
+import static com.android.SdkConstants.VIEW_INCLUDE;
+import static com.android.SdkConstants.VIEW_MERGE;
+import static com.android.SdkConstants.VIEW_TAG;
+import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
+import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
+
 import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.psi.TagToClassMapper;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.CompletionUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -35,21 +96,34 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomElement;
-import com.intellij.util.xml.ResolvingConverter;
 import com.intellij.util.xml.XmlName;
 import com.intellij.util.xml.reflect.DomExtension;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.dom.animation.InterpolatorElement;
 import org.jetbrains.android.dom.animation.fileDescriptions.InterpolatorDomFileDescription;
-import org.jetbrains.android.dom.attrs.*;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+import org.jetbrains.android.dom.attrs.StyleableDefinition;
+import org.jetbrains.android.dom.attrs.ToolsAttributeUtil;
 import org.jetbrains.android.dom.converters.CompositeConverter;
 import org.jetbrains.android.dom.converters.ManifestPlaceholderConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
-import org.jetbrains.android.dom.layout.*;
+import org.jetbrains.android.dom.layout.Data;
+import org.jetbrains.android.dom.layout.DataBindingElement;
+import org.jetbrains.android.dom.layout.Fragment;
+import org.jetbrains.android.dom.layout.LayoutElement;
+import org.jetbrains.android.dom.layout.LayoutViewElement;
+import org.jetbrains.android.dom.layout.Tag;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestElement;
 import org.jetbrains.android.dom.manifest.UsesSdk;
 import org.jetbrains.android.dom.menu.MenuItem;
+import org.jetbrains.android.dom.navigation.ConcreteDestinationElement;
 import org.jetbrains.android.dom.navigation.NavDestinationElement;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.raw.XmlRawResourceElement;
@@ -58,17 +132,11 @@ import org.jetbrains.android.dom.xml.Intent;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.LayoutViewClassUtils;
+import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
-import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
 /**
  * Utility functions for enumerating available children attribute types in the context of a given XML tag.
@@ -103,7 +171,7 @@ public class AttributeProcessingUtil {
       return false;
     }
 
-    if ((element instanceof LayoutViewElement || element instanceof Fragment) && NS_RESOURCES.equals(attributeName.getNamespaceKey())) {
+    if ((element instanceof LayoutViewElement || element instanceof Fragment) && ANDROID_URI.equals(attributeName.getNamespaceKey())) {
       XmlElement xmlElement = element.getXmlElement();
       XmlTag tag = xmlElement instanceof XmlTag ? (XmlTag)xmlElement : null;
       String tagName = tag != null ? tag.getName() : null;
@@ -286,48 +354,113 @@ public class AttributeProcessingUtil {
     if (styleableName != null) {
       Set<XmlName> newSkipAttrNames = new HashSet<>();
       if (element instanceof Intent) {
-        newSkipAttrNames.add(new XmlName("action", NS_RESOURCES));
+        newSkipAttrNames.add(new XmlName("action", ANDROID_URI));
       }
 
       registerAttributes(facet, element, styleableName, SYSTEM_RESOURCE_PACKAGE, callback, newSkipAttrNames);
     }
 
-    // for preferences
-    Map<String, PsiClass> prefClassMap = getPreferencesClassMap(facet);
-    String prefClassName = element.getXmlTag().getName();
-    PsiClass c = prefClassMap.get(prefClassName);
+    // Handle preferences:
+    Map<String, PsiClass> prefClassMap;
+    if (AndroidXmlResourcesUtil.isAndroidXPreferenceFile(tag, facet)) {
+      prefClassMap = getAndroidXPreferencesClassMap(facet);
+    } else {
+      prefClassMap = getFrameworkPreferencesClassMap(facet);
+    }
+    PsiClass psiClass = prefClassMap.get(tagName);
+    if (psiClass == null) {
+      return;
+    }
 
-    // register attributes by preference class
-    registerAttributesForClassAndSuperclasses(facet, element, c, callback, skipAttrNames);
+    // Register attributes by preference class:
+    registerAttributesForClassAndSuperclasses(facet, element, psiClass, callback, skipAttrNames);
 
-    // register attributes by widget
-    String widgetClassName = AndroidTextUtils.trimEndOrNullize(prefClassName, PREFERENCE_TAG_NAME);
-    if (widgetClassName != null) {
-      PsiClass widgetClass = LayoutViewClassUtils.findClassByTagName(facet, widgetClassName, VIEW_CLASS_NAME);
-      if (widgetClass != null) {
-        registerAttributesForClassAndSuperclasses(facet, element, widgetClass, callback, skipAttrNames);
+    if (StringUtil.notNullize(psiClass.getQualifiedName()).startsWith("android.preference.")) {
+      // Register attributes from the corresponding widget. This was a convention used in framework preferences, but no longer used in
+      // AndroidX.
+      String widgetClassName = AndroidTextUtils.trimEndOrNullize(tagName, PREFERENCE_TAG_NAME);
+      if (widgetClassName != null) {
+        PsiClass widgetClass = LayoutViewClassUtils.findClassByTagName(facet, widgetClassName, VIEW_CLASS_NAME);
+        if (widgetClass != null) {
+          registerAttributesForClassAndSuperclasses(facet, element, widgetClass, callback, skipAttrNames);
+        }
       }
     }
   }
 
-  @NotNull
-  public static Map<String, PsiClass> getPreferencesClassMap(@NotNull AndroidFacet facet) {
-    return getClassMap(facet, CLASS_PREFERENCE);
-  }
-
-  public static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {
-    return getClassMap(facet, VIEW_CLASS_NAME);
-  }
-
-  public static Map<String, PsiClass> getViewGroupClassMap(@NotNull AndroidFacet facet) {
-    return getClassMap(facet, CLASS_VIEWGROUP);
-  }
-
-  private static Map<String, PsiClass> getClassMap(@NotNull AndroidFacet facet, @NotNull String className) {
+  public static Map<String, PsiClass> getAndroidXPreferencesClassMap(AndroidFacet facet) {
     if (DumbService.isDumb(facet.getModule().getProject())) {
       return Collections.emptyMap();
     }
-    return TagToClassMapper.getInstance(facet.getModule()).getClassMap(className);
+    return TagToClassMapper.getInstance(facet.getModule()).getAndroidXClassMap(CLASS_PREFERENCE_ANDROIDX);
+
+  }
+
+  public static Map<String, PsiClass> getFrameworkPreferencesClassMap(AndroidFacet facet) {
+    return getFrameworkClassMap(facet, CLASS_PREFERENCE);
+  }
+
+  public static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {
+    return getFrameworkClassMap(facet, VIEW_CLASS_NAME);
+  }
+
+  public static Map<String, PsiClass> getViewGroupClassMap(@NotNull AndroidFacet facet) {
+    return getFrameworkClassMap(facet, CLASS_VIEWGROUP);
+  }
+
+  private static Map<String, PsiClass> getFrameworkClassMap(@NotNull AndroidFacet facet,
+                                                            @NotNull String frameworkClass) {
+    if (DumbService.isDumb(facet.getModule().getProject())) {
+      return Collections.emptyMap();
+    }
+    return TagToClassMapper.getInstance(facet.getModule()).getFrameworkClassMap(frameworkClass);
+  }
+
+  /**
+   * Returns the expected styleable name for the layout attributes defined by the
+   * specified PsiClass of the layout.
+   */
+  @Nullable
+  public static String getLayoutStyleablePrimary(@NotNull PsiClass psiLayoutClass) {
+    String viewName = psiLayoutClass.getName();
+    if (viewName == null) {
+      return null;
+    }
+    // Not using Map here for lookup by prefix for performance reasons - using switch instead of ImmutableMap makes
+    // attribute highlighting 20% faster as measured by AndroidLayoutDomTest#testCustomAttrsPerformance
+    switch (viewName) {
+      case VIEW_GROUP:
+        return "ViewGroup_MarginLayout";
+      case TABLE_ROW:
+        return "TableRow_Cell";
+      default:
+        return viewName + "_Layout";
+    }
+  }
+
+  /**
+   * Returns a styleable name that is mistakenly used for the layout attributes defined by the
+   * specified PsiClass of the layout.
+   */
+  @Nullable
+  public static String getLayoutStyleableSecondary(@NotNull PsiClass psiLayoutClass) {
+    String viewName = psiLayoutClass.getName();
+    if (viewName == null) {
+      return null;
+    }
+    // Not using Map here for lookup by prefix for performance reasons - using switch instead of ImmutableMap makes
+    // attribute highlighting 20% faster as measured by AndroidLayoutDomTest#testCustomAttrsPerformance
+    switch (viewName) {
+      case "AppBarLayout":
+      case "CollapsingToolbarLayout":
+      case "CoordinatorLayout":
+        // Support library doesn't have particularly consistent naming
+        // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
+        return viewName + "_LayoutParams";
+
+      default:
+        return null;
+    }
   }
 
   private static void registerAttributesFromSuffixedStyleables(@NotNull AndroidFacet facet,
@@ -335,47 +468,15 @@ public class AttributeProcessingUtil {
                                                                @NotNull PsiClass psiClass,
                                                                @NotNull AttributeProcessor callback,
                                                                @NotNull Set<XmlName> skipAttrNames) {
-    String viewName = psiClass.getName();
-    if (viewName == null) {
-      return;
+    String primary = getLayoutStyleablePrimary(psiClass);
+    if (primary != null) {
+      registerAttributes(facet, element, primary, getResourcePackage(psiClass), callback, skipAttrNames);
     }
 
-    // Not using Map here for lookup by prefix for performance reasons - using switch instead of ImmutableMap makes
-    // attribute highlighting 20% faster as measured by AndroidLayoutDomTest#testCustomAttrsPerformance
-    String styleableName;
-    switch (viewName) {
-      case "ViewGroup":
-        styleableName = "ViewGroup_MarginLayout";
-        break;
-      case "TableRow":
-        styleableName = "TableRow_Cell";
-        break;
-      case "CollapsingToolbarLayout":
-        // Support library doesn't have particularly consistent naming
-        // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
-        registerAttributes(facet, element, "CollapsingAppBarLayout_LayoutParams", null, callback, skipAttrNames);
-
-        styleableName = viewName + "_Layout";  // This is what it should be... (may be fixed in the future)
-        break;
-      case "CoordinatorLayout":
-        // Support library doesn't have particularly consistent naming
-        // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
-        registerAttributes(facet, element, "CoordinatorLayout_LayoutParams", null, callback, skipAttrNames);
-
-        styleableName = viewName + "_Layout";  // This is what it should be... (may be fixed in the future)
-        break;
-      case "AppBarLayout":
-        // Support library doesn't have particularly consistent naming
-        // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
-        registerAttributes(facet, element, "AppBarLayout_LayoutParams", null, callback, skipAttrNames);
-
-        styleableName = viewName + "_Layout";  // This is what it should be... (may be fixed in the future)
-        break;
-      default:
-        styleableName = viewName + "_Layout";
+    String secondary = getLayoutStyleableSecondary(psiClass);
+    if (secondary != null) {
+      registerAttributes(facet, element, secondary, null, callback, skipAttrNames);
     }
-
-    registerAttributes(facet, element, styleableName, getResourcePackage(psiClass), callback, skipAttrNames);
   }
 
   /**
@@ -396,6 +497,10 @@ public class AttributeProcessingUtil {
     NavigationSchema schema = NavigationSchema.get(facet.getModule());
     for (PsiClass psiClass : schema.getStyleablesForTag(tag.getName())) {
       registerAttributesForClassAndSuperclasses(facet, element, psiClass, callback, skipAttrNames);
+      if (element instanceof ConcreteDestinationElement) {
+        registerAttribute(new AttributeDefinition(ResourceNamespace.TOOLS, ATTR_LAYOUT, null, ImmutableList.of(AttributeFormat.REFERENCE)),
+                          new XmlName(ATTR_LAYOUT, TOOLS_URI), null, element, callback);
+      }
     }
   }
 
@@ -438,6 +543,20 @@ public class AttributeProcessingUtil {
       if (newDrawerLayout != null && psiClass != null &&
           (psiClass.isEquivalentTo(newDrawerLayout) || psiClass.isInheritor(newDrawerLayout, true))) {
         registerToolsAttribute(ATTR_OPEN_DRAWER, callback);
+      }
+
+      PsiClass oldRecyclerView = map.get(RECYCLER_VIEW.oldName());
+      if (oldRecyclerView != null && psiClass != null &&
+          (psiClass.isEquivalentTo(oldRecyclerView) || psiClass.isInheritor(oldRecyclerView, true))) {
+        registerToolsAttribute(ATTR_ITEM_COUNT, callback);
+        registerToolsAttribute(ATTR_LISTITEM, callback);
+      }
+
+      PsiClass newRecyclerView = map.get(RECYCLER_VIEW.newName());
+      if (newRecyclerView != null && psiClass != null &&
+          (psiClass.isEquivalentTo(newRecyclerView) || psiClass.isInheritor(newRecyclerView, true))) {
+        registerToolsAttribute(ATTR_ITEM_COUNT, callback);
+        registerToolsAttribute(ATTR_LISTITEM, callback);
       }
 
       // Mockup attributes can be associated with any View, even include tag
@@ -554,6 +673,7 @@ public class AttributeProcessingUtil {
       return;
     }
     XmlTag tag = element.getXmlTag();
+    assert tag != null;
 
     Set<XmlName> skippedAttributes =
       processAllExistingAttrsFirst ? registerExistingAttributes(facet, tag, element, callback) : new HashSet<>();
@@ -590,6 +710,9 @@ public class AttributeProcessingUtil {
       }
 
       definitions = manager.getAttributeDefinitions();
+      if (definitions == null) {
+        return;
+      }
     }
     else {
       definitions = ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getAttributeDefinitions();
@@ -715,7 +838,7 @@ public class AttributeProcessingUtil {
     if (definition != null) {
       XmlName name = new XmlName(attributeName, TOOLS_URI);
       DomExtension domExtension = callback.processAttribute(name, definition, null);
-      ResolvingConverter converter = ToolsAttributeUtil.getConverter(definition);
+      Converter converter = ToolsAttributeUtil.getConverter(definition);
       if (domExtension != null && converter != null) {
         domExtension.setConverter(converter);
       }

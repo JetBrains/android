@@ -17,7 +17,8 @@ package com.android.tools.idea.uibuilder.api;
 
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.tools.idea.uibuilder.api.actions.ActionUtils.getViewOptionsAction;
+import static com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getViewOptionsAction;
+import static com.android.tools.idea.uibuilder.api.actions.ViewActionsKt.withRank;
 
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.AndroidCoordinate;
@@ -126,7 +127,7 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
    *                {@link DirectViewAction}, {@link ToggleViewAction}, {@link ToggleViewActionGroup}, etc.
    * @return true if the actions should be cached, false otherwise
    */
-  public boolean addPopupMenuActions(@NotNull NlComponent component, @NotNull List<ViewAction> actions) {
+  public boolean addPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
     return true;
   }
 
@@ -140,10 +141,10 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
   }
 
   protected void addDefaultViewActions(@NotNull List<ViewAction> actions, int startRank) {
-    actions.add(new ToggleSizeViewAction("Toggle Width", ATTR_LAYOUT_WIDTH, StudioIcons.LayoutEditor.Toolbar.EXPAND_HORIZONTAL,
-                                         StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL).setRank(startRank));
-    actions.add(new ToggleSizeViewAction("Toggle Height", ATTR_LAYOUT_HEIGHT, StudioIcons.LayoutEditor.Toolbar.EXPAND_VERTICAL,
-                                         StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL).setRank(startRank + 20));
+    actions.add(withRank(new ToggleSizeViewAction("Toggle Width", ATTR_LAYOUT_WIDTH, StudioIcons.LayoutEditor.Toolbar.EXPAND_HORIZONTAL,
+                                         StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL), startRank));
+    actions.add(withRank(new ToggleSizeViewAction("Toggle Height", ATTR_LAYOUT_HEIGHT, StudioIcons.LayoutEditor.Toolbar.EXPAND_VERTICAL,
+                                         StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL), startRank + 20));
     actions.add(getViewOptionsAction());
     // TODO: Gravity, etc
   }
@@ -186,6 +187,10 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
    * @param component The {@link SceneComponent} which associates to this ViewGroupHandler
    */
   public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+    return ImmutableList.of();
+  }
+
+  public List<ViewAction> getPropertyActions(@NotNull List<NlComponent> components) {
     return ImmutableList.of();
   }
 }

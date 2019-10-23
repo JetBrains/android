@@ -27,15 +27,46 @@ import java.awt.Point
 abstract class Placeholder(val host: SceneComponent) {
 
   /**
-   * The anchor component of this Placeholder. When [apply] is called, the inserted component will be added before this component.
-   * If this is null, the inserted component is appended as last component.
+   * The dominating [Placeholder] is rendered when the mouse hovers over the [associatedComponent].
+   * @see dominate
    */
-  open val nextComponent: SceneComponent? = null
+  open val associatedComponent: SceneComponent = host
+
+  /**
+   * Return true if this Placeholder updates the attribute when dragging component in same parent.
+   * The updated attributes are pending in [com.android.tools.idea.common.model.AttributesTransaction] which is committed after mouse
+   * released.
+   * @see updateLiveAttribute
+   */
+  open val isLiveUpdatable = false
+
+  /**
+   * Only dominate [Placeholder] would be rendered. Also, dominate [Placeholder]s has higher priority than recessive ones. Which means
+   * all dominated [Placeholder]s will be snapped first. If it is impossible to snap to a dominating [Placeholder], then recessive
+   * [Placeholder]s would be tried.<br>
+   *
+   * When dragging multiple components, the dominate Placeholders change the position of all dragged components. The recessive Placeholder
+   * doesn't change the positions of them so they will keep the same related positions.
+   */
+  open val dominate = true
 
   /**
    * Provide the interactive [Region] of this Placeholder.
    */
   abstract val region: Region
+
+  /**
+   * Used to find the anchor component that will become the next sibling of the inserted component.
+   * If this is null, the inserted component is appended as last component.
+   */
+  open fun findNextSibling(appliedComponent: SceneComponent, newParent: SceneComponent): SceneComponent? {
+    if (appliedComponent.parent != newParent) {
+      return null
+    }
+    val siblings = newParent.children
+    val index = siblings.indexOf(appliedComponent)
+    return if (index == -1) null else siblings.getOrNull(index + 1)
+  }
 
   /**
    * Called for snapping to Placeholder. ([left], [top], [right], [bottom]) is the bound of the interacting [SceneComponent].<br>
@@ -50,6 +81,14 @@ abstract class Placeholder(val host: SceneComponent) {
                 retPoint: Point)
     : Boolean = false
 
+  /**
+   * Function to update attribute when mouse is dragging.
+   */
+  open fun updateLiveAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder, x: Int, y: Int) = Unit
+
+  /**
+   * Function to update attribute when mouse is released.
+   */
   abstract fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder)
 }
 

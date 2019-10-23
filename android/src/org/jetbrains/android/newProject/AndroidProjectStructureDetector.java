@@ -70,7 +70,7 @@ public class AndroidProjectStructureDetector extends ProjectStructureDetector {
 
   private static class AndroidProjectRoot extends DetectedProjectRoot {
 
-    AndroidProjectRoot(@NotNull File directory) {
+    public AndroidProjectRoot(@NotNull File directory) {
       super(directory);
     }
 

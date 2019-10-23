@@ -50,6 +50,9 @@ public final class LocalProperties {
   @Nullable private File myNewAndroidNdkPath;
   private boolean myAndroidNdkPathModified;
 
+  @Nullable private File myNewAndroidCmakePath;
+  private boolean myAndroidCmakePathModified;
+
   /**
    * Creates a new {@link LocalProperties}. If a local.properties file does not exist, a new one will be created when the method
    * {@link #save()} is invoked.
@@ -98,6 +101,17 @@ public final class LocalProperties {
     return getAndroidNdkPathFromFile();
   }
 
+  /**
+   * @return the path of the CMake specified in this local.properties file; or {@code null} if such property is not specified.
+   */
+  @Nullable
+  public File getAndroidCmakePath() {
+    if (myAndroidCmakePathModified) {
+      return myNewAndroidCmakePath;
+    }
+    return getAndroidCmakePathFromFile();
+  }
+
   public void setAndroidSdkPath(@NotNull Sdk androidSdk) {
     String androidSdkPath = androidSdk.getHomePath();
     assert androidSdkPath != null;
@@ -122,6 +136,11 @@ public final class LocalProperties {
     myAndroidNdkPathModified = true;
   }
 
+  public void setAndroidCmakePath(@Nullable File androidNdkPath) {
+    myNewAndroidCmakePath = androidNdkPath;
+    myAndroidCmakePathModified = true;
+  }
+
   public boolean hasAndroidDirProperty() {
     String property = getProperty("android.dir");
     return !isNullOrEmpty(property);
@@ -138,13 +157,14 @@ public final class LocalProperties {
   public void save() throws IOException {
     setPathIfApplicable(myAndroidSdkPathModified, SDK_DIR_PROPERTY, getAndroidSdkPathFromFile(), myNewAndroidSdkPath);
     setPathIfApplicable(myAndroidNdkPathModified, NDK_DIR_PROPERTY, getAndroidNdkPathFromFile(), myNewAndroidNdkPath);
+    setPathIfApplicable(myAndroidCmakePathModified, CMAKE_DIR_PROPERTY, getAndroidCmakePathFromFile(), myNewAndroidCmakePath);
 
-    if (myAndroidSdkPathModified || myAndroidNdkPathModified) {
+    if (myAndroidSdkPathModified || myAndroidNdkPathModified || myAndroidCmakePathModified) {
       savePropertiesToFile(myProperties, myPropertiesFilePath, getHeaderComment());
     }
     // reset "modified" state.
-    myNewAndroidSdkPath = myNewAndroidNdkPath = null;
-    myAndroidSdkPathModified = myAndroidNdkPathModified = false;
+    myNewAndroidCmakePath = myNewAndroidSdkPath = myNewAndroidNdkPath = null;
+    myAndroidCmakePathModified = myAndroidSdkPathModified = myAndroidNdkPathModified = false;
   }
 
   private void setPathIfApplicable(boolean pathModified, @NotNull String propertyName, @Nullable File currentPath, @Nullable File newPath) {
@@ -167,6 +187,11 @@ public final class LocalProperties {
   @Nullable
   private File getAndroidNdkPathFromFile() {
     return getPath(NDK_DIR_PROPERTY);
+  }
+
+  @Nullable
+  private File getAndroidCmakePathFromFile() {
+    return getPath(CMAKE_DIR_PROPERTY);
   }
 
   /**

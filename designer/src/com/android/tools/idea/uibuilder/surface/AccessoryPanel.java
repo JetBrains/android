@@ -25,17 +25,18 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AccessoryPanel extends JPanel implements DesignSurfaceListener, ModelListener {
 
   private final boolean myHandlesVisibility;
+  private final List<AccessoryPanelListener> myListeners = new ArrayList<>();
 
   public enum Type { SOUTH_PANEL, EAST_PANEL }
 
@@ -65,6 +66,14 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
       setModel(mySurface.getModel());
       mySurface.addListener(this);
     }
+  }
+
+  public void addAccessoryPanelListener(@NotNull AccessoryPanelListener listener) {
+    myListeners.add(listener);
+  }
+
+  public void removeAccessoryPanelListener(@NotNull AccessoryPanelListener listener) {
+    myListeners.remove(listener);
   }
 
   @Override
@@ -134,6 +143,7 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
       ViewGroupHandler viewGroupHandler = (ViewGroupHandler) handler;
       if (!viewGroupHandler.needsAccessoryPanel(myType)) {
         removeCurrentPanel();
+        notifyListeners();
         return;
       }
       AccessoryPanelInterface panel = myPanels.get(parent);
@@ -147,6 +157,7 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
         removeCurrentPanel();
         myCachedPanel = panel;
         add(myCachedPanel.getPanel());
+        notifyListeners();
       }
 
       panel.updateAccessoryPanelWithSelection(myType, newSelection);
@@ -154,6 +165,16 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
         setVisible(true);
       }
     }
+  }
+
+  @Nullable
+  public AccessoryPanelInterface getCurrentPanel() {
+    return myCachedPanel;
+  }
+
+  private void notifyListeners() {
+    List<AccessoryPanelListener> copy = new ArrayList<>(myListeners);
+    copy.forEach(listener -> listener.panelChange(myCachedPanel));
   }
 
   private void removeCurrentPanel() {
@@ -166,5 +187,4 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
       setVisible(false);
     }
   }
-
 }

@@ -15,33 +15,49 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import org.jetbrains.annotations.NotNull;
 
 public enum ProfilingTechnology {
   ART_SAMPLED("Java Method Sample Recording",
-              "Samples Java code using Android Runtime"),
+              "Samples Java code using Android Runtime."),
 
   ART_INSTRUMENTED("Java Method Trace Recording",
-                   "Instruments Java code using Android Runtime"),
+                   "Instruments Java code using Android Runtime."),
 
   // This technology used by imported ART Trace configurations.
   // "Unspecified" because there is no way of telling if the trace was generated using sampling or instrumentations.
   ART_UNSPECIFIED("Java Method Recording",
-                  "Profiles Java code using Android Runtime"),
+                  "Profiles Java code using Android Runtime."),
 
   SIMPLEPERF("C/C++ Function Recording",
-             "Samples native code using simpleperf"),
+             "Samples native code using simpleperf.",
+             "Available for Android 8.0 (API level 26) and higher."),
 
   ATRACE("System Trace Recording",
-         "Traces Java and native code at the Android platform level");
+         "Traces Java and native code at the Android platform level.",
+         "Available for Android 8.0 (API level 26) and higher.");
 
   @NotNull private final String myName;
+
+  /**
+   * Description of the technology, e.g it is used in {@code RecordingInitiatorPane}.
+   */
   @NotNull private final String myDescription;
 
-  ProfilingTechnology(@NotNull String name, @NotNull String description) {
+  /**
+   * An extra context for the description of the technology, e.g it is used in {@code CpuProfilingConfigPane}.
+   */
+  @NotNull private final String myExtraDescription;
+
+  ProfilingTechnology(@NotNull String name, @NotNull String description, @NotNull String extraDescription) {
     myName = name;
     myDescription = description;
+    myExtraDescription = extraDescription;
+  }
+
+  ProfilingTechnology(@NotNull String name, @NotNull String description) {
+    this(name, description, "");
   }
 
   @NotNull
@@ -55,14 +71,53 @@ public enum ProfilingTechnology {
   }
 
   @NotNull
-  public static ProfilingTechnology fromTypeAndMode(@NotNull CpuProfiler.CpuProfilerType type,
-                                                    @NotNull CpuProfiler.CpuProfilerMode mode) {
+  public String getLongDescription() {
+    return String.format("<html>%s %s</html>", myDescription, myExtraDescription);
+  }
+
+  @NotNull
+  public Cpu.CpuTraceType getType() {
+    switch (this) {
+      case ART_SAMPLED:
+        return Cpu.CpuTraceType.ART;
+      case ART_INSTRUMENTED:
+        return Cpu.CpuTraceType.ART;
+      case ART_UNSPECIFIED:
+        return Cpu.CpuTraceType.ART;
+      case SIMPLEPERF:
+        return Cpu.CpuTraceType.SIMPLEPERF;
+      case ATRACE:
+        return Cpu.CpuTraceType.ATRACE;
+    }
+    throw new IllegalArgumentException("Unreachable code");
+  }
+
+  @NotNull
+  public Cpu.CpuTraceMode getMode() {
+    switch (this) {
+      case ART_SAMPLED:
+        return Cpu.CpuTraceMode.SAMPLED;
+      case ART_INSTRUMENTED:
+        return Cpu.CpuTraceMode.INSTRUMENTED;
+      case ART_UNSPECIFIED:
+        return Cpu.CpuTraceMode.UNSPECIFIED_MODE;
+      case SIMPLEPERF:
+        return Cpu.CpuTraceMode.SAMPLED;
+      case ATRACE:
+        return Cpu.CpuTraceMode.INSTRUMENTED;
+    }
+    throw new IllegalArgumentException("Unreachable code");
+  }
+
+  @NotNull
+  public static ProfilingTechnology fromTypeAndMode(@NotNull Cpu.CpuTraceType type,
+                                                    @NotNull Cpu.CpuTraceMode mode) {
     switch (type) {
       case ART:
-        if (mode == CpuProfiler.CpuProfilerMode.SAMPLED) {
+        if (mode == Cpu.CpuTraceMode.SAMPLED) {
           return ART_SAMPLED;
         }
-        else if (mode == CpuProfiler.CpuProfilerMode.INSTRUMENTED) {
+        else if (mode == Cpu.CpuTraceMode.INSTRUMENTED) {
           return ART_INSTRUMENTED;
         }
         else {
@@ -79,6 +134,6 @@ public enum ProfilingTechnology {
 
   @NotNull
   public static ProfilingTechnology fromConfig(@NotNull ProfilingConfiguration config) {
-    return fromTypeAndMode(config.getProfilerType(), config.getMode());
+    return fromTypeAndMode(config.getTraceType(), config.getMode());
   }
 }

@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.messages;
 
-
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
-import com.google.common.truth.SubjectFactory;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -30,17 +28,12 @@ import static org.junit.Assert.assertNotNull;
 
 public class SyncMessageSubject extends Subject<SyncMessageSubject, SyncMessage> {
   @NotNull
-  public static SubjectFactory<SyncMessageSubject, SyncMessage> syncMessage() {
-    return new SubjectFactory<SyncMessageSubject, SyncMessage>() {
-      @Override
-      public SyncMessageSubject getSubject(FailureStrategy failureStrategy, SyncMessage syncMessage) {
-        return new SyncMessageSubject(failureStrategy, syncMessage);
-      }
-    };
+  public static Subject.Factory<SyncMessageSubject, SyncMessage> syncMessage() {
+    return SyncMessageSubject::new;
   }
 
-  private SyncMessageSubject(FailureStrategy failureStrategy, @Nullable SyncMessage subject) {
-    super(failureStrategy, subject);
+  private SyncMessageSubject(FailureMetadata failureMetadata, @Nullable SyncMessage subject) {
+    super(failureMetadata, subject);
   }
 
   @NotNull

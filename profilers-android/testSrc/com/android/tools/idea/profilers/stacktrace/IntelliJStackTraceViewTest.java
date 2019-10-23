@@ -218,7 +218,7 @@ public class IntelliJStackTraceViewTest {
   private static class FakeCodeElement implements CodeElement {
     @NotNull private final CodeLocation myCodeLocation;
 
-    FakeCodeElement(@NotNull CodeLocation codeLocation) {
+    public FakeCodeElement(@NotNull CodeLocation codeLocation) {
       myCodeLocation = codeLocation;
     }
 

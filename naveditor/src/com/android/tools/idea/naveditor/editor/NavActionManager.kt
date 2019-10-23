@@ -1,0 +1,215 @@
+/*
+ * Copyright (C) 2017 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.naveditor.editor
+
+import com.android.tools.adtui.actions.ZoomInAction
+import com.android.tools.adtui.actions.ZoomOutAction
+import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.idea.common.actions.GotoComponentAction
+import com.android.tools.idea.common.editor.ActionManager
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.adtui.actions.ZoomShortcut
+import com.android.tools.adtui.actions.ZoomToFitAction
+import com.android.tools.idea.naveditor.actions.ActivateComponentAction
+import com.android.tools.idea.naveditor.actions.ActivateSelectionAction
+import com.android.tools.idea.naveditor.actions.AddActionToolbarAction
+import com.android.tools.idea.naveditor.actions.AddGlobalAction
+import com.android.tools.idea.naveditor.actions.AddToExistingGraphAction
+import com.android.tools.idea.naveditor.actions.AddToNewGraphAction
+import com.android.tools.idea.naveditor.actions.AutoArrangeAction
+import com.android.tools.idea.naveditor.actions.DeepLinkToolbarAction
+import com.android.tools.idea.naveditor.actions.EditExistingAction
+import com.android.tools.idea.naveditor.actions.NestedGraphToolbarAction
+import com.android.tools.idea.naveditor.actions.ReturnToSourceAction
+import com.android.tools.idea.naveditor.actions.StartDestinationAction
+import com.android.tools.idea.naveditor.actions.StartDestinationToolbarAction
+import com.android.tools.idea.naveditor.actions.ToDestinationAction
+import com.android.tools.idea.naveditor.actions.ToSelfAction
+import com.android.tools.idea.naveditor.model.isAction
+import com.android.tools.idea.naveditor.model.isDestination
+import com.android.tools.idea.naveditor.model.isNavigation
+import com.android.tools.idea.naveditor.model.supportsActions
+import com.android.tools.idea.naveditor.model.uiName
+import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.uibuilder.actions.SelectAllAction
+import com.android.tools.idea.uibuilder.actions.SelectNextAction
+import com.android.tools.idea.uibuilder.actions.SelectPreviousAction
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.util.SystemInfo
+import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
+import javax.swing.JComponent
+import javax.swing.KeyStroke
+
+/**
+ * Provides and handles actions in the navigation editor
+ */
+// Open for testing only
+open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
+  private val gotoComponentAction: AnAction = GotoComponentAction(surface)
+  private val autoArrangeAction: AnAction = AutoArrangeAction(surface)
+  private val zoomInAction: AnAction = ZoomShortcut.ZOOM_IN.registerForAction(ZoomInAction, surface, surface)
+  private val zoomOutAction: AnAction = ZoomShortcut.ZOOM_OUT.registerForAction(ZoomOutAction, surface, surface)
+  private val zoomToFitAction: AnAction = ZoomShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction, surface, surface)
+  private val selectNextAction: AnAction = SelectNextAction(surface)
+  private val selectPreviousAction: AnAction = SelectPreviousAction(surface)
+  private val selectAllAction: AnAction = SelectAllAction(surface)
+  private val addToNewGraphAction: AnAction = AddToNewGraphAction(surface)
+  private val nestedGraphToolbarAction: AnAction = NestedGraphToolbarAction(surface)
+  private val startDestinationToolbarAction: AnAction = StartDestinationToolbarAction(surface)
+  private val deepLinkToolbarAction: AnAction = DeepLinkToolbarAction(surface)
+  private val addActionToolbarAction: AnAction = AddActionToolbarAction(surface)
+  private val activateSelectionAction: AnAction = ActivateSelectionAction(surface)
+
+  // Open for testing only
+  open val addDestinationMenu by lazy { AddDestinationMenu(mySurface) }
+
+  override fun registerActionsShortcuts(component: JComponent, parentDisposable: Disposable?) {
+    registerAction(gotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component, parentDisposable)
+    registerAction(selectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), mySurface, parentDisposable)
+    registerAction(selectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK), mySurface, parentDisposable)
+    registerAction(selectAllAction, IdeActions.ACTION_SELECT_ALL, component, parentDisposable)
+    registerAction(activateSelectionAction, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), component, parentDisposable)
+
+    val keyEvent = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
+    registerAction(addToNewGraphAction, KeyStroke.getKeyStroke(KeyEvent.VK_G, keyEvent), mySurface, parentDisposable)
+    addToNewGraphAction.registerCustomShortcutSet(KeyEvent.VK_G, AdtUiUtils.getActionMask(), mySurface)
+  }
+
+  override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup {
+    val group = DefaultActionGroup()
+
+    if (leafComponent == null) {
+      return group
+    }
+
+    when {
+      mySurface.selectionModel.selection.count() > 1 -> addMultiSelectionGroup(group)
+      leafComponent == mySurface.currentNavigation -> addSurfaceGroup(group)
+      leafComponent.isDestination -> addDestinationGroup(group, leafComponent)
+      leafComponent.isAction -> addActionGroup(group, leafComponent)
+    }
+
+    return group
+  }
+
+  private fun addMultiSelectionGroup(group: DefaultActionGroup) {
+    group.add(createNestedGraphGroup(mySurface.selectionModel.selection))
+
+    group.addSeparator()
+    addCutCopyPasteDeleteGroup(group)
+  }
+
+  private fun addCutCopyPasteDeleteGroup(group: DefaultActionGroup) {
+    group.add(getRegisteredActionByName(IdeActions.ACTION_CUT)!!)
+    group.add(getRegisteredActionByName(IdeActions.ACTION_COPY)!!)
+    group.add(getRegisteredActionByName(IdeActions.ACTION_PASTE)!!)
+    group.add(getRegisteredActionByName(IdeActions.ACTION_DELETE)!!)
+  }
+
+  private fun addSurfaceGroup(group: DefaultActionGroup) {
+    group.add(selectAllAction)
+
+    group.addSeparator()
+    group.add(autoArrangeAction)
+
+    group.addSeparator()
+    group.add(zoomInAction)
+    group.add(zoomOutAction)
+    group.add(zoomToFitAction)
+
+    group.addSeparator()
+    group.add(gotoComponentAction)
+  }
+
+  private fun addDestinationGroup(
+    group: DefaultActionGroup,
+    component: NlComponent
+  ) {
+    val activateComponentAction = ActivateComponentAction(if (component.isNavigation) "Open" else "Edit", mySurface, component)
+    group.add(activateComponentAction)
+
+    group.addSeparator()
+    group.add(createAddActionGroup(component))
+    group.add(createNestedGraphGroup(listOf(component)))
+    group.add(StartDestinationAction(component))
+
+    group.addSeparator()
+    addCutCopyPasteDeleteGroup(group)
+
+    group.addSeparator()
+    group.add(gotoComponentAction)
+  }
+
+  private fun addActionGroup(
+    group: DefaultActionGroup,
+    component: NlComponent
+  ) {
+    val parent = component.parent ?: throw IllegalStateException()
+    group.add(EditExistingAction(mySurface, parent, component))
+
+    group.addSeparator()
+    addCutCopyPasteDeleteGroup(group)
+  }
+
+  private fun createAddActionGroup(component: NlComponent): DefaultActionGroup {
+    val group = DefaultActionGroup("Add Action", true)
+
+    if (component.supportsActions) {
+      group.add(ToDestinationAction(mySurface, component))
+      group.add(ToSelfAction(mySurface, component))
+      group.add(ReturnToSourceAction(mySurface, component))
+      group.add(AddGlobalAction(mySurface, component))
+    }
+
+    return group
+  }
+
+  private fun createNestedGraphGroup(components: List<NlComponent>): DefaultActionGroup {
+    // TODO: Add shortcut
+    val group = DefaultActionGroup("Move to Nested Graph", true)
+    val currentNavigation = mySurface.currentNavigation
+    group.add(addToNewGraphAction)
+
+    val subnavs = currentNavigation.children.filter { it.isNavigation && !components.contains(it) }
+    if (!subnavs.isEmpty()) {
+      group.addSeparator()
+      for (graph in subnavs) {
+        group.add(AddToExistingGraphAction(mySurface, graph.uiName, graph))
+      }
+    }
+
+    return group
+  }
+
+  override fun getToolbarActions(component: NlComponent?, newSelection: List<NlComponent>) =
+    DefaultActionGroup().apply {
+      // This is called whenever the selection changes, but since our contents are static they can be cached.
+      add(addDestinationMenu)
+      add(nestedGraphToolbarAction)
+
+      addSeparator()
+      add(startDestinationToolbarAction)
+      add(deepLinkToolbarAction)
+      add(addActionToolbarAction)
+
+      addSeparator()
+      add(autoArrangeAction)
+    }
+}

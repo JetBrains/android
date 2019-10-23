@@ -25,6 +25,9 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnection;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils; // TODO: remove
 import com.android.tools.idea.uibuilder.scene.draw.DrawResize;
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.EmptyStackException;
+import java.util.Stack;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -44,9 +47,11 @@ import java.util.function.Function;
 public class DisplayList {
   private final static boolean DEBUG = false;
   private ArrayList<DrawCommand> myCommands = new ArrayList<>();
+  private Stack<UNClip> myUnClipStack = new Stack<>();
 
   public void clear() {
     myCommands.clear();
+    myUnClipStack.clear();
   }
 
   public ArrayList<DrawCommand> getCommands() {
@@ -57,7 +62,7 @@ public class DisplayList {
   // Drawing Elements
   /////////////////////////////////////////////////////////////////////////////
 
-  static class Connection implements DrawCommand {
+  public static class Connection implements DrawCommand {
     @SwingCoordinate int x1;
     @SwingCoordinate int y1;
     @SwingCoordinate int x2;
@@ -80,7 +85,7 @@ public class DisplayList {
              + myDirection;
     }
 
-    Connection(String s) {
+    public Connection(String s) {
       String[] sp = s.split(",");
       int c = 0;
       x1 = Integer.parseInt(sp[c++]);
@@ -90,7 +95,7 @@ public class DisplayList {
       myDirection = Integer.parseInt(sp[c]);
     }
 
-    Connection(@SwingCoordinate int x1, @SwingCoordinate int y1, @SwingCoordinate int x2, @SwingCoordinate int y2, int direction) {
+    public Connection(@SwingCoordinate int x1, @SwingCoordinate int y1, @SwingCoordinate int x2, @SwingCoordinate int y2, int direction) {
       this.x1 = x1;
       this.y1 = y1;
       this.x2 = x2;
@@ -100,7 +105,7 @@ public class DisplayList {
 
     @Override
     public void paint(Graphics2D g, SceneContext sceneContext) {
-      g.setColor(sceneContext.getColorSet().getAnchorConnectionCircle());
+      g.setColor(sceneContext.getColorSet().getSelectedConstraints());
       int start_dx = 0;
       int start_dy = 0;
       int end_dx = 0;
@@ -161,7 +166,7 @@ public class DisplayList {
       return "Rect," + x + "," + y + "," + width + "," + height + "," + Integer.toHexString(color.getRGB());
     }
 
-    Rect(String s) {
+    public Rect(String s) {
       String[] sp = s.split(",");
       int c = 0;
       x = Integer.parseInt(sp[c++]);
@@ -172,7 +177,7 @@ public class DisplayList {
       color = new Color((int)Long.parseLong(sp[c], 16));
     }
 
-    Rect(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height, Color c) {
+    public Rect(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height, Color c) {
       super(x, y, width, height);
       color = c;
     }
@@ -189,7 +194,7 @@ public class DisplayList {
     }
   }
 
-  static class Clip extends Rectangle implements DrawCommand {
+  private static class Clip extends Rectangle implements DrawCommand {
     Shape myOriginal;
 
     @Override
@@ -202,7 +207,7 @@ public class DisplayList {
       return CLIP_LEVEL;
     }
 
-    Clip(String s) {
+    public Clip(String s) {
       String[] sp = s.split(",");
       int c = 0;
       x = Integer.parseInt(sp[c++]);
@@ -211,7 +216,7 @@ public class DisplayList {
       height = Integer.parseInt(sp[c]);
     }
 
-    Clip(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height) {
+    private Clip(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height) {
       super(x, y, width, height);
     }
 
@@ -226,7 +231,7 @@ public class DisplayList {
     }
   }
 
-  public static class UNClip implements DrawCommand {
+  private static class UNClip implements DrawCommand {
     Clip lastClip;
 
     @Override
@@ -258,6 +263,21 @@ public class DisplayList {
     }
   }
 
+  /**
+   * Used when pushClip doesn't offer the rectangle.
+   */
+  private static class EmptyUNClip extends UNClip {
+
+    public EmptyUNClip() {
+      super((Clip)null);
+    }
+
+    @Override
+    public void paint(Graphics2D g, SceneContext sceneContext) {
+      // Do nothing
+    }
+  }
+
   static class Line implements DrawCommand {
     Color color;
     int x1;
@@ -275,7 +295,7 @@ public class DisplayList {
       return TARGET_LEVEL;
     }
 
-    Line(String s) {
+    public Line(String s) {
       String[] sp = s.split(",");
       int c = 0;
       x1 = Integer.parseInt(sp[c++]);
@@ -286,16 +306,28 @@ public class DisplayList {
       color = new Color((int)Long.parseLong(sp[c], 16));
     }
 
-    Line(SceneContext transform,
+    public Line(SceneContext transform,
                 @AndroidDpCoordinate float x1,
                 @AndroidDpCoordinate float y1,
                 @AndroidDpCoordinate float x2,
                 @AndroidDpCoordinate float y2,
-                Color c) {
+                @NotNull Color c) {
       this.x1 = transform.getSwingXDip(x1);
       this.y1 = transform.getSwingYDip(y1);
       this.x2 = transform.getSwingXDip(x2);
       this.y2 = transform.getSwingYDip(y2);
+      this.color = c;
+    }
+
+    public Line(@SwingCoordinate int x1,
+                @SwingCoordinate int y1,
+                @SwingCoordinate int x2,
+                @SwingCoordinate int y2,
+                @NotNull Color c) {
+      this.x1 = x1;
+      this.y1 = y1;
+      this.x2 = x2;
+      this.y2 = y2;
       this.color = c;
     }
 
@@ -314,14 +346,32 @@ public class DisplayList {
     myCommands.add(cmd);
   }
 
-  public UNClip addClip(SceneContext context, @AndroidDpCoordinate Rectangle r) {
+  public void pushClip(@NotNull SceneContext context, @Nullable @AndroidDpCoordinate Rectangle r) {
+    if (r == null) {
+      myUnClipStack.add(new EmptyUNClip());
+      return;
+    }
     int l = context.getSwingXDip(r.x);
     int t = context.getSwingYDip(r.y);
     int w = context.getSwingDimensionDip(r.width);
     int h = context.getSwingDimensionDip(r.height);
     Clip c = new Clip(l, t, w, h);
     myCommands.add(c);
-    return new UNClip(c);
+    myUnClipStack.add(new UNClip(c));
+  }
+
+  public boolean popClip() {
+    UNClip c;
+    try {
+       c = myUnClipStack.pop();
+    }
+    catch (EmptyStackException e) {
+      return false;
+    }
+    if (!(c instanceof EmptyUNClip)) {
+      myCommands.add(c);
+    }
+    return true;
   }
 
   public void addRect(SceneContext context, @AndroidDpCoordinate Rectangle r, Color color) {
@@ -345,6 +395,14 @@ public class DisplayList {
     add(new Rect(l, t, w, h, color));
   }
 
+  public void addRect(@SwingCoordinate int left,
+                      @SwingCoordinate int top,
+                      @SwingCoordinate int right,
+                      @SwingCoordinate int bottom,
+                      @NotNull Color color) {
+    add(new Rect(left, top, right - left, bottom - top, color));
+  }
+
   public void addConnection(SceneContext context,
                             @AndroidDpCoordinate float x1,
                             @AndroidDpCoordinate float y1,
@@ -363,8 +421,16 @@ public class DisplayList {
                       @AndroidDpCoordinate float y1,
                       @AndroidDpCoordinate float x2,
                       @AndroidDpCoordinate float y2,
-                      Color color) {
+                      @NotNull Color color) {
     add(new Line(context, x1, y1, x2, y2, color));
+  }
+
+  public void addLine(@SwingCoordinate int x1,
+                      @SwingCoordinate int y1,
+                      @SwingCoordinate int x2,
+                      @SwingCoordinate int y2,
+                      @NotNull Color color) {
+    add(new Line(x1, y1, x2, y2, color));
   }
 
   //endregion
@@ -376,12 +442,12 @@ public class DisplayList {
     private ArrayList<DrawCommand> myCommands = new ArrayList<>();
     private int myLevel;
 
-    CommandSet(DrawCommand[] commands, int start, int end) {
+    public CommandSet(DrawCommand[] commands, int start, int end) {
       this(commands, start, end, COMPONENT_LEVEL);
     }
 
     @SuppressWarnings("ManualArrayToCollectionCopy")
-    CommandSet(DrawCommand[] commands, int start, int end, int level) {
+    public CommandSet(DrawCommand[] commands, int start, int end, int level) {
       myLevel = level;
       if (commands.length == 0) {
         return;
@@ -497,6 +563,10 @@ public class DisplayList {
   }
 
   public void paint(Graphics2D g2, SceneContext sceneContext) {
+    if (!myUnClipStack.isEmpty()) {
+      Logger.getInstance(DisplayList.class).warn("There are still clippings in the clip stack.");
+      myUnClipStack.clear();
+    }
     int count = myCommands.size();
     if (count == 0) {
       return;
@@ -564,6 +634,7 @@ public class DisplayList {
     addListElementConstructor(DrawAnchor.class);
     addListElementConstructor(DrawComponentBackground.class);
     addListElementConstructor(DrawNlComponentFrame.class);
+    addListElementConstructor(DrawNlDraggingComponentFrame.class);
     addListElementConstructor(ProgressBarDecorator.DrawProgressBar.class);
     addListElementConstructor(LinearLayoutDecorator.DrawLinearLayout.class);
 
@@ -574,7 +645,9 @@ public class DisplayList {
     addListElementProvider(ButtonDecorator.DrawButton.class, ButtonDecorator.DrawButton::createFromString);
     addListElementProvider(SwitchDecorator.DrawSwitch.class, SwitchDecorator.DrawSwitch::createFromString);
     addListElementProvider(RadioButtonDecorator.DrawRadioButton.class, RadioButtonDecorator.DrawRadioButton::createFromString);
+    addListElementProvider(ToggleButtonDecorator.DrawButton.class, ToggleButtonDecorator.DrawButton::createFromString);
     addListElementProvider(CheckBoxDecorator.DrawCheckbox.class, CheckBoxDecorator.DrawCheckbox::createFromString);
+    addListElementProvider(UnknownViewDecorator.DrawUnknownDecorator.class, UnknownViewDecorator.DrawUnknownDecorator::createFromString);
   }
 
   static public void addListElementConstructor(Class<? extends DrawCommand> c) {

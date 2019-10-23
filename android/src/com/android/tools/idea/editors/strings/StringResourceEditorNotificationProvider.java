@@ -29,9 +29,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
-public final class StringResourceEditorNotificationProvider extends EditorNotifications.Provider<StringResourceEditorNotificationProvider.InfoPanel> {
+public class StringResourceEditorNotificationProvider extends EditorNotifications.Provider<StringResourceEditorNotificationProvider.InfoPanel> {
   private static final Key<InfoPanel> KEY = Key.create("android.editors.strings");
-  private boolean myShow = true;
+  private final Project myProject;
+  private boolean myShow;
+
+  public StringResourceEditorNotificationProvider(@NotNull Project project) {
+    myProject = project;
+    myShow = true;
+  }
 
   @NotNull
   @Override
@@ -41,8 +47,8 @@ public final class StringResourceEditorNotificationProvider extends EditorNotifi
 
   @Nullable
   @Override
-  public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull FileEditor fileEditor, @NotNull Project project) {
-    if (!myShow || !StringResourceEditorProvider.canViewTranslations(project, file)) {
+  public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull FileEditor fileEditor) {
+    if (!myShow || !StringResourceEditorProvider.canViewTranslations(myProject, file)) {
       return null;
     }
 
@@ -51,7 +57,7 @@ public final class StringResourceEditorNotificationProvider extends EditorNotifi
     panel.createActionLabel("Open editor", new Runnable() {
       @Override
       public void run() {
-        StringResourceEditorProvider.openEditor(project, file);
+        StringResourceEditorProvider.openEditor(myProject, file);
       }
     });
     panel.createActionLabel("Hide notification", new Runnable() {

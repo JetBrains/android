@@ -15,7 +15,22 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.*;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
+import static com.android.tools.profilers.ProfilerLayout.MARKER_LENGTH;
+import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER;
+import static com.android.tools.profilers.ProfilerLayout.Y_AXIS_TOP_MARGIN;
+import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
+
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.LegendComponent;
+import com.android.tools.adtui.LegendConfig;
+import com.android.tools.adtui.RangeTooltipComponent;
+import com.android.tools.adtui.SelectionComponent;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.instructions.InstructionsPanel;
@@ -27,8 +42,20 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SelectionListener;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
-import com.android.tools.profilers.*;
-import com.android.tools.profilers.event.*;
+import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerFonts;
+import com.android.tools.profilers.ProfilerLayeredPane;
+import com.android.tools.profilers.ProfilerScrollbar;
+import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
+import com.android.tools.profilers.StageView;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.event.EventMonitorView;
+import com.android.tools.profilers.event.LifecycleTooltip;
+import com.android.tools.profilers.event.LifecycleTooltipView;
+import com.android.tools.profilers.event.UserEventTooltip;
+import com.android.tools.profilers.event.UserEventTooltipView;
 import com.android.tools.profilers.network.details.ConnectionDetailsView;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
@@ -36,19 +63,22 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
-import sun.swing.SwingUtilities2;
-
-import javax.swing.*;
-import java.awt.*;
+import com.intellij.util.ui.UIUtilities;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Dimension;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
-
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
-import static com.android.tools.profilers.ProfilerLayout.*;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.SwingConstants;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
@@ -106,9 +136,9 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     JPanel infoPanel = new JPanel(new BorderLayout());
     InstructionsPanel infoMessage = new InstructionsPanel.Builder(
-      new TextInstruction(SwingUtilities2.getFontMetrics(infoPanel, ProfilerFonts.H3_FONT), "Network profiling data unavailable"),
+      new TextInstruction(UIUtilities.getFontMetrics(infoPanel, ProfilerFonts.H3_FONT), "Network profiling data unavailable"),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-      new TextInstruction(SwingUtilities2.getFontMetrics(infoPanel, ProfilerFonts.STANDARD_FONT),
+      new TextInstruction(UIUtilities.getFontMetrics(infoPanel, ProfilerFonts.STANDARD_FONT),
                           "There is no information for the network traffic you've selected."),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
       new UrlInstruction(ProfilerFonts.STANDARD_FONT, "Learn More",
@@ -272,7 +302,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private void installProfilingInstructions(@NotNull JPanel parent) {
     assert parent.getLayout().getClass() == TabularLayout.class;
     InstructionsPanel panel =
-      new InstructionsPanel.Builder(new TextInstruction(SwingUtilities2.getFontMetrics(parent, ProfilerFonts.H2_FONT),
+      new InstructionsPanel.Builder(new TextInstruction(UIUtilities.getFontMetrics(parent, ProfilerFonts.H2_FONT),
                                                         "Select a range to inspect network traffic"))
         .setEaseOut(getStage().getInstructionsEaseOutModel(), instructionsPanel -> parent.remove(instructionsPanel))
         .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)

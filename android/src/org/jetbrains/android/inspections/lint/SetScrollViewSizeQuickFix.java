@@ -27,7 +27,7 @@ public class SetScrollViewSizeQuickFix implements AndroidLintQuickFix {
     final String attributeName = isHorizontal
                                  ? AndroidLintUtil.ATTR_LAYOUT_WIDTH
                                  : AndroidLintUtil.ATTR_LAYOUT_HEIGHT;
-    tag.setAttribute(attributeName, SdkConstants.NS_RESOURCES, AndroidLintUtil.ATTR_VALUE_WRAP_CONTENT);
+    tag.setAttribute(attributeName, SdkConstants.ANDROID_URI, AndroidLintUtil.ATTR_VALUE_WRAP_CONTENT);
   }
 
   @Override

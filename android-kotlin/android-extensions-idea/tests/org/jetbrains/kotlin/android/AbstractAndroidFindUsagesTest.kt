@@ -20,7 +20,6 @@ package org.jetbrains.kotlin.android
 abstract class AbstractAndroidFindUsagesTest : KotlinAndroidTestCase() {
 
     fun doTest(path: String) {
-        return // TODO: investigate and fix this test
         copyResourceDirectoryForTest(path)
         val testFileName = getTestName(true) + ".kt"
         val virtualFile = myFixture.copyFileToProject(path + testFileName, "src/" + getTestName(true) + ".kt")

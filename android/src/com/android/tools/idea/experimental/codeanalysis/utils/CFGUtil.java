@@ -31,6 +31,7 @@ import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.psi.*;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedWriter;
@@ -174,7 +175,7 @@ public class CFGUtil {
       bw.write("digraph G{\n");
       for (PsiCFGMethod method : allNodes.keySet()) {
         String label = method.getName();
-        String line = String.format("n%d[label=\"%s\"];\n", allNodes.get(method), label);
+        String line = String.format(Locale.US, "n%d[label=\"%s\"];\n", allNodes.get(method), label);
         bw.write(line);
       }
 
@@ -184,7 +185,7 @@ public class CFGUtil {
         Integer sId = allNodes.get(curMethod);
         for (PsiCFGMethod tgtMethod : cg.callerMethodToCalleeMethodMap.get(curMethod)) {
           Integer tId = allNodes.get(tgtMethod);
-          String line = String.format("n%d -> n%d;\n", sId, tId);
+          String line = String.format(Locale.US, "n%d -> n%d;\n", sId, tId);
           bw.write(line);
         }
       }
@@ -250,7 +251,7 @@ public class CFGUtil {
       bw.write("digraph G {\n");
       for (GraphNode node : allNodes.keySet()) {
         String label = getLabelFromGraphNode(node);
-        String line = String.format("n%d[label=\"%s\"];\n", allNodes.get(node), label);
+        String line = String.format(Locale.US, "n%d[label=\"%s\"];\n", allNodes.get(node), label);
         bw.write(line);
       }
       bw.write("\n");
@@ -312,7 +313,7 @@ public class CFGUtil {
       GraphNode[] outEdges = node.getOut();
       for (GraphNode outNode : outEdges) {
         Integer tgtID = NodeMap.get(outNode);
-        String line = String.format("n%d -> n%d;\n", srcID, tgtID);
+        String line = String.format(Locale.US, "n%d -> n%d;\n", srcID, tgtID);
         bw.write(line);
         if (!vistedNode.contains(outNode)) {
           workList.addLast(outNode);

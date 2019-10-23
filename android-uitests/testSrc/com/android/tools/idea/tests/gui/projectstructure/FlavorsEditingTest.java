@@ -35,7 +35,6 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 
   import static com.google.common.truth.Truth.assertThat;
 
-@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRemoteRunner.class)
 public class FlavorsEditingTest {
 
@@ -70,7 +69,7 @@ public class FlavorsEditingTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void editFlavors() throws  Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
 
     String flavor = "flavor";
 

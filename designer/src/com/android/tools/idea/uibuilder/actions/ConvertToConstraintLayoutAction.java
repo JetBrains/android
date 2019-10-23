@@ -17,11 +17,12 @@ package com.android.tools.idea.uibuilder.actions;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
@@ -232,7 +233,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     private NlComponent myRoot;
     private NlComponent myLayout;
 
-    ConstraintLayoutConverter(@NotNull ScreenView screenView,
+    public ConstraintLayoutConverter(@NotNull ScreenView screenView,
                                      @NotNull NlComponent target,
                                      boolean flatten,
                                      boolean includeIds,
@@ -290,14 +291,18 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     }
 
     public void postLayoutRun() {
-      NlModel model = myLayout.getModel();
-      XmlTag layoutTag = myLayout.getTag();
-      XmlTag rootTag = myRoot.getTag();
-      //((NlComponentMixin)myLayout.getMixin()).getData$production_sources_for_module_designer().
-      PsiElement tag = myLayout.getTag().setName(
-        DependencyManagementUtil.mapAndroidxName(model.getModule(), CLASS_CONSTRAINT_LAYOUT));
-
       LayoutlibSceneManager manager = myScreenView.getSurface().getSceneManager();
+      if (manager == null) {
+        Logger.getInstance(ConvertToConstraintLayoutAction.class).warn("null SceneManager");
+        return;
+      }
+
+      NlModel model = myLayout.getModel();
+      XmlTag layoutTag = myLayout.getTagDeprecated();
+      XmlTag rootTag = myRoot.getTagDeprecated();
+      //((NlComponentMixin)myLayout.getMixin()).getData$production_sources_for_module_designer().
+      PsiElement tag = myLayout.getTagDeprecated().setName(
+        DependencyManagementUtil.mapAndroidxName(model.getModule(), CLASS_CONSTRAINT_LAYOUT));
 
       // syncWithPsi (called by layout()) can cause the components to be recreated, so update our root and layout.
       myRoot = model.findViewByTag(rootTag);
@@ -314,29 +319,22 @@ public class ConvertToConstraintLayoutAction extends AnAction {
             assert id != null;
             NlComponent layout = myScreenView.getModel().find(id);
 
-            Runnable action = new NlWriteCommandAction(Collections.singletonList(layout), "Infer Constraints", () -> {
-              if (layout != null) {
-                Map<NlComponent, Dimension> sizes = myEditor.measureChildren(layout, null);
-                assert sizes != null;
+            if (layout != null) {
+              manager.removeRenderListener(this);
 
-                for (NlComponent component : sizes.keySet()) {
-                  Dimension d = sizes.get(component);
-                  component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_WIDTH, Integer.toString(d.width));
-                  component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT, Integer.toString(d.height));
-                }
+              myEditor.measureChildren(layout, null)
+                .whenCompleteAsync((sizes, ex) -> NlWriteCommandActionUtil.run(layout, "Infer Constraints", () -> {
+                  for (NlComponent component : sizes.keySet()) {
+                    Dimension d = sizes.get(component);
+                    component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_WIDTH, Integer.toString(d.width));
+                    component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT, Integer.toString(d.height));
+                  }
 
-                inferConstraints(layout);
-                manager.removeRenderListener(this);
-              }
-            });
-
-            ApplicationManager.getApplication().invokeLater(action);
+                  inferConstraints(layout);
+                }), EdtExecutor.INSTANCE);
+            }
           }
         });
-
-        //});
-        //t.setRepeats(false);
-        // t.start();
       }
     }
 
@@ -414,7 +412,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
       List<TextRange> ranges = Lists.newArrayList();
       for (NlComponent component : myToBeFlattened) {
-        XmlTag tag = component.getTag();
+        XmlTag tag = component.getTagDeprecated();
         PsiElement openStart = null;
         PsiElement openEnd = null;
         PsiElement closeStart = null;
@@ -529,7 +527,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
       // If it defines an ID, see if the ID is used anywhere
       if (!myIncludeIds) {
-        XmlAttribute attribute = component.getTag().getAttribute(ATTR_ID, ANDROID_URI);
+        XmlAttribute attribute = component.getTagDeprecated().getAttribute(ATTR_ID, ANDROID_URI);
         if (attribute != null) {
           XmlAttributeValue valueElement = attribute.getValueElement();
           if (valueElement != null && valueElement.isValid()) {

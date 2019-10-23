@@ -65,7 +65,7 @@ public final class ClipartIconButton extends JButton
       }
     });
 
-    myXmlAsset.imagePath().addListener(sender -> {
+    myXmlAsset.imagePath().addListener(() -> {
       ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);
       for (ActionListener listener : myAssetListeners) {
         listener.actionPerformed(e);

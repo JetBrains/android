@@ -17,6 +17,7 @@ package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
 import com.android.tools.idea.lint.AndroidLintAppCompatCustomViewInspection;
+import com.android.tools.idea.testing.AndroidTestUtils;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.SmartHashMap;
@@ -33,7 +34,6 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.SmartList;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.AndroidTestUtils;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +59,6 @@ public class MigrateToAppCompatTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
     // This is needed for resolving framework classes
     myFixture.allowTreeAccessForAllFiles();
   }

@@ -22,10 +22,17 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.analytics.UsageTrackerWriter;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.GoogleCrashReporter;
+import com.android.tools.idea.diagnostics.report.AnalyzedHeapReport;
+import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties;
+import com.android.tools.idea.diagnostics.report.FreezeReport;
+import com.android.tools.idea.diagnostics.report.HeapReportProperties;
+import com.android.tools.idea.diagnostics.report.MemoryReportReason;
+import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpCrashReport;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import java.util.TreeMap;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.hamcrest.core.SubstringMatcher;
@@ -73,7 +80,7 @@ public class StudioCrashReporterTest {
       UsageTracker.setWriterForTest(usageTracker);
       CrashReport report =
         new StudioExceptionReport.Builder()
-          .setThrowable(new RuntimeException("Test Exception Message"))
+          .setThrowable(new RuntimeException("Test Exception Message"), false)
           .build();
 
       String content = getSerializedContent(report);
@@ -109,6 +116,28 @@ public class StudioCrashReporterTest {
   }
 
   @Test
+  public void serializeUserReportedException() throws Exception {
+    CrashReport report =
+      new StudioExceptionReport.Builder()
+        .setThrowable(ourException, true)
+        .build();
+
+    String request = getSerializedContent(report);
+    assertRequestContainsField(request, "exception_info", "java.lang.RuntimeException: This is a test exception message");
+  }
+
+  @Test
+  public void serializeNonUserReportedException() throws Exception {
+    CrashReport report =
+      new StudioExceptionReport.Builder()
+        .setThrowable(ourException, false)
+        .build();
+
+    String request = getSerializedContent(report);
+    assertRequestContainsField(request, "exception_info", "java.lang.RuntimeException: <elided>");
+  }
+
+  @Test
   public void serializeKotlinException() throws Exception {
     final String exceptionWithKotlinString =
       "java.lang.RuntimeException: Kotlin message\n" +
@@ -118,13 +147,36 @@ public class StudioCrashReporterTest {
       "\tat kotlin.SynchronizedLazyImpl.getValue(Lazy.kt:131)\n";
     StudioExceptionReport report = spy(
       new StudioExceptionReport.Builder()
-        .setThrowable(createExceptionFromDesc(exceptionWithKotlinString, null))
+        .setThrowable(createExceptionFromDesc(exceptionWithKotlinString, null), false)
         .build());
 
     doReturn("1.2.3.4").when(report).getKotlinPluginVersionDescription();
 
     String request = getSerializedContent(report);
     assertRequestContainsField(request, "kotlinVersion", "1.2.3.4");
+  }
+
+  @Test
+  public void sendHeapReportFieldAsFile() throws IOException {
+    AnalyzedHeapReport analyzedHeapReport =
+      new AnalyzedHeapReport("heap report text",
+                             new HeapReportProperties(MemoryReportReason.UserInvoked, "stats"),
+                             new DiagnosticReportProperties());
+    CrashReport crashReport = analyzedHeapReport.asCrashReport();
+    String request = getSerializedContent(crashReport);
+
+    assertRequestContainsFile(request, "heapReport", "heapReport.txt", "heap report text");
+  }
+
+  private static void assertRequestContainsFile(final String requestBody, final String name, final String filename, final String value) {
+    assertThat(requestBody, new RegexMatcher(
+      "(?s).*\r?\nContent-Disposition: form-data; name=\"" + Pattern.quote(name) + "\"; " +
+      "filename=\"" + Pattern.quote(filename) + "\"\r?\n" +
+      "Content-Type: [^\r\n]*?\r?\n" +
+      "Content-Transfer-Encoding: binary\r?\n" +
+      "\r?\n" +
+      Pattern.quote(value) + "\r?\n.*"
+    ));
   }
 
   private static void assertRequestContainsField(final String requestBody, final String name, final String value) {
@@ -139,11 +191,10 @@ public class StudioCrashReporterTest {
 
   @Test
   public void serializePerformanceReportInvalidThreadDump() throws Exception {
-    CrashReport report =
-      new StudioPerformanceWatcherReport.Builder()
-        .setFile("threadDump.txt")
-        .setThreadDump("Not a thread dump")
-        .build();
+    CrashReport report = new PerformanceThreadDumpCrashReport(
+      new DiagnosticReportProperties(),
+      "threadDump.txt", "Not a thread dump"
+    );
 
     String request = getSerializedContent(report);
     assertRequestContainsField(request, "exception_info", "com.android.ApplicationNotResponding: ");
@@ -151,20 +202,31 @@ public class StudioCrashReporterTest {
 
   @Test
   public void serializePerformanceReportValidThreadDump() throws Exception {
-    CrashReport report =
-      new StudioPerformanceWatcherReport.Builder()
-        .setFile("threadDump.txt")
-        .setThreadDump("\"AWT-EventQueue-0 2.3#__BUILD_NUMBER__ Studio, eap:true, os:Linux 3.13.0-93-generic\" prio=0 tid=0x0 nid=0x0 waiting on condition\n" +
-                       "     java.lang.Thread.State: WAITING\n" +
-                       " on java.util.concurrent.FutureTask@12345678\n" +
-                       "\tat sun.misc.Unsafe.park(Native Method)\n\n")
-        .build();
+      CrashReport report = new PerformanceThreadDumpCrashReport(
+        new DiagnosticReportProperties(),
+        "threadDump.txt",
+        "\"AWT-EventQueue-0 2.3#__BUILD_NUMBER__ Studio, eap:true, os:Linux 3.13.0-93-generic\" prio=0 tid=0x0 nid=0x0 waiting on condition\n" +
+        "     java.lang.Thread.State: WAITING\n" +
+        " on java.util.concurrent.FutureTask@12345678\n" +
+        "\tat sun.misc.Unsafe.park(Native Method)\n\n"
+      );
 
     String request = getSerializedContent(report);
 
     assertRequestContainsField(request, "exception_info",
                                 "com.android.ApplicationNotResponding: AWT-EventQueue-0 WAITING on java.util.concurrent.FutureTask@12345678\n" +
                                 "\tat sun.misc.Unsafe.park(Native Method)");
+  }
+
+  @Test
+  public void serializeFreezeReportEmpty() throws Exception {
+    CrashReport report = new FreezeReport(null, new TreeMap<>(), false, null, null).asCrashReport();
+
+    String request = getSerializedContent(report);
+
+    assertRequestContainsField(request, "exception_info",
+                               "com.android.ApplicationNotResponding: \n" +
+                               "\tat com.android.tools.idea.diagnostics.report.FreezeReport.missingEdtStack(Unknown source)");
   }
 
   @NotNull
@@ -178,7 +240,7 @@ public class StudioCrashReporterTest {
   public static void main(String[] args) {
     GoogleCrashReporter crash = new StudioCrashReporter();
 
-    submit(crash, new StudioExceptionReport.Builder().setThrowable(ourException).build());
+    submit(crash, new StudioExceptionReport.Builder().setThrowable(ourException, false).build());
     submit(
       crash,
       new StudioCrashReport.Builder()
@@ -186,7 +248,10 @@ public class StudioCrashReporterTest {
         .setIsJvmCrash(true)
         .setUptimeInMs(123456)
         .build());
-    submit(crash, new StudioPerformanceWatcherReport.Builder().setFile("fileName").setThreadDump("threadDump").build());
+    submit(crash, new PerformanceThreadDumpCrashReport(
+      new DiagnosticReportProperties(),
+      "filename",
+      "threadDump"));
   }
 
   private static void submit(@NonNull GoogleCrashReporter reporter, @NonNull CrashReport report) {
@@ -251,7 +316,7 @@ public class StudioCrashReporterTest {
       }
     }
 
-    List<StackTraceElement> frames = new ArrayList<StackTraceElement>();
+    List<StackTraceElement> frames = new ArrayList<>();
     Pattern outerPattern = Pattern.compile("\tat (.*)\\.([^.]*)\\((.*)\\)");
     Pattern innerPattern = Pattern.compile("(.*):(\\d*)");
     while (iterator.hasNext()) {
@@ -261,7 +326,7 @@ public class StudioCrashReporterTest {
       }
       Matcher outerMatcher = outerPattern.matcher(line);
       if (!outerMatcher.matches()) {
-        fail("Line " + line + " does not match expected stactrace pattern");
+        fail("Line " + line + " does not match expected stacktrace pattern");
       }
       else {
         String clz = outerMatcher.group(1);
@@ -287,7 +352,7 @@ public class StudioCrashReporterTest {
       }
     }
 
-    throwable.setStackTrace(frames.toArray(new StackTraceElement[frames.size()]));
+    throwable.setStackTrace(frames.toArray(new StackTraceElement[0]));
 
     // Dump stack back to string to make sure we have the same exception
     assertEquals(desc, getStackTrace(throwable));

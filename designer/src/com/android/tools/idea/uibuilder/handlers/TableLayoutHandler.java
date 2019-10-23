@@ -15,15 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.FQCN_TABLE_ROW;
+import static com.android.SdkConstants.TABLE_ROW;
+import static com.android.SdkConstants.VALUE_MATCH_PARENT;
+
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <TableLayout>} widget
@@ -59,9 +65,11 @@ public class TableLayoutHandler extends LinearLayoutHandler {
                           @NotNull InsertType insertType) {
     if (insertType.isCreate()) {
       // Start the table with 4 rows
-      for (int i = 0; i < 4; i++) {
-        NlComponentHelperKt.createChild(node, editor, FQCN_TABLE_ROW, null, InsertType.PROGRAMMATIC);
-      }
+      NlWriteCommandActionUtil.run(node, "", () -> {
+        for (int i = 0; i < 4; i++) {
+          NlComponentHelperKt.createChild(node, editor, FQCN_TABLE_ROW, null, InsertType.PROGRAMMATIC);
+        }
+      });
     }
 
     return true;

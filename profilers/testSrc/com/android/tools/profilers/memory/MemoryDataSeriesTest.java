@@ -17,8 +17,10 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
-import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,11 +41,13 @@ public class MemoryDataSeriesTest {
     MemoryData memoryData = MemoryData.newBuilder()
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos(222))
       .addMemSamples(MemoryData.MemorySample.newBuilder()
-                       .setJavaMem(222).setTimestamp(TimeUnit.MICROSECONDS.toNanos(222)).setTotalMem(222))
+        .setTimestamp(TimeUnit.MICROSECONDS.toNanos(222))
+        .setMemoryUsage(Memory.MemoryUsageData.newBuilder()
+                       .setJavaMem(222).setTotalMem(222)))
       .build();
     myService.setMemoryData(memoryData);
     MemoryDataSeries series =
-      new MemoryDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, data -> 111L);
+      new MemoryDataSeries(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA, data -> 111L);
     List<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(1, seriesDataList.size());
     assertEquals(222, seriesDataList.get(0).x);
@@ -55,13 +59,17 @@ public class MemoryDataSeriesTest {
     MemoryData memoryData = MemoryData.newBuilder()
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos(555))
       .addMemSamples(0, MemoryData.MemorySample.newBuilder()
-        .setJavaMem(333).setTimestamp(TimeUnit.MICROSECONDS.toNanos(333)).setTotalMem(333))
+        .setTimestamp(TimeUnit.MICROSECONDS.toNanos(333))
+        .setMemoryUsage(Memory.MemoryUsageData.newBuilder()
+          .setJavaMem(333).setTotalMem(333)))
       .addMemSamples(1, MemoryData.MemorySample.newBuilder()
-        .setNativeMem(444).setTimestamp(TimeUnit.MICROSECONDS.toNanos(444)).setTotalMem(444))
+        .setTimestamp(TimeUnit.MICROSECONDS.toNanos(444))
+        .setMemoryUsage(Memory.MemoryUsageData.newBuilder()
+          .setNativeMem(444).setTotalMem(444)))
       .build();
     myService.setMemoryData(memoryData);
     MemoryDataSeries series =
-      new MemoryDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, data -> 111L);
+      new MemoryDataSeries(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA, data -> 111L);
     List<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, seriesDataList.size());
     assertEquals(333, seriesDataList.get(0).x);

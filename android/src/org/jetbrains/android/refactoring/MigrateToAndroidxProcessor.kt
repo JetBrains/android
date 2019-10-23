@@ -24,11 +24,11 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink
-import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.google.common.collect.Range
 import com.google.common.collect.RangeMap
 import com.google.common.collect.TreeRangeMap
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_ANDROIDX
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.CommandProcessor
@@ -42,7 +42,12 @@ import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.Segment
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.*
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiMigration
+import com.intellij.psi.PsiPackage
+import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.impl.migration.PsiMigrationManager
 import com.intellij.psi.util.PsiTreeUtil
@@ -52,10 +57,20 @@ import com.intellij.refactoring.listeners.RefactoringEventData
 import com.intellij.refactoring.util.RefactoringUIUtil
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.IncorrectOperationException
-import org.jetbrains.android.refactoring.AppCompatMigrationEntry.*
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.CHANGE_CLASS
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.CHANGE_GRADLE_DEPENDENCY
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.CHANGE_PACKAGE
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.ClassMigrationEntry
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.GradleDependencyMigrationEntry
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.GradleMigrationEntry
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.PackageMigrationEntry
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.UPGRADE_GRADLE_DEPENDENCY_VERSION
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.UpdateGradleDepedencyVersionMigrationEntry
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.PackageMigrationUsageInfo
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.kotlin.idea.codeInsight.KotlinOptimizeImportsRefactoringHelper
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral
 
 private const val CLASS_MIGRATION_BASE_PRIORITY = 1_000_000
@@ -71,22 +86,15 @@ private fun isImportElement(element: PsiElement?): Boolean =
  * Returns the latest available version for the given `AppCompatMigrationEntry.GradleMigrationEntry`
  */
 private fun getLibraryRevision(newGroupName: String, newArtifactName: String, defaultVersion: String): String {
-  val sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk()
-  if (sdk != null) {
-    val revision = RepositoryUrlManager.get().getLibraryRevision(newGroupName,
-                                                                 newArtifactName, null,
-                                                                 true,
-                                                                 sdk.location,
-                                                                 FileOpUtils.create())
-    if (revision != null) {
-      log.debug { "$newGroupName:$newArtifactName will use $revision" }
-      return revision
-    }
-    log.debug { "Unable to find library revision for $newGroupName:$newArtifactName. Using $defaultVersion" }
+  val revision = RepositoryUrlManager.get().getLibraryRevision(newGroupName,
+                                                               newArtifactName, null,
+                                                               true,
+                                                               FileOpUtils.create())
+  if (revision != null) {
+    log.debug { "$newGroupName:$newArtifactName will use $revision" }
+    return revision
   }
-  else {
-    log.debug { "Unable to find library revision for $newGroupName:$newArtifactName, SDK was null. Using $defaultVersion" }
-  }
+  log.debug { "Unable to find library revision for $newGroupName:$newArtifactName. Using $defaultVersion" }
   return defaultVersion
 }
 
@@ -133,7 +141,8 @@ open class MigrateToAndroidxProcessor(val project: Project,
      */
     private fun isKotlinOptimizerCall(): Boolean = Thread.currentThread().stackTrace
       .take(5)
-      .any { "org.jetbrains.kotlin.idea.codeInsight.KotlinOptimizeImportsRefactoringHelper".equals(it.className) }
+      .map { it.className }
+      .any { KotlinOptimizeImportsRefactoringHelper::class.qualifiedName == it }
 
     override fun getFile(): PsiFile? = if (isKotlinOptimizerCall()) {
       null
@@ -148,7 +157,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
     // for disabling the KotlinOptimizeImportsRefactoringHelper.
     // Once the code that decides the helpers to apply has run, we unwrap all the wrapped instances on the doRefactor method.
     val wrapped = usages.map {
-      if (it.file != null && "org.jetbrains.kotlin.psi.KtFile" == it.file!!::class.qualifiedName) KotlinFileWrapper(it) else it
+      if (it.file is KtFile) KotlinFileWrapper(it) else it
     }.toTypedArray()
     super.execute(wrapped)
   }
@@ -264,7 +273,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
 
     if (callSyncAfterMigration && usages.any { it is MigrateToAppCompatUsageInfo.GradleUsageInfo }) {
       // If we modified gradle entries, request sync.
-      syncBeforeFinishingRefactoring(myProject)
+      syncBeforeFinishingRefactoring(myProject, TRIGGER_REFACTOR_MIGRATE_TO_ANDROIDX)
     }
   }
 
@@ -437,7 +446,11 @@ open class MigrateToAndroidxProcessor(val project: Project,
     if (gradleUsages.isNotEmpty()) {
       fun addGoogleRepoUsage(repositoriesModel: RepositoriesModel) {
         if (!repositoriesModel.hasGoogleMavenRepository()) {
-          gradleUsages.add(MigrateToAppCompatUsageInfo.AddGoogleRepositoryUsageInfo(projectBuildModel, repositoriesModel))
+          val repositoriesModelPsiElement = repositoriesModel.psiElement
+          if (repositoriesModelPsiElement != null) {
+            gradleUsages.add(
+              MigrateToAppCompatUsageInfo.AddGoogleRepositoryUsageInfo(projectBuildModel, repositoriesModel, repositoriesModelPsiElement))
+          }
         }
       }
 

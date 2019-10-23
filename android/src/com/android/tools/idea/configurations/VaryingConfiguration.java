@@ -26,6 +26,7 @@ import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.Locale;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -171,7 +172,7 @@ public class VaryingConfiguration extends NestedConfiguration {
     }
     Locale locale = myParent.getLocale();
     if (isAlternatingLocale()) {
-      List<Locale> locales = getConfigurationManager().getLocales();
+      ImmutableList<Locale> locales = getConfigurationManager().getLocales();
       for (Locale l : locales) {
         // TODO: Try to be smarter about which one we pick; for example, try
         // to pick a language that is substantially different from the inherited

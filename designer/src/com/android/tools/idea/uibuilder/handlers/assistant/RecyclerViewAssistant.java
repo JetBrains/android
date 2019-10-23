@@ -22,7 +22,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.HorizontalSpinner;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -292,7 +292,10 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
       component.setAttribute(TOOLS_URI, ATTR_LISTITEM, LAYOUT_RESOURCE_PREFIX + resourceName);
       component.setAttribute(TOOLS_URI, ATTR_SPAN_COUNT, template.hasTag(TemplateTag.GRID) ? "5" : null);
       component.setAttribute(TOOLS_URI, "layoutManager", template.hasTag(TemplateTag.GRID) ? "GridLayoutManager" : null);
-      CommandProcessor.getInstance().addAffectedFiles(project, component.getTag().getContainingFile().getVirtualFile());
+      VirtualFile virtualFile = component.getBackend().getAffectedFile();
+      if (virtualFile != null) {
+        CommandProcessor.getInstance().addAffectedFiles(project, virtualFile);
+      }
 
       return PsiManager.getInstance(project).findFile(file);
     });
@@ -302,7 +305,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
    * Set the design-time itemCount attribute in the given component
    */
   private static void setItemCount(@NotNull NlComponent component, int newCount) {
-    NlWriteCommandAction.run(component, "Set itemCount", () -> {
+    NlWriteCommandActionUtil.run(component, "Set itemCount", () -> {
       String itemCountNewValue = ITEM_COUNT_DEFAULT == newCount ? null : Integer.toString(newCount);
       component.setAttribute(TOOLS_URI, ATTR_ITEM_COUNT, itemCountNewValue);
     });
@@ -323,7 +326,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
       myComponent.setAttribute(TOOLS_URI, ATTR_LISTITEM, myOriginalListItemValue);
       myComponent.setAttribute(TOOLS_URI, "spanCount", myOriginalSpanCountValue);
       myComponent.setAttribute(TOOLS_URI, ATTR_LAYOUT_MANAGER, myOriginalLayoutManager);
-      CommandProcessor.getInstance().addAffectedFiles(project, myComponent.getTag().getContainingFile().getVirtualFile());
+      CommandProcessor.getInstance().addAffectedFiles(project, myComponent.getTagDeprecated().getContainingFile().getVirtualFile());
     }));
   }
 

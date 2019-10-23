@@ -15,19 +15,23 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import static com.android.testutils.truth.FileSubject.assertThat;
+
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
-import com.android.fakeadbserver.shellcommandhandlers.GetPropCommandHandler;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.File;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
-import org.fest.swing.util.StringTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -35,17 +39,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-import java.util.Arrays;
-
-import static com.android.testutils.truth.FileSubject.assertThat;
-
 @RunWith(GuiTestRemoteRunner.class)
 public class AbiSplitApksTest extends DebuggerTestBase {
 
   private static final int GRADLE_SYNC_TIMEOUT_SECONDS = 90;
 
-  @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES).settingNdkPath();
 
   private FakeAdbServer fakeAdbServer;
 
@@ -63,17 +62,11 @@ public class AbiSplitApksTest extends DebuggerTestBase {
     };
     fakeAdbServer = new FakeAdbServer.Builder()
       .installDefaultCommandHandlers()
-      .setShellCommandHandler(
-        ActivityManagerCommandHandler.COMMAND,
-        () -> new ActivityManagerCommandHandler(startCmdHandler)
-      )
+      .addDeviceHandler(new ActivityManagerCommandHandler(startCmdHandler))
       // This test needs to query the device for ABIs, so we need some expanded functionality for the
       // getprop command handler:
-      .setShellCommandHandler(
-        GetPropCommandHandler.COMMAND,
-        () -> new GetAbiListPropCommandHandler(Arrays.asList("x86_64"))
-      )
-      .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, JdwpCommandHandler::new)
+      .addDeviceHandler(new GetAbiListPropCommandHandler(Arrays.asList("x86_64")))
+      .addDeviceHandler(new JdwpCommandHandler())
       .build();
 
     DeviceState device = fakeAdbServer.connectDevice(
@@ -113,9 +106,9 @@ public class AbiSplitApksTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/79699588
+  @RunIn(TestGroup.SANITY_BAZEL)
   public void testX64AbiSplitApks() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProject("BasicCmakeAppForUI");
+    IdeFrameFixture ideFrame = guiTest.importProject("debugger/BasicCmakeAppForUI");
     ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT_SECONDS));
 
     DebuggerTestUtil.setDebuggerType(ideFrame, DebuggerTestUtil.NATIVE);
@@ -129,15 +122,13 @@ public class AbiSplitApksTest extends DebuggerTestBase {
     ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT_SECONDS));
 
     String expectedApkName = "app-x86_64-debug.apk";
-    ideFrame.debugApp("app")
-      .selectDevice(new StringTextMatcher("Google Nexus 5X"))
-      .clickOk();
+    ideFrame.debugApp("app", "Google Nexus 5X");
 
     // Wait for build to complete
     guiTest.waitForBackgroundTasks();
 
     File projectRoot = ideFrame.getProjectPath();
-    File expectedPathOfApk = new File(projectRoot, "app/build/intermediates/instant-run-apk/debug/" + expectedApkName);
+    File expectedPathOfApk = new File(projectRoot, "app/build/outputs/apk/debug/" + expectedApkName);
 
     assertThat(expectedPathOfApk).exists();
   }

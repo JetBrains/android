@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.JavaModuleType;
@@ -60,7 +59,7 @@ public class SupportedModuleChecker {
         if (!GRADLE_SYSTEM_ID.getId().equals(externalSystemId)) {
           unsupportedModules.add(module);
         }
-        else if (GradleFacet.isAppliedTo(module))
+        else
           androidGradleSeen = true;
       }
     }

@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static com.android.SdkConstants.FD_CMAKE;
+import static com.android.repository.api.RepoManager.DEFAULT_EXPIRATION_PERIOD_MS;
+import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_CMAKE_INSTALLED;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+
 import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
@@ -32,16 +38,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-
-import static com.android.SdkConstants.FD_CMAKE;
-import static com.android.repository.api.RepoManager.DEFAULT_EXPIRATION_PERIOD_MS;
-import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public class InstallCMakeHyperlink extends NotificationHyperlink {
   /**
@@ -109,7 +108,7 @@ public class InstallCMakeHyperlink extends NotificationHyperlink {
           // Found: Trigger installation of the package.
           ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(cmakePackage.getPath()), true);
           if (dialog != null && dialog.showAndGet()) {
-            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
+            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_CMAKE_INSTALLED);
           }
           return;
         }

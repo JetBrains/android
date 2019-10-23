@@ -21,13 +21,30 @@ import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profilers.*
-import com.android.tools.profilers.cpu.*
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.ProfilersTestData
+import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.cpu.CaptureNode
+import com.android.tools.profilers.cpu.CpuCaptureParser
+import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.android.tools.profilers.cpu.CpuProfilerStageView
+import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils.CPU_UI_TRACES_DIR
+import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
+import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
-import com.google.common.truth.Truth.*
+import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -39,7 +56,8 @@ class CallChartDetailsViewTest {
 
   @JvmField
   @Rule
-  val grpcChannel = FakeGrpcChannel("CallChartDetailsViewTest", cpuService, FakeProfilerService(),
+  val grpcChannel = FakeGrpcChannel("CallChartDetailsViewTest", cpuService,
+                                    FakeTransportService(timer), FakeProfilerService(timer),
                                     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
   private lateinit var stageView: CpuProfilerStageView
@@ -47,9 +65,9 @@ class CallChartDetailsViewTest {
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(grpcChannel.client, FakeIdeProfilerServices(), timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), FakeIdeProfilerServices(), timer)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
+    profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
 
     stage = CpuProfilerStage(profilers)
     stage.studioProfilers.stage = stage
@@ -111,7 +129,7 @@ class CallChartDetailsViewTest {
       val capture = parser.parse(ProfilersTestData.SESSION_DATA.toBuilder().setPid(1).build(),
                                  FakeCpuService.FAKE_TRACE_ID,
                                  CpuProfilerTestUtils.traceFileToByteString(File(CPU_UI_TRACES_DIR + "atrace_processid_1.ctrace")),
-                                 CpuProfiler.CpuProfilerType.ATRACE)!!.get()
+                                 Cpu.CpuTraceType.ATRACE)!!.get()
       setAndSelectCapture(capture)
       selectedThread = capture.mainThreadId
       setCaptureDetails(CaptureDetails.Type.CALL_CHART)

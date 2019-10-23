@@ -300,7 +300,7 @@ public final class StringResource {
 
     private final boolean myStringValid;
 
-    ResourceItemEntry() {
+    public ResourceItemEntry() {
       myResourceItem = null;
       myString = "";
       myStringValid = true;

@@ -17,9 +17,10 @@ package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
@@ -58,7 +59,7 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
 
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = findErrorMessage(getRootCause(error));
+    String text = findErrorMessage(project, getRootCause(error));
     if (text != null) {
       // Handle update notification inside of getQuickFixHyperlinks,
       // because it uses different interfaces based on conditions
@@ -69,12 +70,12 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
   }
 
   @Nullable
-  private static String findErrorMessage(@NotNull Throwable rootCause) {
+  private static String findErrorMessage(@NotNull Project project, @NotNull Throwable rootCause) {
     String errorType = rootCause.getClass().getName();
     if (errorType.equals("org.gradle.api.internal.MissingMethodException") ||
         errorType.equals("org.gradle.internal.metaobject.AbstractDynamicObject$CustomMessageMissingMethodException")) {
       String method = parseMissingMethod(rootCause.getMessage());
-      updateUsageTracker(DSL_METHOD_NOT_FOUND, method);
+      updateUsageTracker(project, DSL_METHOD_NOT_FOUND);
       return GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX + ": '" + method + "'";
     }
     return null;
@@ -112,10 +113,13 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
 
     String newMsg = text + "\nPossible causes:\n";
     if (!gradleModelIsRecent(project)) {
-      newMsg = newMsg +
-               String.format("The project '%1$s' may be using a version of the Android Gradle plug-in that does" +
-                             " not contain the method (e.g. 'testCompile' was added in 1.1.0).\n", project.getName()) +
-               upgradeAndroidPluginHyperlink.toHtml() + "\n\n";
+      newMsg += String.format("The project '%1$s' may be using a version of the Android Gradle plug-in that does" +
+                              " not contain the method (e.g. 'testCompile' was added in 1.1.0).\n", project.getName());
+      //TODO(b/130224064): need to remove check when kts fully supported
+      if (!GradleUtil.hasKtsBuildFiles(project)) {
+        newMsg += upgradeAndroidPluginHyperlink.toHtml() + "\n";
+      }
+      newMsg += "\n";
     }
     newMsg = newMsg +
              String.format("The project '%1$s' may be using a version of Gradle that does not contain the method.\n",
@@ -154,12 +158,11 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
 
   private static boolean gradleModelIsRecent(@NotNull Project project) {
     // Sync has failed, so we can only check the build file.
-    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.searchInBuildFilesOnly(project);
+    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromBuildFiles(project);
     if (androidPluginInfo != null) {
       GradleVersion pluginVersion = androidPluginInfo.getPluginVersion();
       if (pluginVersion != null) {
-        AndroidPluginGeneration pluginGeneration = androidPluginInfo.getPluginGeneration();
-        return pluginVersion.compareTo(pluginGeneration.getLatestKnownVersion()) > 0;
+        return pluginVersion.compareTo(LatestKnownPluginVersionProvider.INSTANCE.get()) > 0;
       }
     }
     return false;

@@ -81,7 +81,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   public <T> void registerValidator(@NotNull ObservableValue<T> value, @NotNull Validator<T> validator) {
     int index = myResults.size();
     myResults.add(Validator.Result.OK);
-    myListeners.listenAndFire(value, sender -> {
+    myListeners.listenAndFire(value, () -> {
       Validator.Result oldValue = myResults.get(index);
       Validator.Result newValue = validator.validate(value.get());
       if (!newValue.equals(oldValue)) {
@@ -175,5 +175,25 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   @NotNull
   public JLabel getValidationLabel() {
     return myValidationLabel;
+  }
+
+  /**
+   * Truncates the message if it contains more than {@code maxLineCount} lines.
+   */
+  @NotNull
+  public static Validator.Result truncateMessage(@NotNull Validator.Result validity, int maxLineCount) {
+    String message = validity.getMessage();
+    int lineCount = 0;
+    int lineOffset = 0;
+    int offset = 0;
+    while ((offset = message.indexOf('\n', offset)) >= 0) {
+      offset++;
+      if (++lineCount > maxLineCount) {
+        message = message.substring(0, lineOffset) + "...";
+        return new Validator.Result(validity.getSeverity(), message);
+      }
+      lineOffset = offset;
+    }
+    return validity;
   }
 }

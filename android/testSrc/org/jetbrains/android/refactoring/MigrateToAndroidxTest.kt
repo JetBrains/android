@@ -63,6 +63,8 @@ class MigrateToAndroidxTest : AndroidTestCase() {
     AndroidxMigrationBuilder()
       .withEntry(ClassMigrationEntry("android.support.design.widget.CoordinatorLayout", "androidx.widget.CoordinatorLayout"))
       .withEntry(ClassMigrationEntry("android.support.v7.widget.GridLayoutManager", "androidx.widget.GridLayoutManager"))
+      .withEntry(ClassMigrationEntry("android.support.design.bottomsheet.BottomSheetBehavior",
+                                     "com.google.android.material.bottomsheet.GridLayoutManager"))
       .withEntry(PackageMigrationEntry("android.support.v7", "androidx"))
       .withEntry(PackageMigrationEntry("android.support", "androidx"))
       .withFileInProject("app_bar_main.xml", "res/layout/app_bar_main.xml")

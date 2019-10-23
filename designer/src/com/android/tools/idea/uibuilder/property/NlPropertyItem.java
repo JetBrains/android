@@ -23,11 +23,11 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.adtui.ptable.PTableGroupItem;
-import com.android.tools.adtui.ptable.PTableItem;
-import com.android.tools.adtui.ptable.StarState;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableGroupItem;
+import com.android.tools.property.ptable.PTableItem;
+import com.android.tools.property.ptable.StarState;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.property.NlProperty;
@@ -66,7 +66,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
 
   @NotNull
   protected final List<NlComponent> myComponents;
-  @NotNull
+  @Nullable
   protected final PropertiesManager myPropertiesManager;
   @Nullable
   protected final AttributeDefinition myDefinition;
@@ -82,7 +82,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   public static NlPropertyItem create(@NotNull XmlName name,
                                       @Nullable AttributeDefinition attributeDefinition,
                                       @NotNull List<NlComponent> components,
-                                      @NotNull PropertiesManager propertiesManager) {
+                                      @Nullable PropertiesManager propertiesManager) {
     if (attributeDefinition != null && attributeDefinition.getFormats().contains(AttributeFormat.FLAGS)) {
       return new NlFlagPropertyItem(name, attributeDefinition, components, propertiesManager);
     }
@@ -103,7 +103,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   protected NlPropertyItem(@NotNull XmlName name,
                            @Nullable AttributeDefinition attributeDefinition,
                            @NotNull List<NlComponent> components,
-                           @NotNull PropertiesManager propertiesManager) {
+                           @Nullable PropertiesManager propertiesManager) {
     assert !components.isEmpty();
     if (!isDefinitionAcceptable(name, attributeDefinition)) {
       throw new IllegalArgumentException("Missing attribute definition for " + name.getLocalName());
@@ -160,8 +160,10 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Override
   public void setStarState(@NotNull StarState starState) {
     myStarState = starState;
-    NlProperties.saveStarState(myNamespace, myName, starState == StarState.STARRED, myPropertiesManager);
-    myPropertiesManager.starStateChanged();
+    if (myPropertiesManager != null) {
+      NlProperties.saveStarState(myNamespace, myName, starState == StarState.STARRED, myPropertiesManager);
+      myPropertiesManager.starStateChanged();
+    }
   }
 
   @Override
@@ -311,7 +313,9 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Override
   @Nullable
   public XmlTag getTag() {
-    return myComponents.size() == 1 ? myComponents.get(0).getTag() : null;
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+    NlComponent component = myComponents.size() == 1 ? myComponents.get(0) : null;
+    return component != null ? component.getBackend().getTag() : null;
   }
 
   @Override
@@ -362,9 +366,11 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     String oldValue = getValue();
     String componentName = myComponents.size() == 1 ? myComponents.get(0).getTagName() : "Multiple";
 
-    NlWriteCommandAction.run(myComponents, "Set " + componentName + '.' + myName + " to " + attrValueWithUnit, () -> {
+    NlWriteCommandActionUtil.run(myComponents, "Set " + componentName + '.' + myName + " to " + attrValueWithUnit, () -> {
       myComponents.forEach(component -> component.setAttribute(myNamespace, myName, attrValueWithUnit));
-      myPropertiesManager.propertyChanged(this, oldValue, attrValueWithUnit);
+      if (myPropertiesManager != null) {
+        myPropertiesManager.propertyChanged(this, oldValue, attrValueWithUnit);
+      }
 
       if (valueUpdated == null) {
         return;
@@ -373,11 +379,13 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
       valueUpdated.run();
     });
 
-    myPropertiesManager.logPropertyChange(this);
+    if (myPropertiesManager != null) {
+      myPropertiesManager.logPropertyChange(this);
+    }
   }
 
   boolean isThemeAttribute() {
-    AndroidFacet facet = myPropertiesManager.getFacet();
+    AndroidFacet facet = myComponents.get(0).getModel().getFacet();
     FrameworkResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager();
     if (resourceManager != null) {
       AttributeDefinitions definitions = resourceManager.getAttributeDefinitions();

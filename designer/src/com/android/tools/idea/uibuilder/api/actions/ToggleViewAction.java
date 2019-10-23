@@ -18,17 +18,17 @@ package com.android.tools.idea.uibuilder.api.actions;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.common.model.NlComponent;
+import javax.swing.Icon;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.List;
 
 /**
  * A {@link ViewAction} which toggles state
  */
-public abstract class ToggleViewAction extends ViewAction {
+public abstract class ToggleViewAction extends AbstractViewAction {
   private final Icon mySelectedIcon;
   private final String mySelectedLabel;
 
@@ -44,7 +44,7 @@ public abstract class ToggleViewAction extends ViewAction {
                           @NotNull Icon selectedIcon,
                           @NotNull String unselectedLabel,
                           @Nullable String selectedLabel) {
-    super(-1, unselectedIcon, unselectedLabel);
+    super(unselectedIcon, unselectedLabel);
     mySelectedIcon = selectedIcon;
     mySelectedLabel = selectedLabel;
   }
@@ -76,20 +76,27 @@ public abstract class ToggleViewAction extends ViewAction {
                                    @NotNull List<NlComponent> selectedChildren,
                                    boolean selected);
 
+  @Override
+  public final void perform(@NotNull ViewEditor editor,
+                            @NotNull ViewHandler handler,
+                            @NotNull NlComponent parent,
+                            @NotNull List<NlComponent> selectedChildren,
+                            int modifiers) {
+    boolean selected = isSelected(editor, handler, parent, selectedChildren);
+    setSelected(editor, handler, parent, selectedChildren, !selected);
+  }
+
+  @Override
+  public boolean affectsUndo() {
+    return false;
+  }
+
   /**
    * Returns the unselected icon
    */
   @Nullable
   public final Icon getUnselectedIcon() {
-    return myIcon;
-  }
-
-  /**
-   * Returns the selected icon
-   */
-  @NotNull
-  public final Icon getSelectedIcon() {
-    return mySelectedIcon;
+    return getIcon();
   }
 
   @Override
@@ -121,14 +128,14 @@ public abstract class ToggleViewAction extends ViewAction {
                                  @NotNull List<NlComponent> selectedChildren,
                                  @InputEventMask int modifiers,
                                  boolean selected) {
-    presentation.setIcon(selected ? mySelectedIcon : myIcon);
+    presentation.setIcon(selected ? mySelectedIcon : getIcon());
   }
 
   /**
    * Returns the unselected label
    */
   public final String getUnselectedLabel() {
-    return myLabel;
+    return getLabel();
   }
 
   /**

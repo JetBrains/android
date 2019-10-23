@@ -30,7 +30,8 @@ import com.android.tools.idea.gradle.parser.NamedObject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleVersions;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -92,8 +93,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -129,7 +130,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private JPopupMenu myPopup;
   private JMenuItem myRemoveItem;
 
-  private MergedManifest myManifest;
+  private MergedManifestSnapshot myManifest;
   private final List<File> myFiles = new ArrayList<>();
   private final List<File> myOtherFiles = new ArrayList<>();
   private final HtmlLinkManager myHtmlLinkManager = new HtmlLinkManager();
@@ -274,7 +275,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
 
-  public void setManifest(@NotNull MergedManifest manifest, @NotNull VirtualFile selectedManifest) {
+  public void setManifestSnapshot(@NotNull MergedManifestSnapshot manifest, @NotNull VirtualFile selectedManifest) {
     myFile = selectedManifest;
     myManifest = manifest;
     Document document = myManifest.getDocument();
@@ -292,24 +293,22 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       recordLocationReferences(root, referenced);
     }
 
-    if (manifestFiles != null) {
-      for (VirtualFile f : manifestFiles) {
-        if (!f.equals(selectedManifest)) {
-          File file = VfsUtilCore.virtualToIoFile(f);
-          if (referenced.contains(file)) {
-            myFiles.add(file);
-          } else {
-            myOtherFiles.add(file);
-          }
+    for (VirtualFile f : manifestFiles) {
+      if (!f.equals(selectedManifest)) {
+        File file = VfsUtilCore.virtualToIoFile(f);
+        if (referenced.contains(file)) {
+          myFiles.add(file);
+        } else {
+          myOtherFiles.add(file);
         }
       }
-      Collections.sort(myFiles, MANIFEST_SORTER);
-      Collections.sort(myOtherFiles, MANIFEST_SORTER);
+    }
+    Collections.sort(myFiles, MANIFEST_SORTER);
+    Collections.sort(myOtherFiles, MANIFEST_SORTER);
 
-      // Build.gradle - injected
-      if (referenced.contains(GRADLE_MODEL_MARKER_FILE)) {
-        myFiles.add(GRADLE_MODEL_MARKER_FILE);
-      }
+    // Build.gradle - injected
+    if (referenced.contains(GRADLE_MODEL_MARKER_FILE)) {
+      myFiles.add(GRADLE_MODEL_MARKER_FILE);
     }
 
     if (root != null) {
@@ -784,7 +783,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       assert manifestOverlayPsiFile != null;
 
       if (androidModuleModel.getBuildTypeNames().contains(name)) {
-        final String packageName = MergedManifest.get(facet).getPackage();
+        final String packageName = MergedManifestManager.getSnapshot(facet).getPackage();
         assert packageName != null;
         if (applicationId.startsWith(packageName)) {
           link = () -> new WriteCommandAction.Simple(facet.getModule().getProject(), "Apply manifest suggestion", buildFile.getPsiFile(), manifestOverlayPsiFile) {
@@ -1083,7 +1082,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   static class ManifestTreeNode extends DefaultMutableTreeNode {
 
-    ManifestTreeNode(@NotNull Node obj) {
+    public ManifestTreeNode(@NotNull Node obj) {
       super(obj);
     }
 
@@ -1194,7 +1193,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     private final SimpleTextAttributes myValueAttributes;
     private final SimpleTextAttributes myPrefixAttributes;
 
-    SyntaxHighlightingCellRenderer() {
+    public SyntaxHighlightingCellRenderer() {
       EditorColorsScheme globalScheme = EditorColorsManager.getInstance().getGlobalScheme();
       Color tagNameColor = globalScheme.getAttributes(XmlHighlighterColors.XML_TAG_NAME).getForegroundColor();
       Color nameColor = globalScheme.getAttributes(XmlHighlighterColors.XML_ATTRIBUTE_NAME).getForegroundColor();
@@ -1257,7 +1256,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
   private class FileColorTree extends Tree {
-    FileColorTree() {
+    public FileColorTree() {
       setFont(myDefaultFont);
       setBackground(myBackgroundColor);
     }

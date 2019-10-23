@@ -15,23 +15,37 @@
  */
 package com.android.tools.idea.fonts;
 
-import com.android.ide.common.fonts.*;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.resources.ResourceValueMap;
-import com.android.resources.ResourceType;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WEIGHT;
 import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
 import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
+
+import com.android.ide.common.fonts.FontDetail;
+import com.android.ide.common.fonts.FontFamily;
+import com.android.ide.common.fonts.FontProvider;
+import com.android.ide.common.fonts.FontSource;
+import com.android.ide.common.fonts.MutableFontDetail;
+import com.android.ide.common.fonts.QueryParser;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.resources.ResourceType;
+import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ListMultimap;
+import com.intellij.openapi.util.text.StringUtil;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class will find all the project level font definitions by iterating
@@ -41,14 +55,14 @@ import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
  */
 public class ProjectFonts {
   private final DownloadableFontCacheService myService;
-  private final ResourceResolver myResolver;
+  private final ResourceRepositoryManager myResourceRepository;
   private final Map<String, FontFamily> myProjectFonts;
   private final Map<String, QueryParser.ParseResult> myParseResults;
   private final List<String> myDefinitions;
 
-  public ProjectFonts(@Nullable ResourceResolver resolver) {
+  public ProjectFonts(@NotNull AndroidFacet facet) {
     myService = DownloadableFontCacheService.getInstance();
-    myResolver = resolver;
+    myResourceRepository = ResourceRepositoryManager.getInstance(facet);
     myProjectFonts = new TreeMap<>();
     myParseResults = new HashMap<>();
     myDefinitions = new ArrayList<>();
@@ -59,12 +73,10 @@ public class ProjectFonts {
    */
   @NotNull
   public List<FontFamily> getFonts() {
-    if (myResolver == null) {
-      return Collections.emptyList();
-    }
     List<FontFamily> fonts = new ArrayList<>();
-    ResourceValueMap myFonts = myResolver.getProjectResources().get(ResourceType.FONT);
-    List<String> names = myFonts.keySet().stream().sorted().collect(Collectors.toList());
+    ListMultimap<String, ResourceItem>
+      fontResources = myResourceRepository.getProjectResources().getResources(ResourceNamespace.TODO(), ResourceType.FONT);
+    List<String> names = fontResources.keySet().stream().sorted().collect(Collectors.toList());
     for (String name : names) {
       fonts.add(resolveFont("@font/" + name));
     }
@@ -182,7 +194,6 @@ public class ProjectFonts {
       best = new FontDetail(best, wanted);
       fonts.add(best);
     }
-    fonts.sort(Comparator.comparing(font -> font.getFamily().getName()));
     return createCompoundFamily(name, fonts);
   }
 
@@ -200,18 +211,19 @@ public class ProjectFonts {
     if (isKnownFont(name)) {
       return;
     }
-    if (myResolver == null) {
-      return;
-    }
-    ResourceValueMap myFonts = myResolver.getProjectResources().get(ResourceType.FONT);
+    ListMultimap<String, ResourceItem> fonts =
+      myResourceRepository.getProjectResources().getResources(ResourceNamespace.TODO(), ResourceType.FONT);
     String fontName = StringUtil.trimStart(name, "@font/");
-    ResourceValue resourceValue = myFonts.get(fontName);
-    if (resourceValue == null) {
+    if (!fonts.keySet().contains(fontName)) {
       createUnresolvedFontFamily(name);
       return;
     }
-    ResourceValue resolvedValue = myResolver.resolveResValue(resourceValue);
-    resourceValue = resolvedValue != null ? resolvedValue : resourceValue;
+
+    List<ResourceItem> items = fonts.get(fontName);
+    ResourceValue resourceValue = items.stream().map(item -> item.getResourceValue()).findFirst().orElse(null);
+    if (resourceValue == null) {
+      return;
+    }
     String value = resourceValue.getValue();
     if (value == null) {
       createUnresolvedFontFamily(name);
@@ -280,7 +292,7 @@ public class ProjectFonts {
   private void createEmbeddedFontFamily(@NotNull String name, @NotNull String fileName) {
     String fontName = StringUtil.trimStart(name, "@font/");
     String fileUrl = FILE_PROTOCOL_START + fileName;
-    MutableFontDetail detail = new MutableFontDetail(DEFAULT_WEIGHT, DEFAULT_WIDTH, false, fileUrl, "", false);
+    MutableFontDetail detail = new MutableFontDetail(DEFAULT_WEIGHT, DEFAULT_WIDTH, false, fileUrl, "", false, false);
     FontFamily family = new FontFamily(FontProvider.EMPTY_PROVIDER, FontSource.PROJECT, fontName, fileUrl, "", Collections.singletonList(detail));
     myProjectFonts.put(name, family);
   }

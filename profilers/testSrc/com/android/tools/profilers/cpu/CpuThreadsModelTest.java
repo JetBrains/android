@@ -15,37 +15,62 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profilers.*;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profilers.ProfilerClient;
+import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.profilers.StudioProfilers;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-import static com.google.common.truth.Truth.assertThat;
-
+@RunWith(Parameterized.class)
 public class CpuThreadsModelTest {
+  @Parameterized.Parameters(name = "isUnifiedPipeline={0}")
+  public static Collection<Boolean> useNewEventPipelineParameter() {
+    return Arrays.asList(false, true);
+  }
 
+  private FakeTimer myTimer = new FakeTimer();
   private FakeCpuService myCpuService = new FakeCpuService();
+  private FakeTransportService myTransportService = new FakeTransportService(myTimer);
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuThreadsModelTest", myCpuService, new FakeProfilerService());
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuThreadsModelTest", myCpuService, myTransportService);
   private FakeIdeProfilerServices myServices = new FakeIdeProfilerServices();
   private StudioProfilers myProfilers;
   private CpuThreadsModel myThreadsModel;
   private Range myRange;
+  private boolean myIsUnifiedPipeline;
+
+  public CpuThreadsModelTest(boolean isUnifiedPipeline) {
+    myIsUnifiedPipeline = isUnifiedPipeline;
+  }
 
   @Before
   public void setUp() {
-    FakeTimer timer = new FakeTimer();
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), myServices, timer);
+    if (myIsUnifiedPipeline) {
+      ProfilersTestData.populateThreadData(myTransportService, ProfilersTestData.SESSION_DATA.getStreamId());
+    }
+    myServices.enableEventsPipeline(myIsUnifiedPipeline);
+    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myServices, myTimer);
     // One second must be enough for new devices (and processes) to be picked up
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myRange = new Range();
   }
 
@@ -88,12 +113,30 @@ public class CpuThreadsModelTest {
   @Test
   public void testThreadsSorted() {
     //Add a few more threads.
-    myCpuService.addAdditionalThreads(104, "Thread 100", new ArrayList<>());
-    myCpuService.addAdditionalThreads(100, "Thread 100", new ArrayList<>());
-    myCpuService.addAdditionalThreads(ProfilersTestData.SESSION_DATA.getPid(), "Main", new ArrayList<>());
-    myCpuService.addAdditionalThreads(101, "RenderThread", new ArrayList<>());
-    myCpuService.addAdditionalThreads(102, "A Named Thread", new ArrayList<>());
-    myCpuService.addAdditionalThreads(103, "RenderThread", new ArrayList<>());
+    if (myIsUnifiedPipeline) {
+      long streamId = ProfilersTestData.SESSION_DATA.getStreamId();
+      int pid = ProfilersTestData.SESSION_DATA.getPid();
+      myTransportService.addEventToEventGroup(
+        streamId, ProfilersTestData.generateCpuThreadEvent(1, 104, "Thread 100", Cpu.CpuThreadData.State.RUNNING).build());
+      myTransportService.addEventToEventGroup(
+        streamId, ProfilersTestData.generateCpuThreadEvent(1, 100, "Thread 100", Cpu.CpuThreadData.State.RUNNING).build());
+      myTransportService.addEventToEventGroup(
+        streamId, ProfilersTestData.generateCpuThreadEvent(1, pid, "Main", Cpu.CpuThreadData.State.RUNNING).build());
+      myTransportService.addEventToEventGroup(
+        streamId, ProfilersTestData.generateCpuThreadEvent(1, 101, "RenderThread", Cpu.CpuThreadData.State.RUNNING).build());
+      myTransportService.addEventToEventGroup(
+        streamId, ProfilersTestData.generateCpuThreadEvent(1, 102, "A Named Thread", Cpu.CpuThreadData.State.RUNNING).build());
+      myTransportService.addEventToEventGroup(
+        streamId, ProfilersTestData.generateCpuThreadEvent(1, 103, "RenderThread", Cpu.CpuThreadData.State.RUNNING).build());
+    }
+    else {
+      myCpuService.addAdditionalThreads(104, "Thread 100", new ArrayList<>());
+      myCpuService.addAdditionalThreads(100, "Thread 100", new ArrayList<>());
+      myCpuService.addAdditionalThreads(ProfilersTestData.SESSION_DATA.getPid(), "Main", new ArrayList<>());
+      myCpuService.addAdditionalThreads(101, "RenderThread", new ArrayList<>());
+      myCpuService.addAdditionalThreads(102, "A Named Thread", new ArrayList<>());
+      myCpuService.addAdditionalThreads(103, "RenderThread", new ArrayList<>());
+    }
     // Updates to a range with all threads.
     myRange.set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(10));
 
@@ -116,6 +159,9 @@ public class CpuThreadsModelTest {
 
   @Test
   public void importedThreadsModelComesFromTheCapture() {
+    // CPU recording is not supported in new pipeline yet.
+    Assume.assumeFalse(myIsUnifiedPipeline);
+
     // Create a threads model from an imported session
     myServices.enableImportTrace(true);
     CpuProfilerStage stage = new CpuProfilerStage(myProfilers, CpuProfilerTestUtils.getTraceFile("valid_trace.trace"));
@@ -131,9 +177,9 @@ public class CpuThreadsModelTest {
 
     // The other threads should be ordered alphabetically.
     List<CpuThreadInfo> others = capture.getThreads().stream()
-                                        .filter(thread -> thread.getId() != capture.getMainThreadId())
-                                        .sorted(Comparator.comparing(CpuThreadInfo::getName))
-                                        .collect(Collectors.toList());
+      .filter(thread -> thread.getId() != capture.getMainThreadId())
+      .sorted(Comparator.comparing(CpuThreadInfo::getName))
+      .collect(Collectors.toList());
     assertThat(others).hasSize(2);
 
     validateThread(1, others.get(0).getId(), others.get(0).getName());

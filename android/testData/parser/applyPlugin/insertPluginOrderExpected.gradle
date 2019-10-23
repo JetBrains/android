@@ -1,0 +1,3 @@
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-plugin-extensions'
+apply plugin: 'some-other-plugin'

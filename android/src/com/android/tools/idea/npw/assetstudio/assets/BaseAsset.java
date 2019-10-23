@@ -23,7 +23,6 @@ import com.android.tools.idea.observable.core.IntProperty;
 import com.android.tools.idea.observable.core.IntValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
-import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.ui.ColorUtil;
@@ -77,11 +76,19 @@ public abstract class BaseAsset implements PersistentStateComponent<PersistentSt
   }
 
   /**
-   * A color to use when rendering this image. Not all asset types are affected by this color.
+   * A color to use when rendering this image if {@link #isColorable()} returns true.
    */
   @NotNull
   public OptionalValueProperty<Color> color() {
     return myColor;
+  }
+
+  /**
+   * Returns true is the color returned by {@link #color()} should be used when rendering this image.
+   * Subclasses may override.
+   */
+  public boolean isColorable() {
+    return true;
   }
 
   @NotNull
@@ -94,7 +101,7 @@ public abstract class BaseAsset implements PersistentStateComponent<PersistentSt
    */
   @NotNull
   public ObservableBool isResizable() {
-    return BooleanExpression.ALWAYS_TRUE;
+    return ObservableBool.TRUE;
   }
 
   /**

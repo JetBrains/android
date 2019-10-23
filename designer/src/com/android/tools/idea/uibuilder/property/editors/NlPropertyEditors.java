@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.ide.common.rendering.api.AttributeFormat;
-import com.android.tools.adtui.ptable.PTableCellEditor;
-import com.android.tools.adtui.ptable.PTableCellEditorProvider;
-import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.property.ptable.PTableCellEditor;
+import com.android.tools.property.ptable.PTableCellEditorProvider;
+import com.android.tools.property.ptable.PTableItem;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.common.property.editors.PropertyEditors;
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupportFactory;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;

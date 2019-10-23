@@ -20,7 +20,6 @@ import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.device.DeviceArtPainter;
 import com.android.tools.idea.npw.FormFactor;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -47,7 +46,7 @@ public class DeviceMenuAction extends DropDownAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void update(@NotNull AnActionEvent e) {
     super.update(e);
     updatePresentation(e.getPresentation());
   }
@@ -155,6 +154,14 @@ public class DeviceMenuAction extends DropDownAction {
   }
 
   @Override
+  protected boolean hasDropDownArrow() {
+    // Calculating the entries can be expensive and we know that we always have more than one. The method #updateActions always adds at
+    // least the default devices and "Add Device Definition...". The only case where the arrow is not displayed at all is when we do not have
+    // a configuration.
+    return myRenderContext.getConfiguration() != null;
+  }
+
+  @Override
   protected boolean updateActions() {
     removeAll();
     Configuration configuration = myRenderContext.getConfiguration();
@@ -238,8 +245,7 @@ public class DeviceMenuAction extends DropDownAction {
         boolean selected = current != null && current.getId().equals(device.getId());
 
         String avdDisplayName = "AVD: " + device.getDisplayName();
-        Icon icon = selected ? AllIcons.Actions.Checked : null;
-        add(new SetAvdAction(myRenderContext, device, avdDisplayName, icon));
+        add(new SetAvdAction(myRenderContext, device, avdDisplayName, selected));
       }
       addSeparator();
     }
@@ -317,7 +323,7 @@ public class DeviceMenuAction extends DropDownAction {
       // The name of AVD device may contain underline character, but they should not be recognized as the mnemonic.
       getTemplatePresentation().setText(title, false);
       if (select) {
-        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+        getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, true);
       }
       else if (ConfigurationAction.isBetterMatchLabel(title)) {
         getTemplatePresentation().setIcon(ConfigurationAction.getBetterMatchIcon());
@@ -374,7 +380,7 @@ public class DeviceMenuAction extends DropDownAction {
       super(renderContext, CUSTOM_DEVICE_NAME);
       myDevice = device;
       if (myDevice != null && Configuration.CUSTOM_DEVICE_ID.equals(myDevice.getId())) {
-        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+        getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, true);
       }
     }
 
@@ -386,7 +392,6 @@ public class DeviceMenuAction extends DropDownAction {
         customBuilder.setName(CUSTOM_DEVICE_NAME);
         customBuilder.setId(Configuration.CUSTOM_DEVICE_ID);
         myCustomDevice = customBuilder.build();
-        configuration.getConfigurationManager().getDevices().add(myCustomDevice);
         configuration.setEffectiveDevice(myCustomDevice, myDevice.getDefaultState());
       }
     }
@@ -404,9 +409,10 @@ public class DeviceMenuAction extends DropDownAction {
     public SetAvdAction(@NotNull ConfigurationHolder renderContext,
                         @NotNull Device avdDevice,
                         @NotNull String displayName,
-                        @Nullable Icon icon) {
-      super(renderContext, displayName, icon);
+                        final boolean select) {
+      super(renderContext, displayName);
       myAvdDevice = avdDevice;
+      getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, select);
     }
 
     @Override
@@ -416,10 +422,6 @@ public class DeviceMenuAction extends DropDownAction {
 
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
-      List<Device> devices = configuration.getConfigurationManager().getDevices();
-      if (devices.stream().noneMatch(d -> d.getId().equals(myAvdDevice.getId()))) {
-        devices.add(myAvdDevice);
-      }
       configuration.setEffectiveDevice(myAvdDevice, myAvdDevice.getDefaultState());
     }
   }

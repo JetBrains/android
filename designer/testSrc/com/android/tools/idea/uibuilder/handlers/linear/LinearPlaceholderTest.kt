@@ -21,7 +21,6 @@ import com.android.tools.idea.uibuilder.applyPlaceholderToSceneComponent
 import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
 import com.android.tools.idea.uibuilder.model.viewGroupHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
-import com.intellij.testFramework.UsefulTestCase
 import java.awt.Point
 
 class LinearPlaceholderTest : SceneTest() {
@@ -68,9 +67,10 @@ class LinearPlaceholderTest : SceneTest() {
     assertEquals(5.0, distance, 0.01)
   }
 
-  fun testApply() {
+  fun testMovingComponentToHead() {
     val linearLayout = myScene.getSceneComponent("linear")!!
     val textView1 = myScene.getSceneComponent("myText1")!!
+    val button = myScene.getSceneComponent("button")!!
     val textView2 = myScene.getSceneComponent("myText2")!!
 
     assertEquals(200, textView2.drawX)
@@ -83,11 +83,83 @@ class LinearPlaceholderTest : SceneTest() {
                                                            linearLayout.drawY + linearLayout.drawHeight)
 
     textView2.setPosition(linearLayout.drawX, linearLayout.drawY)
-    val appliedResult = applyPlaceholderToSceneComponent(textView2, placeholder)
-    assertTrue(appliedResult)
+    applyPlaceholderToSceneComponent(textView2, placeholder)
 
     // The SceneComponent is used even the NlModel is changed. We check the position of applied component here.
     assertEquals(0, textView2.drawX)
+    assertEquals(100, textView1.drawX)
+    assertEquals(200, button.drawX)
+  }
+
+  fun testMovingComponentUp() {
+    val linearLayout = myScene.getSceneComponent("linear")!!
+    val textView1 = myScene.getSceneComponent("myText1")!!
+    val button = myScene.getSceneComponent("button")!!
+    val textView2 = myScene.getSceneComponent("myText2")!!
+
+    assertEquals(200, textView2.drawX)
+
+    val placeholder =
+      LinearPlaceholderFactory.createHorizontalPlaceholder(linearLayout,
+                                                           button,
+                                                           button.drawX,
+                                                           button.drawY,
+                                                           linearLayout.drawY + linearLayout.drawHeight)
+
+    textView2.setPosition(button.drawX, button.drawY)
+    applyPlaceholderToSceneComponent(textView2, placeholder)
+
+    // The SceneComponent is used even the NlModel is changed. We check the position of applied component here.
+    assertEquals(0, textView1.drawX)
+    assertEquals(100, textView2.drawX)
+    assertEquals(200, button.drawX)
+  }
+
+  fun testMovingComponentDown() {
+    val linearLayout = myScene.getSceneComponent("linear")!!
+    val textView1 = myScene.getSceneComponent("myText1")!!
+    val button = myScene.getSceneComponent("button")!!
+    val textView2 = myScene.getSceneComponent("myText2")!!
+
+    assertEquals(0, textView1.drawX)
+
+    val placeholder =
+      LinearPlaceholderFactory.createHorizontalPlaceholder(linearLayout,
+                                                           textView2,
+                                                           button.drawX,
+                                                           button.drawY,
+                                                           linearLayout.drawY + linearLayout.drawHeight)
+
+    textView1.setPosition(textView2.drawX, textView2.drawY)
+    applyPlaceholderToSceneComponent(textView1, placeholder)
+
+    // The SceneComponent is used even the NlModel is changed. We check the position of applied component here.
+    assertEquals(0, button.drawX)
+    assertEquals(100, textView1.drawX)
+    assertEquals(200, textView2.drawX)
+  }
+
+  fun testMovingComponentToTail() {
+    val linearLayout = myScene.getSceneComponent("linear")!!
+    val textView1 = myScene.getSceneComponent("myText1")!!
+    val button = myScene.getSceneComponent("button")!!
+    val textView2 = myScene.getSceneComponent("myText2")!!
+
+    assertEquals(0, textView1.drawX)
+
+    val placeholder =
+      LinearPlaceholderFactory.createHorizontalPlaceholder(linearLayout,
+                                                           null,
+                                                           textView2.drawX + textView2.drawWidth,
+                                                           textView2.drawY,
+                                                           linearLayout.drawY + linearLayout.drawHeight)
+
+    textView1.setPosition(textView2.drawX + textView2.drawWidth, textView2.drawY)
+    applyPlaceholderToSceneComponent(textView1, placeholder)
+
+    assertEquals(0, button.drawX)
+    assertEquals(100, textView2.drawX)
+    assertEquals(200, textView1.drawX)
   }
 
   fun testAddComponentWithoutSnappingToSeparator() {
@@ -121,6 +193,7 @@ class LinearPlaceholderTest : SceneTest() {
                    .height("100dp"),
                  component(SdkConstants.BUTTON)
                    .withBounds(200, 0, 200, 200)
+                   .id("@id/button")
                    .width("100dp")
                    .height("100dp"),
                  component(SdkConstants.TEXT_VIEW)

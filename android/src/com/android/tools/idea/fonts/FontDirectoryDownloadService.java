@@ -38,7 +38,7 @@ class FontDirectoryDownloadService extends DownloadService {
   private final FontProvider myProvider;
   private final DownloadableFontCacheServiceImpl myFontService;
 
-  FontDirectoryDownloadService(@NotNull DownloadableFontCacheServiceImpl fontService, @NotNull FontProvider provider, @NotNull File fontCachePath) {
+  public FontDirectoryDownloadService(@NotNull DownloadableFontCacheServiceImpl fontService, @NotNull FontProvider provider, @NotNull File fontCachePath) {
     super(provider.getName() + SERVICE_POSTFIX,
           provider.getUrl(),
           getFallbackResourceUrl(provider),

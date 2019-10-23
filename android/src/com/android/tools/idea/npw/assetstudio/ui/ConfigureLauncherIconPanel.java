@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
+import static com.android.tools.adtui.validation.ValidatorPanel.truncateMessage;
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toUpperCamelCase;
+
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.validation.Validator;
@@ -31,11 +34,27 @@ import com.android.tools.idea.npw.assetstudio.wizard.PersistentStateUtil;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.core.*;
-import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
+import com.android.tools.idea.observable.ObservableValue;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.IntProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
-import com.android.tools.idea.observable.ui.*;
+import com.android.tools.idea.observable.ui.ColorProperty;
+import com.android.tools.idea.observable.ui.EnabledProperty;
+import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
+import com.android.tools.idea.observable.ui.SliderValueProperty;
+import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.collect.ImmutableMap;
@@ -50,20 +69,26 @@ import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toUpperCamelCase;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JSlider;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A panel which allows the configuration of an icon, by specifying the source asset used to
@@ -259,7 +284,6 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   @NotNull private final BoolProperty myShowGrid;
   @NotNull private final BoolProperty myShowSafeZone;
   @NotNull private final AbstractProperty<Density> myPreviewDensity;
-  private BoolProperty myIgnoreForegroundColor;
   private AbstractProperty<Color> myForegroundColor;
   private AbstractProperty<Color> myBackgroundColor;
   private BoolProperty myForegroundTrimmed;
@@ -324,6 +348,22 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myOutputName = new TextProperty(myOutputNameTextField);
     myForegroundLayerName = new TextProperty(myForegroundLayerNameTextField);
     myBackgroundLayerName = new TextProperty(myBackgroundLayerNameTextField);
+    myListeners.listen(myForegroundLayerName, name -> {
+      if (name.equals(defaultForegroundLayerName())) {
+        myGeneralBindings.bind(myForegroundLayerName, Expression.create(() -> defaultForegroundLayerName(), myOutputName));
+      }
+      else {
+        myGeneralBindings.release(myForegroundLayerName);
+      }
+    });
+    myListeners.listen(myBackgroundLayerName, name -> {
+      if (name.equals(defaultBackgroundLayerName())) {
+        myGeneralBindings.bind(myBackgroundLayerName, Expression.create(() -> defaultBackgroundLayerName(), myOutputName));
+      }
+      else {
+        myGeneralBindings.release(myBackgroundLayerName);
+      }
+    });
 
     myForegroundAssetPanelMap = ImmutableMap.of(
         ForegroundAssetType.IMAGE, myForegroundImageAssetBrowser,
@@ -357,14 +397,12 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myLegacyIconShapeLabel.setLabelFor(myLegacyIconShapeComboBox);
     myWebIconShapeLabel.setLabelFor(myWebIconShapeComboBox);
 
-    ImageAsset clipartAsset = myForegroundClipartAssetButton.getAsset();
-
     myForegroundAssetType = new SelectedRadioButtonProperty<>(DEFAULT_FOREGROUND_ASSET_TYPE, ForegroundAssetType.values(),
                                                               myForegroundImageRadioButton, myForegroundClipartRadioButton,
                                                               myForegroundTextRadioButton);
     myForegroundActiveAsset = new ObjectValueProperty<>(myForegroundImageAssetBrowser.getAsset());
     myForegroundImageAssetBrowser.getAsset().setRole("a foreground image file");
-    myForegroundColorPanel.setSelectedColor(myIconGenerator.foregroundColor().get());
+    myForegroundColorPanel.setSelectedColor(LauncherIconGenerator.DEFAULT_FOREGROUND_COLOR);
 
     myBackgroundAssetType = new SelectedRadioButtonProperty<>(DEFAULT_BACKGROUND_ASSET_TYPE, BackgroundAssetType.values(),
                                                               myBackgroundImageRadioButton, myBackgroundColorRadioButton);
@@ -464,7 +502,6 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     StringProperty backgroundResizeValueString = new TextProperty(myBackgroundResizeValueLabel);
     myGeneralBindings.bind(backgroundResizeValueString, new FormatExpression("%d %%", myBackgroundResizePercent));
 
-    myIgnoreForegroundColor = new SelectedProperty(myForegroundImageRadioButton);
     myForegroundColor = ObjectProperty.wrap(new ColorProperty(myForegroundColorPanel));
     myBackgroundColor = ObjectProperty.wrap(new ColorProperty(myBackgroundColorPanel));
     myGenerateLegacyIcon = new SelectedProperty(myGenerateLegacyIconYesRadioButton);
@@ -477,13 +514,13 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     updateBindingsAndUiForActiveIconType();
 
     // Update foreground layer asset type depending on asset type radio buttons.
-    myForegroundAssetType.addListener(sender -> {
+    myForegroundAssetType.addListener(() -> {
       AssetComponent assetComponent = myForegroundAssetPanelMap.get(myForegroundAssetType.get());
       myForegroundActiveAsset.set(assetComponent.getAsset());
     });
 
     // Update background asset depending on asset type radio buttons.
-    myBackgroundAssetType.addListener(sender -> {
+    myBackgroundAssetType.addListener(() -> {
       if (myBackgroundAssetType.get() == BackgroundAssetType.IMAGE) {
         myBackgroundImageAsset.setValue(myBackgroundImageAssetBrowser.getAsset());
       } else {
@@ -509,7 +546,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
         .with(onAssetModified);
 
     BoolValueProperty foregroundIsResizable = new BoolValueProperty();
-    myListeners.listenAndFire(myForegroundActiveAsset, sender -> {
+    myListeners.listenAndFire(myForegroundActiveAsset, () -> {
       myForegroundActiveAssetBindings.releaseAll();
       BaseAsset asset = myForegroundActiveAsset.get();
       myForegroundActiveAssetBindings.bindTwoWay(myForegroundTrimmed, asset.trimmed());
@@ -549,20 +586,20 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
       getIconGenerator().backgroundImageAsset().setNullableValue(asset);
       onAssetModified.run();
     };
-    myListeners.listenAndFire(myBackgroundImageAsset, sender -> onBackgroundAssetModified.run());
+    myListeners.listenAndFire(myBackgroundImageAsset, () -> onBackgroundAssetModified.run());
 
     /*
      * Hook up a bunch of UI <- boolean expressions, so that when certain conditions are met,
      * various components show/hide. This also requires refreshing the panel explicitly, as
      * otherwise Swing doesn't realize it should trigger a relayout.
      */
-    ImmutableMap.Builder<BoolProperty, ObservableBool> layoutPropertiesBuilder = ImmutableMap.builder();
+    ImmutableMap.Builder<BoolProperty, ObservableValue<Boolean>> layoutPropertiesBuilder = ImmutableMap.builder();
     layoutPropertiesBuilder.put(new VisibleProperty(myForegroundImageAssetRowPanel), new SelectedProperty(myForegroundImageRadioButton));
-    layoutPropertiesBuilder
-        .put(new VisibleProperty(myForegroundClipartAssetRowPanel), new SelectedProperty(myForegroundClipartRadioButton));
+    layoutPropertiesBuilder.put(
+        new VisibleProperty(myForegroundClipartAssetRowPanel), new SelectedProperty(myForegroundClipartRadioButton));
     layoutPropertiesBuilder.put(new VisibleProperty(myForegroundTextAssetRowPanel), new SelectedProperty(myForegroundTextRadioButton));
-    BooleanExpression isForegroundIsNotImage =
-        BooleanExpression.create(() -> myForegroundAssetType.get() != ForegroundAssetType.IMAGE, myForegroundAssetType);
+    Expression<Boolean> isForegroundIsNotImage =
+        Expression.create(() -> myForegroundAssetType.get() != ForegroundAssetType.IMAGE, myForegroundAssetType);
     layoutPropertiesBuilder.put(new VisibleProperty(myForegroundColorRowPanel), isForegroundIsNotImage);
 
     if (HIDE_INAPPLICABLE_CONTROLS) {
@@ -594,8 +631,8 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     layoutPropertiesBuilder.put(new EnabledProperty(myLegacyIconShapeComboBox), new SelectedProperty(myGenerateLegacyIconYesRadioButton));
     layoutPropertiesBuilder.put(new EnabledProperty(myWebIconShapeComboBox), new SelectedProperty(myGenerateWebIconYesRadioButton));
 
-    ImmutableMap<BoolProperty, ObservableBool> layoutProperties = layoutPropertiesBuilder.build();
-    for (Map.Entry<BoolProperty, ObservableBool> entry : layoutProperties.entrySet()) {
+    ImmutableMap<BoolProperty, ObservableValue<Boolean>> layoutProperties = layoutPropertiesBuilder.build();
+    for (Map.Entry<BoolProperty, ObservableValue<Boolean>> entry : layoutProperties.entrySet()) {
       // Initialize everything off, as this makes sure the frame that uses this panel won't start
       // REALLY LARGE by default.
       entry.getKey().set(false);
@@ -615,7 +652,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     VisibleProperty isActive = new VisibleProperty(this);
 
     // Validate the API level when the panel is active.
-    myValidatorPanel.registerTest(BooleanExpression.create(() -> !isActive.get() || myBuildSdkVersion.getFeatureLevel() >= 26, isActive),
+    myValidatorPanel.registerTest(Expression.create(() -> !isActive.get() || myBuildSdkVersion.getFeatureLevel() >= 26, isActive),
                                   "Project must be built with SDK 26 or later to use adaptive icons");
 
     // Validate foreground and background layer names when the panel is active.
@@ -630,21 +667,19 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myValidatorPanel.registerTest(namesAreDistinctExpression(isActive, myForegroundLayerName, myBackgroundLayerName),
                                   "Background and foreground layers must have distinct names");
 
-    myValidatorPanel.registerValidator(myForegroundAssetValidityState, validity -> validity);
-    myValidatorPanel.registerValidator(myBackgroundAssetValidityState, validity -> validity);
+    myValidatorPanel.registerValidator(myForegroundAssetValidityState, validity -> truncateMessage(validity, 3));
+    myValidatorPanel.registerValidator(myBackgroundAssetValidityState, validity -> truncateMessage(validity, 3));
   }
 
   @NotNull
-  private static BooleanExpression nameIsNotEmptyExpression(@NotNull VisibleProperty isActive, @NotNull StringProperty name) {
-    return BooleanExpression.create(() -> !isActive.get() || !StringUtil.isEmptyOrSpaces(name.get()),
-                                    isActive, name);
+  private static Expression<Boolean> nameIsNotEmptyExpression(@NotNull VisibleProperty isActive, @NotNull StringProperty name) {
+    return Expression.create(() -> !isActive.get() || !StringUtil.isEmptyOrSpaces(name.get()), isActive, name);
   }
 
   @NotNull
-  private static BooleanExpression namesAreDistinctExpression(@NotNull VisibleProperty isActive,
-                                                              @NotNull StringProperty name1, @NotNull StringProperty name2) {
-    return BooleanExpression.create(() -> !isActive.get() || !StringUtil.equalsTrimWhitespaces(name1.get(), name2.get()),
-                                    isActive, name1, name2);
+  private static Expression<Boolean> namesAreDistinctExpression(@NotNull VisibleProperty isActive,
+                                                                @NotNull StringProperty name1, @NotNull StringProperty name2) {
+    return Expression.create(() -> !isActive.get() || !StringUtil.equalsTrimWhitespaces(name1.get(), name2.get()), isActive, name1, name2);
   }
 
   /**
@@ -693,8 +728,6 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myGeneralBindings.bind(myIconGenerator.outputName(), myOutputName);
     myGeneralBindings.bindTwoWay(myIconGenerator.backgroundImageAsset(), myBackgroundImageAsset);
 
-    myGeneralBindings.bind(myIconGenerator.useForegroundColor(), myIgnoreForegroundColor.not());
-    myGeneralBindings.bindTwoWay(myForegroundColor, myIconGenerator.foregroundColor());
     myGeneralBindings.bindTwoWay(myBackgroundColor, myIconGenerator.backgroundColor());
     myGeneralBindings.bindTwoWay(myGenerateLegacyIcon, myIconGenerator.generateLegacyIcon());
     myGeneralBindings.bindTwoWay(myGenerateRoundIcon, myIconGenerator.generateRoundIcon());

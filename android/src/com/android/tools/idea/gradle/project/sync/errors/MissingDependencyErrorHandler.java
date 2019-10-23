@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.hyperlink.EnableEmbeddedRepoHyperlink;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ToggleOfflineModeHyperlink;
@@ -25,16 +26,12 @@ import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.android.tools.idea.gradle.project.sync.hyperlink.EnableEmbeddedRepoHyperlink.shouldEnableEmbeddedRepo;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import org.jetbrains.annotations.NotNull;
 
 public class MissingDependencyErrorHandler extends SyncErrorHandler {
   private static final Pattern MISSING_MATCHING_DEPENDENCY_PATTERN = Pattern.compile("Could not find any version that matches (.*)\\.");
@@ -107,10 +104,6 @@ public class MissingDependencyErrorHandler extends SyncErrorHandler {
     }
     hyperlinks.add(new SearchInBuildFilesHyperlink(dependency));
 
-    // Offer to turn on embedded offline repo if the missing dependency can be found there.
-    if (shouldEnableEmbeddedRepo(dependency)) {
-      hyperlinks.add(new EnableEmbeddedRepoHyperlink());
-    }
     GradleSyncMessages.getInstance(project).updateNotification(notification, msg, hyperlinks);
   }
 }

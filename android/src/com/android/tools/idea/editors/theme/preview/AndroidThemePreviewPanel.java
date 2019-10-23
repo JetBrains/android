@@ -159,11 +159,11 @@ public class AndroidThemePreviewPanel extends Box implements ConfigurationHolder
       myGroup = group;
     }
 
-    Breadcrumb(@NotNull String name) {
+    public Breadcrumb(@NotNull String name) {
       this(name, null);
     }
 
-    Breadcrumb(@NotNull ThemePreviewBuilder.ComponentGroup group) {
+    public Breadcrumb(@NotNull ThemePreviewBuilder.ComponentGroup group) {
       this(group.name, group);
     }
 

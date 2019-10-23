@@ -26,11 +26,11 @@ class EventsLimiter(private val eventCount : Int,
   private val LOCK = Object()
 
   private var queue = Queue<Long>(eventCount)
-  private var singleShotFired = false
+  private var disabled = false
 
   fun tryAcquire() : Boolean {
     synchronized(LOCK) {
-      if (singleShotFired) {
+      if (disabled) {
         return false
       }
       val currentTimeMs = timeProvider()
@@ -48,10 +48,18 @@ class EventsLimiter(private val eventCount : Int,
         return false
       }
       if (singleShotOnly) {
-        singleShotFired = true
+        disabled = true
       }
       queue.clear()
       return true
+    }
+  }
+
+  fun disable(): Boolean {
+    synchronized(LOCK) {
+      val result = disabled
+      disabled = true
+      return result
     }
   }
 }

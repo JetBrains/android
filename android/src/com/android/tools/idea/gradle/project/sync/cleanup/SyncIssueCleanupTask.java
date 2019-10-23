@@ -22,6 +22,6 @@ import org.jetbrains.annotations.NotNull;
 public class SyncIssueCleanupTask extends AndroidStudioCleanUpTask {
   @Override
   void doCleanUp(@NotNull Project project) {
-    SyncIssueRegister.getInstance(project).clear();
+    SyncIssueRegister.getInstance(project).unsealAndClear();
   }
 }

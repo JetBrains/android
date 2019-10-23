@@ -32,6 +32,7 @@ public class AddModuleDependencyDialog extends AbstractAddDependenciesDialog {
   public AddModuleDependencyDialog(@NotNull PsModule module) {
     super(module);
     setTitle(TITLE);
+    init();
   }
 
   @Override
@@ -87,5 +88,11 @@ public class AddModuleDependencyDialog extends AbstractAddDependenciesDialog {
       return new ValidationInfo("Select at least one module", myModuleDependenciesForm.getPreferredFocusedComponent());
     }
     return getScopesPanel().validateInput();
+  }
+
+  @Override
+  @NotNull
+  protected AbstractDependencyScopesPanel createDependencyScopesPanel(@NotNull PsModule module) {
+    return new DependencyScopePanel(module, PsModule.ImportantFor.MODULE);
   }
 }

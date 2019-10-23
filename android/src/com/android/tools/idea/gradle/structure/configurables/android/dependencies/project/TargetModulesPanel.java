@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.google.common.collect.Lists;
@@ -32,6 +33,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -72,7 +74,7 @@ class TargetModulesPanel extends ToolWindowPanel {
         super.processMouseEvent(e);
       }
     };
-
+    myTree.setRowHeight(JBUI.scale(24));
     myTree.addMouseListener(new PopupHandler() {
       @Override
       public void invokePopup(Component comp, int x, int y) {
@@ -93,14 +95,6 @@ class TargetModulesPanel extends ToolWindowPanel {
 
   private void setHeaderActions() {
     List<AnAction> additionalActions = Lists.newArrayList();
-    additionalActions.add(new AbstractBaseExpandAllAction(myTree) {
-      @Override
-      public void actionPerformed(@NotNull AnActionEvent e) {
-        myTree.requestFocusInWindow();
-        myTreeBuilder.expandAllNodes();
-      }
-    });
-
     additionalActions.add(new AbstractBaseCollapseAllAction(myTree) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
@@ -126,7 +120,7 @@ class TargetModulesPanel extends ToolWindowPanel {
     }
   }
 
-  void displayTargetModules(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> dependencyNodes) {
+  void displayTargetModules(@NotNull List<AbstractDependencyNode<? extends PsBaseDependency>> dependencyNodes) {
     myTreeBuilder.displayTargetModules(dependencyNodes);
   }
 

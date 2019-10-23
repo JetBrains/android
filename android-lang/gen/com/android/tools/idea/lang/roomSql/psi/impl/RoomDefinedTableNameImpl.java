@@ -44,6 +44,7 @@ public class RoomDefinedTableNameImpl extends AbstractRoomNameElement implements
     else super.accept(visitor);
   }
 
+  @Override
   @NotNull
   public RoomDefinedTablePsiReference getReference() {
     return PsiImplUtil.getReference(this);

@@ -16,7 +16,7 @@
 package org.jetbrains.android.dom.layout;
 
 import com.intellij.util.xml.DefinesXml;
-
+import com.intellij.util.xml.SubTagList;
 import java.util.List;
 
 /**
@@ -24,6 +24,9 @@ import java.util.List;
  */
 @DefinesXml
 public interface Layout extends LayoutElement, DataBindingElement {
-  @SuppressWarnings("SpellCheckingInspection")
-  List<Data> getDatas();
+  @SubTagList("data")
+  List<Data> getDataElements();
+
+  @SubTagList("merge")
+  List<Merge> getMergeElements();
 }

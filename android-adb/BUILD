@@ -13,7 +13,7 @@ iml_module(
         "//tools/idea/.idea/libraries:jsr305",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/idea/platform/xdebugger-api:intellij.platform.debugger[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:Guava",
     ],
 )
@@ -23,7 +23,11 @@ iml_module(
     name = "intellij.android.adb.tests",
     iml_files = ["intellij.android.adb.tests.iml"],
     test_class = "com.android.tools.idea.adb.AndroidAdbTestSuite",
-    test_data = ["//prebuilts/studio/sdk:platform-tools"],
+    test_coverage = True,
+    test_data = [
+        "//prebuilts/studio/sdk:platform-tools",
+        "//tools/idea:platform-build-info",
+    ],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/xml-structure-view-impl:intellij.xml.structureView.impl",
@@ -41,7 +45,6 @@ iml_module(
     runtime_deps = [
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/platform/lvcs-impl:intellij.platform.lvcs.impl",
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",

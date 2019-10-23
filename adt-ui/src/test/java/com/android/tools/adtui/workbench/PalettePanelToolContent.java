@@ -18,8 +18,10 @@ package com.android.tools.adtui.workbench;
 import com.android.annotations.Nullable;
 import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -39,16 +41,14 @@ class PalettePanelToolContent implements ToolContent<String> {
   private final JComponent myFocusComponent;
   private final KeyListener myKeyListener;
   private String myContext;
-  private Runnable myRestore;
-  private Runnable myAutoClose;
-  private StartFilteringListener myStartFilteringListener;
-  private Runnable myStopFiltering;
+  private ToolWindowCallback myToolWindow;
   private boolean myDisposed;
   private boolean myGearActionPerformed;
   private boolean myAdditionalActionPerformed;
   private String myFilter;
 
-  PalettePanelToolContent() {
+  private PalettePanelToolContent(@NotNull Disposable parentDisposable) {
+    Disposer.register(parentDisposable, this);
     myComponent = new JPanel();
     myFocusComponent = new JLabel();
     myGearAction = new AnAction("GearAction") {
@@ -86,14 +86,14 @@ class PalettePanelToolContent implements ToolContent<String> {
   }
 
   public void restore() {
-    if (myRestore != null) {
-      myRestore.run();
+    if (myToolWindow != null) {
+      myToolWindow.restore();
     }
   }
 
   public void closeAutoHideWindow() {
-    if (myAutoClose != null) {
-      myAutoClose.run();
+    if (myToolWindow != null) {
+      myToolWindow.autoHide();
     }
   }
 
@@ -132,13 +132,8 @@ class PalettePanelToolContent implements ToolContent<String> {
   }
 
   @Override
-  public void setRestoreToolWindow(@NotNull Runnable runnable) {
-    myRestore = runnable;
-  }
-
-  @Override
-  public void setCloseAutoHideWindow(@NotNull Runnable runnable) {
-    myAutoClose = runnable;
+  public void registerCallbacks(@NotNull ToolWindowCallback toolWindow) {
+    myToolWindow = toolWindow;
   }
 
   @Override
@@ -173,25 +168,15 @@ class PalettePanelToolContent implements ToolContent<String> {
     return myFilter;
   }
 
-  @Override
-  public void setStartFiltering(@NotNull StartFilteringListener listener) {
-    myStartFilteringListener = listener;
-  }
-
   public void startFiltering(char character) {
-    if (myStartFilteringListener != null) {
-      myStartFilteringListener.startFiltering(character);
+    if (myToolWindow != null) {
+      myToolWindow.startFiltering(String.valueOf(character));
     }
   }
 
-  @Override
-  public void setStopFiltering(@NotNull Runnable runnable) {
-    myStopFiltering = runnable;
-  }
-
   public void stopFiltering() {
-    if (myStopFiltering != null) {
-      myStopFiltering.run();
+    if (myToolWindow != null) {
+      myToolWindow.stopFiltering();
     }
   }
 

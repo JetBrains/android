@@ -25,7 +25,7 @@ import java.io.File;
 import static com.google.common.truth.Truth.assertThat;
 
 public class PackageFamilyKeyTest {
-  
+
   private static void assertAreEqual(@NotNull PackageFamilyKey lhs, @NotNull Object rhs) {
     assertThat(lhs).isEqualTo(rhs);
     assertThat(lhs.hashCode()).isEqualTo(rhs.hashCode());
@@ -38,38 +38,40 @@ public class PackageFamilyKeyTest {
     }
   }
 
+
   @Test
   public void testEquals() {
-    assertAreEqual(new PackageFamilyKey(PackageType.CDepPackage, new File(".")),
-                   new PackageFamilyKey(PackageType.CDepPackage, new File(".")));
+    assertAreEqual(new PackageFamilyKey(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, new File(".")),
+                   new PackageFamilyKey(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, new File(".")));
   }
 
   @Test
   public void testEqualsSameInstance() {
-    PackageFamilyKey instance = new PackageFamilyKey(PackageType.CDepPackage, new File("."));
+    PackageFamilyKey instance = new PackageFamilyKey(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, new File("."));
     assertAreEqual(instance, instance);
   }
 
   @Test
   public void testNotEqualsDifferentPackage() {
-    assertAreNotEqual(new PackageFamilyKey(PackageType.CDepPackage, new File(".")),
-                      new PackageFamilyKey(PackageType.CocosThirdPartyPackage, new File(".")));
+    assertAreNotEqual(new PackageFamilyKey(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, new File(".")),
+                      new PackageFamilyKey(PackageType.CocosThirdPartyPackage, PackageType.CocosThirdPartyPackage.myDescription,
+                                           new File(".")));
   }
 
   @Test
   public void testNotEqualsDifferentPath() {
-    assertAreNotEqual(new PackageFamilyKey(PackageType.CDepPackage, new File("path1")),
-                      new PackageFamilyKey(PackageType.CDepPackage, new File("path2")));
+    assertAreNotEqual(new PackageFamilyKey(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, new File("path1")),
+                      new PackageFamilyKey(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, new File("path2")));
   }
 
   @Test
   public void testNotEqualsNullRhs() {
-    assertAreNotEqual(new PackageFamilyKey(PackageType.CDepPackage, new File("path1")), null);
+    assertAreNotEqual(new PackageFamilyKey(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, new File("path1")), null);
   }
 
   @Test
   public void testNotEqualsStringRhs() {
-    assertAreNotEqual(new PackageFamilyKey(PackageType.CDepPackage, new File("path1")), "bob");
+    assertAreNotEqual(new PackageFamilyKey(PackageType.CDepPackage, PackageType.CDepPackage.myDescription, new File("path1")), "bob");
   }
 
   @Test

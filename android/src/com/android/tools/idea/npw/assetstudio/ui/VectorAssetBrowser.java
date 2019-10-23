@@ -50,7 +50,7 @@ public final class VectorAssetBrowser extends TextFieldWithBrowseButton implemen
     myBindings.bind(absolutePath, myAsset.path().transform(File::getAbsolutePath));
     myBindings.bind(myAsset.path(), absolutePath.transform(File::new));
 
-    myAsset.path().addListener(sender -> {
+    myAsset.path().addListener(() -> {
       ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);
       for (ActionListener listener : myAssetListeners) {
         listener.actionPerformed(e);

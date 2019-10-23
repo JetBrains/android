@@ -17,16 +17,17 @@ package com.android.tools.profilers;
 
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.TracePreProcessor;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface IdeProfilerServices {
   /**
@@ -49,6 +50,13 @@ public interface IdeProfilerServices {
    * @param postRunnable             A callback for when the system finally finishes writing to and synchronizing the file.
    */
   void saveFile(@NotNull File file, @NotNull Consumer<FileOutputStream> fileOutputStreamConsumer, @Nullable Runnable postRunnable);
+
+  /**
+   * Returns a symbolizer wrapper that can be used for converting a module offset to a
+   * {@link com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack}.
+   */
+  @NotNull
+  NativeFrameSymbolizer getNativeFrameSymbolizer();
 
   /**
    * Returns a service that can navigate to a target code location.
@@ -125,6 +133,13 @@ public interface IdeProfilerServices {
                                  @Nullable String message,
                                  @NotNull T[] options,
                                  @NotNull Function<T, String> listBoxPresentationAdapter);
+
+  /**
+   * Returns an implementation of a {@link TracePreProcessor}, used by CPU profiler.
+   * TODO (b/118134245): Extract CPU specific models to a separate interface (e.g. CpuProfilerServices).
+   */
+  @NotNull
+  TracePreProcessor getSimpleperfTracePreProcessor();
 
   /**
    * Returns the profiling configurations saved by the user for a project.

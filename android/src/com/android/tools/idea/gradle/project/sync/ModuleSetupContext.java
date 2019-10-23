@@ -57,14 +57,12 @@ public class ModuleSetupContext {
     if (moduleFinder == null) {
       ModuleFinder temp = new ModuleFinder(myModule.getProject());
 
-      List<Module> modules = Arrays.asList(myIdeModelsProvider.getModules());
-      JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, null, true /* fail fast */, module -> {
+      for (Module module : myIdeModelsProvider.getModules()) {
         GradleFacet gradleFacet = GradleFacet.getInstance(module, myIdeModelsProvider);
         if (gradleFacet != null) {
           temp.addModule(module, gradleFacet.getConfiguration().GRADLE_PROJECT_PATH);
         }
-        return true;
-      });
+      }
       moduleFinder = temp;
       store(moduleFinder);
     }

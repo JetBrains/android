@@ -20,7 +20,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonWriter;
-import com.intellij.openapi.diagnostic.Logger;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -62,10 +61,6 @@ public class StatsSerializer {
   @NotNull private final PollingSerializer myPollingSerializer;
   @NotNull private final HttpServer myHttpServer;
 
-  private static Logger getLogger() {
-    return Logger.getInstance(StatsSerializer.class);
-  }
-
   public StatsSerializer() {
     mySerializedStats = new LinkedBlockingQueue<>();
     myPollingSerializer = new PollingSerializer(mySerializedStats);
@@ -94,10 +89,8 @@ public class StatsSerializer {
 
     try {
       myHttpServer.start();
-      getLogger().info("Swing Monitor Server on port: " + myHttpServer.getLocalPort());
     }
     catch (IOException e) {
-      getLogger().warn("Swing monitor server did not start", e);
       return false;
     }
 
@@ -159,7 +152,6 @@ public class StatsSerializer {
       return buffer.array();
     }
     catch (InterruptedException e) {
-      Logger.getInstance(StatsSerializer.class).warn(e);
       return new byte[0];
     }
   }
@@ -195,8 +187,7 @@ public class StatsSerializer {
               }
             }
           }
-          catch (IOException e) {
-            Logger.getInstance(getClass()).warn(e);
+          catch (IOException ignored) {
           }
 
           long elapsedTimeNs = System.nanoTime() - startTime;
@@ -204,8 +195,7 @@ public class StatsSerializer {
             try {
               Thread.sleep(TimeUnit.NANOSECONDS.toMillis(POLLING_INTERVAL_NS - elapsedTimeNs));
             }
-            catch (InterruptedException e) {
-              Logger.getInstance(getClass()).warn("Stats Monitor Collector thread being interrupted", e);
+            catch (InterruptedException ignored) {
             }
           }
         }

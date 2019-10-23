@@ -58,6 +58,7 @@ message InstantRun {
         NOT_SUPPORTED_FOR_JACK = 4;
         NOT_SUPPORTED_FOR_EXTERNAL_NATIVE_BUILD = 5;
         NOT_SUPPORTED_FOR_EXPERIMENTAL_PLUGIN = 6;
+        STATUS_REMOVED = 7;
     }
     optional Status support_status = 3; // required
 }

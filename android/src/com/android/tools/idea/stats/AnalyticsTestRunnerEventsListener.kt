@@ -16,6 +16,7 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.recordTestLibrary
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration
@@ -94,7 +95,7 @@ class AnalyticsTestRunnerEventsListener(val project: Project) : SMTRunnerEventsA
           val group = dependency.group ?: continue
           val artifact = dependency.name ?: continue
           val version = dependency.version ?: continue
-          recordTestLibrary(testLibraries, group, artifact, version)
+          testLibraries.recordTestLibrary(group, artifact, version)
         }
       }
     }

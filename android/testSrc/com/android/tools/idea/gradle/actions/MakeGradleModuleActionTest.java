@@ -56,7 +56,7 @@ public class MakeGradleModuleActionTest extends JavaProjectTestCase {
     myAction = new MakeGradleModuleAction();
   }
 
-  public void testDoPerform() {
+  public void testDoPerform() throws Exception {
     Module module = getModule();
     Module[] selectedModules = {module};
     when(myProjectInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(selectedModules);

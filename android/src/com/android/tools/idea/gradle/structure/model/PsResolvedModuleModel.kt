@@ -23,7 +23,17 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel
  */
 sealed class PsResolvedModuleModel {
   abstract val gradlePath: String
+  abstract val buildFile: String?
 
-  data class PsAndroidModuleResolvedModel(override val gradlePath: String, val model: AndroidModuleModel) : PsResolvedModuleModel()
-  data class PsJavaModuleResolvedModel(override val gradlePath: String, val model: JavaModuleModel) : PsResolvedModuleModel()
+  data class PsAndroidModuleResolvedModel(
+      override val gradlePath: String,
+      override val buildFile: String?,
+      val model: AndroidModuleModel
+  ) : PsResolvedModuleModel()
+
+  data class PsJavaModuleResolvedModel(
+      override val gradlePath: String,
+      override val buildFile: String?,
+      val model: JavaModuleModel
+  ) : PsResolvedModuleModel()
 }

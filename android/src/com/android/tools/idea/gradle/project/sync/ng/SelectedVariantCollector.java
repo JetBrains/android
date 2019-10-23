@@ -31,15 +31,15 @@ import java.io.File;
 
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 
-class SelectedVariantCollector {
+public class SelectedVariantCollector {
   @NotNull private final Project myProject;
 
-  SelectedVariantCollector(@NotNull Project project) {
+  public SelectedVariantCollector(@NotNull Project project) {
     myProject = project;
   }
 
   @NotNull
-  SelectedVariants collectSelectedVariants() {
+  public SelectedVariants collectSelectedVariants() {
     SelectedVariants selectedVariants = new SelectedVariants();
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       SelectedVariant variant = findSelectedVariant(module);

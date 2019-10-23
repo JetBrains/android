@@ -20,6 +20,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.tracer.Trace;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ArtifactDetail;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
@@ -56,6 +57,8 @@ public class RunStats {
   }
 
   private void commit(RunEvent.Status status) {
+    Trace.end();
+    Trace.flush();
     if (!myLogged) {
       myEvent.getRunEventBuilder()
              .setStatus(status)
@@ -66,6 +69,8 @@ public class RunStats {
   }
 
   public void start() {
+    Trace.start();
+    Trace.begin("start");
     myEvent.getRunEventBuilder().setBeginTimestampMs(System.currentTimeMillis());
   }
 
@@ -73,6 +78,7 @@ public class RunStats {
   }
 
   public LaunchTaskDetail.Builder beginLaunchTask(LaunchTask task) {
+    Trace.begin("begingLaunchtask" + task.getId());
     LaunchTaskDetail.Builder details = LaunchTaskDetail.newBuilder()
                                                        .setId(task.getId())
                                                        .setStartTimestampMs(System.currentTimeMillis());
@@ -84,24 +90,30 @@ public class RunStats {
     return details;
   }
 
-  public void endLaunchTask(LaunchTaskDetail.Builder detail, boolean success) {
+  public void endLaunchTask(LaunchTask task, LaunchTaskDetail.Builder detail, boolean success) {
+    Trace.end();
     detail.setEndTimestampMs(System.currentTimeMillis());
     myEvent.getRunEventBuilder().addLaunchTaskDetail(detail);
+    myEvent.getRunEventBuilder().addAllLaunchTaskDetail(task.getSubTaskDetails());
   }
 
   public void beginBeforeRunTasks() {
+    Trace.begin("beforeRunktask.");
     myEvent.getRunEventBuilder().setBeginBeforeRunTasksTimestampMs(System.currentTimeMillis());
   }
 
   public void endBeforeRunTasks() {
+    Trace.end();
     myEvent.getRunEventBuilder().setEndBeforeRunTasksTimestampMs(System.currentTimeMillis());
   }
 
   public void beginWaitForDevice() {
+    Trace.begin("WaitForDevice.");
     myEvent.getRunEventBuilder().setBeginWaitForDeviceTimestampMs(System.currentTimeMillis());
   }
 
   public void endWaitForDevice(@Nullable IDevice device) {
+    Trace.end();
     myEvent.getRunEventBuilder().setEndWaitForDeviceTimestampMs(System.currentTimeMillis());
     if (device == null) {
       return;
@@ -118,10 +130,6 @@ public class RunStats {
     myEvent.setProjectId(AnonymizerUtil.anonymizeUtf8(packageName)).setRawProjectId(packageName);
   }
 
-  public void setInstantRunEnabled(boolean enabled) {
-    myEvent.getRunEventBuilder().setInstantRunEnabled(enabled);
-  }
-
   public void setExecutor(String executorId) {
     myEvent.getRunEventBuilder().setExecutor(executorId);
   }
@@ -135,10 +143,12 @@ public class RunStats {
   }
 
   public void beginLaunchTasks() {
+    Trace.begin("beginLaunchTasks");
     myEvent.getRunEventBuilder().setBeginLaunchTasksTimestampMs(System.currentTimeMillis());
   }
 
   public void endLaunchTasks() {
+    Trace.end();
     myEvent.getRunEventBuilder().setEndLaunchTasksTimestampMs(System.currentTimeMillis());
   }
 
@@ -152,6 +162,18 @@ public class RunStats {
 
   public void setDeployedFromBundle(boolean fromBundle) {
     myEvent.getRunEventBuilder().setDeployedFromBundle(fromBundle);
+  }
+
+  public void setErrorId(String id) {
+    myEvent.getRunEventBuilder().setDeployFailureId(id);
+  }
+
+  public void setApplyChangesFallbackToRun(boolean fallback) {
+    myEvent.getRunEventBuilder().setApplyChangesFallbackToRun(fallback);
+  }
+
+  public void setApplyCodeChangesFallbackToRun(boolean fallback) {
+    myEvent.getRunEventBuilder().setApplyCodeChangesFallbackToRun(fallback);
   }
 
   public static RunStats from(ExecutionEnvironment env) {

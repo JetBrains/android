@@ -15,11 +15,18 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toLowerCamelCase;
+
 import com.android.resources.Density;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.npw.assetstudio.*;
+import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
+import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
+import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
+import com.android.tools.idea.npw.assetstudio.IconCategory;
+import com.android.tools.idea.npw.assetstudio.IconGenerator;
+import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
@@ -34,13 +41,14 @@ import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
-import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
+import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -57,23 +65,33 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.util.ui.AsyncProcessIcon;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
-
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toLowerCamelCase;
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A panel which presents a UI for selecting some source asset and converting it to a target set of
@@ -127,6 +145,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
 
   @NotNull private AndroidModuleTemplate myPaths;
   @NotNull private final IconGenerationProcessor myIconGenerationProcessor = new IconGenerationProcessor();
+  @NotNull private final StringProperty myPreviewRenderingError = new StringValueProperty();
 
   /**
    * Create a panel which can generate Android icons. The supported types passed in will be
@@ -258,17 +277,17 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
       myOutputPreviewLabel.setText("Preview");
       renderIconPreviews();
     };
-    myListeners.receiveAndFire(myOutputIconType, iconType -> {
+    myListeners.listenAndFire(myOutputIconType, iconType -> {
       ((CardLayout)myConfigureIconPanels.getLayout()).show(myConfigureIconPanels, iconType.toString());
       updatePreview.run();
     });
-    myListeners.receiveAndFire(myShowGridProperty, selected -> updatePreview.run());
-    myListeners.receiveAndFire(myShowSafeZoneProperty, selected -> updatePreview.run());
-    myListeners.receiveAndFire(myPreviewDensityProperty, value -> updatePreview.run());
+    myListeners.listenAndFire(myShowGridProperty, selected -> updatePreview.run());
+    myListeners.listenAndFire(myShowSafeZoneProperty, selected -> updatePreview.run());
+    myListeners.listenAndFire(myPreviewDensityProperty, value -> updatePreview.run());
 
     // Show interactive preview components only if creating adaptive icons.
-    BooleanExpression isAdaptiveIconOutput =
-        BooleanExpression.create(() -> myOutputIconType.get() == AndroidIconType.LAUNCHER, myOutputIconType);
+    Expression<Boolean> isAdaptiveIconOutput =
+        Expression.create(() -> myOutputIconType.get() == AndroidIconType.LAUNCHER, myOutputIconType);
     myBindings.bind(new VisibleProperty(myShowGrid), isAdaptiveIconOutput);
     myBindings.bind(new VisibleProperty(myShowSafeZone), isAdaptiveIconOutput);
     myBindings.bind(new VisibleProperty(myPreviewResolutionComboBox), isAdaptiveIconOutput);
@@ -322,6 +341,15 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
         return Validator.Result.OK;
       }
     });
+
+    myValidatorPanel.registerValidator(myPreviewRenderingError, errorMessage -> {
+      if (!errorMessage.isEmpty()) {
+        return new Validator.Result(Validator.Severity.ERROR, errorMessage);
+      }
+      else {
+        return Validator.Result.OK;
+      }
+    });
   }
 
   /**
@@ -361,13 +389,10 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   }
 
   private boolean iconExists() {
-    File resDirectory = getResDirectory(myPaths);
-    if (resDirectory != null) {
-      Map<File, GeneratedIcon> pathImageMap = getIconGenerator().generateIconPlaceholders(resDirectory);
-      for (File path : pathImageMap.keySet()) {
-        if (path.exists()) {
-          return true;
-        }
+    Map<File, GeneratedIcon> pathImageMap = getIconGenerator().generateIconPlaceholders(myPaths);
+    for (File path : pathImageMap.keySet()) {
+      if (path.exists()) {
+        return true;
       }
     }
 
@@ -404,10 +429,17 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
       // Update the icon type specific output preview panel with the new preview images
       myOutputPreviewPanels.get(iconType).showPreviewImages(iconGeneratorResult);
 
-      // Update the current preview panel only if the icon type has not changed since
-      // the request was enqueued.
+      // Update the current preview panel only if the icon type has not changed since the request was enqueued.
       if (Objects.equals(iconType, myOutputIconType.get())) {
         updateOutputPreviewPanel();
+
+        Collection<String> errors = iconGeneratorResult.getErrors();
+        String errorMessage = errors.isEmpty() ?
+                              "" :
+                              errors.size() == 1 ?
+                              "Preview rendering error: " + Iterables.getOnlyElement(errors) :
+                              "Icon preview was rendered with errors";
+        myPreviewRenderingError.set(errorMessage);
       }
     });
   }
@@ -451,7 +483,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   }
 
   private static class LauncherIconsPreviewPanel extends PreviewIconsPanel {
-    public LauncherIconsPreviewPanel() {
+    LauncherIconsPreviewPanel() {
       super("", Theme.TRANSPARENT);
     }
 
@@ -520,7 +552,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   }
 
   private static class LauncherLegacyIconsPreviewPanel extends PreviewIconsPanel {
-    public LauncherLegacyIconsPreviewPanel() {
+    LauncherLegacyIconsPreviewPanel() {
       super("", Theme.TRANSPARENT);
     }
 
@@ -543,13 +575,13 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   }
 
   private static class ActionBarIconsPreviewPanel extends PreviewIconsPanel {
-    public ActionBarIconsPreviewPanel() {
+    ActionBarIconsPreviewPanel() {
       super("", Theme.TRANSPARENT);
     }
   }
 
   private static class NotificationIconsPreviewPanel extends PreviewIconsPanel {
-    public NotificationIconsPreviewPanel() {
+    NotificationIconsPreviewPanel() {
       super("", Theme.DARK, CategoryIconMap.ACCEPT_ALL);
     }
   }

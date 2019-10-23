@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ui.CrossModuleUiStateComponent
@@ -23,12 +24,17 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
 import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint
 import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep
+import com.android.tools.idea.structure.dialog.TrackedConfigurable
+import com.android.tools.idea.structure.dialog.logUsagePsdAction
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.options.SearchableConfigurable
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
@@ -54,6 +60,8 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ToolTipManager
 
+const val BASE_PERSPECTIVE_MODULE_PLACE_NAME = "base_perspective.module"
+
 abstract class BasePerspectiveConfigurable protected constructor(
   protected val context: PsContext,
   val extraModules: List<PsModule>
@@ -61,6 +69,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
     SearchableConfigurable,
     Disposable,
     Place.Navigator,
+    TrackedConfigurable,
     CrossModuleUiStateComponent {
 
   private enum class ModuleSelectorStyle { LIST_VIEW, DROP_DOWN }
@@ -75,7 +84,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
   private var treeInitiated: Boolean = false
   private var currentModuleSelectorStyle: ModuleSelectorStyle? = null
 
-  protected abstract val navigationPathName: String
+  val navigationPathName: String = BASE_PERSPECTIVE_MODULE_PLACE_NAME
   val selectedModule: PsModule? get() = myCurrentConfigurable?.editableObject as? PsModule
   val selectedModuleName: String? get() = selectedModule?.name
 
@@ -93,14 +102,13 @@ abstract class BasePerspectiveConfigurable protected constructor(
     }, this)
 
     @Suppress("LeakingThis")
-    context.analyzerDaemon.add(
-      {
-        if (myTree.isShowing) {
-          // If issues are updated and the tree is showing, trigger a repaint so the proper highlight and tooltip is applied.
-          invokeLaterIfNeeded { revalidateAndRepaint(myTree) }
-        }
-        Unit
-      }, this)
+    context.analyzerDaemon.onIssuesChange(this) @UiThread {
+      if (myTree.isShowing) {
+        // If issues are updated and the tree is showing, trigger a repaint so the proper highlight and tooltip is applied.
+        revalidateAndRepaint(myTree)
+      }
+      Unit
+    }
 
     @Suppress("LeakingThis")
     context.uiSettings.addListener(PsUISettings.ChangeListener { reconfigureForCurrentSettings() }, this)
@@ -145,8 +153,8 @@ abstract class BasePerspectiveConfigurable protected constructor(
     super.reInitWholePanelIfNeeded()
     currentModuleSelectorStyle = null
     centerComponent = splitter.secondComponent
-    val splitterLeftcomponent = (splitter.firstComponent as JPanel)
-    toolWindowHeader = ToolWindowHeader.createAndAdd("Modules", ANDROID_MODULE, splitterLeftcomponent, ToolWindowAnchor.LEFT)
+    val splitterLeftComponent = (splitter.firstComponent as JPanel)
+    toolWindowHeader = ToolWindowHeader.createAndAdd("Modules", ANDROID_MODULE, splitterLeftComponent, ToolWindowAnchor.LEFT)
       .also {
         it.setPreferredFocusedComponent(myTree)
         it.addMinimizeListener { modulesTreeMinimized() }
@@ -222,7 +230,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
     myTree.model =
       createTreeModel(
         object : NamedContainerConfigurableBase<PsModule>("root") {
-          override fun getChildrenModels(): Collection<PsModule> = context.project.modules.filter { it.isDeclared } + extraModules
+          override fun getChildrenModels(): Collection<PsModule> = extraModules + context.project.modules.filter { it.isDeclared }
           override fun createChildConfigurable(model: PsModule) = createConfigurableFor(model).also { it.setHistory(myHistory) }
           override fun onChange(disposable: Disposable, listener: () -> Unit) = context.project.modules.onChange(disposable, listener)
           override fun dispose() = Unit
@@ -271,63 +279,75 @@ abstract class BasePerspectiveConfigurable protected constructor(
   override fun getSelectedConfigurable(): NamedConfigurable<*>? =
     (myTree.selectionPath?.lastPathComponent as? MasterDetailsComponent.MyNode)?.configurable
 
-  fun putNavigationPath(place: Place, moduleName: String, dependency: String) {
+  fun putNavigationPath(place: Place, moduleName: String) {
     place.putPath(navigationPathName, moduleName)
     val module = findModule(moduleName)!!
     val node = MasterDetailsComponent.findNodeByObject(myRoot, module)!!
     val configurable = node.configurable
     assert(configurable is BaseNamedConfigurable<*>)
-    val dependenciesConfigurable = configurable as BaseNamedConfigurable<*>
-    dependenciesConfigurable.putNavigationPath(place, dependency)
   }
 
-
-  override fun createActions(fromPopup: Boolean): List<AnAction> =
-    listOf(
-      object : DumbAwareAction("New Module", "Add new module", IconUtil.getAddIcon()) {
-        override fun actionPerformed(e: AnActionEvent) {
-          if (!context.project.isModified ||
-              Messages.showYesNoDialog(
+  override fun createActions(fromPopup: Boolean): List<AnAction> {
+    val addNewModuleAction = object : DumbAwareAction("New Module", "Add new module", IconUtil.getAddIcon()) {
+      override fun actionPerformed(e: AnActionEvent) {
+        if (!context.project.isModified ||
+            Messages.showYesNoDialog(
                 e.project,
                 "Pending changes will be applied to the project. Continue?",
                 "Add Module",
                 Messages.getQuestionIcon()) == Messages.YES
-          ) {
-            var synced = false
-            val chooseModuleTypeStep =
-              ChooseModuleTypeStep.createWithDefaultGallery(context.project.ideProject, ProjectSyncInvoker { synced = true })
-            context.applyRunAndReparse {
-              StudioWizardDialogBuilder(chooseModuleTypeStep, AndroidBundle.message("android.wizard.module.new.module.title"))
+        ) {
+          context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_ADD)
+          var synced = false
+          val chooseModuleTypeStep =
+              ChooseModuleTypeStep.createWithDefaultGallery(context.project.ideProject) { synced = true }
+          context.applyRunAndReparse {
+            StudioWizardDialogBuilder(chooseModuleTypeStep, AndroidBundle.message("android.wizard.module.new.module.title"))
                 .setUxStyle(StudioWizardDialogBuilder.UxStyle.INSTANT_APP)
                 .build()
                 .show()
-              synced  // Tells whether the context needs to reparse the config.
-            };
-          }
-        }
-      },
-      object : DumbAwareAction("Remove Module", "Remove module", IconUtil.getRemoveIcon()) {
-        override fun actionPerformed(e: AnActionEvent) {
-          val module = (selectedObject as PsModule)
-          if (Messages.showYesNoDialog(
-              e.project,
-              buildString {
-                append(when {
-                         module.parent.modelCount == 1 -> "Are you sure you want to remove the only module form the project?"
-                         else -> "Remove module '${module.name}' from the project?"
-                       })
-                append("\n")
-                append("No files will be deleted on disk.")
-              },
-              "Remove Module",
-              Messages.getQuestionIcon()
-            ) == Messages.YES) {
-            module.parent.removeModule(module.gradlePath!!)
+            synced  // Tells whether the context needs to reparse the config.
           }
         }
       }
+    }
+    val removeModuleAction = object : DumbAwareAction("Remove Module", "Remove module", IconUtil.getRemoveIcon()) {
+      override fun update(e: AnActionEvent) {
+        if (uiDisposed) return
+        super.update(e)
+        e.presentation.isEnabled = (selectedObject as? PsModule)?.gradlePath != null
+      }
 
+      override fun actionPerformed(e: AnActionEvent) {
+        val module = (selectedObject as? PsModule) ?: return
+        if (Messages.showYesNoDialog(
+                e.project,
+                buildString {
+                  append(when {
+                           module.parent.modelCount == 1 -> "Are you sure you want to remove the only module form the project?"
+                           else -> "Remove module '${module.name}' from the project?"
+                         })
+                  append("\n")
+                  append("No files will be deleted on disk.")
+                },
+                "Remove Module",
+                Messages.getQuestionIcon()
+            ) == Messages.YES) {
+          context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_REMOVE)
+          module.parent.removeModule(module.gradlePath!!)
+        }
+      }
+    }
+
+    fun AnAction.withShortcuts(action: String) = apply {
+      registerCustomShortcutSet(ActionManager.getInstance().getAction(action).shortcutSet, tree)
+    }
+
+    return listOf(
+        addNewModuleAction.withShortcuts(IdeActions.ACTION_NEW_ELEMENT),
+        removeModuleAction.withShortcuts(IdeActions.ACTION_DELETE)
     )
+  }
 
   override fun disposeUIResources() {
     if (uiDisposed) return
@@ -347,7 +367,11 @@ abstract class BasePerspectiveConfigurable protected constructor(
 
   override fun isModified(): Boolean = context.project.isModified
 
-  override fun apply() = context.project.applyChanges()
+  final override fun apply() = context.applyChanges()
+
+  override fun copyEditedFieldsTo(builder: PSDEvent.Builder) {
+    builder.addAllModifiedFields(context.getEditedFieldsAndClear())
+  }
 
   override fun setHistory(history: History?) = super<MasterDetailsComponent>.setHistory(history)
 

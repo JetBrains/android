@@ -7,8 +7,10 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="TEST" name="freemarker" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.lang.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-reflect" level="project" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.spellchecker" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.psi" scope="TEST" />
@@ -19,18 +21,21 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.dom.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.lang.impl" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="freemarker" level="project" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.observable" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.compiler" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.manifest-merger" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Eclipse" level="project" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.gradle.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.groovy.psi" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.layoutlibLoader" scope="TEST" />
     <orderEntry type="module" module-name="intellij.properties.psi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.diff.impl" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="dexlib2" level="project" />
@@ -39,11 +44,20 @@
     <orderEntry type="module" module-name="intellij.java.execution.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jsr305" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-shared" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="guava-testlib" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.branding" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.java-lib-model" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="equalsverifier" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.analyzer" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
     <orderEntry type="module" module-name="intellij.properties.psi.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
@@ -56,6 +70,7 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.jps.build" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.credentialStore" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.lang" scope="TEST" />
     <orderEntry type="module-library">
       <library name="instantapps-api-1.5">
@@ -66,7 +81,9 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="android.sdktools.analytics-crash" scope="TEST" />
     <orderEntry type="library" name="commons-io" level="project" />
+    <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module-library" scope="TEST">
       <library>
         <CLASSES>
@@ -77,75 +94,16 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="library" name="analytics-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="nosyncbuilder" level="project" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
+    <orderEntry type="library" scope="TEST" name="intellij.android.kotlin.idea" level="project" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools:sdk-common" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools:sdklib" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools:repository" level="project" />
-    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools:testutils" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.layoutlib:layoutlib-api" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.ddms:ddmlib" level="project" />
-    <orderEntry type="library" name="com.android.tools:common" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.build:builder-model" level="project" />
-    <orderEntry type="module-library" scope="TEST">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/nosyncbuilder-jarjar.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:shared" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:tracker" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.lint:lint-checks" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:protos" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.credentialStore" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="com.google.guava:guava-testlib" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.lint:lint-api" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools:annotations" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:crash" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.build:manifest-merger" level="project" />
-    <orderEntry type="module-library" scope="TEST">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/aapt-proto-jarjar.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="library" scope="TEST" name="com.android.tools.apkparser:apkanalyzer" level="project" />
-    <orderEntry type="library" scope="TEST" name="kxml2" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.databinding" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.resourcesAar" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="NanoXML" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:testing" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlin-reflect" level="project" />
     <orderEntry type="module" module-name="intellij.android.plugin" scope="RUNTIME" />
-    <orderEntry type="module-library" scope="TEST">
-      <library name="com.android.tools.fakeadbserver:fakeadbserver" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools.fakeadbserver:fakeadbserver:26.3.0" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/fakeadbserver/fakeadbserver/26.3.0/fakeadbserver-26.3.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="library" scope="TEST" name="org.jetbrains.intellij.deps.android.tools:perf-logger-tests" level="project" />
-    <orderEntry type="module-library" scope="TEST">
-      <library name="org.jetbrains.intellij.deps.android.tools:sdk-common-tests:26.3.0" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:sdk-common-tests:26.3.0" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdk-common-tests/26.3.0/sdk-common-tests-26.3.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdk-common-tests/26.3.0/sdk-common-tests-26.3.0-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="library" scope="TEST" name="http-client" level="project" />
+    <orderEntry type="module" module-name="intellij.android.resourcesAar.tests" scope="RUNTIME" />
   </component>
 </module>

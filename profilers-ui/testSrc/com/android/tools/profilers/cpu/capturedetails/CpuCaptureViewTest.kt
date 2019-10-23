@@ -17,13 +17,27 @@ package com.android.tools.profilers.cpu.capturedetails
 
 import com.android.tools.adtui.FilterComponent
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ART
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ATRACE
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.SIMPLEPERF
-import com.android.tools.profilers.*
-import com.android.tools.profilers.cpu.*
+import com.android.tools.profiler.proto.Cpu.CpuTraceType.ART
+import com.android.tools.profiler.proto.Cpu.CpuTraceType.ATRACE
+import com.android.tools.profiler.proto.Cpu.CpuTraceType.SIMPLEPERF
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profilers.ReferenceWalker
+import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.android.tools.profilers.cpu.CpuProfilerStageView
+import com.android.tools.profilers.cpu.CpuProfilerToolbar
+import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
+import com.android.tools.profilers.cpu.FakeCpuProfiler
+import com.android.tools.profilers.cpu.FakeCpuService
+import com.android.tools.profilers.cpu.ProfilingConfiguration
+import com.android.tools.profilers.cpu.ProfilingTechnology
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -43,9 +57,12 @@ class CpuCaptureViewTest {
   @Rule
   val cpuProfiler: FakeCpuProfiler
 
+  private val timer = FakeTimer()
+
   init {
     val cpuService = FakeCpuService()
-    grpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", cpuService, FakeProfilerService(),
+    grpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", cpuService,
+                                  FakeTransportService(timer), FakeProfilerService(timer),
                                   FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
     cpuProfiler = FakeCpuProfiler(grpcChannel = grpcChannel, cpuService = cpuService)
@@ -68,7 +85,7 @@ class CpuCaptureViewTest {
 
     cpuProfiler.apply {
       setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
-      captureTrace(profilerType = ART)
+      captureTrace(traceType = ART)
     }
 
     stage.setCaptureDetails(CaptureDetails.Type.BOTTOM_UP)
@@ -129,7 +146,7 @@ class CpuCaptureViewTest {
   fun testTraceEventTitleForATrace() {
     cpuProfiler.apply {
       setTrace(CpuProfilerUITestUtils.ATRACE_PID1_PATH)
-      captureTrace(profilerType = ATRACE)
+      captureTrace(traceType = ATRACE)
     }
 
     val tabPane = TreeWalker(captureView.component).descendants().filterIsInstance(CommonTabbedPane::class.java)[0]
@@ -162,7 +179,7 @@ class CpuCaptureViewTest {
 
     cpuProfiler.apply {
       setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
-      captureTrace(id = 1, fromUs = 0, toUs = 100, profilerType = ART)
+      captureTrace(id = 1, fromUs = 0, toUs = 100, traceType = ART)
     }
 
     stageView.stage.selectionModel.apply {
@@ -177,7 +194,7 @@ class CpuCaptureViewTest {
   fun showsDetailsPaneWhenSelectingCapture() {
     cpuProfiler.apply {
       setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
-      captureTrace(profilerType = ART)
+      captureTrace(traceType = ART)
     }
 
     assertThat(getCapturePane()).isInstanceOf(DetailsCapturePane::class.java)
@@ -211,7 +228,7 @@ class CpuCaptureViewTest {
   @Test
   fun technologyIsPresentInParsingPane() {
     stageView.stage.profilerConfigModel.profilingConfiguration =
-      ProfilingConfiguration("simpleperf", SIMPLEPERF, CpuProfiler.CpuProfilerMode.SAMPLED)
+      ProfilingConfiguration("simpleperf", SIMPLEPERF, Cpu.CpuTraceMode.SAMPLED)
     stageView.stage.captureParser.updateParsingStateWhenStarting()
     val parsingPane = getCapturePane()
     val technologyLabel = TreeWalker(parsingPane).descendants().filterIsInstance<JLabel>().first {
@@ -226,7 +243,7 @@ class CpuCaptureViewTest {
 
     cpuProfiler.apply {
       setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
-      captureTrace(profilerType = ART)
+      captureTrace(traceType = ART)
     }
 
     // In one chart, we'll open our filter and set it to something
@@ -289,7 +306,7 @@ class CpuCaptureViewTest {
 
     cpuProfiler.apply {
       setTrace(CpuProfilerUITestUtils.VALID_TRACE_PATH)
-      captureTrace(profilerType = ART)
+      captureTrace(traceType = ART)
     }
 
     assertThat(stage.captureDetails?.type).isEqualTo(CaptureDetails.Type.CALL_CHART)

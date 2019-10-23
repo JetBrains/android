@@ -16,7 +16,8 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.common.editor.NlEditor;
+import com.android.tools.idea.common.editor.DesignerEditor;
+import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
@@ -71,11 +72,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -186,6 +185,30 @@ public class EditorFixture {
    * Type the given text into the editor
    *
    * @param text the text to type at the current editor position
+   */
+  public EditorFixture typeText(@NotNull final String text) {
+    getFocusedEditor();
+    robot.typeText(text);
+    return this;
+  }
+
+  /**
+   * Paste the given text into the editor
+   *
+   * @param text the text to paste at the current editor position
+   */
+  public EditorFixture pasteText(@NotNull final String text) {
+    getFocusedEditor();
+    robot.pasteText(text);
+    return this;
+  }
+
+  /**
+   * Enter the given text into the editor. Types short strings, pastes longer ones to save time. Most fixtures or tests that enter
+   * text into the editor should use this method. If there's a good reason to force one mode of entry or the other, use typeText or
+   * pasteText as appropriate.
+   *
+   * @param text the text to enter at the current editor position
    */
   public EditorFixture enterText(@NotNull final String text) {
     getFocusedEditor();
@@ -478,18 +501,6 @@ public class EditorFixture {
   }
 
   @NotNull
-  public EditorFixture checkNoNotification() {
-    Collection<EditorNotificationPanel> notificationPanels = robot.finder().findAll(Matchers.byType(EditorNotificationPanel.class));
-    if (!notificationPanels.isEmpty()) {
-      String notifications = notificationPanels.stream()
-        .map(p -> p.getIntentionAction().getText())
-        .collect(Collectors.joining(", "));
-      throw new AssertionError("unwanted notifications: " + notifications);
-    }
-    return this;
-  }
-
-  @NotNull
   public List<String> getHighlights(HighlightSeverity severity) {
     List<String> infos = Lists.newArrayList();
     for (HighlightInfo info : getCurrentFileFixture().getHighlightInfos(severity)) {
@@ -578,10 +589,12 @@ public class EditorFixture {
    * requests that it be opened if necessary
    *
    * @param switchToTabIfNecessary if true, switch to the design tab if it is not already showing
+   * @param waitForSurfaceToLoad if true, this method will block until the surface is fully ready.
+   *                             See {@link NlEditorFixture#waitForSurfaceToLoad()}
    * @throws IllegalStateException if there is no selected editor or it is not a {@link NlEditor}
    */
   @NotNull
-  public NlEditorFixture getLayoutEditor(boolean switchToTabIfNecessary) {
+  public NlEditorFixture getLayoutEditor(boolean switchToTabIfNecessary, boolean waitForSurfaceToLoad) {
     if (switchToTabIfNecessary) {
       selectEditorTab(Tab.DESIGN);
     }
@@ -589,14 +602,33 @@ public class EditorFixture {
     // Wait for the editor to do any initializations
     robot.waitForIdle();
 
-    return GuiQuery.getNonNull(
+    NlEditorFixture editorFixture = GuiQuery.getNonNull(
       () -> {
         FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
         checkState(editors.length > 0, "no selected editors");
         FileEditor selected = editors[0];
-        checkState(selected instanceof NlEditor, "not a %s: %s", NlEditor.class.getSimpleName(), selected);
-        return new NlEditorFixture(myFrame.robot(), (NlEditor)selected);
+        checkState(selected instanceof DesignerEditor, "not a %s: %s", DesignerEditor.class.getSimpleName(), selected);
+        return new NlEditorFixture(myFrame.robot(), (DesignerEditor)selected);
       });
+
+
+    if (waitForSurfaceToLoad) {
+      editorFixture.waitForSurfaceToLoad();
+    }
+    return editorFixture;
+  }
+
+  /**
+   * Returns a fixture around the layout editor, <b>if</b> the currently edited file
+   * is a layout file and it is currently showing the layout editor tab or the parameter
+   * requests that it be opened if necessary
+   *
+   * @param switchToTabIfNecessary if true, switch to the design tab if it is not already showing
+   * @throws IllegalStateException if there is no selected editor or it is not a {@link NlEditor}
+   */
+  @NotNull
+  public NlEditorFixture getLayoutEditor(boolean switchToTabIfNecessary) {
+    return getLayoutEditor(switchToTabIfNecessary, true);
   }
 
   /**

@@ -27,10 +27,11 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.adtui.ptable.PTableGroupItem;
-import com.android.tools.adtui.ptable.PTableItem;
-import com.android.tools.adtui.ptable.PTableModel;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableGroupItem;
+import com.android.tools.property.ptable.PTableItem;
+import com.android.tools.property.ptable.PTableModel;
+import com.android.tools.adtui.workbench.ToolWindowCallback;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
@@ -111,7 +112,7 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
   private List<NlPropertyItem> myProperties;
   @NotNull
   private PropertiesViewMode myPropertiesViewMode;
-  private Runnable myRestoreToolWindowCallback;
+  private ToolWindowCallback myToolWindow;
 
   private AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.EAST_PANEL, false);
 
@@ -202,8 +203,8 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
     return myPropertiesManager;
   }
 
-  public void setRestoreToolWindow(@NotNull Runnable restoreToolWindowCallback) {
-    myRestoreToolWindowCallback = restoreToolWindowCallback;
+  public void registerToolWindow(@NotNull ToolWindowCallback toolWindow) {
+    myToolWindow = toolWindow;
   }
 
   public int getFilterMatchCount() {
@@ -279,6 +280,7 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
 
     updateDefaultProperties(myPropertiesManager);
     myInspectorPanel.setComponent(components, properties, myPropertiesManager);
+    setFilter(myFilter.myPattern);
   }
 
   @NotNull
@@ -355,7 +357,7 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
       return null;
     }
     ResourceNamespace.Resolver resolver = ResourceHelper.getNamespaceResolver(tag);
-    ResourceNamespace defaultNamespace = ResourceRepositoryManager.getOrCreateInstance(myPropertiesManager.getFacet()).getNamespace();
+    ResourceNamespace defaultNamespace = ResourceRepositoryManager.getInstance(myPropertiesManager.getFacet()).getNamespace();
     if (value.getResourceType() == ResourceType.STYLE_ITEM) {
       ResourceReference reference = value.getReference();
       if (reference == null) {
@@ -457,8 +459,8 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
   public void activatePreferredEditor(@NotNull String propertyName, boolean afterload) {
     Runnable selectEditor = () -> {
       // Restore a possibly minimized tool window
-      if (myRestoreToolWindowCallback != null) {
-        myRestoreToolWindowCallback.run();
+      if (myToolWindow != null) {
+        myToolWindow.restore();
       }
       // Set focus on the editor of preferred property
       myInspectorPanel.activatePreferredEditor(propertyName, afterload);

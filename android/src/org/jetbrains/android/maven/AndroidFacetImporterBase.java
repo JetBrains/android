@@ -1294,7 +1294,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   private static class MyDeleteObsoleteApklibModulesTask implements MavenProjectsProcessorTask {
     private final Project myProject;
 
-    MyDeleteObsoleteApklibModulesTask(@NotNull Project project) {
+    public MyDeleteObsoleteApklibModulesTask(@NotNull Project project) {
       myProject = project;
     }
 

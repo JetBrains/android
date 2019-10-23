@@ -117,7 +117,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   @SuppressWarnings("NullableProblems")
   private File myRecipeFile;
 
-  ServiceXmlParser(@NotNull Module module, @NotNull File rootPath, @NotNull ServiceContext serviceContext) {
+  public ServiceXmlParser(@NotNull Module module, @NotNull File rootPath, @NotNull ServiceContext serviceContext) {
     myModule = module;
     myRootPath = rootPath;
     myContext = serviceContext;

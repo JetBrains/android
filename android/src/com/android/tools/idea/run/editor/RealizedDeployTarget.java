@@ -50,7 +50,7 @@ public class RealizedDeployTarget implements DeployTarget {
     assert myDelegate != null;
     assert myDelegateState != null;
 
-    return myDelegate.getDeployTarget().getRunProfileState(executor, env, myDelegateState);
+    return myDelegate.getDeployTarget(env.getProject()).getRunProfileState(executor, env, myDelegateState);
   }
 
   @Nullable

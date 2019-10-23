@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.util
 
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_LIST_VALUE_REMOVE_LIST_VALUES
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE_ON_NONE_LIST
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import org.junit.Test
@@ -22,13 +25,7 @@ import org.junit.Test
 class GradlePropertyListValueTest : GradleFileModelTestCase() {
   @Test
   fun testReplaceListValue() {
-    val text = """
-               ext {
-                 prop1 = [1, 2, 2, 4]
-                 prop2 = ["a", 'b', "b", 'd']
-                 prop3 = [true, true, false, true]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE)
 
     val buildModel = gradleBuildModel
 
@@ -71,13 +68,7 @@ class GradlePropertyListValueTest : GradleFileModelTestCase() {
 
   @Test
   fun testReplaceListValueOnNoneList() {
-    val text = """
-               ext {
-                 prop1 = [key1: 'value1', key2: false, key3: 17]
-                 prop2 = "hello"
-                 prop3 = prop1 // Should only work for resolved properties.
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE_ON_NONE_LIST)
 
     val buildModel = gradleBuildModel
 
@@ -113,13 +104,7 @@ class GradlePropertyListValueTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveListValues() {
-    val text = """
-               ext {
-                 prop1 = [1, 2]
-                 prop2 = ["a", 'b', "b", 'd']
-                 prop3 = [true, true, false, true]
-               }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(GRADLE_PROPERTY_LIST_VALUE_REMOVE_LIST_VALUES)
 
     val buildModel = gradleBuildModel
 

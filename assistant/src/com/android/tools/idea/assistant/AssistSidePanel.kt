@@ -19,96 +19,116 @@ import com.android.tools.idea.assistant.datamodel.TutorialBundleData
 import com.android.tools.idea.assistant.view.FeaturesPanel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBLoadingPanel
+import org.apache.http.concurrent.FutureCallback
 import java.awt.BorderLayout
 import java.io.FileNotFoundException
-import java.io.IOException
-import java.io.InputStream
 import java.net.URL
 import javax.swing.BorderFactory
 import javax.swing.JPanel
-import javax.xml.bind.JAXBException
 
 /**
  * Panel for "assistant" flows such as tutorials, domain specific tools, etc.
  */
-class AssistSidePanel(actionId: String, project: Project) : JPanel(BorderLayout()) {
+class AssistSidePanel(private val actionId: String,
+                      private val project: Project,
+                      private val titleCallback: FutureCallback<String>?) : JPanel(BorderLayout()) {
+  var loadingPanel: JBLoadingPanel
+  private var errorPanel: JPanel
+  private var errorText: JBLabel
+
+  private var bundleCreator: AssistantBundleCreator
 
   private val log: Logger
     get() = Logger.getInstance(AssistSidePanel::class.java)
-
-  var title: String? = null
-    private set
 
   init {
     border = BorderFactory.createEmptyBorder()
     isOpaque = false
 
-    val assistContents = AssistantBundleCreator.EP_NAME.extensions.filter { it.bundleId == actionId }.map {
-      // Instantiate the bundle from a configuration file using the default bundle mapping.
-      // If null, creator must provide the bundle instance themselves.
-      var config: URL? = null
-      try {
-        config = it.config
-      }
-      catch (e: FileNotFoundException) {
-        log.warn(e)
-      }
+    loadingPanel = JBLoadingPanel(BorderLayout(), project, 200)
+    loadingPanel.add(this, BorderLayout.CENTER)
+    loadingPanel.setLoadingText("Loading assistant content")
+    loadingPanel.name = "assistantPanel"
+    loadingPanel.startLoading()
 
-      // Config provided, use that with the default bundle.
-      val bundle = if (config != null) {
-        getBundle(config)
-      }
-      else {
-        it.getBundle(project)
-      }
+    // Add an error message to show when there is an error while loading
+    errorPanel = JPanel(BorderLayout())
+    val message = "Error loading assistant panel. Please check idea.log for detailed error message."
+    val htmlText = String.format("<html><div style='text-align: center;'>%s</div></html>", StringUtil.escapeXml(message))
+    errorText = JBLabel(htmlText)
+    errorText.horizontalAlignment = JBLabel.CENTER
+    errorPanel.add(errorText, BorderLayout.CENTER)
+    this.add(errorPanel, BorderLayout.CENTER)
+    errorPanel.isVisible = false
 
-      if (bundle == null) {
-        log.error("Unable to get Assistant configuration for action: $actionId")
-        null
-      } else {
-        // Provide the creator's class for classloading purposes.
-        bundle!!.setResourceClass(it.javaClass)
-        for (feature in bundle.features) {
-          feature.setResourceClass(it.javaClass)
-        }
-        title = bundle.name
-
-        val analyticsProvider = it.analyticsProvider
-          analyticsProvider.trackPanelOpened(project)
-
-        FeaturesPanel(bundle, project, analyticsProvider)
-      }
-    }
-
-    if (assistContents.isEmpty()) {
+    try {
+      bundleCreator = AssistantBundleCreator.EP_NAME.extensions.first { it.bundleId == actionId }
+    } catch (e: NoSuchElementException) {
       throw RuntimeException("Unable to find configuration for the selected action: $actionId")
     }
-    add(assistContents.first())
+
+    // Instantiate the bundle from a configuration file using the default bundle mapping.
+    // If null, creator must provide the bundle instance themselves.
+    var config: URL? = null
+    try {
+      config = bundleCreator.config
+    }
+    catch (e: FileNotFoundException) {
+      log.warn(e)
+    }
+
+    // Config provided, use that with the default bundle.
+    if (config != null) {
+      val task = AssistantGetBundleFromConfigTask(project, config, AssistantLoadingCallback())
+      task.queue()
+    }
+    else {
+      val task = AssistantGetBundleTask(project, bundleCreator, AssistantLoadingCallback())
+      task.queue()
+    }
   }
 
-  private fun getBundle(config: URL): TutorialBundleData {
-    var inputStream: InputStream? = null
-    val bundle: TutorialBundleData
-    try {
-      inputStream = config.openStream()
-      bundle = DefaultTutorialBundle.parse(inputStream!!)
+  private fun createFeaturesPanel(bundle: TutorialBundleData?,
+                                  actionId: String,
+                                  bundleCreator: AssistantBundleCreator,
+                                  project: Project) {
+    if (bundle == null) {
+      log.error("Unable to get Assistant configuration for action: $actionId")
+      errorPanel.isVisible = true
     }
-    catch (e: IOException) {
-      throw RuntimeException("Unable to parse " + config.toString() +
-                             " to read services configuration.", e)
-    }
-    catch (e: JAXBException) {
-      throw RuntimeException(e)
-    }
-    finally {
-      try {
-        if (inputStream != null) inputStream.close()
+    else {
+      // Provide the creator's class for classloading purposes.
+      bundle.setResourceClass(bundleCreator.javaClass)
+      for (feature in bundle.features) {
+        feature.setResourceClass(bundleCreator.javaClass)
       }
-      catch (e: Exception) {
-        log.warn(e)
-      }
+      titleCallback?.completed(bundle.name)
 
+      val analyticsProvider = bundleCreator.analyticsProvider
+      analyticsProvider.trackPanelOpened(project)
+
+      val featuresPanel = FeaturesPanel(bundle, project, analyticsProvider)
+      add(featuresPanel)
     }
-    return bundle
+  }
+
+  inner class AssistantLoadingCallback: FutureCallback<TutorialBundleData> {
+    override fun cancelled() {
+      loadingPanel.stopLoading()
+    }
+
+    override fun completed(bundle: TutorialBundleData?) {
+      createFeaturesPanel(bundle, actionId, bundleCreator, project)
+      loadingPanel.stopLoading()
+    }
+
+    override fun failed(ex: java.lang.Exception?) {
+      log.error(ex)
+      loadingPanel.stopLoading()
+      errorPanel.isVisible = true
+    }
   }
 }

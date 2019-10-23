@@ -15,6 +15,6 @@
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="library" name="com.android.tools.ddms:ddmlib" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.ddmlib" />
   </component>
 </module>

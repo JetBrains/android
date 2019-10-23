@@ -34,7 +34,7 @@ class AttributeColumn<T extends MemoryObject> {
   private final SortOrder mySortOrderPreference;
   private final Comparator<MemoryObjectTreeNode<T>> myComparator;
 
-  AttributeColumn(@NotNull String name,
+  public AttributeColumn(@NotNull String name,
                          @NotNull Supplier<ColoredTreeCellRenderer> rendererSupplier,
                          int headerAlignment,
                          int preferredWidth,

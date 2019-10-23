@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel.stripID;
+
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -22,49 +24,50 @@ import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentDelegate;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
+import com.android.tools.idea.uibuilder.api.AccessorySelectionListener;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.handlers.motion.property2.TimelineListener;
-import com.android.tools.idea.uibuilder.handlers.motion.property2.TimelineOwner;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.Gantt;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttCommands;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.GanttEventListener;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-
-import static com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutTimelinePanel.State.*;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The Timeline Accessory Panel for MotionLayout editing
  */
-class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventListener, ModelListener, TimelineOwner {
+class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventListener, ModelListener {
   public static final boolean DEBUG = false;
 
   private final ViewGroupHandler.AccessoryPanelVisibility myVisibilityCallback;
   private final DesignSurface mySurface;
-  private final List<TimelineListener> myTimelineListeners;
+  private final List<AccessorySelectionListener> myListeners;
   private NlComponent myMotionLayout;
   private MotionLayoutComponentHelper myMotionLayoutComponentHelper;
   private Gantt myPanel;
@@ -79,6 +82,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   private NlComponentDelegate myNlComponentDelegate = new MotionLayoutComponentDelegate(this);
   private NlModel myModel;
   private MotionSceneModel myMotionSceneModel;
+  private Object myLastSelectedAccessory = new Object();
 
   public State getCurrentState() {
     return myCurrentState;
@@ -92,22 +96,32 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     myPanel.setProgress(progress);
   }
 
+  public boolean handlesWriteForComponent(String id) {
+    SmartPsiElementPointer<XmlTag> constraint = getSelectedConstraint();
+    if (constraint != null) {
+      String constraintId = constraint.getElement().getAttribute("android:id").getValue();
+      return id.equals(stripID(constraintId));
+    }
+    return false;
+  }
+
   enum State {TL_UNKNOWN, TL_START, TL_PLAY, TL_PAUSE, TL_TRANSITION, TL_END}
 
-  private State myCurrentState = TL_UNKNOWN;
+  private State myCurrentState = State.TL_UNKNOWN;
 
-  public static final String TIMELINE = TimelineOwner.TIMELINE_PROPERTY;
+  public static final String TIMELINE = "Timeline";
 
   public MotionLayoutTimelinePanel(@NotNull DesignSurface surface,
                                    @NotNull NlComponent parent,
                                    @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {
     mySurface = surface;
     myVisibilityCallback = visibility;
-    myTimelineListeners = new ArrayList<>();
+    myListeners = new ArrayList<>();
 
     myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(parent);
     parent.putClientProperty(TIMELINE, this);
     updateModel(parent.getModel());
+    mySurface.getSelectionModel().addListener((model, selection) -> handleSelectionChanged(model, selection));
   }
 
   @Override
@@ -129,7 +143,15 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
   @Nullable
   public MotionSceneModel.KeyFrame getSelectedKeyframe() {
-    return myPanel.getSelectedKey(mySelection.getId());
+    return mySelection != null ? myPanel.getSelectedKey(mySelection.getId()) : null;
+  }
+
+  public MotionSceneModel.ConstraintView getSelectedConstraintView() {
+    return mySelection != null ? myPanel.getSelectedConstraintView(mySelection.getId()) : null;
+  }
+
+  public SmartPsiElementPointer<XmlTag> getSelectedConstraint() {
+    return myPanel.getChart().getSelectedConstraint();
   }
 
   public void clearSelectedKeyframe() {
@@ -163,10 +185,16 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     }
   }
 
+  private void handleSelectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
+    if (myPanel != null) {
+      myPanel.handleSelectionChanged(model, selection);
+    }
+  }
+
   @Override
   public void updateAccessoryPanelWithSelection(@NotNull AccessoryPanel.Type type,
                                                 @NotNull List<NlComponent> selection) {
-    myCurrentState = TL_UNKNOWN;
+    myCurrentState = State.TL_UNKNOWN;
 
     if (selection.isEmpty()) {
       mySelection = null;
@@ -193,18 +221,16 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     }
     updateState();
     addDelegate();
+
+    if (getSelectedAccessory() == null) {
+      fireSelectionChanged(selection);
+    }
   }
 
   public void updateState() {
     if (myCurrentState == State.TL_UNKNOWN) {
       float position = myPanel.getChart().getProgress();
-      if (position == 0) {
-        setState(TL_START);
-      } else if (position == 1) {
-        setState(TL_END);
-      } else {
-        setState(TL_UNKNOWN);
-      }
+
       SceneComponent root = mySurface.getScene().getRoot();
       if (root != null) {
         root.updateTargets();
@@ -236,15 +262,15 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(myMotionLayout);
     switch (myPanel.getMode()) {
       case START:
-        setState(TL_START);
+        setState(State.TL_START);
         setProgress(0);
         break;
       case PLAY:
-        setState(TL_PLAY);
+        setState(State.TL_PLAY);
         myDirectionBackward = false;
         break;
       case PAUSE:
-        setState(TL_PAUSE);
+        setState(State.TL_PAUSE);
         myDirectionBackward = false;
         break;
       case TRANSITION:
@@ -252,14 +278,14 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
         setProgress(position);
         break;
       case END:
-        setState(TL_END);
+        setState(State.TL_END);
         setProgress(1);
         break;
-      case UNKNOWN:
-        setState(TL_START);
-        setProgress(0);
-        break;
       default:
+    }
+    MotionSceneModel.KeyFrame keyFrame = getSelectedKeyframe();
+    if (keyFrame != null) {
+      setProgress(keyFrame.getFramePosition()/100f);
     }
   }
 
@@ -290,7 +316,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
     XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
 
-    MotionSceneModel motionSceneModel = MotionSceneModel.parse(component.getModel(), project, virtualFile, xmlFile);
+    MotionSceneModel motionSceneModel = MotionSceneModel.parse(component, project, virtualFile, xmlFile);
     myPanel.setMotionScene(motionSceneModel);
     myMotionSceneModel = motionSceneModel;
 
@@ -315,12 +341,14 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
   @Override
   public void updateAfterModelDerivedDataChanged() {
-    loadMotionScene();
-    if (myMotionLayoutAttributePanel != null) {
-      // make sure this happens after our update.
-      myMotionLayoutAttributePanel.updateAfterModelDerivedDataChanged();
-    }
-    myTimelineListeners.forEach(listener -> listener.updateSelection(getSelectedKeyframe()));
+    // Move the handling onto the event dispatch thread in case this notification is sent from a different thread:
+    ApplicationManager.getApplication().invokeLater(() -> {
+      loadMotionScene();
+      if (myMotionLayoutAttributePanel != null) {
+        // make sure this happens after our update.
+        myMotionLayoutAttributePanel.updateAfterModelDerivedDataChanged();
+      }
+    });
   }
 
   @Override
@@ -328,17 +356,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     if (!myMotionLayoutComponentHelper.setProgress(percent)) {
       myMotionLayoutComponentHelper = new MotionLayoutComponentHelper(myMotionLayout);
     }
-    if (myCurrentState != TL_PLAY) {
-      if (percent == 0) {
-        setState(TL_START);
-      }
-      else if (percent == 1) {
-        setState(TL_END);
-      }
-      else {
-        setState(TL_TRANSITION);
-      }
-    }
+    fireSelectionChanged();
   }
 
   private void setState(State state) {
@@ -346,7 +364,9 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
       return;
     }
     myInStateChange = true;
-
+    if (DEBUG) {
+      System.out.println("=========== MotionLayoutTimelinePanel. setState("+state.name()+")");
+    }
     switch (state) {
       case TL_START:
         mGanttCommands.setMode(GanttCommands.Mode.START);
@@ -436,11 +456,55 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
   }
 
   private void stopPlaying() {
-    if (myCurrentState == TL_PLAY) {
+    if (myCurrentState == State.TL_PLAY) {
       if (myPositionTimer != null) {
         myPositionTimer.stop();
       }
     }
+  }
+
+  @Override
+  @Nullable
+  public Object getSelectedAccessory() {
+    if (DEBUG) {
+      Debug.println("getSelectedAccessory ");
+    }
+
+    MotionSceneModel.KeyFrame keyframe = getSelectedKeyframe();
+    if (keyframe != null) {
+      return keyframe.getTag();
+    }
+    MotionSceneModel.ConstraintView cv = getSelectedConstraintView();
+    if (cv != null) {
+      return cv.getTag();
+    }
+    return null;
+  }
+
+  @Override
+  public void addListener(@NotNull AccessorySelectionListener listener) {
+    myListeners.add(listener);
+  }
+
+  @Override
+  public void removeListener(@NotNull AccessorySelectionListener listener) {
+    myListeners.remove(listener);
+  }
+
+  private void fireSelectionChanged(@NotNull List<NlComponent> components) {
+    List<AccessorySelectionListener> copy = new ArrayList<>(myListeners);
+    copy.forEach(listener -> listener.selectionChanged(this, components));
+  }
+
+  private void fireSelectionChanged() {
+    Object newValue = getSelectedAccessory();
+    if (myLastSelectedAccessory == newValue) {
+      // Avoid sending change requests when there are no changes.
+      return;
+    }
+    List<NlComponent> selection = mySelection != null ? Collections.singletonList(mySelection) : Collections.emptyList();
+    fireSelectionChanged(selection);
+    myLastSelectedAccessory = newValue;
   }
 
   @Override
@@ -455,13 +519,13 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
       case LOOP_ACTION:
         myLoopMode = ! myLoopMode;
         myDirectionBackward = false;
-        if (myCurrentState == TL_PAUSE) {
+        if (myCurrentState == State.TL_PAUSE) {
           setState(State.TL_PLAY);
         }
         break;
       case PLAY_ACTION:
       case SLOW_MOTION:
-        if (myCurrentState == TL_PLAY) {
+        if (myCurrentState == State.TL_PLAY) {
           setState(State.TL_PAUSE);
         }
         else {
@@ -477,24 +541,37 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     if (myMotionLayoutAttributePanel != null) {
       myMotionLayoutAttributePanel.updateSelection();
     }
-    myTimelineListeners.forEach(listener -> listener.updateSelection(getSelectedKeyframe()));
     String selectedElementName = myPanel.getChart().getSelectedKeyView();
-    if (selectedElementName != null) {
+    if (selectedElementName != null && myMotionLayout != null) {
       List<NlComponent> selection = getSelectionFrom(myMotionLayout, selectedElementName);
-      mySurface.getSelectionModel().setSelection(selection);
+      SwingUtilities.invokeLater(() ->
+      mySurface.getSelectionModel().setSelection(selection));
+    }
+
+    SmartPsiElementPointer<XmlTag> constraint = myPanel.getChart().getSelectedConstraint();
+    if (constraint != null) {
+      XmlTag constraintSet = constraint.getElement().getParentTag();
+      String id = stripID(constraintSet.getAttributeValue("id", SdkConstants.ANDROID_URI));
+      if (id != null) {
+        if (id.equalsIgnoreCase("start")) {
+          setState(State.TL_START);
+        } else if (id.equalsIgnoreCase("end")) {
+          setState(State.TL_END);
+        }
+      }
     }
   }
 
   private List<NlComponent> getSelectionFrom(@NotNull NlComponent component, @NotNull String id) {
-    if (component.getId().equals(id)) {
+    if (id.equals(component.getId())) {
       return Collections.singletonList(component);
     }
     for (NlComponent child : component.getChildren()) {
-      if (child.getId().equals(id)) {
+      if (id.equals(child.getId())) {
         return Collections.singletonList(child);
       }
     }
-    return new ArrayList<>();
+    return Collections.emptyList();
   }
 
   @Override
@@ -518,9 +595,11 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
    * @param attributeName
    * @param value
    */
-  public void setKeyframeAttribute(@NotNull String attributeName, float value) {
+  public void setKeyframeAttribute(@NotNull AttrName attributeName, float value) {
     MotionSceneModel.KeyFrame keyFrame = myPanel.getChart().getSelectedKeyFrame();
-    keyFrame.setValue(attributeName, Float.toString(value));
+    if (keyFrame != null) {
+      keyFrame.setValue(attributeName, Float.toString(value));
+    }
   }
 
   /**
@@ -528,9 +607,11 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
    * @param model
    * @param values
    */
-  public void setKeyframeAttributes(@NotNull HashMap<String, String> values) {
+  public void setKeyframeAttributes(@NotNull HashMap<AttrName, String> values) {
     MotionSceneModel.KeyFrame keyFrame = myPanel.getChart().getSelectedKeyFrame();
-    keyFrame.setValues(values);
+    if (keyFrame != null) {
+      keyFrame.setValues(values);
+    }
   }
 
   // TODO: merge with the above parse function
@@ -543,7 +624,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
         return null;
       }
     }
-    String file = component.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_TRANSITION);
+    String file = component.getAttribute(SdkConstants.AUTO_URI, "layoutDescription");
     if (file == null) {
       return null;
     }
@@ -640,15 +721,5 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
   public void setMotionLayoutAttributePanel(MotionLayoutAttributePanel panel) {
     myMotionLayoutAttributePanel = panel;
-  }
-
-  @Override
-  public void addTimelineListener(@NotNull TimelineListener listener) {
-    myTimelineListeners.add(listener);
-  }
-
-  @Override
-  public void removeTimeLineListener(@NotNull TimelineListener listener) {
-    myTimelineListeners.remove(listener);
   }
 }

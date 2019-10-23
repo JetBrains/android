@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.common.scene.target;
 
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
@@ -26,10 +29,11 @@ import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.scale.JBUIScale;
+import java.awt.Color;
+import java.awt.Point;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,13 +44,23 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
 
   private static final boolean DEBUG_RENDERER = false;
 
-  private static final int ANCHOR_SIZE = JBUIScale.scale(3);
-  private static final int EXPANDED_SIZE = JBUIScale.scale(200);
+  @SwingCoordinate public static final int ANCHOR_SIZE = JBUIScale.scale(6);
+  @SwingCoordinate public static final int EXPANDED_SIZE = JBUIScale.scale(400);
+
+  @AndroidDpCoordinate private float myPositionX;
+  @AndroidDpCoordinate private float myPositionY;
 
   @NotNull protected final Type myType;
   @AndroidDpCoordinate protected int myLastX = -1;
   @AndroidDpCoordinate protected int myLastY = -1;
-  private boolean myExpandArea = false;
+
+  protected final boolean myIsEdge;
+
+  /**
+   * If this Anchor is dragging.
+   * Note that this doesn't mean the associated component is dragging. This means Anchor itself is dragging.
+   */
+  protected boolean myIsDragging = false;
 
   protected final TargetSnapper mySnapper = new TargetSnapper();
 
@@ -71,14 +85,31 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
       }
       return 0;
     }
+
+    @Override
+    public String toString() {
+      switch (this) {
+        case LEFT:
+          return DecoratorUtilities.LEFT_CONNECTION;
+        case TOP:
+          return DecoratorUtilities.TOP_CONNECTION;
+        case RIGHT:
+          return DecoratorUtilities.RIGHT_CONNECTION;
+        case BOTTOM:
+          return DecoratorUtilities.BOTTOM_CONNECTION;
+        default:
+          return DecoratorUtilities.BASELINE_CONNECTION;
+      }
+    }
   }
 
   /////////////////////////////////////////////////////////////////////////////
   //region Constructor
   /////////////////////////////////////////////////////////////////////////////
 
-  public AnchorTarget(@NotNull Type type) {
+  public AnchorTarget(@NotNull Type type, boolean isEdge) {
     myType = type;
+    myIsEdge = isEdge;
   }
 
   //endregion
@@ -86,9 +117,26 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
   //region Accessors
   /////////////////////////////////////////////////////////////////////////////
 
+
+  @Override
+  @AndroidDpCoordinate
+  public float getCenterX() {
+    return myPositionX;
+  }
+
+  @Override
+  @AndroidDpCoordinate
+  public float getCenterY() {
+    return myPositionY;
+  }
+
   @NotNull
   public Type getType() {
     return myType;
+  }
+
+  public boolean isEdge() {
+    return myIsEdge;
   }
 
   protected abstract boolean isConnected();
@@ -99,44 +147,18 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
   }
 
   @Override
-  public void setExpandSize(boolean expand) {
-    myExpandArea = expand;
+  public void componentSelectionChanged(boolean selected) {
+    DecoratorUtilities.ViewStates mode = selected ? DecoratorUtilities.ViewStates.SELECTED : DecoratorUtilities.ViewStates.NORMAL;
+    DecoratorUtilities.setTimeChange(myComponent.getNlComponent(), myType.toString(), mode);
   }
 
   @Override
   public void setMouseHovered(boolean over) {
     if (over != mIsOver) {
-      changeMouseOverState(over);
+      mIsOver = over;
       myComponent.getScene().needsRebuildList();
       myComponent.getScene().repaint();
     }
-  }
-
-  private void changeMouseOverState(boolean newValue) {
-    mIsOver = newValue;
-    String dir;
-    switch (myType) {
-      case LEFT:
-        dir = DecoratorUtilities.LEFT_CONNECTION;
-        break;
-      case TOP:
-        dir = DecoratorUtilities.TOP_CONNECTION;
-        break;
-      case RIGHT:
-        dir = DecoratorUtilities.RIGHT_CONNECTION;
-        break;
-      case BOTTOM:
-        dir = DecoratorUtilities.BOTTOM_CONNECTION;
-        break;
-      default:
-        dir = DecoratorUtilities.BASELINE_CONNECTION;
-        break;
-    }
-    DecoratorUtilities.ViewStates mode = DecoratorUtilities.ViewStates.SELECTED;
-    if (mIsOver) {
-      mode = DecoratorUtilities.ViewStates.WILL_DESTROY;
-    }
-    DecoratorUtilities.setTimeChange(myComponent.getNlComponent(), dir, mode);
   }
 
   /**
@@ -146,29 +168,10 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
     return mIsOver && !myComponent.isSelected();
   }
 
-  @Override
-  public void onComponentSelectionChanged(boolean selection) {
-    String dir;
-    switch (myType) {
-      case LEFT:
-        dir = DecoratorUtilities.LEFT_CONNECTION;
-        break;
-      case TOP:
-        dir = DecoratorUtilities.TOP_CONNECTION;
-        break;
-      case RIGHT:
-        dir = DecoratorUtilities.RIGHT_CONNECTION;
-        break;
-      case BOTTOM:
-        dir = DecoratorUtilities.BOTTOM_CONNECTION;
-        break;
-      default:
-        dir = DecoratorUtilities.BASELINE_CONNECTION;
-        break;
-    }
-    DecoratorUtilities.ViewStates mode = (selection) ? DecoratorUtilities.ViewStates.SELECTED : DecoratorUtilities.ViewStates.NORMAL;
-
-    DecoratorUtilities.setTimeChange(myComponent.getNlComponent(), dir, mode);
+  /** Returns true if this anchor can disconnect itself. */
+  public boolean canDisconnect() {
+    // TODO: Make use of this on a common function to disconnect for constraint and relative anchor targets.
+    return true;
   }
 
   //endregion
@@ -182,84 +185,56 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
                         @AndroidDpCoordinate int t,
                         @AndroidDpCoordinate int r,
                         @AndroidDpCoordinate int b) {
-    float ratio = 1f / (float)sceneTransform.getScale();
-    if (ratio > 2) {
-      ratio = 2;
-    }
-    float size = (ANCHOR_SIZE * ratio);
-    float minWidth = 4 * size;
-    float minHeight = 4 * size;
-    if (r - l < minWidth) {
-      float d = (minWidth - (r - l)) / 2;
-      l -= d;
-      r += d;
-    }
-    if (b - t < minHeight) {
-      float d = (minHeight - (b - t)) / 2;
-      t -= d;
-      b += d;
-    }
-    int w = r - l;
-    int h = b - t;
-    int mw = l + w / 2;
-    int mh = t + h / 2;
+    float mw = (l + r) / 2f;
+    float mh = (t + b) / 2f;
     switch (myType) {
       case LEFT: {
-        myLeft = l - size;
-        myTop = mh - size;
-        myRight = l + size;
-        myBottom = mh + size;
-        if (myExpandArea) {
-          myLeft = l - EXPANDED_SIZE;
-          myTop = t;
-          myBottom = b;
-        }
+        myPositionX = l;
+        myPositionY = mh;
       }
       break;
       case TOP: {
-        myLeft = mw - size;
-        myTop = t - size;
-        myRight = mw + size;
-        myBottom = t + size;
-        if (myExpandArea) {
-          myTop = t - EXPANDED_SIZE;
-          myLeft = l;
-          myRight = r;
-        }
+        myPositionX = mw;
+        myPositionY = t;
       }
       break;
       case RIGHT: {
-        myLeft = r - size;
-        myTop = mh - size;
-        myRight = r + size;
-        myBottom = mh + size;
-        if (myExpandArea) {
-          myRight = r + EXPANDED_SIZE;
-          myTop = t;
-          myBottom = b;
-        }
+        myPositionX = r;
+        myPositionY = mh;
       }
       break;
       case BOTTOM: {
-        myLeft = mw - size;
-        myTop = b - size;
-        myRight = mw + size;
-        myBottom = b + size;
-        if (myExpandArea) {
-          myBottom = b + EXPANDED_SIZE;
-          myLeft = l;
-          myRight = r;
-        }
+        myPositionX = mw;
+        myPositionY = b;
       }
       break;
       case BASELINE: {
-        myLeft = l + size;
-        myTop = t + myComponent.getBaseline() - size / 2;
-        myRight = r - size;
-        myBottom = t + myComponent.getBaseline() + size / 2;
+        myPositionX = mw;
+        myPositionY = t + myComponent.getBaseline();
+        return false;
       }
-      break;
     }
+
+    // When width or height is too small, move the anchor outer to avoid anchors overlap each other.
+    // The minimal distance between anchors is 4 * ANCHOR_SIZE in Swing Coordinate.
+    int anchorSizeDip = Coordinates.getAndroidDimensionDip(myComponent.getScene().getSceneManager().getSceneView(), ANCHOR_SIZE);
+    float xDiff = myPositionX - mw;
+    if (sceneTransform.getSwingDimensionDip(Math.abs(xDiff)) < ANCHOR_SIZE * 2) {
+      float sign = Math.signum(xDiff);
+      if (sign == 0) {
+        sign = myType == Type.LEFT ? -1f : myType == Type.RIGHT ? 1f : 0;
+      }
+      myPositionX = mw + sign * 2 * anchorSizeDip;
+    }
+    float yDiff = myPositionY - mh;
+    if (sceneTransform.getSwingDimensionDip(Math.abs(yDiff)) < ANCHOR_SIZE * 2) {
+      float sign = Math.signum(yDiff);
+      if (sign == 0) {
+        sign = myType == Type.TOP ? -1f : myType == Type.BOTTOM ? 1f : 0;
+      }
+      myPositionY = mh + sign * 2 * anchorSizeDip;
+    }
+
     return false;
   }
 
@@ -280,17 +255,33 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
     }
 
     if (DEBUG_RENDERER) {
-      list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.green);
-      list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red);
-      list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, Color.red);
+      int swingX = sceneContext.getSwingXDip(myPositionX);
+      int swingY = sceneContext.getSwingYDip(myPositionY);
+      int left = swingX - ANCHOR_SIZE;
+      int top = swingY - ANCHOR_SIZE;
+      int right = swingX + ANCHOR_SIZE;
+      int bottom = swingY + ANCHOR_SIZE;
+
+      list.addRect(left, top, right, bottom, mIsOver ? Color.yellow : Color.green);
+      list.addLine(sceneContext, left, top, right, bottom, Color.red);
+      list.addLine(sceneContext, left, bottom, right, top, Color.red);
     }
 
     DrawAnchor.Mode mode = getDrawMode();
     DrawAnchor.Type type = getDrawType();
     boolean drawAsConnected = getDrawAsConnected();
+    if (mode == DrawAnchor.Mode.DELETE && !canDisconnect()) {
+      // TODO: This should be done in getDrawMode().
+      mode = DrawAnchor.Mode.OVER;
+    }
 
     if (mode != DrawAnchor.Mode.DO_NOT_DRAW) {
-      DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom, type, drawAsConnected, mode);
+      if (type != DrawAnchor.Type.BASELINE) {
+        DrawAnchor.add(list, sceneContext, myPositionX, myPositionY, type, drawAsConnected, mode);
+      }
+      else {
+        DrawAnchor.addBaseline(list, sceneContext, myPositionX, myPositionY, myComponent.getDrawWidth(), type, drawAsConnected, mode);
+      }
     }
   }
 
@@ -299,11 +290,52 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
     if (!isEnabled()) {
       return;
     }
-    picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
-                   transform.getSwingXDip(myRight), transform.getSwingYDip(myBottom));
+
+    int swingX = transform.getSwingXDip(myPositionX);
+    int swingY = transform.getSwingYDip(myPositionY);
+
+    if (myIsEdge) {
+      switch (myType) {
+        case LEFT:
+        case RIGHT:
+          int swingHeight = transform.getSwingDimensionDip(myComponent.getDrawHeight());
+          picker.addRect(this, 0, swingX - ANCHOR_SIZE, swingY - swingHeight / 2, swingX + ANCHOR_SIZE, swingY + swingHeight / 2);
+          break;
+        case TOP:
+        case BOTTOM:
+          int swingWidth = transform.getSwingDimensionDip(myComponent.getDrawWidth());
+          picker.addRect(this, 0, swingX - swingWidth / 2, swingY - ANCHOR_SIZE, swingX + swingWidth / 2, swingY + ANCHOR_SIZE);
+          break;
+        case BASELINE:
+          // should not happen here since baseline anchor should never expand.
+          break;
+      }
+    }
+    else if (myType != Type.BASELINE) {
+      // The height of Baseline Anchor is smaller.
+      picker.addRect(this, 0, swingX - ANCHOR_SIZE / 2, swingY - ANCHOR_SIZE / 2, swingX + ANCHOR_SIZE, swingY + ANCHOR_SIZE);
+    }
+    else {
+      // baseline anchor
+      int swingWidth = transform.getSwingDimensionDip(myComponent.getDrawWidth());
+      int left = swingX - swingWidth / 2 + ANCHOR_SIZE;
+      int right = swingX + swingWidth / 2 - ANCHOR_SIZE;
+      picker.addRect(this, 0, left, swingY - ANCHOR_SIZE, right, swingY + ANCHOR_SIZE);
+    }
   }
 
-  abstract protected boolean isEnabled();
+  protected boolean isEnabled() {
+    Target interactingTarget = myComponent.getScene().getInteractingTarget();
+    if (interactingTarget instanceof AnchorTarget) {
+      return ((AnchorTarget) interactingTarget).isConnectible(this);
+    }
+    return true;
+  }
+
+  /**
+   * Function to determine if the given Target is connectible.
+   */
+  abstract public boolean isConnectible(@NotNull AnchorTarget dest);
 
   @NotNull
   protected abstract DrawAnchor.Mode getDrawMode();
@@ -314,7 +346,7 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
   }
 
   private boolean getDrawAsConnected() {
-    return isConnected() && !isTargeted();
+    return isConnected() || myIsDragging;
   }
 
   @Override
@@ -354,6 +386,15 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> ignored) {
     myLastX = -1;
     myLastY = -1;
+  }
+
+  @Override
+  public void mouseCancel() {
+    myLastX = -1;
+    myLastY = -1;
+    myComponent.getScene().needsRebuildList();
+    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myIsDragging = false;
   }
 
   @Override
@@ -427,7 +468,7 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
     }
     Notch notch = new Notch.Circle(owner, x, y, null);
     // Make it bigger for snapping.
-    notch.setGap(ANCHOR_SIZE * 3);
+    notch.setGap(Coordinates.getAndroidDimensionDip(snappableComponent.getScene().getDesignSurface(), ANCHOR_SIZE * 2));
     notch.setTarget(this);
     notchBuilder.add(notch);
   }

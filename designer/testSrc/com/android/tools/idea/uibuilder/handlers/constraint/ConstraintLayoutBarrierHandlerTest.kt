@@ -21,13 +21,13 @@ class ConstraintLayoutBarrierHandlerTest : LayoutTestCase() {
     for (direction in VERTICAL_BARRIER_DIRECTIONS) {
       val model = createNlModelWithBarrier(direction)
       val barrier = model.find("barrier")!!
-      assertEquals(StudioIcons.LayoutEditor.Toolbar.BARRIER_VERTICAL, barrierHandler.getIcon(barrier))
+      assertEquals(StudioIcons.LayoutEditor.Palette.BARRIER_VERTICAL, barrierHandler.getIcon(barrier))
     }
 
     for (direction in HORIZONTAL_BARRIER_DIRECTION) {
       val model = createNlModelWithBarrier(direction)
       val barrier = model.find("barrier")!!
-      assertEquals(StudioIcons.LayoutEditor.Toolbar.BARRIER_HORIZONTAL, barrierHandler.getIcon(barrier))
+      assertEquals(StudioIcons.LayoutEditor.Palette.BARRIER_HORIZONTAL, barrierHandler.getIcon(barrier))
     }
   }
 

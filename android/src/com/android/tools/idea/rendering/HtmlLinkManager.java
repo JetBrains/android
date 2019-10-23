@@ -17,7 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -446,7 +446,7 @@ public class HtmlLinkManager {
     int index = s.lastIndexOf('.');
     if (index == -1) {
       className = s;
-      packageName = MergedManifest.get(module).getPackage();
+      packageName = MergedManifestManager.getSnapshot(module).getPackage();
       if (packageName == null) {
         return;
       }

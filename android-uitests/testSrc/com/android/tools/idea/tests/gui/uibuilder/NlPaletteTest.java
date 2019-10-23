@@ -41,7 +41,7 @@ public class NlPaletteTest {
 
   @Test
   public void testTypingKeepsCategorySelectionIfMatchesFound() throws Exception {
-    myGuiTest.importSimpleLocalApplication();
+    myGuiTest.importSimpleApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
@@ -67,7 +67,7 @@ public class NlPaletteTest {
 
   @Test
   public void testTypingSwitchesCategorySelectionIfNoMatchesFound() throws Exception {
-    myGuiTest.importSimpleLocalApplication();
+    myGuiTest.importSimpleApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
@@ -93,7 +93,7 @@ public class NlPaletteTest {
 
   @Test
   public void testEnterInSearchBoxCausesItemListToGainFocus() throws Exception {
-    myGuiTest.importSimpleLocalApplication();
+    myGuiTest.importSimpleApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
@@ -121,7 +121,7 @@ public class NlPaletteTest {
 
   @Test
   public void clickToDownloadMissingDependency() throws Exception {
-    myGuiTest.importSimpleLocalApplication();
+    myGuiTest.importSimpleApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
@@ -141,7 +141,7 @@ public class NlPaletteTest {
 
   @Test
   public void testAddFragmentWithoutCustomFragmentsAvailable() throws Exception {
-    myGuiTest.importSimpleLocalApplication();
+    myGuiTest.importSimpleApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = myGuiTest.ideFrame().getEditor();

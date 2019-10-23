@@ -47,20 +47,40 @@ class DependenciesTreeRootNodeTest : DependencyTestCase() {
     // Note: indentation matters!
     val expectedProjectStructure = """
       testTreeStructure
-          android.arch.core:common:1.1.0
-          android.arch.core:runtime:1.1.0
-          android.arch.lifecycle:common:1.1.0
-          android.arch.lifecycle:livedata-core:1.1.0
-          android.arch.lifecycle:runtime:1.1.0
-          android.arch.lifecycle:viewmodel:1.1.0
-          com.android.support:animated-vector-drawable:27.1.1
+          jModuleK
+          jModuleL
+          mainModule
+          nestedZ
+          android.arch.core:common:1.1.1
+          android.arch.core:runtime:1.1.1
+          android.arch.lifecycle:common:1.1.1
+          android.arch.lifecycle:livedata-core:1.1.1
+          android.arch.lifecycle:livedata:1.1.1
+          android.arch.lifecycle:runtime:1.1.1
+          android.arch.lifecycle:viewmodel:1.1.1
+          com.android.support:animated-vector-drawable:28.0.0
           com.android.support:appcompat-v7
-          support-annotations:→27.1.1
-          com.android.support:support-compat:27.1.1
-          com.android.support:support-core-ui:27.1.1
-          com.android.support:support-core-utils:27.1.1
-          com.android.support:support-fragment:27.1.1
-          com.android.support:support-vector-drawable:27.1.1
+          com.android.support:asynclayoutinflater:28.0.0
+          com.android.support:collections:28.0.0
+          com.android.support:coordinatorlayout:28.0.0
+          com.android.support:cursoradapter:28.0.0
+          com.android.support:customview:28.0.0
+          com.android.support:documentfile:28.0.0
+          com.android.support:drawerlayout:28.0.0
+          com.android.support:interpolator:28.0.0
+          com.android.support:loader:28.0.0
+          com.android.support:localbroadcastmanager:28.0.0
+          com.android.support:print:28.0.0
+          com.android.support:slidingpanelayout:28.0.0
+          support-annotations:→28.0.0
+          com.android.support:support-compat:28.0.0
+          com.android.support:support-core-ui:28.0.0
+          com.android.support:support-core-utils:28.0.0
+          com.android.support:support-fragment:28.0.0
+          com.android.support:support-vector-drawable:28.0.0
+          com.android.support:swiperefreshlayout:28.0.0
+          com.android.support:versionedparcelable:28.0.0
+          com.android.support:viewpager:28.0.0
           com.example.jlib:lib3
               lib3:0.6
               lib3:0.9.1
@@ -76,10 +96,9 @@ class DependenciesTreeRootNodeTest : DependencyTestCase() {
           com.example.libs:lib2
               lib2:0.9.1
               lib2:1.0
-          jModuleK
-          jModuleL
-          mainModule
-          nestedZ""".trimIndent()
+          lib (..)
+          libsam1-1.1.jar (../lib)
+          libs""".trimIndent()
     val treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     Assert.assertThat(treeStructure.toString(), CoreMatchers.equalTo(expectedProjectStructure))

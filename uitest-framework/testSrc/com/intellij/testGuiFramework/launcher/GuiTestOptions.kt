@@ -15,11 +15,11 @@
  */
 package com.intellij.testGuiFramework.launcher
 
-import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
+import com.android.testutils.TestUtils
 import java.io.File
 
 enum class RestartPolicy {
-  IDE_ERROR, TEST_FAILURE, EACH_TEST;
+  IDE_ERROR_OR_JUNIT_TIMEOUT, TEST_FAILURE, EACH_TEST;
 }
 
 object GuiTestOptions {
@@ -32,13 +32,20 @@ object GuiTestOptions {
   const val RESTART_POLICY = "idea.gui.test.restart.policy"
   const val STANDALONE_MODE = "idea.gui.test.from.standalone.runner"
 
-  var buildSystem = TargetBuildSystem.BuildSystem.GRADLE
-
   fun getPluginPath(): String = getSystemProperty("plugin.path", "")
   fun isDebug(): Boolean = getSystemProperty("idea.debug.mode", false)
 
   fun getDebugPort(): Int = getSystemProperty("idea.gui.test.debug.port", 5005)
   fun getBootClasspath(): String = getSystemProperty("idea.gui.test.bootclasspath", "../out/production/boot")
+
+  fun getAspectsAgentJar(): String =
+    getSystemProperty("aspects.agent.jar", "${TestUtils.getWorkspaceRoot()}/prebuilts/tools/common/aspects-agent/aspects_agent.jar")
+  fun getAspectsAgentRules(): String =
+    getSystemProperty("aspects.agent.rules", "${TestUtils.getWorkspaceRoot()}/tools/adt/idea/android-uitests/default_aspect_rules.txt")
+  fun getAspectsAgentBaseline(): String =
+    getSystemProperty("aspects.agent.baseline", "${TestUtils.getWorkspaceRoot()}/tools/adt/idea/android-uitests/aspects_baseline.txt")
+  fun getAspectsBaselineExportPath(): String = getSystemProperty("aspects.baseline.export.path", "")
+
   //used for restarted and resumed test to qualify from what point to start
   fun getSegmentIndex(): Int = getSystemProperty(SEGMENT_INDEX, 0)
   fun getNumTestSegments(): Int = getSystemProperty(NUM_TEST_SEGMENTS_KEY, 1)
@@ -46,7 +53,7 @@ object GuiTestOptions {
   fun getVmOptionsFilePath(): String = getSystemProperty(REMOTE_IDE_VM_OPTIONS_PATH_KEY, File(File(getRemoteIdePath()).parent, "studio64.vmoptions").canonicalPath)
   fun isRunningOnRelease(): Boolean = getSystemProperty(IS_RUNNING_ON_RELEASE, false)
   fun isStandaloneMode(): Boolean = getSystemProperty(STANDALONE_MODE, false)
-  fun getRestartPolicy(): RestartPolicy = RestartPolicy.valueOf(getSystemProperty(RESTART_POLICY, "IDE_ERROR"))
+  fun getRestartPolicy(): RestartPolicy = RestartPolicy.valueOf(getSystemProperty(RESTART_POLICY, "IDE_ERROR_OR_JUNIT_TIMEOUT"))
 
   inline fun <reified ReturnType> getSystemProperty(key: String, defaultValue: ReturnType): ReturnType {
     val value = System.getProperty(key) ?: return defaultValue

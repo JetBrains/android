@@ -1,7 +1,15 @@
 package org.jetbrains.android.uipreview;
 
+import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
+import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_V7;
+import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_VIEW_HOLDER;
+import static com.android.SdkConstants.EXT_JAR;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
+
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.AndroidManifestPackageNameUtils;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.util.PathString;
@@ -21,33 +29,36 @@ import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.tools.idea.util.FileExtensions;
+import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.android.utils.SdkUtils;
 import com.google.common.io.Files;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
-import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Render class loader responsible for loading classes in custom views and local and library classes
@@ -101,7 +112,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
           if (isResourceClassName(name)) {
             AndroidFacet facet = AndroidFacet.getInstance(module);
             if (facet != null) {
-              ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+              ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
               byte[] data = ResourceClassRegistry.get(module.getProject()).findClassDefinition(name, repositoryManager);
               if (data != null) {
                 data = convertClass(data);
@@ -292,8 +303,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
   @Nullable
   protected Class<?> loadClassFile(@NotNull String name, @NotNull VirtualFile classFile) {
     if (myClassFiles == null) {
-      myClassFiles = new HashMap<>();
-      myClassFilesLastModified = new HashMap<>();
+      myClassFiles = new ConcurrentHashMap<>();
+      myClassFilesLastModified = new ConcurrentHashMap<>();
     }
     myClassFiles.put(name, classFile);
     myClassFilesLastModified.put(name, new ClassModificationTimestamp(classFile.getTimeStamp(), classFile.getLength()));
@@ -302,24 +313,43 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   private static void registerResources(@NotNull Module module) {
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet == null) {
+      return;
+    }
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(androidFacet);
+    ResourceIdManager idManager = ResourceIdManager.get(module);
+    ResourceClassRegistry classRegistry = ResourceClassRegistry.get(module.getProject());
+
+    // If final ids are used, we will read the real class from disk later (in loadAndParseRClass), using this class loader. So we
+    // can't treat it specially here, or we will read the wrong bytecode later.
+    if (!idManager.finalIdsUsed()) {
+      classRegistry.addLibrary(repositoryManager.getAppResources(),
+                               idManager,
+                               ReadAction.compute(() -> AndroidManifestUtils.getPackageName(androidFacet)),
+                               repositoryManager.getNamespace());
+    }
+
+    for (AndroidFacet dependency : AndroidUtils.getAllAndroidDependencies(module, false)) {
+      classRegistry.addLibrary(repositoryManager.getAppResources(),
+                               idManager,
+                               ReadAction.compute(() -> AndroidManifestUtils.getPackageName(dependency)),
+                               repositoryManager.getNamespace());
+    }
+
     AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
     for (Library library : moduleSystem.getResolvedDependentLibraries()) {
       if (library instanceof ExternalLibrary && ((ExternalLibrary)library).hasResources()) {
-        registerLibraryResources(module, (ExternalLibrary)library);
+        registerLibraryResources((ExternalLibrary)library, repositoryManager, classRegistry, idManager);
       }
     }
   }
 
-  private static void registerLibraryResources(@NotNull Module module, @NotNull ExternalLibrary library) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return;
-    }
-
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
-    LocalResourceRepository appResources = repositoryManager.getAppResources(true);
-
-    ResourceClassRegistry registry = ResourceClassRegistry.get(module.getProject());
+  private static void registerLibraryResources(@NotNull ExternalLibrary library,
+                                               @NotNull ResourceRepositoryManager repositoryManager,
+                                               @NotNull ResourceClassRegistry classRegistry,
+                                               @NotNull ResourceIdManager idManager) {
+    LocalResourceRepository appResources = repositoryManager.getAppResources();
 
     // Choose which resources should be in the generated R class. This is described in the JavaDoc of ResourceClassGenerator.
     ResourceRepository rClassContents;
@@ -334,18 +364,17 @@ public final class ModuleClassLoader extends RenderClassLoader {
       resourcesNamespace = ResourceNamespace.RES_AUTO;
     }
     else {
-      ResourceRepository aarResources = repositoryManager.findLibraryResources(library);
-      if (!(aarResources instanceof SingleNamespaceResourceRepository)) {
+      SingleNamespaceResourceRepository aarResources = repositoryManager.findLibraryResources(library);
+      if (aarResources == null) {
         return;
       }
 
       rClassContents = aarResources;
-      SingleNamespaceResourceRepository resources = (SingleNamespaceResourceRepository)aarResources;
-      resourcesNamespace = resources.getNamespace();
-      packageName = resources.getPackageName();
+      resourcesNamespace = aarResources.getNamespace();
+      packageName = aarResources.getPackageName();
     }
 
-    registry.addLibrary(rClassContents, ResourceIdManager.get(module), packageName, resourcesNamespace);
+    classRegistry.addLibrary(rClassContents, idManager, packageName, resourcesNamespace);
   }
 
   @Nullable
@@ -356,10 +385,21 @@ public final class ModuleClassLoader extends RenderClassLoader {
     PathString manifestFile = library.getManifestFile();
     if (manifestFile != null) {
       try {
-        return AndroidManifestUtils.getPackageNameFromManifestFile(manifestFile);
+        return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(manifestFile);
       }
       catch (IOException ignore) {
-        // Ignore to return null.
+        // Workaround for https://issuetracker.google.com/127647973
+        // Until fixed, the VFS might have an outdated view of the gradle cache directory. Some manifests might appear as missing but they
+        // are actually there. In those cases, we issue a refresh call to fix the problem.
+        if (VirtualFileSystemOpener.INSTANCE.recognizes(manifestFile)) {
+          FileExtensions.toVirtualFile(manifestFile, true);
+
+          try {
+            return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(manifestFile);
+          } catch (IOException ignore2) {
+            return null;
+          }
+        }
       }
     }
     return null;

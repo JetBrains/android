@@ -178,8 +178,7 @@ public class ConstraintDragTarget extends DragBaseTarget implements MultiCompone
         applyMargin(attributes, targetEndMargin, dx);
       }
       else {
-        int dx = Math.max(0, x - parent.getDrawX());
-        String positionX = String.format(SdkConstants.VALUE_N_DP, dx);
+        String positionX = String.format(SdkConstants.VALUE_N_DP, x - parent.getDrawX());
         attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, positionX);
       }
 
@@ -218,8 +217,7 @@ public class ConstraintDragTarget extends DragBaseTarget implements MultiCompone
         applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, dy);
       }
       else {
-        int dy = Math.max(0, y - parent.getDrawY());
-        String positionY = String.format(SdkConstants.VALUE_N_DP, dy);
+        String positionY = String.format(SdkConstants.VALUE_N_DP, y - parent.getDrawY());
         attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, positionY);
       }
       ConstraintComponentUtilities.cleanup(attributes, myComponent.getNlComponent());
@@ -253,7 +251,16 @@ public class ConstraintDragTarget extends DragBaseTarget implements MultiCompone
       if (marginString != null) {
         marginValue = getMarginValue(attribute);
       }
-      if (marginValue != -1 && marginValue == currentValue) {
+      if (currentValue == 0) {
+        attributes.removeAttribute(SdkConstants.ANDROID_URI, attribute);
+        if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attribute)) {
+          attributes.removeAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
+        }
+        else if (SdkConstants.ATTR_LAYOUT_MARGIN_START.equals(attribute)) {
+          attributes.removeAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
+        }
+      }
+      else if (marginValue != -1 && marginValue == currentValue) {
         attributes.setAttribute(SdkConstants.ANDROID_URI, attribute, marginString);
         if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attribute)) {
           attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, marginString);

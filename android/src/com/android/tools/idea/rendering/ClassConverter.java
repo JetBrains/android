@@ -20,11 +20,17 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Shorts;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.lang.JavaVersion;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.org.objectweb.asm.*;
-
 import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.org.objectweb.asm.ClassReader;
+import org.jetbrains.org.objectweb.asm.ClassVisitor;
+import org.jetbrains.org.objectweb.asm.ClassWriter;
+import org.jetbrains.org.objectweb.asm.Label;
+import org.jetbrains.org.objectweb.asm.MethodVisitor;
+import org.jetbrains.org.objectweb.asm.Opcodes;
+import org.jetbrains.org.objectweb.asm.Type;
 
 /**
  * Rewrites classes applying the following transformations:
@@ -45,6 +51,8 @@ import java.util.Collection;
 public class ClassConverter {
   private static final String ORIGINAL_SUFFIX = "_Original";
   private static final String ERROR_METHOD_DESCRIPTION;
+
+  private static final int ourCurrentJdkClassVersion = jdkToClassVersion(SystemInfo.JAVA_VERSION);
 
   static {
     String desc;
@@ -155,7 +163,8 @@ public class ClassConverter {
         // We catch the exceptions from any onLayout, onMeasure or onDraw that match the signature from the View methods
         if (("onLayout".equals(name) && "(ZIIII)V".equals(desc) ||
              "onMeasure".equals(name) && "(II)V".equals(desc) ||
-             "onDraw".equals(name) && "(Landroid/graphics/Canvas;)V".equals(desc)) &&
+             "onDraw".equals(name) && "(Landroid/graphics/Canvas;)V".equals(desc) ||
+             "onFinishInflate".equals(name) && "()V".equals(desc)) &&
             ((access & (Opcodes.ACC_PUBLIC | Opcodes.ACC_PROTECTED)) != 0)) {
           wrapMethod(access, name, desc, signature, exceptions);
           // Make the Original method private so that it does not end up calling the inherited method.
@@ -214,7 +223,7 @@ public class ClassConverter {
 
   /** Return the classfile version of the current JDK */
   public static int getCurrentClassVersion() {
-    return jdkToClassVersion(SystemInfo.JAVA_VERSION);
+    return ourCurrentJdkClassVersion;
   }
 
   /** Returns true if the given class file data represents a valid class */

@@ -17,6 +17,7 @@ package com.android.tools.profilers.performance
 
 import com.android.tools.datastore.database.EventsTable
 import com.android.tools.profiler.proto.EventProfiler
+import com.android.tools.profiler.proto.Interaction
 
 import java.sql.Connection
 
@@ -41,10 +42,9 @@ class EventsGenerator(connection: Connection) : DataGenerator(connection) {
   private fun generateSystemData(timestamp: Long, properties: GeneratorProperties) {
     val system = EventProfiler.SystemData.newBuilder()
       .setActionId(random.nextInt())
-      .setType(EventProfiler.SystemData.SystemEventType.TOUCH)
+      .setType(Interaction.InteractionData.Type.TOUCH)
       .setStartTimestamp(timestamp)
       .setEndTimestamp(timestamp)
-      .setPid(properties.pid)
       .setEventId(random.nextInt().toLong())
       .setEventData("")
       .build()
@@ -57,15 +57,14 @@ class EventsGenerator(connection: Connection) : DataGenerator(connection) {
       myCurrentActivity = EventProfiler.ActivityData.newBuilder()
         .setName(random.nextLong().toString())
         .setHash(random.nextLong())
-        .setPid(properties.pid)
         .build()
       myGenerateResumeState = true
     }
     val state =
       if (myGenerateResumeState)
-        EventProfiler.ActivityStateData.ActivityState.RESUMED
+        Interaction.ViewData.State.RESUMED
       else
-        EventProfiler.ActivityStateData.ActivityState.PAUSED
+        Interaction.ViewData.State.PAUSED
     myCurrentActivity = myCurrentActivity!!.toBuilder().addStateChanges(EventProfiler.ActivityStateData.newBuilder()
                                                                           .setTimestamp(timestamp)
                                                                           .setState(state)

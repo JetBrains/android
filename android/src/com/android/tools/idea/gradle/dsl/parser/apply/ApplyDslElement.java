@@ -57,7 +57,7 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
         }
         if (file != null) {
           // Parse the file
-          GradleDslFile dslFile = getDslFile().getContext().getOrCreateBuildFile(file);
+          GradleDslFile dslFile = getDslFile().getContext().getOrCreateBuildFile(file, true);
           myAppliedDslFiles.add(dslFile);
 
           if (myParent instanceof GradlePropertiesDslElement) {

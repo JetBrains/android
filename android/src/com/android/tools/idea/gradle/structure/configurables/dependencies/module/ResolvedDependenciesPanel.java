@@ -34,7 +34,9 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -93,12 +95,13 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
         super.processMouseEvent(e);
       }
     };
+    myTree.setRowHeight(JBUI.scale(24));
 
     setHeaderActions();
     getHeader().setPreferredFocusedComponent(myTree);
 
     myTreeBuilder = new ResolvedDependenciesTreeBuilder(
-      module, myTree, treeModel, dependencySelection, this, myContext.getUiSettings());
+      module, myTree, treeModel, myContext.getUiSettings());
 
     module.add(event -> myTreeBuilder.reset(), this);
 
@@ -140,26 +143,6 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   private void setHeaderActions() {
     List<AnAction> additionalActions = Lists.newArrayList();
 
-    additionalActions.add(new SelectNodesMatchingCurrentSelectionAction() {
-      @Override
-      @NotNull
-      protected AbstractPsNodeTreeBuilder getTreeBuilder() {
-        return myTreeBuilder;
-      }
-    });
-
-    additionalActions.add(Separator.getInstance());
-
-    additionalActions.add(new AbstractBaseExpandAllAction(myTree) {
-      @Override
-      public void actionPerformed(AnActionEvent e) {
-        myIgnoreTreeSelectionEvents = true;
-        myTree.requestFocusInWindow();
-        myTreeBuilder.expandAllNodes();
-        myIgnoreTreeSelectionEvents = false;
-      }
-    });
-
     additionalActions.add(new AbstractBaseCollapseAllAction(myTree) {
       @Override
       public void actionPerformed(AnActionEvent e) {
@@ -168,40 +151,6 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     });
 
     additionalActions.add(Separator.getInstance());
-    //DefaultActionGroup settingsGroup = new DefaultActionGroup();
-    //settingsGroup.add(new ToggleAction("Group Similar") {
-    //  @Override
-    //  public boolean isSelected(AnActionEvent e) {
-    //    return PsUISettings.getInstance().RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
-    //  }
-    //
-    //  @Override
-    //  public void setSelected(AnActionEvent e, boolean state) {
-    //    PsUISettings settings = PsUISettings.getInstance();
-    //    if (settings.RESOLVED_DEPENDENCIES_GROUP_VARIANTS != state) {
-    //      settings.RESOLVED_DEPENDENCIES_GROUP_VARIANTS = state;
-    //      settings.fireUISettingsChanged();
-    //    }
-    //  }
-    //});
-    //
-    //additionalActions.add(new DumbAwareAction("", "", AllIcons.General.Gear) {
-    //  @Override
-    //  public void actionPerformed(AnActionEvent e) {
-    //    InputEvent inputEvent = e.getInputEvent();
-    //    ActionManagerImpl actionManager = (ActionManagerImpl)ActionManager.getInstance();
-    //    ActionPopupMenu popupMenu =
-    //      actionManager.createActionPopupMenu(POPUP_PLACE, settingsGroup, new MenuItemPresentationFactory(true));
-    //    int x = 0;
-    //    int y = 0;
-    //    if (inputEvent instanceof MouseEvent) {
-    //      x = ((MouseEvent)inputEvent).getX();
-    //      y = ((MouseEvent)inputEvent).getY();
-    //    }
-    //    popupMenu.getComponent().show(inputEvent.getComponent(), x, y);
-    //  }
-    //});
-
     getHeader().setAdditionalActions(additionalActions);
   }
 
@@ -229,20 +178,11 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   }
 
   @Override
-  public ActionCallback setSelection(@Nullable PsBaseDependency selection) {
-    if (selection == null) {
+  public ActionCallback setSelection(@Nullable Collection<PsBaseDependency> selection) {
+    if (selection == null || selection.isEmpty()) {
       myTreeBuilder.clearSelection();
-      return ActionCallback.DONE;
     }
-    else {
-      myIgnoreTreeSelectionEvents = true;
-      try {
-        return myTreeBuilder.selectMatchingNodes(selection, true);
-      }
-      finally {
-        myIgnoreTreeSelectionEvents = false;
-      }
-    }
+    return ActionCallback.DONE;
   }
 
   public void add(@NotNull SelectionChangeListener<PsBaseDependency> listener) {

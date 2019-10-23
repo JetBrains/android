@@ -248,7 +248,7 @@ public class PsiClassNavigation implements NavigationItem {
     private PsiAnonymousClass myAnonymousClass;
     private int myAnonymousClassIndex;
 
-    CountDownAnonymousClassVisitor(int anonymousClassIndex) {
+    public CountDownAnonymousClassVisitor(int anonymousClassIndex) {
       myAnonymousClassIndex = anonymousClassIndex;
     }
 

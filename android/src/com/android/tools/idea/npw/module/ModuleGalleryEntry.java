@@ -17,17 +17,16 @@ package com.android.tools.idea.npw.module;
 
 import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
 
 public interface ModuleGalleryEntry {
   /**
    * @return icon to be used in the gallery.
    */
   @Nullable
-  Image getIcon();
+  Icon getIcon();
 
   /**
    * @return module template name.

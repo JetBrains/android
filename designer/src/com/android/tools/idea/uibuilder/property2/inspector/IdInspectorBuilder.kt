@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants.*
-import com.android.tools.idea.common.property2.api.*
+import com.android.tools.property.panel.api.*
 import com.android.tools.idea.uibuilder.model.PreferenceUtils
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 
@@ -35,6 +35,6 @@ class IdInspectorBuilder(private val editorProvider: EditorProvider<NeleProperty
   }
 
   private fun isApplicable(property: NelePropertyItem): Boolean {
-    return property.components.none { it.tagName in PreferenceUtils.VALUES || it.tagName in menuTags}
+    return property.components.size == 1 && property.components.none { it.tagName in PreferenceUtils.VALUES || it.tagName in menuTags}
   }
 }

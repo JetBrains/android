@@ -167,7 +167,7 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtLiteralStringTem
                 ShortenReferences.DEFAULT.process(file, marker.startOffset, marker.endOffset)
             }
 
-            override fun beforeTemplateFinished(state: TemplateState?, template: Template?) {
+            override fun beforeTemplateFinished(state: TemplateState, template: Template?) {
                 ShortenReferences.DEFAULT.process(file, marker.startOffset, marker.endOffset)
             }
         })

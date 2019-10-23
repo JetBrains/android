@@ -190,7 +190,7 @@ public final class ConsoleHighlighter implements EditorHighlighter, DocumentList
     public final int start;
     public final int end;
 
-    HighlightRange(int start, int end, @Nullable TextAttributes attributes) {
+    public HighlightRange(int start, int end, @Nullable TextAttributes attributes) {
       this.attributes = attributes;
       this.start = start;
       this.end = end;
@@ -212,7 +212,7 @@ public final class ConsoleHighlighter implements EditorHighlighter, DocumentList
     private int myIndex;
     @NotNull private HighlightRange myRange = HighlightRange.EMPTY;
 
-    HighlightedRangesIterator(int index) {
+    public HighlightedRangesIterator(int index) {
       myIndex = index;
       myRange = getRange(index);
     }

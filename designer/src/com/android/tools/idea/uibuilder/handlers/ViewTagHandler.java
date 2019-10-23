@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.*;
 import com.google.common.collect.ImmutableList;
@@ -90,7 +91,7 @@ public class ViewTagHandler extends ViewHandler {
         !(isVerticalDivider(newChild) || isHorizontalDivider(newChild))) {
       String src = browseClasses(editor, null);
       if (src != null) {
-        newChild.setAttribute(null, ATTR_CLASS, src);
+        NlWriteCommandActionUtil.run(newChild, "Setting layout attribute", () -> newChild.setAttribute(null, ATTR_CLASS, src));
         return true;
       }
       else {

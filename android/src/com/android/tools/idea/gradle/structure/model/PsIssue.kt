@@ -16,10 +16,22 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.gradle.structure.configurables.issues.QUICK_FIX_PATH_TYPE
 import com.intellij.icons.AllIcons.Actions.Download
-import com.intellij.icons.AllIcons.General.*
-import com.intellij.ui.JBColor.*
+import com.intellij.icons.AllIcons.General.BalloonError
+import com.intellij.icons.AllIcons.General.BalloonInformation
+import com.intellij.icons.AllIcons.General.BalloonWarning
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.JBColor
+import com.intellij.ui.JBColor.GRAY
+import com.intellij.ui.JBColor.RED
+import org.jetbrains.kotlin.utils.addToStdlib.cast
 import java.awt.Color
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
+import java.io.Serializable
 import javax.swing.Icon
 
 interface PsIssue {
@@ -29,20 +41,35 @@ interface PsIssue {
   val severity: Severity
 
   val description: String?
-  val quickFix: PsQuickFix?
+  val quickFixes: List<PsQuickFix>
 
   enum class Severity constructor(val text: String, val pluralText: String, val icon: Icon, val color: Color, val priority: Int) {
     ERROR("Error", "Errors", BalloonError, RED, 0),
-    WARNING("Warning", "Warnings", BalloonWarning, YELLOW, 1),
+    WARNING("Warning", "Warnings", BalloonWarning, warningColor, 1),
     INFO("Information", "Information", BalloonInformation, GRAY, 3),
     UPDATE("Update", "Updates", Download, GRAY, 2)
   }
 }
 
-interface PsQuickFix {
-  fun getHyperlinkDestination(context: PsContext): String?
-  fun getHtml(context: PsContext): String
+interface PsQuickFix : Serializable {
+  val text: String
+  fun execute(context: PsContext)
+
+  companion object {
+    fun deserialize(data: String): PsQuickFix =
+      ObjectInputStream(ByteArrayInputStream(StringUtil.parseHexString(data))).readObject().cast<PsQuickFix>()
+  }
 }
+
+fun PsQuickFix.serialize(): String {
+  val byteArrayOutputStream = ByteArrayOutputStream()
+  ObjectOutputStream(byteArrayOutputStream).use { objectOutputStream ->
+    objectOutputStream.writeObject(this)
+  }
+  return StringUtil.toHexString(byteArrayOutputStream.toByteArray())
+}
+
+fun PsQuickFix.getHyperlinkDestination(): String = "$QUICK_FIX_PATH_TYPE${serialize()}"
 
 data class PsGeneralIssue(
   override val text: String,
@@ -50,10 +77,13 @@ data class PsGeneralIssue(
   override val path: PsPath,
   override val type: PsIssueType,
   override val severity: PsIssue.Severity,
-  override val quickFix: PsQuickFix? = null
+  override val quickFixes: List<PsQuickFix> = listOf()
 ) : PsIssue {
   constructor (text: String, path: PsPath, type: PsIssueType, severity: PsIssue.Severity, quickFix: PsQuickFix? = null) :
-    this(text, null, path, type, severity, quickFix)
+    this(text, null, path, type, severity, listOfNotNull(quickFix))
 
   override fun toString(): String = "${severity.name}: $text"
 }
+
+@Suppress("UnregisteredNamedColor")
+private val warningColor = JBColor.namedColor("NewPSD.warning", JBColor(0xF49810, 0xF49810))

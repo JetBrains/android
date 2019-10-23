@@ -24,6 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +42,7 @@ public class AndroidIconProvider extends IconProvider {
         return null;
       }
       if (FN_ANDROID_MANIFEST_XML.equals(file.getName())) {
-        return AndroidIcons.ManifestFile;
+        return StudioIcons.Shell.Filetree.MANIFEST_FILE;
       }
       VirtualFile parent = file.getParent();
       if (parent != null) {

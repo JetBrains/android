@@ -15,7 +15,25 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import com.android.tools.idea.gradle.dsl.api.*;
+import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES_BLOCK_NAME;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+
+import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.PluginModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
@@ -56,31 +74,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.dsl.model.GradlePropertiesModel.parsePropertiesFile;
-import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES_BLOCK_NAME;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleBuildModel {
   @NonNls private static final String PLUGIN = "plugin";
@@ -122,7 +125,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file,
                                                 @NotNull Project project,
                                                 @NotNull String moduleName) {
-    return new GradleBuildModelImpl(parseBuildFile(file, project, moduleName, BuildModelContext.create(project)));
+    return new GradleBuildModelImpl(parseBuildFile(file, project, moduleName, BuildModelContext.create(project), false));
   }
 
   @Deprecated
@@ -171,14 +174,30 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     }).collect(Collectors.toList());
   }
 
+  /**
+   *  Parses a build file and produces the {@link GradleBuildFile} that represents it.
+   *
+   * @param file the build file that should be parsed, this must be a gradle build file
+   * @param project the project that the build file belongs to
+   * @param moduleName the name of the module
+   * @param context the context that should be used for this parse
+   * @param isApplied whether or not the file should be parsed as if it was applied, if true we do not populate the
+   *                  file with the properties found in the subprojects block. This should be true for any file that is not part of the
+   *                  main build.gradle structure (i.e project and module files) otherwise we might attempt to parse the file we are parsing
+   *                  again leading to a stack overflow.
+   * @return the model of the given Gradle file.
+   */
   @NotNull
   public static GradleBuildFile parseBuildFile(@NotNull VirtualFile file,
                                                @NotNull Project project,
                                                @NotNull String moduleName,
-                                               @NotNull BuildModelContext context) {
+                                               @NotNull BuildModelContext context,
+                                               boolean isApplied) {
     GradleBuildFile buildDslFile = new GradleBuildFile(file, project, moduleName, context);
     ApplicationManager.getApplication().runReadAction(() -> {
-      populateWithParentModuleSubProjectsProperties(buildDslFile, context);
+      if (!isApplied) {
+        populateWithParentModuleSubProjectsProperties(buildDslFile, context);
+      }
       populateSiblingDslFileWithGradlePropertiesFile(buildDslFile, context);
       buildDslFile.parse();
     });
@@ -186,11 +205,12 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   }
 
   public static void populateWithParentModuleSubProjectsProperties(@NotNull GradleBuildFile buildDslFile,
-                                                                    @NotNull BuildModelContext context) {
-    GradleSettingsFile settingsFile = context.getOrCreateSettingsFile(buildDslFile.getProject());
-    if (settingsFile == null) {
+                                                                   @NotNull BuildModelContext context) {
+    VirtualFile maybeSettingsFile = buildDslFile.tryToFindSettingsFile();
+    if (maybeSettingsFile == null) {
       return;
     }
+    GradleSettingsFile settingsFile = context.getOrCreateSettingsFile(maybeSettingsFile);
 
     GradleSettingsModel gradleSettingsModel = new GradleSettingsModelImpl(settingsFile);
     String modulePath = gradleSettingsModel.moduleWithDirectory(buildDslFile.getDirectoryPath());
@@ -222,17 +242,18 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   }
 
   public static void populateSiblingDslFileWithGradlePropertiesFile(@NotNull GradleBuildFile buildDslFile,
-                                                                     @NotNull BuildModelContext context) {
+                                                                    @NotNull BuildModelContext context) {
     File propertiesFilePath = new File(buildDslFile.getDirectoryPath(), FN_GRADLE_PROPERTIES);
-    VirtualFile propertiesFile = findFileByIoFile(propertiesFilePath, true);
+    VirtualFile propertiesFile = findFileByIoFile(propertiesFilePath, false);
     if (propertiesFile == null) {
       return;
     }
 
-    GradlePropertiesModel propertiesModel = parsePropertiesFile(propertiesFile, buildDslFile.getProject(), buildDslFile.getName(), context);
-    if (propertiesModel == null) {
+    GradlePropertiesFile parsedProperties = context.getOrCreatePropertiesFile(propertiesFile, buildDslFile.getName());
+    if (parsedProperties == null) {
       return;
     }
+    GradlePropertiesModel propertiesModel = new GradlePropertiesModel(parsedProperties);
 
     GradleDslFile propertiesDslFile = propertiesModel.myGradleDslFile;
     buildDslFile.setSiblingDslFile(propertiesDslFile);
@@ -346,7 +367,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     ExtDslElement extDslElement = myGradleDslFile.getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
     if (extDslElement == null) {
       extDslElement = new ExtDslElement(myGradleDslFile);
-      // Place the Ext element just after the applied plugins, this present.
+      // Place the Ext element just after the applied plugins, if present.
       List<GradleDslElement> elements = myGradleDslFile.getAllElements();
       int index = (!elements.isEmpty() && elements.get(0) instanceof ApplyDslElement) ? 1 : 0;
       myGradleDslFile.addNewElementAt(index, extDslElement);
@@ -380,7 +401,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   @NotNull
   public Set<GradleFileModel> getInvolvedFiles() {
-    return getAllInvolvedFiles().stream().map(e -> getFileModel(e)).collect(Collectors.toSet());
+    return getAllInvolvedFiles().stream().distinct().map(e -> getFileModel(e)).collect(Collectors.toSet());
   }
 
   @NotNull

@@ -24,6 +24,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tools to be used by decorators for setting timed state transitions on NLComponents
@@ -129,19 +130,15 @@ public class DecoratorUtilities {
   /**
    * This sets the view state and when it was issued
    * it computes the time and looks up the previous state
-   *
-   * @param component
-   * @param type
-   * @param to
    */
-  public static void setTimeChange(NlComponent component, String type, ViewStates to) {
+  public static void setTimeChange(@NotNull NlComponent component, @NotNull String type, @NotNull ViewStates newMode) {
     long time = System.nanoTime();
-    component.putClientProperty(type + MODE_SUFFIX, to);
-    ViewStates from = (ViewStates)component.getClientProperty(type + MODE_SUFFIX);
-    if (from == null) {
-      from = ViewStates.NORMAL;
+    ViewStates previousMode = (ViewStates)component.getClientProperty(type + MODE_SUFFIX);
+    if (previousMode == null) {
+      previousMode = ViewStates.NORMAL;
     }
-    component.putClientProperty(type + PREV_SUFFIX, from);
+    component.putClientProperty(type + MODE_SUFFIX, newMode);
+    component.putClientProperty(type + PREV_SUFFIX, previousMode);
     component.putClientProperty(type + TIME_SUFFIX, time);
   }
 
@@ -154,15 +151,14 @@ public class DecoratorUtilities {
   }
 
   public static Long getTimedChange_time(NlComponent component, String type) {
-
     return (Long)component.getClientProperty(type + TIME_SUFFIX);
   }
 
-  public static int MASK_TOP = 1;
-  public static int MASK_BOTTOM = 2;
-  public static int MASK_LEFT = 4;
-  public static int MASK_RIGHT = 8;
-  public static int MASK_BASELINE = 16;
+  public static final int MASK_TOP = 1;
+  public static final int MASK_BOTTOM = 2;
+  public static final int MASK_LEFT = 4;
+  public static final int MASK_RIGHT = 8;
+  public static final int MASK_BASELINE = 16;
 
   static HashSet<String> getConnected(NlComponent c, List<NlComponent> sisters, ArrayList<String>... list) {
     HashSet<String> set = new HashSet<>();
@@ -188,6 +184,41 @@ public class DecoratorUtilities {
   }
 
   /**
+   * From a given component and a list of components, returns a set of the components that are part of the same connection graph related to
+   * the given component.
+   */
+  public static HashSet<NlComponent> getConnectedNlComponents(NlComponent c, List<NlComponent> sisters, ArrayList<String>... list) {
+    HashSet<NlComponent> set = new HashSet<>();
+    String id = c.getId();
+    if (id == null) {
+      return set;
+    }
+    set.add(c);
+    int lastCount;
+    do {
+      lastCount = set.size();
+      for (NlComponent sister : sisters) {
+        for (int i = 0; i < list.length; i++) {
+          String str = ConstraintComponentUtilities.getConnectionId(sister, SdkConstants.SHERPA_URI, list[i]);
+          if (str == null || str.isEmpty()) {
+            // No component connected.
+            continue;
+          }
+          for (NlComponent connectedComponent : set) {
+            String connectedId = connectedComponent.getId();
+            if(connectedId != null && connectedId.equals(str)){
+              set.add(sister);
+              break;
+            }
+          }
+        }
+      }
+    }
+    while (set.size() > lastCount);
+    return set;
+  }
+
+  /**
    * Set or clears the "trying to connect" state on all NLComponents that are sisters of this component.
    * The state is a Integer flag, bit 0=top,1=south,2=east,3=west,4=baseline
    *
@@ -197,58 +228,73 @@ public class DecoratorUtilities {
    */
   public static void setTryingToConnectState(NlComponent component, AnchorTarget.Type type, boolean on) {
     List<NlComponent> sisters = component.getParent().getChildren();
-    String id = component.getId();
-    HashSet<String> connected;
+    setTryingToConnectState(component, sisters, type, on);
+  }
+
+  /**
+   * Set or clears the "trying to connect" state on a given set of NlComponents and the source component.
+   * The state is a Integer flag, bit 0=top,1=south,2=east,3=west,4=baseline
+   *
+   * @param component
+   * @param dstComponents
+   * @param type
+   * @param on
+   */
+  public static void setTryingToConnectState(NlComponent srcComponent,
+                                             List<NlComponent> dstComponents,
+                                             AnchorTarget.Type type,
+                                             boolean on) {
+    HashSet<NlComponent> connected;
     Integer mask;
     if (on) {
-      component.putClientProperty(TRY_TO_CONNECT, 0);
+      srcComponent.putClientProperty(TRY_TO_CONNECT, 0);
       switch (type) {
         case TOP:
         case BOTTOM:
           mask = MASK_TOP | MASK_BOTTOM;
-          connected = getConnected(component, sisters,
+          connected = getConnectedNlComponents(srcComponent, dstComponents,
                                    ConstraintComponentUtilities.ourBottomAttributes,
                                    ConstraintComponentUtilities.ourTopAttributes);
-          for (NlComponent sister : sisters) {
-            if (sister != component && !connected.contains(sister.getId())) {
-              sister.putClientProperty(TRY_TO_CONNECT, mask);
+          for (NlComponent dstComponent : dstComponents) {
+            if (dstComponent != srcComponent && !connected.contains(dstComponent)) {
+              dstComponent.putClientProperty(TRY_TO_CONNECT, mask);
             }
           }
           break;
         case RIGHT:
         case LEFT:
           mask = MASK_LEFT | MASK_RIGHT;
-          connected = getConnected(component, sisters,
+          connected = getConnectedNlComponents(srcComponent, dstComponents,
                                    ConstraintComponentUtilities.ourRightAttributes,
                                    ConstraintComponentUtilities.ourLeftAttributes,
                                    ConstraintComponentUtilities.ourStartAttributes,
                                    ConstraintComponentUtilities.ourEndAttributes);
-          for (NlComponent sister : sisters) {
-            if (sister != component && !connected.contains(sister.getId())) {
-              sister.putClientProperty(TRY_TO_CONNECT, mask);
+          for (NlComponent dstComponent : dstComponents) {
+            if (dstComponent != srcComponent && !connected.contains(dstComponent)) {
+              dstComponent.putClientProperty(TRY_TO_CONNECT, mask);
             }
           }
           break;
 
         case BASELINE:
-          System.out.println("baseline");
           mask = MASK_BASELINE;
-          connected = getConnected(component, sisters,
+          connected = getConnectedNlComponents(srcComponent, dstComponents,
                                    ConstraintComponentUtilities.ourBottomAttributes,
                                    ConstraintComponentUtilities.ourTopAttributes,
                                    ConstraintComponentUtilities.ourBaselineAttributes);
-          for (NlComponent sister : sisters) {
-            if (sister != component && !connected.contains(sister.getId())) {
-              sister.putClientProperty(TRY_TO_CONNECT, mask);
+          for (NlComponent dstComponent : dstComponents) {
+            if (dstComponent != srcComponent && !connected.contains(dstComponent)) {
+              dstComponent.putClientProperty(TRY_TO_CONNECT, mask);
             }
           }
           break;
       }
     }
     else {
-      for (NlComponent sister : sisters) {
-        sister.removeClientProperty(TRY_TO_CONNECT);
+      for (NlComponent dstComponent : dstComponents) {
+        dstComponent.removeClientProperty(TRY_TO_CONNECT);
       }
+      srcComponent.removeClientProperty(TRY_TO_CONNECT);
     }
   }
 

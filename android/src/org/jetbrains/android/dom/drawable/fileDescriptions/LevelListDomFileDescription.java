@@ -16,10 +16,10 @@
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.drawable.LevelList;
 
-public class LevelListDomFileDescription extends AbstractSingleRootFileDescription<LevelList> {
+public class LevelListDomFileDescription extends SingleRootResourceDomFileDescription<LevelList> {
 
   public LevelListDomFileDescription() {
     super(LevelList.class, "level-list", ResourceFolderType.DRAWABLE);

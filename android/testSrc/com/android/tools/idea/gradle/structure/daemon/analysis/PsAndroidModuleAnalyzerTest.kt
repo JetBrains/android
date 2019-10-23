@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
 import com.android.tools.idea.gradle.structure.configurables.PsContextImpl
+import com.android.tools.idea.gradle.structure.configurables.PsPathRendererImpl
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
@@ -39,14 +40,12 @@ class PsAndroidModuleAnalyzerTest : DependencyTestCase() {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
     try {
-      val context = PsContextImpl(project, disposable, disableAnalysis = true)
+      val context = PsContextImpl(project, disposable, disableAnalysis = true, disableResolveModels = true)
       val mainModule = project.findModuleByName("mainModule") as PsAndroidModule
-      val analyzer = PsAndroidModuleAnalyzer(context)
-      val messageCollection = PsIssueCollection()
-      analyzer.analyze(mainModule, messageCollection)
+      val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
+      val messageCollection = analyzer.analyze(mainModule)
 
       val messages = messageCollection
-        .values
         .filter {
           val dependencyName = (it.path as? PsLibraryDependencyNavigationPath)?.toString().orEmpty()
           dependencyName.startsWith("com.example.")

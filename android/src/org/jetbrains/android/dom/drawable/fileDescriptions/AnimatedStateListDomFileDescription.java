@@ -16,10 +16,10 @@
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.drawable.AnimatedStateList;
 
-public class AnimatedStateListDomFileDescription extends AbstractSingleRootFileDescription<AnimatedStateList> {
+public class AnimatedStateListDomFileDescription extends SingleRootResourceDomFileDescription<AnimatedStateList> {
   public static final String TAG_NAME = "animated-selector";
 
   public AnimatedStateListDomFileDescription() {

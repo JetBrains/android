@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.formatter;
 
 import com.intellij.application.options.XmlCodeStyleSettingsProvider;
@@ -32,6 +31,14 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
 
   @NonNls private static final String ANDROID_XML_CODE_STYLE_NOTIFICATION_GROUP = "Android XML code style notification";
 
+  private final Project myProject;
+  private final EditorNotifications myNotifications;
+
+  public AndroidCodeStyleNotificationProvider(Project project, final EditorNotifications notifications) {
+    myProject = project;
+    myNotifications = notifications;
+  }
+
   @NotNull
   @Override
   public Key<MyPanel> getKey() {
@@ -40,12 +47,12 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
 
   @Nullable
   @Override
-  public MyPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor, @NotNull Project project) {
+  public MyPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
     if (file.getFileType() != XmlFileType.INSTANCE ||
         !(fileEditor instanceof TextEditor)) {
       return null;
     }
-    final Module module = ModuleUtilCore.findModuleForFile(file, project);
+    final Module module = ModuleUtilCore.findModuleForFile(file, myProject);
 
     if (module == null) {
       return null;
@@ -61,7 +68,7 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
     if (resDir == null || !ModuleResourceManagers.getInstance(facet).getLocalResourceManager().isResourceDir(resDir)) {
       return null;
     }
-    final CodeStyleSettings settings = CodeStyleSettingsManager.getSettings(project);
+    final CodeStyleSettings settings = CodeStyleSettingsManager.getSettings(myProject);
     final AndroidXmlCodeStyleSettings androidSettings = AndroidXmlCodeStyleSettings.getInstance(settings);
 
     if (androidSettings.USE_CUSTOM_SETTINGS) {
@@ -73,23 +80,21 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
     }
     NotificationsConfiguration.getNotificationsConfiguration().register(
       ANDROID_XML_CODE_STYLE_NOTIFICATION_GROUP, NotificationDisplayType.BALLOON, false);
-    return new MyPanel(project);
+    return new MyPanel();
   }
 
-  final static class MyPanel extends EditorNotificationPanel {
-    private final Project myProject;
+  public class MyPanel extends EditorNotificationPanel {
 
-    MyPanel(@NotNull Project project) {
-      myProject = project;
-
+    MyPanel() {
       setText("You can format your XML resources in the 'standard' Android way. " +
               "Choose 'Set from... | Android' in the XML code style settings.");
 
       createActionLabel("Open code style settings", new Runnable() {
         @Override
         public void run() {
-          ShowSettingsUtilImpl.showSettingsDialog(myProject, "preferences.sourceCode." + XmlCodeStyleSettingsProvider.CONFIGURABLE_DISPLAY_NAME, "");
-          EditorNotifications.getInstance(myProject).updateAllNotifications();
+          ShowSettingsUtilImpl.showSettingsDialog(
+            myProject, "preferences.sourceCode." + XmlCodeStyleSettingsProvider.CONFIGURABLE_DISPLAY_NAME, "");
+            myNotifications.updateAllNotifications();
         }
       });
 
@@ -98,7 +103,7 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
         public void run() {
           NotificationsConfiguration.getNotificationsConfiguration()
             .changeSettings(ANDROID_XML_CODE_STYLE_NOTIFICATION_GROUP, NotificationDisplayType.NONE, false, false);
-          EditorNotifications.getInstance(myProject).updateAllNotifications();
+          myNotifications.updateAllNotifications();
         }
       });
     }

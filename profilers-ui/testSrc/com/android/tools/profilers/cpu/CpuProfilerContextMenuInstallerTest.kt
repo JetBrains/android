@@ -16,12 +16,20 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.profilers.*
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
 import com.android.tools.profilers.stacktrace.ContextMenuItem
-import com.google.common.truth.Truth.*
+import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -30,6 +38,8 @@ import javax.swing.JPanel
 
 class CpuProfilerContextMenuInstallerTest {
 
+  private val timer = FakeTimer()
+
   private val ideServices = FakeIdeProfilerServices()
 
   private val ideComponents = FakeIdeProfilerComponents()
@@ -37,7 +47,7 @@ class CpuProfilerContextMenuInstallerTest {
   @JvmField
   @Rule
   val myGrpcChannel = FakeGrpcChannel(
-    "CpuProfilerContextMenuInstallerTest", FakeCpuService(), FakeProfilerService(),
+    "CpuProfilerContextMenuInstallerTest", FakeCpuService(), FakeTransportService(timer), FakeProfilerService(timer),
     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
   )
 
@@ -45,9 +55,8 @@ class CpuProfilerContextMenuInstallerTest {
 
   @Before
   fun setUp() {
-    val timer = FakeTimer()
-    val profilers = StudioProfilers(myGrpcChannel.client, ideServices, timer)
-    profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), ideServices, timer)
+    profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
 
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -115,9 +124,8 @@ class CpuProfilerContextMenuInstallerTest {
     assertThat(items[5].text).isEqualTo("Previous capture")
     assertThat(items[5].isEnabled).isTrue()
 
-    // Enable import trace and sessions view, both of which are required for import-trace-mode.
+    // Enable import trace flag which is required for import-trace-mode.
     ideServices.enableImportTrace(true)
-    ideServices.enableSessionsView(true)
     stage = CpuProfilerStage(stage.studioProfilers, File("FakePathToTraceFile.trace"))
     stage.enter()
     // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView

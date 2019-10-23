@@ -48,10 +48,11 @@ internal class RelativeDragHandler(editor: ViewEditor,
     if (components.size == 1) {
       val dragged = components[0]
       component = layout.scene.getSceneComponent(dragged) ?: TemporarySceneComponent(layout.scene, dragged).apply {
-        setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h), false)
+        setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h))
       }
 
-      component.setTargetProvider({ _ -> mutableListOf<Target>(dragTarget) })
+      component.setTargetProvider { _ -> mutableListOf<Target>(dragTarget) }
+      component.updateTargets()
       // Note: Don't use [dragged] in this lambda function since the content of components may be replaced within interaction.
       // This weird implementation may be fixed in the future, but we just work around here.
       component.setComponentProvider { _ -> components[0] }
@@ -82,7 +83,8 @@ internal class RelativeDragHandler(editor: ViewEditor,
     return result
   }
 
-  override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int, insertType: InsertType) {
+  override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int,
+                      insertType: InsertType) {
     if (component == null) {
       return
     }
@@ -101,6 +103,6 @@ internal class RelativeDragHandler(editor: ViewEditor,
     if (component != null) {
       layout.scene.removeComponent(component)
     }
-    dragTarget.cancel()
+    dragTarget.mouseCancel()
   }
 }

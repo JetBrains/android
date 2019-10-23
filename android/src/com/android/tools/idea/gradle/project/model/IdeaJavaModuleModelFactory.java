@@ -33,6 +33,7 @@ import org.jetbrains.plugins.gradle.tooling.internal.IdeaCompilerOutputImpl;
 
 import java.io.File;
 import java.util.*;
+import org.jetbrains.plugins.gradle.tooling.internal.IdeaCompilerOutputImpl;
 
 import static com.android.tools.idea.gradle.project.model.JavaModuleModel.isBuildable;
 import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;

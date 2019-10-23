@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -36,8 +37,10 @@ import com.intellij.execution.remote.RemoteConfiguration;
 import com.intellij.execution.remote.RemoteConfigurationType;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.util.Ref;
 import com.intellij.util.NotNullFunction;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.breakpoints.XBreakpointType;
@@ -117,13 +120,16 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
     return true;
   }
 
+  @Slow
   @Override
   public void attachToClient(@NotNull Project project, @NotNull Client client) {
     String debugPort = getClientDebugPort(client);
     String runConfigName = String.format(RUN_CONFIGURATION_NAME_PATTERN, debugPort);
 
     // Try to find existing debug session
-    if (hasExistingDebugSession(project, debugPort, runConfigName)) {
+    Ref<Boolean> existingSession = new Ref<>();
+    ApplicationManager.getApplication().invokeAndWait(() -> existingSession.set(hasExistingDebugSession(project, debugPort, runConfigName)));
+    if (existingSession.get()) {
       return;
     }
 

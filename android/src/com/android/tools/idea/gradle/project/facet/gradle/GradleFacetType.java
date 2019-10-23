@@ -20,7 +20,7 @@ import com.intellij.facet.FacetType;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
-import icons.AndroidArtworkIcons;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +57,7 @@ public class GradleFacetType extends FacetType<GradleFacet, GradleFacetConfigura
   @NotNull
   @Override
   public Icon getIcon() {
-    return AndroidArtworkIcons.Icons.Android;
+    return AndroidIcons.Android;
   }
 }
 

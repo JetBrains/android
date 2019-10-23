@@ -99,7 +99,7 @@
   implements(".*_name")="com.android.tools.idea.lang.roomSql.psi.RoomNameElement"
   mixin(".*_name")="com.android.tools.idea.lang.roomSql.psi.AbstractRoomNameElement"
   generateTokenAccessors(".*_name")=false
-  generate=[names='long']
+  generate=[names='long' java='8']
 }
 
 root ::= statement ';'?
@@ -211,7 +211,7 @@ collation_name ::= name
 create_table_statement ::=
   CREATE ( TEMP | TEMPORARY )? TABLE ( IF NOT EXISTS )?
   ( database_name '.' )? table_definition_name
-  ( '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT ROWID )? | AS with_clause_select_statement )
+  ( '(' column_definition ( ',' column_definition )* ( ',' table_constraint )* ')' ( WITHOUT "ROWID" )? | AS with_clause_select_statement )
 
 column_definition ::= column_definition_name ( type_name )? ( column_constraint )*
 
@@ -433,7 +433,10 @@ where_clause ::= WHERE expression
 
 from_clause ::= FROM table_or_subquery ( join_operator table_or_subquery join_constraint? )*
 
-result_columns ::= result_column ( ',' result_column )*
+result_columns ::= result_column ( ',' result_column )* {
+  implements="com.android.tools.idea.lang.roomSql.psi.SqlTableElement"
+  methods=[getSqlTable]
+}
 
 select_core_values ::= VALUES '(' expression ( ',' expression )* ')' ( ',' '(' expression ( ',' expression )* ')' )*
 
@@ -458,7 +461,9 @@ table_alias_name ::= name {
 result_column ::=
   '*'
   | selected_table_name '.' '*'
-  | expression ( ( AS )? column_alias_name )?
+  | expression ( ( AS )? column_alias_name )? {
+  methods=[getColumn]
+}
 
 column_alias_name ::= name {
   implements="com.intellij.psi.PsiNamedElement"

@@ -30,12 +30,43 @@ import org.jetbrains.annotations.Nullable;
  * </ol>
  */
 public abstract class DependencyModelImpl implements DependencyModel {
+
+  public interface Maintainer {
+    @NotNull Maintainer setConfigurationName(DependencyModelImpl dependencyModel, String newConfigurationName);
+  }
+
+  @NotNull
+  private Maintainer myMaintainer;
+
+  @NotNull
+  private String myConfigurationName;
+
+  protected DependencyModelImpl(@NotNull String configurationName, @NotNull Maintainer maintainer) {
+    myConfigurationName = configurationName;
+    myMaintainer = maintainer;
+  }
+
   @NotNull
   protected abstract GradleDslElement getDslElement();
 
+  /**
+   * Replaces the attached element without updating othe rinternal state.
+   *
+   * <p>This method is implementation details of the setConfigurationName and should not be used directly.
+   */
+  abstract void setDslElement(@NotNull GradleDslElement dslElement);
+
   @Override
   @NotNull
-  public abstract String configurationName();
+  public final String configurationName() {
+    return myConfigurationName;
+  }
+
+  @Override
+  public final void setConfigurationName(@NotNull String newConfigurationName) {
+    myMaintainer = myMaintainer.setConfigurationName(this, newConfigurationName);
+    myConfigurationName = newConfigurationName;
+  }
 
   @Override
   @Nullable

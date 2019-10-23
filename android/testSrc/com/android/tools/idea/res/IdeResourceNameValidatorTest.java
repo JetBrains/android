@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceMergerItem;
@@ -23,10 +29,6 @@ import com.android.resources.ResourceType;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.junit.Test;
-
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.*;
 
 public class IdeResourceNameValidatorTest {
   @Test
@@ -88,7 +90,7 @@ public class IdeResourceNameValidatorTest {
     multimap.put("foo.4", new ResourceMergerItem("foo.4", null, ResourceType.ID, null, null));
     multimap.put("foo_5", new ResourceMergerItem("foo_5", null, ResourceType.ID, null, null));
 
-    TestLocalResourceRepository resources = new TestLocalResourceRepository();
+    TestLocalResourceRepository resources = new TestLocalResourceRepository(RES_AUTO);
     resources.getFullTable().put(RES_AUTO, ResourceType.ID, multimap);
 
     IdeResourceNameValidator validator = IdeResourceNameValidator.forResourceName(ResourceType.ID, resources);

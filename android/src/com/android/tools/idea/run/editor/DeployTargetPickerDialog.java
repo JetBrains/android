@@ -28,6 +28,7 @@ import com.android.tools.idea.run.*;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.android.tools.tracer.Trace;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.FutureCallback;
@@ -148,6 +149,14 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
     init();
   }
 
+  @Override
+  public boolean showAndGet() {
+    Trace.begin("DeployTargetPickerDialog");
+    boolean result = super.showAndGet();
+    Trace.end();
+    return result;
+  }
+
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
@@ -177,7 +186,10 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
         public void onFailure(@Nullable Throwable t) {
           loadingPanel.stopLoading();
           Logger.getInstance(DeployTargetPickerDialog.class).info("Unable to obtain debug bridge", t);
-          // TODO: show an inline banner to restart adb?
+          setErrorText("Unable to connect to ADB. Check the Event Log for possible issues. " +
+                       "Verify that your localhost entry is pointing to 127.0.0.1 or ::1 " +
+                       "for IPv4 or IPv6, respectively.");
+          setOKActionEnabled(false);
         }
       }, EdtExecutor.INSTANCE);
     }
@@ -405,7 +417,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
     @NotNull public final DeployTargetState myState;
     @NotNull public final DeployTargetConfigurable<DeployTargetState> myConfigurable;
 
-    DeployTargetInfo(@NotNull DeployTargetProvider<DeployTargetState> provider,
+    public DeployTargetInfo(@NotNull DeployTargetProvider<DeployTargetState> provider,
                             @NotNull DeployTargetState state,
                             @NotNull DeployTargetConfigurable<DeployTargetState> configurable) {
       myProvider = provider;
@@ -417,7 +429,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
   private static final class Context implements DeployTargetConfigurableContext {
     private final Module myModule;
 
-    Context(@NotNull Module module) {
+    public Context(@NotNull Module module) {
       myModule = module;
     }
 
@@ -439,7 +451,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
   private static class UseSameDevicesOption implements DoNotAskOption {
     @NotNull private final ShowChooserTargetProvider.State myState;
 
-    UseSameDevicesOption(@NotNull ShowChooserTargetProvider.State state) {
+    public UseSameDevicesOption(@NotNull ShowChooserTargetProvider.State state) {
       myState = state;
     }
 

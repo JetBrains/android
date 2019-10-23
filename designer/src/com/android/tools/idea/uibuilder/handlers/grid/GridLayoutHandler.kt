@@ -69,13 +69,13 @@ open class GridLayoutHandler : ViewGroupHandler() {
   override fun getPlaceholders(component: SceneComponent): List<Placeholder> {
     val listBuilder = ImmutableList.builder<Placeholder>()
     val barrier = getGridBarriers(component)
-    for (row in 0 until barrier.rows.lastIndex) {
-      for (column in 0 until barrier.columns.lastIndex) {
-        val left = barrier.columns[column]
-        val top = barrier.rows[row]
-        val right = barrier.columns[column + 1]
-        val bottom = barrier.rows[row + 1]
-        val r = Region(left, top, right, bottom, component.depth)
+    for (row in barrier.rowIndices) {
+      for (column in barrier.columnIndices) {
+        val bounds = barrier.getBounds(row, column) ?: continue
+        if (bounds.width <= 0 || bounds.height <= 0) {
+          continue
+        }
+        val r = Region(bounds.x, bounds.y, bounds.x + bounds.width, bounds.y + bounds.height, component.depth)
         listBuilder.add(GridPlaceholder(r, row, column, namespace, component))
       }
     }

@@ -30,8 +30,11 @@ abstract class PropertyEditorBase<out ModelPropertyT : ModelPropertyCore<*>, Val
 
   abstract val component: JComponent
 
-  val labelComponent: JBLabel = JBLabel(property.description).also {
-    it.labelFor = component
+  val labelComponent: JBLabel by lazy(LazyThreadSafetyMode.NONE) {
+    JBLabel(property.description).also {
+      it.labelFor = component
+      it.isFocusable = false
+    }
   }
 
   protected fun updateModified() {

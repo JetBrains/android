@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import com.android.SdkConstants.ATTR_COLOR
 import com.android.SdkConstants.ATTR_DRAWABLE
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.CLASS_PREFERENCE
+import com.android.SdkConstants.CLASS_PREFERENCE_ANDROIDX
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.SdkConstants.DOT_XML
 import com.android.SdkConstants.FD_RES_LAYOUT
@@ -61,11 +62,12 @@ import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.resources.ResourceVisibility
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.editors.theme.MaterialColorUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.rendering.GutterIconCache
-import com.android.tools.idea.res.aar.AarProtoResourceRepository
+import com.android.tools.idea.resources.aar.AarResourceRepository
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
 import com.android.tools.lint.detector.api.computeResourcePrefix
@@ -73,7 +75,6 @@ import com.android.tools.lint.detector.api.getBaseName
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.google.common.base.Preconditions
 import com.google.common.collect.Iterables
-import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
@@ -87,14 +88,12 @@ import com.intellij.openapi.roots.JdkOrderEntry
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiRecursiveElementVisitor
-import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.InheritanceUtil
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlElement
 import com.intellij.psi.xml.XmlElementType
@@ -103,6 +102,8 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.psi.xml.XmlText
 import com.intellij.psi.xml.XmlTokenType
 import com.intellij.ui.ColorUtil
+import com.intellij.util.io.URLUtil.FILE_PROTOCOL
+import com.intellij.util.io.URLUtil.JAR_PROTOCOL
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.JBUI
@@ -110,7 +111,7 @@ import com.intellij.util.ui.TwoColorsIcon
 import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
-import org.jetbrains.android.sdk.AndroidPlatform
+import org.jetbrains.android.refactoring.getNameInProject
 import org.jetbrains.annotations.Contract
 import java.awt.Color
 import java.io.File
@@ -286,7 +287,8 @@ fun getResourceVariations(file: VirtualFile?, includeSelf: Boolean): List<Virtua
  * Returns the [VirtualFile] representing the source of the given resource item, or null
  * if the source of the resource item is unknown or there is no VirtualFile for it.
  */
-fun ResourceItem.getSourceAsVirtualFile(): VirtualFile? = if (this is PsiResourceItem) psiFile?.virtualFile else source?.toVirtualFile()
+fun ResourceItem.getSourceAsVirtualFile(): VirtualFile? =
+  runReadAction { if (this is PsiResourceItem) psiFile?.virtualFile else originalSource?.toVirtualFile() }
 
 /**
  * Returns true if views with the given fully qualified class name need to include
@@ -329,18 +331,16 @@ fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
  * whether a class with given qualified name can be shortened to a simple name, or is required to have
  * a package qualifier.
  *
- *
  * Accesses JavaPsiFacade, and thus should be run inside read action.
  *
  * @see .isViewPackageNeeded
  */
 fun isClassPackageNeeded(qualifiedName: String, baseClass: PsiClass, apiLevel: Int): Boolean {
-  val viewClass = JavaPsiFacade.getInstance(baseClass.project).findClass(CLASS_VIEW, GlobalSearchScope.allScope(baseClass.project))
-
   return when {
-    viewClass != null && baseClass.isInheritor(viewClass, true) -> isViewPackageNeeded(qualifiedName, apiLevel)
-    CLASS_PREFERENCE == baseClass.qualifiedName -> // Handled by PreferenceInflater in Android framework
-      !isDirectlyInPackage(qualifiedName, "android.preference.")
+    InheritanceUtil.isInheritor(baseClass, CLASS_VIEW) -> isViewPackageNeeded(qualifiedName, apiLevel)
+    InheritanceUtil.isInheritor(baseClass, CLASS_PREFERENCE) -> !isDirectlyInPackage(qualifiedName, "android.preference")
+    InheritanceUtil.isInheritor(baseClass, CLASS_PREFERENCE_ANDROIDX.getNameInProject(baseClass.project)) ->
+      !isDirectlyInPackage(qualifiedName, "androidx.preference")
     else -> // TODO: removing that makes some of unit tests fail, but leaving it as it is can introduce buggy XML validation
       // Issue with further information: http://b.android.com/186559
       !qualifiedName.startsWith(ANDROID_PKG_PREFIX)
@@ -351,9 +351,7 @@ fun isClassPackageNeeded(qualifiedName: String, baseClass: PsiClass, apiLevel: I
  * Returns whether a class with given qualified name resides directly in a package with
  * given prefix (as opposed to reside in a subpackage).
  *
- *
- * For example,
- *
+ * For example:
  *  * isDirectlyInPackage("android.view.View", "android.view.") -> true
  *  * isDirectlyInPackage("android.view.internal.View", "android.view.") -> false
  *
@@ -427,8 +425,8 @@ fun RenderResources.resolveMultipleColors(value: ResourceValue?, project: Projec
  *   <li> Otherwise a null is returned. </li>
  * </ul>
  */
-fun RenderResources.resolveAsIcon(value: ResourceValue?, project: Project): Icon? {
-  return resolveAsColorIcon(value, RESOURCE_ICON_SIZE, project) ?: resolveAsDrawable(value, project)
+fun RenderResources.resolveAsIcon(value: ResourceValue?, project: Project, facet: AndroidFacet): Icon? {
+  return resolveAsColorIcon(value, RESOURCE_ICON_SIZE, project) ?: resolveAsDrawable(value, project, facet)
 }
 
 private fun RenderResources.resolveAsColorIcon(value: ResourceValue?, size: Int, project: Project): Icon? {
@@ -444,9 +442,9 @@ private fun findContrastingOtherColor(colors: List<Color>, color: Color): Color 
   return colors.maxBy { MaterialColorUtils.colorDistance(it, color) } ?: colors.first()
 }
 
-private fun RenderResources.resolveAsDrawable(value: ResourceValue?, project: Project): Icon? {
+private fun RenderResources.resolveAsDrawable(value: ResourceValue?, project: Project, facet: AndroidFacet): Icon? {
   val bitmap = AndroidAnnotatorUtil.pickBestBitmap(resolveDrawable(value, project)) ?: return null
-  return GutterIconCache.getInstance().getIcon(bitmap.path, this)
+  return GutterIconCache.getInstance().getIcon(bitmap, this, facet)
 }
 
 /**
@@ -509,8 +507,8 @@ fun RenderResources.resolveStringValue(value: String): String {
  * resolved). This picks one of the open layout files, and if not found, the first layout
  * file found in the resources (if any).
  */
-fun pickAnyLayoutFile(module: Module, facet: AndroidFacet): VirtualFile? {
-  val openFiles = FileEditorManager.getInstance(module.project).openFiles
+fun pickAnyLayoutFile(facet: AndroidFacet): VirtualFile? {
+  val openFiles = FileEditorManager.getInstance(facet.module.project).openFiles
   for (file in openFiles) {
     if (file.name.endsWith(DOT_XML) && file.parent != null &&
         file.parent.name.startsWith(FD_RES_LAYOUT)) {
@@ -555,7 +553,7 @@ val PsiElement.resourceNamespace: ResourceNamespace?
     return if (getUserData(ModuleUtilCore.KEY_MODULE) != null
                || (vFile != null && (projectFileIndex.isInSource(vFile) || projectFileIndex.getModuleForFile(vFile) != null))) {
       AndroidFacet.getInstance(this)
-        ?.let { ResourceRepositoryManager.getOrCreateInstance(it) }
+        ?.let { ResourceRepositoryManager.getInstance(it) }
         ?.namespace
     }
     else {
@@ -623,7 +621,7 @@ private fun RenderResources.resolveStateList(resourceValue: ResourceValue, proje
     return resolveStateList(resValue, project, depth + 1)
   }
   else {
-    val virtualFile = LocalFileSystem.getInstance().findFileByPath(value) ?: return null
+    val virtualFile = toFileResourcePathString(value)?.toVirtualFile() ?: return null
     val psiFile = (AndroidPsiUtils.getPsiFileSafely(project, virtualFile) as? XmlFile) ?: return null
     return runReadAction {
       val rootTag = psiFile.rootTag
@@ -780,6 +778,8 @@ fun RenderResources.resolveLayout(layout: ResourceValue?): VirtualFile? {
   return null
 }
 
+private val RESOURCE_PROTOCOLS = arrayOf(ApkFileSystem.PROTOCOL, JAR_PROTOCOL, FILE_PROTOCOL)
+
 /**
  * Converts a file resource path from [String] to [PathString]. The supported formats:
  * - file path, e.g. "/foo/bar/res/layout/my_layout.xml"
@@ -790,20 +790,14 @@ fun RenderResources.resolveLayout(layout: ResourceValue?): VirtualFile? {
  * @return the converted resource path, or null if the `resourcePath` doesn't point to a file resource
  */
 fun toFileResourcePathString(resourcePath: String): PathString? {
-  if (resourcePath.startsWith("apk:")) {
-    var prefixLength = "apk:".length
-    if (resourcePath.startsWith("//", prefixLength)) {
-      prefixLength += "//".length
+  for (protocol in RESOURCE_PROTOCOLS) {
+    if (resourcePath.startsWith(protocol) && resourcePath.length > protocol.length && resourcePath[protocol.length] == ':') {
+      var prefixLength = protocol.length + 1
+      if (resourcePath.startsWith("//", prefixLength)) {
+        prefixLength += "//".length
+      }
+      return PathString(protocol, resourcePath.substring(prefixLength))
     }
-    return PathString("apk", resourcePath.substring(prefixLength))
-  }
-
-  if (resourcePath.startsWith("file:")) {
-    var prefixLength = "file:".length
-    if (resourcePath.startsWith("//", prefixLength)) {
-      prefixLength += "//".length
-    }
-    return PathString(resourcePath.substring(prefixLength))
   }
 
   val file = File(resourcePath)
@@ -816,9 +810,9 @@ fun toFileResourcePathString(resourcePath: String): PathString? {
  * "file:" or "apk:" scheme prefix, the method returns true without doing any I/O.
  * Otherwise, the local file system is checked for existence of the file.
  */
-fun isFileResource(candidatePath: String): Boolean {
-  return candidatePath.startsWith("file:") || candidatePath.startsWith("apk:") || File(candidatePath).isFile
-}
+fun isFileResource(candidatePath: String): Boolean =
+  candidatePath.startsWith("file:") || candidatePath.startsWith("apk:") || candidatePath.startsWith("jar:") ||
+  File(candidatePath).isFile
 
 /**
  * Returns the given resource name, and possibly prepends a project-configured prefix to the name
@@ -873,16 +867,11 @@ fun getCompletionFromTypes(
     types.add(ResourceType.COLOR)
   }
 
-  val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
-  val appResources = repoManager.getAppResources(true)!!
-  val androidPlatform = AndroidPlatform.getInstance(facet.module)
-  var frameworkResources: ResourceRepository? = null
-  if (androidPlatform != null) {
-    val targetData = androidPlatform.sdkData.getTargetData(androidPlatform.target)
-    frameworkResources = targetData.getFrameworkResources(false)
-  }
+  val repoManager = ResourceRepositoryManager.getInstance(facet)
+  val appResources = repoManager.appResources
+  val frameworkResources = repoManager.getFrameworkResources(false)
 
-  val resources = Lists.newArrayListWithCapacity<String>(500)
+  val resources = ArrayList<String>(500)
   for (type in types) {
     // If type == ResourceType.COLOR, we want to include file resources (i.e. color state lists) only in the case where
     // color was present in completionTypes, and not if we added it because of the presence of ResourceType.DRAWABLES.
@@ -1114,18 +1103,11 @@ fun ResourceRepository.getResourceItems(
 ): Collection<String> {
   Preconditions.checkArgument(minVisibility != ResourceVisibility.UNDEFINED)
 
-  // TODO(namespaces): Only AarProtoResourceRepository properly supports resource visibility. We need to make all repositories support it.
+  // TODO(namespaces): Only AarResourceRepository and its subclasses properly support resource visibility.
+  //                   We need to make all repositories support it.
   return when {
-    this is FrameworkResourceRepository -> when {
-      namespace != ResourceNamespace.ANDROID -> emptySet()
-      minVisibility != ResourceVisibility.PUBLIC -> getResources(ResourceNamespace.ANDROID, type).keySet()
-      else -> {
-        val public = getPublicResources(ResourceNamespace.ANDROID, type)
-        public.mapTo(HashSet(public.size), ResourceItem::getName)
-      }
-    }
-    this is AarProtoResourceRepository -> {
-      // Resources in AarProtoResourceRepository know their visibility.
+    this is AarResourceRepository -> {
+      // Resources in AarResourceRepository know their visibility.
       val items = getResources(namespace, type) { item ->
         (item as ResourceItemWithVisibility).visibility >= minVisibility
       }
@@ -1175,9 +1157,11 @@ fun ResourceValue.isAccessibleInCode(facet: AndroidFacet): Boolean {
  * TODO(b/74324283): Build the concept of visibility level and scope (private to a given library/module) into repositories, items and values.
  */
 private fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name: String, facet: AndroidFacet): Boolean {
-  val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
+  val repoManager = ResourceRepositoryManager.getInstance(facet)
   return if (namespace == ResourceNamespace.ANDROID) {
-    (repoManager.getFrameworkResources(false) as FrameworkResourceRepository).isPublic(type, name)
+    val repo = repoManager.getFrameworkResources(false) ?: return false
+    val items = repo.getResources(ResourceNamespace.ANDROID, type, name)
+    items.isNotEmpty() && (items[0] as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
   }
   else {
     !repoManager.resourceVisibility.isPrivate(type, name)

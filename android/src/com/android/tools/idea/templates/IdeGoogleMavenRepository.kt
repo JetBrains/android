@@ -51,6 +51,15 @@ object IdeGoogleMavenRepository : GoogleMavenRepository(getCacheDir()) {
   }
 }
 
+/** A [GoogleMavenRepository] for only cached data. */
+object OfflineIdeGoogleMavenRepository : GoogleMavenRepository(getCacheDir(), useNetwork = false) {
+  override fun readUrlData(url: String, timeout: Int): ByteArray? = throw UnsupportedOperationException()
+
+  override fun error(throwable: Throwable, message: String?) {
+    Logger.getInstance(OfflineIdeGoogleMavenRepository::class.java).warn(message, throwable)
+  }
+}
+
 private fun getCacheDir(): File? =
     if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode)
       null

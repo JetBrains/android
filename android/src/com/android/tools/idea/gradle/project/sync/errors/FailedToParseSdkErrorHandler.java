@@ -47,7 +47,7 @@ public class FailedToParseSdkErrorHandler extends BaseSyncErrorHandler {
       else {
         newMsg = getFirstLineMessage(text);
       }
-      updateUsageTracker(FAILED_TO_PARSE_SDK);
+      updateUsageTracker(project, FAILED_TO_PARSE_SDK);
       return newMsg;
     }
     return null;

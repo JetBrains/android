@@ -1,0 +1,34 @@
+parts {
+  device {
+    display {
+      width 1024
+      height 768
+      x 0
+      y 0
+    }
+  }
+  landscape {
+    background {
+      image back.png
+    }
+    onion {
+      image fore.png
+    }
+  }
+}
+layouts {
+  landscape {
+    width 1461
+    height 1481
+    part1 {
+      name landscape
+      x 0
+      y 0
+    }
+    part2 {
+      name device
+      x 218
+      y 124
+    }
+  }
+}

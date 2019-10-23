@@ -40,7 +40,29 @@ import java.awt.*;
  */
 public class DropDownAction extends DefaultActionGroup implements CustomComponentAction {
 
+  private static final Icon BLANK_ICON = new Icon() {
+    @Override
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+
+    }
+
+    @Override
+    public int getIconWidth() {
+      return 0;
+    }
+
+    @Override
+    public int getIconHeight() {
+      return 0;
+    }
+  };
+
   @Nullable private JBPopup myCurrentPopup = null;
+  /**
+   * True if the actions have been initialized so {@link #hasDropDownArrow()} does not need to call it again before deciding its return
+   * value.
+   */
+  private boolean myActionsInitialized = false;
 
   public DropDownAction(@Nullable String title, @Nullable String description, @Nullable Icon icon) {
     super(title, true);
@@ -51,9 +73,14 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
       presentation.setIcon(icon);
     }
     else {
-      presentation.setIcon(EmptyIcon.ICON_0);
-      presentation.setDisabledIcon(EmptyIcon.ICON_0);
+      presentation.setIcon(BLANK_ICON);
+      presentation.setDisabledIcon(BLANK_ICON);
     }
+  }
+
+  private void updateActionsInternal() {
+    myActionsInitialized = true;
+    updateActions();
   }
 
   @Override
@@ -67,7 +94,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
     if (button == null) {
       return;
     }
-    updateActions();
+    updateActionsInternal();
     JPanel componentPopup = createCustomComponentPopup();
     if (componentPopup == null) {
       showPopupMenu(eve, button);
@@ -110,9 +137,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
   @Override
   @NotNull
   public JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
-    DropDownActionButton button = new DropDownActionButton(this, presentation, place);
-    updateActions();
-    return button;
+    return new DropDownActionButton(this, presentation, place);
   }
 
   @NotNull
@@ -165,6 +190,18 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
   @Override
   public boolean canBePerformed(@NotNull DataContext context) {
     return true;
+  }
+
+  /**
+   * This is used by the {@link DropDownActionButton} to decide when to show the drop down arrow. This is usually decided by looking if the
+   * number of actions in this group is more than 1. If calculating the actions is expensive, overriding this method can avoid running
+   * updateActions just to decide the drop down arrow state.
+   */
+  protected boolean hasDropDownArrow() {
+    if (!myActionsInitialized) {
+      updateActionsInternal();
+    }
+    return getChildrenCount() > 1;
   }
 
   public void closePopup() {

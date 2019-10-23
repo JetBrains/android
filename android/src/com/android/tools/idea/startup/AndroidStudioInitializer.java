@@ -15,20 +15,35 @@
  */
 package com.android.tools.idea.startup;
 
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.startup.Actions.hideAction;
+import static com.android.tools.idea.startup.Actions.replaceAction;
+import static com.intellij.openapi.actionSystem.IdeActions.ACTION_COMPILE;
+import static com.intellij.openapi.actionSystem.IdeActions.ACTION_COMPILE_PROJECT;
+import static com.intellij.openapi.actionSystem.IdeActions.ACTION_MAKE_MODULE;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.android.tools.idea.stats.GcPauseWatcher;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
+import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
+import com.android.tools.idea.ui.resourcemanager.actions.ShowFileInResourceManagerAction;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.junit.JUnitConfigurationProducer;
+import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.internal.statistic.persistence.UsageStatisticsPersistenceComponent;
+import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.IdeActions;
@@ -42,20 +57,17 @@ import com.intellij.openapi.editor.XmlHighlighterColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.editor.markup.TextAttributes;
+import com.intellij.openapi.extensions.ExtensionPoint;
+import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.AppUIUtil;
-import com.intellij.util.ReflectionUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.Arrays;
-
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.startup.Actions.hideAction;
-import static com.android.tools.idea.startup.Actions.replaceAction;
-import static com.intellij.openapi.actionSystem.IdeActions.*;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Performs Android Studio specific initialization tasks that are build-system-independent.
@@ -70,11 +82,13 @@ public class AndroidStudioInitializer implements Runnable {
     checkInstallation();
     setUpNewFilePopupActions();
     setUpMakeActions();
+    disableGroovyLanguageInjection();
     setUpNewProjectActions();
     setupAnalytics();
     disableIdeaJUnitConfigurations();
     hideRarelyUsedIntellijActions();
     renameSynchronizeAction();
+    setupResourceManagerActions();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
     // "Darcula" and user schemes will not be touched.
@@ -82,14 +96,10 @@ public class AndroidStudioInitializer implements Runnable {
     TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
     TextAttributes xmlTagAttributes = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
     xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
+  }
 
-    /* Causes IDE startup failure (from the command line)
-          Caused by: java.lang.IllegalAccessError: tried to access class com.intellij.ui.tabs.FileColorConfiguration from class com.intellij.ui.tabs.FileColorConfigurationUtil
-          at com.intellij.ui.tabs.FileColorConfigurationUtil.createFileColorConfigurationIfNotExist(FileColorConfigurationUtil.java:37)
-          at com.intellij.ui.tabs.FileColorConfigurationUtil.createAndroidTestFileColorConfigurationIfNotExist(FileColorConfigurationUtil.java:28)
-          at com.android.tools.idea.startup.AndroidStudioInitializer.run(AndroidStudioInitializer.java:90)
-    FileColorConfigurationUtil.createAndroidTestFileColorConfigurationIfNotExist(ProjectManager.getInstance().getDefaultProject());
-     */
+  private static void setupResourceManagerActions() {
+    replaceAction("Images.ShowThumbnails", new ShowFileInResourceManagerAction());
   }
 
   /*
@@ -120,8 +130,8 @@ public class AndroidStudioInitializer implements Runnable {
     if (ApplicationManager.getApplication().isInternal()) {
       UsageTracker.setIdeaIsInternal(true);
     }
-    UsageTracker.initialize(JobScheduler.getScheduler());
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
+    new GcPauseWatcher(); // FIXME-ank: delete?
   }
 
   private static AndroidStudioEvent.IdeBrand getIdeBrand() {
@@ -195,6 +205,26 @@ public class AndroidStudioInitializer implements Runnable {
     hideAction(ACTION_COMPILE);
   }
 
+  // Fix https://code.google.com/p/android/issues/detail?id=201624
+  private static void disableGroovyLanguageInjection() {
+    ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+      @Override
+      public void projectOpened(@NotNull Project project) {
+        ExtensionPoint<MultiHostInjector> extensionPoint =
+          Extensions.getArea(project).getExtensionPoint(MultiHostInjector.MULTIHOST_INJECTOR_EP_NAME);
+
+        for (MultiHostInjector injector : extensionPoint.getExtensions()) {
+          if (injector instanceof GrConcatenationInjector) {
+            extensionPoint.unregisterExtension(injector.getClass());
+            return;
+          }
+        }
+
+        getLog().info("Failed to disable 'org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector'");
+      }
+    });
+  }
+
   private static void setUpNewProjectActions() {
     replaceAction("NewClass", new CreateClassAction());
 
@@ -209,28 +239,23 @@ public class AndroidStudioInitializer implements Runnable {
   // JUnit original Extension JUnitConfigurationType is disabled so it can be replaced by its child class AndroidJUnitConfigurationType
   private static void disableIdeaJUnitConfigurations() {
     // First we unregister the ConfigurationProducers, and after the ConfigurationType
-    RunConfigurationProducer.EP_NAME.getPoint(null).unregisterExtensions((className, adapter) -> {
-      Class<?> clazz;
-      try {
-        clazz = adapter.getImplementationClass();
+    ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint = RunConfigurationProducer.EP_NAME.getPoint(null);
+    for (RunConfigurationProducer runConfigurationProducer : configurationProducerExtensionPoint.getExtensions()) {
+      if (runConfigurationProducer instanceof JUnitConfigurationProducer
+          && !(runConfigurationProducer instanceof AndroidJUnitConfigurationProducer)) {
+        // In AndroidStudio these ConfigurationProducer s are replaced
+        configurationProducerExtensionPoint.unregisterExtension(runConfigurationProducer.getClass());
       }
-      catch (ClassNotFoundException e) {
-        return true;
-      }
+    }
 
-      // In AndroidStudio these ConfigurationProducers are replaced
-      return !ReflectionUtil.isAssignable(JUnitConfigurationProducer.class, clazz) || ReflectionUtil.isAssignable(AndroidJUnitConfigurationProducer.class, clazz);
-    }, /* stopAfterFirstMatch = */ false);
-
-    ConfigurationType.CONFIGURATION_TYPE_EP.getPoint(null).unregisterExtensions((className, adapter) -> {
-      // In Android Studio the user is forced to use AndroidJUnitConfigurationType instead of JUnitConfigurationType
-      try {
-        return !ReflectionUtil.isAssignable(JUnitConfigurationProducer.class, adapter.getImplementationClass());
+    ExtensionPoint<ConfigurationType> configurationTypeExtensionPoint =
+      Extensions.getRootArea().getExtensionPoint(ConfigurationType.CONFIGURATION_TYPE_EP);
+    for (ConfigurationType configurationType : configurationTypeExtensionPoint.getExtensions()) {
+      if (configurationType instanceof JUnitConfigurationType && !(configurationType instanceof AndroidJUnitConfigurationType)) {
+        // In Android Studio the user is forced to use AndroidJUnitConfigurationType instead of JUnitConfigurationType
+        configurationTypeExtensionPoint.unregisterExtension(configurationType.getClass());
       }
-      catch (ClassNotFoundException e) {
-        return true;
-      }
-    }, /* stopAfterFirstMatch = */ false);
+    }
 
     // We hide actions registered by the JUnit plugin and instead we use those registered in android-junit.xml
     hideAction("excludeFromSuite");

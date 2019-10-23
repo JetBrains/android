@@ -36,11 +36,12 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.adtui.ptable.StarState;
+import com.android.tools.property.ptable.StarState;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
@@ -283,6 +284,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     NlProperties.saveStarState(null, ATTR_NAME, true, myPropertiesManager);
     List<String> expected = ImmutableList.of(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION, ATTR_NAME);
     assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(propertyList(expected));
+    verify(myUsageTracker).logFavoritesChange(ATTR_NAME, "", expected, myFacet);
   }
 
   public void testAddStarredToolsProperty() {
@@ -290,6 +292,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     NlProperties.saveStarState(TOOLS_URI, ATTR_TEXT, true, myPropertiesManager);
     List<String> expected = ImmutableList.of(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, TOOLS_NS_NAME_PREFIX + ATTR_TEXT);
     assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(propertyList(expected));
+    verify(myUsageTracker).logFavoritesChange(TOOLS_NS_NAME_PREFIX + ATTR_TEXT, "", expected, myFacet);
   }
 
   public void testRemoveStarredProperty() {
@@ -297,6 +300,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     NlProperties.saveStarState(ANDROID_URI, ATTR_CARD_ELEVATION, false, myPropertiesManager);
     List<String> expected = ImmutableList.of(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK);
     assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(propertyList(expected));
+    verify(myUsageTracker).logFavoritesChange("", ATTR_CARD_ELEVATION, expected, myFacet);
   }
 
   @NotNull

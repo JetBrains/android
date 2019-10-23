@@ -17,7 +17,7 @@ package com.android.tools.idea.apk;
 
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,7 +49,7 @@ public class ApkFileType implements FileType {
   @Nullable
   @Override
   public Icon getIcon() {
-    return AndroidIcons.AndroidFile;
+    return StudioIcons.Shell.Filetree.ANDROID_FILE;
   }
 
   @Override

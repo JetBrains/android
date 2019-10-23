@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.structure.model.meta
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.util.PatternUtil
+import java.io.File
 import kotlin.reflect.KProperty
 
 /**
@@ -44,8 +46,12 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   defaultValueGetter: ((ModelT) -> PropertyT?)? = null,
   resolvedValueGetter: ResolvedT.() -> PropertyT?,
   parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel?,
+  parsedPropertyInitializer: ParsedT.() -> ResolvedPropertyModel = {
+    throw UnsupportedOperationException("Property '$description' cannot be automatically initialized.")
+  },
   getter: ResolvedPropertyModel.() -> PropertyT?,
   setter: ResolvedPropertyModel.(PropertyT) -> Unit,
+  refresher: ModelT.() -> Unit = {},
   parser: (String) -> Annotated<ParsedValue<PropertyT>>,
   formatter: (PropertyT) -> String = { it.toString() },
   knownValuesGetter: ((ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>) = { immediateFuture(listOf()) },
@@ -58,8 +64,10 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   defaultValueGetter,
   resolvedValueGetter,
   parsedPropertyGetter,
+  parsedPropertyInitializer,
   getter,
   setter,
+  refresher,
   parser,
   formatter,
   knownValuesGetter,
@@ -67,14 +75,60 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   matcher
 )
 
+/**
+ * Attaches file chooser details to the propery.
+ */
+fun <ModelT, PropertyT : Any> ModelSimpleProperty<ModelT, PropertyT>.withFileSelectionRoot(
+  masks: List<String>? = null,
+  browseRoot: (ModelT) -> File?,
+  resolveRoot: (ModelT) -> File?
+) =
+  let { baseProperty ->
+    object : ModelSimpleProperty<ModelT, PropertyT> by baseProperty {
+      override fun bindContext(model: ModelT): ModelPropertyContext<PropertyT> =
+        object : FileTypePropertyContext<PropertyT>, ModelPropertyContext<PropertyT> by baseProperty.bindContext(model) {
+          override val browseRootDir: File? = browseRoot(model)
+          override val resolveRootDir: File? = resolveRoot(model)
+          override val filterPredicate: ((File) -> Boolean)? = masks?.toPredicate()
+        }
+    }
+  }
+
+/**
+ * Attaches file chooser details to the propery.
+ */
+fun <ModelT, PropertyT : Any> ModelListProperty<ModelT, PropertyT>.withFileSelectionRoot(
+  masks: List<String>? = null,
+  browseRoot: ModelT.() -> File?,
+  resolveRoot: ModelT.() -> File?
+) =
+  let { baseProperty ->
+    object : ModelListProperty<ModelT, PropertyT> by baseProperty {
+      override fun bindContext(model: ModelT): ModelPropertyContext<PropertyT> =
+        object : FileTypePropertyContext<PropertyT>, ModelPropertyContext<PropertyT> by baseProperty.bindContext(model) {
+          override val browseRootDir: File? = model.browseRoot()
+          override val resolveRootDir: File? = model.resolveRoot()
+          override val filterPredicate: ((File) -> Boolean)? = masks?.toPredicate()
+        }
+    }
+  }
+
+private fun List<String>.toPredicate(): (File) -> Boolean =
+  map { PatternUtil.fromMask(it) }
+    .let { patterns ->
+      fun(probe: File) = patterns.any { pattern -> pattern.matcher(probe.name).matches() }
+    }
+
 class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
   private val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   override val description: String,
   val defaultValueGetter: ((ModelT) -> PropertyT?)?,
   private val resolvedValueGetter: ResolvedT.() -> PropertyT?,
   private val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel?,
+  private val parsedPropertyInitializer: ParsedT.() -> ResolvedPropertyModel,
   private val getter: ResolvedPropertyModel.() -> PropertyT?,
   private val setter: ResolvedPropertyModel.(PropertyT) -> Unit,
+  private val refresher: ModelT.() -> Unit,
   override val parser: (String) -> Annotated<ParsedValue<PropertyT>>,
   override val formatter: (PropertyT) -> String,
   override val knownValuesGetter: (ModelT) -> ListenableFuture<List<ValueDescriptor<PropertyT>>>,
@@ -86,20 +140,27 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
     modelDescriptor.getParsed(thisRef)?.parsedPropertyGetter().getParsedValue(getter).value
 
   override fun setValue(thisRef: ModelT, property: KProperty<*>, value: ParsedValue<PropertyT>) {
-    thisRef.setModified()  // setModified() is expected to instantiate a parsed model if it is still null.
-    (modelDescriptor.getParsed(thisRef) ?: throw IllegalStateException())
-      .parsedPropertyGetter()!!.setParsedValue(setter, { delete() }, value)
+    thisRef.modify {
+      // modify() is expected to instantiate a parsed model if it is still null.
+      (modelDescriptor.getParsed(thisRef) ?: throw IllegalStateException()).let {
+        (it.parsedPropertyGetter() ?: it.parsedPropertyInitializer()).setParsedValue(setter, { delete() }, value)
+      }
+    }
   }
 
   inner class SimplePropertyCore(private val model: ModelT)
     : ModelPropertyCoreImpl<PropertyT>(),
       ModelPropertyCore<PropertyT> {
     override val description: String = this@ModelSimplePropertyImpl.description
-    override fun getParsedProperty(): ResolvedPropertyModel? = modelDescriptor.getParsed(model)?.parsedPropertyGetter()
+    override fun getParsedPropertyForRead(): ResolvedPropertyModel? = modelDescriptor.getParsed(model)?.parsedPropertyGetter()
+    override fun getParsedPropertyForWrite(): ResolvedPropertyModel =
+      modelDescriptor.getParsed(model)?.let { it.parsedPropertyGetter() ?: it.parsedPropertyInitializer() }!!
     override val getter: ResolvedPropertyModel.() -> PropertyT? = this@ModelSimplePropertyImpl.getter
     override val setter: ResolvedPropertyModel.(PropertyT) -> Unit = this@ModelSimplePropertyImpl.setter
     override val nullifier: ResolvedPropertyModel.() -> Unit = { delete() }
-    override fun setModified() = modelDescriptor.setModified(model)
+
+    override fun modify(block: () -> Unit) = model.modify{ block() }
+
     override fun getResolvedValue(): ResolvedValue<PropertyT> {
       val resolvedModel = modelDescriptor.getResolved(model)
       val resolved: PropertyT? = resolvedModel?.resolvedValueGetter()
@@ -117,7 +178,12 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
 
   override fun bind(model: ModelT): ModelPropertyCore<PropertyT> = SimplePropertyCore(model)
 
-  private fun ModelT.setModified() = modelDescriptor.setModified(this)
+  private fun ModelT.modify(block: ModelT.() -> Unit) {
+    modelDescriptor.prepareForModification(this)
+    block()
+    modelDescriptor.setModified(this)
+    this.refresher()
+  }
 }
 
 abstract class ModelPropertyCoreImpl<PropertyT : Any>
@@ -125,16 +191,17 @@ abstract class ModelPropertyCoreImpl<PropertyT : Any>
   abstract val getter: ResolvedPropertyModel.() -> PropertyT?
   abstract val setter: ResolvedPropertyModel.(PropertyT) -> Unit
   abstract val nullifier: ResolvedPropertyModel.() -> Unit
-  abstract fun setModified()
+  abstract fun modify(block: () -> Unit)
 
-  override fun getParsedValue(): Annotated<ParsedValue<PropertyT>> = getParsedProperty().getParsedValue(getter)
+  override fun getParsedValue(): Annotated<ParsedValue<PropertyT>> = getParsedPropertyForRead().getParsedValue(getter)
 
   override fun setParsedValue(value: ParsedValue<PropertyT>) {
-    setModified()
-    (getParsedProperty() ?: throw IllegalStateException()).setParsedValue(setter, nullifier, value)
+    modify {
+      getParsedPropertyForWrite().setParsedValue(setter, nullifier, value)
+    }
   }
 
-  override val isModified: Boolean? get() = getParsedProperty()?.isModified
+  override val isModified: Boolean? get() = getParsedPropertyForRead()?.isModified
 
   override fun annotateParsedResolvedMismatch(): ValueAnnotation? =
     annotateParsedResolvedMismatchBy { parsedValueToCompare, resolvedValue ->
@@ -143,24 +210,31 @@ abstract class ModelPropertyCoreImpl<PropertyT : Any>
 
   abstract fun parsedAndResolvedValuesAreEqual(parsedValue: PropertyT?, resolvedValue: PropertyT): Boolean
 
-  override fun rebind(resolvedProperty: ResolvedPropertyModel, modifiedSetter: () -> Unit): ModelPropertyCore<PropertyT> {
+  override fun rebind(
+    resolvedProperty: ResolvedPropertyModel,
+    modifier: (() -> Unit) -> Unit
+  ): ModelPropertyCore<PropertyT> {
     return object : ModelPropertyCoreImpl<PropertyT>(),
                     ModelPropertyCore<PropertyT>,
                     GradleModelCoreProperty<PropertyT, ModelPropertyCore<PropertyT>> {
       override val description: String = this@ModelPropertyCoreImpl.description
-      override fun getParsedProperty(): ResolvedPropertyModel? = resolvedProperty
+      override fun getParsedPropertyForRead(): ResolvedPropertyModel? = resolvedProperty
+      override fun getParsedPropertyForWrite(): ResolvedPropertyModel = resolvedProperty
       override val getter: ResolvedPropertyModel.() -> PropertyT? = this@ModelPropertyCoreImpl.getter
       override val setter: ResolvedPropertyModel.(PropertyT) -> Unit = this@ModelPropertyCoreImpl.setter
       override val nullifier: ResolvedPropertyModel.() -> Unit = { delete() }
-      override fun setModified() = modifiedSetter()
+      override fun modify(block: () -> Unit) = modifier(block)
       override fun getResolvedValue(): ResolvedValue<PropertyT> = ResolvedValue.NotResolved()
 
       override val defaultValueGetter: (() -> PropertyT?)? = null
       override fun parsedAndResolvedValuesAreEqual(parsedValue: PropertyT?, resolvedValue: PropertyT): Boolean =
         throw UnsupportedOperationException()
 
-      override fun rebind(resolvedProperty: ResolvedPropertyModel, modifiedSetter: () -> Unit): ModelPropertyCore<PropertyT> =
-        this@ModelPropertyCoreImpl.rebind(resolvedProperty, modifiedSetter)
+      override fun rebind(
+        resolvedProperty: ResolvedPropertyModel,
+        modifier: (() -> Unit) -> Unit
+      ): ModelPropertyCore<PropertyT> =
+        this@ModelPropertyCoreImpl.rebind(resolvedProperty, modifier)
     }
   }
 }

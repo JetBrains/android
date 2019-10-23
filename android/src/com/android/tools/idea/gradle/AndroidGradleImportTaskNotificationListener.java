@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
@@ -35,12 +34,7 @@ public class AndroidGradleImportTaskNotificationListener extends ExternalSystemT
   public void onStart(@NotNull ExternalSystemTaskId id, String workingDir) {
     if (GradleConstants.SYSTEM_ID.getId().equals(id.getProjectSystemId().getId())
         && id.getType() == ExternalSystemTaskType.RESOLVE_PROJECT) {
-      // This is workaround to provide AndroidSyncIssue reporting with the sync task id to be able to work with the Build Sync view
-      // Should be removed when the GradleSyncMessages will be able to use the proper sync task id for the reporting
-      Project project = id.findProject();
-      if (project != null) {
-        project.putUserData(IdeaGradleSync.LAST_SYNC_TASK_ID_KEY, id);
-      }
+      setExternalSystemTaskId(id);
     }
   }
 

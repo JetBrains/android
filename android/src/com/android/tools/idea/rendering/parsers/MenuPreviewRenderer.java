@@ -20,7 +20,8 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.rendering.RenderTaskContext;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.Lists;
@@ -172,7 +173,7 @@ class MenuPreviewRenderer {
       setAndroidAttr(layout, ATTR_LAYOUT_HEIGHT, "48dp");
     }
 
-    MergedManifest manifestInfo = MergedManifest.get(myModule);
+    MergedManifestSnapshot manifestInfo = MergedManifestManager.getSnapshot(myModule);
     ResourceValue applicationIcon = myResolver.resolveResValue(manifestInfo.getApplicationIcon());
     if (applicationIcon != null && applicationIcon.getValue() != null) {
       Element imageView = myDocument.createElement(IMAGE_VIEW);

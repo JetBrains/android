@@ -25,7 +25,10 @@ import com.intellij.util.ui.UIUtil
 import java.awt.Component
 import java.awt.FlowLayout
 import java.awt.Font
-import javax.swing.*
+import javax.swing.Icon
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JTree
 import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.tree.TreeCellRenderer
 import javax.swing.tree.TreePath
@@ -81,7 +84,7 @@ class NlTreeCellRenderer(
 
     if (value !is NlComponent) return this
     primaryLabel.font = nlComponentFont
-    val path = tree.getPathForRow(row) ?: return this
+    val path = tree.getPathForRow(row)
     val leftOffset = getLeftOffset(tree, path)
 
     val facet = value.model.facet
@@ -143,9 +146,10 @@ class NlTreeCellRenderer(
     return tooltip
   }
 
-  private fun getLeftOffset(tree: JTree, path: TreePath): Int {
+  private fun getLeftOffset(tree: JTree, path: TreePath?): Int {
     val ui = tree.ui as BasicTreeUI
-    return (ui.leftChildIndent + ui.rightChildIndent) * path.pathCount
+    val depth = path?.pathCount ?: 1
+    return (ui.leftChildIndent + ui.rightChildIndent) * depth
   }
 
   private fun computeAvailableSpace(row: Int, icon: Icon?, cellWidth: Int) =

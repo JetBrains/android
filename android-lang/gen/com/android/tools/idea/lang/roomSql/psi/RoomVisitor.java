@@ -316,7 +316,7 @@ public class RoomVisitor extends PsiElementVisitor {
   }
 
   public void visitResultColumns(@NotNull RoomResultColumns o) {
-    visitPsiElement(o);
+    visitSqlTableElement(o);
   }
 
   public void visitRollbackStatement(@NotNull RoomRollbackStatement o) {

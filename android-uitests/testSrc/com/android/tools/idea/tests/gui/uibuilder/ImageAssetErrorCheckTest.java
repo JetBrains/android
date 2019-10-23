@@ -26,10 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.util.concurrent.TimeUnit;
-
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class ImageAssetErrorCheckTest {
@@ -46,7 +43,7 @@ public class ImageAssetErrorCheckTest {
    *   <pre>
    *   Test Steps:
    *   1. Open Android Studio
-   *   2. Import SimpleLocalApplication
+   *   2. Import SimpleApplication
    *   3. Right click the default app module (or any manually created module) and select New > Vector Asset (Verify)
    *   4. Select Local SVG file option
    *   5. Choose an image file from the local system
@@ -58,14 +55,14 @@ public class ImageAssetErrorCheckTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void imageAssetErrorCheck() throws Exception {
-    guiTest.importSimpleLocalApplication()
+    guiTest.importSimpleApplication()
       .getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app")
       .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
-      .useLocalFile(findFileByIoFile(new File(GuiTests.getTestDataDir() + "/TestImages/call.svg"), true))
+      .useLocalFile(GuiTests.getTestDataDir() + "/TestImages/call.svg")
       .waitUntilStepErrorMessageIsGone()
-      .useLocalFile(findFileByIoFile(new File(GuiTests.getTestDataDir() + "/TestImages/android_wrong.svg"), true))
+      .useLocalFile(GuiTests.getTestDataDir() + "/TestImages/android_wrong.svg")
       .assertStepErrorMessage(errorMsg -> errorMsg.contains("Error while parsing android_wrong.svg"))
       .clickCancel();
   }

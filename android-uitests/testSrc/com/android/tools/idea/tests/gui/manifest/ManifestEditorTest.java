@@ -16,13 +16,14 @@
 package com.android.tools.idea.tests.gui.manifest;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MergedManifestFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTreeFixture;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,9 +39,10 @@ public class ManifestEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/123580267
   @Test
   public void testManifestGoToSource() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
     IdeFrameFixture projectFrame = guiTest.ideFrame();
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/AndroidManifest.xml");
@@ -79,53 +81,6 @@ public class ManifestEditorTest {
 
     tree.clickPath("manifest/application/android:isGame = true");
     assertEquals("android:isGame = true", tree.valueAt(tree.target().getLeadSelectionRow()));
-  }
-
-  @Ignore("fails with Gradle plugin 2.3.0-dev")
-  @Test
-  public void testNonPrimaryManifest() throws IOException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("Flavoredapp");
-    IdeFrameFixture projectFrame = guiTest.ideFrame();
-    EditorFixture editor = projectFrame.getEditor();
-
-    editor.open("src/main/AndroidManifest.xml");
-    editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
-    MergedManifestFixture mergedManifestFixture = editor.getMergedManifestEditor();
-
-    Color defaultBackgroundColor = mergedManifestFixture.getDefaultBackgroundColor();
-    mergedManifestFixture.getTree().clickRow(1);
-    assertThat(mergedManifestFixture.getSelectedNodeColor()).isNotEqualTo(defaultBackgroundColor);
-    mergedManifestFixture.getTree().clickRow(3);
-    assertThat(mergedManifestFixture.getSelectedNodeColor()).isEqualTo(defaultBackgroundColor);
-    mergedManifestFixture.getTree().clickRow(2);
-
-    mergedManifestFixture.requireText(
-      "Manifest Sources \n" +
-      "\n" +
-      "Flavoredapp main manifest (this file)\n" +
-      "\n" +
-      "myaarlibrary manifest\n" +
-      "\n" +
-      "build.gradle injection\n" +
-      " Other Manifest Files (Included in merge, but did not contribute any elements)\n" +
-      "locallib manifest, Flavoredapp debug manifest, Flavoredapp flavor1 manifest,\n" +
-      "support-compat:25.0.0 manifest, support-core-ui:25.0.0 manifest,\n" +
-      "support-core-utils:25.0.0 manifest, support-fragment:25.0.0 manifest,\n" +
-      "support-media-compat:25.0.0 manifest, support-v4:25.0.0 manifest  Merging Log\n" +
-      "Value provided by Gradle Added from the Flavoredapp main manifest (this file),\n" +
-      "line 1 Value provided by Gradle\n", true);
-
-    editor.open("src/debug/AndroidManifest.xml");
-    editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
-    mergedManifestFixture = editor.getMergedManifestEditor();
-    mergedManifestFixture.getTree().clickRow(3);
-    assertNotEquals(defaultBackgroundColor, mergedManifestFixture.getSelectedNodeColor());
-
-    editor.open("src/flavor1/AndroidManifest.xml");
-    editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
-    mergedManifestFixture = editor.getMergedManifestEditor();
-    mergedManifestFixture.getTree().clickRow(3);
-    assertNotEquals(defaultBackgroundColor, mergedManifestFixture.getSelectedNodeColor());
   }
 
   @Test

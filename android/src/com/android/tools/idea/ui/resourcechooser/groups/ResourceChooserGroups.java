@@ -27,14 +27,17 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.SampleDataResourceItem;
 import com.android.tools.idea.ui.resourcechooser.ResourceChooserItem;
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-import java.util.function.Predicate;
 
 public class ResourceChooserGroups {
   // Longer term we may want to let users see private resources and copy them to their projects
@@ -118,17 +121,6 @@ public class ResourceChooserGroups {
     return chooserItems.build();
   }
 
-  @Nullable
-  private static ResourceRepository getFrameworkResources(@NotNull AndroidFacet facet, boolean withLocale) {
-    AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
-    if (androidPlatform == null) {
-      return null;
-    }
-
-    AndroidTargetData targetData = androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget());
-    return targetData.getFrameworkResources(withLocale);
-  }
-
   @NotNull
   public static ResourceChooserGroup createResourceItemsGroup(@NotNull String label,
                                                               @NotNull ResourceType type,
@@ -139,7 +131,8 @@ public class ResourceChooserGroups {
 
     ImmutableList.Builder<ResourceChooserItem> items = ImmutableList.builder();
     if (framework) {
-      ResourceRepository frameworkResources = getFrameworkResources(facet, type == ResourceType.STRING);
+      ResourceRepository frameworkResources =
+        ResourceRepositoryManager.getInstance(facet).getFrameworkResources(type == ResourceType.STRING);
       if (frameworkResources != null) {
         items.addAll(getFrameworkItems(type, includeFileResources, frameworkResources, type));
         if (type == ResourceType.DRAWABLE) {
@@ -149,8 +142,8 @@ public class ResourceChooserGroups {
       }
     }
     else {
-      ResourceRepositoryManager repoManager = ResourceRepositoryManager.getOrCreateInstance(facet);
-      LocalResourceRepository appResources = repoManager.getAppResources(true);
+      ResourceRepositoryManager repoManager = ResourceRepositoryManager.getInstance(facet);
+      LocalResourceRepository appResources = repoManager.getAppResources();
 
       //noinspection ConstantConditions
       ResourceVisibilityLookup lookup = FILTER_OUT_PRIVATE_ITEMS ? repoManager.getResourceVisibility() : null;
@@ -168,9 +161,8 @@ public class ResourceChooserGroups {
   public static ResourceChooserGroup createThemeAttributesGroup(@NotNull ResourceType type,
                                                                 @NotNull AndroidFacet facet,
                                                                 @NotNull Collection<String> attrs) {
-    //noinspection ConstantConditions
     ResourceVisibilityLookup lookup = FILTER_OUT_PRIVATE_ITEMS
-                                      ? ResourceRepositoryManager.getOrCreateInstance(facet).getResourceVisibility()
+                                      ? ResourceRepositoryManager.getInstance(facet).getResourceVisibility()
                                       : null;
 
     List<ResourceChooserItem> items = new ArrayList<>();
@@ -178,7 +170,6 @@ public class ResourceChooserGroups {
       boolean framework = name.startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX);
       String simpleName = framework ? ResolutionUtils.getNameFromQualifiedName(name) : name;
       if (!framework) {
-        //noinspection ConstantConditions
         if (lookup != null && lookup.isPrivate(ResourceType.ATTR, simpleName)) {
           continue;
         }

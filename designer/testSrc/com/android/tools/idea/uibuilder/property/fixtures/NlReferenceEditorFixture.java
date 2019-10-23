@@ -202,7 +202,7 @@ public class NlReferenceEditorFixture extends EditorFixtureBase {
 
   private static class MySliderUI extends BasicSliderUI {
 
-    MySliderUI(@NotNull JSlider slider) {
+    public MySliderUI(@NotNull JSlider slider) {
       super(slider);
     }
 

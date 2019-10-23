@@ -40,11 +40,11 @@ public class FutureValuesTracker<V> {
     public V value;
     public Throwable error;
 
-    Entry(V value) {
+    public Entry(V value) {
       this.value = value;
     }
 
-    Entry(Throwable t) {
+    public Entry(Throwable t) {
       this.error = t;
     }
   }

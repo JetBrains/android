@@ -16,11 +16,22 @@
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
 import com.android.SdkConstants
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.util.NlTreeDumper
+import com.android.tools.idea.common.util.XmlTagUtil
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.LayoutTestUtilities
+import com.android.tools.idea.uibuilder.api.ViewEditor
+import com.android.tools.idea.uibuilder.property.MockNlComponent
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.psi.xml.XmlTag
+import com.intellij.util.ui.UIUtil
+import org.mockito.Mockito.mock
 
 class CoordinatorLayoutHandlerTest : SceneTest() {
 
@@ -78,7 +89,7 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
             "        android:layout_width=\"20dp\"\n" +
             "        android:layout_height=\"20dp\"\n" +
             "        app:layout_anchor=\"@+id/button\"\n" +
-            "        app:layout_anchorGravity=\"left|top\" />")
+            "        app:layout_anchorGravity=\"start|top\" />")
   }
 
   fun testDragComponentToRightBottomSide() {
@@ -91,52 +102,142 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
             "        android:layout_width=\"20dp\"\n" +
             "        android:layout_height=\"20dp\"\n" +
             "        app:layout_anchor=\"@+id/button\"\n" +
-            "        app:layout_anchorGravity=\"right|bottom\" />")
+            "        app:layout_anchorGravity=\"end|bottom\" />")
+  }
+
+  fun testAddBottomAppBar() {
+    val bottomAppBar = MockNlComponent.create(
+      ApplicationManager.getApplication().runReadAction<XmlTag> {
+        XmlTagUtil.createTag(project, "<${SdkConstants.BOTTOM_APP_BAR} android:id=\"@+id/bottomAppBar\"/>")
+          .apply { putUserData(ModuleUtilCore.KEY_MODULE, myModule) }
+      }
+    )
+    val handler = CoordinatorLayoutHandler()
+    val editor = mock(ViewEditor::class.java)
+    handler.onChildInserted(editor, myModel.components.first(), bottomAppBar, InsertType.CREATE)
+    UIUtil.dispatchAllInvocationEvents()
+
+    val fab = myModel.find("fab")!!
+    assertThat(fab.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR)).isEqualTo("@id/bottomAppBar")
+    assertThat(fab.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_GRAVITY)).isNull()
+    assertThat(fab.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN)).isNull()
+  }
+
+  fun testRemovingComponentWillRemoveAnchorAttribute() {
+    StudioFlags.NELE_DRAG_PLACEHOLDER.override(true)
+    try {
+      // Move linear layout to frame layout. Button2 should remove anchor attributes.
+      myInteraction.select("linear", true)
+      myInteraction.mouseDown("linear")
+      myInteraction.mouseRelease("frame", 30f, 30f)
+      val p = myScreen.get("@id/button2").component.parent
+      myScreen.get("@id/button2")
+        .expectXml("<Button\n" +
+                   "    android:id=\"@id/button2\"\n" +
+                   "    android:layout_width=\"100dp\"\n" +
+                   "    android:layout_height=\"100dp\" />")
+    }
+    finally {
+      StudioFlags.NELE_DRAG_PLACEHOLDER.clearOverride()
+    }
   }
 
   override fun createModel(): ModelBuilder {
     val builder = model("coordinator.xml",
-        component(SdkConstants.COORDINATOR_LAYOUT.defaultName())
-            .withBounds(0, 0, 1000, 1000)
-            .matchParentWidth()
-            .matchParentHeight()
-            .children(
-                component(SdkConstants.BUTTON)
-                    .withBounds(100, 100, 100, 100)
-                    .viewObject(LayoutTestUtilities.mockViewWithBaseline(17))
-                    .id("@id/button")
-                    .width("100dp")
-                    .height("100dp"),
-                component(SdkConstants.CHECK_BOX)
-                    .withBounds(300, 300, 20, 20)
-                    .viewObject(LayoutTestUtilities.mockViewWithBaseline(17))
-                    .id("@id/checkbox")
-                    .width("20dp")
-                    .height("20dp")
-            ))
+                        component(SdkConstants.COORDINATOR_LAYOUT.newName())
+                          .withBounds(0, 0, 1000, 1000)
+                          .matchParentWidth()
+                          .matchParentHeight()
+                          .children(
+                            component(SdkConstants.BUTTON)
+                              .withBounds(100, 100, 100, 100)
+                              .viewObject(LayoutTestUtilities.mockViewWithBaseline(17))
+                              .id("@id/button")
+                              .width("100dp")
+                              .height("100dp"),
+                            component(SdkConstants.CHECK_BOX)
+                              .withBounds(300, 300, 20, 20)
+                              .viewObject(LayoutTestUtilities.mockViewWithBaseline(17))
+                              .id("@id/checkbox")
+                              .width("20dp")
+                              .height("20dp"),
+                            component(SdkConstants.FLOATING_ACTION_BUTTON.newName())
+                              .withBounds(200, 400, 64, 64)
+                              .id("@id/fab")
+                              .width("64dp")
+                              .height("64dp")
+                              .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_GRAVITY, "bottom")
+                              .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN, "15dp"),
+                            component(SdkConstants.LINEAR_LAYOUT)
+                              .withBounds(900, 900, 100, 100)
+                              .id("@id/linear")
+                              .width("100dp")
+                              .height("100dp"),
+                            component(SdkConstants.BUTTON)
+                              .withBounds(900, 900, 100, 100)
+                              .id("@id/button2")
+                              .width("100dp")
+                              .height("100dp")
+                              .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR, "@id/linear")
+                              .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY, "bottom|end"),
+                            component(SdkConstants.FRAME_LAYOUT)
+                              .withBounds(500, 500, 400, 400)
+                              .id("@id/frame")
+                              .width("400dp")
+                              .height("400dp")
+                          ))
     val model = builder.build()
     assertEquals(1, model.components.size)
-    assertEquals("NlComponent{tag=<android.support.design.widget.CoordinatorLayout>, bounds=[0,0:1000x1000}\n" +
+    assertEquals("NlComponent{tag=<androidx.coordinatorlayout.widget.CoordinatorLayout>, bounds=[0,0:1000x1000}\n" +
         "    NlComponent{tag=<Button>, bounds=[100,100:100x100}\n" +
-        "    NlComponent{tag=<CheckBox>, bounds=[300,300:20x20}",
+        "    NlComponent{tag=<CheckBox>, bounds=[300,300:20x20}\n" +
+        "    NlComponent{tag=<com.google.android.material.floatingactionbutton.FloatingActionButton>, bounds=[200,400:64x64}\n" +
+        "    NlComponent{tag=<LinearLayout>, bounds=[900,900:100x100}\n" +
+        "    NlComponent{tag=<Button>, bounds=[900,900:100x100}\n" +
+        "    NlComponent{tag=<FrameLayout>, bounds=[500,500:400x400}",
         NlTreeDumper.dumpTree(model.components))
 
     format(model.file)
-    assertEquals("<android.support.design.widget.CoordinatorLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-        "    android:layout_width=\"match_parent\"\n" +
-        "    android:layout_height=\"match_parent\">\n" +
-        "\n" +
-        "    <Button\n" +
-        "        android:id=\"@id/button\"\n" +
-        "        android:layout_width=\"100dp\"\n" +
-        "        android:layout_height=\"100dp\" />\n" +
-        "\n" +
-        "    <CheckBox\n" +
-        "        android:id=\"@id/checkbox\"\n" +
-        "        android:layout_width=\"20dp\"\n" +
-        "        android:layout_height=\"20dp\" />\n" +
-        "\n" +
-        "</android.support.design.widget.CoordinatorLayout>\n", model.file.text)
+    assertEquals("<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                 "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                 "    android:layout_width=\"match_parent\"\n" +
+                 "    android:layout_height=\"match_parent\">\n" +
+                 "\n" +
+                 "    <Button\n" +
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\" />\n" +
+                 "\n" +
+                 "    <CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\" />\n" +
+                 "\n" +
+                 "    <com.google.android.material.floatingactionbutton.FloatingActionButton\n" +
+                 "        android:id=\"@id/fab\"\n" +
+                 "        android:layout_width=\"64dp\"\n" +
+                 "        android:layout_height=\"64dp\"\n" +
+                 "        android:layout_gravity=\"bottom\"\n" +
+                 "        android:layout_margin=\"15dp\" />\n" +
+                 "\n" +
+                 "    <LinearLayout\n" +
+                 "        android:id=\"@id/linear\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\" />\n" +
+                 "\n" +
+                 "    <Button\n" +
+                 "        android:id=\"@id/button2\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        app:layout_anchor=\"@id/linear\"\n" +
+                 "        app:layout_anchorGravity=\"bottom|end\" />\n" +
+                 "\n" +
+                 "    <FrameLayout\n" +
+                 "        android:id=\"@id/frame\"\n" +
+                 "        android:layout_width=\"400dp\"\n" +
+                 "        android:layout_height=\"400dp\" />\n" +
+                 "\n" +
+                 "</androidx.coordinatorlayout.widget.CoordinatorLayout>\n", model.file.text)
     return builder
   }
 }

@@ -29,10 +29,9 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
 import com.intellij.openapi.util.SystemInfo;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Wizard to setup Android Studio before the first run
@@ -79,20 +78,37 @@ public class FirstRunWizard extends DynamicWizard {
       else {
         addPath(new SingleStepPath(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL)));
       }
+      addPath(new SingleStepPath(new JdkSetupStep()));
       addPath(new SingleStepPath(new SelectThemeStep()));
     }
     if (myMode == FirstRunWizardMode.MISSING_SDK) {
       addPath(new SingleStepPath(new MissingSdkAlertStep()));
     }
+
     addPath(myComponentsPath);
-    if (SystemInfo.isLinux && myMode == FirstRunWizardMode.NEW_INSTALL) {
-      addPath(new SingleStepPath(new LinuxHaxmInfoStep()));
-    }
+    conditionallyAddEmulatorSettingsStep();
+
     if (myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
       addPath(new SingleStepPath(new LicenseAgreementStep(getDisposable())));
     }
     addPath(new SingleStepPath(progressStep));
     super.init();
+  }
+
+  private void conditionallyAddEmulatorSettingsStep() {
+    if (!SystemInfo.isLinux) {
+      return;
+    }
+
+    if (SystemInfo.isChromeOS) {
+      return;
+    }
+
+    if (!myMode.equals(FirstRunWizardMode.NEW_INSTALL)) {
+      return;
+    }
+
+    addPath(new SingleStepPath(new LinuxHaxmInfoStep()));
   }
 
   @Override
@@ -140,7 +156,7 @@ public class FirstRunWizard extends DynamicWizard {
   }
 
   private class FirstRunProgressStep extends ConsolidatedProgressStep {
-    FirstRunProgressStep() {
+    public FirstRunProgressStep() {
       super(getDisposable(), myHost);
       setPaths(myPaths);
     }

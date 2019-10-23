@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,13 @@ package com.android.tools.idea.rendering
 
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
-import junit.framework.TestCase
 
 class NamespacedRenderTestWithAppCompat : AndroidGradleTestCase() {
 
   override fun setUp() {
     super.setUp()
     loadProject(TestProjectPaths.NAMESPACES_WITH_APPCOMPAT)
-    val result = generateSources()
-    TestCase.assertTrue(result.isBuildSuccessful)
+    generateSources()
     RenderTestUtil.beforeRenderTestCase()
   }
 

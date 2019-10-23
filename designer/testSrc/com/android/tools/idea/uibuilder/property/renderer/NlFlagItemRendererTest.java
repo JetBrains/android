@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
-import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.adtui.ptable.PTableItem;
-import com.android.tools.adtui.ptable.PTableModel;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableItem;
+import com.android.tools.property.ptable.PTableModel;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import org.jetbrains.annotations.NotNull;

@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PROJECT_LOCATION;
@@ -118,11 +119,11 @@ public class TestTemplateWizardState {
   }
 
   public void populateDirectoryParameters() {
-    File projectRoot = new File(getString(ATTR_PROJECT_LOCATION));
-    File moduleRoot = new File(projectRoot, getString(ATTR_MODULE_NAME));
+    String projectPath = getString(ATTR_PROJECT_LOCATION);
+    String moduleName = getString(ATTR_MODULE_NAME);
     String packageName = getString(ATTR_PACKAGE_NAME);
 
     new TemplateValueInjector(myTemplateValues)
-      .setModuleRoots(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths(), packageName);
+      .setModuleRoots(createDefaultTemplateAt(projectPath, moduleName).getPaths(), projectPath, moduleName, packageName);
   }
 }

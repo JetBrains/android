@@ -33,7 +33,7 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -134,7 +134,17 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
       return myDeviceNameRenderer.getName(myDevice);
     }
 
-    return myAvdName == null ? getDeviceName() : myAvdName;
+    if (isVirtual()) {
+      if (myAvdName != null) {
+        return myAvdName;
+      }
+      else {
+        // if the avd name is not available, then include the serial number in order to differentiate
+        // between multiple emulators
+        return getDeviceName() + " [" + getSerial() + "]";
+      }
+    }
+    return getDeviceName();
   }
 
   @Override
@@ -144,7 +154,7 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
       return true;
     }
 
-    renderer.setIcon(myDevice.isEmulator() ? AndroidIcons.Ddms.EmulatorDevice : AndroidIcons.Ddms.RealDevice);
+    renderer.setIcon(myDevice.isEmulator() ? StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE : StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
 
     IDevice.DeviceState state = myDevice.getState();
     if (state != IDevice.DeviceState.ONLINE) {
@@ -229,6 +239,12 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
   @NotNull
   @Override
   public ListenableFuture<IDevice> launch(@NotNull Project project) {
+    return getLaunchedDevice();
+  }
+
+  @NotNull
+  @Override
+  public ListenableFuture<IDevice> launch(@NotNull Project project, @Nullable String snapshot) {
     return getLaunchedDevice();
   }
 

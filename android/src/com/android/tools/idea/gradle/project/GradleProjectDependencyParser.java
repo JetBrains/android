@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.google.common.base.Function;
@@ -24,13 +27,9 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collections;
 import java.util.Set;
-
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildFile;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Parses list of dependencies from the build.gradle
@@ -54,11 +53,14 @@ public class GradleProjectDependencyParser {
     }
     else {
       Set<String> result = Sets.newHashSet();
-      GradleBuildModel buildModel = parseBuildFile(buildFile, project);
-      DependenciesModel dependenciesModel = buildModel.dependencies();
-      for (ModuleDependencyModel dependency : dependenciesModel.modules()) {
-        String modulePath = dependency.path().forceString();
-        result.add(modulePath);
+      ProjectBuildModel projectModel = ProjectBuildModel.getOrLog(project);
+      if (projectModel != null) {
+        GradleBuildModel buildModel = projectModel.getModuleBuildModel(buildFile);
+        DependenciesModel dependenciesModel = buildModel.dependencies();
+        for (ModuleDependencyModel dependency : dependenciesModel.modules()) {
+          String modulePath = dependency.path().forceString();
+          result.add(modulePath);
+        }
       }
       return result;
     }

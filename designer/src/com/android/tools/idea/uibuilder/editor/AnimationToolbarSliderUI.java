@@ -28,7 +28,7 @@ class AnimationToolbarSliderUI extends BasicSliderUI {
   private final JBColor myTrackBackgroundColor = JBColor.GRAY;
   private final Rectangle myTrackRectangle = new Rectangle();
 
-  AnimationToolbarSliderUI(JSlider b) {
+  public AnimationToolbarSliderUI(JSlider b) {
     super(b);
   }
 

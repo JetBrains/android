@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.common.model.NlLayoutType;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -29,11 +29,16 @@ import com.android.tools.idea.uibuilder.handlers.preference.PreferenceCategoryHa
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
+import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
+import com.android.tools.idea.uibuilder.type.LayoutFileType;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.JavaPsiFacade;
@@ -43,32 +48,34 @@ import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.util.EmptyQuery;
 import com.intellij.util.Query;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.containers.ContainerUtil;
 import icons.StudioIcons;
-import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.dom.converters.PackageClassConverter;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.logging.Logger;
-
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import javax.swing.Icon;
+import javax.xml.bind.JAXBException;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.dom.converters.PackageClassConverter;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public class NlPaletteModel implements Disposable {
+  private boolean myDisposed;
+
   @VisibleForTesting
-  static final String THIRD_PARTY_GROUP = "3rd Party";
   static final String PROJECT_GROUP = "Project";
 
   /**
@@ -85,17 +92,58 @@ public class NlPaletteModel implements Disposable {
     return ClassInheritorsSearch.search(viewClass, ProjectScope.getProjectScope(project), true);
   };
 
-  private final Map<NlLayoutType, Palette> myTypeToPalette;
+  /**
+   * Data class which holds information about a custom view that we've extracted from its PsiClass.
+   * We can use this information later to update the corresponding palette component without having
+   * to hold onto the read lock.
+   */
+  private static class CustomViewInfo {
+    public final String description, tagName, className;
+
+    CustomViewInfo(String description, String tagName, String className) {
+      this.description = description;
+      this.tagName = tagName;
+      this.className = className;
+    }
+
+    static Collection<CustomViewInfo> fromPsiClasses(Query<PsiClass> psiClasses) {
+      ArrayList<CustomViewInfo> componentInfos = new ArrayList<>();
+
+      psiClasses.forEach(psiClass -> {
+        String description = psiClass.getName(); // We use the "simple" name as description on the preview.
+        String tagName = psiClass.getQualifiedName();
+        String className = PackageClassConverter.getQualifiedName(psiClass);
+
+        if (description == null || tagName == null || className == null) {
+          // Currently we ignore anonymous views
+          return;
+        }
+
+        componentInfos.add(new CustomViewInfo(description, tagName, className));
+      });
+
+      return componentInfos;
+    }
+  }
+
+  private final Map<LayoutEditorFileType, Palette> myTypeToPalette;
   private final Module myModule;
-  private UpdateListener myListener;
+  private final List<UpdateListener> myListeners = ContainerUtil.createConcurrentList();
 
   @Override
   public void dispose() {
-    myListener = null;
+    myListeners.clear();
+    myTypeToPalette.clear();
+    myDisposed = true;
+  }
+
+  @TestOnly
+  public List<UpdateListener> getUpdateListeners() {
+    return myListeners;
   }
 
   public interface UpdateListener {
-    void update();
+    void update(@NotNull NlPaletteModel paletteModel, @NotNull LayoutEditorFileType layoutType);
   }
 
   public static NlPaletteModel get(@NotNull AndroidFacet facet) {
@@ -103,45 +151,65 @@ public class NlPaletteModel implements Disposable {
   }
 
   private NlPaletteModel(@NotNull Module module) {
-    myTypeToPalette = new EnumMap<>(NlLayoutType.class);
+    myTypeToPalette = Collections.synchronizedMap(new HashMap<>());
     myModule = module;
     Disposer.register(module, this);
   }
 
   @NotNull
-  public Palette getPalette(@NotNull NlLayoutType type) {
-    assert type.isSupportedByDesigner();
+  public Module getModule() {
+    return myModule;
+  }
+
+  @NotNull
+  public Palette getPalette(@NotNull LayoutEditorFileType type) {
     Palette palette = myTypeToPalette.get(type);
 
     if (palette == null) {
-      loadPalette(type);
-      return myTypeToPalette.get(type);
+      palette = loadPalette(type);
+      myTypeToPalette.put(type, palette);
+      registerAdditionalComponents(type);
     }
-    else {
-      return palette;
+    return palette;
+  }
+
+  // Load 3rd party components asynchronously now and whenever a build finishes.
+  private void registerAdditionalComponents(@NotNull LayoutEditorFileType type) {
+    loadAdditionalComponents(type, VIEW_CLASSES_QUERY);
+
+    // Reload the additional components after every build to find new custom components
+    AndroidProjectBuildNotifications
+      .subscribe(myModule.getProject(), this, context -> loadAdditionalComponents(type, VIEW_CLASSES_QUERY));
+  }
+
+  public void addUpdateListener(@Nullable UpdateListener updateListener) {
+    myListeners.add(updateListener);
+  }
+
+  public void removeUpdateListener(@Nullable UpdateListener updateListener) {
+    myListeners.remove(updateListener);
+  }
+
+  private void notifyUpdateListener(@NotNull LayoutEditorFileType layoutType) {
+    if (!myListeners.isEmpty()) {
+      myListeners.forEach(listener -> ApplicationManager.getApplication().invokeLater(() -> {
+        if (!myDisposed) {
+          listener.update(this, layoutType);
+        }
+      }));
     }
   }
 
-  public void setUpdateListener(@NotNull UpdateListener updateListener) {
-    myListener = updateListener;
-  }
-
-  private void loadPalette(@NotNull NlLayoutType type) {
-
+  @NotNull
+  private Palette loadPalette(@NotNull LayoutEditorFileType type) {
     try {
       String metadata = type.getPaletteFileName();
       URL url = NlPaletteModel.class.getResource(metadata);
       URLConnection connection = url.openConnection();
-      Palette palette;
 
       try (Reader reader = new InputStreamReader(connection.getInputStream(), Charsets.UTF_8)) {
-        palette = loadPalette(reader, type);
+        return Palette.parse(reader, ViewHandlerManager.get(myModule.getProject()));
       }
-
-      loadAdditionalComponents(type, palette, VIEW_CLASSES_QUERY);
-      // Reload the additional components after every build to find new custom components
-      AndroidProjectBuildNotifications
-        .subscribe(myModule.getProject(), this, context -> loadAdditionalComponents(type, palette, VIEW_CLASSES_QUERY));
     }
     catch (IOException | JAXBException e) {
       throw new RuntimeException(e);
@@ -153,67 +221,42 @@ public class NlPaletteModel implements Disposable {
    * components from the project.
    */
   @VisibleForTesting
-  void loadAdditionalComponents(@NotNull NlLayoutType type,
-                                @NotNull Palette palette,
-                                @NotNull Function<Project, Query<PsiClass>> viewClasses) {
+  void loadAdditionalComponents(@NotNull LayoutEditorFileType type,
+                                              @NotNull Function<Project, Query<PsiClass>> viewClasses) {
+    Application application = ApplicationManager.getApplication();
     Project project = myModule.getProject();
-    DumbService dumbService = DumbService.getInstance(project);
-    if (dumbService.isDumb()) {
-      dumbService.runWhenSmart(() -> loadAdditionalComponents(type, palette, viewClasses));
-    }
-    else {
-      // Clean-up the existing items
-      palette.getItems().stream()
-        .filter(Palette.Group.class::isInstance)
-        .map(Palette.Group.class::cast)
-        .filter(g -> PROJECT_GROUP.equals(g.getName()) || THIRD_PARTY_GROUP.equals(g.getName()))
-        .map(Palette.Group::getItems)
-        .forEach(List::clear);
-
-      loadProjectComponents(type, palette, viewClasses);
-    }
-
-    UpdateListener listener = myListener;
-    if (listener != null) {
-      ApplicationManager.getApplication().invokeLater(listener::update);
-    }
+    ReadAction
+      .nonBlocking(() -> CustomViewInfo.fromPsiClasses(viewClasses.apply(project)))
+      .expireWhen(() -> Disposer.isDisposed(this))
+      .inSmartMode(project)
+      .submit(AppExecutorUtil.getAppExecutorService())
+      .onSuccess(viewInfos -> {
+        // Right now we're still in the non-blocking read action. Schedule the follow-up work on another
+        // background thread so we can avoid holding the read lock for longer than we need to.
+        application.executeOnPooledThread(() -> replaceProjectComponents(type, viewInfos));
+      })
+      .onError(error -> getLogger().error(error));
   }
 
-  @VisibleForTesting
-  @NotNull
-  public Palette loadPalette(@NotNull Reader reader, @NotNull NlLayoutType type) throws JAXBException {
-    Palette palette = Palette.parse(reader, ViewHandlerManager.get(myModule.getProject()));
-    myTypeToPalette.put(type, palette);
-    return palette;
-  }
+  private void replaceProjectComponents(@NotNull LayoutEditorFileType type, Collection<CustomViewInfo> viewInfos) {
+    // Reload the palette first
+    Palette palette = loadPalette(type);
 
-  private void loadProjectComponents(@NotNull NlLayoutType type,
-                                     @NotNull Palette palette,
-                                     @NotNull Function<Project, Query<PsiClass>> viewClasses) {
-    Project project = myModule.getProject();
-    viewClasses.apply(project).forEach(psiClass -> {
-      String description = psiClass.getName(); // We use the "simple" name as description on the preview.
-      String tagName = psiClass.getQualifiedName();
-      String className = PackageClassConverter.getQualifiedName(psiClass);
-
-      if (description == null || tagName == null || className == null) {
-        // Currently we ignore anonymous views
-        return false;
-      }
-
+    viewInfos.forEach(viewInfo ->
       addAdditionalComponent(type, PROJECT_GROUP, palette, StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW,
-                             tagName, className, null, null, "",
-                             null, Collections.emptyList(), Collections.emptyList());
+                             viewInfo.tagName, viewInfo.className, null, null, "",
+                             null, Collections.emptyList(), Collections.emptyList())
+    );
 
-      return true;
-    });
+    myTypeToPalette.put(type, palette);
+    notifyUpdateListener(type);
   }
 
   /**
    * Adds a new component to the palette with the given properties. This method is used to add 3rd party and project components
    */
   @VisibleForTesting
-  boolean addAdditionalComponent(@NotNull NlLayoutType type,
+  boolean addAdditionalComponent(@NotNull LayoutEditorFileType type,
                                  @NotNull String groupName,
                                  @NotNull Palette palette,
                                  @Nullable Icon icon16,
@@ -232,44 +275,17 @@ public class NlPaletteModel implements Disposable {
       return false;
     }
 
-    ViewHandlerManager manager = ViewHandlerManager.get(myModule.getProject());
-    ViewHandler handler = manager.createBuiltInHandler(tagName);
-
-    if (type != NlLayoutType.LAYOUT ||
+    ViewHandler handler = findOrCreateCustomHandler(tagName, icon16, className, xml, previewXml, libraryCoordinate,
+                                                    preferredProperty, properties, layoutProperties);
+    // For now only support layouts
+    if (type != LayoutFileType.INSTANCE ||
+        handler == null ||
         handler instanceof PreferenceHandler ||
         handler instanceof PreferenceCategoryHandler ||
         handler instanceof MenuHandler ||
         handler instanceof ActionMenuViewHandler) {
       return false;
     }
-
-    if (handler == null) { // no built in handler, let's create a delegate
-      handler = manager.getHandlerOrDefault(tagName);
-
-      // For now only support layouts
-      if (type != NlLayoutType.LAYOUT ||
-          handler instanceof PreferenceHandler ||
-          handler instanceof PreferenceCategoryHandler ||
-          handler instanceof MenuHandler ||
-          handler instanceof ActionMenuViewHandler) {
-        return false;
-      }
-
-      if (handler instanceof ConstraintHelperHandler) {
-        return false; // temporary hack
-      }
-
-      if (handler instanceof ViewGroupHandler) {
-        handler = new CustomViewGroupHandler((ViewGroupHandler)handler, icon16, tagName, className, xml, previewXml,
-                                             libraryCoordinate, preferredProperty, properties, layoutProperties);
-      }
-      else {
-        handler = new CustomViewHandler(handler, icon16, tagName, className, xml, previewXml,
-                                        libraryCoordinate, preferredProperty, properties);
-      }
-    }
-
-    manager.registerHandler(tagName, handler);
 
     List<Palette.BaseItem> groups = palette.getItems();
     Palette.Group group = groups.stream()
@@ -282,6 +298,7 @@ public class NlPaletteModel implements Disposable {
       group = new Palette.Group(groupName);
       groups.add(group);
     }
+    ViewHandlerManager manager = ViewHandlerManager.get(myModule.getProject());
     Palette.Item item = new Palette.Item(tagName, handler);
     group.getItems().add(item);
     item.setUp(palette, manager);
@@ -289,7 +306,49 @@ public class NlPaletteModel implements Disposable {
     return true;
   }
 
+  @Nullable
+  private ViewHandler findOrCreateCustomHandler(@NotNull String tagName,
+                                                @Nullable Icon icon16,
+                                                @NotNull String className,
+                                                @Nullable @Language("XML") String xml,
+                                                @Nullable @Language("XML") String previewXml,
+                                                @NotNull String libraryCoordinate,
+                                                @Nullable String preferredProperty,
+                                                @NotNull List<String> properties,
+                                                @NotNull List<String> layoutProperties) {
+    ViewHandlerManager manager = ViewHandlerManager.get(myModule.getProject());
+    ViewHandler handler = manager.createBuiltInHandler(tagName);
+    if (handler != null) {
+      return handler;
+    }
+
+    handler = manager.getHandlerOrDefault(tagName);
+
+    if (handler instanceof ConstraintHelperHandler) {
+      return null; // temporary hack
+    }
+
+    if (handler instanceof CustomViewGroupHandler && ((CustomViewGroupHandler)handler).getTagName().equals(tagName)) {
+      return handler;
+    }
+
+    if (handler instanceof CustomViewHandler && ((CustomViewHandler)handler).getTagName().equals(tagName)) {
+      return handler;
+    }
+
+    if (handler instanceof ViewGroupHandler) {
+      handler = new CustomViewGroupHandler((ViewGroupHandler)handler, icon16, tagName, className, xml, previewXml,
+                                           libraryCoordinate, preferredProperty, properties, layoutProperties);
+    }
+    else {
+      handler = new CustomViewHandler(handler, icon16, tagName, className, xml, previewXml,
+                                      libraryCoordinate, preferredProperty, properties);
+    }
+    manager.registerHandler(tagName, handler);
+    return handler;
+  }
+
   private static Logger getLogger() {
-    return Logger.getLogger(NlPaletteModel.class.getSimpleName());
+    return Logger.getInstance(NlPaletteModel.class);
   }
 }

@@ -15,6 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
+import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.ui.GuiTestingService.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
+import static java.awt.event.InputEvent.CTRL_MASK;
+import static java.awt.event.InputEvent.META_MASK;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.fail;
+import static org.fest.swing.edt.GuiActionRunner.execute;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
@@ -36,11 +49,12 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerD
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleProjectEventListener;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.GuiTestProjectSystem;
+import com.android.tools.idea.tests.gui.framework.fixture.run.deployment.DeviceSelectorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -56,6 +70,21 @@ import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.ProjectFrameHelper;
 import com.intellij.openapi.wm.impl.StripeButton;
 import com.intellij.util.ThreeState;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.KeyboardFocusManager;
+import java.awt.Point;
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
@@ -70,34 +99,10 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-
-import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
-import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.ui.GuiTestingService.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
-import static java.awt.event.InputEvent.CTRL_MASK;
-import static java.awt.event.InputEvent.META_MASK;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.fail;
-import static org.fest.swing.edt.GuiActionRunner.execute;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameImpl> {
   @NotNull private final GradleProjectEventListener myGradleProjectEventListener;
   @NotNull private final Modules myModules;
 
-  private GuiTestProjectSystem myTestProjectSystem;
   private EditorFixture myEditor;
   private boolean myIsClosed;
 
@@ -229,19 +234,32 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public ActionButtonFixture findAttachDebuggerToAndroidProcessButton() {
-    return findActionButtonByText("Attach debugger to Android process");
+    GenericTypeMatcher<ActionButton> matcher = Matchers.byText(ActionButton.class, "Attach Debugger to Android Process").andIsShowing();
+    return ActionButtonFixture.findByMatcher(matcher, robot(), target());
   }
 
-  public DeployTargetPickerDialogFixture debugApp(@NotNull String appName) {
-    selectApp(appName);
-    findDebugApplicationButton().click();
-    return DeployTargetPickerDialogFixture.find(robot());
+  @NotNull
+  public IdeFrameFixture selectDevice(@NotNull String device) {
+    new DeviceSelectorFixture(robot(), getProject()).selectDevice(device);
+    return this;
   }
 
-  public DeployTargetPickerDialogFixture runApp(@NotNull String appName) {
-    selectApp(appName);
-    findRunApplicationButton().waitUntilEnabledAndShowing().click();
-    return DeployTargetPickerDialogFixture.find(robot());
+  public void troubleshootDeviceConnections(@NotNull String appName) {
+    new DeviceSelectorFixture(robot(), getProject()).troubleshootDeviceConnections(this, appName);
+  }
+
+  @NotNull
+  public IdeFrameFixture recordEspressoTest(@NotNull String device) {
+    new DeviceSelectorFixture(robot(), getProject()).recordEspressoTest(this, device);
+    return this;
+  }
+
+  public void debugApp(@NotNull String appName, @NotNull String deviceName) {
+    new DeviceSelectorFixture(robot(), getProject()).debugApp(this, appName, deviceName);
+  }
+
+  public void runApp(@NotNull String appName, @NotNull String deviceName) {
+    new DeviceSelectorFixture(robot(), getProject()).runApp(this, appName, deviceName);
   }
 
   @NotNull
@@ -281,6 +299,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   /** Selects the item at {@code menuPath} and returns the result of {@code fixtureFunction} applied to this {@link IdeFrameFixture}. */
   public <T> T openFromMenu(Function<IdeFrameFixture, T> fixtureFunction, @NotNull String... menuPath) {
     getMenuFixture().invokeMenuPath(menuPath);
+    return fixtureFunction.apply(this);
+  }
+
+  /**
+   *  Selects the item at {@code menuPath} in a contextual menu
+   *  and returns the result of {@code fixtureFunction} applied to this {@link IdeFrameFixture}.
+   */
+  public <T> T openFromContextualMenu(Function<IdeFrameFixture, T> fixtureFunction, @NotNull String... menuPath) {
+    getMenuFixture().invokeContextualMenuPath(menuPath);
     return fixtureFunction.apply(this);
   }
 
@@ -330,8 +357,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     wait.expecting("Build (" + buildMode + ") for project '" + project.getName() + "' to finish'")
       .until(() -> {
         if (buildMode == SOURCE_GEN) {
-          PostProjectBuildTasksExecutor tasksExecutor = PostProjectBuildTasksExecutor.getInstance(project);
-          if (tasksExecutor.getLastBuildTimestamp() != null) {
+          if (PostProjectBuildTasksExecutor.getInstance(project).getLastBuildTimestamp() != null ||
+              GradleSyncState.getInstance(project).isSourceGenerationFinished()) {
             // This will happen when creating a new project. Source generation happens before the IDE frame is found and build listeners
             // are created. It is fairly safe to assume that source generation happened if we have a timestamp for a "last performed build".
             return true;
@@ -365,14 +392,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     //noinspection Contract
     assertFalse("Should use '/' in test relative paths, not File.separator", relativePath.contains("\\"));
 
-    VirtualFile projectRootDir;
-    if (myTestProjectSystem != null) {
-      projectRootDir = myTestProjectSystem.getProjectRootDirectory(getProject());
-    }
-    else {
-      projectRootDir = getProject().getBaseDir();
-    }
-
+    VirtualFile projectRootDir = getProject().getBaseDir();
     projectRootDir.refresh(false, true);
     VirtualFile file = projectRootDir.findFileByRelativePath(relativePath);
     if (requireExists) {
@@ -380,10 +400,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       assertNotNull("Unable to find file with relative path '" + relativePath + "'", file);
     }
     return file;
-  }
-
-  public void setTestProjectSystem(GuiTestProjectSystem testProjectSystem) {
-    myTestProjectSystem = testProjectSystem;
   }
 
   @NotNull
@@ -506,11 +522,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public BuildVariantsToolWindowFixture getBuildVariantsWindow() {
     return new BuildVariantsToolWindowFixture(this);
-  }
-
-  @NotNull
-  public MessagesToolWindowFixture getMessagesToolWindow() {
-    return new MessagesToolWindowFixture(getProject(), robot());
   }
 
   @NotNull
@@ -662,7 +673,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public void selectApp(@NotNull String appName) {
     ActionButtonFixture runButton = findRunApplicationButton();
     Container actionToolbarContainer = GuiQuery.getNonNull(() -> runButton.target().getParent());
-    ComboBoxActionFixture comboBoxActionFixture = ComboBoxActionFixture.findComboBox(robot(), actionToolbarContainer);
+    ComboBoxActionFixture comboBoxActionFixture = ComboBoxActionFixture.findComboBoxByTooltip(robot(), actionToolbarContainer, "Open edit Run/Debug configurations dialog");
     comboBoxActionFixture.selectItem(appName);
     robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
     Wait.seconds(1).expecting("ComboBox to be selected").until(() -> appName.equals(comboBoxActionFixture.getSelectedItemText()));
@@ -716,6 +727,24 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public IdeFrameFixture closeProjectPanel() {
     new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "1: Project"))).deselect();
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture closeBuildPanel() {
+    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Build"))).deselect();
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture openResourceManager() {
+    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Resource Manager"))).select();
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture closeResourceManager() {
+    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Resource Manager"))).deselect();
     return this;
   }
 }

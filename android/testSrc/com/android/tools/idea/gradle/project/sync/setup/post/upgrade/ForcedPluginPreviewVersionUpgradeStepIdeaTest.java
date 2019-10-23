@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestMessagesDialog;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -39,31 +40,30 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Test for {@link ForcedPluginPreviewVersionUpgradeStep}.
+ * Test for {@link ForcedPluginVersionUpgradeStep}.
  */
 public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends JavaProjectTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
-  @Mock private AndroidPluginGeneration myPluginGeneration;
+  @Mock private LatestKnownPluginVersionProvider myLatestKnownPluginVersionProvider;
   @Mock private AndroidPluginVersionUpdater myVersionUpdater;
   @Mock private GradleSyncState mySyncState;
 
   private GradleSyncMessagesStub mySyncMessages;
   private TestDialog myOriginalTestDialog;
 
-  private ForcedPluginPreviewVersionUpgradeStep myVersionUpgrade;
+  private ForcedPluginVersionUpgradeStep myVersionUpgrade;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    when(myPluginInfo.getPluginGeneration()).thenReturn(myPluginGeneration);
 
     Project project = getProject();
     ServiceContainerUtil.replaceService(project, GradleSyncState.class, mySyncState, getTestRootDisposable());
     ServiceContainerUtil.replaceService(project, AndroidPluginVersionUpdater.class, myVersionUpdater, getTestRootDisposable());
     mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
 
-    myVersionUpgrade = new ForcedPluginPreviewVersionUpgradeStep();
+    myVersionUpgrade = new ForcedPluginVersionUpgradeStep();
   }
 
   @Override
@@ -83,10 +83,11 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends JavaProjectTe
 
   public void testCheckAndPerformUpgradeWhenUpgradeNotNeeded() {
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
-    when(myPluginGeneration.getLatestKnownVersion()).thenReturn(latestPluginVersion.toString());
+    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
+    when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
     when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("3.0.0"));
 
-    boolean upgraded = myVersionUpgrade.checkAndPerformUpgrade(getProject(), myPluginInfo);
+    boolean upgraded = myVersionUpgrade.performUpgradeAndSync(getProject(), myPluginInfo);
     assertFalse(upgraded);
 
     verify(mySyncState, never()).syncEnded();
@@ -96,13 +97,14 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends JavaProjectTe
 
   public void testCheckAndPerformUpgradeWhenUserAcceptsUpgrade() {
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
-    when(myPluginGeneration.getLatestKnownVersion()).thenReturn(latestPluginVersion.toString());
+    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
+    when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
     when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.0.0-alpha9"));
 
     // Simulate user accepting the upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
 
-    boolean upgraded = myVersionUpgrade.checkAndPerformUpgrade(getProject(), myPluginInfo);
+    boolean upgraded = myVersionUpgrade.performUpgradeAndSync(getProject(), myPluginInfo);
     assertTrue(upgraded);
 
     verify(mySyncState).syncEnded();
@@ -113,13 +115,14 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends JavaProjectTe
   // See https://code.google.com/p/android/issues/detail?id=227927
   public void testCheckAndPerformUpgradeWhenUserDeclinesUpgrade() {
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
-    when(myPluginGeneration.getLatestKnownVersion()).thenReturn(latestPluginVersion.toString());
+    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
+    when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
     when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.0.0-alpha9"));
 
     // Simulate user canceling upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(Messages.CANCEL));
 
-    boolean upgraded = myVersionUpgrade.checkAndPerformUpgrade(getProject(), myPluginInfo);
+    boolean upgraded = myVersionUpgrade.performUpgradeAndSync(getProject(), myPluginInfo);
     assertTrue(upgraded);
 
     List<SyncMessage> messages = mySyncMessages.getReportedMessages();

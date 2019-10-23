@@ -15,5 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model.repositories.search
 
-data class SearchRequest(val artifactName: String, val groupId: String?, val rowCount: Int, val start: Int)
+data class SearchQuery(val groupId: String?, val artifactName: String?)
+data class SearchRequest(val query: SearchQuery, val rowCount: Int, val start: Int)
 

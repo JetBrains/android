@@ -15,12 +15,40 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
+import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
+import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
+import static com.android.tools.idea.gradle.util.BuildMode.BUNDLE;
+import static com.android.tools.idea.gradle.util.BuildMode.CLEAN;
+import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
+import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
+import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
+import static com.intellij.openapi.ui.Messages.CANCEL;
+import static com.intellij.openapi.ui.Messages.NO;
+import static com.intellij.openapi.ui.Messages.YES;
+import static com.intellij.openapi.ui.Messages.YesNoCancelResult;
+
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser;
+import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper;
+import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapperKt;
+import com.android.tools.idea.gradle.project.build.output.ClangOutputParser;
+import com.android.tools.idea.gradle.project.build.output.CmakeOutputParser;
+import com.android.tools.idea.gradle.project.build.output.DataBindingOutputParser;
+import com.android.tools.idea.gradle.project.build.output.GradleBuildOutputParser;
+import com.android.tools.idea.gradle.project.build.output.XmlErrorOutputParser;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.tracer.Trace;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -32,9 +60,13 @@ import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.FailureResult;
 import com.intellij.build.events.impl.FinishBuildEventImpl;
+import com.intellij.build.events.impl.OutputBuildEventImpl;
 import com.intellij.build.events.impl.SkippedResultImpl;
 import com.intellij.build.events.impl.StartBuildEventImpl;
 import com.intellij.build.events.impl.SuccessResultImpl;
+import com.intellij.build.output.BuildOutputInstantReaderImpl;
+import com.intellij.build.output.JavacOutputParser;
+import com.intellij.build.output.KotlincOutputParser;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -64,24 +96,24 @@ import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.util.Ref;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.xdebugger.XDebugSession;
-import org.gradle.tooling.BuildAction;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
-
-import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
-import static com.android.tools.idea.gradle.util.BuildMode.*;
-import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
-import static com.intellij.openapi.ui.Messages.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.gradle.tooling.BuildAction;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Invokes Gradle tasks directly. Results of tasks execution are displayed in both the "Messages" tool window and the new "Gradle Console"
@@ -133,14 +165,21 @@ public class GradleBuildInvoker {
       return;
     }
     setProjectBuildMode(CLEAN);
-    // "Clean" also generates sources.
-    Module[] modules = ModuleManager.getInstance(myProject).getModules();
+    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
     File projectPath = getBaseDirPath(myProject);
-    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, SOURCE_GEN,
-                                                                                         TestCompileType.NONE);
-    tasks.keys().elementSet().forEach(key -> tasks.get(key).add(0, CLEAN_TASK_NAME));
+    List<String> commandLineArgs = new ArrayList<>();
+    // Add source generation tasks only if source gen is enabled.
+    if (GradleProjectBuilder.getInstance(myProject).isSourceGenerationEnabled()) {
+      Module[] modules = ModuleManager.getInstance(myProject).getModules();
+      tasks.putAll(GradleTaskFinder.getInstance().findTasksToExecute(modules, SOURCE_GEN, TestCompileType.NONE));
+      tasks.keys().elementSet().forEach(key -> tasks.get(key).add(0, CLEAN_TASK_NAME));
+      commandLineArgs.add(createGenerateSourcesOnlyProperty());
+    }
+    else {
+      tasks.put(projectPath.toPath(), CLEAN_TASK_NAME);
+    }
     for (Path rootPath : tasks.keySet()) {
-      executeTasks(rootPath.toFile(), tasks.get(rootPath), Collections.singletonList(createGenerateSourcesOnlyProperty()));
+      executeTasks(rootPath.toFile(), tasks.get(rootPath), commandLineArgs);
     }
   }
 
@@ -157,9 +196,8 @@ public class GradleBuildInvoker {
     setProjectBuildMode(buildMode);
 
     Module[] modules = ModuleManager.getInstance(myProject).getModules();
-    File projectPath = getBaseDirPath(myProject);
     GradleTaskFinder gradleTaskFinder = GradleTaskFinder.getInstance();
-    ListMultimap<Path, String> tasks = gradleTaskFinder.findTasksToExecute(projectPath, modules, buildMode, TestCompileType.NONE);
+    ListMultimap<Path, String> tasks = gradleTaskFinder.findTasksToExecute(modules, buildMode, TestCompileType.NONE);
     if (cleanProject) {
       if (stopNativeDebugSessionOrStopBuild()) {
         return;
@@ -246,8 +284,7 @@ public class GradleBuildInvoker {
   public void compileJava(@NotNull Module[] modules, @NotNull TestCompileType testCompileType) {
     BuildMode buildMode = COMPILE_JAVA;
     setProjectBuildMode(buildMode);
-    File projectPath = getBaseDirPath(myProject);
-    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, buildMode, testCompileType);
+    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, testCompileType);
     for (Path rootPath : tasks.keySet()) {
       executeTasks(rootPath.toFile(), tasks.get(rootPath));
     }
@@ -263,8 +300,7 @@ public class GradleBuildInvoker {
                        @Nullable BuildAction<?> buildAction) {
     BuildMode buildMode = ASSEMBLE;
     setProjectBuildMode(buildMode);
-    File projectPath = getBaseDirPath(myProject);
-    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, buildMode, testCompileType);
+    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, testCompileType);
     for (Path rootPath : tasks.keySet()) {
       executeTasks(rootPath.toFile(), tasks.get(rootPath), arguments, buildAction);
     }
@@ -275,9 +311,8 @@ public class GradleBuildInvoker {
                      @Nullable BuildAction<?> buildAction) {
     BuildMode buildMode = BUNDLE;
     setProjectBuildMode(buildMode);
-    File projectPath = getBaseDirPath(myProject);
     ListMultimap<Path, String> tasks =
-      GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, buildMode, TestCompileType.NONE);
+      GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, TestCompileType.NONE);
     for (Path rootPath : tasks.keySet()) {
       executeTasks(rootPath.toFile(), tasks.get(rootPath), arguments, buildAction);
     }
@@ -287,9 +322,8 @@ public class GradleBuildInvoker {
     BuildMode buildMode = REBUILD;
     setProjectBuildMode(buildMode);
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    File projectPath = getBaseDirPath(myProject);
     ListMultimap<Path, String> tasks =
-      GradleTaskFinder.getInstance().findTasksToExecute(projectPath, moduleManager.getModules(), buildMode, TestCompileType.NONE);
+      GradleTaskFinder.getInstance().findTasksToExecute(moduleManager.getModules(), buildMode, TestCompileType.NONE);
     for (Path rootPath : tasks.keySet()) {
       executeTasks(rootPath.toFile(), tasks.get(rootPath));
     }
@@ -377,6 +411,9 @@ public class GradleBuildInvoker {
       }
     }
 
+    // For development we might want to forward an agent to the daemon.
+    // This is a no-op in production builds.
+    Trace.addVmArgs(jvmArguments);
     Request request = new Request(myProject, buildFilePath, gradleTasks);
     ExternalSystemTaskNotificationListener buildTaskListener = createBuildTaskListener(request, "Build");
     // @formatter:off

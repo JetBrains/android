@@ -47,7 +47,17 @@ public class CppFunctionModel extends NativeNodeModel {
   /**
    * Whether the function is part of user-written code.
    */
-  private boolean myIsUserCode;
+  private final boolean myIsUserCode;
+
+  /**
+   * Name of the ELF file containing the instruction corresponding to the function.
+   */
+  private final String myFileName;
+
+  /**
+   * Virtual address of the instruction in {@link #myFileName}.
+   */
+  private final long myVAddress;
 
   private String myFullName;
 
@@ -58,6 +68,8 @@ public class CppFunctionModel extends NativeNodeModel {
     myClassOrNamespace = builder.myClassOrNamespace;
     myParameters = buildParameters(builder.myParameters);
     myIsUserCode = builder.myIsUserCode;
+    myFileName = builder.myFileName;
+    myVAddress = builder.myVAddress;
   }
 
   @NotNull
@@ -72,6 +84,14 @@ public class CppFunctionModel extends NativeNodeModel {
 
   public boolean isUserCode() {
     return myIsUserCode;
+  }
+
+  public String getFileName() {
+    return myFileName;
+  }
+
+  public long getVAddress() {
+    return myVAddress;
   }
 
   @Override
@@ -112,6 +132,8 @@ public class CppFunctionModel extends NativeNodeModel {
      * List of the method's parameters, comma separated (e.g. "int, float").
      */
     @NotNull private String myParameters;
+    private String myFileName;
+    private long myVAddress;
 
     public Builder(@NotNull String name) {
       myName = name;
@@ -131,6 +153,16 @@ public class CppFunctionModel extends NativeNodeModel {
 
     public Builder setIsUserCode(boolean isUserCode) {
       myIsUserCode = isUserCode;
+      return this;
+    }
+
+    public Builder setFileName(String fileName) {
+      myFileName = fileName;
+      return this;
+    }
+
+    public Builder setVAddress(long vAddress) {
+      myVAddress = vAddress;
       return this;
     }
 

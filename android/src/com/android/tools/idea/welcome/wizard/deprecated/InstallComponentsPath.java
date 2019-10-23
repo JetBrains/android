@@ -23,6 +23,7 @@ import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
 import com.android.tools.idea.sdk.StudioDownloader;
@@ -47,6 +48,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -169,8 +171,12 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     assert location != null;
 
     myState.put(WizardConstants.KEY_SDK_INSTALL_LOCATION, location.getAbsolutePath());
+    File file = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
+    if (file != null) {
+      myState.put(WizardConstants.KEY_JDK_LOCATION, file.getPath());
+    }
 
-    myComponentTree = createComponentTree(myMode, myState, myMode.shouldCreateAvd());
+    myComponentTree = createComponentTree(myMode, myState, !SystemInfo.isChromeOS && myMode.shouldCreateAvd());
     myComponentTree.init(myProgressStep);
 
     myComponentsStep = new SdkComponentsStep(
@@ -194,7 +200,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         }
       };
 
-      addStep(new InstallSummaryStep(FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION, supplier));
+      addStep(new InstallSummaryStep(FirstRunWizard.KEY_CUSTOM_INSTALL, WizardConstants.KEY_SDK_INSTALL_LOCATION,
+                                     WizardConstants.KEY_JDK_LOCATION, supplier));
     }
   }
 
@@ -318,7 +325,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     private final InstallContext myContext;
     private boolean myRepoWasMerged = false;
 
-    MergeOperation(File repo, InstallContext context, double progressRatio) {
+    public MergeOperation(File repo, InstallContext context, double progressRatio) {
       super(context, progressRatio);
       myRepo = repo;
       myContext = context;
@@ -365,7 +372,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     @Nullable private final String myInstallerTimestamp;
     @NotNull private final ModalityState myModalityState;
 
-    SetPreference(@Nullable String installerTimestamp, @NotNull ModalityState modalityState) {
+    public SetPreference(@Nullable String installerTimestamp, @NotNull ModalityState modalityState) {
       myInstallerTimestamp = installerTimestamp;
       myModalityState = modalityState;
     }
@@ -388,7 +395,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     private final Collection<? extends InstallableComponent> mySelectedComponents;
     private final AndroidSdkHandler mySdkHandler;
 
-    ConfigureComponents(InstallContext installContext,
+    public ConfigureComponents(InstallContext installContext,
                                Collection<? extends InstallableComponent> selectedComponents,
                                AndroidSdkHandler sdkHandler) {
       myInstallContext = installContext;

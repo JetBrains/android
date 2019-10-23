@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
@@ -86,7 +87,9 @@ public class NlPreviewFixture extends ToolWindowFixture {
   @NotNull
   public NlPreviewFixture dragComponentToSurface(@NotNull String group, @NotNull String item) {
     openPalette().dragComponent(group, item);
-    myDragAndDrop.drop(myDesignSurfaceFixture.target(), new Point(0, 0));
+    SceneComponent root = myDesignSurfaceFixture.target().getScene().getRoot();
+    Point dropPoint = new Point(root.getCenterX(), root.getCenterY());
+    myDragAndDrop.drop(myDesignSurfaceFixture.target(), dropPoint);
     return this;
   }
 

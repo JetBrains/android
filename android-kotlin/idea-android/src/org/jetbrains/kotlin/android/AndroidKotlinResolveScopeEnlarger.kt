@@ -15,13 +15,9 @@
  */
 package org.jetbrains.kotlin.android
 
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
 import com.intellij.psi.search.SearchScope
 import org.jetbrains.android.AndroidResolveScopeEnlarger
-import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.findAdditionalClassesForModule
-import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.getResolveScopeForAdditionalClasses
 import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger
 
 /**
@@ -32,13 +28,7 @@ import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger
  */
 class AndroidKotlinResolveScopeEnlarger : KotlinResolveScopeEnlarger() {
 
-  companion object {
-    private val LOG = Logger.getInstance(AndroidResolveScopeEnlarger::class.java)!!
-  }
-
-  override fun getAdditionalResolveScope(module: Module, includeTestScope: Boolean): SearchScope? {
-    val lightClasses = findAdditionalClassesForModule(module, includeTestScope) ?: return null
-    LOG.debug { "Enlarging scope for $module with ${lightClasses.size} light Android classes." }
-    return getResolveScopeForAdditionalClasses(lightClasses, module.project)
+  override fun getAdditionalResolveScope(module: Module, isTestScope: Boolean): SearchScope? {
+    return AndroidResolveScopeEnlarger.getAdditionalResolveScopeForModule(module, isTestScope)
   }
 }

@@ -26,11 +26,7 @@ import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
-import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.junit.JUnitConfigurationType;
-import com.intellij.execution.junit.JUnitUtil;
-import com.intellij.execution.junit.JavaRunConfigurationProducerBase;
-import com.intellij.execution.junit.JavaRuntimeConfigurationProducerBase;
+import com.intellij.execution.junit.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
@@ -50,10 +46,9 @@ import static com.intellij.psi.util.PsiTreeUtil.getParentOfType;
  * @author Eugene.Kudelevsky
  */
 public class AndroidTestConfigurationProducer extends JavaRunConfigurationProducerBase<AndroidTestRunConfiguration> {
-  @NotNull
-  @Override
-  public ConfigurationFactory getConfigurationFactory() {
-    return AndroidTestRunConfigurationType.getInstance();
+
+  public AndroidTestConfigurationProducer() {
+    super(AndroidTestRunConfigurationType.getInstance());
   }
 
   private boolean setupAllInPackageConfiguration(AndroidTestRunConfiguration configuration,

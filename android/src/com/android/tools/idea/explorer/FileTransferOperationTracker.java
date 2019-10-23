@@ -20,6 +20,7 @@ import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ExceptionUtil;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CancellationException;
@@ -94,9 +95,7 @@ public class FileTransferOperationTracker extends LongRunningOperationTracker {
   public void setUploadFileText(@NotNull VirtualFile file, long currentBytes, long totalBytes) {
     String text;
     if (myTotalFileCount > 1) {
-      text = String.format("Uploading file %,d of %,d: \"%s\"",
-                           myCurrentFileCount,
-                           myTotalFileCount,
+      text = String.format(Locale.US, "Uploading file %,d of %,d: \"%s\"", myCurrentFileCount, myTotalFileCount,
                            StringUtil.shortenPathWithEllipsis(file.getPresentableUrl(), MAX_PATH_DISPLAY_LENGTH));
     }
     else {
@@ -115,9 +114,7 @@ public class FileTransferOperationTracker extends LongRunningOperationTracker {
   public void setDownloadFileText(@NotNull DeviceFileEntry entry, long currentBytes, long totalBytes) {
     String text;
     if (myTotalFileCount > 1) {
-      text = String.format("Downloading file %,d of %,d: \"%s\"",
-                           myCurrentFileCount,
-                           myTotalFileCount,
+      text = String.format(Locale.US, "Downloading file %,d of %,d: \"%s\"", myCurrentFileCount, myTotalFileCount,
                            StringUtil.shortenPathWithEllipsis(entry.getFullPath(), MAX_PATH_DISPLAY_LENGTH));
     }
     else {
@@ -146,10 +143,7 @@ public class FileTransferOperationTracker extends LongRunningOperationTracker {
 
     String text = "Calculating...";
     if (fileCount > 0 || directoryCount > 0) {
-      text += String.format(" %,d %s, %,d %s",
-                            fileCount,
-                            StringUtil.pluralize("file", fileCount),
-                            directoryCount,
+      text += String.format(Locale.US, " %,d %s, %,d %s", fileCount, StringUtil.pluralize("file", fileCount), directoryCount,
                             StringUtil.pluralize("directory", directoryCount));
     }
     setStatusText(text);

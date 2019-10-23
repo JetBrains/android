@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.imagediff;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -45,6 +46,7 @@ public class ImageDiffTest {
     myEntry = imageDiffEntry;
   }
 
+  @Ignore("b/119097070")
   @Test
   public void runTest() {
     // Asserts that a generated image is similar (within a given threshold) to a baseline image with given name.

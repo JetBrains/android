@@ -37,13 +37,17 @@ public final class CodeLocation {
   @Nullable
   private final String mySignature;
   /**
-   * See {@link Builder#setMethodParameters(String)} for details about this field.
+   * See {@link Builder#setMethodParameters(List)} (String)} for details about this field.
    */
   @Nullable
   private final List<String> myMethodParameters;
 
   private final int myLineNumber;
   private final boolean myNativeCode;
+  /**
+   * See {@link Builder#setNativeVAddress(long)} for details about this field.
+   */
+  private final long myNativeVAddress;
   @Nullable
   private final String myNativeModuleName;
   private final int myHashcode;
@@ -56,6 +60,7 @@ public final class CodeLocation {
     myMethodParameters = builder.myMethodParameters;
     myLineNumber = builder.myLineNumber;
     myNativeCode = builder.myNativeCode;
+    myNativeVAddress = builder.myNativeVAddress;
     myNativeModuleName = builder.myNativeModuleName;
     myHashcode = Arrays.hashCode(new int[]{
       myClassName == null ? 0 : myClassName.hashCode(),
@@ -128,6 +133,10 @@ public final class CodeLocation {
     return myNativeCode;
   }
 
+  public long getNativeVAddress() {
+    return myNativeVAddress;
+  }
+
   @Nullable
   public String getNativeModuleName() {
     return myNativeModuleName;
@@ -162,7 +171,8 @@ public final class CodeLocation {
     @Nullable List<String> myMethodParameters;
     int myLineNumber = INVALID_LINE_NUMBER;
     boolean myNativeCode;
-    String myNativeModuleName;
+    long myNativeVAddress = -1;
+    @Nullable String myNativeModuleName;
 
     public Builder(@Nullable String className) {
       myClassName = className;
@@ -176,6 +186,7 @@ public final class CodeLocation {
       myMethodParameters = rhs.getMethodParameters();
       myLineNumber = rhs.getLineNumber();
       myNativeCode = rhs.myNativeCode;
+      myNativeVAddress = rhs.myNativeVAddress;
       myNativeModuleName = rhs.myNativeModuleName;
     }
 
@@ -228,6 +239,14 @@ public final class CodeLocation {
 
     public Builder setNativeCode(boolean nativeCode) {
       myNativeCode = nativeCode;
+      return this;
+    }
+
+    /**
+     * Virtual address of the instruction corresponding to this code location in the ELF file containing it.
+     */
+    public Builder setNativeVAddress(long nativeVAddress) {
+      myNativeVAddress = nativeVAddress;
       return this;
     }
 

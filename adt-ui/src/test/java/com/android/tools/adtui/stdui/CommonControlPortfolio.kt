@@ -18,6 +18,7 @@ package com.android.tools.adtui.stdui
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.*
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton
+import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.laf.IntelliJLaf
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.openapi.ui.VerticalFlowLayout
@@ -25,7 +26,6 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import icons.StudioIcons
 import java.awt.*
 import javax.swing.*
 
@@ -46,7 +46,7 @@ object CommonControlPortfolio {
 
     //Create and set up the window.
     val frame = JFrame("Common Controls")
-    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+    frame.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
 
     //Set up the content pane.
     addComponentsToPane(frame.contentPane)
@@ -76,10 +76,10 @@ object CommonControlPortfolio {
     val menuPanel = JPanel(VerticalFlowLayout())
     val label = JLabel()
     val toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT))
-    toolBarPanel.add(makeDropDownMenu("MenuWithIconArrow", StudioIcons.Common.ADD, true, 100, 2, label))
+    toolBarPanel.add(makeDropDownMenu("MenuWithIconArrow", AllIcons.General.Add, true, 100, 2, label))
     toolBarPanel.add(makeDropDownMenu("MenuNoIcon", null, false, 100, 2, label))
-    toolBarPanel.add(makeDropDownMenu("", StudioIcons.Common.EXPORT, true, 2, 2, label))
-    toolBarPanel.add(makeDropDownMenu("", StudioIcons.Common.FILTER, false, 2, 2, label))
+    toolBarPanel.add(makeDropDownMenu("", AllIcons.ToolbarDecorator.Export, true, 2, 2, label))
+    toolBarPanel.add(makeDropDownMenu("", AllIcons.General.Filter, false, 2, 2, label))
     menuPanel.add(toolBarPanel, BorderLayout.PAGE_START)
     menuPanel.add(label, BorderLayout.CENTER)
     topPanel.add(menuPanel, "Menus")
@@ -201,9 +201,10 @@ object CommonControlPortfolio {
   }
 }
 
-class TestEditingSupport: EditingSupport {
-  override val validation = fun(editedValue: String): Pair<EditingErrorCategory, String> {
-    return when (editedValue) {
+class TestEditingSupport(val model: CommonTextFieldModel): EditingSupport {
+  override val validation = fun(editedValue: String?): Pair<EditingErrorCategory, String> {
+    val testValue = editedValue ?: model.value
+    return when (testValue) {
       "Error" -> Pair(EditingErrorCategory.ERROR, "Error is not a valid value")
       "Warning" -> Pair(EditingErrorCategory.WARNING, "Be careful about warnings")
       else -> EDITOR_NO_ERROR
@@ -212,6 +213,7 @@ class TestEditingSupport: EditingSupport {
 
   override val completion = fun(): List<String> {
     return listOf("@string/almond",
+                  "@string/app_firstName",
                   "@string/app_name",
                   "@string/app_name1",
                   "@string/app_name2",
@@ -251,10 +253,10 @@ class TestEditingSupport: EditingSupport {
 }
 
 class TestCommonTextFieldModel(initialValue: String) : DefaultCommonTextFieldModel(initialValue) {
-  override val editingSupport = TestEditingSupport()
+  override val editingSupport = TestEditingSupport(this)
 }
 
 class TestCommonComboBoxModel(initialValue: String, elements: List<String>)
   : DefaultCommonComboBoxModel<String>(initialValue, elements) {
-  override val editingSupport = TestEditingSupport()
+  override val editingSupport = TestEditingSupport(this)
 }

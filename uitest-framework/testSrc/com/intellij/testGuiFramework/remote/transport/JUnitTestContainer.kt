@@ -15,7 +15,6 @@
  */
 package com.intellij.testGuiFramework.remote.transport
 
-import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import java.io.Serializable
 
 /**
@@ -25,5 +24,4 @@ import java.io.Serializable
  *
  * @author Sergey Karashevich
  */
-data class JUnitTestContainer(val testClass: Class<*>, val methodName: String, val segmentIndex: Int = 0,
-                              val buildSystem: TargetBuildSystem.BuildSystem = TargetBuildSystem.BuildSystem.GRADLE) : Serializable
+data class JUnitTestContainer(val testClass: Class<*>, val methodName: String, val segmentIndex: Int = 0) : Serializable

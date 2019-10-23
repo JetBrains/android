@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_SYNC_ACTION;
+
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
@@ -24,8 +26,6 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NotNullLazyValue;
 import org.jetbrains.annotations.NotNull;
-
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST;
 
 /**
  * Re-imports (syncs) an Android-Gradle project, without showing the "Import Project" wizard.
@@ -54,7 +54,7 @@ public class SyncProjectAction extends AndroidStudioGradleAction {
     Presentation presentation = e.getPresentation();
     presentation.setEnabled(false);
     try {
-      mySyncInvoker.getValue().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_REQUEST);
+      mySyncInvoker.getValue().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_SYNC_ACTION);
     }
     finally {
       presentation.setEnabled(true);

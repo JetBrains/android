@@ -15,69 +15,128 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.emulator.SnapshotProtoException;
-import com.android.emulator.SnapshotProtoParser;
+import com.android.emulator.SnapshotOuterClass.Snapshot;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.LaunchCompatibility;
+import com.android.tools.idea.run.LaunchCompatibilityChecker;
+import com.android.tools.idea.run.LaunchableAndroidDevice;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import com.intellij.util.ThreeState;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-final class VirtualDevicesWorkerDelegate extends SwingWorker<Map<VirtualDevice, AvdInfo>, Void> {
+final class VirtualDevicesWorkerDelegate extends WorkerDelegate<Collection<VirtualDevice>> {
+  @Nullable
+  private final LaunchCompatibilityChecker myChecker;
+
+  VirtualDevicesWorkerDelegate(@Nullable LaunchCompatibilityChecker checker) {
+    super(Collections.emptyList());
+    myChecker = checker;
+  }
+
   @NotNull
   @Override
-  protected Map<VirtualDevice, AvdInfo> doInBackground() {
-    return AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true).stream()
-                               .collect(Collectors.toMap(VirtualDevicesWorkerDelegate::newVirtualDevice, Function.identity()));
+  public Collection<VirtualDevice> construct() {
+    return AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false).stream()
+      .map(this::newDisconnectedDevice)
+      .collect(Collectors.toList());
   }
 
   @NotNull
-  private static VirtualDevice newVirtualDevice(@NotNull AvdInfo device) {
-    return new VirtualDevice(false, AvdManagerConnection.getAvdDisplayName(device), getSnapshots(device));
+  private VirtualDevice newDisconnectedDevice(@NotNull AvdInfo avdInfo) {
+    AndroidDevice device = new LaunchableAndroidDevice(avdInfo);
+
+    VirtualDevice.Builder builder = new VirtualDevice.Builder()
+      .setName(AvdManagerConnection.getAvdDisplayName(avdInfo))
+      .setKey(avdInfo.getName())
+      .setAndroidDevice(device)
+      .setSnapshots(getSnapshots(avdInfo));
+
+    if (myChecker == null) {
+      return builder.build();
+    }
+
+    LaunchCompatibility compatibility = myChecker.validate(device);
+
+    return builder
+      .setValid(!compatibility.isCompatible().equals(ThreeState.NO))
+      .setValidityReason(compatibility.getReason())
+      .build();
   }
 
   @NotNull
-  private static ImmutableCollection<String> getSnapshots(@NotNull AvdInfo device) {
-    Path snapshots = Paths.get(device.getDataFolderPath(), "snapshots");
+  private static ImmutableCollection<String> getSnapshots(@NotNull AvdInfo avdInfo) {
+    Path snapshots = Paths.get(avdInfo.getDataFolderPath(), "snapshots");
 
     if (!Files.isDirectory(snapshots)) {
       return ImmutableList.of();
     }
 
-    try {
-      return Files.list(snapshots)
-                  .filter(Files::isDirectory)
-                  .map(VirtualDevicesWorkerDelegate::getName)
-                  .filter(Objects::nonNull)
-                  .sorted()
-                  .collect(ImmutableList.toImmutableList());
+    try (Stream<Path> stream = Files.list(snapshots)) {
+      @SuppressWarnings("UnstableApiUsage")
+      Collector<String, ?, ImmutableList<String>> collector = ImmutableList.toImmutableList();
+
+      return stream
+        .filter(Files::isDirectory)
+        .map(VirtualDevicesWorkerDelegate::getName)
+        .filter(Objects::nonNull)
+        .sorted()
+        .collect(collector);
     }
     catch (IOException exception) {
-      Logger.getInstance(VirtualDevicesWorkerDelegate.class).warn(exception);
+      Logger.getInstance(VirtualDevicesWorkerDelegate.class).warn(snapshots.toString(), exception);
       return ImmutableList.of();
     }
   }
 
   @Nullable
-  private static String getName(@NotNull Path snapshot) {
-    try {
-      return new SnapshotProtoParser(snapshot.resolve("snapshot.pb").toFile(), snapshot.getFileName().toString()).getLogicalName();
+  @VisibleForTesting
+  static String getName(@NotNull Path snapshotDirectory) {
+    Path snapshotProtocolBuffer = snapshotDirectory.resolve("snapshot.pb");
+    String snapshotDirectoryName = snapshotDirectory.getFileName().toString();
+
+    if (!Files.exists(snapshotProtocolBuffer)) {
+      return snapshotDirectoryName;
     }
-    catch (SnapshotProtoException exception) {
-      Logger.getInstance(VirtualDevicesWorkerDelegate.class).warn(exception);
+
+    try (InputStream in = Files.newInputStream(snapshotProtocolBuffer)) {
+      return getName(Snapshot.parseFrom(in), snapshotDirectoryName);
+    }
+    catch (IOException exception) {
+      Logger.getInstance(VirtualDevicesWorkerDelegate.class).warn(snapshotDirectory.toString(), exception);
       return null;
     }
+  }
+
+  @Nullable
+  @VisibleForTesting
+  static String getName(@NotNull Snapshot snapshot, @NotNull String fallbackName) {
+    if (snapshot.getImagesCount() == 0) {
+      return null;
+    }
+
+    String name = snapshot.getLogicalName();
+
+    if (name.isEmpty()) {
+      return fallbackName;
+    }
+
+    return name;
   }
 }

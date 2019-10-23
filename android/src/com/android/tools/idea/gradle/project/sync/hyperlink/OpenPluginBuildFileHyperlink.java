@@ -23,7 +23,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.searchInBuildFilesOnly;
+import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles;
 
 public class OpenPluginBuildFileHyperlink extends NotificationHyperlink {
   public OpenPluginBuildFileHyperlink() {
@@ -33,7 +33,7 @@ public class OpenPluginBuildFileHyperlink extends NotificationHyperlink {
   @Override
   protected void execute(@NotNull Project project) {
     if (project.isInitialized()) {
-      AndroidPluginInfo result = searchInBuildFilesOnly(project);
+      AndroidPluginInfo result = findFromBuildFiles(project);
       if (result != null && result.getPluginBuildFile() != null) {
         Navigatable openFile = new OpenFileDescriptor(project, result.getPluginBuildFile(), -1, -1, false);
         if (openFile.canNavigate()) {

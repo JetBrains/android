@@ -86,7 +86,7 @@ public final class SyncFieldsDemo {
     myBindings.bind(isLinkEnabled, createActivity);
 
     // Listen to activityText - if it is changed by the user and not its binding, break syncing!
-    activityText.addListener(sender -> isSynced.set(activityText.get().equals(activityNameExpression.get())));
+    activityText.addListener(() -> isSynced.set(activityText.get().equals(activityNameExpression.get())));
   }
 
   public void dispose() {

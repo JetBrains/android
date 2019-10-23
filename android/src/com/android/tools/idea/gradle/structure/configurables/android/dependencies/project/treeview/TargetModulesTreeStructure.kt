@@ -18,9 +18,16 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeStructure
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.PsRootNode
-import com.android.tools.idea.gradle.structure.model.android.*
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.PsDeclaredLibraryAndroidDependency
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency
+import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency
+import com.android.tools.idea.gradle.structure.model.android.PsResolvedLibraryAndroidDependency
+import com.android.tools.idea.gradle.structure.model.android.ReverseDependency
 import com.android.tools.idea.gradle.structure.model.toLibraryKey
-import java.util.*
+import java.util.Comparator
 import java.util.function.Function
 
 class TargetModulesTreeStructure(var uiSettings: PsUISettings) : AbstractBaseTreeStructure() {
@@ -29,7 +36,7 @@ class TargetModulesTreeStructure(var uiSettings: PsUISettings) : AbstractBaseTre
 
   override fun getRootElement(): Any = rootNode
 
-  fun displayTargetModules(dependencyNodes: List<List<PsAndroidDependency>>) {
+  fun displayTargetModules(dependencyNodes: List<List<PsBaseDependency>>) {
     // Key: module name, Value: pair of module and version of the dependency used in the module.
     val models = dependencyNodes.flatMap { it}
     val libraryModels = models.filterIsInstance<PsLibraryAndroidDependency>()
@@ -80,7 +87,7 @@ class TargetModulesTreeStructure(var uiSettings: PsUISettings) : AbstractBaseTre
     }
 
     val modules = models.map {it.parent}.distinct().sortedBy { it.name }
-    rootNode.setChildren(modules.map { module -> createModuleNode(module) })
+    rootNode.setChildren(modules.mapNotNull { module -> (module as? PsAndroidModule)?.let { createModuleNode(it) } })
   }
 }
 

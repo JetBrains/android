@@ -30,13 +30,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.OBJECT_STREAM_ERROR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 // See https://code.google.com/p/android/issues/detail?id=72556
 public class ObjectStreamErrorHandler extends SyncErrorHandler {
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = findErrorMessage(error);
+    String text = findErrorMessage(project, error);
     if (text != null) {
       findAndAddQuickFixes(notification, project, text);
       return true;
@@ -45,10 +46,10 @@ public class ObjectStreamErrorHandler extends SyncErrorHandler {
   }
 
   @Nullable
-  private static String findErrorMessage(@NotNull Throwable rootCause) {
+  private static String findErrorMessage(@NotNull Project project, @NotNull Throwable rootCause) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && getFirstLineMessage(text).endsWith("unexpected end of block data")) {
-      updateUsageTracker();
+      updateUsageTracker(project, OBJECT_STREAM_ERROR);
       String newMsg = "An unexpected I/O error occurred.\n";
       newMsg += String.format("The error, \"%1$s\" usually happens on Linux when Build-tools or an Android platform being used in a " +
                               "project is not installed.\n", text);

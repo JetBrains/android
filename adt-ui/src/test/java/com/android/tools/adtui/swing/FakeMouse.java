@@ -241,13 +241,13 @@ public final class FakeMouse {
     final int x;
     final int y;
 
-    Cursor(Button button, int x, int y) {
+    public Cursor(Button button, int x, int y) {
       this.button = button;
       this.x = x;
       this.y = y;
     }
 
-    Cursor(Cursor prev, int x, int y) {
+    public Cursor(Cursor prev, int x, int y) {
       this.button = prev.button;
       this.x = x;
       this.y = y;

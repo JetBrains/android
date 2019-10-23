@@ -74,7 +74,7 @@ public class ConstraintGeneratorTest extends JPanel {
   public static void main(String[] args) {
     JFrame f = new JFrame("Constraint Set");
     f.setBounds(new Rectangle(1100, 1100));
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     com.android.tools.idea.uibuilder.scout.test.ConstraintGeneratorTest p =
       new com.android.tools.idea.uibuilder.scout.test.ConstraintGeneratorTest();
     RectangleGenerator rectGenerator = new RectangleGenerator();

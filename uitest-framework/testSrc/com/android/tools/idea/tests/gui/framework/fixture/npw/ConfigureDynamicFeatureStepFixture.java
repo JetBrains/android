@@ -66,6 +66,13 @@ public class ConfigureDynamicFeatureStepFixture<W extends AbstractWizardFixture>
   }
 
   @NotNull
+  public ConfigureDynamicFeatureDeliveryStepFixture<W> clickNextToConfigureConditionalDelivery() {
+    wizard().clickNext();
+    waitUntilShowing(robot(), target(), JLabelMatcher.withText("Module Download Options"));
+    return new ConfigureDynamicFeatureDeliveryStepFixture<>(wizard(), (JRootPane)wizard().target());
+  }
+
+  @NotNull
   public ConfigureDynamicFeatureStepFixture<W> checkFusingCheckbox() {
     new JCheckBoxFixture(robot(), robot().finder().findByType(target(), JCheckBox.class)).select();
     return this;

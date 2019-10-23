@@ -15,20 +15,19 @@
  */
 package com.android.tools.profilers.network;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
 import com.android.tools.profilers.network.httpdata.StackTrace;
 import com.google.common.collect.ImmutableMap;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 public class HttpDataTest {
   @Test
@@ -171,8 +170,11 @@ public class HttpDataTest {
   @Test
   public void testBuilder() {
     long id = 1111;
-    long startTime = 10, uploadTime = 100, downloadTime = 1000, endTime = 10000;
-    String traceId = "traceId";
+    long requestStartTime = 10,
+      requestCompleteTime = 100,
+      responseStartTime = 1000,
+      responseCompleteTime = 10000,
+      connectionEndTime = 100000;
     String trace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)";
     String requestPayloadId = "requestPayloadId";
     String responsePayloadId = "responsePayloadId";
@@ -180,36 +182,36 @@ public class HttpDataTest {
     String responsePayload = "responsePayload";
 
     FakeNetworkConnectionsModel connectionsModel = new FakeNetworkConnectionsModel();
-    connectionsModel.addBytes(traceId, ByteString.copyFromUtf8(trace));
     connectionsModel.addBytes(requestPayloadId, ByteString.copyFromUtf8(requestPayload));
     connectionsModel.addBytes(responsePayloadId, ByteString.copyFromUtf8(responsePayload));
 
-    HttpData.Builder builder = new HttpData.Builder(id, startTime, uploadTime, downloadTime, endTime, TestHttpData.FAKE_THREAD_LIST)
-      .setResponseFields("status line =  HTTP/1.1 302 Found \n")
-      .setMethod("method")
-      .setRequestPayloadId(requestPayloadId)
-      .setResponsePayloadId(responsePayloadId)
-      .setTraceId(traceId)
-      .setUrl("url");
+    HttpData.Builder builder =
+      new HttpData.Builder(id, requestStartTime, requestCompleteTime, responseStartTime, responseCompleteTime, connectionEndTime,
+                           TestHttpData.FAKE_THREAD_LIST)
+        .setResponseFields("status line =  HTTP/1.1 302 Found \n")
+        .setMethod("method")
+        .setRequestPayloadId(requestPayloadId)
+        .setResponsePayloadId(responsePayloadId)
+        .setTrace(trace)
+        .setUrl("url");
 
     HttpData data = builder.build();
 
     assertThat(data.getId()).isEqualTo(id);
-    assertThat(data.getStartTimeUs()).isEqualTo(startTime);
-    assertThat(data.getUploadedTimeUs()).isEqualTo(uploadTime);
-    assertThat(data.getDownloadingTimeUs()).isEqualTo(downloadTime);
-    assertThat(data.getEndTimeUs()).isEqualTo(endTime);
+    assertThat(data.getRequestStartTimeUs()).isEqualTo(requestStartTime);
+    assertThat(data.getRequestCompleteTimeUs()).isEqualTo(requestCompleteTime);
+    assertThat(data.getResponseStartTimeUs()).isEqualTo(responseStartTime);
+    assertThat(data.getResponseCompleteTimeUs()).isEqualTo(responseCompleteTime);
+    assertThat(data.getConnectionEndTimeUs()).isEqualTo(connectionEndTime);
 
     assertThat(data.getResponseHeader().getStatusCode()).isEqualTo(302);
     assertThat(data.getMethod()).isEqualTo("method");
     assertThat(data.getRequestPayloadId()).isEqualTo(requestPayloadId);
     assertThat(data.getResponsePayloadId()).isEqualTo(responsePayloadId);
-    assertThat(data.getTraceId()).isEqualTo(traceId);
+    assertThat(data.getTrace()).isEqualTo(trace);
     assertThat(data.getUrl()).isEqualTo("url");
     assertThat(data.getJavaThreads().get(0).getId()).isEqualTo(TestHttpData.FAKE_THREAD.getId());
     assertThat(data.getJavaThreads().get(0).getName()).isEqualTo(TestHttpData.FAKE_THREAD.getName());
-
-    assertThat(new StackTrace(connectionsModel, data).getTrace()).isEqualTo(trace);
 
     assertThat(Payload.newRequestPayload(connectionsModel, data).getBytes().toStringUtf8()).isEqualTo(requestPayload);
     assertThat(Payload.newResponsePayload(connectionsModel, data).getBytes().toStringUtf8()).isEqualTo(responsePayload);

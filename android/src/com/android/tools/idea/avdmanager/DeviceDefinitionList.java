@@ -16,12 +16,12 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
-import com.google.common.base.Objects;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -39,6 +39,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import icons.StudioIcons;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,17 +67,15 @@ import java.util.*;
  */
 public class DeviceDefinitionList extends JPanel implements ListSelectionListener, DocumentListener, DeviceUiAction.DeviceProvider {
 
-  private static final double PHONE_SIZE_CUTOFF = 6.0;
-  private static final double TV_SIZE_CUTOFF = 15.0;
   private static final String SEARCH_RESULTS = "Search Results";
   private static final String PHONE_TYPE = "Phone";
   private static final String TABLET_TYPE = "Tablet";
-  private static final String OTHER_TYPE = "Other";
 
-  private static final String DEFAULT_PHONE = "Nexus 5X";
-  private static final String DEFAULT_TABLET = "Nexus 9";
+  private static final String DEFAULT_PHONE = "Pixel 2";
+  private static final String DEFAULT_TABLET = "Pixel C";
   private static final String DEFAULT_WEAR = "Android Wear Square";
   private static final String DEFAULT_TV = "Android TV (1080p)";
+  private static final String DEFAULT_AUTOMOTIVE = "Automotive (1024p landscape)";
 
   private Map<String, List<Device>> myDeviceCategoryMap = Maps.newHashMap();
   private static final Map<String, Device> myDefaultCategoryDeviceMap = Maps.newHashMap();
@@ -95,14 +94,11 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private List<DeviceCategorySelectionListener> myCategoryListeners = Lists.newArrayList();
   private List<Device> myDevices;
   private Device myDefaultDevice;
-  private DeviceUiAction.DeviceProvider myParentProvider;
 
   public DeviceDefinitionList() {
     super(new BorderLayout());
-    /**
-     * List of columns present in our table. Each column is represented by a ColumnInfo which tells the table how to get
-     * the cell value in that column for a given row item.
-     */
+    // List of columns present in our table. Each column is represented by a ColumnInfo which tells the table how to get
+    // the cell value in that column for a given row item.
     ColumnInfo[] columnInfos = new ColumnInfo[]{new DeviceColumnInfo("Name") {
       @NonNull
       @Override
@@ -110,106 +106,96 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
         return device.getDisplayName();
       }
 
-      @Nullable
+      @NonNull
       @Override
       public String getPreferredStringValue() {
         // Long string so that preferred column width is set appropriately
         return "4.65\" 720 (Galaxy Nexus)";
       }
 
-      @Nullable
+      @NonNull
       @Override
       public Comparator<Device> getComparator() {
-        return new Comparator<Device>() {
-          @Override
-          public int compare(Device o1, Device o2) {
-            String name1 = valueOf(o1);
-            String name2 = valueOf(o2);
-            if (name1 == name2) {
-              return 0;
-            }
-            if (name1.isEmpty() || name2.isEmpty()) {
-              return -1;
-            }
-            char firstChar1 = name1.charAt(0);
-            char firstChar2 = name2.charAt(0);
-            // Prefer letters to anything else
-            if (Character.isLetter(firstChar1) && !Character.isLetter(firstChar2)) {
-              return 1;
-            }
-            else if (Character.isLetter(firstChar2) && !Character.isLetter(firstChar1)) {
-              return -1;
-            }
-            // Fall back to string comparison
-            return name1.compareTo(name2);
+        return (o1, o2) -> {
+          String name1 = valueOf(o1);
+          String name2 = valueOf(o2);
+          if (name1 == name2) {
+            return 0;
           }
+          if (name1.isEmpty() || name2.isEmpty()) {
+            return -1;
+          }
+          char firstChar1 = name1.charAt(0);
+          char firstChar2 = name2.charAt(0);
+          // Prefer letters to anything else
+          if (Character.isLetter(firstChar1) && !Character.isLetter(firstChar2)) {
+            return 1;
+          }
+          else if (Character.isLetter(firstChar2) && !Character.isLetter(firstChar1)) {
+            return -1;
+          }
+          // Fall back to string comparison
+          return name1.compareTo(name2);
         };
       }
     }, new PlayStoreColumnInfo("Play Store") {
     }, new DeviceColumnInfo("Size") {
 
-      @Nullable
+      @NonNull
       @Override
       public String valueOf(Device device) {
         return getDiagonalSize(device);
       }
-
-      @Nullable
+      @NonNull
       @Override
       public Comparator<Device> getComparator() {
-        return new Comparator<Device>() {
-          @Override
-          public int compare(Device o1, Device o2) {
-            if (o1 == null) {
-              return -1;
-            }
-            else if (o2 == null) {
-              return 1;
-            }
-            else {
-              return Double.compare(o1.getDefaultHardware().getScreen().getDiagonalLength(),
-                                    o2.getDefaultHardware().getScreen().getDiagonalLength());
-            }
+        return (o1, o2) -> {
+          if (o1 == null) {
+            return -1;
+          }
+          else if (o2 == null) {
+            return 1;
+          }
+          else {
+            return Double.compare(o1.getDefaultHardware().getScreen().getDiagonalLength(),
+                                  o2.getDefaultHardware().getScreen().getDiagonalLength());
           }
         };
       }
     }, new DeviceColumnInfo("Resolution") {
-      @Nullable
+      @NonNull
       @Override
       public String valueOf(Device device) {
         return getDimensionString(device);
       }
 
-      @Nullable
+      @NonNull
       @Override
       public Comparator<Device> getComparator() {
-        return new Comparator<Device>() {
-          @Override
-          public int compare(Device o1, Device o2) {
-            if (o1 == null) {
+        return (o1, o2) -> {
+          if (o1 == null) {
+            return -1;
+          }
+          else if (o2 == null) {
+            return 1;
+          }
+          else {
+            Dimension d1 = o1.getScreenSize(o1.getDefaultState().getOrientation());
+            Dimension d2 = o2.getScreenSize(o2.getDefaultState().getOrientation());
+            if (d1 == null) {
               return -1;
             }
-            else if (o2 == null) {
+            else if (d2 == null) {
               return 1;
             }
             else {
-              Dimension d1 = o1.getScreenSize(o1.getDefaultState().getOrientation());
-              Dimension d2 = o2.getScreenSize(o2.getDefaultState().getOrientation());
-              if (d1 == null) {
-                return -1;
-              }
-              else if (d2 == null) {
-                return 1;
-              }
-              else {
-                return Integer.compare(d1.width * d1.height, d2.width * d2.height);
-              }
+              return Integer.compare(d1.width * d1.height, d2.width * d2.height);
             }
           }
         };
       }
     }, new DeviceColumnInfo("Density") {
-      @Nullable
+      @NonNull
       @Override
       public String valueOf(Device device) {
         return getDensityString(device);
@@ -240,7 +226,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
         return category;
       }
 
-      @Nullable
+      @NonNull
       @Override
       public TableCellRenderer getRenderer(String s) {
         return myRenderer;
@@ -275,31 +261,24 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   }
 
   private void setDefaultDevices() {
-    for (Device d : myDeviceCategoryMap.get(PHONE_TYPE)) {
-      if (d.getDisplayName().equals(DEFAULT_PHONE)) {
-        myDefaultCategoryDeviceMap.put(PHONE_TYPE, d);
-        myDefaultDevice = d;
-        break;
+    myDefaultDevice = updateDefaultDevice(PHONE_TYPE, DEFAULT_PHONE);
+    updateDefaultDevice(TABLET_TYPE, DEFAULT_TABLET);
+    updateDefaultDevice(FormFactor.TV.toString(), DEFAULT_TV);
+    updateDefaultDevice(FormFactor.WEAR.toString(), DEFAULT_WEAR);
+    updateDefaultDevice(FormFactor.AUTOMOTIVE.toString(), DEFAULT_AUTOMOTIVE);
+  }
+
+  private Device updateDefaultDevice(String type, String deviceDisplayName) {
+    List<Device> devices = myDeviceCategoryMap.get(type);
+    if (devices != null) {
+      for (Device d : devices) {
+        if (d.getDisplayName().equals(deviceDisplayName)) {
+          myDefaultCategoryDeviceMap.put(type, d);
+          return d;
+        }
       }
     }
-    for (Device d : myDeviceCategoryMap.get(TABLET_TYPE)) {
-      if (d.getDisplayName().equals(DEFAULT_TABLET)) {
-        myDefaultCategoryDeviceMap.put(TABLET_TYPE, d);
-        break;
-      }
-    }
-    for (Device d : myDeviceCategoryMap.get(FormFactor.WEAR.toString())) {
-      if (d.getDisplayName().equals(DEFAULT_WEAR)) {
-        myDefaultCategoryDeviceMap.put(FormFactor.WEAR.toString(), d);
-        break;
-      }
-    }
-    for (Device d : myDeviceCategoryMap.get(FormFactor.TV.toString())) {
-      if (d.getDisplayName().equals(DEFAULT_TV)) {
-        myDefaultCategoryDeviceMap.put(FormFactor.TV.toString(), d);
-        break;
-      }
-    }
+    return null;
   }
 
   @NotNull
@@ -355,7 +334,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   @Nullable
   @Override
   public Project getProject() {
-    return myParentProvider != null ? myParentProvider.getProject() : null;
+    return null;
   }
 
   /**
@@ -364,7 +343,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
    * given device belongs.
    */
   public void setSelectedDevice(@Nullable Device device) {
-    if (Objects.equal(device, myTable.getSelectedObject())) {
+    if (Objects.equals(device, myTable.getSelectedObject())) {
       return;
     }
     onSelectionSet(device);
@@ -413,7 +392,10 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   }
 
   private void refreshDeviceProfiles() {
-    myDevices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
+    myDevices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices()
+      .stream()
+      .filter(d -> !HardwareConfigHelper.isAutomotive(d) || StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get())
+      .collect(Collectors.toList());
     myDeviceCategoryMap.clear();
     for (Device d : myDevices) {
       String category = getCategory(d);
@@ -428,35 +410,37 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   }
 
   /**
-   * @return the category of the specified device. One of:
-   * TV, Wear, Tablet, and Phone, or Other if the category can
-   * not be determined. Mobile devices are considered tablets if
-   * their screen size is over {@link #PHONE_SIZE_CUTOFF}
+   * @return the category of the specified device. One of: 
+   * Automotive TV, Wear, Tablet, and Phone, or Other if the category 
+   * cannot be determined.
    */
-  private static String getCategory(@NotNull Device d) {
-    if (HardwareConfigHelper.isTv(d) || hasTvSizedScreen(d)) {
+  @VisibleForTesting
+  public static String getCategory(@NotNull Device d) {
+    if (HardwareConfigHelper.isAutomotive(d)) {
+      return FormFactor.AUTOMOTIVE.toString();
+    } else if (HardwareConfigHelper.isTv(d) || hasTvSizedScreen(d)) {
       return FormFactor.TV.toString();
     } else if (HardwareConfigHelper.isWear(d)) {
       return FormFactor.WEAR.toString();
     } else if (isTablet(d)) {
       return TABLET_TYPE;
-    } else if (isPhone(d)) {
-      return PHONE_TYPE;
     } else {
-      return OTHER_TYPE;
+      return PHONE_TYPE;
     }
   }
 
-  private static boolean isPhone(@NotNull Device d) {
-    return d.getDefaultHardware().getScreen().getDiagonalLength() < PHONE_SIZE_CUTOFF;
-  }
-
-  private static boolean isTablet(@NotNull Device d) {
-    return d.getDefaultHardware().getScreen().getDiagonalLength() >= PHONE_SIZE_CUTOFF;
+  /*
+   * A mobile device is considered a tablet if its screen is at least
+   * {@link #MINIMUM_TABLET_SIZE} and the screen is not foldable.
+   */
+  @VisibleForTesting
+  public static boolean isTablet(@NotNull Device d) {
+    return (d.getDefaultHardware().getScreen().getDiagonalLength() >= Device.MINIMUM_TABLET_SIZE
+            && !d.getDefaultHardware().getScreen().isFoldable());
   }
 
   private static boolean hasTvSizedScreen(@NotNull Device d) {
-    return d.getDefaultHardware().getScreen().getDiagonalLength() >= TV_SIZE_CUTOFF;
+    return d.getDefaultHardware().getScreen().getDiagonalLength() >= Device.MINIMUM_TV_SIZE;
   }
 
   /**
@@ -525,12 +509,10 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       myCategoryModel.addRow(SEARCH_RESULTS);
       myCategoryList.setSelection(ImmutableSet.of(SEARCH_RESULTS));
     }
-    List<Device> items = Lists.newArrayList(Iterables.filter(myDevices, new Predicate<Device>() {
-      @Override
-      public boolean apply(Device input) {
-        return input.getDisplayName().toLowerCase(Locale.getDefault()).contains(searchString.toLowerCase(Locale.getDefault()));
-      }
-    }));
+
+    List<Device> items = Lists.newArrayList(Iterables.filter(myDevices,
+                                                             (input) -> input.getDisplayName().toLowerCase(Locale.getDefault())
+                                                               .contains(searchString.toLowerCase(Locale.getDefault()))));
     myModel.setItems(items);
     notifyCategoryListeners(null, items);
   }
@@ -570,28 +552,23 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     }
   };
 
-  public void setParentProvider(DeviceUiAction.DeviceProvider parentProvider) {
-    myParentProvider = parentProvider;
-  }
-
   private abstract class DeviceColumnInfo extends ColumnInfo<Device, String> {
     private final int myWidth;
 
     @Nullable
     @Override
     public Comparator<Device> getComparator() {
-      return new Comparator<Device>() {
-        @Override
-        public int compare(Device o1, Device o2) {
+      return (o1, o2) -> {
           if (o1 == null || valueOf(o1) == null) {
             return -1;
-          } else if (o2 == null || valueOf(o2) == null) {
+          }
+          else if (o2 == null || valueOf(o2) == null) {
             return 1;
-          } else {
+          }
+          else {
             //noinspection ConstantConditions
             return valueOf(o1).compareTo(valueOf(o2));
           }
-        }
       };
     }
 

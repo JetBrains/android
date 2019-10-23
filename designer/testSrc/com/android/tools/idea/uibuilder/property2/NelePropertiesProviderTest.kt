@@ -15,19 +15,48 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ELEVATION
+import com.android.SdkConstants.ATTR_FONT_FAMILY
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_PADDING
+import com.android.SdkConstants.ATTR_SCALE_TYPE
+import com.android.SdkConstants.ATTR_SRC
+import com.android.SdkConstants.ATTR_SRC_COMPAT
+import com.android.SdkConstants.ATTR_STYLE
+import com.android.SdkConstants.ATTR_TEXT
+import com.android.SdkConstants.ATTR_TEXT_ALIGNMENT
+import com.android.SdkConstants.ATTR_VISIBILITY
+import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.CLASS_VIEW
+import com.android.SdkConstants.FQCN_IMAGE_VIEW
+import com.android.SdkConstants.IMAGE_VIEW
+import com.android.SdkConstants.TEXT_VIEW
+import com.android.SdkConstants.VIEW
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.property2.api.PropertiesTable
+import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.uibuilder.property2.testutils.APPCOMPAT_IMAGE_VIEW
 import com.android.tools.idea.uibuilder.property2.testutils.APPCOMPAT_TEXT_VIEW
 import com.android.tools.idea.uibuilder.property2.testutils.MockAppCompat
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
+import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
-import org.intellij.lang.annotations.Language
 
 private const val CUSTOM_TAG = "com.example.PieChart"
 private const val ATTR_LEGEND = "legend"
 private const val ATTR_LABEL_POS = "labelPosition"
+
+internal const val EXPECTED_ID_TOOLTIP =
+  "<html><b>android:id:</b><br/>" +
+  "Supply an identifier name for this view, to later retrieve it with {@link android.view.View#findViewById View.findViewById()} or " +
+  "{@link android.app.Activity#findViewById Activity.findViewById()}. This must be a resource reference; typically you set this using " +
+  "the &lt;code&gt;@+&lt;/code&gt; syntax to create a new ID resources. " +
+  "For example: &lt;code&gt;android:id=&quot;@+id/my_id&quot;&lt;/code&gt; which allows you to " +
+  "later retrieve the view with &lt;code&gt;findViewById(R.id.my_id)&lt;/code&gt;.</html>"
+
+internal const val EXPECTED_TEXT_TOOLTIP =
+  "<html><b>android:text:</b><br/>Text to display.</html>"
 
 private fun PropertiesTable<NelePropertyItem>.contains(namespace: String, name: String): Boolean {
   return this.getOrNull(namespace, name) != null
@@ -45,16 +74,18 @@ class NelePropertiesProviderTest : PropertyTestCase() {
   private val relativeLayoutAttrs = listOf("layout_toLeftOf", "layout_above", "layout_alignTop")
 
   fun testViewAttributes() {
-    val provider = createProvider()
-    val properties = provider.getProperties(createViewTagComponent())
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createViewTagComponent())
     assertThat(properties.size).isAtLeast(124)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(viewAttrs)
     assertThat(properties.getByNamespace("").keys).contains(ATTR_STYLE)
   }
 
   fun testRootHasAllLayoutAttributes() {
-    val provider = createProvider()
-    val properties = provider.getProperties(createViewTagComponent())
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createViewTagComponent())
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(frameLayoutAttrs)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(gridLayoutAttrs)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(linearLayoutAttrs)
@@ -62,8 +93,9 @@ class NelePropertiesProviderTest : PropertyTestCase() {
   }
 
   fun testSubViewHasLayoutAttributesOfParent() {
-    val provider = createProvider()
-    val properties = provider.getProperties(createComponents(component(TEXT_VIEW)))
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createComponents(component(TEXT_VIEW)))
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(linearLayoutAttrs)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsNoneIn(gridLayoutAttrs)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsNoneIn(relativeLayoutAttrs)
@@ -71,39 +103,44 @@ class NelePropertiesProviderTest : PropertyTestCase() {
 
   fun testFontFamilyFromAppCompatForMinApi14() {
     setUpAppCompat()
-    val provider = createProvider()
-    val properties = provider.getProperties(createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW)))
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW)))
     assertThat(properties.contains(AUTO_URI, ATTR_FONT_FAMILY)).isTrue()
     assertThat(properties.doesNotContain(ANDROID_URI, ATTR_FONT_FAMILY)).isTrue()
   }
 
   fun testFontFamilyFromAndroidForMinApi16() {
     setUpAppCompat()
-    val provider = createProvider()
-    val properties = provider.getProperties(createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW)))
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW)))
     assertThat(properties.doesNotContain(AUTO_URI, ATTR_FONT_FAMILY)).isTrue()
     assertThat(properties.contains(ANDROID_URI, ATTR_FONT_FAMILY)).isTrue()
   }
 
   fun testSrcCompatIncludedWhenUsingAppCompat() {
     setUpAppCompat()
-    val provider = createProvider()
-    val properties = provider.getProperties(createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW)))
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW)))
     assertThat(properties.doesNotContain(ANDROID_URI, ATTR_SRC)).isTrue()
     assertThat(properties.contains(AUTO_URI, ATTR_SRC_COMPAT)).isTrue()
   }
 
   fun testSrcCompatNotIncludedWhenNotUsingAppCompat() {
-    val provider = createProvider()
-    val properties = provider.getProperties(createComponents(component(IMAGE_VIEW)))
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createComponents(component(IMAGE_VIEW)))
     assertThat(properties.contains(ANDROID_URI, ATTR_SRC)).isTrue()
     assertThat(properties.doesNotContain(AUTO_URI, ATTR_SRC_COMPAT)).isTrue()
   }
 
   fun testCustomViewProperties() {
-    setUpCustomView()
-    val provider = createProvider()
-    val properties = provider.getProperties(createComponents(component(CUSTOM_TAG)))
+    SupportTestUtil.setUpCustomView(myFixture)
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createComponents(component(CUSTOM_TAG)))
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(viewAttrs)
     assertThat(properties.getByNamespace("").keys).contains(ATTR_STYLE)
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(linearLayoutAttrs)
@@ -112,59 +149,33 @@ class NelePropertiesProviderTest : PropertyTestCase() {
   }
 
   fun testToolTip() {
-    setUpCustomView()
-    val provider = createProvider()
-    val properties = provider.getProperties(createComponents(component(CUSTOM_TAG)))
+    SupportTestUtil.setUpCustomView(myFixture)
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createComponents(component(CUSTOM_TAG)))
     val id = properties[ANDROID_URI, ATTR_ID]
     val legend = properties[AUTO_URI, ATTR_LEGEND]
     assertThat(id.tooltipForName.trim()).isEqualTo(EXPECTED_ID_TOOLTIP.trim())
-    assertThat(legend.tooltipForName).isEqualTo("legend")
+    assertThat(legend.tooltipForName).isEqualTo("<html><b>legend:</b><br/>Help Text</html>")
+  }
+
+  fun testComponentName() {
+    setUpAppCompat()
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW)))
+    assertThat(properties[ResourceNamespace.TODO().xmlNamespaceUri, ATTR_SRC_COMPAT].componentName).isEqualTo(APPCOMPAT_IMAGE_VIEW)
+    assertThat(properties[ANDROID_URI, ATTR_SCALE_TYPE].componentName).isEqualTo(FQCN_IMAGE_VIEW)
+    assertThat(properties[ANDROID_URI, ATTR_VISIBILITY].componentName).isEqualTo(CLASS_VIEW)
   }
 
   private fun setUpAppCompat() {
     MockAppCompat.setUp(this, myFacet, myFixture)
   }
 
-  private fun createProvider(): NelePropertiesProvider {
-    val model = NelePropertiesModel(testRootDisposable, myFacet)
-    return NelePropertiesProvider(model)
-  }
-
   private fun createViewTagComponent(): List<NlComponent> {
     val builder = model("view.xml", component(VIEW))
     val nlModel = builder.build()
     return nlModel.components
-  }
-
-  private fun setUpCustomView() {
-    @Language("XML")
-    val attrsSrc = """<?xml version="1.0" encoding="utf-8"?>
-      <resources>
-        <declare-styleable name="PieChart">
-          <attr name="legend" format="boolean" />
-          <attr name="labelPosition" format="enum">
-            <enum name="left" value="0"/>
-            <enum name="right" value="1"/>
-          </attr>
-        </declare-styleable>
-      </resources>
-      """.trimIndent()
-
-    @Language("JAVA")
-    val javaSrc = """
-      package com.example;
-
-      import android.content.Context;
-      import android.view.View;
-
-      public class PieChart extends View {
-          public PieChart(Context context) {
-              super(context);
-          }
-      }
-      """.trimIndent()
-
-    myFixture.addFileToProject("res/values/attrs.xml", attrsSrc)
-    myFixture.addFileToProject("src/com/example/PieChart.java", javaSrc)
   }
 }

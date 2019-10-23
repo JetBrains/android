@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.ATTR_SRC_COMPAT;
+import static com.android.SdkConstants.IMAGE_VIEW;
+import static com.android.SdkConstants.TOOLS_URI;
+
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
-import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.property.ptable.PTable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
@@ -31,25 +37,28 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.xml.XmlTag;
 import icons.StudioIcons;
+import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.Locale;
+import java.util.Set;
+import javax.swing.BoxLayout;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.Set;
-
-import static com.android.SdkConstants.*;
 
 public class BrowsePanel extends AdtSecondaryPanel {
   private final Context myContext;
@@ -182,7 +191,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
     }
   }
 
-  private static ChooseResourceDialog showResourceChooser(@NotNull NlProperty property) {
+  private static ChooseResourceDialog showResourceChooser(@NotNull NlProperty property, @NotNull XmlTag tag) {
     Module module = property.getModel().getModule();
     Set<ResourceType> types = getResourceTypes(property);
     boolean onlyLayoutType = types.size() == 1 && types.contains(ResourceType.LAYOUT);
@@ -195,7 +204,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
       .setModule(module)
       .setTypes(types)
       .setCurrentValue(property.getValue())
-      .setTag(property.getTag())
+      .setTag(tag)
       .setDefaultType(defaultResourceType)
       .setFilterColorStateLists(isImageViewDrawable)
       .setShowSampleDataPicker(!onlyLayoutType && TOOLS_URI.equals(property.getNamespace()))
@@ -214,12 +223,13 @@ public class BrowsePanel extends AdtSecondaryPanel {
   @Nullable
   public static String showBrowseDialog(@NotNull NlProperty property) {
     AttributeBrowser browser = getBrowser(property);
+    XmlTag tag = property.getTag();
     if (browser != null) {
       ViewEditor editor = new ViewEditorImpl(property.getModel());
       return browser.browse(editor, property.getValue());
     }
-    else if (!getResourceTypes(property).isEmpty()) {
-      ChooseResourceDialog dialog = showResourceChooser(property);
+    else if (!getResourceTypes(property).isEmpty() && tag != null) {
+      ChooseResourceDialog dialog = showResourceChooser(property, tag);
       if (dialog.showAndGet()) {
         return dialog.getResourceName();
       }
@@ -271,7 +281,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
     EnumSet<ResourceType> types = EnumSet.noneOf(ResourceType.class);
     for (AttributeFormat format : formats) {
       if (format == AttributeFormat.REFERENCE) {
-        // TODO: Not sure is this reduced list of referenceable resource types in on purpose or not.
+        // TODO: Not sure if this reduced list of referenceable resource types is on purpose or not. See also http://b/117083114.
         types.add(ResourceType.COLOR);
         types.add(ResourceType.DRAWABLE);
         types.add(ResourceType.MIPMAP);

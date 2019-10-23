@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetu
 import com.intellij.mock.MockProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.LightPlatformTestCase;
+import com.intellij.testFramework.IdeaTestCase;
 import java.util.Collections;
 import org.mockito.Mock;
 
@@ -34,7 +34,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link SyncResultHandler}.
  */
-public class SyncResultHandlerTest extends LightPlatformTestCase {
+public class SyncResultHandlerTest extends IdeaTestCase {
   @Mock private SyncExecutionCallback mySyncCallback;
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private GradleSyncListener mySyncListener;
@@ -113,7 +113,7 @@ public class SyncResultHandlerTest extends LightPlatformTestCase {
     verify(projectSetup).setUpProject(same(models), any());
     verify(projectSetup).commit();
 
-    verify(mySyncListener, never()).setupStarted(project);
+    verify(mySyncListener).setupStarted(project);
     verify(mySyncListener).syncSucceeded(project);
     verify(mySyncListener, never()).syncFailed(any(), any());
 

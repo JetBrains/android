@@ -16,11 +16,27 @@
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.*
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.EditorExtensionAction
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.ListPropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.MapPropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.BrowseFilesExtension
+import com.android.tools.idea.gradle.structure.model.meta.ExtractNewVariableExtension
+import com.android.tools.idea.gradle.structure.model.meta.FileTypePropertyContext
+import com.android.tools.idea.gradle.structure.model.meta.ModelListProperty
+import com.android.tools.idea.gradle.structure.model.meta.ModelListPropertyCore
+import com.android.tools.idea.gradle.structure.model.meta.ModelMapProperty
+import com.android.tools.idea.gradle.structure.model.meta.ModelMapPropertyCore
+import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
+import com.google.wireless.android.sdk.stats.PSDEvent
+import javax.swing.table.TableCellEditor
 
 /**
  * A model of the UI for editing the properties of a model of type [ModelT].
@@ -41,17 +57,30 @@ interface PropertyUiModel<in ModelT, out PropertyT : Any> {
   /**
    * Creates a property editor bound to a property of [model] which described by this model.
    */
-  fun createEditor(project: PsProject, module: PsModule?, model: ModelT): ModelPropertyEditor<PropertyT>
+  fun createEditor(
+    context: PsContext,
+    project: PsProject,
+    module: PsModule?,
+    model: ModelT,
+    cellEditor: TableCellEditor? = null
+  ): ModelPropertyEditor<PropertyT>
 }
 
 typealias
   PropertyEditorFactory<ModelT, ModelPropertyT, PropertyT> =
-  (project: PsProject, module: PsModule?, model: ModelT, ModelPropertyT, PsVariablesScope?) ->
+  (project: PsProject,
+   module: PsModule?,
+   model: ModelT,
+   ModelPropertyT,
+   PsVariablesScope?,
+   cellEditor: TableCellEditor?,
+   logValueEdited: () -> Unit
+  ) ->
   ModelPropertyEditor<PropertyT>
 
 typealias
   PropertyEditorCoreFactory<ModelPropertyCoreT, ModelPropertyContextT, PropertyT> =
-  (ModelPropertyCoreT, ModelPropertyContextT, PsVariablesScope?) -> ModelPropertyEditor<PropertyT>
+  (ModelPropertyCoreT, ModelPropertyContextT, PsVariablesScope?, cellEditor: TableCellEditor?) -> ModelPropertyEditor<PropertyT>
 
 /**
  * Creates a UI property model describing how to represent [property] for editing.
@@ -61,9 +90,10 @@ typealias
 fun <ModelT, PropertyT : Any, ValueT : Any, ModelPropertyCoreT : ModelPropertyCore<PropertyT>,
   ModelPropertyT : ModelProperty<ModelT, PropertyT, ValueT, ModelPropertyCoreT>> uiProperty(
   property: ModelPropertyT,
-  editorFactory: PropertyEditorFactory<ModelT, ModelPropertyT, PropertyT>
+  editorFactory: PropertyEditorFactory<ModelT, ModelPropertyT, PropertyT>,
+  psdUsageLogFieldId: PSDEvent.PSDField?
 ): PropertyUiModel<ModelT, *> =
-  PropertyUiModelImpl(property, editorFactory)
+  PropertyUiModelImpl(property, editorFactory, psdUsageLogFieldId)
 
 class PropertyUiModelImpl<
   in ModelT, PropertyT : Any,
@@ -72,21 +102,32 @@ class PropertyUiModelImpl<
   out ModelPropertyT : ModelProperty<ModelT, PropertyT, ValueT, ModelPropertyCoreT>>
 (
   private val property: ModelPropertyT,
-  private val editorFactory: PropertyEditorFactory<ModelT, ModelPropertyT, PropertyT>
+  private val editorFactory: PropertyEditorFactory<ModelT, ModelPropertyT, PropertyT>,
+  private val psdUsageLogFieldId: PSDEvent.PSDField?
 ) : PropertyUiModel<ModelT, PropertyT> {
   override val propertyDescription: String = property.description
-  override fun createEditor(project: PsProject, module: PsModule?, model: ModelT)
-    : ModelPropertyEditor<PropertyT> {
-    return editorFactory(project, module, model, property, module?.variables ?: project.variables)
+  override fun createEditor(
+    context: PsContext,
+    project: PsProject,
+    module: PsModule?,
+    model: ModelT,
+    cellEditor: TableCellEditor?
+  ): ModelPropertyEditor<PropertyT> {
+    return editorFactory(project, module, model, property, module?.variables ?: project.variables, cellEditor) {
+      psdUsageLogFieldId?.let { context.logFieldEdited(it) }
+    }
   }
 }
 
-fun <T : Any, PropertyCoreT : ModelPropertyCore<T>> createDefaultEditorExtensions(
+fun <T : Any, PropertyCoreT : ModelPropertyCore<T>>
+  ModelPropertyContext<T>.createDefaultEditorExtensions(
   project: PsProject,
   module: PsModule?
 ): List<EditorExtensionAction<T, PropertyCoreT>> =
-  if (module != null) listOf(ExtractNewVariableExtension(project, module))
-  else listOf()
+  listOfNotNull<EditorExtensionAction<T, PropertyCoreT>>(
+    ExtractNewVariableExtension(project, module),
+    if (this is FileTypePropertyContext<T>) BrowseFilesExtension<T, PropertyCoreT>(project, this) else null
+  )
 
 fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT, ModelPropertyCore<ValueT>>>
   simplePropertyEditor(
@@ -94,11 +135,20 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT
   module: PsModule?,
   model: ModelT,
   property: ModelPropertyT,
-  variablesScope: PsVariablesScope? = null
+  variablesScope: PsVariablesScope? = null,
+  cellEditor: TableCellEditor?,
+  logValueEdited: () -> Unit
 ): SimplePropertyEditor<ValueT, ModelPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
-  return SimplePropertyEditor(boundProperty, boundContext, variablesScope, createDefaultEditorExtensions(project, module))
+  return simplePropertyEditor(
+    boundProperty,
+    boundContext,
+    variablesScope,
+    boundContext.createDefaultEditorExtensions(project, module),
+    isPropertyContext = true,
+    cellEditor = cellEditor,
+    logValueEdited = logValueEdited)
 }
 
 @Suppress("UNUSED_PARAMETER")
@@ -107,16 +157,26 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ModelT, ValueT>> l
   module: PsModule?,
   model: ModelT,
   property: ModelPropertyT,
-  variablesScope: PsVariablesScope? = null
+  variablesScope: PsVariablesScope? = null,
+  unusedCellEditor: TableCellEditor?,
+  logValueEdited: () -> Unit
 ): ListPropertyEditor<ValueT, ModelListPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
-  return ListPropertyEditor(
-    boundProperty, boundContext,
-    { propertyCore, _, variables ->
-      SimplePropertyEditor(propertyCore, boundContext, variables, createDefaultEditorExtensions(project, module))
-    },
-    variablesScope)
+  return ListPropertyEditor<ValueT, ModelListPropertyCore<ValueT>>(
+      boundProperty, boundContext,
+      { propertyCore, _, variables, cellEditor: TableCellEditor? ->
+        simplePropertyEditor(
+            propertyCore,
+            boundContext,
+            variables,
+            boundContext.createDefaultEditorExtensions(project, module),
+            isPropertyContext = true,
+            cellEditor = cellEditor,
+            logValueEdited = logValueEdited)
+      },
+      variablesScope,
+      logValueEdited)
 }
 
 @Suppress("UNUSED_PARAMETER")
@@ -125,14 +185,25 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelMapProperty<ModelT, ValueT>> ma
   module: PsModule?,
   model: ModelT,
   property: ModelPropertyT,
-  variablesScope: PsVariablesScope? = null
+  variablesScope: PsVariablesScope? = null,
+  unusedCellEditor: TableCellEditor?,
+  logValueEdited: () -> Unit
 ): MapPropertyEditor<ValueT, ModelMapPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
   return MapPropertyEditor(
-    boundProperty, boundContext,
-    { propertyCore, _, variables ->
-      SimplePropertyEditor(propertyCore, boundContext, variables, createDefaultEditorExtensions(project, module))
-    },
-    variablesScope)
+      boundProperty, boundContext,
+      { propertyCore, _, variables, cellEditor ->
+        simplePropertyEditor(
+            propertyCore,
+            boundContext,
+            variables,
+            boundContext.createDefaultEditorExtensions(project, module),
+            isPropertyContext = true,
+            cellEditor = cellEditor,
+            logValueEdited = logValueEdited
+        )
+      },
+      variablesScope,
+      logValueEdited)
 }

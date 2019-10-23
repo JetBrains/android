@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator
-import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
 import com.google.common.collect.HashMultimap
-import java.util.*
+import java.util.Comparator
 import javax.annotation.concurrent.GuardedBy
 
 class PsIssueCollection {
@@ -31,6 +30,29 @@ class PsIssueCollection {
 
   val isEmpty: Boolean get() = synchronized(lock) { myIssues.isEmpty }
 
+  /**
+   * Returns all issues optionally filtered by [filterByParentPath].
+   */
+  fun findIssues(filterByParentPath: PsPath?, comparator: Comparator<PsIssue>?): List<PsIssue> {
+    val unorderedIssues =
+      synchronized(lock) {
+        if (filterByParentPath != null) {
+          myIssues
+            .get(filterByParentPath)
+            .toList()
+        }
+        else {
+          myIssues
+            .entries()
+            .asSequence()
+            .filter { it.key.parent == null }
+            .map { it.value }
+            .toList()
+        }
+      }
+    return if (comparator != null) unorderedIssues.sortedWith(comparator) else unorderedIssues
+  }
+
   fun add(issue: PsIssue) {
     val path = issue.path
     synchronized(lock) {
@@ -41,38 +63,16 @@ class PsIssueCollection {
     }
   }
 
-  fun findIssues(model: PsModel, comparator: Comparator<PsIssue>?): List<PsIssue> =
-    when (model) {
-      is PsModule -> PsModulePath(model)
-      is PsLibraryDependency -> PsLibraryDependencyNavigationPath(model)
-      else -> null
-    }
-      ?.let { findIssues(it, comparator) }
-      .orEmpty()
-
-
-  fun findIssues(path: PsPath?, comparator: Comparator<PsIssue>?): List<PsIssue> =
+  fun remove(type: PsIssueType, byPath: PsPath? = null) {
     synchronized(lock) {
-      myIssues.get(path).toList()
-    }
-      .let {
-        if (comparator != null) it.sortedWith(comparator) else it
-      }
+      val issuesToRemove =
+        (if (byPath != null) myIssues[byPath] else myIssues.values())
+          .filter { it.type == type }
+          .toCollection(HashSet())
 
-  fun getValues(pathType: Class<out PsPath>): List<PsIssue> =
-    synchronized(lock) {
       myIssues
         .entries()
-        .mapNotNull { (k, v) -> if (pathType.isInstance(k)) v else null }
-        .distinct()
-        .toList()
-    }
-
-  fun remove(type: PsIssueType) {
-    synchronized(lock) {
-      myIssues
-        .entries()
-        .filter { (_, issue) -> issue.type == type }
+        .filter { issuesToRemove.contains(it.value)}
         .forEach { (path, issue) -> myIssues.remove(path, issue) }
     }
   }

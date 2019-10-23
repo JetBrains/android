@@ -61,7 +61,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
     return null;
   }
 
-  ApkStep(ExportSignedPackageWizard wizard) {
+  public ApkStep(ExportSignedPackageWizard wizard) {
     myWizard = wizard;
     myApkPathLabel.setLabelFor(myApkPathField);
 

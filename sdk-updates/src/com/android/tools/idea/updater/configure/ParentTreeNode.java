@@ -33,12 +33,12 @@ class ParentTreeNode extends UpdaterTreeNode {
   private final String myTitle;
   private PackageNodeModel.SelectedState myInitialState;
 
-  ParentTreeNode(@NotNull AndroidVersion version) {
+  public ParentTreeNode(@NotNull AndroidVersion version) {
     myVersion = version;
     myTitle = null;
   }
 
-  ParentTreeNode(@NotNull String title) {
+  public ParentTreeNode(@NotNull String title) {
     myTitle = title;
     myVersion = null;
   }

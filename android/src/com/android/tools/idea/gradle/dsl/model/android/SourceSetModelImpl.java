@@ -57,6 +57,12 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
   }
 
   @Override
+  public void rename(@NotNull String newName) {
+    myDslElement.getNameElement().rename(newName);
+    myDslElement.setModified();
+  }
+
+  @Override
   @NotNull
   public ResolvedPropertyModel root() {
     GradleDslSimpleExpression rootElement =

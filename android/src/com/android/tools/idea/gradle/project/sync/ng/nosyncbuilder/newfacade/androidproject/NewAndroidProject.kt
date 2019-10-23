@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.an
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.OldAndroidProject
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.PathConverter
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.AndroidProjectProto
+import com.intellij.util.text.nullize
 import java.io.File
 
 data class NewAndroidProject(
@@ -30,6 +31,7 @@ data class NewAndroidProject(
   override val name: String,
   override val projectType: AndroidProject.ProjectType,
   override val variantNames: Collection<String>,
+  override val defaultVariant: String?,
   override val compileTarget: String,
   override val bootClasspath: Collection<File>,
   override val aaptOptions: AaptOptions,
@@ -46,6 +48,7 @@ data class NewAndroidProject(
     oldAndroidProject.name,
     AndroidProject.ProjectType.fromValue(oldAndroidProject.projectType),
     oldAndroidProject.variantNames,
+    oldAndroidProject.defaultVariant,
     oldAndroidProject.compileTarget,
     oldAndroidProject.bootClasspath.map { File(it) },
     NewAaptOptions(oldAndroidProject.aaptOptions),
@@ -63,6 +66,7 @@ data class NewAndroidProject(
     proto.name,
     AndroidProject.ProjectType.valueOf(proto.projectType.name),
     proto.variantNamesList,
+    proto.defaultVariant.nullize(),
     proto.compileTarget,
     proto.bootClasspathList.map { converter.fileFromProto(it) },
     NewAaptOptions(proto.aaptOptions),

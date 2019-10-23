@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.structure.configurables.suggestions
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
@@ -28,12 +29,11 @@ import java.awt.BorderLayout
 
 class AndroidModuleSuggestionsConfigurable(
     context: PsContext,
-    module: PsModule,
-    private val extraModules: List<PsModule>
+    module: PsModule
 ) : AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, module) {
   override fun getId() = "android.psd.suggestions." + displayName
 
-  override fun createPanel(): AbstractMainPanel = object : AbstractMainPanel(context, extraModules) {
+  override fun createPanel(): AbstractMainPanel = object : AbstractMainPanel(context) {
     private val panel = createInnerPanel().also {
       add(it.panel, BorderLayout.CENTER)
     }
@@ -55,13 +55,14 @@ class AndroidModuleSuggestionsConfigurable(
     return SuggestionsForm(context, issueRenderer).apply {
       renderIssues(getIssues(context, psModulePath), psModulePath)
 
-      context.analyzerDaemon.add( {
-        invokeLaterIfNeeded {
-          if (!uiDisposed) {
-            renderIssues(getIssues(context, psModulePath), psModulePath)
-          }
+      context.analyzerDaemon.onIssuesChange(this) {
+        if (!uiDisposed) {
+          renderIssues(getIssues(context, psModulePath), psModulePath)
         }
-      }, this)
+      }
+      context.analyzerDaemon.onRunningChange(this) @UiThread {
+        updateLoading()
+      }
     }
   }
 
@@ -70,10 +71,6 @@ class AndroidModuleSuggestionsConfigurable(
   }
 }
 
-internal fun getIssues(psContext: PsContext, psModulePath: PsModulePath?): List<PsIssue> {
-  val issueCollection = psContext.analyzerDaemon.issues
-  return if (psModulePath != null)
-    issueCollection.findIssues(psModulePath, null)
-  else issueCollection.getValues(PsModulePath::class.java)
-}
+internal fun getIssues(psContext: PsContext, psModulePath: PsModulePath?): List<PsIssue> =
+  psContext.analyzerDaemon.issues.findIssues(psModulePath, null)
 

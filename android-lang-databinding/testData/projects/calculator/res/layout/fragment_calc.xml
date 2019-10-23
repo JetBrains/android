@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:ignore="HardcodedText,ButtonStyle">
+
+  <data>
+    <import type="test.langdb.calc.Calculator.Op" />
+    <variable
+        name="calc"
+        type="test.langdb.calc.Calculator" />
+  </data>
+
+  <androidx.constraintlayout.widget.ConstraintLayout
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      tools:context=".calc.CalcFragment">
+
+    <EditText
+        android:id="@+id/textDisplay"
+        style="@style/CalcDisplayArea"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:inputType="numberDecimal"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:text="@={calc.display}"
+        android:selectAllOnFocus="true"
+        android:textAlignment="textEnd"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="0" />
+
+    <TableLayout
+        android:id="@+id/numpadLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+      <TableRow
+          android:layout_width="match_parent"
+          android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/buttonNum7"
+            style="@style/CalcButtonNumeric"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> calc.enterDigit(7)}"
+            android:text="7" />
+
+        <Button
+            android:id="@+id/buttonNum8"
+            style="@style/CalcButtonNumeric"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> calc.enterDigit(8)}"
+            android:text="@{calc.field}" />
+
+        <Button
+            android:id="@+id/buttonNum9"
+            style="@style/CalcButtonNumeric"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> calc.enterDigit(9)}"
+            android:text="9" />
+      </TableRow>
+
+      <TableRow
+          android:layout_width="match_parent"
+          android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/buttonNum4"
+            style="@style/CalcButtonNumeric"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> calc.enterDigit(4)}"
+            android:text="4" />
+
+        <Button
+            android:id="@+id/buttonNum5"
+            style="@style/CalcButtonNumeric"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> calc.enterDigit(5)}"
+            android:text="5" />
+
+        <Button
+            android:id="@+id/buttonNum6"
+            style="@style/CalcButtonNumeric"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> calc.enterDigit(6)}"
+            android:text="6" />
+      </TableRow>
+
+      <TableRow
+          android:layout_width="match_parent"
+          android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/buttonNum1"
+            style="@style/CalcButtonNumeric"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> calc.enterDigit(1)}"
+            android:text="1" />
+
+        <Button
+            android:id="@+id/buttonNum2"
+            style="@style/CalcButtonNumeric"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> calc.enterDigit(2)}"
+            android:text="2" />
+
+        <Button
+            android:id="@+id/buttonNum3"
+            style="@style/CalcButtonNumeric"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> calc.enterDigit(3)}"
+            android:text="3" />
+      </TableRow>
+
+      <TableRow
+          android:layout_width="match_parent"
+          android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/buttonNum0"
+            style="@style/CalcButtonNumeric"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> calc.enterDigit(0)}"
+            android:text="0" />
+
+        <Button
+            android:id="@+id/buttonDecimal"
+            style="@style/CalcButtonNumeric"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> calc.enterDecimal()}"
+            android:enabled='@{!calc.display.contains(".")}'
+            android:text="." />
+
+        <Button
+            android:id="@+id/buttonEquals"
+            style="@style/CalcButtonEqual"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> calc.calculateAnswer()}"
+            android:text="=" />
+      </TableRow>
+
+    </TableLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+
+        app:layout_constraintBottom_toBottomOf="@id/numpadLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@id/numpadLayout">
+
+      <Button
+          android:id="@+id/buttonClear"
+          style="@style/CalcButtonDefault"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:onClick="@{() -> calc.clear()}"
+          android:enabled="@{!calc.allCleared}"
+          android:text="AC" />
+
+      <Button
+          android:id="@+id/buttonOpDiv"
+          style="@style/CalcButtonDefault"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:onClick="@{() -> calc.setOperation(Op.DIV)}"
+          android:text="÷" />
+
+      <Button
+          android:id="@+id/buttonOpMul"
+          style="@style/CalcButtonDefault"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:onClick="@{() -> calc.setOperation(Op.MUL)}"
+          android:text="×" />
+
+      <Button
+          android:id="@+id/buttonOpSub"
+          style="@style/CalcButtonDefault"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:onClick="@{() -> calc.setOperation(Op.SUB)}"
+          android:text="-" />
+
+      <Button
+          android:id="@+id/buttonOpAdd"
+          style="@style/CalcButtonDefault"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:onClick="@{() -> calc.setOperation(Op.ADD)}"
+          android:text="+" />
+    </LinearLayout>
+
+  </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

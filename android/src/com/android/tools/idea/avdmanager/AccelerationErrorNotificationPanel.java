@@ -32,7 +32,7 @@ import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.Soluti
  */
 public class AccelerationErrorNotificationPanel extends EditorNotificationPanel {
 
-  public AccelerationErrorNotificationPanel(@NotNull AccelerationErrorCode error, @NotNull Project project, @Nullable Runnable refresh) {
+  public AccelerationErrorNotificationPanel(@NotNull AccelerationErrorCode error, @Nullable Project project, @Nullable Runnable refresh) {
     setText(error.getProblem());
     Runnable action = AccelerationErrorSolution.getActionForFix(error, project, refresh, null);
     HyperlinkLabel link = createActionLabel(error.getSolution().getDescription(), action);

@@ -21,13 +21,11 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.util.PropertiesFiles;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.PositionXmlParser;
@@ -96,7 +94,7 @@ import static java.io.File.separatorChar;
 public class GradleImport {
   public static final String NL = System.lineSeparator();
   public static final int CURRENT_COMPILE_VERSION = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
-  public static final String ANDROID_GRADLE_PLUGIN = GRADLE_PLUGIN_NAME + AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion();
+  public static final String ANDROID_GRADLE_PLUGIN = GRADLE_PLUGIN_NAME + LatestKnownPluginVersionProvider.INSTANCE.get();
   public static final String MAVEN_URL_PROPERTY = "android.mavenRepoUrl";
   public static final String ECLIPSE_DOT_CLASSPATH = ".classpath";
   public static final String ECLIPSE_DOT_PROJECT = ".project";
@@ -1486,42 +1484,6 @@ public class GradleImport {
 
   boolean isJarHandled(@NonNull File file) {
     return myHandledJars.contains(file.getName());
-  }
-
-  private boolean haveLocalRepository(@NonNull SdkMavenRepository repository) {
-    if (repository.isInstalled(AndroidSdkHandler.getInstance(mySdkLocation))) {
-      return true;
-    }
-
-    return repository.isInstalled(mySdkLocation, FileOpUtils.create());
-  }
-
-  public boolean needSupportRepository() {
-    return haveArtifact("com.android.support");
-  }
-
-  public boolean needGoogleRepository() {
-    return haveArtifact("com.google.android.gms");
-  }
-
-  private boolean haveArtifact(String groupId) {
-    for (ImportModule module : getModulesToImport()) {
-      for (GradleCoordinate dependency : module.getDependencies()) {
-        if (groupId.equals(dependency.getGroupId())) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  public boolean isMissingSupportRepository() {
-    return !haveLocalRepository(SdkMavenRepository.ANDROID);
-  }
-
-  public boolean isMissingGoogleRepository() {
-    return !haveLocalRepository(SdkMavenRepository.GOOGLE);
   }
 
   /**

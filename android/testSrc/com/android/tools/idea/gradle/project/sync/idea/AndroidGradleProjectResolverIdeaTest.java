@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.idea;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.SyncIssue;
+import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.TestProjects;
@@ -27,6 +28,7 @@ import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.gradle.IdeaModuleStub;
 import com.android.tools.idea.gradle.stubs.gradle.IdeaProjectStub;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -36,8 +38,12 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.JavaProjectTestCase;
+import java.io.File;
 import org.gradle.tooling.ProjectConnection;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.model.LegacyIdeaProjectModelAdapter;
+import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
+import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.ProjectImportAction;
 import org.jetbrains.plugins.gradle.service.project.BaseGradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.service.project.DefaultProjectResolverContext;
@@ -48,7 +54,6 @@ import org.mockito.Mock;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.google.common.truth.Truth.assertThat;
@@ -57,6 +62,7 @@ import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskT
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static java.util.stream.Collectors.toList;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -250,14 +256,62 @@ public class AndroidGradleProjectResolverIdeaTest extends JavaProjectTestCase {
     IdeaModuleStub includedModule = includedProject.addModule("lib", "clean", "jar");
     myResolverCtx.getModels().getIncludedBuilds().add(new LegacyIdeaProjectModelAdapter(includedProject));
 
-    // Verify that task data for included module is not empty.
+    // Verify that task data for non-included module.
     Collection<TaskData> taskData = myProjectResolver.populateModuleTasks(includedModule, moduleDataNode, projectNode);
-    Collection<String> includedModuleTaskNames = taskData.stream().map(TaskData::getName).collect(Collectors.toList());
-    assertThat(includedModuleTaskNames).containsExactly("clean", "jar");
+    assertThat(taskData.stream().map(TaskData::getName).collect(toList())).containsExactly("clean", "jar");
 
-    // Verify that task data for non-included module contains all available tasks.
+    // Verify that task data for non-included module.
     taskData = myProjectResolver.populateModuleTasks(myJavaModuleModel, moduleDataNode, projectNode);
-    Collection<String> taskDataNames = taskData.stream().map(TaskData::getName).collect(Collectors.toList());
+    Collection<String> taskDataNames = taskData.stream().map(TaskData::getName).collect(toList());
     assertThat(taskDataNames).containsExactly("compileJava", "jar", "classes");
+  }
+
+  public void testKaptSourcesAreAddedToAndroidModuleModel() {
+    ProjectData project = myProjectResolver.createProject();
+    DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
+    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModuleModel, projectNode);
+
+    File debugGeneratedSourceFile = new File("/gen/debug");
+    File releaseGeneratedSourceFile = new File("/gen/release");
+
+    KaptGradleModel mockKaptModel = new KaptGradleModel() {
+      @Override
+      public boolean isEnabled() {
+        return true;
+      }
+
+      @NotNull
+      @Override
+      public File getBuildDirectory() {
+        return null;
+      }
+
+      @NotNull
+      @Override
+      public List<KaptSourceSetModel> getSourceSets() {
+        KaptSourceSetModel debugSetModel = mock(KaptSourceSetModel.class);
+        when(debugSetModel.getGeneratedKotlinSourcesDirFile()).thenReturn(debugGeneratedSourceFile);
+        when(debugSetModel.getSourceSetName()).thenReturn("debug");
+        KaptSourceSetModel releaseSetModel = mock(KaptSourceSetModel.class);
+        when(releaseSetModel.getGeneratedKotlinSourcesDirFile()).thenReturn(releaseGeneratedSourceFile);
+        when(releaseSetModel.getSourceSetName()).thenReturn("debug");
+        return ImmutableList.of(debugSetModel, releaseSetModel);
+      }
+    };
+
+    when(myVariantSelector.findVariantToSelect(any())).thenReturn(myAndroidProjectStub.getFirstVariant());
+
+    ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
+    //allModels.addExtraProject(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel); // FIXME-ank
+    //allModels.addExtraProject(mockKaptModel, KaptGradleModel.class, myAndroidModuleModel); // FIXME-ank
+    myResolverCtx.setModels(allModels);
+
+    myProjectResolver.populateModuleContentRoots(myAndroidModuleModel, moduleDataNode);
+
+    Collection<DataNode<AndroidModuleModel>> androidModelNodes = getChildren(moduleDataNode, ANDROID_MODEL);
+    assertThat(androidModelNodes).hasSize(1);
+    AndroidModuleModel androidModuleModel = androidModelNodes.iterator().next().getData();
+    Variant variant = androidModuleModel.findVariantByName("debug");
+    assertThat(variant.getMainArtifact().getGeneratedSourceFolders()).contains(debugGeneratedSourceFile);
   }
 }

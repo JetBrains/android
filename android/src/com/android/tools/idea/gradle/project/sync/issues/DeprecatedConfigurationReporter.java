@@ -58,9 +58,10 @@ public class DeprecatedConfigurationReporter extends SimpleDeduplicatingSyncIssu
   }
 
   @Override
-  @Nullable
+  @NotNull
   protected String getDeduplicationKey(@NotNull SyncIssue issue) {
-    return extractConfigurationName(issue);
+    String config = extractConfigurationName(issue);
+    return (config != null) ? config : issue.toString();
   }
 
   @Nullable

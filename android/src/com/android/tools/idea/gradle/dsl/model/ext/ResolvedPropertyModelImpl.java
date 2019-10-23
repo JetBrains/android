@@ -43,10 +43,6 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
     myRealModel = realModel;
   }
 
-  public ResolvedPropertyModelImpl(@NotNull GradleDslElement element) {
-    myRealModel = new GradlePropertyModelImpl(element);
-  }
-
   @NotNull
   @Override
   public ValueType getValueType() {

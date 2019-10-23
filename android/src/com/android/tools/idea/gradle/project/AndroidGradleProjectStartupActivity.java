@@ -17,9 +17,13 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import org.jetbrains.annotations.NotNull;
+
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN;
 
 /**
  * Syncs Android Gradle project with the persisted project data on startup.
@@ -38,9 +42,12 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
           // Opening a project without .idea directory (including a newly created).
           || gradleProjectInfo.isImportedProject()
         ) &&
-        !gradleProjectInfo.isSkipStartupActivity()) {
+        !gradleProjectInfo.isSkipStartupActivity()
+    ) {
 
-      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectLoaded();
+      GradleSyncStats.Trigger trigger =
+              gradleProjectInfo.isNewProject() ? TRIGGER_PROJECT_NEW : TRIGGER_PROJECT_REOPEN;
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
       request.useCachedGradleModels = true;
 
       GradleSyncInvoker.getInstance().requestProjectSync(project, request);

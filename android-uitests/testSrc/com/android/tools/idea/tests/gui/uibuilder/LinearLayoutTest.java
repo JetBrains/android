@@ -19,7 +19,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.uibuilder.structure.TreeSearchUtil;
 import com.android.xml.XmlBuilder;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -28,6 +27,7 @@ import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,8 +50,8 @@ public final class LinearLayoutTest {
   private Path myLayoutPath;
 
   @Before
-  public void setUp() {
-    WizardUtils.createNewProject(myGuiTest, "Empty Activity");
+  public void setUp() throws IOException {
+    myGuiTest.importSimpleApplication();
     myProjectPath = myGuiTest.getProjectPath().toPath();
 
     FileSystem fileSystem = FileSystems.getDefault();
@@ -61,6 +61,7 @@ public final class LinearLayoutTest {
     myMainStylePath = fileSystem.getPath("app", "src", "main", "res", "values", "styles.xml");
   }
 
+  @Ignore("b/127956498")
   @Test
   public void resolveAttributeInStyle() throws IOException {
     // @formatter:off
@@ -106,6 +107,7 @@ public final class LinearLayoutTest {
   /**
    * Tries the case where style is referenced indirectly, e.g. through a reference in the theme.
    */
+  @Ignore("b/127956498")
   @Test
   public void resolveAttributeStyleReference() throws IOException {
     // @formatter:off
@@ -163,9 +165,7 @@ public final class LinearLayoutTest {
 
     JTreeFixture treeFixture = editor.getComponentTree();
 
-    treeFixture.replaceCellReader((tree, value) -> {
-      return TreeSearchUtil.toString((NlComponent)value);
-    });
+    treeFixture.replaceCellReader((tree, value) -> TreeSearchUtil.toString((NlComponent)value));
 
     return treeFixture;
   }
@@ -184,6 +184,7 @@ public final class LinearLayoutTest {
 
     GuiTestFileUtils.writeAndReloadDocument(myProjectPath.resolve(myLayoutPath), layout);
     NlEditorFixture layoutEditor = myGuiTest.ideFrame().getEditor().open(myLayoutPath.toString()).getLayoutEditor(true);
+    layoutEditor.getAllComponents().get(0).click(); // Make sure the Linear layout has focus
     assertEquals("LinearLayout (horizontal)", getComponentTree().valueAt(0));
     layoutEditor.getComponentToolbar().getButtonByIcon(StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_VERT).click();
     assertEquals("LinearLayout (vertical)", getComponentTree().valueAt(0));

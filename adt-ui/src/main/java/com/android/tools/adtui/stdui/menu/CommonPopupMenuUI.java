@@ -18,6 +18,7 @@ package com.android.tools.adtui.stdui.menu;
 import com.android.tools.adtui.stdui.StandardColors;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaPopupMenuBorder;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.registry.Registry;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

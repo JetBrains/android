@@ -22,15 +22,16 @@ import com.android.ide.common.gradle.model.toAaptOptionsNamespacing
 import com.android.ide.common.gradle.model.toSourceProvider
 import com.android.ide.common.util.PathMap
 import com.android.ide.common.util.PathString
+import com.android.ide.common.util.toPathTreeMap
 import com.android.projectmodel.*
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.util.toPathString
+import com.android.tools.lint.detector.api.Desugaring
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
-import toPathTreeMap
 import java.io.File
 
 /**
@@ -151,6 +152,10 @@ data class AndroidModelAdapter(
   override fun getNamespacing(): AaptOptions.Namespacing
     = input.selectedVariants().firstOrNull()?.submodule?.namespacing?.toAaptOptionsNamespacing() ?: AaptOptions.Namespacing.DISABLED
 
+  override fun getDesugaring(): Set<Desugaring> {
+    TODO("not implemented")
+  }
+
   override fun getClassJarProvider(): ClassJarProvider = classJars
 
   override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean
@@ -192,7 +197,7 @@ fun getMinSdkVersion(input: AndroidModelSubset) : AndroidVersion? {
       // If this version has a codename, try to find the most specific override without a codename
       if (minSdkVersion.codename != null) {
         artifactContext.submodule.configTable
-          .configsIntersecting(artifactContext.variant.configPath)
+          .configsIntersecting(artifactContext.artifactPath.toConfigPath())
           .reversed().mapNotNull {
             it.manifestValues.compileSdkVersion
           }.firstOrNull { it.codename != null }
@@ -203,7 +208,7 @@ fun getMinSdkVersion(input: AndroidModelSubset) : AndroidVersion? {
 }
 
 fun getAllApplicationIds(model: com.android.projectmodel.AndroidModel): Set<String>
-  = model.submodules.flatMap { it.variants }.flatMap { it.artifacts.mapNotNull {it.resolved.manifestValues.applicationId } }.toSet()
+  = model.submodules.flatMap { it.artifacts.values.mapNotNull {it.resolved.manifestValues.applicationId } }.toSet()
 
 /**
  * Attempts to guess a representative application ID for the given model. If the model contains multiple application IDs, this returns the

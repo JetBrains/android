@@ -15,29 +15,37 @@
  */
 package com.android.tools.idea.whatsnew.assistant;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.ui.GuiTestingService;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.WhatsNewAssistantEvent;
+import com.intellij.ide.GeneralSettings;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.startup.StartupActivity;
+
+
+import com.android.annotations.VisibleForTesting;
+import com.android.repository.Revision;
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.ui.GuiTestingService;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.util.xmlb.annotations.Tag;
+import org.apache.http.concurrent.FutureCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.lang.reflect.Field;
 
 /**
  * Show the "What's New" assistant the first time the app starts up with a new major.minor version.
@@ -45,7 +53,7 @@ import org.jetbrains.annotations.Nullable;
 public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
   @Override
   public void runActivity(@NotNull Project project) {
-    if (!(WhatsNewAssistantBundleCreator.shouldShowReleaseNotes() && StudioFlags.WHATS_NEW_ASSISTANT_AUTO_SHOW.get())) {
+    if (!(WhatsNewAssistantBundleCreator.shouldShowWhatsNew() && StudioFlags.WHATS_NEW_ASSISTANT_AUTO_SHOW.get())) {
       return;
     }
 
@@ -66,13 +74,50 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
 
     Revision applicationRevision = Revision.parseRevision(ApplicationInfo.getInstance().getStrictVersion());
 
-    if (shouldShowMessage(data, applicationRevision)) {
-      // We don't want to show two popups, so disable the normal tip of the day if we're showing what's new.
-      openWhatsNewAssistant(project);
+    // If the Android Studio version is new, then always show on startup
+    if (isNewStudioVersion(data, applicationRevision)) {
+      hideTipsAndOpenWhatsNewAssistant(project);
+    }
+    else {
+      // But also show if the config version is newer than current, even if AS version is not higher
+      // This needs to be done asynchronously because the WNABundleCreator needs to download config to check version
+      WhatsNewAssistantCheckVersionTask task =
+        new WhatsNewAssistantCheckVersionTask(project, new VersionCheckCallback(project));
+      task.queue();
     }
   }
 
-  private void openWhatsNewAssistant(@NotNull Project project) {
+  private static void hideTipsAndOpenWhatsNewAssistant(@NotNull Project project) {
+    hideTipsAndOpenWhatsNewAssistant(project, null);
+  }
+
+  /**
+   * Hide the Tip of the Day if showing What's New Assistant on startup because
+   * we don't want to show two auto-opening panels/popups
+   * @param project
+   */
+  @VisibleForTesting
+  static void hideTipsAndOpenWhatsNewAssistant(@NotNull Project project, @Nullable FutureCallback<Boolean> callback) {
+    boolean showTipsOnStartup = GeneralSettings.getInstance().isShowTipsOnStartup();
+    if (showTipsOnStartup)
+      GeneralSettings.getInstance().setShowTipsOnStartup(false);
+
+    // Restore to the setting that user had before, if applicable
+    openWhatsNewAssistant(project);
+    if (showTipsOnStartup) {
+      ApplicationManager.getApplication().invokeLater(() -> {
+        GeneralSettings.getInstance().setShowTipsOnStartup(true);
+        if (callback != null)
+          callback.completed(true);
+      });
+    }
+    else {
+      if (callback != null)
+        callback.completed(true);
+    }
+  }
+
+  private static void openWhatsNewAssistant(@NotNull Project project) {
     UsageTracker.log(AndroidStudioEvent.newBuilder()
                                                      .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_EVENT)
                                                      .setWhatsNewAssistantEvent(WhatsNewAssistantEvent.newBuilder().setType(
@@ -81,7 +126,7 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
       .actionPerformed(AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, new DataContext() {
         @Nullable
         @Override
-        public Object getData(String dataId) {
+        public Object getData(@NotNull String dataId) {
           if (dataId.equalsIgnoreCase(CommonDataKeys.PROJECT.getName())) {
             return project;
           }
@@ -91,7 +136,7 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
   }
 
   @VisibleForTesting
-  boolean shouldShowMessage(@NotNull WhatsNewData data, @NotNull Revision applicationRevision) {
+  boolean isNewStudioVersion(@NotNull WhatsNewData data, @NotNull Revision applicationRevision) {
     String seenRevisionStr = data.myRevision;
     Revision seenRevision = null;
     if (seenRevisionStr != null) {
@@ -107,6 +152,7 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
       data.myRevision = applicationRevision.toString();
       return true;
     }
+
     return false;
   }
 
@@ -124,7 +170,7 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
     }
 
     @Override
-    public void loadState(WhatsNewData state) {
+    public void loadState(@NotNull WhatsNewData state) {
       myData = state;
     }
   }
@@ -132,5 +178,37 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
   @VisibleForTesting
   public static class WhatsNewData {
     @Tag("shownVersion") public String myRevision;
+  }
+
+  /**
+   * Callback for when WhatsNewAssistantBundleCreator has determined whether
+   * there has been an update to the config. If yes, WNA is automatically opened.
+   */
+  private static class VersionCheckCallback implements FutureCallback<Boolean> {
+    private Project myProject;
+
+    private VersionCheckCallback(Project project) {
+      super();
+      myProject = project;
+    }
+
+    @Override
+    public void cancelled() {
+      // Don't auto-show
+    }
+
+    @Override
+    public void completed(Boolean result) {
+      // Auto-show What's New Assistant
+      if (result) {
+        hideTipsAndOpenWhatsNewAssistant(myProject);
+      }
+    }
+
+    @Override
+    public void failed(Exception ex) {
+      // Don't auto-show
+      Logger.getInstance(WhatsNewStartupActivity.class).error(ex);
+    }
   }
 }

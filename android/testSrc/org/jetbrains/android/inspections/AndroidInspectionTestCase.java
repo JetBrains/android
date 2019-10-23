@@ -16,13 +16,9 @@
 package org.jetbrains.android.inspections;
 
 import com.android.SdkConstants;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.siyeh.ig.LightJavaInspectionTestCase;
 import org.jetbrains.android.AndroidFacetProjectDescriptor;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("StatementWithEmptyBody")
@@ -32,23 +28,6 @@ public abstract class AndroidInspectionTestCase extends LightJavaInspectionTestC
   @Override
   protected LightProjectDescriptor getProjectDescriptor() {
     return AndroidFacetProjectDescriptor.INSTANCE;
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      AndroidFacet instance = AndroidFacet.getInstance(getModule());
-      if (instance != null) {
-        WriteAction.run(() -> {
-          ModifiableFacetModel model = FacetManager.getInstance(getModule()).createModifiableModel();
-          model.removeFacet(instance);
-          model.commit();
-        });
-      }
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   protected void addManifest(int minApi) {

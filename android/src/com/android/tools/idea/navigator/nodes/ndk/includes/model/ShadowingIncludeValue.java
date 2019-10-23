@@ -57,7 +57,7 @@ final public class ShadowingIncludeValue extends IncludeValue {
 
   @NotNull
   public Collection<File> getIncludePathsInOrder() {
-    return myIncludes.stream().map(value -> value.myIncludeFolder).collect(Collectors.toList());
+    return myIncludes.stream().map(value -> value.getIncludeFolder()).collect(Collectors.toList());
   }
 
   @Override

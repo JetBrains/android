@@ -36,6 +36,7 @@ import java.util.Optional;
  */
 public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
   private static final NlSceneFrameFactory FRAME_FRACTORY = new NlSceneFrameFactory();
+  protected static final SceneDecorator BASIC_NL_DECORATOR = new UnknownViewDecorator();
 
   private static Map<String, Constructor<? extends SceneDecorator>> ourConstructorMap = new HashMap<>();
   private static Map<String, SceneDecorator> ourSceneMap = new HashMap<>();
@@ -46,6 +47,7 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
       ourConstructorMap.put(SdkConstants.CLASS_CONSTRAINT_LAYOUT.newName(), ConstraintLayoutDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.PROGRESS_BAR, ProgressBarDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.BUTTON, ButtonDecorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.TOGGLE_BUTTON, ToggleButtonDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.TEXT_VIEW, TextViewDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.IMAGE_VIEW, ImageViewDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.CHECK_BOX, CheckBoxDecorator.class.getConstructor());
@@ -76,12 +78,12 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
 
     String className = NlComponentHelperKt.getMostSpecificClass(component, ourConstructorMap.keySet());
     if (className != null) {
-      SceneDecorator decorator = get(className).orElse(BASIC_DECORATOR);
+      SceneDecorator decorator = get(className).orElse(BASIC_NL_DECORATOR);
       decorator.setFrameFactory(FRAME_FRACTORY);
       return decorator;
     }
 
-    SceneDecorator decorator = get(tag).orElse(BASIC_DECORATOR);
+    SceneDecorator decorator = get(tag).orElse(BASIC_NL_DECORATOR);
     decorator.setFrameFactory(FRAME_FRACTORY);
     return decorator;
   }

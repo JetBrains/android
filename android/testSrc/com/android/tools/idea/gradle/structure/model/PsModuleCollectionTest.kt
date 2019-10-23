@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
+import com.android.tools.idea.gradle.structure.model.android.asParsed
+import com.android.tools.idea.gradle.structure.model.android.testResolve
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.HeavyPlatformTestCase.synchronizeTempDirVfs
+import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import java.io.File
 
 /**
@@ -31,8 +37,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
 
   private var patchProject: ((VirtualFile) -> Unit)? = null
 
-  override fun prepareProjectForImport(srcRoot: File, projectRoot: File): File {
-    val result = super.prepareProjectForImport(srcRoot, projectRoot)
+  override fun patchPreparedProject(projectRoot: File) {
     synchronizeTempDirVfs(project.baseDir)
     patchProject?.run {
       ApplicationManager.getApplication().runWriteAction {
@@ -40,7 +45,6 @@ class PsModuleCollectionTest : DependencyTestCase() {
       }
       ApplicationManager.getApplication().saveAll()
     }
-    return result
   }
 
   fun loadProject(path: String, patch: (VirtualFile) -> Unit) {
@@ -56,19 +60,17 @@ class PsModuleCollectionTest : DependencyTestCase() {
   fun testNotSyncedModules() {
     loadProject(TestProjectPaths.PSD_SAMPLE) {
       it.findFileByRelativePath("settings.gradle")!!.let {
-        it.setBinaryContent("include ':app', ':lib' ".toByteArray(it.charset))
+        it.setBinaryContent("include ':app', ':lib', ':dyn_feature' ".toByteArray(it.charset))
       }
     }
 
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject)
-    assertThat(project.findModuleByName("jav") ).isNull()
+    assertThat(project.findModuleByName("jav")).isNull()
 
     // Edit the settings file, but do not sync.
     val virtualFile = this.project.baseDir.findFileByRelativePath("settings.gradle")!!
-    myFixture.openFileInEditor(virtualFile)
-    myFixture.editor.selectionModel.selectLineAtCaret()
-    myFixture.type("include ':app', ':lib', ':jav' ")
+    runWriteAction { virtualFile.setBinaryContent("include ':app', ':lib', ':jav' ".toByteArray()) }
     PsiDocumentManager.getInstance(this.project).commitAllDocuments()
 
     project = PsProjectImpl(resolvedProject)
@@ -76,6 +78,33 @@ class PsModuleCollectionTest : DependencyTestCase() {
     assertThat(moduleWithSyncedModel(project, "app").projectType).isEqualTo(PsModuleType.ANDROID_APP)
     assertThat(moduleWithSyncedModel(project, "lib").projectType).isEqualTo(PsModuleType.ANDROID_LIBRARY)
     assertThat(moduleWithSyncedModel(project, "jav").projectType).isEqualTo(PsModuleType.JAVA)
+  }
+
+  fun testNonAndroidGradlePluginFirst() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    // Edit the settings file, but do not sync.
+    val virtualFile = this.project.baseDir.findFileByRelativePath("app/build.gradle")!!
+    myFixture.openFileInEditor(virtualFile)
+    myFixture.type("apply plugin: 'something' \n")
+    PsiDocumentManager.getInstance(this.project).commitAllDocuments()
+
+
+    val resolvedProject = myFixture.project
+    // Make sure we have correctly patched the build file.
+    assertThat(
+        GradleModelProvider
+            .get()
+            .getProjectModel(resolvedProject)
+            .getModuleBuildModel(File(resolvedProject.basePath, "app"))
+            ?.plugins()
+            ?.firstOrNull()
+            ?.name()
+            ?.getValue(STRING_TYPE)
+    ).isEqualTo("something")
+
+    val project = PsProjectImpl(resolvedProject)
+    assertThat(project.modules.map { it.gradlePath }).contains(":app")
   }
 
   fun testNestedModules() {
@@ -86,7 +115,30 @@ class PsModuleCollectionTest : DependencyTestCase() {
     val module = project.findModuleByGradlePath(":nested1:deep")
     assertThat(module).isNotNull()
     assertThat(module!!.parentModule).isSameAs(project.findModuleByGradlePath(":nested1")!!)
-    assertThat(module.variables.getVariableScopes().map { it.name }).containsExactly(project.name, "nested1", "nested1-deep")
+    assertThat(module.variables.getVariableScopes().map { it.name })
+        .containsExactly("${project.name} (build script)", "${project.name} (project)", "nested1", "nested1-deep")
+  }
+
+  fun testRelocatedModules_withoutResolvedModels() {
+    loadProject(TestProjectPaths.PSD_PROJECT_DIR)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+
+    assertThat(project.modules.map { it.gradlePath }).containsExactly(":app", ":lib")
+  }
+
+  fun testRelocatedModules_withResolvedModel() {
+    loadProject(TestProjectPaths.PSD_PROJECT_DIR)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    assertThat(project.modules.map { it.gradlePath }).containsExactly(":app", ":lib", ":jav")
+
+    // And make sure the build file is parsed.
+    val javModule = project.findModuleByGradlePath(":jav") as? PsJavaModule
+    assertThat(javModule?.dependencies?.findLibraryDependencies("junit", "junit")?.firstOrNull()?.version).isEqualTo("4.12".asParsed())
   }
 }
 

@@ -47,6 +47,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
+import java.util.Locale;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
@@ -215,7 +216,7 @@ public class StateListPicker extends JPanel {
      * @see AlphaActionListener#documentChanged(DocumentEvent)
      */
     @Override
-    public void documentChanged(DocumentEvent e) {
+    public void documentChanged(@NotNull DocumentEvent e) {
       myState.setValue(myComponent.getResourceValue());
       // This is run inside a WriteAction and updateIcon may need an APP_RESOURCES_LOCK from AndroidFacet.
       // To prevent a potential deadlock, we call updateIcon in another thread.
@@ -291,7 +292,7 @@ public class StateListPicker extends JPanel {
      * @see ValueActionListener#documentChanged(DocumentEvent)
      */
     @Override
-    public void documentChanged(DocumentEvent e) {
+    public void documentChanged(@NotNull DocumentEvent e) {
       myState.setAlpha(myComponent.getAlphaValue());
       // This is run inside a WriteAction and updateIcon may need an APP_RESOURCES_LOCK from AndroidFacet.
       // To prevent a potential deadlock, we call updateIcon in another thread.
@@ -345,7 +346,8 @@ public class StateListPicker extends JPanel {
       try {
         float alpha = Float.parseFloat(ResourceHelper.resolveStringValue(resourceResolver, alphaValue));
         Font iconFont = JBUI.Fonts.smallFont().asBold();
-        component.getAlphaComponent().setSwatchIcon(new ResourceSwatchComponent.TextIcon(String.format("%.2f", alpha), iconFont));
+        component.getAlphaComponent().setSwatchIcon(new ResourceSwatchComponent.TextIcon(String.format(Locale.US, "%.2f", alpha),
+                                                                                         iconFont));
       }
       catch (NumberFormatException e) {
         component.showAlphaError(true);

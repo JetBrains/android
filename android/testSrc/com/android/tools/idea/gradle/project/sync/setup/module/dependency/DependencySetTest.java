@@ -18,6 +18,9 @@ package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.util.containers.ContainerUtil;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -89,7 +92,7 @@ public class DependencySetTest {
     assertThat(libraryDependencies).hasSize(2);
     assertThat(libraryDependencies).containsAllOf(dependency1, dependency3);
 
-    assertFalse(dependency1.getName().equals(dependency3.getName()));
+    assertNotEquals(dependency1.getName(), dependency3.getName());
   }
 
   @Test
@@ -156,5 +159,38 @@ public class DependencySetTest {
     assertEquals(2, all.size());
     assertTrue(all.contains(dependency1));
     assertTrue(all.contains(dependency2));
+  }
+
+  @Test
+  public void onLibrariesMaintainInsertionOrder_1() {
+    addDependency("file1.jar", "library1");
+    addDependency("file4.jar", "library4");
+    addDependency("file2.jar", "library2");
+    addDependency("file3.jar", "library3");
+
+    List<String> dependencyNames = myDependencies.onLibraries().stream().map(LibraryDependency::getName).collect(Collectors.toList());
+    assertThat(dependencyNames).hasSize(4);
+    assertThat(dependencyNames)
+      .containsExactly("Gradle: library1", "Gradle: library4", "Gradle: library2", "Gradle: library3").inOrder();
+  }
+
+  @Test
+  public void onLibrariesMaintainInsertionOrder_2() {
+    addDependency("file_c.jar", "library_c");
+    addDependency("file_d.jar", "library_d");
+    addDependency("file_a.jar", "library_a");
+    addDependency("file_b.jar", "library_b");
+
+    List<String> dependencyNames = myDependencies.onLibraries().stream().map(LibraryDependency::getName).collect(Collectors.toList());
+    assertThat(dependencyNames).hasSize(4);
+    assertThat(dependencyNames)
+      .containsExactly("Gradle: library_c", "Gradle: library_d", "Gradle: library_a", "Gradle: library_b").inOrder();
+  }
+
+  private void addDependency(@NotNull String binaryPath, @NotNull String libraryName) {
+    File binaryFile = new File(binaryPath);
+    LibraryDependency dependency = new LibraryDependency(binaryFile, libraryName, DependencyScope.COMPILE);
+    dependency.addBinaryPath(binaryFile);
+    myDependencies.add(dependency);
   }
 }

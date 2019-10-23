@@ -15,30 +15,41 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
-import com.android.builder.model.*;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
+import static java.util.Objects.requireNonNull;
+
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.ModelBuilderParameter;
+import com.android.builder.model.NativeAndroidProject;
+import com.android.builder.model.NativeVariantAbi;
+import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.project.sync.ng.AndroidModule.ModuleDependency;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
-import java.util.*;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
-import static java.util.Objects.requireNonNull;
-
 /**
  * Chooses the build variant that will be selected in Android Studio (the IDE can only work with one variant at a time.)
  * <p>
  * It works as follows:
  * <ol>
- * <li>For Android app modules, the "debug" variant is selected. If the module doesn't have a variant named "debug", it sorts all the
- * variant names alphabetically and picks the first one.</li>
+ * <li>For Android app modules, the default variant from the model is selected.
+ * The logic for this is implemented in the Android Gradle Plugin and in
+ * {@link com.android.ide.common.gradle.model.IdeAndroidProject IdeAndroidProject} for backwards compatibility.</li>
  * <li>For Android library modules, it chooses the variant needed by dependent modules. For example, if variant "debug" in module "app"
- * depends on module "lib" - variant "freeDebug", the selected variant in "lib" will be "freeDebug". If a library module is a leaf
+ * depends on module "lib" - variant "freeDebug", the selected variant in "lib" will be "freeDebug". If a library module is a root
  * (i.e. no other modules depend on it) a variant will be picked as if the module was an app module.</li>
  * </ol>
  * </p>
@@ -80,35 +91,37 @@ public class SelectedVariantChooser implements Serializable {
         if (variant != null) {
           String abi = syncAndAddNativeVariantAbi(module, controller, variant.getName(), selectedVariants.getSelectedAbi(moduleId));
           module.addSelectedVariant(variant, abi);
-          selectVariantForDependencyModules(module, controller, modulesById, visitedModules, shouldGenerateSources);
+          selectVariantForChildModules(module, controller, modulesById, visitedModules, shouldGenerateSources);
         }
       }
     }
   }
 
-  private static void selectVariantForDependencyModules(@NotNull AndroidModule androidModule,
-                                                        @NotNull BuildController controller,
-                                                        @NotNull Map<String, AndroidModule> libModulesById,
-                                                        @NotNull Set<String> visitedModules,
-                                                        boolean shouldGenerateSources) {
-    for (ModuleDependency dependency : androidModule.getModuleDependencies()) {
-      String dependencyModuleId = dependency.id;
-      visitedModules.add(dependencyModuleId);
-      String variantName = dependency.variant;
-      String abiName = null;
-      if (variantName != null) {
-        AndroidModule dependencyModule = libModulesById.get(dependencyModuleId);
-        if (dependencyModule != null && !dependencyModule.containsVariant(variantName)) {
-          NativeAndroidProject nativeProject = androidModule.getNativeAndroidProject();
-          if (nativeProject != null) {
-            abiName = syncAndAddNativeVariantAbi(dependencyModule, controller, variantName, dependency.abi);
-          }
-          Variant dependencyVariant = syncAndAddVariant(variantName, dependencyModule.getModuleModels(), controller, shouldGenerateSources);
-          if (dependencyVariant != null) {
-            dependencyModule.addSelectedVariant(dependencyVariant, abiName);
-            selectVariantForDependencyModules(dependencyModule, controller, libModulesById, visitedModules, shouldGenerateSources);
-          }
-        }
+  private static void selectVariantForChildModules(@NotNull AndroidModule parentModule,
+                                                   @NotNull BuildController controller,
+                                                   @NotNull Map<String, AndroidModule> libModulesById,
+                                                   @NotNull Set<String> visitedModules,
+                                                   boolean shouldGenerateSources) {
+    for (ModuleDependency dependency : parentModule.getModuleDependencies()) {
+      String childModuleId = dependency.id;
+      visitedModules.add(childModuleId);
+      String childVariantName = dependency.inheritedVariant;
+      if (childVariantName == null) {
+        continue;
+      }
+      AndroidModule childModule = libModulesById.get(childModuleId);
+      if (childModule == null || childModule.containsVariant(childVariantName)) {
+        // continue if the child module does not exist or its variant has already been chosen
+        continue;
+      }
+      String childAbiName = null;
+      if (childModule.getNativeAndroidProject() != null) {
+        childAbiName = syncAndAddNativeVariantAbi(childModule, controller, childVariantName, dependency.inheritedAbi);
+      }
+      Variant childVariant = syncAndAddVariant(childVariantName, childModule.getModuleModels(), controller, shouldGenerateSources);
+      if (childVariant != null) {
+        childModule.addSelectedVariant(childVariant, childAbiName);
+        selectVariantForChildModules(childModule, controller, libModulesById, visitedModules, shouldGenerateSources);
       }
     }
   }
@@ -121,10 +134,13 @@ public class SelectedVariantChooser implements Serializable {
                                                    boolean shouldGenerateSources) {
     String variant = selectedVariants.getSelectedVariant(moduleId);
     Collection<String> variantNames = androidModule.getAndroidProject().getVariantNames();
-    // Selected variant is null means that this is the very first sync, choose debug or the first one.
-    // Also, make sure the variant in SelectedVariants exists - this can be false if the variants in build files are modified from the last sync.
+    // If this is the first sync (variant == null), or the previously selected variant no longer exists then choose the default variant.
     if (variant == null || !variantNames.contains(variant)) {
-      variant = getDefaultOrFirstItem(variantNames, "debug");
+      try {
+        variant = androidModule.getAndroidProject().getDefaultVariant();
+      } catch (UnsupportedMethodException e) {
+        variant = getDefaultOrFirstItem(variantNames, "debug");
+      }
     }
     return (variant != null) ? syncAndAddVariant(variant, androidModule.getModuleModels(), controller, shouldGenerateSources) : null;
   }

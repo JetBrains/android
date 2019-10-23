@@ -18,9 +18,12 @@ package com.android.tools.idea.uibuilder.property2
 import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
+import org.intellij.lang.annotations.Language
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 
 class NeleFlagsPropertyItemTest : PropertyTestCase() {
@@ -80,12 +83,42 @@ class NeleFlagsPropertyItemTest : PropertyTestCase() {
     assertThat(centerVertical.effectiveValue).isTrue()
   }
 
+  fun testValidate() {
+    myFixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
+    val components = createComponents(component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER))
+    val property = createFlagsPropertyItem(ATTR_GRAVITY, NelePropertyType.STRING, components)
+    assertThat(property.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(property.editingSupport.validation("left")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(property.editingSupport.validation("start|bottom")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(property.editingSupport.validation("start|wednesday|bottom")).isEqualTo(
+      Pair(EditingErrorCategory.ERROR, "Invalid value: 'wednesday'"))
+    assertThat(property.editingSupport.validation("start|wednesday|bottom|winter|left|january")).isEqualTo(
+      Pair(EditingErrorCategory.ERROR, "Invalid values: 'wednesday', 'winter', 'january'"))
+    assertThat(property.editingSupport.validation("@bool/useBorder")).isEqualTo(
+      Pair(EditingErrorCategory.ERROR, "Unexpected resource type: 'bool' expected: string"))
+    assertThat(property.editingSupport.validation("@string/hello")).isEqualTo(
+      Pair(EditingErrorCategory.ERROR, "Invalid value: 'Hello'"))
+    assertThat(property.editingSupport.validation("@string/myGravity")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(property.editingSupport.validation("@string/errGravity")).isEqualTo(
+      Pair(EditingErrorCategory.ERROR, "Invalid value: 'wednesday'"))
+  }
+
   private fun createFlagsPropertyItem(attrName: String, type: NelePropertyType, components: List<NlComponent>): NeleFlagsPropertyItem {
     val model = NelePropertiesModel(testRootDisposable, myFacet)
     val resourceManagers = ModuleResourceManagers.getInstance(myFacet)
     val frameworkResourceManager = resourceManagers.frameworkResourceManager
     val definition =
         frameworkResourceManager?.attributeDefinitions?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
-    return NeleFlagsPropertyItem(ANDROID_URI, attrName, type, definition!!, "", model, components)
+    return NeleFlagsPropertyItem(ANDROID_URI, attrName, type, definition!!, "", "", model, null, components)
   }
+
+  @Language("XML")
+  private val VALUE_RESOURCES = """<?xml version="1.0" encoding="utf-8"?>
+    <resources>
+      <bool name="useBorder">true</bool>
+      <string name="hello">Hello</string>
+      <string name="myGravity">start|bottom</string>
+      <string name="errGravity">start|wednesday|end</string>
+    </resources>
+  """.trimIndent()
 }

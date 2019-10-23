@@ -37,5 +37,5 @@ abstract class PropertyEditors(messageBus: MessageBus) : LafManagerListener {
 
   abstract fun create(property: NlProperty): NlComponentEditor
 
-  override fun lookAndFeelChanged(source: LafManager) = resetCachedEditors()
+  final override fun lookAndFeelChanged(source: LafManager) = resetCachedEditors()
 }

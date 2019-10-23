@@ -15,9 +15,15 @@
  */
 package com.android.tools.idea.npw.dynamicapp;
 
+import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
 import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_FUSING;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_ON_DEMAND;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_SUPPORTS_DYNAMIC_DELIVERY;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_TITLE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_IS_INSTANT_MODULE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_DYNAMIC_FEATURE;
@@ -27,17 +33,19 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MAKE_IGNORE
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_SIMPLE_NAME;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
+import com.android.tools.idea.observable.collections.ObservableList;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.model.WizardModel;
@@ -53,21 +61,26 @@ public class DynamicFeatureModel extends WizardModel {
   @NotNull private final TemplateHandle myTemplateHandle;
   @NotNull private final ProjectSyncInvoker myProjectSyncInvoker;
 
-  @NotNull private final StringProperty myModuleName = new StringValueProperty("dynamic_feature");
+  @NotNull private final StringProperty myModuleName = new StringValueProperty("dynamicfeature");
   @NotNull private final StringProperty myFeatureTitle = new StringValueProperty("Module Title");
   @NotNull private final StringProperty myPackageName = new StringValueProperty();
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
   @NotNull private final OptionalProperty<Module> myBaseApplication = new OptionalValueProperty<>();
   @NotNull private final BoolProperty myFeatureOnDemand = new BoolValueProperty(true);
+  @NotNull private final OptionalProperty<DownloadInstallKind> myDownloadInstallKind;
   @NotNull private final BoolProperty myFeatureFusing = new BoolValueProperty(true);
   @NotNull private final BoolProperty myInstantModule = new BoolValueProperty(false);
+  @NotNull private final ObservableList<DeviceFeatureModel> myDeviceFeatures = new ObservableList<>();
 
   public DynamicFeatureModel(@NotNull Project project,
                              @NotNull TemplateHandle templateHandle,
-                             @NotNull ProjectSyncInvoker projectSyncInvoker) {
+                             @NotNull ProjectSyncInvoker projectSyncInvoker,
+                             boolean isInstant) {
     myProject = project;
     myTemplateHandle = templateHandle;
     myProjectSyncInvoker = projectSyncInvoker;
+    myDownloadInstallKind = isInstant ? new OptionalValueProperty<>(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME) :
+                            new OptionalValueProperty<>(DownloadInstallKind.ON_DEMAND_ONLY);
   }
 
   @NotNull
@@ -95,31 +108,46 @@ public class DynamicFeatureModel extends WizardModel {
     return myPackageName;
   }
 
+  @NotNull
   public OptionalProperty<Module> baseApplication() {
     return myBaseApplication;
   }
 
+  @NotNull
   public OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo() {
     return myAndroidSdkInfo;
   }
 
+  @NotNull
   public BoolProperty featureOnDemand() {
     return myFeatureOnDemand;
   }
 
+  @NotNull
+  public OptionalProperty<DownloadInstallKind> downloadInstallKind() {
+    return myDownloadInstallKind;
+  }
+
+  @NotNull
+  public ObservableList<DeviceFeatureModel> deviceFeatures() {
+    return myDeviceFeatures;
+  }
+
+  @NotNull
   public BoolProperty featureFusing() {
     return myFeatureFusing;
   }
 
+  @NotNull
   public BoolProperty instantModule() { return myInstantModule; }
 
   @Override
   protected void handleFinished() {
-    File moduleRoot = new File(myProject.getBasePath(), moduleName().get());
+    AndroidModuleTemplate modulePaths = createDefaultTemplateAt(myProject.getBasePath(), moduleName().get()).getPaths();
     Map<String, Object> myTemplateValues = Maps.newHashMap();
 
     new TemplateValueInjector(myTemplateValues)
-      .setModuleRoots(GradleAndroidModuleTemplate.createDefaultTemplateAt(moduleRoot).getPaths(), packageName().get())
+      .setModuleRoots(modulePaths, myProject.getBasePath(), moduleName().get(), packageName().get())
       .setBuildVersion(androidSdkInfo().getValue(), myProject)
       .setBaseFeature(baseApplication().getValue());
 
@@ -132,7 +160,17 @@ public class DynamicFeatureModel extends WizardModel {
     myTemplateValues.put(ATTR_IS_NEW_PROJECT, true);
     myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, false);
     myTemplateValues.put(ATTR_DYNAMIC_IS_INSTANT_MODULE, instantModule().get());
+    // Dynamic delivery conditions
+    myTemplateValues.put(ATTR_DYNAMIC_FEATURE_SUPPORTS_DYNAMIC_DELIVERY, StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get());
+    myTemplateValues
+      .put(ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY, myDownloadInstallKind.getValue() == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME);
+    myTemplateValues.put(ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY,
+                         myDownloadInstallKind.getValue() == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS);
+    myTemplateValues.put(ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY, myDownloadInstallKind.getValue() == DownloadInstallKind.ON_DEMAND_ONLY);
+    myTemplateValues.put(ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST, myDeviceFeatures);
 
+    File moduleRoot = modulePaths.getModuleRoot();
+    assert moduleRoot != null;
     if (doDryRun(moduleRoot, myTemplateValues)) {
       render(moduleRoot, myTemplateValues);
     }

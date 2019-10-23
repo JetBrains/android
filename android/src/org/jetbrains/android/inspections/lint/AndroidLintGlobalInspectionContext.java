@@ -1,10 +1,17 @@
 package org.jetbrains.android.inspections.lint;
 
+import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
+
 import com.android.builder.model.LintOptions;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.lint.*;
+import com.android.tools.idea.lint.AndroidLintLintBaselineInspection;
+import com.android.tools.idea.lint.LintIdeAnalytics;
+import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.lint.LintIdeIssueRegistry;
+import com.android.tools.idea.lint.LintIdeProject;
+import com.android.tools.idea.lint.LintIdeRequest;
 import com.android.tools.lint.client.api.LintBaseline;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
@@ -41,14 +48,18 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
-
-import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
 
 class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExtension<AndroidLintGlobalInspectionContext> {
   static final Key<AndroidLintGlobalInspectionContext> ID = Key.create("AndroidLintGlobalInspectionContext");
@@ -67,7 +78,8 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
     final Project project = context.getProject();
 
     // Running a single inspection that's not lint? If so don't run lint
-    if (localTools.isEmpty() && globalTools.size() == 1) {
+    boolean runningSingleInspection = localTools.isEmpty() && globalTools.size() == 1;
+    if (runningSingleInspection) {
       Tools tool = globalTools.get(0);
       if (!tool.getShortName().startsWith(LINT_INSPECTION_PREFIX)) {
         return;
@@ -86,7 +98,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
     long startTime = System.currentTimeMillis();
 
     // If running a single check by name, turn it on if it's off by default.
-    if (localTools.isEmpty() && globalTools.size() == 1) {
+    if (runningSingleInspection) {
       Tools tool = globalTools.get(0);
       String id = tool.getShortName().substring(LINT_INSPECTION_PREFIX.length());
       Issue issue = new LintIdeIssueRegistry().getIssue(id);
@@ -226,7 +238,8 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       }
 
       if (modules.isEmpty()) {
-        AnalysisScope narrowed = scope.getNarrowedComplementaryScope(project);
+        AnalysisScope scopeRef = scope; // Need effectively final reference to permit capture by lambda.
+        AnalysisScope narrowed = ReadAction.compute(() -> scopeRef.getNarrowedComplementaryScope(project));
         for (Module module : ModuleManager.getInstance(project).getModules()) {
           if (narrowed.containsModule(module)) {
             modules.add(module);
@@ -281,22 +294,24 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
     lint.analyze();
 
-    List<Tools> tools = AndroidLintInspectionBase.getDynamicTools();
-    AndroidLintInspectionBase.resetDynamicTools();
-    if (tools != null) {
-      for (Tools tool : tools) {
-        // can't just call globalTools.contains(tool): ToolsImpl.equals does *not* check
-        // tool identity, it just checks settings identity.
-        String name = tool.getShortName();
-        boolean found = false;
-        for (Tools registered : globalTools) {
-          if (registered.getShortName().equals(name)) {
-            found = true;
-            break;
+    // Running all detectors? Then add dynamically registered detectors too.
+    if (!runningSingleInspection) {
+      List<Tools> tools = AndroidLintInspectionBase.getDynamicTools(project);
+      if (tools != null) {
+        for (Tools tool : tools) {
+          // can't just call globalTools.contains(tool): ToolsImpl.equals does *not* check
+          // tool identity, it just checks settings identity.
+          String name = tool.getShortName();
+          boolean found = false;
+          for (Tools registered : globalTools) {
+            if (registered.getShortName().equals(name)) {
+              found = true;
+              break;
+            }
           }
-        }
-        if (!found) {
-          globalTools.add(tool);
+          if (!found) {
+            globalTools.add(tool);
+          }
         }
       }
     }
@@ -319,23 +334,25 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
   public void performPostRunActivities(@NotNull List<InspectionToolWrapper> inspections, @NotNull final GlobalInspectionContext context) {
     if (myBaseline != null) {
       // Close the baseline; we need to hold a read lock such that line numbers can be computed from PSI file contents
-      if (myBaseline.isWriteOnClose()) {
+      if (myBaseline.getWriteOnClose()) {
         ApplicationManager.getApplication().runReadAction(() -> myBaseline.close());
       }
 
       // If we wrote a baseline file, post a notification
-      if (myBaseline.isWriteOnClose()) {
+      if (myBaseline.getWriteOnClose()) {
         String message;
-        if (myBaseline.isRemoveFixed()) {
-          message = String.format("Updated baseline file %1$s<br>Removed %2$d issues<br>%3$s remaining", myBaseline.getFile().getName(),
-                                  myBaseline.getFixedCount(),
-                                  Lint.describeCounts(myBaseline.getFoundErrorCount(), myBaseline.getFoundWarningCount(), false,
-                                                           true));
+        if (myBaseline.getRemoveFixed()) {
+          message = String
+            .format(Locale.US, "Updated baseline file %1$s<br>Removed %2$d issues<br>%3$s remaining", myBaseline.getFile().getName(),
+                    myBaseline.getFixedCount(),
+                    Lint.describeCounts(myBaseline.getFoundErrorCount(), myBaseline.getFoundWarningCount(), false,
+                                        true));
         } else {
-          message = String.format("Created baseline file %1$s<br>%2$d issues will be filtered out", myBaseline.getFile().getName(),
-                                  myBaseline.getTotalCount());
+          message = String
+            .format(Locale.US, "Created baseline file %1$s<br>%2$d issues will be filtered out", myBaseline.getFile().getName(),
+                    myBaseline.getTotalCount());
         }
-        new NotificationGroup("Convert to WebP", NotificationDisplayType.BALLOON, true)
+        new NotificationGroup("Wrote Baseline", NotificationDisplayType.BALLOON, true)
           .createNotification(message, NotificationType.INFORMATION)
           .notify(context.getProject());
       }

@@ -65,10 +65,20 @@ public class TagSnapshot {
     this.namespaceDeclarations = tag != null ? tag.getLocalNamespaceDeclarations() : Collections.emptyMap();
   }
 
+  /**
+   * Creates a new tag snapshot with all the properties passed as arguments
+   * @see #TagSnapshot(XmlTag, String, String, String, List, List, boolean)
+   *
+   * @param afterCreate If not null, it will be applied to the {@link TagSnapshot} created in a post processing step
+   */
   static TagSnapshot createSyntheticTag(@Nullable XmlTag tag, @Nullable String tagName, @Nullable String prefix,
                                                @Nullable String namespace, @NotNull List<AttributeSnapshot> attributes,
-                                               @NotNull List<TagSnapshot> children) {
-    return new TagSnapshot(tag, tagName, prefix, namespace, attributes, children, false);
+                                               @NotNull List<TagSnapshot> children, @Nullable Consumer<TagSnapshot> afterCreate) {
+    TagSnapshot newSnapshot = new TagSnapshot(tag, tagName, prefix, namespace, attributes, children, false);
+    if (afterCreate != null) {
+      afterCreate.accept(newSnapshot);
+    }
+    return newSnapshot;
   }
 
   /**

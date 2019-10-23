@@ -19,19 +19,24 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.ATTR_PARENT_TAG
+import com.android.SdkConstants.ATTR_VISIBILITY
+import com.android.SdkConstants.TOOLS_NS_NAME_PREFIX
 import com.android.SdkConstants.TOOLS_URI
 import com.android.SdkConstants.VIEW_MERGE
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.property2.api.EditorProvider
-import com.android.tools.idea.common.property2.api.InspectorBuilder
-import com.android.tools.idea.common.property2.api.InspectorPanel
-import com.android.tools.idea.common.property2.api.PropertiesTable
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.InspectorBuilder
+import com.android.tools.property.panel.api.InspectorPanel
+import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.uibuilder.api.CustomPanel
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.StringUtil
 import javax.swing.JPanel
+
+private const val LAYOUT_TITLE = "Layout"
 
 /**
  * An [InspectorBuilder] for all procured layout attributes.
@@ -40,7 +45,8 @@ import javax.swing.JPanel
  * then the custom panel if applicable, followed by the layout attributes
  * defined in the [ViewHandler] of the layout ViewGroup.
  */
-class LayoutInspectorBuilder(project: Project, private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
+class LayoutInspectorBuilder(project: Project,
+                             val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
   private val viewHandlerManager = ViewHandlerManager.get(project)
   private val cachedCustomPanels = mutableMapOf<String, CustomPanel>()
 
@@ -53,7 +59,7 @@ class LayoutInspectorBuilder(project: Project, private val editorProvider: Edito
     val custom = setupCustomPanel(properties)
     if (!isApplicable(attributes, custom, properties)) return
 
-    val titleModel = inspector.addExpandableTitle("layout")
+    val titleModel = inspector.addExpandableTitle(LAYOUT_TITLE)
 
     if (custom != null) {
       inspector.addComponent(custom, titleModel)
@@ -61,9 +67,11 @@ class LayoutInspectorBuilder(project: Project, private val editorProvider: Edito
 
     for (propertyName in attributes) {
       // TODO: Handle other namespaces
-      val property = properties.getOrNull(ANDROID_URI, propertyName)
-      if (property != null) {
-        inspector.addEditor(editorProvider.createEditor(property), titleModel)
+      val attrName = StringUtil.trimStart(propertyName, TOOLS_NS_NAME_PREFIX)
+      val property = properties.getOrNull(ANDROID_URI, attrName)
+      val propertyToAdd = if (propertyName.startsWith(TOOLS_NS_NAME_PREFIX)) property?.designProperty else property
+      if (propertyToAdd != null) {
+        inspector.addEditor(editorProvider.createEditor(propertyToAdd), titleModel)
       }
     }
   }
@@ -75,10 +83,16 @@ class LayoutInspectorBuilder(project: Project, private val editorProvider: Edito
 
   private fun getLayoutAttributes(properties: PropertiesTable<NelePropertyItem>): List<String> {
     val attributes = mutableListOf(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT)
-    val parent = getParentComponent(properties) ?: return attributes
-    val handler = viewHandlerManager.getHandler(parent) ?: return attributes
-    attributes.addAll(handler.layoutInspectorProperties)
+    addAttributesFromViewHandler(properties, attributes)
+    attributes.add(ATTR_VISIBILITY)
+    attributes.add(TOOLS_NS_NAME_PREFIX + ATTR_VISIBILITY)
     return attributes
+  }
+
+  private fun addAttributesFromViewHandler(properties: PropertiesTable<NelePropertyItem>, attributes: MutableList<String>) {
+    val parent = getParentComponent(properties) ?: return
+    val handler = viewHandlerManager.getHandler(parent) ?: return
+    attributes.addAll(handler.layoutInspectorProperties)
   }
 
   private fun getParentComponent(properties: PropertiesTable<NelePropertyItem>): NlComponent? {
@@ -95,7 +109,7 @@ class LayoutInspectorBuilder(project: Project, private val editorProvider: Edito
 
     val property = properties.first ?: return null
     val component = property.components.singleOrNull() ?: return null
-    panel.useComponent(component)
+    panel.useComponent(component, property.model.surface)
     return panel.panel
   }
 

@@ -24,10 +24,10 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.intellij.reference.SoftReference;
+import java.awt.Rectangle;
+import java.util.WeakHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.WeakHashMap;
 
 /**
  * This represents the Transform between dp to screen space.
@@ -35,12 +35,22 @@ import java.util.WeakHashMap;
  */
 public class SceneContext {
   ColorSet myColorSet;
+  // Picker is used to record all graphics drawn to support selection
+  final ScenePicker myGraphicsPicker = new ScenePicker();
+  Object myFoundObject;
   Long myTime;
-  @SwingCoordinate int myMouseX = -1, myMouseY = -1;
+  @SwingCoordinate private int myMouseX = -1;
+  @SwingCoordinate private int myMouseY = -1;
   private boolean myShowOnlySelection = false;
+  @NotNull
+  @SwingCoordinate
+  private Rectangle myRenderableBounds = new Rectangle();
 
   private SceneContext() {
     myTime = System.currentTimeMillis();
+    myGraphicsPicker.setSelectListener((over, dist)->{
+      myFoundObject = over;
+    });
   }
 
   public void setShowOnlySelection(boolean value) {
@@ -121,7 +131,35 @@ public class SceneContext {
     return myColorSet;
   }
 
+  public ScenePicker getScenePicker() {
+    return myGraphicsPicker;
+  }
+
+  /**
+   * Find objects drawn on the scene.
+   * Objects drawn with this sceneContext can record there shapes
+   * and this find can be used to detect them.
+   * @param x
+   * @param y
+   * @return
+   */
+  public Object findClickedGraphics(@SwingCoordinate int x, @SwingCoordinate int y) {
+    myFoundObject = null;
+    myGraphicsPicker.find(x, y);
+    return myFoundObject;
+  }
+
   public double getScale() { return 1; }
+
+  public void setRenderableBounds(@NotNull @SwingCoordinate Rectangle bounds) {
+    myRenderableBounds.setBounds(bounds);
+  }
+
+  @NotNull
+  @SwingCoordinate
+  public Rectangle getRenderableBounds() {
+    return myRenderableBounds;
+  }
 
   private static SceneContext lazySingleton;
 
@@ -188,7 +226,7 @@ public class SceneContext {
   private static class SceneViewTransform extends SceneContext {
     SceneView mySceneView;
 
-    SceneViewTransform(SceneView sceneView) {
+    public SceneViewTransform(SceneView sceneView) {
       mySceneView = sceneView;
     }
 

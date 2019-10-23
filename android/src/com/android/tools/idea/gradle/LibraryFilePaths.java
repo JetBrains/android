@@ -78,6 +78,25 @@ public class LibraryFilePaths {
           }
         }
       }
+
+      // Try new .gradle layout.
+      // Example: androidx.appcompat/appcompat/1.0.2/2533a36c928bb27a3cc6843a25f83754b3c3ae/appcompat-1.0.2.aar
+      parentPath = parentPath.getParentFile();
+      if (parentPath != null && parentPath.getName().length() == 48) {
+        parentPath = parentPath.getParentFile();
+        if (parentPath != null && libraryPath.getName().startsWith(parentPath.getName())) {
+          for (File child : notNullize(parentPath.listFiles())) {
+            if (child.isDirectory() && child.getName().length() == 48) {
+              for (File child2 : notNullize(child.listFiles())) {
+                sourceJar = findChildPath(child2, sourceFileName);
+                if (sourceJar != null) {
+                  return sourceJar;
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
     if (searchInIdeCache) {

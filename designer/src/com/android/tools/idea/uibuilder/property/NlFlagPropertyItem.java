@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
-import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableItem;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
@@ -55,7 +55,7 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   protected NlFlagPropertyItem(@NotNull XmlName name,
                                @Nullable AttributeDefinition attributeDefinition,
                                @NotNull List<NlComponent> components,
-                               @NotNull PropertiesManager propertiesManager) {
+                               @Nullable PropertiesManager propertiesManager) {
     super(name, attributeDefinition, components, propertiesManager);
     assert attributeDefinition != null;
   }

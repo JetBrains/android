@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
@@ -30,6 +31,7 @@ import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibi
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.DisposedModules;
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgrade;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -61,16 +63,19 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
+import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.Key;
+import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.SystemProperties;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.serialization.PathMacroUtil;
@@ -83,7 +88,8 @@ import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.remo
 import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.setSingleVariantSyncState;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_CACHED_SETUP_FAILED;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static java.lang.System.currentTimeMillis;
 
@@ -146,6 +152,7 @@ public final class PostSyncProjectSetup {
   /**
    * Invoked after a project has been synced with Gradle.
    */
+  @Slow
   public void setUpProject(@NotNull Request request, @NotNull ProgressIndicator progressIndicator, @Nullable ExternalSystemTaskId taskId) {
     try {
       if (!StudioFlags.NEW_SYNC_INFRA_ENABLED.get()) {
@@ -187,10 +194,31 @@ public final class PostSyncProjectSetup {
       // Needed internally for development of Android support lib.
       boolean skipAgpUpgrade = SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false);
 
-      if (!skipAgpUpgrade && !request.skipAndroidPluginUpgrade && myPluginVersionUpgrade.checkAndPerformUpgrade()) {
-        // Plugin version was upgraded and a sync was triggered.
-        finishSuccessfulSync(taskId);
-        return;
+      if (!skipAgpUpgrade && !request.skipAndroidPluginUpgrade) {
+        if (StudioFlags.BALLOON_UPGRADE_NOTIFICATION.get()) {
+          if (myPluginVersionUpgrade.isForcedUpgradable()) {
+            // Do force upgrade anyway.
+            if (myPluginVersionUpgrade.performForcedUpgrade()) {
+              finishSuccessfulSync(taskId);
+              return;
+            }
+          }
+          else {
+            RecommendedPluginVersionUpgrade.checkUpgrade(myProject);
+          }
+        }
+        else {
+          // TODO(b/127454467): remove after StudioFlags.BALLOON_UPGRADE_NOTIFICATION is removed.
+          if (myPluginVersionUpgrade.checkAndPerformUpgrade()) {
+            // Plugin version was upgraded and a sync was triggered.
+            finishSuccessfulSync(taskId);
+            return;
+          }
+        }
+      }
+
+      if (IdeInfo.getInstance().isAndroidStudio() && StudioFlags.RECOMMENDATION_ENABLED.get()) {
+        MemorySettingsPostSyncChecker.checkSettings(myProject, new TimeBasedMemorySettingsCheckerReminder());
       }
 
       new ProjectStructureUsageTracker(myProject).trackProjectStructure();
@@ -209,6 +237,7 @@ public final class PostSyncProjectSetup {
       boolean cleanProjectAfterSync = myProjectStructure.getAndroidPluginVersions().haveVersionsChanged(agpVersions);
 
       attemptToGenerateSources(request, cleanProjectAfterSync);
+      updateJavaLanguageLevel();
       notifySyncFinished(request);
 
       TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
@@ -224,6 +253,46 @@ public final class PostSyncProjectSetup {
       finishFailedSync(taskId, myProject);
       getLog().error(t);
     }
+  }
+
+  @VisibleForTesting
+  void updateJavaLanguageLevel() {
+    executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
+      @Override
+      public void execute() {
+        if (myProject.isOpen()) {
+          //noinspection TestOnlyProblems
+          LanguageLevel langLevel = getMaxJavaLanguageLevel(myProject);
+          if (langLevel != null) {
+            LanguageLevelProjectExtension ext = LanguageLevelProjectExtension.getInstance(myProject);
+            if (langLevel != ext.getLanguageLevel()) {
+              ext.setLanguageLevel(langLevel);
+            }
+          }
+        }
+      }
+    });
+  }
+
+  @VisibleForTesting
+  @Nullable
+  static LanguageLevel getMaxJavaLanguageLevel(@NotNull Project project) {
+    LanguageLevel maxLangLevel = null;
+
+    Module[] modules = ModuleManager.getInstance(project).getModules();
+    for (Module module : modules) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
+        if (androidModel != null) {
+          LanguageLevel langLevel = androidModel.getJavaLanguageLevel();
+          if (langLevel != null && (maxLangLevel == null || maxLangLevel.compareTo(langLevel) < 0)) {
+            maxLangLevel = langLevel;
+          }
+        }
+      }
+    }
+    return maxLangLevel;
   }
 
   private void finishSuccessfulSync(@Nullable ExternalSystemTaskId taskId) {
@@ -244,7 +313,11 @@ public final class PostSyncProjectSetup {
     }
 
     FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), "successful", result);
-    ServiceManager.getService(myProject, SyncViewManager.class).onEvent(taskId, finishBuildEvent);
+    ApplicationManager.getApplication().invokeLater(() -> {
+      if (!myProject.isDisposed()) {
+        ServiceManager.getService(myProject, SyncViewManager.class).onEvent(taskId, finishBuildEvent);
+      }
+    });
   }
 
   public static void finishFailedSync(@Nullable ExternalSystemTaskId taskId, @NotNull Project project) {
@@ -266,7 +339,7 @@ public final class PostSyncProjectSetup {
     }
     mySyncState.syncSkipped(syncTimestamp);
     // TODO add a new trigger for this?
-    mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_LOADED);
+    mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_CACHED_SETUP_FAILED);
   }
 
   private void failTestsIfSyncIssuesPresent() {
@@ -322,7 +395,7 @@ public final class PostSyncProjectSetup {
 
   private void modifyJUnitRunConfigurations() {
     ConfigurationType junitConfigurationType = AndroidJUnitConfigurationType.getInstance();
-    BeforeRunTaskProvider<BeforeRunTask>[] taskProviders = Extensions.getExtensions(BeforeRunTaskProvider.EXTENSION_POINT_NAME, myProject);
+    BeforeRunTaskProvider<BeforeRunTask>[] taskProviders = BeforeRunTaskProvider.EXTENSION_POINT_NAME.getExtensions(myProject);
     RunManagerEx runManager = RunManagerEx.getInstanceEx(myProject);
 
     // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.

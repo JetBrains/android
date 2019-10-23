@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.internal.androidTarget.MockAddonTarget;
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
@@ -90,7 +91,7 @@ public class LaunchCompatibilityTest extends TestCase {
       LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, null, createMockDevice(8, null, false));
     assertEquals(new LaunchCompatibility(ThreeState.YES, null), compatibility);
 
-    IAndroidTarget.OptionalLibrary optionalLibrary = mock(IAndroidTarget.OptionalLibrary.class);
+    OptionalLibrary optionalLibrary = mock(OptionalLibrary.class);
     projectTarget.setOptionalLibraries(ImmutableList.of(optionalLibrary));
 
     // add-on targets with optional libraries should still be allowed to run on real devices (no avdinfo)

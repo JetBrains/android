@@ -15,33 +15,77 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import com.android.resources.ResourceType;
+import com.android.tools.adtui.common.StudioColorsKt;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.intellij.openapi.module.Module;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.scale.JBUIScale;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import javax.swing.JComboBox;
+import javax.swing.JTextField;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Widget to support margin editing on the ui
  */
 public class MarginWidget extends JComboBox<String> {
-  private static final String[] str = new String[]{"0", "8", "16", "24", "32"};
+  private static final String POPUP_MENU = "@ ...";
+  private static final String DEFAULT = "0";
+  private static final String PICK_A_DIMENSION = "Pick a Dimension";
+  private static final String[] MENU_LIST = new String[]{DEFAULT, "8", "16", "24", "32", POPUP_MENU};
+  private final String myBaseToolTipText;
 
+  private final JTextField myTextField;
   public enum Show {
     IN_WIDGET,
     OUT_WIDGET,
     OUT_PANEL
   }
 
-  public MarginWidget(@NotNull String name) {
-    super(new CollectionComboBoxModel<>(Arrays.asList(str)));
+  public MarginWidget(@NotNull String name, String tooltip) {
+    super(new CollectionComboBoxModel<>(Arrays.asList(MENU_LIST)));
+    setBackground(StudioColorsKt.getSecondaryPanelBackground());
     setEditable(true);
-    JTextField textField = (JTextField)getEditor().getEditorComponent();
-    textField.setFont(textField.getFont().deriveFont((float)JBUIScale.scaleFontSize(12f)));
+    myTextField = (JTextField)getEditor().getEditorComponent();
+    myTextField.setFont(myTextField.getFont().deriveFont((float) JBUIScale.scaleFontSize(12f)));
+    myTextField.addFocusListener(new ScrollToViewFocusListener(this));
     initComboBox(name);
     setName(name);
+    setToolTipText(tooltip);
+    myBaseToolTipText = tooltip;
+  }
+
+  private void italicFont() {
+    Font font = myTextField.getFont();
+    int style = font.getStyle();
+    style |= Font.ITALIC;
+    font = font.deriveFont(style);
+    myTextField.setFont(font);
+  }
+
+  private void normalFont() {
+    Font font = myTextField.getFont();
+    int style = font.getStyle();
+    style &= ~Font.ITALIC;
+    font = font.deriveFont(style);
+    myTextField.setFont(font);
+  }
+
+  private void updateToolTip(@Nullable String resourceName) {
+    if (resourceName == null) {
+      setToolTipText(myBaseToolTipText);
+      return;
+    }
+
+    setToolTipText(myBaseToolTipText + " (" + resourceName + ")");
   }
 
   private void initComboBox(@NotNull String name) {
@@ -56,14 +100,59 @@ public class MarginWidget extends JComboBox<String> {
     setSelectedItem(marginText);
   }
 
-  public int getMargin() {
-    try {
-      String item = (String)getSelectedItem();
-      return item != null ? Integer.parseInt(item) : 0;
+  /**
+   * @return margin either in DP (e.g. "0") or resource (e.g. "@dimen/left_margin")
+   */
+  public String getMargin(@Nullable NlComponent component) {
+    String item = (String)getSelectedItem();
+    String toReturn = item != null ? item : DEFAULT;
+
+    if (POPUP_MENU.equals(toReturn)) {
+      toReturn = selectFromResourceDialog(component);
     }
-    catch (NumberFormatException e) {
-      return 0;
+
+    if (toReturn.startsWith("@")) {
+      italicFont();
+      updateToolTip(toReturn);
+    } else {
+      normalFont();
+      updateToolTip(null);
     }
+
+    return toReturn;
+  }
+
+  /**
+   * @return Launch resource dialog, and return the chosen value (e.g. "@dimen/left_margin". {@link DEFAULT} if cancelled or tag invalid.
+   */
+  private String selectFromResourceDialog(@Nullable NlComponent component) {
+    if (component == null) {
+      return DEFAULT;
+    }
+
+    Module module = component.getModel().getModule();
+    XmlTag tag = component.getBackend().getTag();
+    if (tag == null) {
+      return DEFAULT;
+    }
+
+    Set<ResourceType> types = new HashSet<>();
+    types.add(ResourceType.DIMEN);
+
+    ChooseResourceDialog dialog = ChooseResourceDialog.builder()
+      .setModule(module)
+      .setTypes(types)
+      .setCurrentValue(DEFAULT)
+      .setTag(tag)
+      .setDefaultType(ResourceType.DIMEN)
+      .build();
+
+    dialog.setTitle(PICK_A_DIMENSION);
+    if (dialog.showAndGet()) {
+      return dialog.getResourceName();
+    }
+
+    return DEFAULT;
   }
 
   @Override

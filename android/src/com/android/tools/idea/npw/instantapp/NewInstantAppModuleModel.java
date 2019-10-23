@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.instantapp;
 
+import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
@@ -74,7 +75,7 @@ public final class NewInstantAppModuleModel extends WizardModel {
 
   @Override
   protected void handleFinished() {
-    File moduleRoot = new File(myProject.getBasePath(), moduleName().get());
+    File moduleRoot = NewModuleModel.getModuleRoot(myProject.getBasePath(), moduleName().get());
     Map<String, Object> myTemplateValues = Maps.newHashMap();
 
     myTemplateValues.put(ATTR_TOP_OUT, myProject.getBasePath());

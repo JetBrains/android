@@ -38,7 +38,7 @@ public class GenericErrorHandler extends SyncErrorHandler {
     if (text != null) {
       List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(notification, text);
       if (!hyperlinks.isEmpty()) {
-        updateUsageTracker();
+        updateUsageTracker(project, null);
         GradleSyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
         return true;
       }

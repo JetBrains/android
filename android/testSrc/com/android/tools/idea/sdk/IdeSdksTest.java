@@ -15,6 +15,19 @@
  */
 package com.android.tools.idea.sdk;
 
+import static com.android.testutils.TestUtils.getSdk;
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_7;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_9;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
@@ -23,28 +36,18 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Computable;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
-import static com.android.testutils.TestUtils.getSdk;
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link IdeSdks}.
@@ -72,8 +75,7 @@ public class IdeSdksTest extends JavaProjectTestCase {
 
     Jdks jdks = new Jdks(myIdeInfo);
     myEmbeddedDistributionPaths = EmbeddedDistributionPaths.getInstance();
-    myIdeSdks = new IdeSdks(new AndroidSdks(jdks, myIdeInfo), jdks, myEmbeddedDistributionPaths, myIdeInfo,
-                            ApplicationManager.getApplication().getMessageBus());
+    myIdeSdks = new IdeSdks(new AndroidSdks(jdks, myIdeInfo), jdks, myEmbeddedDistributionPaths, myIdeInfo);
     IdeSdks.removeJdksOn(getTestRootDisposable());
     Sdks.allowAccessToSdk(getTestRootDisposable());
   }
@@ -161,15 +163,31 @@ public class IdeSdksTest extends JavaProjectTestCase {
                filesEqual(jdkPath, embeddedJdkPath));
   }
 
-  public void testNotificationOnSdkPathChange() {
-    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
-    IdeSdks.IdeSdkChangeListener changeListener = mock(IdeSdks.IdeSdkChangeListener.class);
-    Project project = getProject();
-    IdeSdks.subscribe(changeListener, project);
+  public void testIsJavaSameVersionNull() {
+    assertFalse(IdeSdks.isJdkSameVersion(null, JDK_1_8));
+  }
 
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      myIdeSdks.setAndroidSdkPath(myAndroidSdkPath, project);
-    });
-    verify(changeListener).sdkPathChanged(myAndroidSdkPath);
+  public void testIsJavaSameVersionTrue() {
+    Jdks spyJdks = spy(Jdks.getInstance());
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), Jdks.class, spyJdks, getTestRootDisposable());
+    File fakeFile = new File(myProject.getBasePath());
+    doReturn(JDK_1_8).when(spyJdks).findVersion(same(fakeFile));
+    assertTrue(IdeSdks.isJdkSameVersion(fakeFile, JDK_1_8));
+  }
+
+  public void testIsJavaSameVersionLower() {
+    Jdks spyJdks = spy(Jdks.getInstance());
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), Jdks.class, spyJdks, getTestRootDisposable());
+    File fakeFile = new File(myProject.getBasePath());
+    doReturn(JDK_1_7).when(spyJdks).findVersion(same(fakeFile));
+    assertFalse(IdeSdks.isJdkSameVersion(fakeFile, JDK_1_8));
+  }
+
+  public void testIsJavaSameVersionHigher() {
+    Jdks spyJdks = spy(Jdks.getInstance());
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), Jdks.class, spyJdks, getTestRootDisposable());
+    File fakeFile = new File(myProject.getBasePath());
+    doReturn(JDK_1_9).when(spyJdks).findVersion(same(fakeFile));
+    assertFalse(IdeSdks.isJdkSameVersion(fakeFile, JDK_1_8));
   }
 }

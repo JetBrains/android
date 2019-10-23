@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.actions;
 
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
@@ -61,7 +61,7 @@ public class IssueNotificationAction extends ToggleAction {
 
   @Override
   public void setSelected(@NotNull AnActionEvent e, boolean state) {
-    NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.SHOW_LINT_MESSAGES);
+    NlUsageTracker.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.SHOW_LINT_MESSAGES);
     mySurface.setShowIssuePanel(state);
   }
 

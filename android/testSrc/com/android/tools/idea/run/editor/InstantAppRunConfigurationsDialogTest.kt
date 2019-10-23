@@ -36,7 +36,8 @@ class InstantAppRunConfigurationsDialogTest : AndroidGradleTestCase() {
     super.setUp()
     loadProject(INSTANT_APP_WITH_DYNAMIC_FEATURES)
 
-    myRunConfiguration = AndroidRunConfigurationType.getInstance().createTemplateConfiguration(project) as AndroidRunConfiguration
+    var configurationFactory = AndroidRunConfigurationType.getInstance().factory
+    myRunConfiguration = AndroidRunConfiguration(project, configurationFactory)
     parameters.setActiveModule(getModule("app"), DynamicFeaturesParameters.AvailableDeployTypes.INSTANT_AND_INSTALLED)
   }
 

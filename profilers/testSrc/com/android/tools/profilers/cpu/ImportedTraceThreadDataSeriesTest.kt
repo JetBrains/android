@@ -17,8 +17,9 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.collect.Iterables
 import com.google.common.truth.Truth.assertThat
@@ -39,13 +40,12 @@ class ImportedTraceThreadDataSeriesTest {
   fun setUp() {
     val timer = FakeTimer()
     val ideServices = FakeIdeProfilerServices()
-    val profilers = StudioProfilers(myGrpcChannel.client, ideServices, timer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), ideServices, timer)
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     // Enable import trace flags to allow initiating CpuProfilerStage in import trace mode
     ideServices.enableImportTrace(true)
-    ideServices.enableSessionsView(true)
     val stage = CpuProfilerStage(profilers, CpuProfilerTestUtils.getTraceFile("valid_trace.trace"))
     stage.enter()
     myCapture = stage.capture!!

@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 class RenderTimeoutRule implements TestRule {
   private final long myTimeoutMs;
 
-  RenderTimeoutRule(long timeout, @NotNull TimeUnit unit) {
+  public RenderTimeoutRule(long timeout, @NotNull TimeUnit unit) {
     myTimeoutMs = unit.toMillis(timeout);
   }
 

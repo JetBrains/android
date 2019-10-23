@@ -32,6 +32,6 @@ public class NlComponentTreeDefinition extends ToolWindowDefinition<DesignSurfac
                                    @NotNull AutoHide autoHide) {
     // TODO: Get a new 13x13 icon for this tool window...
     super("Component Tree", AllIcons.Toolwindows.WebToolWindow, "COMPONENT_TREE", side, split, autoHide,
-          () -> new NlComponentTreePanel(project));
+          (disposable) -> new NlComponentTreePanel(project, disposable));
   }
 }

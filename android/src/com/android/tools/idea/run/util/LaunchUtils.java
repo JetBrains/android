@@ -19,7 +19,8 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
 import com.android.utils.XmlUtils;
 import com.intellij.execution.Executor;
@@ -86,7 +87,7 @@ public class LaunchUtils {
       return false;
     }
 
-    MergedManifest info = MergedManifest.get(facet);
+    MergedManifestSnapshot info = MergedManifestManager.getSnapshot(facet);
     if (!info.getActivities().isEmpty()) {
       return false;
     }
@@ -105,7 +106,7 @@ public class LaunchUtils {
 
   /** Returns whether the watch hardware feature is required for the given facet. */
   public static boolean isWatchFeatureRequired(@NotNull AndroidFacet facet) {
-    MergedManifest mergedManifest = MergedManifest.get(facet);
+    MergedManifestSnapshot mergedManifest = MergedManifestManager.getSnapshot(facet);
     Element feature = mergedManifest.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);
     return feature != null && isRequired(feature);
   }
@@ -123,7 +124,8 @@ public class LaunchUtils {
                                       @NotNull final Executor executor,
                                       @NotNull final String sessionName,
                                       @NotNull final String message,
-                                      @NotNull final NotificationType type) {
+                                      @NotNull final NotificationType type,
+                                      @Nullable final NotificationListener errorNotificationListener) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -133,17 +135,19 @@ public class LaunchUtils {
 
         String toolWindowId = executor.getToolWindowId();
         final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId);
-        if (toolWindow.isVisible()) {
+        if (toolWindow.isVisible() && errorNotificationListener == null) {
           return;
         }
 
-        final String notificationMessage = "Session <a href=''>'" + sessionName + "'</a>: " + message;
+        final String link = "toolWindow_" + sessionName;
+        final String notificationMessage = String.format("Session <a href='%s'>'%s'</a>: %s", link, sessionName, message);
 
         NotificationGroup group = getNotificationGroup(toolWindowId);
         group.createNotification("", notificationMessage, type, new NotificationListener() {
           @Override
           public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-            if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+            boolean handled = false;
+            if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED && link.equals(event.getDescription())) {
               for (RunContentDescriptor d : ExecutionManagerImpl.getAllDescriptors(project)) {
                 if (sessionName.equals(d.getDisplayName())) {
                   final Content content = d.getAttachedContent();
@@ -151,9 +155,14 @@ public class LaunchUtils {
                     content.getManager().setSelectedContent(content);
                   }
                   toolWindow.activate(null, true, true);
+                  handled = true;
                   break;
                 }
               }
+            }
+
+            if (!handled && errorNotificationListener != null) {
+              errorNotificationListener.hyperlinkUpdate(notification, event);
             }
           }
         }).notify(project);

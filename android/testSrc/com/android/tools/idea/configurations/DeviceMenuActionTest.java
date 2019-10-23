@@ -44,10 +44,14 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "    5.0, 1080 \u00d7 1920, 420dpi (Pixel)\n" +
       "    5.0, 1080 \u00d7 1920, 420dpi (Pixel 2)\n" +
       "    5.2, 1080 \u00d7 1920, 420dpi (Nexus 5X)\n" +
+      "    5.5, 1080 \u00d7 2160, 440dpi (Pixel 3)\n" +
       "    5.5, 1440 \u00d7 2560, 560dpi (Pixel XL)\n" +
+      "    5.6, 1080 \u00d7 2220, 440dpi (Pixel 3a)\n" +
       "    5.7, 1440 \u00d7 2560, 560dpi (Nexus 6P)\n" +
       "    6.0, 1440 \u00d7 2560, 560dpi (Nexus 6)\n" +
       "    6.0, 1440 \u00d7 2880, 560dpi (Pixel 2 XL)\n" +
+      "    6.0, 1080 \u00d7 2160, 400dpi (Pixel 3a XL)\n" +
+      "    6.3, 1440 \u00d7 2960, 560dpi (Pixel 3 XL)\n" +
       "    ------------------------------------------------------\n" +
       "    Tablet\n" +
       "    7.0, 800 \u00d7 1280, tvdpi (Nexus 7 2012)\n" +
@@ -82,6 +86,8 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "         5.1\" WVGA (480 \u00d7 800, mdpi)\n" +
       "         5.4\" FWVGA (480 \u00d7 854, mdpi)\n" +
       "         7.0\" WSVGA (Tablet) (1024 \u00d7 600, mdpi)\n" +
+      "         7.3\" Foldable (1536 \u00d7 2152, 420dpi)\n" +
+      "         8.0\" Foldable (2200 \u00d7 2480, 420dpi)\n" +
       "        10.1\" WXGA (Tablet) (1280 \u00d7 800, mdpi)\n" +
       "    Add Device Definition...\n";
     Truth.assertThat(actual).isEqualTo(expected);

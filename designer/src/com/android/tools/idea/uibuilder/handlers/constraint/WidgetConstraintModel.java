@@ -41,20 +41,26 @@ import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF;
 import static com.android.SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.NS_RESOURCES;
 import static com.android.SdkConstants.SHERPA_URI;
 import static com.android.SdkConstants.VALUE_N_DP;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.SdkConstants.VALUE_ZERO_DP;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionListener;
+import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchor;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.ui.GuiUtils;
+import java.util.Arrays;
+import java.util.List;
 import javax.swing.Timer;
 import javax.swing.event.ChangeListener;
 import org.jetbrains.annotations.NotNull;
@@ -64,7 +70,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * Handles model change coming from interaction on the {@link WidgetConstraintPanel}
  */
-public class WidgetConstraintModel {
+public class WidgetConstraintModel implements SelectionListener {
 
   private static final String[][] ourConstraintString_ltr = {{
     ATTR_LAYOUT_START_TO_START_OF,
@@ -111,13 +117,15 @@ public class WidgetConstraintModel {
     {ATTR_LAYOUT_MARGIN_TOP},
     {ATTR_LAYOUT_MARGIN_BOTTOM},
   };
+
   private static final String[][] ourMarginString_rtl = {
     {ATTR_LAYOUT_MARGIN_LEFT, ATTR_LAYOUT_MARGIN_END},
     {ATTR_LAYOUT_MARGIN_RIGHT, ATTR_LAYOUT_MARGIN_START},
     {ATTR_LAYOUT_MARGIN_TOP},
     {ATTR_LAYOUT_MARGIN_BOTTOM},
   };
-  private static final String[][] ourDeleteAttributes = {
+
+  private static final String[][] ourDeleteAttributes_ltr = {
     {
       ATTR_LAYOUT_START_TO_START_OF,
       ATTR_LAYOUT_START_TO_END_OF,
@@ -134,11 +142,43 @@ public class WidgetConstraintModel {
       ATTR_LAYOUT_MARGIN_RIGHT,
       ATTR_LAYOUT_MARGIN_END,
       ATTR_LAYOUT_HORIZONTAL_BIAS},
-    {ATTR_LAYOUT_TOP_TO_TOP_OF,
+    {
+      ATTR_LAYOUT_TOP_TO_TOP_OF,
       ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
       ATTR_LAYOUT_MARGIN_TOP,
       ATTR_LAYOUT_VERTICAL_BIAS},
-    {ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
+    {
+      ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
+      ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
+      ATTR_LAYOUT_MARGIN_BOTTOM,
+      ATTR_LAYOUT_VERTICAL_BIAS},
+    {ATTR_LAYOUT_BASELINE_TO_BASELINE_OF}
+  };
+
+  private static final String[][] ourDeleteAttributes_rtl = {
+    {
+      ATTR_LAYOUT_END_TO_END_OF,
+      ATTR_LAYOUT_END_TO_START_OF,
+      ATTR_LAYOUT_LEFT_TO_LEFT_OF,
+      ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
+      ATTR_LAYOUT_MARGIN_LEFT,
+      ATTR_LAYOUT_MARGIN_END,
+      ATTR_LAYOUT_HORIZONTAL_BIAS},
+    {
+      ATTR_LAYOUT_START_TO_START_OF,
+      ATTR_LAYOUT_START_TO_END_OF,
+      ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
+      ATTR_LAYOUT_RIGHT_TO_RIGHT_OF,
+      ATTR_LAYOUT_MARGIN_RIGHT,
+      ATTR_LAYOUT_MARGIN_START,
+      ATTR_LAYOUT_HORIZONTAL_BIAS},
+    {
+      ATTR_LAYOUT_TOP_TO_TOP_OF,
+      ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
+      ATTR_LAYOUT_MARGIN_TOP,
+      ATTR_LAYOUT_VERTICAL_BIAS},
+    {
+      ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
       ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
       ATTR_LAYOUT_MARGIN_BOTTOM,
       ATTR_LAYOUT_VERTICAL_BIAS},
@@ -171,6 +211,28 @@ public class WidgetConstraintModel {
     {SHERPA_URI}
   };
 
+  private static final String[][] ourOverConstrainedAttributes = {
+    {
+      ATTR_LAYOUT_START_TO_START_OF,
+      ATTR_LAYOUT_START_TO_END_OF
+    }, {
+      ATTR_LAYOUT_END_TO_START_OF,
+      ATTR_LAYOUT_END_TO_END_OF
+    }, {
+      ATTR_LAYOUT_LEFT_TO_LEFT_OF,
+      ATTR_LAYOUT_LEFT_TO_RIGHT_OF
+    }, {
+      ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
+      ATTR_LAYOUT_RIGHT_TO_RIGHT_OF
+    }, {
+      ATTR_LAYOUT_TOP_TO_TOP_OF,
+      ATTR_LAYOUT_TOP_TO_BOTTOM_OF
+    }, {
+      ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
+      ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF
+    }
+  };
+
   public static final int CONNECTION_LEFT = 0;
   public static final int CONNECTION_RIGHT = 1;
   public static final int CONNECTION_TOP = 2;
@@ -182,15 +244,33 @@ public class WidgetConstraintModel {
   private boolean myIsInCallback = false;
   private Runnable myUpdateCallback;
   @Nullable private NlComponent myComponent;
+  @Nullable private NlModel myModel;
+  @Nullable private DesignSurface mySurface;
+  @Nullable private Object previousSecondarySelection = null;
 
   @NotNull private final ChangeListener myChangeLiveListener = e -> fireUIUpdate();
+  @NotNull private final ModelListener myModelListener = new ModelListener() {
+    @Override
+    public void modelChanged(@NotNull NlModel model) {
+      fireUIUpdate();
+    }
+
+    @Override
+    public void modelLiveUpdate(@NotNull NlModel model, boolean animate) {
+      fireUIUpdate();
+    }
+  };
 
   private void fireUIUpdate() {
     if (myUpdateCallback != null) {
       GuiUtils.invokeLaterIfNeeded(() -> {
         myIsInCallback = true;
-        myUpdateCallback.run();
-        myIsInCallback = false;
+        try {
+          myUpdateCallback.run();
+        }
+        finally {
+          myIsInCallback = false;
+        }
       }, ModalityState.any());
     }
   }
@@ -218,6 +298,13 @@ public class WidgetConstraintModel {
     myUpdateCallback = modelUpdateCallback;
   }
 
+  /**
+   * Get the margin value.
+   *
+   * @param type One of {@link #CONNECTION_LEFT}, {@link #CONNECTION_RIGHT},
+   *                    {@link #CONNECTION_TOP}, {@link #CONNECTION_BOTTOM}, {@link #CONNECTION_BASELINE}
+   * @return the margin value in dp.
+   */
   public int getMargin(int type) {
     if (myComponent == null) {
       return 0;
@@ -225,9 +312,9 @@ public class WidgetConstraintModel {
     boolean rtl = ConstraintUtilities.isInRTL(myComponent);
 
     String[][] marginsAttr = rtl ? ourMarginString_rtl : ourMarginString_ltr;
-    String marginString = myComponent.getLiveAttribute(NS_RESOURCES, marginsAttr[type][0]);
+    String marginString = myComponent.getLiveAttribute(ANDROID_URI, marginsAttr[type][0]);
     for (int i = 1; marginString == null && marginsAttr[type].length > i; i++) {
-      marginString = myComponent.getLiveAttribute(NS_RESOURCES, marginsAttr[type][i]);
+      marginString = myComponent.getLiveAttribute(ANDROID_URI, marginsAttr[type][i]);
     }
 
     int margin = 0;
@@ -246,6 +333,25 @@ public class WidgetConstraintModel {
   }
 
   /**
+   * Set the margin value.
+   *
+   * @param type One of {@link #CONNECTION_LEFT}, {@link #CONNECTION_RIGHT},
+   *                    {@link #CONNECTION_TOP}, {@link #CONNECTION_BOTTOM}, {@link #CONNECTION_BASELINE}
+   * @param margin the margin value in dp (e.g. "0") or resource (e.g. "@dimen/left_margin")
+   */
+  public void setMargin(int type, String margin) {
+    if (myComponent == null || myIsInCallback) {
+      return;
+    }
+    boolean rtl = ConstraintUtilities.isInRTL(myComponent);
+    String[][] marginsAttr = rtl ? ourMarginString_rtl : ourMarginString_ltr;
+
+    for (int i = 0; i < marginsAttr[type].length; i++) {
+      setDimension(marginsAttr[type][i], margin);
+    }
+  }
+
+  /**
    * Returns true if the current component has a baseline constraint
    */
   public boolean hasBaseline() {
@@ -253,11 +359,50 @@ public class WidgetConstraintModel {
            myComponent.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
   }
 
+  public void setSurface(@Nullable DesignSurface surface) {
+    if (surface == mySurface) {
+      return;
+    }
+    if (mySurface != null) {
+      mySurface.getSelectionModel().removeListener(this);
+    }
+    mySurface = surface;
+    if (mySurface != null) {
+      mySurface.getSelectionModel().addListener(this);
+    }
+    fireUIUpdate();
+  }
+
+  @Nullable
+  public DesignSurface getSurface() {
+    return mySurface;
+  }
+
+  @Override
+  public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
+    if (myComponent == null || !selection.contains(myComponent)) {
+      previousSecondarySelection = null;
+    }
+    if (!model.isSecondarySelected(previousSecondarySelection)){
+      previousSecondarySelection = model.getSecondarySelection();
+    }
+    fireUIUpdate();
+  }
+
   public void setComponent(@Nullable NlComponent component) {
+    if (myModel != null) {
+      myModel.removeListener(myModelListener);
+    }
     if (myComponent != null) {
       myComponent.removeLiveChangeListener(myChangeLiveListener);
     }
+
     myComponent = isApplicable(component) ? component : null;
+    myModel = myComponent != null ? myComponent.getModel() : null;
+
+    if (myModel != null) {
+      myModel.addListener(myModelListener);
+    }
     if (myComponent != null) {
       myComponent.addLiveChangeListener(myChangeLiveListener);
       fireUIUpdate();
@@ -282,6 +427,24 @@ public class WidgetConstraintModel {
     return parent != null && NlComponentHelperKt.isOrHasSuperclass(parent, CONSTRAINT_LAYOUT);
   }
 
+  /**
+   * Remove the attribute from NlComponent
+   */
+  public void removeAttributes(@NotNull String namespace, @NotNull String attribute) {
+    final NlComponent component = myComponent;
+    if (component == null || myIsInCallback) {
+      return;
+    }
+    ComponentModification modification = new ComponentModification(component, "Change Widget");
+    modification.setAttribute(namespace, attribute, null);
+
+    ConstraintComponentUtilities.ensureHorizontalPosition(component, modification);
+    ConstraintComponentUtilities.ensureVerticalPosition(component, modification);
+
+    modification.apply();
+    modification.commit();
+  }
+
   public void killConstraint(@NotNull ConstraintAnchor.Type type) {
     switch (type) {
       case LEFT:
@@ -303,12 +466,19 @@ public class WidgetConstraintModel {
     }
   }
 
+  /**
+   * Remove an attribute.
+   *
+   * @param type One of {@link #CONNECTION_LEFT}, {@link #CONNECTION_RIGHT},
+   *                    {@link #CONNECTION_TOP}, {@link #CONNECTION_BOTTOM}, {@link #CONNECTION_BASELINE}
+   */
   private void removeAttribute(int type) {
     if (myComponent == null || myIsInCallback) {
       return;
     }
+    boolean rtl = ConstraintUtilities.isInRTL(myComponent);
     String label = "Constraint Disconnected";
-    String[] attribute = ourDeleteAttributes[type];
+    String[] attribute = rtl ? ourDeleteAttributes_rtl[type] : ourDeleteAttributes_ltr[type];
     String[] namespace = ourDeleteNamespace[type];
 
     ComponentModification modification = new ComponentModification(myComponent, label);
@@ -419,29 +589,48 @@ public class WidgetConstraintModel {
     return ConstraintUtilities.getDpValue(myComponent, v);
   }
 
-  private void setDimension(@Nullable String attribute, int currentValue) {
+  private void setDimension(@Nullable String attribute, String currentValue) {
     if (myComponent == null || myIsInCallback) {
       return;
     }
+
     attribute = ConstraintComponentUtilities.mapStartEndStrings(myComponent, attribute);
+    boolean isCurrentValueReference = currentValue.startsWith("@");
+    if (isCurrentValueReference) {
+      setAttribute(ANDROID_URI, attribute, currentValue);
+      return;
+    }
+
+    int currentValueInInt = 0;
+    try {
+      currentValueInInt = Integer.parseInt(currentValue);
+    } catch (NumberFormatException nfe) {
+    }
+
     String marginString = myComponent.getLiveAttribute(ANDROID_URI, attribute);
     int marginValue = -1;
     if (marginString != null) {
       marginValue = ConstraintComponentUtilities.getDpValue(myComponent, myComponent.getLiveAttribute(ANDROID_URI, attribute));
     }
-    if (marginValue != -1 && marginValue == currentValue) {
+    if (marginValue != -1 && marginValue == currentValueInInt) {
       setAttribute(ANDROID_URI, attribute, marginString);
     }
     else {
-      String marginY = String.format(VALUE_N_DP, currentValue);
+      String marginY = String.format(VALUE_N_DP, currentValueInInt);
       setAttribute(ANDROID_URI, attribute, marginY);
     }
   }
 
+  /**
+   * Set the live android attribute
+   */
   private void setAndroidAttribute(@NotNull String attribute, @Nullable String value) {
     setAttribute(ANDROID_URI, attribute, value);
   }
 
+  /**
+   * Set the live sherpa attribute
+   */
   private void setSherpaAttribute(@NotNull String attribute, @Nullable String value) {
     setAttribute(SHERPA_URI, attribute, value);
   }
@@ -452,6 +641,9 @@ public class WidgetConstraintModel {
     }
   }
 
+  /**
+   * Set the live attribute
+   */
   private void setAttribute(@NotNull NlComponent component, @NotNull String nameSpace, @NotNull String attribute, @Nullable String value) {
     NlModel model = component.getModel();
 
@@ -524,24 +716,6 @@ public class WidgetConstraintModel {
     setSherpaAttribute(ATTR_LAYOUT_DIMENSION_RATIO, aspect);
   }
 
-  public void setTopMargin(int margin) {
-    setDimension(ATTR_LAYOUT_MARGIN_TOP, margin);
-  }
-
-  public void setLeftMargin(int margin) {
-    setDimension(ATTR_LAYOUT_MARGIN_START, margin);
-    setDimension(ATTR_LAYOUT_MARGIN_LEFT, margin);
-  }
-
-  public void setRightMargin(int margin) {
-    setDimension(ATTR_LAYOUT_MARGIN_END, margin);
-    setDimension(ATTR_LAYOUT_MARGIN_RIGHT, margin);
-  }
-
-  public void setBottomMargin(int margin) {
-    setDimension(ATTR_LAYOUT_MARGIN_BOTTOM, margin);
-  }
-
   public void killBaselineConstraint() {
     killConstraint(ConstraintAnchor.Type.BASELINE);
   }
@@ -551,7 +725,9 @@ public class WidgetConstraintModel {
       return;
     }
     String width = myComponent.getLiveAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH);
-    assert width != null;
+    if (width == null) {
+      width = SdkConstants.VALUE_WRAP_CONTENT;
+    }
 
     if (width.endsWith("dp") && !width.equals("0dp")) {
       myComponent.putClientProperty(ATTR_LAYOUT_WIDTH, width);
@@ -578,7 +754,9 @@ public class WidgetConstraintModel {
       return;
     }
     String height = myComponent.getLiveAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT);
-    assert height != null;
+    if (height == null) {
+      height = SdkConstants.VALUE_WRAP_CONTENT;
+    }
 
     if (height.endsWith("dp") && !height.equals("0dp")) {
       myComponent.putClientProperty(ATTR_LAYOUT_HEIGHT, height);
@@ -598,5 +776,42 @@ public class WidgetConstraintModel {
         setAndroidAttribute(ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
         break;
     }
+  }
+
+  public boolean isMissingHorizontalConstrained() {
+    if (myComponent != null) {
+      String tagName = myComponent.getTagName();
+      if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEquals(tagName)
+          || SdkConstants.CONSTRAINT_LAYOUT_BARRIER.isEquals(tagName)) {
+        // Constraint Guideline and Barrier don't need to be constrained
+        return false;
+      }
+      return !ConstraintComponentUtilities.hasHorizontalConstraints(myComponent);
+    }
+    return false;
+  }
+
+  public boolean isMissingVerticalConstrained() {
+    if (myComponent != null) {
+      String tagName = myComponent.getTagName();
+      if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEquals(tagName)
+          || SdkConstants.CONSTRAINT_LAYOUT_BARRIER.isEquals(tagName)) {
+        // Constraint Guideline and Barrier don't need to be constrained
+        return false;
+      }
+      return !ConstraintComponentUtilities.hasVerticalConstraints(myComponent);
+    }
+    return false;
+  }
+
+  public boolean isOverConstrained() {
+    if (myComponent != null) {
+      for (String[] overConstrainedSet: ourOverConstrainedAttributes) {
+        if (Arrays.stream(overConstrainedSet).filter(s -> myComponent.getAttribute(SHERPA_URI, s) != null).count() > 1) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

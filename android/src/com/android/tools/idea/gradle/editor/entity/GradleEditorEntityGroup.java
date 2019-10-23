@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.editor.entity;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -65,6 +66,6 @@ public class GradleEditorEntityGroup implements Disposable {
 
   @Override
   public String toString() {
-    return String.format("%s [%d entities]", myName, myEntities.size());
+    return String.format(Locale.US, "%s [%d entities]", myName, myEntities.size());
   }
 }

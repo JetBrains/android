@@ -18,10 +18,14 @@ package com.android.tools.idea.gradle.project.sync.errors;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenPluginBuildFileHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.project.Project;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -32,6 +36,9 @@ import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.reg
 import static com.android.tools.idea.testing.TestProjectPaths.PLUGIN_IN_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.FIX_ANDROID_GRADLE_PLUGIN_VERSION_HYPERLINK;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -40,11 +47,13 @@ import static org.mockito.Mockito.when;
  */
 public class OldAndroidPluginErrorHandlerTest extends AndroidGradleTestCase {
   private GradleSyncMessagesStub mySyncMessagesStub;
+  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject(), getTestRootDisposable());
   }
 
   public void testIsMatching() {
@@ -54,14 +63,18 @@ public class OldAndroidPluginErrorHandlerTest extends AndroidGradleTestCase {
   }
 
   public void testHandleError() throws Exception {
-    runTestOnProject(SIMPLE_APPLICATION, new File(getProjectFolderPath(), FN_BUILD_GRADLE));
+    runTestOnProject(SIMPLE_APPLICATION, new File(getProjectFolderPath(), FN_BUILD_GRADLE),
+                     ImmutableList.of(FIX_ANDROID_GRADLE_PLUGIN_VERSION_HYPERLINK, OPEN_FILE_HYPERLINK));
   }
 
   public void testHandleErrorPluginSetInApp() throws Exception {
-    runTestOnProject(PLUGIN_IN_APP, new File(new File(getProjectFolderPath(), "app"), FN_BUILD_GRADLE));
+    runTestOnProject(PLUGIN_IN_APP, new File(new File(getProjectFolderPath(), "app"), FN_BUILD_GRADLE),
+                     ImmutableList.of(FIX_ANDROID_GRADLE_PLUGIN_VERSION_HYPERLINK, OPEN_FILE_HYPERLINK));
   }
 
-  private void runTestOnProject(@NotNull String projectPath, @NotNull File expectedHyperlinkValue) throws Exception {
+  private void runTestOnProject(@NotNull String projectPath,
+                                @NotNull File expectedHyperlinkValue,
+                                @NotNull Collection<AndroidStudioEvent.GradleSyncQuickFix> syncQuickFixes) throws Exception {
     loadProject(projectPath);
 
     String expectedNotificationMessage = "Plugin is too old, please update to a more recent version";
@@ -84,6 +97,9 @@ public class OldAndroidPluginErrorHandlerTest extends AndroidGradleTestCase {
     NotificationHyperlink gotoFile = quickFixes.get(1);
     assertThat(gotoFile).isInstanceOf(OpenFileHyperlink.class);
     assertThat(new File(((OpenFileHyperlink)gotoFile).getFilePath())).isEqualTo(expectedHyperlinkValue);
+
+    assertEquals(OLD_ANDROID_PLUGIN, myUsageReporter.getCollectedFailure());
+    assertEquals(syncQuickFixes, myUsageReporter.getCollectedQuickFixes());
   }
 
   public void testHandleErrorNotInitialized() throws Exception {
@@ -95,5 +111,8 @@ public class OldAndroidPluginErrorHandlerTest extends AndroidGradleTestCase {
     assertSize(2, quickFixes);
     assertThat(quickFixes.get(0)).isInstanceOf(FixAndroidGradlePluginVersionHyperlink.class);
     assertThat(quickFixes.get(1)).isInstanceOf(OpenPluginBuildFileHyperlink.class);
+
+    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
   }
 }

@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.api.util;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.model.ext.ResolvedPropertyModelImpl;
 import com.intellij.pom.java.LanguageLevel;
+import java.math.BigDecimal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,15 +46,15 @@ public final class LanguageLevelUtil {
    * Converts {@code languageLevel} to Gradle JavaVersion representation use the same format as {@code sampleGradleString}.
    */
   @NotNull
-  public static String convertToGradleString(@NotNull LanguageLevel languageLevel, @Nullable String sampleGradleString) {
+  public static Object convertToGradleString(@NotNull LanguageLevel languageLevel, @Nullable String sampleGradleString) {
     String underscoreVersion = languageLevel.name().substring("JDK_".length()); // in the format of 1_5, 1_6, etc
     String dotVersion = underscoreVersion.replace('_', '.');
     if (sampleGradleString != null) {
       if (sampleGradleString.startsWith("JavaVersion.VERSION_")) {
-        return "JavaVersion.VERSION_" + underscoreVersion;
+        return new ReferenceTo("JavaVersion.VERSION_" + underscoreVersion);
       }
       else if (sampleGradleString.startsWith("VERSION_")) {
-        return "VERSION_" + underscoreVersion;
+        return new ReferenceTo("VERSION_" + underscoreVersion);
       }
       else if (sampleGradleString.startsWith("'")) {
         return "'" + dotVersion + "'";
@@ -59,6 +63,29 @@ public final class LanguageLevelUtil {
         return "\"" + dotVersion + "\"";
       }
     }
-    return dotVersion;
+    try {
+      return new BigDecimal(dotVersion);
+    }
+    catch (NumberFormatException e) {
+      return dotVersion;
+    }
+  }
+
+  @Nullable
+  public static String getStringToParse(ResolvedPropertyModel model) {
+    String stringToParse;
+    switch (model.getValueType()) {
+      case BIG_DECIMAL:
+      case INTEGER:
+      case REFERENCE:
+        stringToParse = model.toString();
+        break;
+      case STRING:
+        stringToParse = "'" + model.toString() + "'";
+        break;
+      default:
+        stringToParse = null;
+    }
+    return stringToParse;
   }
 }

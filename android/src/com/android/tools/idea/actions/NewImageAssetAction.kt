@@ -15,6 +15,7 @@ package com.android.tools.idea.actions
 
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsModel
 import com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep
+import com.android.tools.idea.projectsystem.AndroidModuleTemplate
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.intellij.util.ui.JBUI
@@ -27,9 +28,9 @@ import java.net.URL
  */
 class NewImageAssetAction : AndroidAssetStudioAction("Image Asset", "Open Asset Studio to create an image asset") {
 
-  override fun createWizard(facet: AndroidFacet): ModelWizard {
+  override fun createWizard(facet: AndroidFacet, template: AndroidModuleTemplate): ModelWizard {
     val wizardBuilder = ModelWizard.Builder()
-    wizardBuilder.addStep(NewImageAssetStep(GenerateIconsModel(facet, "imageWizard"), facet))
+    wizardBuilder.addStep(NewImageAssetStep(GenerateIconsModel(facet, "imageWizard", template), facet))
     return wizardBuilder.build()
   }
 

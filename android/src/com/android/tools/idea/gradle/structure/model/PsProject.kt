@@ -17,17 +17,25 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import java.util.function.Consumer
 
 interface PsProject : PsModel {
   val ideProject: Project
   val parsedModel: ProjectBuildModel
+  val buildScriptVariables: PsVariables
   val variables: PsVariables
   val pomDependencyCache: PsPomDependencyCache
   val repositorySearchFactory: RepositorySearchFactory
   val modules: PsModelCollection<PsModule>
   val modelCount: Int
+  var androidGradlePluginVersion: ParsedValue<String>
+  var gradleVersion: ParsedValue<String>
+
+  fun getBuildScriptArtifactRepositories(): Collection<ArtifactRepository>
 
   fun findModuleByName(moduleName: String): PsModule?
   fun findModuleByGradlePath(gradlePath: String): PsModule?
@@ -35,4 +43,9 @@ interface PsProject : PsModel {
   fun applyChanges()
 
   fun removeModule(gradlePath: String)
+
+  fun onModuleChanged(disposable: Disposable, handler: (PsModule) -> Unit)
+
+  fun getGradleVersionValue(notApplied: Boolean): String?
+  fun setGradleVersionValue(value: String)
 }

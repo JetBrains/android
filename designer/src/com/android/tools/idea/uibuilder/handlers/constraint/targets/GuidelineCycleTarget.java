@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
@@ -27,6 +27,7 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle;
+import java.awt.Cursor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -34,12 +35,10 @@ import java.util.List;
 /**
  * Implements the guideline cycle
  */
-public class GuidelineCycleTarget extends ConstraintDragTarget {
-
-  private final boolean myIsHorizontal;
+public class GuidelineCycleTarget extends GuidelineTarget {
 
   public GuidelineCycleTarget(boolean isHorizontal) {
-    myIsHorizontal = isHorizontal;
+    super(isHorizontal);
   }
 
   @Override
@@ -50,6 +49,11 @@ public class GuidelineCycleTarget extends ConstraintDragTarget {
   @Override
   public int getPreferenceLevel() {
     return Target.GUIDELINE_LEVEL;
+  }
+
+  @Override
+  public Cursor getMouseCursor() {
+    return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
   }
 
   @Override
@@ -118,11 +122,11 @@ public class GuidelineCycleTarget extends ConstraintDragTarget {
     }
 
     attributes.apply();
-    NlWriteCommandAction.run(component, "Cycle Guideline", attributes::commit);
+    NlWriteCommandActionUtil.run(component, "Cycle Guideline", attributes::commit);
   }
 
   @Override
-  protected void updateAttributes(@NotNull NlAttributesHolder attributes, int x, int y) {
+  protected void updateAttributes(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     String begin = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
     String end = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
     String percent = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);

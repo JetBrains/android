@@ -27,7 +27,7 @@ import java.io.IOException;
 final class FindReferencesRecipeExecutor implements RecipeExecutor {
   private final RenderingContext myContext;
 
-  FindReferencesRecipeExecutor(@NotNull RenderingContext context) {
+  public FindReferencesRecipeExecutor(@NotNull RenderingContext context) {
     myContext = context;
   }
 
@@ -56,6 +56,11 @@ final class FindReferencesRecipeExecutor implements RecipeExecutor {
   public void append(@NotNull File from, @NotNull File to) {
     addSourceFile(from);
     addTargetFile(to);
+  }
+
+  @Override
+  public void addGlobalVariable(@NotNull String id, @NotNull Object value) {
+    myContext.getParamMap().put(id, value);
   }
 
   @Override

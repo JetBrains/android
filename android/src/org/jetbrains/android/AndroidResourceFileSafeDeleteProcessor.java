@@ -1,5 +1,8 @@
 package org.jetbrains.android;
 
+import static org.jetbrains.android.util.AndroidCommonUtils.getResourceName;
+
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -14,19 +17,16 @@ import com.intellij.refactoring.safeDelete.SafeDeleteProcessor;
 import com.intellij.refactoring.safeDelete.SafeDeleteProcessorDelegateBase;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.IncorrectOperationException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import static org.jetbrains.android.util.AndroidCommonUtils.getResourceName;
 
 /**
  * @author Eugene.Kudelevsky
@@ -97,7 +97,7 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
     final String name = vFile.getName();
 
     LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
-    List<PsiFile> resourceFiles = resourceManager.findResourceFiles(folderType, getResourceName(type, name), true, false);
+    Collection<PsiFile> resourceFiles = resourceManager.findResourceFiles(ResourceNamespace.TODO(), folderType, getResourceName(type, name), true, false);
 
     final List<PsiElement> result = new ArrayList<>();
 

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.build.invoker;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.progress.ProgressIndicator;
 import org.gradle.tooling.CancellationTokenSource;
-import org.gradle.tooling.GradleConnector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -29,16 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BuildStopper {
   @NotNull private final Map<ExternalSystemTaskId, CancellationTokenSource> myMap = new ConcurrentHashMap<>();
 
-  @NotNull
-  public CancellationTokenSource createAndRegisterTokenSource(@NotNull ExternalSystemTaskId id) {
-    CancellationTokenSource tokenSource = GradleConnector.newCancellationTokenSource();
-    myMap.put(id, tokenSource);
-    return tokenSource;
-  }
-
-  @TestOnly
-  void register(@NotNull ExternalSystemTaskId id, CancellationTokenSource tokenSource) {
-    myMap.put(id, tokenSource);
+  void register(@NotNull ExternalSystemTaskId taskId, CancellationTokenSource tokenSource) {
+    myMap.put(taskId, tokenSource);
   }
 
   public void attemptToStopBuild(@NotNull ExternalSystemTaskId id, @Nullable ProgressIndicator progressIndicator) {
@@ -51,7 +42,7 @@ public class BuildStopper {
         progressIndicator.cancel();
       }
     }
-    CancellationTokenSource token = remove(id);
+    CancellationTokenSource token = myMap.get(id);
     if (token != null) {
       token.cancel();
     }

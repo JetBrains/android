@@ -15,7 +15,26 @@
  */
 package com.android.tools.idea.diagnostics;
 
+import static org.hamcrest.CoreMatchers.hasItems;
+
+import com.android.tools.idea.diagnostics.report.DiagnosticReport;
+import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties;
+import com.android.tools.idea.diagnostics.report.FreezeReport;
+import com.android.tools.idea.diagnostics.report.HistogramReport;
+import com.android.tools.idea.diagnostics.report.MemoryReportReason;
+import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpReport;
 import com.google.common.base.Charsets;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.text.DateFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 import org.hamcrest.CoreMatchers;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -23,20 +42,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-
-import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class StudioReportDatabaseTest {
   @Rule
@@ -52,6 +64,18 @@ public class StudioReportDatabaseTest {
   }
 
   @Test
+  public void testEmptyDatabase() throws IOException {
+    List<DiagnosticReport> reports = db.getReports();
+    assertEquals(0, reports.size());
+    db.appendReport(new PerformanceThreadDumpReport(createTempFileWithThreadDump("1"), "test"));
+    reports = db.reapReports();
+    reports = db.getReports();
+    assertEquals(0, reports.size());
+    reports = db.reapReports();
+    assertEquals(0, reports.size());
+  }
+
+  @Test
   public void testParser() throws IOException {
     Path t1 = createTempFileWithThreadDump("1");
     Path t2 = createTempFileWithThreadDump("1");
@@ -59,11 +83,11 @@ public class StudioReportDatabaseTest {
     db.appendReport(new PerformanceThreadDumpReport(t1, "test"));
     db.appendReport(new PerformanceThreadDumpReport(t2, "test"));
 
-    List<DiagnosticReport> reports = db.reapReportDetails();
+    List<DiagnosticReport> reports = db.reapReports();
     List<Path> paths = reports.stream().map(r -> ((PerformanceThreadDumpReport) r).getThreadDumpPath()).collect(Collectors.toList());
     assertThat(paths, hasItems(t1, t2));
 
-    reports = db.reapReportDetails();
+    reports = db.reapReports();
     assertTrue(reports.isEmpty());
   }
 
@@ -77,11 +101,11 @@ public class StudioReportDatabaseTest {
     Path h3 = createTempFileWithThreadDump("H3");
     Path t3 = createTempFileWithThreadDump("T3");
 
-    db.appendReport(new HistogramReport(t1, h1, "test"));
+    db.appendReport(new HistogramReport(t1, h1, MemoryReportReason.LowMemory, "test"));
     db.appendReport(new PerformanceThreadDumpReport(t2, "test"));
-    db.appendReport(new HistogramReport(t3, h3, "test"));
+    db.appendReport(new HistogramReport(t3, h3, MemoryReportReason.LowMemory, "test"));
 
-    List<DiagnosticReport> reports = db.reapReportDetails();
+    List<DiagnosticReport> reports = db.reapReports();
 
     assertEquals(3, reports.size());
     assertEquals(2, reports.stream().filter(r -> r.getType().equals("Histogram")).count());
@@ -93,13 +117,14 @@ public class StudioReportDatabaseTest {
     Path h1 = createTempFileWithThreadDump("H1");
     Path t1 = createTempFileWithThreadDump("T1");
 
-    db.appendReport(new HistogramReport(t1, h1, "Histogram description"));
+    db.appendReport(new HistogramReport(t1, h1, MemoryReportReason.LowMemory, "Histogram description"));
 
-    DiagnosticReport details = db.reapReportDetails().get(0);
+    DiagnosticReport details = db.reapReports().get(0);
 
     assertThat(details, CoreMatchers.is(instanceOf(HistogramReport.class)));
     HistogramReport report = (HistogramReport) details;
     assertEquals("Histogram", details.getType());
+    assertEquals("LowMemory", report.getReason().toString());
     assertEquals(t1, report.getThreadDumpPath());
     assertEquals(h1, report.getHistogramPath());
     assertEquals("Histogram description", report.getDescription());
@@ -110,7 +135,7 @@ public class StudioReportDatabaseTest {
     Path threadDump = createTempFileWithThreadDump("T1");
     Path actions = createTempFileWithThreadDump("Actions");
     Path memoryUse = createTempFileWithThreadDump("Memory use");
-    Path profile = createTempFileWithThreadDump("PBasrofile");
+    Path profile = createTempFileWithThreadDump("Profile");
     Map<String, Path> paths = new TreeMap<>();
     paths.put("actionsDiagnostics", actions);
     paths.put("memoryUseDiagnostics", memoryUse);
@@ -118,7 +143,7 @@ public class StudioReportDatabaseTest {
     db.appendReport(new FreezeReport(threadDump, paths, false, 20L, "Freeze report"));
     db.appendReport(new FreezeReport(threadDump, paths, true, null, "Freeze report"));
 
-    List<DiagnosticReport> diagnosticReports = db.reapReportDetails();
+    List<DiagnosticReport> diagnosticReports = db.reapReports();
     FreezeReport report = (FreezeReport) diagnosticReports.get(0);
     assertEquals("Freeze", report.getType());
     assertEquals(threadDump, report.getThreadDumpPath());
@@ -132,12 +157,23 @@ public class StudioReportDatabaseTest {
   }
 
   @Test
+  public void testEmptyFreezeReport() throws IOException {
+    db.appendReport(new FreezeReport(null, new TreeMap<>(), false, null, null));
+    FreezeReport report = (FreezeReport) db.reapReports().get(0);
+
+    assertNull(report.getThreadDumpPath());
+    assertEquals(0, report.getReportParts().size());
+    assertNull(report.getTotalDuration());
+    assertNull(report.getDescription());
+  }
+
+  @Test
   public void testPerformanceThreadDumpContent() throws IOException {
     Path t1 = createTempFileWithThreadDump("T1");
 
     db.appendReport(new PerformanceThreadDumpReport(t1, "Performance thread dump description"));
 
-    DiagnosticReport details = db.reapReportDetails().get(0);
+    DiagnosticReport details = db.reapReports().get(0);
 
     assertEquals("PerformanceThreadDump", details.getType());
     assertEquals(t1, ((PerformanceThreadDumpReport) details).getThreadDumpPath());
@@ -149,7 +185,7 @@ public class StudioReportDatabaseTest {
     Path t1 = createTempFileWithThreadDump("T1");
     db.appendReport(new PerformanceThreadDumpReport(t1, "Performance thread dump description"));
     Files.write(databaseFile.toPath(), "Corrupted json".getBytes(StandardCharsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
-    List<DiagnosticReport> details = db.reapReportDetails();
+    List<DiagnosticReport> details = db.reapReports();
 
     // If the db file contains corrupted of malformed json, return no reports.
     assertEquals(0, details.size());
@@ -157,10 +193,29 @@ public class StudioReportDatabaseTest {
     // Test that database works even after its file gets corrupted.
     Path t2 = createTempFileWithThreadDump("T2");
     db.appendReport(new PerformanceThreadDumpReport(t2, "Performance thread dump description"));
-    details = db.reapReportDetails();
+    details = db.reapReports();
 
     assertEquals(1, details.size());
     assertEquals(t2, ((PerformanceThreadDumpReport) details.get(0)).getThreadDumpPath());
+  }
+
+  @Test
+  public void testDiagnosticProperties() throws Exception {
+    Path t1 = createTempFileWithThreadDump("T1");
+    Path t2 = createTempFileWithThreadDump("T2");
+    long time = DateFormat.getInstance().parse("07/10/2018 4:05 PM, PDT").getTime();
+    DiagnosticReportProperties properties = new DiagnosticReportProperties(
+      1000, // uptime
+      time, // report time
+      "testSessionId",
+      "1.2.3.4", //studio version
+      "9.8.7.6" // kotlin version
+    );
+    db.appendReport(new HistogramReport(t1, t2, MemoryReportReason.LowMemory, "", properties));
+    List<DiagnosticReport> reports = db.reapReports();
+    HistogramReport report = (HistogramReport) reports.get(0);
+    assertNotSame(properties, report.getProperties());
+    assertEquals(properties, report.getProperties());
   }
 
   @NotNull

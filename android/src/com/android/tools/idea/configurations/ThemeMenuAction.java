@@ -24,7 +24,6 @@ import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -98,6 +97,12 @@ public class ThemeMenuAction extends DropDownAction {
       }
     }
     return theme;
+  }
+
+  @Override
+  protected boolean hasDropDownArrow() {
+    // Calculating themes can be expensive and we know that there is always more than one so always display the dropdown arrow
+    return true;
   }
 
   @Override
@@ -239,7 +244,7 @@ public class ThemeMenuAction extends DropDownAction {
       super(configurationHolder, themeDisplayName);
       myTheme = theme;
       if (selected) {
-        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+        getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, true);
       }
     }
 

@@ -48,16 +48,15 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 
 /**
  * Represents a style in ThemeEditor. Knows about the style in all {@link FolderConfiguration}s.
@@ -98,7 +97,7 @@ public class ThemeEditorStyle {
    */
   @NotNull
   public String getQualifiedName() {
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(myManager.getModule());
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myManager.getModule());
     if (repositoryManager == null || repositoryManager.getNamespace().equals(myStyleReference.getNamespace())) {
       return myStyleReference.getName();
     }
@@ -121,9 +120,9 @@ public class ThemeEditorStyle {
     if (isFramework()) {
       return false;
     }
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(myManager.getModule());
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myManager.getModule());
     assert repositoryManager != null;
-    LocalResourceRepository repository = repositoryManager.getProjectResources(true);
+    LocalResourceRepository repository = repositoryManager.getProjectResources();
     return repository.hasResources(myStyleReference.getNamespace(), myStyleReference.getResourceType(), myStyleReference.getName());
   }
 
@@ -391,7 +390,7 @@ public class ThemeEditorStyle {
           // Otherwise, LocalResourceRepositories won't get updated, so we won't get copied styles
           AndroidFacet facet = AndroidFacet.getInstance(myManager.getModule());
           if (facet != null) {
-            ResourceRepositoryManager.getOrCreateInstance(facet).resetAllCaches();
+            ResourceRepositoryManager.getInstance(facet).resetAllCaches();
             // This is because the ResourceFolderRepository may initialize through the file instead of Psi.
             FileDocumentManager.getInstance().saveAllDocuments();
           }
@@ -468,7 +467,7 @@ public class ThemeEditorStyle {
           // Otherwise, LocalResourceRepositories won't get updated, so we won't get copied styles
           AndroidFacet facet = AndroidFacet.getInstance(myManager.getModule());
           if (facet != null) {
-            ResourceRepositoryManager.getOrCreateInstance(facet).resetAllCaches();
+            ResourceRepositoryManager.getInstance(facet).resetAllCaches();
             // This is because the ResourceFolderRepository may initialize through the file instead of Psi.
             FileDocumentManager.getInstance().saveAllDocuments();
           }

@@ -16,8 +16,9 @@
         <moduleService serviceInterface="org.jetbrains.kotlin.android.synthetic.res.AndroidLayoutXmlFileManager"
                        serviceImplementation="org.jetbrains.kotlin.android.synthetic.idea.res.IDEAndroidLayoutXmlFileManager"/>
         <psi.treeChangePreprocessor implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidPsiTreeChangePreprocessor"/>
-        <errorHandler implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidExtensionsReportSubmitter"/>
         <gotoDeclarationHandler implementation="org.jetbrains.kotlin.android.synthetic.idea.AndroidGotoDeclarationHandler"/>
+
+        <completion.contributor language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidKotlinCompletionContributor" order="first, before KotlinCompletionContributor"/>
 
         <localInspection implementationClass="org.jetbrains.kotlin.android.inspection.IllegalIdentifierInspection"
                          displayName="Illegal Android Identifier"
@@ -31,6 +32,13 @@
                          enabledByDefault="true"
                          cleanupTool="true"
                          level="WEAK WARNING"
+                         language="kotlin" />
+
+        <localInspection implementationClass="org.jetbrains.kotlin.android.inspection.IncorrectScopeInspection"
+                         displayName="Unresolved reference, in wrong test scope"
+                         groupName="Kotlin Android"
+                         enabledByDefault="true"
+                         level="ERROR"
                          language="kotlin" />
 
         <codeInsight.lineMarkerProvider language="kotlin" implementationClass="org.jetbrains.kotlin.android.KotlinAndroidLineMarkerProvider"/>
@@ -77,6 +85,7 @@
         <lang.foldingBuilder language="kotlin" implementationClass="org.jetbrains.kotlin.android.folding.ResourceFoldingBuilder" />
 
         <annotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidResourceReferenceAnnotator" />
+        <externalAnnotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidKotlinResourceExternalAnnotator" />
 
         <referencesSearch implementation="org.jetbrains.kotlin.AndroidExtensionsReferenceSearchExecutor"/>
 
@@ -111,6 +120,7 @@
         <androidDexer implementation="org.jetbrains.kotlin.android.debugger.AndroidDexerImpl"/>
 
         <highlighterExtension implementation="org.jetbrains.kotlin.android.AndroidHighlighterExtension"/>
+        <quickFixContributor implementation="com.android.tools.idea.imports.AndroidMavenImportKotlinResolver"/>
         <resolveScopeEnlarger implementation="org.jetbrains.kotlin.android.AndroidKotlinResolveScopeEnlarger"/>
     </extensions>
 
@@ -124,6 +134,8 @@
 
     <extensions defaultExtensionNs="com.android.gradle.sync">
         <postSyncModuleSetupStep implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidModuleSetupStep"/>
+        <extraGradleSyncJavaModels implementation="org.jetbrains.kotlin.android.sync.ng.KotlinSyncModels$KotlinJavaSyncModels"/>
+        <extraGradleSyncAndroidModels implementation="org.jetbrains.kotlin.android.sync.ng.KotlinSyncModels$KotlinAndroidSyncModels"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin.android.model">

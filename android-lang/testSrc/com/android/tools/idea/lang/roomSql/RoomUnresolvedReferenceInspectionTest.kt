@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.lang.roomSql
 
+import com.android.tools.idea.testing.highlightedAs
+import com.intellij.lang.annotation.HighlightSeverity.ERROR
+
 class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
   override fun setUp() {
     super.setUp()
@@ -69,14 +72,14 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
 
         import androidx.room.Dao;
         import androidx.room.Query;
-        import java.util.List;
+        import kotlin.collections.List;
 
         const val tableName = "user"
 
         @Dao
         public interface UserDao {
           @Query("SELECT * FROM ${'$'}tableName WHERE name IS NOT NULL")
-          List<User> getUsersWithName();
+          fun getUsersWithName(): List<User>;
         }
     """.trimIndent())
 
@@ -491,6 +494,7 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
 
   fun testRowId() {
     myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.Mail","body" ofType "String")
 
     myFixture.configureByText("SomeDao.java", """
         package com.example;
@@ -501,7 +505,7 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
 
         @Dao
         public interface SomeDao {
-          @Query("SELECT `rowid` FROM user WHERE `rowid` = 1")
+          @Query("SELECT rowid FROM user WHERE rowid = 1")
           String quoted();
 
           @Query("SELECT _rowid_ FROM user WHERE _rowid_ = 1")
@@ -509,6 +513,26 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
 
           @Query("SELECT oid FROM user WHERE oid = 1")
           String oid();
+
+          @Query("SELECT docid FROM mail WHERE body MATCH :query")
+          List<Integer> search(String query);
+        }
+    """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
+  fun testDatabaseView() {
+    myFixture.addRoomEntity("com.example.User","name" ofType "String")
+
+    myFixture.configureByText("NamesView.java", """
+        package com.example;
+
+        import androidx.room.DatabaseView;
+
+        @DatabaseView("SELECT name, ${"age" highlightedAs ERROR} FROM user")
+        public class NamesView {
+          String name;
         }
     """.trimIndent())
 

@@ -16,34 +16,40 @@
 package com.android.tools.idea.gradle.structure.quickfix
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.configurables.issues.QuickFixLinkHandler.QUICK_FIX_PATH_TYPE
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsQuickFix
-import com.android.tools.idea.gradle.structure.quickfix.QuickFixes.QUICK_FIX_PATH_SEPARATOR
-import com.android.tools.idea.gradle.structure.quickfix.QuickFixes.SET_LIBRARY_DEPENDENCY_QUICK_FIX
+import java.io.Serializable
 
-const val DEFAULT_QUICK_FIX_TEXT = "[Fix]"
 data class PsLibraryDependencyVersionQuickFixPath(
   val moduleName: String,
   val dependency: String,
   val configurationName: String,
   val version: String,
-  val text: String
-) : PsQuickFix {
+  val updateVariable: Boolean?
+) : PsQuickFix, Serializable {
+  override val text: String
+    get() = when (updateVariable) {
+      null -> "Update"
+      true -> "Update Variable"
+      false -> "Update Dependency"
+    }
 
   constructor(
     dependency: PsLibraryDependency,
     version: String,
-    quickFixText: String = DEFAULT_QUICK_FIX_TEXT
+    updateVariable: Boolean? = null
   ) : this(
-    dependency.parent.name, dependency.spec.compactNotation(), dependency.joinedConfigurationNames, version, quickFixText)
+    dependency.parent.name, dependency.spec.compactNotation(), dependency.joinedConfigurationNames, version, updateVariable
+  )
 
-  override fun getHyperlinkDestination(context: PsContext): String =
-    QUICK_FIX_PATH_TYPE +
-    (listOfNotNull(SET_LIBRARY_DEPENDENCY_QUICK_FIX, moduleName, dependency, configurationName, version)
-      .joinToString(QUICK_FIX_PATH_SEPARATOR.toString()))
-
-  override fun getHtml(context: PsContext): String = "<a href=\"${getHyperlinkDestination(context)}\">$text</a>"
+  override fun execute(context: PsContext) {
+    val module = context.project.findModuleByName(moduleName)
+    val spec = PsArtifactDependencySpec.create(dependency)
+    if (module != null && spec != null) {
+      module.setLibraryDependencyVersion(spec, configurationName, version, updateVariable ?: false)
+    }
+  }
 
   override fun toString(): String = "$dependency ($configurationName)"
 }

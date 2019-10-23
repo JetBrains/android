@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.intellij.ui.OnePixelSplitter
 import javax.swing.JComponent
@@ -58,7 +58,7 @@ class IssuePanelSplitter(
   }
 
   private fun createIssuePanelMinimizeListener(issuePanel: IssuePanel) = IssuePanel.MinimizeListener { isMinimized ->
-    NlUsageTrackerManager.getInstance(surface).logAction(
+    NlUsageTracker.getInstance(surface).logAction(
         if (isMinimized)
           LayoutEditorEvent.LayoutEditorEventType.MINIMIZE_ERROR_PANEL
         else

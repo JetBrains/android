@@ -34,7 +34,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getConfigurationFactories()[0];
+    ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
     myRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
     myDevice = Mockito.mock(IDevice.class);
   }

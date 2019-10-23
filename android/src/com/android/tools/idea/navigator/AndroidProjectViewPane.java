@@ -15,6 +15,17 @@
  */
 package com.android.tools.idea.navigator;
 
+import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
+import static com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT;
+import static com.intellij.openapi.actionSystem.CommonDataKeys.PSI_ELEMENT;
+import static com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE;
+import static com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE_ARRAY;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
+import static com.intellij.openapi.actionSystem.PlatformDataKeys.DELETE_ELEMENT_PROVIDER;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 import com.android.tools.idea.Projects;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
@@ -30,7 +41,11 @@ import com.intellij.ide.projectView.BaseProjectTreeBuilder;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.projectView.impl.*;
+import com.intellij.ide.projectView.impl.AbstractProjectViewPSIPane;
+import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
+import com.intellij.ide.projectView.impl.ProjectAbstractTreeStructureBase;
+import com.intellij.ide.projectView.impl.ProjectTreeStructure;
+import com.intellij.ide.projectView.impl.ProjectViewTree;
 import com.intellij.ide.projectView.impl.nodes.PackageElement;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -51,31 +66,22 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.ui.tree.TreeUtil;
 import icons.AndroidIcons;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import javax.swing.Icon;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-
-import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
-import static com.intellij.openapi.actionSystem.CommonDataKeys.*;
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
-import static com.intellij.openapi.actionSystem.PlatformDataKeys.DELETE_ELEMENT_PROVIDER;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-import static com.intellij.openapi.util.io.FileUtil.isAncestor;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   // Note: This value is duplicated in ProjectViewImpl.java to set the default view to be the Android project view.
@@ -194,7 +200,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
       }
 
       @Override
-      protected AbstractTreeNode createRoot(Project project, ViewSettings settings) {
+      protected AbstractTreeNode createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
         return new AndroidViewProjectNode(project, settings, AndroidProjectViewPane.this);
       }
     };
@@ -202,20 +208,22 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
   @NotNull
   @Override
-  protected BaseProjectTreeBuilder createBuilder(DefaultTreeModel treeModel) {
+  protected BaseProjectTreeBuilder createBuilder(@NotNull DefaultTreeModel treeModel) {
     return new AndroidProjectTreeBuilder(myProject, myTree, treeModel, (ProjectAbstractTreeStructureBase)myTreeStructure, null);
   }
 
   @NotNull
   @Override
-  protected ProjectViewTree createTree(final DefaultTreeModel treeModel) {
+  protected ProjectViewTree createTree(@NotNull final DefaultTreeModel treeModel) {
     return new MyProjectViewTree(treeModel);
   }
 
   @NotNull
   @Override
-  protected AbstractTreeUpdater createTreeUpdater(AbstractTreeBuilder treeBuilder) {
-    return new AbstractTreeUpdater(treeBuilder);
+  protected AbstractTreeUpdater createTreeUpdater(@NotNull AbstractTreeBuilder treeBuilder) {
+    return new AbstractTreeUpdater(treeBuilder) {
+      // unique class to simplify search through the logs
+    };
   }
 
   @Override
@@ -270,7 +278,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   }
 
   @Override
-  public Object getData(String dataId) {
+  public Object getData(@NotNull String dataId) {
     if (PROJECT.is(dataId)) {
       return myProject;
     }
@@ -418,7 +426,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
     @Nullable
     @Override
-    public Object getData(@NonNls String dataId) {
+    public Object getData(@NotNull @NonNls String dataId) {
       return AndroidProjectViewPane.this.getData(dataId);
     }
   }

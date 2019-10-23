@@ -15,43 +15,109 @@
  */
 package com.android.tools.idea.run;
 
+import static com.intellij.util.ThreeState.NO;
+
+import com.android.annotations.concurrency.Slow;
+import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.run.ui.ApplyChangesAction;
+import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.run.util.LaunchUtils;
+import com.intellij.execution.runners.ExecutionEnvironment;
+import java.util.EnumSet;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.EnumSet;
-import java.util.Set;
-
 public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecker {
-  private final AndroidVersion myMinSdkVersion;
-  private final IAndroidTarget myProjectTarget;
-  private final EnumSet<IDevice.HardwareFeature> myRequiredHardwareFeatures;
-  private final Set<String> mySupportedAbis;
+  @NotNull private final AndroidVersion myMinSdkVersion;
+  @NotNull private final IAndroidTarget myProjectTarget;
+  @NotNull private final AndroidFacet myFacet;
+  @Nullable private final ExecutionEnvironment myEnvironment;
+  @Nullable private final AndroidRunConfigurationBase myAndroidRunConfigurationBase;
+  @Nullable private final Set<String> mySupportedAbis;
 
   public LaunchCompatibilityCheckerImpl(@NotNull AndroidVersion minSdkVersion,
                                         @NotNull IAndroidTarget target,
-                                        @NotNull EnumSet<IDevice.HardwareFeature> requiredHardwareFeatures,
+                                        @NotNull AndroidFacet facet,
+                                        @Nullable ExecutionEnvironment environment,
+                                        @Nullable AndroidRunConfigurationBase androidRunConfigurationBase,
                                         @Nullable Set<String> supportedAbis) {
+    assert (environment == null && androidRunConfigurationBase == null) || (environment != null && androidRunConfigurationBase != null);
     myMinSdkVersion = minSdkVersion;
     myProjectTarget = target;
-    myRequiredHardwareFeatures = requiredHardwareFeatures;
+    myEnvironment = environment;
+    myAndroidRunConfigurationBase = androidRunConfigurationBase;
+    myFacet = facet;
     mySupportedAbis = supportedAbis;
   }
 
+  /**
+   * Returns the required hardware features from a given {@link AndroidFacet}. This method can block since it relies on
+   * the {@link com.android.tools.idea.model.MergedManifestManager}.
+   */
+  @NotNull
+  private EnumSet<IDevice.HardwareFeature> getRequiredHardwareFeauters() {
+    // Currently, we only look at whether the device supports the watch feature.
+    // We may not want to search the device for every possible feature, but only a small subset of important
+    // features, starting with hardware type watch.
+    if (LaunchUtils.isWatchFeatureRequired(myFacet)) {
+      return EnumSet.of(IDevice.HardwareFeature.WATCH);
+    }
+    else {
+      return EnumSet.noneOf(IDevice.HardwareFeature.class);
+    }
+  };
+
+  /**
+   * Validates the given {@link AndroidDevice} and returns the {@link LaunchCompatibility}. This method
+   * can block while obtaining the hardware features from the {@link AndroidFacet}.
+   */
+  @Slow
   @NotNull
   @Override
   public LaunchCompatibility validate(@NotNull AndroidDevice device) {
-    return device.canRun(myMinSdkVersion, myProjectTarget, myRequiredHardwareFeatures, mySupportedAbis);
+    LaunchCompatibility launchCompatibility = LaunchCompatibility.YES;
+
+    if (myEnvironment != null && myAndroidRunConfigurationBase != null) {
+      Boolean applyChanges = myEnvironment.getCopyableUserData(ApplyChangesAction.KEY);
+      Boolean codeSwap = myEnvironment.getCopyableUserData(CodeSwapAction.KEY);
+      if ((applyChanges != null && applyChanges) || (codeSwap != null && codeSwap)) {
+        if (device.getVersion().compareTo(AndroidVersion.VersionCodes.O, null) < 0) {
+          launchCompatibility = new LaunchCompatibility(NO, "The device needs to be running Oreo or newer.");
+        }
+        else if (!device.isRunning()) {
+          launchCompatibility = new LaunchCompatibility(NO, "Please ensure the target device/emulator is running.");
+        }
+        else {
+          try {
+            ApplicationIdProvider applicationIdProvider = myAndroidRunConfigurationBase.getApplicationIdProvider(myFacet);
+            Client client = device.getLaunchedDevice().get().getClient(applicationIdProvider.getPackageName());
+            if (client == null) {
+              launchCompatibility = new LaunchCompatibility(
+                NO, "App not running on device. Please first install/run the app on the target device/emulator.");
+            }
+          }
+          catch (InterruptedException | ExecutionException | ApkProvisionException e) {
+            launchCompatibility = new LaunchCompatibility(NO, "Could not determine if device is compatible.");
+          }
+        }
+      }
+    }
+
+    return launchCompatibility.combine(device.canRun(myMinSdkVersion, myProjectTarget, getRequiredHardwareFeauters(), mySupportedAbis));
   }
 
-  public static LaunchCompatibilityChecker create(@NotNull AndroidFacet facet) {
+  public static LaunchCompatibilityChecker create(@NotNull AndroidFacet facet,
+                                                  @Nullable ExecutionEnvironment env,
+                                                  @Nullable AndroidRunConfigurationBase androidRunConfigurationBase) {
     AndroidVersion minSdkVersion = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
 
     AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
@@ -59,21 +125,12 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
       throw new IllegalStateException("Android platform not set for module: " + facet.getModule().getName());
     }
 
-    // Currently, we only look at whether the device supports the watch feature.
-    // We may not want to search the device for every possible feature, but only a small subset of important
-    // features, starting with hardware type watch.
-    EnumSet<IDevice.HardwareFeature> requiredHardwareFeatures;
-    if (LaunchUtils.isWatchFeatureRequired(facet)) {
-      requiredHardwareFeatures = EnumSet.of(IDevice.HardwareFeature.WATCH);
-    }
-    else {
-      requiredHardwareFeatures = EnumSet.noneOf(IDevice.HardwareFeature.class);
-    }
-
     Set<String> supportedAbis = facet.getConfiguration().getModel() instanceof AndroidModuleModel ?
-                                ((AndroidModuleModel)facet.getConfiguration().getModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
+                                ((AndroidModuleModel)facet.getConfiguration().getModel()).getSelectedVariant().getMainArtifact()
+                                  .getAbiFilters() :
                                 null;
 
-    return new LaunchCompatibilityCheckerImpl(minSdkVersion, platform.getTarget(), requiredHardwareFeatures, supportedAbis);
+    return new LaunchCompatibilityCheckerImpl(
+      minSdkVersion, platform.getTarget(), facet, env, androidRunConfigurationBase, supportedAbis);
   }
 }

@@ -73,7 +73,7 @@ final public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeVa
     }
     PsiManager psiManager = PsiManager.getInstance(project);
     SimpleIncludeValue value = getSimpleIncludeValue();
-    VirtualFile virtualFile = fileSystem.findFileByIoFile(value.myIncludeFolder);
+    VirtualFile virtualFile = fileSystem.findFileByIoFile(value.getIncludeFolder());
     if (virtualFile == null) {
       //noinspection unchecked
       return Collections.EMPTY_LIST;
@@ -95,7 +95,7 @@ final public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeVa
     else {
       presentation.setIcon(AllIcons.Nodes.JavaModuleRoot);
     }
-    presentation.addText(concrete.mySimplePackageName, REGULAR_ATTRIBUTES);
+    presentation.addText(concrete.getSimplePackageName(), REGULAR_ATTRIBUTES);
     if (myShowPackageType && concrete.getPackageType() != PackageType.IncludeFolder) {
       presentation.addText(String.format(" (%s, ", concrete.getPackageType().myDescription), GRAY_ATTRIBUTES);
     }
@@ -103,13 +103,13 @@ final public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeVa
       presentation.addText(" (", GRAY_ATTRIBUTES);
     }
     if (concrete.getPackageType() == PackageType.IncludeFolder) {
-      String path = getLocationRelativeToUserHome(concrete.myIncludeFolder.getPath());
+      String path = getLocationRelativeToUserHome(concrete.getIncludeFolder().getPath());
       path = LexicalIncludePaths.trimPathSeparators(path);
       path = FilenameUtils.separatorsToSystem(path);
       presentation.addText(String.format("%s)", path), GRAY_ATTRIBUTES);
     }
     else {
-      String path = concrete.myRelativeIncludeSubFolder;
+      String path = concrete.getRelativeIncludeSubFolder();
       path = LexicalIncludePaths.trimPathSeparators(path);
       path = FilenameUtils.separatorsToSystem(path);
       presentation.addText(String.format("%s)", path), GRAY_ATTRIBUTES);
@@ -123,7 +123,7 @@ final public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeVa
     }
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
     SimpleIncludeValue value = getSimpleIncludeValue();
-    VirtualFile ancestor = fileSystem.findFileByIoFile(value.myIncludeFolder);
+    VirtualFile ancestor = fileSystem.findFileByIoFile(value.getIncludeFolder());
     if (ancestor != null && VfsUtilCore.isAncestor(ancestor, file, false)) {
       return true;
     }

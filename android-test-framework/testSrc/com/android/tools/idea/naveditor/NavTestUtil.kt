@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor
 
 import com.android.tools.idea.templates.IdeGoogleMavenRepository
 
-val navEditorAarPaths: Array<String> by lazy {
+val navEditorAarPaths: Map<String, String> by lazy {
   val supportFragmentVersion = IdeGoogleMavenRepository.findVersion("com.android.support", "support-fragment")
 
   val navigationFragmentVersion = IdeGoogleMavenRepository.findVersion(
@@ -39,11 +39,15 @@ val navEditorAarPaths: Array<String> by lazy {
 
   val repo = "../../prebuilts/tools/common/m2/repository"
 
-  arrayOf(
-    "$repo/android/arch/navigation/navigation-runtime/$runtimeVersion/navigation-runtime-$runtimeVersion.aar",
-    "$repo/android/arch/navigation/navigation-common/$commonVersion/navigation-common-$commonVersion.aar",
-    "$repo/android/arch/navigation/navigation-fragment/$navigationFragmentVersion/navigation-fragment-$navigationFragmentVersion.aar",
-    "$repo/com/android/support/support-fragment/$supportFragmentVersion/support-fragment-$supportFragmentVersion.aar"
+  mapOf(
+    "$repo/android/arch/navigation/navigation-runtime/$runtimeVersion/navigation-runtime-$runtimeVersion.aar" to
+      "android.arch.navigation:navigation-runtime:$runtimeVersion",
+    "$repo/android/arch/navigation/navigation-common/$commonVersion/navigation-common-$commonVersion.aar" to
+      "android.arch.navigation:navigation-common:$runtimeVersion",
+    "$repo/android/arch/navigation/navigation-fragment/$navigationFragmentVersion/navigation-fragment-$navigationFragmentVersion.aar" to
+      "android.arch.navigation:navigation-fragment:$runtimeVersion",
+    "$repo/com/android/support/support-fragment/$supportFragmentVersion/support-fragment-$supportFragmentVersion.aar" to
+      "com.android.support:support-fragment:$runtimeVersion"
   )
 }
 

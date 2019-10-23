@@ -14,7 +14,7 @@ class AddModuleDependencyTask extends ImportDependenciesTask {
   private final ModuleProvider myModuleProvider;
   private final ModuleProvider myDepModuleProvider;
 
-  AddModuleDependencyTask(@NotNull ModuleProvider moduleProvider, @NotNull ModuleProvider depModuleProvider) {
+  public AddModuleDependencyTask(@NotNull ModuleProvider moduleProvider, @NotNull ModuleProvider depModuleProvider) {
     myModuleProvider = moduleProvider;
     myDepModuleProvider = depModuleProvider;
   }

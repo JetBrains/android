@@ -109,7 +109,7 @@ public final class EnumComboProvider extends ParameterComponentProvider<JComboBo
   private static class ApiComboBoxTextProperty extends AbstractProperty<String> implements ActionListener {
     @NotNull private final JComboBox myComboBox;
 
-    ApiComboBoxTextProperty(@NotNull JComboBox comboBox) {
+    public ApiComboBoxTextProperty(@NotNull JComboBox comboBox) {
       myComboBox = comboBox;
       myComboBox.addActionListener(this);
     }

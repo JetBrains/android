@@ -17,14 +17,17 @@ package com.android.tools.idea.gradle.structure.model.repositories.search
 
 import com.android.ide.common.repository.GradleVersion
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.PSDEvent
+import com.google.wireless.android.sdk.stats.PSDEvent.PSDRepositoryUsage.PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_MAVEN_CENTRAL
 import com.intellij.openapi.util.JDOMUtil.load
 import com.intellij.util.io.HttpRequests
+import com.intellij.util.io.encodeUrlQueryParameter
 import org.jdom.Element
 import org.jdom.JDOMException
 import java.io.IOException
 import java.io.Reader
 
-object MavenCentralRepository : ArtifactRepository() {
+object MavenCentralRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPOSITORY_MAVEN_CENTRAL) {
   override val name: String = "Maven Central"
   override val isRemote: Boolean = true
 
@@ -89,14 +92,20 @@ object MavenCentralRepository : ArtifactRepository() {
 
   @VisibleForTesting
   fun createRequestUrl(request: SearchRequest): String = buildString {
+    fun String.escapeQueryExpression() = this
+
+    val queryGroupId = request.query.groupId?.takeUnless { it.isBlank() }
+    val queryArtifactId = request.query.artifactName?.takeUnless { it.isBlank() }
+    val query =
+      listOfNotNull(queryGroupId?.let { "g:${it.escapeQueryExpression()}" },
+                    queryArtifactId?.let { "a:${it.escapeQueryExpression()}" })
+        .joinToString(separator = " AND ")
+        .encodeUrlQueryParameter()
+
     append("https://search.maven.org/solrsearch/select?")
     append("rows=${request.rowCount}&")
     append("start=${request.start}&")
     append("wt=xml&")
-    append("q=")
-    request.groupId?.takeUnless { it.isBlank() }?.let { groupId ->
-      append("g:%22$groupId%22+AND+")
-    }
-    append("a:%22${request.artifactName}%22")
+    append("q=$query")
   }
 }

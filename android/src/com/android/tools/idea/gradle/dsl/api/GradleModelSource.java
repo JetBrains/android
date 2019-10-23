@@ -36,6 +36,12 @@ public class GradleModelSource extends GradleModelProvider {
     return ProjectBuildModelImpl.get(project);
   }
 
+  @Override
+  @Nullable
+  public ProjectBuildModel getProjectModel(@NotNull Project hostProject, @NotNull String compositeRoot) {
+    return ProjectBuildModelImpl.get(hostProject, compositeRoot);
+  }
+
   @Nullable
   @Override
   public GradleBuildModel getBuildModel(@NotNull Project project) {

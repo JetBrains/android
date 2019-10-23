@@ -20,11 +20,11 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
+import java.util.Locale;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -145,9 +145,15 @@ public class TargetMenuAction extends DropDownAction {
       }
 
       String title = getRenderingTargetLabel(target, true);
-      boolean select = current == target;
+      boolean select = current != null && target.getVersion().equals(current.getVersion());
       group.add(new SetTargetAction(myRenderContext, title, target, select));
     }
+  }
+
+  @Override
+  protected boolean hasDropDownArrow() {
+    // This menu always has at least two options, "Automatically pick" and the actual API level
+    return true;
   }
 
   @Override
@@ -208,7 +214,7 @@ public class TargetMenuAction extends DropDownAction {
       }
     }
 
-    return String.format("API %1$d: %2$s", version.getApiLevel(), target.getShortClasspathName());
+    return String.format(Locale.US, "API %1$d: %2$s", version.getApiLevel(), target.getShortClasspathName());
   }
 
   private static class TogglePickBestAction extends AnAction implements Toggleable {
@@ -219,7 +225,7 @@ public class TargetMenuAction extends DropDownAction {
       myManager = manager;
 
       if (manager.getStateManager().getProjectState().isPickTarget()) {
-        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+        getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, true);
       }
     }
 
@@ -250,10 +256,11 @@ public class TargetMenuAction extends DropDownAction {
   private static class SetTargetAction extends ConfigurationAction {
     private final IAndroidTarget myTarget;
 
-    SetTargetAction(@NotNull ConfigurationHolder renderContext, @NotNull final String title,
+    public SetTargetAction(@NotNull ConfigurationHolder renderContext, @NotNull final String title,
                            @NotNull final IAndroidTarget target, final boolean select) {
-      super(renderContext, title, select ? AllIcons.Actions.Checked : null);
+      super(renderContext, title);
       myTarget = target;
+      getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, select);
     }
 
     @Override

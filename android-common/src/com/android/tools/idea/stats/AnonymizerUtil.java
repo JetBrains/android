@@ -36,7 +36,7 @@ public class AnonymizerUtil {
       return Anonymizer.anonymizeUtf8(LOGGER, value);
     }
     catch (IOException e) {
-      LOGGER.error(e, "Unable to read anonymization settings, not reporting any values");
+      LOGGER.warning("Unable to read anonymization settings, not reporting any values: " + e.getMessage());
       return ANONYMIZATION_ERROR;
     }
   }

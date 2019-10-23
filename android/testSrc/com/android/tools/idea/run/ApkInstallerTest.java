@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.intellij.openapi.project.Project;
 import org.junit.Test;
 
@@ -39,6 +40,7 @@ public class ApkInstallerTest {
 
     IDevice device = mock(IDevice.class);
     when(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(true);
+    when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.BASE));
     assertThat(installer.getPmInstallOptions(device)).isEqualTo("-g");
   }
 
@@ -52,6 +54,59 @@ public class ApkInstallerTest {
 
     IDevice device = mock(IDevice.class);
     when(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(true);
+    when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.BASE));
     assertThat(installer.getPmInstallOptions(device)).isEqualTo("-v -g");
+  }
+
+  @Test
+  public void getPmInstallOptionsOnApi28DeviceWithNullPmOptions() throws Exception {
+    Project project = mock(Project.class);
+    LaunchOptions options = LaunchOptions.builder().build();
+    InstalledApkCache installedApkCache = mock(InstalledApkCache.class);
+    ConsolePrinter printer = mock(ConsolePrinter.class);
+    FullApkInstaller installer = new FullApkInstaller(project, options, installedApkCache, printer);
+
+    IDevice device = mock(IDevice.class);
+    when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.P));
+    assertThat(installer.getPmInstallOptions(device)).isEqualTo("--full");
+  }
+
+  @Test
+  public void getPmInstallOptionsOnApi28DeviceWithNonNullPmOptions() throws Exception {
+    Project project = mock(Project.class);
+    LaunchOptions options = LaunchOptions.builder().setPmInstallOptions("-v").build();
+    InstalledApkCache installedApkCache = mock(InstalledApkCache.class);
+    ConsolePrinter printer = mock(ConsolePrinter.class);
+    FullApkInstaller installer = new FullApkInstaller(project, options, installedApkCache, printer);
+
+    IDevice device = mock(IDevice.class);
+    when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.P));
+    assertThat(installer.getPmInstallOptions(device)).isEqualTo("-v --full");
+  }
+
+  @Test
+  public void getPmInstallOptionsOnLessThanApi28DeviceWithNullPmOptions() throws Exception {
+    Project project = mock(Project.class);
+    LaunchOptions options = LaunchOptions.builder().build();
+    InstalledApkCache installedApkCache = mock(InstalledApkCache.class);
+    ConsolePrinter printer = mock(ConsolePrinter.class);
+    FullApkInstaller installer = new FullApkInstaller(project, options, installedApkCache, printer);
+
+    IDevice device = mock(IDevice.class);
+    when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.BASE));
+    assertThat(installer.getPmInstallOptions(device)).isNull();
+  }
+
+  @Test
+  public void getPmInstallOptionsOnLessThanApi28DeviceWithNonNullPmOptions() throws Exception {
+    Project project = mock(Project.class);
+    LaunchOptions options = LaunchOptions.builder().setPmInstallOptions("-v").build();
+    InstalledApkCache installedApkCache = mock(InstalledApkCache.class);
+    ConsolePrinter printer = mock(ConsolePrinter.class);
+    FullApkInstaller installer = new FullApkInstaller(project, options, installedApkCache, printer);
+
+    IDevice device = mock(IDevice.class);
+    when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.BASE));
+    assertThat(installer.getPmInstallOptions(device)).isEqualTo("-v");
   }
 }

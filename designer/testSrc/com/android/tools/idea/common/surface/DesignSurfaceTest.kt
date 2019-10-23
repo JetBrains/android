@@ -24,13 +24,19 @@ import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
+import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import java.awt.Dimension
+import java.awt.Graphics2D
+import java.awt.Rectangle
+import java.awt.Shape
+import java.awt.image.BufferedImage
+import java.util.function.Consumer
 import javax.swing.JComponent
 
-class DesignSurfaceTest: LayoutTestCase() {
+class DesignSurfaceTest : LayoutTestCase() {
 
   fun testAddAndRemoveModel() {
     val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).build()
@@ -83,30 +89,57 @@ class DesignSurfaceTest: LayoutTestCase() {
     surface.removeModel(model2)
     assertEquals(1, surface.models.size)
   }
+
+  fun testScale() {
+    val surface = TestDesignSurface(myModule.project, myModule.project)
+    surface.setScale(0.66, -1, -1)
+    assertFalse(surface.setScale(0.663, -1, -1))
+    assertFalse(surface.setScale(0.664, -1, -1))
+    assertTrue(surface.setScale(0.665, -1, -1))
+
+    surface.sceneScalingFactor = 2f
+
+    surface.setScale(0.33, -1, -1)
+    assertFalse(surface.setScale(0.332, -1, -1))
+    assertTrue(surface.setScale(0.335, -1, -1))
+  }
 }
 
-private class TestDesignSurface(project: Project, disposible: Disposable): DesignSurface(project, SelectionModel(), disposible) {
+private class TestDesignSurface(project: Project, disposible: Disposable) : DesignSurface(project, SelectionModel(), disposible) {
+
+  private var factor: Float = 1f
+
+  override fun getComponentRegistrar() = Consumer<NlComponent> {}
+
   override fun createActionHandler(): DesignSurfaceActionHandler {
     throw UnsupportedOperationException("Action handler not implemented for TestDesignSurface")
   }
 
-  override fun getSceneScalingFactor() = 1f
+  fun setSceneScalingFactor(factor: Float) {
+    this.factor = factor
+  }
 
-  override fun createActionManager() = object: ActionManager<DesignSurface>(this) {
+  override fun getSceneScalingFactor() = factor
+
+  override fun createActionManager() = object : ActionManager<DesignSurface>(this) {
     override fun registerActionsShortcuts(component: JComponent, parentDisposable: Disposable?) = Unit
 
-    override fun createPopupMenu(actionManager: com.intellij.openapi.actionSystem.ActionManager,
-                                 leafComponent: NlComponent?) = DefaultActionGroup()
+    override fun getPopupMenuActions(leafComponent: NlComponent?) = DefaultActionGroup()
 
-    override fun addActions(group: DefaultActionGroup,
-                            component: NlComponent?,
-                            newSelection: MutableList<NlComponent>,
-                            toolbar: Boolean) = Unit
+    override fun getToolbarActions(component: NlComponent?, newSelection: MutableList<NlComponent>) = DefaultActionGroup()
   }
 
   override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
 
+  override fun getRenderableBoundsOfSceneView(sceneView: SceneView, rectangle: Rectangle?): Rectangle {
+    val rect = rectangle ?: Rectangle()
+    rect.bounds = myScrollPane.viewport.viewRect
+    return rect
+  }
+
   override fun layoutContent() = Unit
+
+  override fun scrollToCenter(list: MutableList<NlComponent>) {}
 
   override fun getScrolledAreaSize(): Dimension? = null
 
@@ -127,4 +160,6 @@ private class TestDesignSurface(project: Project, disposible: Disposable): Desig
   override fun createInteractionOnDrag(draggedSceneComponent: SceneComponent, primary: SceneComponent?) = null
 
   override fun forceUserRequestedRefresh() = Unit
+
+  override fun getSelectableComponents(): List<NlComponent> = emptyList()
 }

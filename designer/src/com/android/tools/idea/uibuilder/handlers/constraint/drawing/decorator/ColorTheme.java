@@ -50,7 +50,7 @@ public class ColorTheme {
     public static Color updateBrightness(Color color, float factor) {
         float[] hsb = new float[3];
         Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), hsb);
-        return new Color(Color.HSBtoRGB(hsb[0], hsb[1], Math.min(1.0f, hsb[2] * factor)));
+        return new Color(Color.HSBtoRGB(hsb[0], hsb[1], Math.max(0, Math.min(hsb[2] * factor, 1.0f))));
     }
 
     /**

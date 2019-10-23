@@ -45,7 +45,7 @@ public class AndroidStudioFileIconProvider implements FileIconProvider {
     if (project != null) {
       ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
       Module module = projectFileIndex.getModuleForFile(file);
-      if (module != null) {
+      if (module != null && !module.isDisposed()) {
         VirtualFile moduleFile = module.getModuleFile();
         if (moduleFile != null && file.equals(moduleFile)) {
           return getModuleIcon(module);

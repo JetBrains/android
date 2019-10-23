@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import static com.intellij.openapi.util.text.StringUtil.shortenTextWithEllipsis;
+
 import com.android.tools.idea.welcome.wizard.ConsoleHighlighter;
 import com.intellij.execution.impl.ConsoleViewUtil;
 import com.intellij.execution.process.ProcessHandler;
@@ -30,7 +32,6 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -166,7 +167,7 @@ public abstract class ProgressStep extends FirstRunWizardStep {
     private final double myStart;
     private final double myPortion;
 
-    ProgressPortionReporter(@NotNull ProgressIndicator indicator, double start, double portion) {
+    public ProgressPortionReporter(@NotNull ProgressIndicator indicator, double start, double portion) {
       super(indicator);
       myStart = start;
       myPortion = portion;
@@ -204,8 +205,8 @@ public abstract class ProgressStep extends FirstRunWizardStep {
     }
 
     @Override
-    public void setText2(String text) {
-      ApplicationManager.getApplication().invokeLater(() -> myLabel2.setText(StringUtil.shortenTextWithEllipsis(text, 80, 10)));
+    public void setText2(@Nullable String text) {
+      ApplicationManager.getApplication().invokeLater(() -> myLabel2.setText(text == null ? "" : shortenTextWithEllipsis(text, 80, 10)));
     }
 
     @Override

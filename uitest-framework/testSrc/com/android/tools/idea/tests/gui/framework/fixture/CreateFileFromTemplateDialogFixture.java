@@ -65,10 +65,10 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
 
   @NotNull
   public CreateFileFromTemplateDialogFixture waitForErrorMessageToAppear(@NotNull final String errorMessage) {
-    GuiTests.waitUntilShowing(robot(), target(), new GenericTypeMatcher<JLabel>(JLabel.class) {
+    GuiTests.waitUntilShowing(robot(), target(), new GenericTypeMatcher<JEditorPane>(JEditorPane.class) {
       @Override
-      protected boolean isMatching(@NotNull JLabel label) {
-        String labelText = label.getText();
+      protected boolean isMatching(@NotNull JEditorPane pane) {
+        String labelText = pane.getText();
         return labelText != null && errorMessage.equals(TextFormat.HTML.convertTo(labelText, TextFormat.TEXT).trim());
       }
     });

@@ -16,7 +16,6 @@
 package com.android.tools.adtui.common
 
 import com.intellij.ui.JBColor
-import java.awt.Color
 
 /**
  * Colors defined in the UX prototype
@@ -27,27 +26,40 @@ import java.awt.Color
  *
  * Example: central panel of the layout editor.
  */
-val primaryPanelBackground = JBColor(0xf5f5f5, 0x2D2F31)
+val primaryPanelBackground = JBColor.namedColor("UIDesigner.Canvas.background", JBColor(0xf5f5f5, 0x2D2F31))
 
 /**
  * Background color for panels that have a secondary role
  *
  * Example: the palette or component tree in the layout editor.
  */
-val secondaryPanelBackground = JBColor(0xfcfcfc, 0x313435)
+val secondaryPanelBackground = JBColor.namedColor("UIDesigner.Panel.background", JBColor(0xfcfcfc, 0x313435))
 
 /**
  * Color of the border that separates panels.
  *
  * Example : Between the component tree and the main panel of the layout editor
  */
-val border: Color = JBColor(0xc9c9c9, 0x242627)
+val border = JBColor.namedColor("UIDesigner.Panel.borderColor", JBColor(0xc9c9c9, 0x282828))
 
 /**
  * Border color to use when separating element inside the same panel.
  *
- * Example: boder between the category list and widget list in the
+ * Example: border between the category list and widget list in the
  * layout editor's palette
  */
-val borderLight: Color = JBColor(0xe8e6e6, 0x3c3f41)
+val borderLight = JBColor.namedColor("Canvas.Tooltip.borderColor", JBColor(0xD9D9D9, 0x4A4A4A))
 
+/**
+ * Background color for tooltips on canvases
+ *
+ * Example: Hover tooltips for chart data points, tooltips on designer surfaces
+ */
+val canvasTooltipBackground = JBColor.namedColor("Canvas.Tooltip.background", JBColor(0xf7f7f7, 0x4A4C4C))
+
+/**
+ * Background color for content (same background colors as Editors)
+ *
+ * Example: Background for charts, editors
+ */
+val primaryContentBackground = JBColor.namedColor("Content.background", JBColor(0xffffff, 0x2b2b2b))

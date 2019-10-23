@@ -27,6 +27,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.interfaces.variant.*
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.*
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.proto.VariantProto
+import java.io.File
 
 data class NewVariant(
   override val name: String,
@@ -87,6 +88,7 @@ private val emptyIdeDependencies = object: IdeDependencies {
   override fun getAndroidLibraries(): Collection<Library> = listOf()
   override fun getJavaLibraries(): Collection<Library> = listOf()
   override fun getModuleDependencies(): Collection<Library> = listOf()
+  override fun getRuntimeOnlyClasses(): Collection<File> = listOf()
 }
 
 fun OldBaseArtifact.getLevel2Dependencies(): IdeDependencies {

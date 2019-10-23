@@ -68,11 +68,11 @@ public class TestGroupFilterTest {
   }
 
   @Test
-  public void shouldRun_editing() throws Exception {
-    TestGroupFilter editingFilter = new TestGroupFilter(TestGroup.EDITING);
-    assertThat(methodNamesToRun(editingFilter)).isEmpty();
-    assertThat(classNamesToRun(editingFilter)).isEmpty();
-    assertThat(editingFilter.shouldRun(suite)).isFalse();
+  public void shouldRun_unreliable() throws Exception {
+    TestGroupFilter unreliableFilter = new TestGroupFilter(TestGroup.UNRELIABLE);
+    assertThat(methodNamesToRun(unreliableFilter)).isEmpty();
+    assertThat(classNamesToRun(unreliableFilter)).isEmpty();
+    assertThat(unreliableFilter.shouldRun(suite)).isFalse();
   }
 
   private List<String> classNamesToRun(Filter filter) {

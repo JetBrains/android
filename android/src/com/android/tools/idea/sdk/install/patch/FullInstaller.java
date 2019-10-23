@@ -41,7 +41,7 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
   private File myUnzippedPackage;
   private File myGeneratedPatch;
 
-  FullInstaller(@Nullable LocalPackage existing,
+  public FullInstaller(@Nullable LocalPackage existing,
                        @NotNull RemotePackage p,
                        @NotNull RepoManager mgr,
                        @NotNull Downloader downloader,
@@ -161,5 +161,8 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
   protected void cleanup(@NotNull ProgressIndicator progress) {
     super.cleanup(progress);
     mFop.deleteFileOrFolder(getLocation(progress));
+    if (myUnzippedPackage != null) {
+      mFop.deleteFileOrFolder(myUnzippedPackage);
+    }
   }
 }

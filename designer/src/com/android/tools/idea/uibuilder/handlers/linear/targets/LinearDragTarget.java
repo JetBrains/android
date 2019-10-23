@@ -40,7 +40,6 @@ public class LinearDragTarget extends DragBaseTarget {
   private final LinearLayoutHandler myHandler;
   private final boolean myIsDragFromPalette;
   private LinearSeparatorTarget myClosest;
-  private boolean myDragHandled;
 
   public LinearDragTarget(@NotNull LinearLayoutHandler handler) {
     this(handler, false);
@@ -66,11 +65,8 @@ public class LinearDragTarget extends DragBaseTarget {
     myHandler.setDragging(myComponent, true);
     // Need to call this to update the targetsProvider when moving from one layout to another during a drag
     // but we should have a better scenario to recreate the targets
-    ((LayoutlibSceneManager)parent.getScene().getSceneManager()).addTargets(myComponent);
-    parent.updateTargets();
-    myDragHandled = false;
+    ((LayoutlibSceneManager)parent.getScene().getSceneManager()).updateTargets();
     super.mouseDown(x, y);
-    myComponent.setModelUpdateAuthorized(false);
   }
 
   @Override
@@ -89,7 +85,7 @@ public class LinearDragTarget extends DragBaseTarget {
       int nx = myIsDragFromPalette ? x : myComponent.getDrawX();
       int ny = min(max(y, -middle), parentHeight + middle);
       ny = snapper.trySnapVertical(ny).orElse(ny);
-      myComponent.setPosition(nx, ny, false);
+      myComponent.setPosition(nx, ny);
       closestTarget = snapper.getSnappedVerticalTarget();
     }
     else {
@@ -98,7 +94,7 @@ public class LinearDragTarget extends DragBaseTarget {
       int nx = min(max(x, -middle), parentWidth + middle);
       nx = snapper.trySnapHorizontal(nx).orElse(nx);
       int ny = myIsDragFromPalette ? y : myComponent.getDrawY();
-      myComponent.setPosition(nx, ny, false);
+      myComponent.setPosition(nx, ny);
       closestTarget = snapper.getSnappedHorizontalTarget();
     }
 
@@ -108,7 +104,7 @@ public class LinearDragTarget extends DragBaseTarget {
         myClosest.setHighlight(false);
       }
 
-      if (closestTarget != null && closestTarget instanceof LinearSeparatorTarget) {
+      if (closestTarget instanceof LinearSeparatorTarget) {
         myClosest = (LinearSeparatorTarget)closestTarget;
         myClosest.setHighlight(true, myComponent.getDrawWidth(), myComponent.getDrawHeight());
       }
@@ -123,7 +119,6 @@ public class LinearDragTarget extends DragBaseTarget {
   @Override
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTarget) {
     super.mouseRelease(x, y, closestTarget);
-    myComponent.setModelUpdateAuthorized(true);
     myHandler.setDragging(myComponent, false);
     SceneComponent parent = myComponent.getParent();
     assert parent != null;
@@ -132,26 +127,25 @@ public class LinearDragTarget extends DragBaseTarget {
       myClosest.setHighlight(false);
       if (!LinearLayoutHandler.insertComponentAtTarget(myComponent, myClosest)) {
         myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
-        return;
       }
-      myDragHandled = true;
     }
     else {
       myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
     }
   }
 
-  public boolean isDragHandled() {
-    return myDragHandled;
-  }
-
   @Override
-  public void cancel() {
-    super.cancel();
+  public void mouseCancel() {
     myHandler.setDragging(myComponent, false);
+    SceneComponent parent = myComponent.getParent();
+    if (parent != null) {
+      // myComponent may not have a parent when it is a TemporarySceneComponent.
+      parent.updateTargets();
+    }
     if (myClosest != null) {
       myClosest.setHighlight(false);
     }
+    super.mouseCancel();
   }
 
   @Nullable

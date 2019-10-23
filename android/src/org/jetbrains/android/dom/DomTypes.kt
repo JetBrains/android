@@ -34,12 +34,3 @@ interface AndroidAttributeValue<T> : GenericAttributeValue<T>
  */
 @Namespace(SdkConstants.APP_PREFIX)
 interface ResAutoAttributeValue<T> : GenericAttributeValue<T>
-
-/**
- * Used by [org.jetbrains.android.dom.converters.PackageClassConverter] to offer classes from AARs in code completion.
- *
- * @see com.intellij.util.xml.ExtendClass
- */
-@Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)
-annotation class CompleteLibraryClasses

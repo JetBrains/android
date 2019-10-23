@@ -396,7 +396,7 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
   private class StepUpdate extends Update {
     private final Key<?> myChangedKey;
 
-    StepUpdate(@Nullable Key<?> changedKey) {
+    public StepUpdate(@Nullable Key<?> changedKey) {
       super(DynamicWizardStep.this);
       myChangedKey = changedKey;
     }

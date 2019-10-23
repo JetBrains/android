@@ -15,20 +15,21 @@
  */
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
-import com.android.tools.idea.gradle.structure.model.PsIssueCollection
+import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsModel
-import com.intellij.util.ui.UIUtil
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 
-abstract class PsModelAnalyzer<T : PsModel> {
+abstract class PsModelAnalyzer<T : PsModel>(parentDisposable: Disposable) {
+  var disposed: Boolean = false
+
+  init {
+    Disposer.register(parentDisposable, Disposable { disposed = true })
+  }
 
   abstract val supportedModelType: Class<T>
 
-  fun analyze(model: PsModel, issueCollection: PsIssueCollection) {
-    assert(supportedModelType.isInstance(model))
-    UIUtil.invokeAndWaitIfNeeded(Runnable {
-      doAnalyze(supportedModelType.cast(model), issueCollection)
-    })
-  }
-
-  protected abstract fun doAnalyze(model: T, issueCollection: PsIssueCollection)
+  @UiThread
+  abstract fun analyze(model: T): Sequence<PsIssue>
 }

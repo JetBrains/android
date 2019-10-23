@@ -150,13 +150,10 @@ public final class ServicePanelBuilder {
 
     final ComboBox comboBox = new ComboBox(model);
 
-    InvalidationListener onListModified = new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        model.update();
-        if (!backingList.isEmpty() && comboBox.getSelectedIndex() < 0) {
-          comboBox.setSelectedIndex(0);
-        }
+    InvalidationListener onListModified = () -> {
+      model.update();
+      if (!backingList.isEmpty() && comboBox.getSelectedIndex() < 0) {
+        comboBox.setSelectedIndex(0);
       }
     };
 
@@ -185,7 +182,7 @@ public final class ServicePanelBuilder {
     private int myCurrCol;
     private int myCurrRow;
 
-    UiGrid(@NotNull String colDefinitions) {
+    public UiGrid(@NotNull String colDefinitions) {
       TabularLayout layout = new TabularLayout(colDefinitions).setVGap(10);
       myNumCols = layout.getNumColumns();
       myPanel = new JPanel(layout);

@@ -56,6 +56,7 @@ class LoadOverlayAction(private val myPreview: ViewNodeActiveDisplay) :
 
   override fun update(e: AnActionEvent) {
     super.update(e)
+    if (e == null) return
     if (myPreview.hasOverlay()) {
       e.presentation.icon = StudioIcons.LayoutInspector.CLEAR_OVERLAY
       e.presentation.text = "Clear Overlay"

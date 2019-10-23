@@ -36,14 +36,14 @@ public class PsiIncludeDirectoryViewTest extends JavaProjectTestCase {
 
   public void testNdkLayout() throws IOException {
     IncludeLayout layout = new IncludeLayout()
-      .addRemoteHeaders("my-ndk-folder/sources/android/native_app_glue/sub1/foo.h")
-      .addRemoteHeaders("my-ndk-folder/sources/android/ndk_helper/sub2/bar.h")
-      .addRemoteArtifactIncludePaths("my-artifact", "my-ndk-folder/sources/android/native_app_glue")
-      .addRemoteArtifactIncludePaths("my-artifact", "my-ndk-folder/sources/android/ndk_helper")
+      .addRemoteHeaders("ndk-bundle/sources/android/native_app_glue/sub1/foo.h")
+      .addRemoteHeaders("ndk-bundle/sources/android/ndk_helper/sub2/bar.h")
+      .addRemoteArtifactIncludePaths("my-artifact", "ndk-bundle/sources/android/native_app_glue")
+      .addRemoteArtifactIncludePaths("my-artifact", "ndk-bundle/sources/android/ndk_helper")
       .addArtifact("my-artifact", "bar.cpp");
     IdeSdks mockIdeSdks = IdeComponents.mockApplicationService(IdeSdks.class, getTestRootDisposable());
     assertSame(mockIdeSdks, IdeSdks.getInstance());
-    File ndkRootFolder = new File(layout.getRemoteRoot(), "my-ndk-folder");
+    File ndkRootFolder = new File(layout.getRemoteRoot(), "ndk-bundle");
     when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
 
     List<PsiIncludeDirectoryView> nodes =
@@ -65,15 +65,15 @@ public class PsiIncludeDirectoryViewTest extends JavaProjectTestCase {
 
   public void testNullProject() throws IOException {
     IncludeLayout layout = new IncludeLayout()
-      .addRemoteHeaders("my-ndk-folder/sources/android/native_app_glue/foo.h")
-      .addRemoteHeaders("my-ndk-folder/sources/android/ndk_helper/bar.h")
-      .addRemoteArtifactIncludePaths("my-artifact", "my-ndk-folder/sources/android/native_app_glue")
-      .addRemoteArtifactIncludePaths("my-artifact", "my-ndk-folder/sources/android/ndk_helper")
+      .addRemoteHeaders("ndk-bundle/sources/android/native_app_glue/foo.h")
+      .addRemoteHeaders("ndk-bundle/sources/android/ndk_helper/bar.h")
+      .addRemoteArtifactIncludePaths("my-artifact", "ndk-bundle/sources/android/native_app_glue")
+      .addRemoteArtifactIncludePaths("my-artifact", "ndk-bundle/sources/android/ndk_helper")
       .addLocalHeaders("baz.h")
       .addArtifact("my-artifact", "bar.cpp");
     IdeSdks mockIdeSdks = IdeComponents.mockApplicationService(IdeSdks.class, getTestRootDisposable());
     assertSame(mockIdeSdks, IdeSdks.getInstance());
-    File ndkRootFolder = new File(layout.getRemoteRoot(), "my-ndk-folder");
+    File ndkRootFolder = new File(layout.getRemoteRoot(), "ndk-bundle");
     when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
 
     List<PsiIncludeDirectoryView> nodes = getChildNodesForIncludes(null, layout.getNativeIncludes(), PsiIncludeDirectoryView.class);

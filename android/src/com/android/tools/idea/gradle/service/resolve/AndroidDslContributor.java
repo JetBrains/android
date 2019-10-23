@@ -409,7 +409,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     private final ArrayList<String> myParameterTypes;
     private final String myCanonicalType;
 
-    ParametrizedTypeExtractor(String canonicalType) {
+    public ParametrizedTypeExtractor(String canonicalType) {
       myCanonicalType = canonicalType;
       myParameterTypes = Lists.newArrayList(SPLITTER.split(canonicalType));
     }

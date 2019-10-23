@@ -127,20 +127,20 @@ public class ImageViewDecorator extends SceneDecorator {
 
         Graphics2D clipGraphics = ((Graphics2D)g.create(x, y, width, height));
 
-        clipGraphics.setColor(ColorTheme.updateBrightness(sceneContext.getColorSet().getBackground(), 0.8f, 64));
+        clipGraphics.setColor(ColorTheme.updateBrightness(colorSet.getBackground(), 0.8f, 64));
 
         shape = sClosedPath2D.createTransformedShape(mTransform);
         clipGraphics.fill(shape);
 
         shape = sPath2D.createTransformedShape(mTransform);
-        clipGraphics.setColor(sceneContext.getColorSet().getText());
+        clipGraphics.setColor(colorSet.getFrames());
         clipGraphics.draw(shape);
 
         int stringWidth = g.getFontMetrics(mFont).stringWidth(TITLE);
         float scale = width / ((stringWidth * 3f) / 2);
         g.setFont(mFont.deriveFont(mFont.getSize() * scale));
         FontMetrics fontMetrics = g.getFontMetrics();
-        g.setColor(Color.WHITE);
+        g.setColor(colorSet.getFrames());
         Rectangle2D bounds = fontMetrics.getStringBounds(TITLE, g);
         g.drawString(TITLE, x + (int)((width - bounds.getWidth()) / 2f), y + (int)(height - (height - bounds.getHeight()) / 3f));
       }

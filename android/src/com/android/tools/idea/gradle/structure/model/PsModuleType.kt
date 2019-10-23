@@ -30,7 +30,7 @@ enum class PsModuleType(val androidModuleType: Int? = null) {
   JAVA,
 }
 
-fun moduleTypeFromAndroidModuleType(androidModuleType: Int?): PsModuleType = when(androidModuleType) {
+fun moduleTypeFromAndroidModuleType(androidModuleType: Int?): PsModuleType = when (androidModuleType) {
   AndroidProject.PROJECT_TYPE_APP -> PsModuleType.ANDROID_APP
   AndroidProject.PROJECT_TYPE_LIBRARY -> PsModuleType.ANDROID_LIBRARY
   AndroidProject.PROJECT_TYPE_INSTANTAPP -> PsModuleType.ANDROID_INSTANTAPP
@@ -52,4 +52,7 @@ fun moduleProjectTypeFromPlugin(plugin: String): PsModuleType = when (plugin) {
 }
 
 fun GradleBuildModel.parsedModelModuleType(): PsModuleType =
-  plugins().mapNotNull { moduleProjectTypeFromPlugin(it.name().asString().orEmpty()) }.firstOrNull() ?: PsModuleType.UNKNOWN
+    plugins()
+        .mapNotNull { moduleProjectTypeFromPlugin(it.name().asString().orEmpty()) }
+        .firstOrNull { it != PsModuleType.UNKNOWN }
+    ?: PsModuleType.UNKNOWN

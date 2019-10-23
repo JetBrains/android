@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
@@ -97,10 +98,12 @@ public final class MultiSelectListPreferenceHandler extends PreferenceHandler {
         return false;
       }
 
-      newChild.setAndroidAttribute(ATTR_DEFAULT_VALUE, defaultValue);
-      newChild.setAndroidAttribute(ATTR_ENTRIES, entries);
-      newChild.setAndroidAttribute(ATTR_ENTRY_VALUES, entryValues);
-      newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, MULTI_SELECT_LIST_PREFERENCE, "multi_select_list_preference_"));
+      NlWriteCommandActionUtil.run(newChild, "Set MultiSelectListPreference", () -> {
+        newChild.setAndroidAttribute(ATTR_DEFAULT_VALUE, defaultValue);
+        newChild.setAndroidAttribute(ATTR_ENTRIES, entries);
+        newChild.setAndroidAttribute(ATTR_ENTRY_VALUES, entryValues);
+        newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, MULTI_SELECT_LIST_PREFERENCE, "multi_select_list_preference_"));
+      });
     }
 
     return true;

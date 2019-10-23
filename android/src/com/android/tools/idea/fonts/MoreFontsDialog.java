@@ -19,7 +19,7 @@ import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
 import com.android.ide.common.fonts.FontSource;
-import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.validation.Validator.Result;
 import com.android.tools.adtui.validation.Validator.Severity;
@@ -29,6 +29,7 @@ import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.ui.SelectedListValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.icons.AllIcons;
@@ -45,8 +46,8 @@ import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.NotNullProducer;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.LafIconLookup;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -58,8 +59,8 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.font.FontRenderContext;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 
 import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
@@ -83,7 +84,7 @@ public class MoreFontsDialog extends DialogWrapper {
   private final FontListModel myModel;
   private final DefaultListModel<FontDetail> myDetailModel;
   private final FontFamilyCreator myFontCreator;
-  private final ResourceResolver myResolver;
+  private final ResourceRepositoryManager myResourceRepository;
   private final StringProperty myNewFontName;
   private final SelectedListValueProperty<FontFamily> mySelectedFontFamily;
   private SearchTextField mySearchField;
@@ -111,16 +112,16 @@ public class MoreFontsDialog extends DialogWrapper {
     myValidatorPanel = new ValidatorPanel(myDisposable, new JPanel());
   }
 
-  public MoreFontsDialog(@NotNull AndroidFacet facet, @NotNull ResourceResolver resolver, @Nullable String currentValue) {
+  public MoreFontsDialog(@NotNull AndroidFacet facet, @Nullable String currentValue) {
     super(facet.getModule().getProject());
     setTitle("Resources");
-    myResolver = resolver;
+    myResourceRepository = ResourceRepositoryManager.getInstance(facet);
     myContentPanel.setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
     myFontList.setMinimumSize(new Dimension(MIN_FONT_LIST_WIDTH, MIN_FONT_LIST_HEIGHT));
     myFontList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myFontDetailList.setMinimumSize(new Dimension(MIN_FONT_PREVIEW_WIDTH, MIN_FONT_PREVIEW_HEIGHT));
     myFontDetailList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    myModel = new FontListModel(resolver);
+    myModel = new FontListModel(facet);
     myModel.setRepopulateListener(this::repopulated);
     myDetailModel = new DefaultListModel<>();
     myCreateParams.setLayout(createGroupLayoutForCreateParams());
@@ -130,7 +131,6 @@ public class MoreFontsDialog extends DialogWrapper {
     // We want to set fixed cell height and width. This makes the list render much faster.
     myFontList.setFixedCellHeight(computeFontHeightInFontList(myFontList));
     myFontList.setFixedCellWidth(MIN_FONT_LIST_WIDTH + JBUIScale.scale(DESCENDER_SPACE));
-    //noinspection unchecked
     myFontList.setModel(myModel);
     myFontListScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
     JScrollBar scrollBar = myFontListScrollPane.getVerticalScrollBar();
@@ -279,7 +279,7 @@ public class MoreFontsDialog extends DialogWrapper {
     if (!myFontNameEditor.isVisible()) {
       return Result.OK;
     }
-    if (myResolver.getProjectResource(ResourceType.FONT, fontName) != null) {
+    if (myResourceRepository.getProjectResources().getResources(ResourceNamespace.TODO(), ResourceType.FONT).containsKey(fontName)) {
       return new Result(Severity.ERROR, "A font named: \"" + fontName + "\" already exists");
     }
     if (fontName.isEmpty()) {
@@ -477,14 +477,14 @@ public class MoreFontsDialog extends DialogWrapper {
 
       switch (fontFamily.getFontSource()) {
         case SYSTEM:
-          setIcon(AndroidIcons.Android);
+          setIcon(StudioIcons.Shell.Filetree.ANDROID_PROJECT);
           break;
         case DOWNLOADABLE:
           setIcon(StudioIcons.Common.LINK);
           break;
         case PROJECT:
           if (fontFamily.getMenu().startsWith(FILE_PROTOCOL_START)) {
-            setIcon(AndroidIcons.FontFile);
+            setIcon(StudioIcons.Shell.Filetree.FONT_FILE);
           }
           else if (fontFamily.getMenu().startsWith(HTTPS_PROTOCOL_START)) {
             setIcon(StudioIcons.Common.LINK);
@@ -519,7 +519,7 @@ public class MoreFontsDialog extends DialogWrapper {
       setBackground(null);
       append(text);
       if (selected) {
-        setIcon(AllIcons.Actions.Checked);
+        setIcon(LafIconLookup.getIcon("checkmark"));
         setBorderInsets(new JBInsets(0, 0, 0, 0));
       }
       else {
@@ -541,9 +541,9 @@ public class MoreFontsDialog extends DialogWrapper {
     private int myFirstLoadedFontIndex;
     private int myLoadedFontIndex;
 
-    private FontListModel(@NotNull ResourceResolver resolver) {
+    private FontListModel(@NotNull AndroidFacet facet) {
       myFontService = DownloadableFontCacheService.getInstance();
-      myProjectFonts = new ProjectFonts(resolver);
+      myProjectFonts = new ProjectFonts(facet);
       myComparator = new SpeedSearchComparator();
       myFilteredList = new ArrayList<>();
       myFilter = "";

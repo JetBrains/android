@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.wizard.model;
 
+import static com.android.tools.idea.observable.expressions.bool.BooleanExpressions.not;
+
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.ObservableOptional;
-import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.ui.EnabledProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.intellij.ide.BrowserUtil;
@@ -33,16 +33,18 @@ import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
 import java.net.URL;
-
-import static com.android.tools.idea.observable.expressions.bool.BooleanExpressions.not;
+import javax.swing.Action;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JRootPane;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A dialog container which drives an underlying {@link ModelWizard}, decorating it with UI.
@@ -212,7 +214,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
       ModelWizardDialogAction wizardAction = (ModelWizardDialogAction)action;
       myBindings.bind(new EnabledProperty(button), wizardAction.shouldBeEnabled());
       myBindings.bind(new VisibleProperty(button), wizardAction.shouldBeVisible());
-      myListeners.receiveAndFire(wizardAction.shouldBeDefault(), isDefault -> {
+      myListeners.listenAndFire(wizardAction.shouldBeDefault(), isDefault -> {
         JRootPane rootPane = getRootPane();
         if (rootPane != null && isDefault) {
           rootPane.setDefaultButton(button);
@@ -243,7 +245,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
    * By associating actions with those properties, we can easily bind UI buttons to them.
    */
   private abstract class ModelWizardDialogAction extends DialogWrapperAction {
-    ModelWizardDialogAction(@NotNull String name) {
+    public ModelWizardDialogAction(@NotNull String name) {
       super(name);
     }
 
@@ -252,12 +254,12 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
 
     @NotNull
     public ObservableBool shouldBeVisible() {
-      return BooleanExpression.ALWAYS_TRUE;
+      return ObservableBool.TRUE;
     }
 
     @NotNull
     public ObservableBool shouldBeDefault() {
-      return BooleanExpression.ALWAYS_FALSE;
+      return ObservableBool.FALSE;
     }
   }
 
@@ -345,7 +347,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
           return not(myWizard.onLastStep().and(myWizard.canGoForward()));
         case ALWAYS_CAN_CANCEL:
         default:
-          return BooleanExpression.ALWAYS_TRUE;
+          return ObservableBool.TRUE;
       }
     }
   }
@@ -367,7 +369,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
       return myExtraAction.isPresent();
     }
 
-    StepActionWrapper() {
+    public StepActionWrapper() {
       super("");
 
       myExtraAction = myWizard.getExtraAction();
@@ -376,7 +378,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
         Action myActiveAction = null;
 
         @Override
-        public void onInvalidated(@NotNull ObservableValue<?> sender) {
+        public void onInvalidated() {
           if (myActiveAction != null && myActionListener != null) {
             myActiveAction.removePropertyChangeListener(myActionListener);
           }
@@ -397,7 +399,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
         }
       };
       myExtraAction.addListener(extraActionChangedListener);
-      extraActionChangedListener.onInvalidated(myExtraAction);
+      extraActionChangedListener.onInvalidated();
     }
 
     @NotNull

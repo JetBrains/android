@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.api;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
@@ -33,4 +34,7 @@ public interface BuildScriptModel extends GradleDslModel {
    */
   @TestOnly
   void removeRepositoriesBlocks();
+
+  @NotNull
+  ExtModel ext();
 }

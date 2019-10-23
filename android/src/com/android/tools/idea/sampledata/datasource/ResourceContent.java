@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.sampledata.datasource;
 
+import com.android.ide.common.util.PathString;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -22,7 +24,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import libcore.io.Streams;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,6 +77,15 @@ public class ResourceContent implements Function<OutputStream, Exception> {
   }
 
   /**
+   * Returns the Sample Data directory created by the user in the provided facet's module.
+   */
+  @Nullable
+  public static File getSampleDataUserDir(AndroidFacet facet) {
+    PathString sampleDataDirectory = ProjectSystemUtil.getModuleSystem(facet.getModule()).getSampleDataDirectory();
+    return sampleDataDirectory != null ? sampleDataDirectory.toFile() : null;
+  }
+
+  /**
    * Because directories can list multiple files that we have to provide direct access to, they can not be contained
    * within the JAR file. We always assume these directory is within the lib path.
    */
@@ -98,8 +109,13 @@ public class ResourceContent implements Function<OutputStream, Exception> {
   @NotNull
   public static ResourceContent fromInputStream(@NotNull InputStream stream) {
     byte[] content;
-    try {
-      content = Streams.readFully(stream);
+    try (ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {
+      byte[] buffer = new byte[1024];
+      int count;
+      while ((count = stream.read(buffer)) != -1) {
+        bytes.write(buffer, 0, count);
+      }
+      content = bytes.toByteArray();
     }
     catch (IOException e) {
       content = new byte[0];

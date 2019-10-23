@@ -22,8 +22,8 @@ import org.jetbrains.annotations.Nullable;
  * Representations of supported programming languages we can target when building an app.
  */
 public enum Language {
-  JAVA("Java"),
-  KOTLIN("Kotlin");
+  KOTLIN("Kotlin"), // Recommended at the top
+  JAVA("Java");
 
   /**
    * Finds a language matching the requested name. Returns specified 'defaultValue' if not found.

@@ -16,8 +16,6 @@
 package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
@@ -28,7 +26,6 @@ import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunIn(TestGroup.EDITING)
 @RunWith(GuiTestRemoteRunner.class)
 public class AttributeValueTest {
 
@@ -41,12 +38,12 @@ public class AttributeValueTest {
 
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
     editor.moveBetween("<TextView", "");
-    editor.enterText("\nandroid:fontFamily=\"monospace\"");
+    editor.typeText("\nandroid:fontFamily=\"monospace\"");
 
     // No double quotes have been added because of automatic first quote insertion
     assertThat(editor.getCurrentLine().trim()).isEqualTo("android:fontFamily=\"monospace\"");
 
-    editor.enterText("\nandroid:inputT");
+    editor.typeText("\nandroid:inputT");
     editor.invokeAction(EditorFixture.EditorAction.COMPLETE_CURRENT_STATEMENT);
 
     // Invoking completion adds quotes

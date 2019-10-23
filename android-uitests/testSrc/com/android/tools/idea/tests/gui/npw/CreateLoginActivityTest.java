@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
-import static com.android.tools.idea.flags.StudioFlags.NPW_DYNAMIC_APPS;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
@@ -52,53 +50,37 @@ public class CreateLoginActivityTest {
    *   3. Configure a project name, package and location and click Next
    *
    *   Verification
-   *   1. An activity template that provides input fields and a sample implementation of
-   *      an AsyncTask that asks users to login or register with their credentials is added to the project
+   *   1. An activity template that provides input fields
+   *      and asks users to login or register with their credentials is added to the project
    * </pre>
    */
-  @RunIn(TestGroup.FAT)
+  @RunIn(TestGroup.FAT_BAZEL)
   @Test
   public void activityTemplate() {
     // Create a new project with Login Activity.
-    if (NPW_DYNAMIC_APPS.get()) {
-      guiTest.welcomeFrame().createNewProject()
-             .getChooseAndroidProjectStep()
-             .chooseActivity("Login Activity")
-             .wizard()
-             .clickNext()
-             .getConfigureNewAndroidProjectStep()
-             .enterName("LoginActApp")
-             .enterPackageName("dev.tools")
-             .wizard()
-             .clickFinish();
-    }
-    else {
-      guiTest.welcomeFrame().createNewProject()
-             .getConfigureAndroidProjectStep()
-             .setCppSupport(false)
-             .enterApplicationName("LoginActApp")
-             .enterCompanyDomain("android.devtools")
-             .enterPackageName("dev.tools")
-             .wizard()
-             .clickNext()
-             .clickNext() // Skip "Select minimum SDK Api" step.
-             .chooseActivity("Login Activity")
-             .clickNext() // Use default activity name.
-             .clickFinish();
-    }
+    guiTest.welcomeFrame().createNewProject()
+           .getChooseAndroidProjectStep()
+           .chooseActivity("Login Activity")
+           .wizard()
+           .clickNext()
+           .getConfigureNewAndroidProjectStep()
+           .enterName("LoginActApp")
+           .enterPackageName("dev.tools")
+           .wizard()
+           .clickFinish();
 
-    guiTest.testSystem().waitForProjectSyncToFinish(guiTest.ideFrame());
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     // Verification.
     EditorFixture editorFixture = guiTest.ideFrame().getEditor();
     String content = editorFixture.getCurrentFileContents();
 
-    String emailViewCode = "mEmailView = (AutoCompleteTextView) findViewById(R.id.email)";
-    String pwViewCode = "mPasswordView = (EditText) findViewById(R.id.password)";
-    String asyncTaskCode = "public class UserLoginTask extends AsyncTask<Void, Void, Boolean>";
+    String username = "findViewById(R.id.username)";
+    String password = "findViewById(R.id.password)";
+    String loginSuccess = "updateUiWithUser(loginResult.getSuccess())";
 
-    assertThat(content.contains(emailViewCode)).isTrue();
-    assertThat(content.contains(pwViewCode)).isTrue();
-    assertThat(content.contains(asyncTaskCode)).isTrue();
+    assertThat(content.contains(username)).isTrue();
+    assertThat(content.contains(password)).isTrue();
+    assertThat(content.contains(loginSuccess)).isTrue();
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers.perfd;
 
 import com.android.ddmlib.*;
 import com.android.tools.idea.profilers.LegacyCpuTraceProfiler;
+import com.android.tools.idea.transport.ServiceProxy;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import io.grpc.ManagedChannel;
@@ -31,13 +32,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A proxy CpuService on host that intercepts grpc requests from perfd-host to device perfd.
+ * A proxy CpuService on host that intercepts grpc requests from transport-database to device perfd.
  * This enables us to support legacy workflows based on device's API levels.
  *
  * In this class, 'profiling' means method-level tracing using either instrumentation or profiling.
  * Within this class 'profiling' is not a general concept as in 'CPU profiler'.
  */
-public class CpuServiceProxy extends PerfdProxyService {
+public class CpuServiceProxy extends ServiceProxy {
 
   @NotNull private CpuServiceGrpc.CpuServiceBlockingStub myServiceStub;
   @NotNull LegacyCpuTraceProfiler myLegacyProfiler;

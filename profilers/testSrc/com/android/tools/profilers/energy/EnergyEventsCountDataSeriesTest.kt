@@ -16,7 +16,8 @@ package com.android.tools.profilers.energy
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.profiler.proto.EnergyProfiler.*
-import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
@@ -99,10 +100,11 @@ class EnergyEventsCountDataSeriesTest {
 
   @get:Rule
   val grpcChannel = FakeGrpcChannel("EnergyEventsDataSeriesTest", service)
+  private val myProfilerClient = ProfilerClient(grpcChannel.name)
 
   @Test
   fun testAllDataIncluded() {
-    val dataSeries = EnergyEventsDataSeries(grpcChannel.client, ProfilersTestData.SESSION_DATA)
+    val dataSeries = EnergyEventsDataSeries(myProfilerClient, ProfilersTestData.SESSION_DATA)
 
     val range = Range(0.0, Double.MAX_VALUE)
     val dataList = dataSeries.getDataForXRange(range)
@@ -111,8 +113,8 @@ class EnergyEventsCountDataSeriesTest {
 
   @Test
   fun testEventsCount() {
-    val dataSeries = EnergyEventsDataSeries(grpcChannel.client, ProfilersTestData.SESSION_DATA)
-    val rangedSeries = RangedSeries(Range(0.0, Double.MAX_VALUE), dataSeries);
+    val dataSeries = EnergyEventsDataSeries(myProfilerClient, ProfilersTestData.SESSION_DATA)
+    val rangedSeries = RangedSeries(Range(0.0, Double.MAX_VALUE), dataSeries)
     testEventsCount(EnergyEventsCountDataSeries(rangedSeries, EnergyDuration.Kind.LOCATION))
     testEventsCount(EnergyEventsCountDataSeries(rangedSeries, EnergyDuration.Kind.WAKE_LOCK))
     testEventsCount(EnergyEventsCountDataSeries(rangedSeries, EnergyDuration.Kind.ALARM, EnergyDuration.Kind.JOB))

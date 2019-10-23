@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.LayoutlibCallback;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.concurrent.FutureUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.rendering.RenderLogger;
@@ -27,8 +30,6 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.LanguageFileType;
@@ -41,22 +42,22 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.SingleRootFileViewProvider;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.LightVirtualFile;
+import java.awt.Dimension;
+import java.awt.image.BufferedImage;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
  * Renders XML drawables to raster images.
  */
 public class DrawableRenderer implements Disposable {
-  @NotNull private final ListenableFuture<RenderTask> myRenderTaskFuture;
+  @NotNull private final CompletableFuture<RenderTask> myRenderTaskFuture;
   @NotNull private final Object myRenderLock = new Object();
   @NotNull private final MyLayoutPullParserFactory myParserFactory;
   @NotNull private final AtomicInteger myCounter = new AtomicInteger();
@@ -68,19 +69,29 @@ public class DrawableRenderer implements Disposable {
    * @param facet the Android facet
    */
   public DrawableRenderer(@NotNull AndroidFacet facet) {
+    this(facet, ThemeEditorUtils.getConfigurationForModule(facet.getModule()));
+  }
+
+  /**
+   * Initializes the renderer. Every renderer has to be disposed by calling {@link #dispose()}.
+   * Please keep in mind that each renderer instance allocates significant resources inside Layoutlib.
+   *
+   * @param facet the Android facet
+   * @param configuration the configuration to use for rendering
+   */
+  public DrawableRenderer(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
     Module module = facet.getModule();
     RenderLogger logger = new RenderLogger(LauncherIconGenerator.class.getSimpleName(), module);
     myParserFactory = new MyLayoutPullParserFactory(module.getProject(), logger);
     // The ThemeEditorUtils.getConfigurationForModule and RenderService.createTask calls are pretty expensive.
     // Executing them off the UI thread.
-    myRenderTaskFuture = FutureUtils.executeOnPooledThread(() -> {
+    myRenderTaskFuture = CompletableFuture.supplyAsync(() -> {
       try {
-        Configuration configuration = ThemeEditorUtils.getConfigurationForModule(module);
         RenderService service = RenderService.getInstance(module.getProject());
         RenderTask renderTask = service.taskBuilder(facet, configuration)
-                                 .withLogger(logger)
-                                 .withParserFactory(myParserFactory)
-                                 .build();
+          .withLogger(logger)
+          .withParserFactory(myParserFactory)
+          .buildSynchronously();
         assert renderTask != null;
         renderTask.getLayoutlibCallback().setLogger(logger);
         if (logger.hasProblems()) {
@@ -91,7 +102,7 @@ public class DrawableRenderer implements Disposable {
         getLog().error(e);
         return null;
       }
-    });
+    }, PooledThreadExecutor.INSTANCE);
   }
 
   /**
@@ -102,45 +113,36 @@ public class DrawableRenderer implements Disposable {
    * @return the rendering of the drawable in form of a future
    */
   @NotNull
-  public ListenableFuture<BufferedImage> renderDrawable(@NotNull String xmlDrawableText, @NotNull Dimension size) {
+  public CompletableFuture<BufferedImage> renderDrawable(@NotNull String xmlDrawableText, @NotNull Dimension size) {
     String xmlText = VectorDrawableTransformer.transform(xmlDrawableText, size, 1, null, null, 1);
     String resourceName = String.format("preview_%x.xml", myCounter.getAndIncrement());
     ResourceValue value = new ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, "ic_image_preview",
                                                 "file://" + resourceName);
 
-    RenderTask renderTask = getRenderTask();
-    if (renderTask == null) {
-      return Futures.immediateFuture(AssetStudioUtils.createDummyImage());
-    }
+    return myRenderTaskFuture.thenCompose(renderTask -> {
+      if (renderTask == null) {
+        return CompletableFuture.completedFuture(AssetStudioUtils.createDummyImage());
+      }
 
-    synchronized (myRenderLock) {
-      myParserFactory.addFileContent(new PathString(resourceName), xmlText);
-      renderTask.setOverrideRenderSize(size.width, size.height);
-      renderTask.setMaxRenderSize(size.width, size.height);
+      synchronized (myRenderLock) {
+        myParserFactory.addFileContent(new PathString(resourceName), xmlText);
+        renderTask.setOverrideRenderSize(size.width, size.height);
+        renderTask.setMaxRenderSize(size.width, size.height);
 
-      return renderTask.renderDrawable(value);
-    }
+        return renderTask.renderDrawable(value);
+      }
+    });
   }
 
   @Override
   public void dispose() {
-    RenderTask renderTask = getRenderTask();
-    if (renderTask != null) {
-      synchronized (myRenderLock) {
-        renderTask.dispose();
+    myRenderTaskFuture.whenComplete((renderTask, throwable) -> {
+      if (renderTask != null) {
+        synchronized (myRenderLock) {
+          renderTask.dispose();
+        }
       }
-    }
-  }
-
-  @Nullable
-  private RenderTask getRenderTask() {
-    try {
-      return myRenderTaskFuture.get();
-    }
-    catch (InterruptedException | ExecutionException e) {
-      // The error was logged earlier.
-      return null;
-    }
+    });
   }
 
   private static class MyLayoutPullParserFactory implements ILayoutPullParserFactory {

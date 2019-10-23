@@ -38,7 +38,7 @@ class ExtractVariableDialog<PropertyT : Any, ModelPropertyCoreT : ModelPropertyC
   private val worker = ExtractVariableWorker(refactoredProperty)
 
   init {
-    title = "Bind to New Variable"
+    title = "Extract Variable"
     init()
   }
 
@@ -47,7 +47,9 @@ class ExtractVariableDialog<PropertyT : Any, ModelPropertyCoreT : ModelPropertyC
 
     scopes.forEach { scope, _ -> form.myScopeField!!.addItem(scope) }
 
-    configureFormFor(form, scopes.keys.first())
+    // Prefer Project scope. (The first scope in the list is expected to be the build script scope.)
+    val defaultScope = scopes.keys.drop(1).firstOrNull() ?: scopes.keys.first()
+    configureFormFor(form, defaultScope)
 
     form.myScopeField.addActionListener {
       configureFormFor(form, form.myScopeField.selectedItem as String)
@@ -59,14 +61,14 @@ class ExtractVariableDialog<PropertyT : Any, ModelPropertyCoreT : ModelPropertyC
 
   private fun configureFormFor(form: ExtractVariableForm, scope: String) {
     val (newName, property) = worker.changeScope(scopes[scope]!!, form.myNameField.text)
-    val editor = editorFactory.createNew(property)
+    val editor = editorFactory.createNew(property, isPropertyContext = false)
     form.myNameField.text = newName
     form.setValueEditor(editor.component)
     form.myScopeField.selectedItem = scope
   }
 
   override fun doValidate(): ValidationInfo? =
-    worker.validate(name)?.let { ValidationInfo(it) }
+    worker.validate(name)?.let { ValidationInfo(it).withOKEnabled() }
 
   override fun doCancelAction() {
     super.doCancelAction()

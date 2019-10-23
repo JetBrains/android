@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.ui.resourcechooser.icons;
 
+import static com.android.SdkConstants.DOT_WEBP;
+import static com.android.SdkConstants.DOT_XML;
+
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -22,26 +25,20 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTaskContext;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.checks.IconDetector;
-import com.google.common.base.Function;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.IconManager;
-import com.intellij.util.concurrency.SameThreadExecutor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
-
-import static com.android.SdkConstants.DOT_WEBP;
-import static com.android.SdkConstants.DOT_XML;
+import javax.imageio.ImageIO;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class IconFactory {
   private final Supplier<RenderTask> myRenderTaskSupplier;
@@ -123,14 +120,16 @@ public class IconFactory {
       RenderTask renderTask = myRenderTaskSupplier.get();
       renderTask.setOverrideRenderSize(width, height)
         .setMaxRenderSize(width, height);
-      ListenableFuture<Icon> futureIcon =
-        Futures.transform(renderTask.renderDrawable(resourceValue), (Function<BufferedImage, ResourceChooserImageIcon>)drawable -> {
+
+      CompletableFuture<Icon> futureIcon = renderTask.renderDrawable(resourceValue)
+        .thenApply(drawable -> {
           if (drawable != null) {
             return new ResourceChooserImageIcon(size, drawable, checkerboardSize, interpolate);
           }
 
           return null;
-        }, SameThreadExecutor.INSTANCE);
+        });
+
       // TODO maybe have a different icon for state list drawable
       // Return the async icon
       return new AsyncIcon(futureIcon, placeHolderIcon, onIconLoaded);

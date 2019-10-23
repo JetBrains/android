@@ -15,11 +15,20 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.annotated
+import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
-import org.hamcrest.CoreMatchers.*
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.hasItems
+import org.hamcrest.CoreMatchers.notNullValue
+import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 
 class PsProductFlavorTest : AndroidGradleTestCase() {
@@ -89,6 +98,9 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(maxSdkVersion.resolved.asTestValue(), equalTo(25))
       assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(25))
 
+      assertThat(
+        PsProductFlavor.ProductFlavorDescriptors.getParsed(productFlavor)?.minSdkVersion()?.valueType,
+        equalTo(GradlePropertyModel.ValueType.INTEGER))
       assertThat(minSdkVersion.resolved.asTestValue(), equalTo("10"))
       assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("10"))
 
@@ -98,6 +110,9 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
       assertThat(signingConfig.parsedValue.asTestValue(), nullValue())
 
+      assertThat(
+        PsProductFlavor.ProductFlavorDescriptors.getParsed(productFlavor)?.targetSdkVersion()?.valueType,
+        equalTo(GradlePropertyModel.ValueType.INTEGER))
       assertThat(targetSdkVersion.resolved.asTestValue(), equalTo("20"))
       // TODO(b/71988818) assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("19"))
 
@@ -182,6 +197,63 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       hasItems(ValueDescriptor("foo", "foo"), ValueDescriptor("bar", "bar")))
   }
 
+  fun testChangingDimensions() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val productFlavor = appModule.findProductFlavor("foo", "paid")
+    assertThat(productFlavor, notNullValue()); productFlavor!!
+
+    assertThat(productFlavor.configuredDimension, equalTo("foo".asParsed()))
+
+    var changed = false
+    appModule.productFlavors.onChange(testRootDisposable) { changed = true}
+
+    productFlavor.configuredDimension = "bar".asParsed()
+    assertThat(productFlavor.configuredDimension, equalTo("bar".asParsed()))
+    assertThat(changed, equalTo(true))
+  }
+
+  fun testEffectiveDimensions() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+
+    run {
+      val appModule = project.findModuleByName("app") as PsAndroidModule
+      assertThat(appModule, notNullValue())
+
+      val productFlavor = appModule.findProductFlavor("foo", "paid")
+      assertThat(productFlavor, notNullValue()); productFlavor!!
+
+      productFlavor.configuredDimension = ParsedValue.NotSet
+      assertThat(productFlavor.effectiveDimension, nullValue())
+    }
+    run {
+      val nested2Module = project.findModuleByName("nested2") as PsAndroidModule
+      assertThat(nested2Module, notNullValue())
+
+      val productFlavor = nested2Module.findProductFlavor("foo", "paid")
+      assertThat(productFlavor, notNullValue()); productFlavor!!
+      assertThat(productFlavor.configuredDimension, equalTo<ParsedValue<String>>(ParsedValue.NotSet))
+      assertThat(productFlavor.effectiveDimension, equalTo("foo"))
+    }
+    run {
+      val nested1Module = project.findModuleByName("nested1") as PsAndroidModule
+      assertThat(nested1Module, notNullValue())
+
+      val productFlavor = nested1Module.addNewProductFlavor("new_bad", "new_with_bad")
+      assertThat(productFlavor, notNullValue())
+      assertThat(productFlavor.configuredDimension, equalTo<ParsedValue<String>>("new_bad".asParsed()))
+      assertThat(productFlavor.effectiveDimension, nullValue())
+    }
+  }
+
   fun testSetProperties() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
@@ -196,7 +268,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
 
     productFlavor.applicationId = "com.example.psd.sample.app.unpaid".asParsed()
     productFlavor.applicationIdSuffix = "suffix".asParsed()
-    productFlavor.dimension = "bar".asParsed()
+    productFlavor.configuredDimension = "bar".asParsed()
     productFlavor.maxSdkVersion = 26.asParsed()
     productFlavor.minSdkVersion = "20".asParsed()
     productFlavor.multiDexEnabled = false.asParsed()
@@ -210,7 +282,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     productFlavor.versionName = "3.0".asParsed()
     productFlavor.versionNameSuffix = "newFoo".asParsed()
     PsProductFlavor.ProductFlavorDescriptors.signingConfig.bind(productFlavor).setParsedValue(
-      ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.myConfig")))
+      ParsedValue.Set.Parsed(null, DslText.Reference("signingConfigs.myConfig")))
     PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).addItem(0).setParsedValue("free".asParsed())
     PsProductFlavor.ProductFlavorDescriptors.resConfigs.bind(productFlavor).run {
       addItem(0).setParsedValue("en".asParsed())
@@ -256,7 +328,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
       assertThat(
         signingConfig.parsedValue,
-        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(Unit, DslText.Reference("signingConfigs.myConfig")).annotated()))
+        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference("signingConfigs.myConfig")).annotated()))
       // TODO(b/71988818)
       assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("21"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid.failed_test"))

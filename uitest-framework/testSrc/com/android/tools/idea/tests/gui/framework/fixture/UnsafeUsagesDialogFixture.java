@@ -26,24 +26,28 @@ import javax.swing.*;
 
 public class UnsafeUsagesDialogFixture extends IdeaDialogFixture<UnsafeUsagesDialog> {
 
-  public UnsafeUsagesDialogFixture(@NotNull Robot robot, @NotNull JDialog target, @NotNull UnsafeUsagesDialog dialogWrapper) {
-    super(robot, target, dialogWrapper);
+  private final IdeFrameFixture ideFrame;
+
+  public UnsafeUsagesDialogFixture(@NotNull IdeFrameFixture ideFrame, @NotNull JDialog target, @NotNull UnsafeUsagesDialog dialogWrapper) {
+    super(ideFrame.robot(), target, dialogWrapper);
+    this.ideFrame = ideFrame;
   }
 
   @NotNull
-  public static UnsafeUsagesDialogFixture find(@NotNull Robot robot) {
-    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, "Usages Detected").and(
+  public static UnsafeUsagesDialogFixture find(@NotNull IdeFrameFixture ideFrame) {
+    JDialog dialog = GuiTests.waitUntilShowing(ideFrame.robot(), Matchers.byTitle(JDialog.class, "Usages Detected").and(
       new GenericTypeMatcher<JDialog>(JDialog.class) {
         @Override
         protected boolean isMatching(@NotNull JDialog dialog) {
           return getDialogWrapperFrom(dialog, UnsafeUsagesDialog.class) != null;
         }
       }));
-    return new UnsafeUsagesDialogFixture(robot, dialog, getDialogWrapperFrom(dialog, UnsafeUsagesDialog.class));
+    return new UnsafeUsagesDialogFixture(ideFrame, dialog, getDialogWrapperFrom(dialog, UnsafeUsagesDialog.class));
   }
 
-  public void deleteAnyway() {
+  public IdeFrameFixture deleteAnyway() {
     GuiTests.findAndClickButton(this, "Delete Anyway");
     waitUntilNotShowing(); // Mac dialogs have an animation, wait until it hides
+    return ideFrame;
   }
 }

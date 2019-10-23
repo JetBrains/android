@@ -26,6 +26,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.FloatResources;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +35,6 @@ import java.util.*;
 import java.util.List;
 import java.util.function.Predicate;
 
-import static com.android.SdkConstants.VALUE_N_DP;
 import static com.android.tools.idea.res.FloatResources.parseFloatAttribute;
 import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
 
@@ -88,18 +88,6 @@ public abstract class ViewEditor {
   }
 
   /**
-   * Converts a pixel to a dp (device independent pixel) for the current screen density,
-   * and returns it as a dimension string.
-   *
-   * @param px the pixel dimension
-   * @return the corresponding dp dimension string
-   */
-  @NotNull
-  public String pxToDpWithUnits(int px) {
-    return String.format(Locale.US, VALUE_N_DP, pxToDp(px));
-  }
-
-  /**
    * Returns the version used to compile the module containing this editor with
    */
   @Nullable
@@ -146,7 +134,7 @@ public abstract class ViewEditor {
    * @return a map from child to bounds information, if possible
    */
   @Nullable
-  public abstract Map<NlComponent, Dimension> measureChildren(@NotNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter);
+  public abstract CompletableFuture<Map<NlComponent, Dimension>> measureChildren(@NotNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter);
 
   @Nullable
   public final String displayResourceInput(@NotNull EnumSet<ResourceType> types) {
@@ -204,14 +192,6 @@ public abstract class ViewEditor {
                                       @NotNull List<NlComponent> children,
                                       int index,
                                       @NotNull InsertType insertType);
-
-  /**
-   * Get the dependency manager to handle adding missing dependency and
-   * check current dependencies
-   */
-  @NotNull
-  public abstract NlDependencyManager getDependencyManager();
-
 
   public abstract void openResourceFile(@NotNull String resourceId);
 

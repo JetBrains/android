@@ -19,7 +19,6 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.logcat.AndroidLogcatFormatter;
 import com.android.tools.idea.logcat.AndroidLogcatPreferences;
@@ -43,6 +42,9 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
@@ -151,7 +153,8 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     int uniqueId = runProfile instanceof RunConfigurationBase ? ((RunConfigurationBase)runProfile).getUniqueID() : -1;
     AndroidSessionInfo value = new AndroidSessionInfo(debugProcessHandler, debugDescriptor, uniqueId, currentLaunchInfo.executor.getId(),
                                                       currentLaunchInfo.executor.getActionName(),
-                                                      InstantRunUtils.isInstantRunEnabled(currentLaunchInfo.env));
+                                                      currentLaunchInfo.env.getExecutionTarget()
+    );
     debugProcessHandler.putUserData(AndroidSessionInfo.KEY, value);
     debugProcessHandler.putUserData(AndroidSessionInfo.ANDROID_DEBUG_CLIENT, client);
     debugProcessHandler.putUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL, client.getDevice().getVersion());
@@ -200,13 +203,18 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
 
         if (myWillBeDestroyed) {
           Logger.getInstance(ConnectJavaDebuggerTask.class).info("Debugger terminating, so terminating process: " + pkgName);
-          // Note: client.kill() doesn't work when the debugger is attached, we explicitly stop by package id..
-          try {
-            device.executeShellCommand("am force-stop " + pkgName, new NullOutputReceiver());
-          }
-          catch (Exception e) {
-            // don't care..
-          }
+          ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Stopping Application...") {
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+              // Note: client.kill() doesn't work when the debugger is attached, we explicitly stop by package id.
+              try {
+                device.executeShellCommand("am force-stop " + pkgName, new NullOutputReceiver());
+              }
+              catch (Exception e) {
+                // don't care..
+              }
+            }
+          });
         }
         else {
           Logger.getInstance(ConnectJavaDebuggerTask.class).info("Debugger detaching, leaving process alive: " + pkgName);

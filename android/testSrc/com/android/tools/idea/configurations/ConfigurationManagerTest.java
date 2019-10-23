@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.annotations.concurrency.Immutable;
 import com.android.tools.idea.rendering.Locale;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ref.GCUtil;
 import org.jetbrains.android.AndroidTestCase;
@@ -37,7 +39,7 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     assertNotNull(manager);
     assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
 
-    List<Locale> locales = manager.getLocales();
+    ImmutableList<Locale> locales = manager.getLocales();
     assertEquals(Arrays.asList(Locale.create("no"), Locale.create("no-rNO"), Locale.create("se")), locales);
   }
 
@@ -74,10 +76,11 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     assertTrue(manager.hasCachedConfiguration(file2));
 
     int iterations = 0;
-    try {
+    do {
+      // The amount of memory this method allocates since merging 181.3263.15 is not enough to collect soft references. Since this is the
+      // only Android test that uses that, we just try a couple of times in a loop.
       GCUtil.tryGcSoftlyReachableObjects();
-    } catch (Throwable t) {
-      // The above method can throw java.lang.OutOfMemoryError; that's fine for this test
+      iterations++;
     }
     while (manager.hasCachedConfiguration(file1) && iterations < 10);
 

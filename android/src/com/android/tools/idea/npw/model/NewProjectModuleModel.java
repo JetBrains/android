@@ -46,7 +46,6 @@ public final class NewProjectModuleModel extends WizardModel {
   public static final String ANDROID_MODULE = "Android Module";
 
   @NotNull private final NewProjectModel myProjectModel;
-  @NotNull private final ProjectSyncInvoker myProjectSyncInvoker;
   @NotNull private final NewModuleModel myNewModuleModel;
   @NotNull private final RenderTemplateModel myExtraRenderTemplateModel;
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
@@ -58,14 +57,10 @@ public final class NewProjectModuleModel extends WizardModel {
 
   public NewProjectModuleModel(@NotNull NewProjectModel projectModel) {
     myProjectModel = projectModel;
-    myProjectSyncInvoker = projectModel.getProjectSyncInvoker();
     myNewModuleModel = new NewModuleModel(myProjectModel, new File(""));
     myExtraRenderTemplateModel =
       new RenderTemplateModel(myNewModuleModel, null, createDummyTemplate(), message("android.wizard.config.activity.title"));
   }
-
-  @NotNull
-  public ProjectSyncInvoker getProjectSyncInvoker() { return myProjectSyncInvoker; }
 
   @NotNull
   public BoolProperty instantApp() {
@@ -180,18 +175,18 @@ public final class NewProjectModuleModel extends WizardModel {
 
   @NotNull
   private RenderTemplateModel createMainRenderModel(String projectLocation) {
-    File moduleRoot = new File(projectLocation, myNewModuleModel.moduleName().get());
+    String moduleName = myNewModuleModel.moduleName().get();
     RenderTemplateModel newRenderTemplateModel;
     if (myProjectModel.enableCppSupport().get()) {
       newRenderTemplateModel = createCompanionRenderModel(projectLocation, myNewModuleModel);
     }
     else if (myExtraRenderTemplateModel.getTemplateHandle() == null) {
-      newRenderTemplateModel = new RenderTemplateModel(myNewModuleModel, null, createDefaultTemplateAt(moduleRoot), "");
+      newRenderTemplateModel = new RenderTemplateModel(myNewModuleModel, null, createDefaultTemplateAt(projectLocation, moduleName), "");
       newRenderTemplateModel.setTemplateHandle(renderTemplateHandle().getValueOrNull());
     }
     else { // Extra Render is visible. Use it.
       newRenderTemplateModel = myExtraRenderTemplateModel;
-      myExtraRenderTemplateModel.getTemplate().set(createDefaultTemplateAt(moduleRoot));
+      myExtraRenderTemplateModel.getTemplate().set(createDefaultTemplateAt(projectLocation, moduleName));
     }
     newRenderTemplateModel.androidSdkInfo().setValue(androidSdkInfo().getValue());
     return newRenderTemplateModel;
@@ -220,8 +215,7 @@ public final class NewProjectModuleModel extends WizardModel {
   @NotNull
   private static RenderTemplateModel createCompanionRenderModel(@NotNull String projectLocation, @NotNull NewModuleModel moduleModel) {
     // Note: The companion Render is always a "Empty Activity"
-    File mobileModuleRoot = new File(projectLocation, moduleModel.moduleName().get());
-    NamedModuleTemplate namedModuleTemplate = createDefaultTemplateAt(mobileModuleRoot);
+    NamedModuleTemplate namedModuleTemplate = createDefaultTemplateAt(projectLocation, moduleModel.moduleName().get());
     File renderTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_ACTIVITY, EMPTY_ACTIVITY);
     TemplateHandle renderTemplateHandle = new TemplateHandle(renderTemplateFile);
 
@@ -255,7 +249,7 @@ public final class NewProjectModuleModel extends WizardModel {
     try {
       Collection<Parameter> renderParameters = templateMetadata.getParameters();
       Map<Parameter, Object> parameterValues = ParameterValueResolver.resolve(renderParameters, userValues, additionalValues);
-      parameterValues.forEach(((parameter, value) -> templateValues.put(parameter.id, value)));
+      parameterValues.forEach((parameter, value) -> templateValues.put(parameter.id, value));
     } catch (CircularParameterDependencyException e) {
       getLog().error("Circular dependency between parameters in template %1$s", e, templateMetadata.getTitle());
     }

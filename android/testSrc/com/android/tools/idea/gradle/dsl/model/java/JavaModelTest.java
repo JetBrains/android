@@ -15,14 +15,26 @@
  */
 package com.android.tools.idea.gradle.dsl.model.java;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_ADD_NON_EXISTED_LANGUAGE_LEVEL;
+import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_ADD_NON_EXISTED_TARGET_COMPATIBILITY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_DELETE_LANGUAGE_LEVEL;
+import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSIONS_AS_DOUBLE_QUOTE_STRINGS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSIONS_AS_NUMBERS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSIONS_AS_QUALIFIED_REFERENCE_STRING;
+import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSIONS_AS_REFERENCE_STRING;
+import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSIONS_AS_SINGLE_QUOTE_STRINGS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSION_LITERAL_FROM_EXT_PROPERTY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSION_REFERENCE_FROM_EXT_PROPERTY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_RESET_TARGET_COMPATIBILITY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_SET_SOURCE_COMPATIBILITY;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
-import org.junit.Test;
-
 import java.io.IOException;
+import org.junit.Test;
 
 /**
  * Tests for {@link JavaModelImpl}
@@ -30,9 +42,7 @@ import java.io.IOException;
 public class JavaModelTest extends GradleFileModelTestCase {
   @Test
   public void testReadJavaVersionsAsNumbers() throws IOException {
-    String text = "sourceCompatibility = 1.5\n" +
-                  "targetCompatibility = 1.6";
-    writeToBuildFile(text);
+    writeToBuildFile(JAVA_MODEL_READ_JAVA_VERSIONS_AS_NUMBERS);
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
     assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
@@ -40,9 +50,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReadJavaVersionsAsSingleQuoteStrings() throws IOException {
-    String text = "sourceCompatibility = \"1.5\"\n" +
-                  "targetCompatibility = \"1.6\"";
-    writeToBuildFile(text);
+    writeToBuildFile(JAVA_MODEL_READ_JAVA_VERSIONS_AS_SINGLE_QUOTE_STRINGS);
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
     assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
@@ -50,9 +58,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReadJavaVersionsAsDoubleQuoteStrings() throws IOException {
-    String text = "sourceCompatibility = '1.5'\n" +
-                  "targetCompatibility = '1.6'";
-    writeToBuildFile(text);
+    writeToBuildFile(JAVA_MODEL_READ_JAVA_VERSIONS_AS_DOUBLE_QUOTE_STRINGS);
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
     assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
@@ -60,9 +66,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReadJavaVersionsAsReferenceString() throws IOException {
-    String text = "sourceCompatibility = VERSION_1_5\n" +
-                  "targetCompatibility = VERSION_1_6";
-    writeToBuildFile(text);
+    writeToBuildFile(JAVA_MODEL_READ_JAVA_VERSIONS_AS_REFERENCE_STRING);
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
     assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
@@ -70,9 +74,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReadJavaVersionsAsQualifiedReferenceString() throws IOException {
-    String text = "sourceCompatibility = JavaVersion.VERSION_1_5\n" +
-                  "targetCompatibility = JavaVersion.VERSION_1_6";
-    writeToBuildFile(text);
+    writeToBuildFile(JAVA_MODEL_READ_JAVA_VERSIONS_AS_QUALIFIED_REFERENCE_STRING);
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
     assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
@@ -80,11 +82,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReadJavaVersionLiteralFromExtProperty() throws IOException {
-    String text = "ext.JAVA_VERSION = 1.5\n" +
-                  "sourceCompatibility = JAVA_VERSION\n" +
-                  "targetCompatibility = JAVA_VERSION";
-
-    writeToBuildFile(text);
+    writeToBuildFile(JAVA_MODEL_READ_JAVA_VERSION_LITERAL_FROM_EXT_PROPERTY);
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
     assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility().toLanguageLevel());
@@ -92,11 +90,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReadJavaVersionReferenceFromExtProperty() throws IOException {
-    String text = "ext.JAVA_VERSION = JavaVersion.VERSION_1_5\n" +
-                  "sourceCompatibility = JAVA_VERSION\n" +
-                  "targetCompatibility = JAVA_VERSION";
-
-    writeToBuildFile(text);
+    writeToBuildFile(JAVA_MODEL_READ_JAVA_VERSION_REFERENCE_FROM_EXT_PROPERTY);
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
     assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility().toLanguageLevel());
@@ -104,9 +98,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetSourceCompatibility() throws IOException {
-    String text = "sourceCompatibility = 1.5\n" +
-                  "targetCompatibility = 1.5";
-    writeToBuildFile(text);
+    writeToBuildFile(JAVA_MODEL_SET_SOURCE_COMPATIBILITY);
     GradleBuildModel buildModel = getGradleBuildModel();
     JavaModel java = buildModel.java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
@@ -120,9 +112,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testResetTargetCompatibility() throws IOException {
-    String text = "sourceCompatibility = 1.5\n" +
-                  "targetCompatibility = 1.5";
-    writeToBuildFile(text);
+    writeToBuildFile(JAVA_MODEL_RESET_TARGET_COMPATIBILITY);
     GradleBuildModel buildModel = getGradleBuildModel();
     JavaModel java = buildModel.java();
     assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility().toLanguageLevel());
@@ -143,9 +133,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
    */
   @Test
   public void testAddNonExistedTargetCompatibility() throws IOException {
-    String text = "sourceCompatibility = 1.5\n" +
-                  "dependencies {}\n";
-    writeToBuildFile(text);
+    writeToBuildFile(JAVA_MODEL_ADD_NON_EXISTED_TARGET_COMPATIBILITY);
     GradleBuildModel buildModel = getGradleBuildModel();
     JavaModel java = buildModel.java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
@@ -171,8 +159,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddNonExistedLanguageLevel() throws Exception {
-    String text = "";
-    writeToBuildFile(text);
+    writeToBuildFile(JAVA_MODEL_ADD_NON_EXISTED_LANGUAGE_LEVEL);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     buildModel.java().sourceCompatibility().setLanguageLevel(LanguageLevel.JDK_1_5);
@@ -184,9 +171,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testDeleteLanguageLevel() throws Exception {
-    String text = "sourceCompatibility = 1.5\n" +
-                  "targetCompatibility = 1.5";
-    writeToBuildFile(text);
+    writeToBuildFile(JAVA_MODEL_DELETE_LANGUAGE_LEVEL);
     GradleBuildModel buildModel = getGradleBuildModel();
     JavaModel java = buildModel.java();
     java.sourceCompatibility().delete();

@@ -15,25 +15,24 @@
  */
 package com.android.tools.idea.observable.expressions.bool;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.observable.BatchInvoker;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import org.junit.Test;
 
-import static com.google.common.truth.Truth.assertThat;
-
 public final class BooleanExpressionsTest {
-
   @Test
   public void testInvariants() throws Exception {
-    assertThat(BooleanExpression.ALWAYS_TRUE.get()).isTrue();
-    assertThat(BooleanExpression.ALWAYS_FALSE.get()).isFalse();
+    assertThat(ObservableBool.TRUE.get()).isTrue();
+    assertThat(ObservableBool.FALSE.get()).isFalse();
   }
 
   @Test
   public void testNotExpression() throws Exception {
-
     BoolValueProperty srcValue = new BoolValueProperty(true);
     BoolValueProperty destValue = new BoolValueProperty();
     BindingsManager bindings = new BindingsManager(BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY);

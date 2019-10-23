@@ -28,8 +28,8 @@ public class PlainFolderIncludeResolverTest {
     PlainFolderIncludeResolver resolver = new PlainFolderIncludeResolver();
     SimpleIncludeValue result = resolver.resolve(new File("/path/to/folder"));
     assertThat(result).isNotNull();
-    assertThat(result.mySimplePackageName).isEqualTo("folder");
-    assertThat(result.myRelativeIncludeSubFolder).isEqualTo("/");
-    assertThat(result.myIncludeFolder).isEqualTo(new File("/path/to/folder"));
+    assertThat(result.getSimplePackageName()).isEqualTo("folder");
+    assertThat(result.getRelativeIncludeSubFolder()).isEqualTo("/");
+    assertThat(result.getIncludeFolder()).isEqualTo(new File("/path/to/folder"));
   }
 }

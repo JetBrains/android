@@ -63,7 +63,6 @@ public final class FreemarkerUtils {
     paramMap.put("getConfigurationName", new FmGetConfigurationNameMethod(paramMap));
     paramMap.put("getMaterialComponentName", new FmGetMaterialComponentNameMethod());
     paramMap.put("hasDependency", new FmHasDependencyMethod(paramMap));
-    paramMap.put("isGradleComponentPluginUsed", new FmIsGradleComponentPluginUsed(paramMap));
     paramMap.put("layoutToActivity", new FmLayoutToActivityMethod());
     paramMap.put("slashedPackageName", new FmSlashedPackageNameMethod());
     paramMap.put("truncate", new FmTruncateStringMethod());

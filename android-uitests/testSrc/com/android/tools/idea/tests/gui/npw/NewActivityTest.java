@@ -18,8 +18,6 @@ package com.android.tools.idea.tests.gui.npw;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture.ActivityTextField;
@@ -40,7 +38,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.text.StringUtil.getOccurrenceCount;
 import static org.junit.Assert.assertEquals;
 
-@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner.class)
 public class NewActivityTest {
   private static final String PROVIDED_ACTIVITY = "app/src/main/java/google/simpleapplication/MyActivity.java";
@@ -58,7 +55,7 @@ public class NewActivityTest {
 
   @Before
   public void setUp() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
     guiTest.ideFrame().getProjectView().selectProjectPane();
     myEditor = guiTest.ideFrame().getEditor();
     myEditor.open(PROVIDED_ACTIVITY);
@@ -258,7 +255,6 @@ public class NewActivityTest {
     myDialog.clickCancel();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/77157746
   @Test
   public void projectViewPaneNotChanged() throws Exception {
     // Verify that after creating a new activity, the current pane on projectView does not change, assumes initial pane is ProjectView

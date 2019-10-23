@@ -78,7 +78,7 @@ public class BuildNodeDecorator implements ProjectViewNodeDecorator {
     }
 
     Module module = ProjectRootManager.getInstance(project).getFileIndex().getModuleForFile(folder);
-    if (module == null) {
+    if (module == null && !module.isDisposed()) {
       return;
     }
 

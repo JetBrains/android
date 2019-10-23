@@ -9,6 +9,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagValue;
+import java.util.Locale;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
@@ -125,7 +126,7 @@ public class ConvertToDpQuickFix implements AndroidLintQuickFix {
 
   @NotNull
   private static String getLabelForDensity(@NotNull Density density) {
-    return String.format("%1$s (%2$d)", density.getShortDisplayValue(), density.getDpiValue());
+    return String.format(Locale.US, "%1$s (%2$d)", density.getShortDisplayValue(), density.getDpiValue());
   }
 
   @Override

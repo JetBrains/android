@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ptable
 
-import com.android.tools.adtui.ptable.PTableItem
+import com.android.tools.property.ptable.PTableItem
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.UIUtil

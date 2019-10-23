@@ -22,14 +22,21 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.TitledSeparator;
+import java.util.Hashtable;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.text.NumberFormatter;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.*;
-import javax.swing.text.NumberFormatter;
-import java.util.Hashtable;
 
 public class ExperimentalSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   @NotNull private final GradleExperimentalSettings mySettings;
@@ -40,7 +47,10 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox mySkipSourceGenOnSyncCheckbox;
   private JCheckBox myUseL2DependenciesCheckBox;
   private JCheckBox myUseSingleVariantSyncCheckbox;
+  private JCheckBox mySkipSourcesAndJavadocDownload;
   private JSlider myLayoutEditorQualitySlider;
+  private JCheckBox myNewPsdCheckbox;
+  private TitledSeparator myNewPsdSeparator;
 
   @SuppressWarnings("unused") // called by IDE
   public ExperimentalSettingsConfigurable(@NotNull Project project) {
@@ -52,6 +62,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
                                    @NotNull RenderSettings renderSettings) {
     mySettings = settings;
     myRenderSettings = renderSettings;
+
     // TODO make visible once Gradle Sync switches to L2 dependencies
     myUseL2DependenciesCheckBox.setVisible(false);
 
@@ -62,6 +73,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myLayoutEditorQualitySlider.setPaintLabels(true);
     myLayoutEditorQualitySlider.setPaintTicks(true);
     myLayoutEditorQualitySlider.setMajorTickSpacing(25);
+    myNewPsdSeparator.setVisible(StudioFlags.NEW_PSD_ENABLED.get());
+    myNewPsdCheckbox.setVisible(StudioFlags.NEW_PSD_ENABLED.get());
 
     reset();
   }
@@ -101,7 +114,9 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     if (mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC != isSkipSourceGenOnSync() ||
         mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
         mySettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
-        (int)(myRenderSettings.getQuality() * 100) != getQualitySetting()) {
+        mySettings.SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC != skipSourcesAndJavadocDownload() ||
+        (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
+        mySettings.USE_NEW_PSD != isUseNewPsd()) {
       return true;
     }
     Integer value = getMaxModuleCountForSourceGen();
@@ -117,6 +132,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = isSkipSourceGenOnSync();
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isUseL2DependenciesInSync();
     mySettings.USE_SINGLE_VARIANT_SYNC = isUseSingleVariantSync();
+    mySettings.SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC = skipSourcesAndJavadocDownload();
 
     Integer value = getMaxModuleCountForSourceGen();
     if (value != null) {
@@ -124,6 +140,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     }
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
+    mySettings.USE_NEW_PSD = isUseNewPsd();
   }
 
   @VisibleForTesting
@@ -162,9 +179,22 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     return myUseSingleVariantSyncCheckbox.isSelected();
   }
 
+  boolean skipSourcesAndJavadocDownload() {
+    return mySkipSourcesAndJavadocDownload.isSelected();
+  }
+
   @TestOnly
   void setUseSingleVariantSync(boolean value) {
     myUseSingleVariantSyncCheckbox.setSelected(value);
+  }
+
+  boolean isUseNewPsd() {
+    return myNewPsdCheckbox.isSelected();
+  }
+
+  @TestOnly
+  void setUseNewPsd(boolean value) {
+    myNewPsdCheckbox.setSelected(value);
   }
 
   @Override
@@ -173,7 +203,9 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myModuleNumberSpinner.setValue(mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     myUseSingleVariantSyncCheckbox.setSelected(mySettings.USE_SINGLE_VARIANT_SYNC);
+    mySkipSourcesAndJavadocDownload.setSelected(mySettings.SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC);
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
+    myNewPsdCheckbox.setSelected(mySettings.USE_NEW_PSD);
   }
 
   private void createUIComponents() {

@@ -13,31 +13,71 @@
 // limitations under the License.
 package com.android.tools.idea.uibuilder.property2.support
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ATTR_ACTION_BAR_NAV_MODE
+import com.android.SdkConstants.ATTR_DROPDOWN_HEIGHT
+import com.android.SdkConstants.ATTR_DROPDOWN_WIDTH
+import com.android.SdkConstants.ATTR_FONT_FAMILY
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX
+import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
+import com.android.SdkConstants.ATTR_LINE_SPACING_EXTRA
+import com.android.SdkConstants.ATTR_ON_CLICK
+import com.android.SdkConstants.ATTR_STYLE
+import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
+import com.android.SdkConstants.ATTR_TEXT_SIZE
+import com.android.SdkConstants.ATTR_TYPEFACE
+import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.uibuilder.model.viewHandler
-import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.property.panel.api.EnumSupport
+import com.android.tools.property.panel.api.EnumSupportProvider
+import com.android.tools.property.panel.api.EnumValue
+import com.android.tools.property.panel.api.PropertiesModel
+import com.android.tools.property.panel.api.PropertiesModelListener
+import com.google.common.collect.HashBasedTable
+import com.google.common.collect.Table
+import org.jetbrains.android.dom.AndroidDomUtil
 import org.jetbrains.android.dom.attrs.AttributeDefinition
-import java.util.*
+import org.jetbrains.android.dom.navigation.NavigationSchema
+import java.util.IdentityHashMap
 
 private const val TEXT_APPEARANCE_SUFFIX = "TextAppearance"
 
 /**
  * Given a [NelePropertyItem] compute the [EnumSupport] of the attribute if applicable.
  */
-class NeleEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
+class NeleEnumSupportProvider(model: NelePropertiesModel) : EnumSupportProvider<NelePropertyItem> {
+  private val cachedEnumSupport: Table<String, String, CachedEnumSupport> = HashBasedTable.create()
+
+  init {
+    model.addListener(object: PropertiesModelListener<NelePropertyItem> {
+      override fun propertiesGenerated(model: PropertiesModel<NelePropertyItem>) {
+        cachedEnumSupport.clear()
+      }
+
+      override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
+        cachedEnumSupport.clear()
+      }
+    })
+  }
 
   /**
    * Return the [EnumSupport] for the given [actual] property or null if not applicable.
    */
   override fun invoke(actual: NelePropertyItem): EnumSupport? {
-    val property = (actual as? NeleNewPropertyItem)?.delegate ?: actual
-    return provideEnumSupportFromViewHandler(property.name, property.components) ?:
+    val property = actual.delegate ?: actual
+    val support = cachedEnumSupport.get(property.namespace, property.name) ?:
+        provideEnumSupportFromViewHandler(property.name, property.components) ?:
         getDropDownValuesFromSpecialCases(property) ?:
         property.definition?.let { provideEnumSupportFromAttributeDefinition(it) }
+    if (support is CachedEnumSupport) {
+      cachedEnumSupport.put(property.namespace, property.name, support)
+    }
+    return support
   }
 
   private val textSizeEnumSupport: EnumSupport by lazy {
@@ -59,6 +99,10 @@ class NeleEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
 
   private val sizesSupport: EnumSupport by lazy {
     EnumSupport.simple("match_parent", "wrap_content")
+  }
+
+  private val actionBarNavModeEnumSupport: EnumSupport by lazy {
+    EnumSupport.simple("standard", "list", "tabs")
   }
 
   private fun provideEnumSupportFromViewHandler(name: String, components: List<NlComponent>): EnumSupport? {
@@ -106,8 +150,9 @@ class NeleEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
     return when {
       name.endsWith(TEXT_APPEARANCE_SUFFIX) -> TextAppearanceEnumSupport(property)
       name == ATTR_STYLE && property.namespace.isEmpty() -> return StyleEnumSupport(property)
-      property.namespace != ANDROID_URI -> null
+      isIdType(property) -> IdEnumSupport(property)
       else -> when (name) {
+        ATTR_ACTION_BAR_NAV_MODE -> actionBarNavModeEnumSupport
         ATTR_FONT_FAMILY -> getFontEnumSupport(property)
         ATTR_TYPEFACE -> typefaceEnumSupport
         ATTR_TEXT_SIZE -> textSizeEnumSupport
@@ -121,6 +166,11 @@ class NeleEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
         else -> null
       }
     }
+  }
+
+  private fun isIdType(property: NelePropertyItem): Boolean {
+    return property.name != ATTR_ID && property.name != NavigationSchema.ATTR_DESTINATION &&
+           AndroidDomUtil.getSpecialResourceTypes(property.name).contains(ResourceType.ID)
   }
 
   private fun getFontEnumSupport(property: NelePropertyItem): EnumSupport {

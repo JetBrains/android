@@ -38,7 +38,7 @@ abstract class XmlNamespaceCompletionTest : AndroidTestCase() {
 
   class NoLibs : XmlNamespaceCompletionTest() {
 
-    fun testValuesResources(){
+    fun testValuesResources() {
       myFixture.configureFromExistingVirtualFile(
         myFixture.addFileToProject(
           "res/values/values.xml",

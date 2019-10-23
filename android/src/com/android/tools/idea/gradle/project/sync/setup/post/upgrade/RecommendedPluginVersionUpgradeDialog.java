@@ -15,30 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.PropertyBasedDoNotAskOption;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.OnePixelDivider;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.ui.HyperlinkAdapter;
-import com.intellij.ui.border.CustomLineBorder;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.CompoundBorder;
-import javax.swing.event.HyperlinkEvent;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.util.List;
-
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
+import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.UpgradeDialogMetricUtilsKt.recordUpgradeDialogEvent;
+import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.CANCEL;
+import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.DO_NOT_ASK_AGAIN;
+import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.OK;
+import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.REMIND_ME_TOMORROW;
 import static com.intellij.ide.BrowserUtil.browse;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ui.JBUI.Borders.empty;
@@ -46,11 +29,36 @@ import static com.intellij.util.ui.JBUI.Borders.emptyTop;
 import static javax.swing.Action.MNEMONIC_KEY;
 import static javax.swing.Action.NAME;
 
-public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
-  private static final String SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME = "show.do.not.ask.upgrade.gradle.plugin";
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.PropertyBasedDoNotAskOption;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.OnePixelDivider;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.ui.HyperlinkAdapter;
+import com.intellij.ui.border.CustomLineBorder;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import javax.swing.Action;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JEditorPane;
+import javax.swing.JPanel;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
+import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
   @NotNull private final Project myProject;
   @NotNull private final GradleVersion myCurrentPluginVersion;
+  @NotNull private final GradleVersion myRecommendedPluginVersion;
   @NotNull private final TimeBasedUpgradeReminder myUpgradeReminder;
   @NotNull private final PropertyBasedDoNotAskOption myDoNotAskOption;
 
@@ -75,9 +83,10 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
     super(project);
     myProject = project;
     myCurrentPluginVersion = current;
+    myRecommendedPluginVersion = recommended;
     myUpgradeReminder = upgradeReminder;
     setTitle("Android Gradle Plugin Update Recommended");
-    myDoNotAskOption = new PropertyBasedDoNotAskOption(project, SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME) {
+    myDoNotAskOption = new PropertyBasedDoNotAskOption(project, TimeBasedUpgradeReminder.SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME) {
       @Override
       @NotNull
       public String getDoNotShowMessage() {
@@ -97,21 +106,25 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
         if (!toBeShown) {
           valueToSave = myCurrentPluginVersion.toString();
         }
-        PropertiesComponent.getInstance(myProject).setValue(SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME, valueToSave);
+        myUpgradeReminder.setDoNotAskAgainVersion(myProject, valueToSave);
       }
     };
     init();
 
     setUpAsHtmlLabel(myMessagePane);
     String msg = "To take advantage of the latest features, improvements, and security fixes, we strongly recommend " +
-                 "that you update the Android Gradle plugin to version " + recommended + " and Gradle to version " +
-                 GRADLE_LATEST_VERSION + ". " +
-                 "<a href='http://d.android.com/tools/revisions/gradle-plugin.html'>Release notes</a><br/><br/>" +
-                 "Android plugin 3.2.0 and higher now support building the <i>Android App Bundle</i>—" +
-                 "a new upload format that defers APK generation and signing to compatible app stores, " +
-                 "such as Google Play. With app bundles, you no longer have to build, sign, and manage multiple APKs, " +
-                 "and users get smaller, more optimized downloads. " +
-                 "<a href='http://d.android.com/r/studio-ui/dynamic-delivery/overview'>Learn more</a>";
+                 "that you update the Android Gradle plugin from the current version " + current
+                 + " to version " + recommended + " and Gradle to version " + GRADLE_LATEST_VERSION + ". " +
+                 "<a href='http://d.android.com/tools/revisions/gradle-plugin.html'>Release notes</a>";
+
+    if (current.compareTo("3.2.0") < 0) {
+      msg += "<br/><br/>" +
+             "Android plugin 3.2.0 and higher now support building the <i>Android App Bundle</i>—" +
+             "a new upload format that defers APK generation and signing to compatible app stores, " +
+             "such as Google Play. With app bundles, you no longer have to build, sign, and manage multiple APKs, " +
+             "and users get smaller, more optimized downloads. " +
+             "<a href='http://d.android.com/r/studio-ui/dynamic-delivery/overview'>Learn more</a>";
+    }
     myMessagePane.setText(msg);
     myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
@@ -167,7 +180,14 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
   public void doCancelAction() {
     // User closed dialog without making a selection, don't do anything.
     // Show dialog again when the project is opened next time.
+    recordUpgradeDialogEvent(myProject, myCurrentPluginVersion, myRecommendedPluginVersion, CANCEL);
     close(CANCEL_EXIT_CODE);
+  }
+
+  @Override
+  protected void doOKAction() {
+    recordUpgradeDialogEvent(myProject, myCurrentPluginVersion, myRecommendedPluginVersion, OK);
+    super.doOKAction();
   }
 
   @NotNull
@@ -203,7 +223,7 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
   }
 
   private boolean shouldDisplayDialog() {
-    String value = PropertiesComponent.getInstance(myProject).getValue(SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME, "");
+    String value = myUpgradeReminder.getDoNotAskAgainVersion(myProject);
     boolean storedVersionMatching = isNotEmpty(value) && myCurrentPluginVersion.compareTo(value) == 0;
     return !storedVersionMatching;
   }
@@ -232,7 +252,8 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
     @Override
     protected void doAction(ActionEvent e) {
       myDoNotAskOption.setToBeShown(false, CANCEL_EXIT_CODE);
-      doCancelAction();
+      recordUpgradeDialogEvent(myProject, myCurrentPluginVersion, myRecommendedPluginVersion, DO_NOT_ASK_AGAIN);
+      close(CANCEL_EXIT_CODE);
     }
   }
 
@@ -249,6 +270,11 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
     protected void doAction(ActionEvent e) {
       // This is the "Remind me tomorrow" button.
       myUpgradeReminder.storeLastUpgradeRecommendation(myProject);
+      recordUpgradeDialogEvent(myProject, myCurrentPluginVersion, myRecommendedPluginVersion, REMIND_ME_TOMORROW);
+
+      // Schedule checking after 1 days.
+      RecommendedPluginVersionUpgrade.scheduleNextReminder(myProject, 1, TimeUnit.DAYS);
+
       close(CANCEL_EXIT_CODE);
     }
   }

@@ -15,6 +15,10 @@
  */
 package org.jetbrains.android.uipreview;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static org.hamcrest.core.IsCollectionContaining.hasItem;
+import static org.junit.Assert.assertThat;
+
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -29,10 +33,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
-
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static org.hamcrest.core.IsCollectionContaining.hasItem;
-import static org.junit.Assert.assertThat;
 
 public class ViewLoaderTest extends AndroidTestCase {
   @SuppressWarnings("ALL")
@@ -101,7 +101,7 @@ public class ViewLoaderTest extends AndroidTestCase {
 
     // No LocalResourceRepository exists prior to calling loadAndParseRClass. It will get created during the call.
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    assertNull(facet != null ? ResourceRepositoryManager.getOrCreateInstance(facet).getAppResources(false) : null);
+    assertNull(facet != null ? ResourceRepositoryManager.getInstance(facet).getExistingAppResources() : null);
     viewLoader.loadAndParseRClass("org.jetbrains.android.uipreview.ViewLoaderTest$R");
 
     ResourceIdManager idManager = ResourceIdManager.get(myModule);

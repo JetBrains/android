@@ -46,16 +46,23 @@ public class PackageFamilyValue extends ClassifiedIncludeValue {
     myIncludes = ImmutableList.copyOf(includes);
   }
 
+  @NotNull
+  @Override
+  public String getPackageDescription() {
+    return myKey.getDescription();
+  }
+
   @Override
   public String toString() {
-    return String.format("%s (%s)", getPackageType().myDescription, getPackageFamilyBaseFolder());
+    return String.format("%s (%s)", myKey.getDescription(), getPackageFamilyBaseFolder());
   }
 
   @NotNull
   @Override
   public String getSortKey() {
     // NDK goes above other package families in the view.
-    if (getPackageType().equals(PackageType.NdkComponent)) {
+    if (getPackageType().equals(PackageType.NdkComponent)
+        || getPackageType().equals(PackageType.NdkSxsComponent)) {
       return NDK_PACKAGING_FAMILY.myKey + toString();
     }
     return OTHER_PACKAGING_FAMILY.myKey + toString();
@@ -64,13 +71,13 @@ public class PackageFamilyValue extends ClassifiedIncludeValue {
   @NotNull
   @Override
   public PackageType getPackageType() {
-    return myKey.myPackageType;
+    return myKey.getPackageType();
   }
 
   @NotNull
   @Override
   public File getPackageFamilyBaseFolder() {
-    return myKey.myPackagingFamilyBaseFolder;
+    return myKey.getPackagingFamilyBaseFolder();
   }
 
   @Override

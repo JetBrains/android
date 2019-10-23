@@ -168,7 +168,7 @@ public class CaptureObjectLoaderTest {
     private final boolean myLoadSuccessful;
     private final boolean myThrowsException;
 
-    TestCaptureObject(@NotNull CountDownLatch loadLatch, boolean loadSuccessful, boolean throwsException) {
+    public TestCaptureObject(@NotNull CountDownLatch loadLatch, boolean loadSuccessful, boolean throwsException) {
       myLoadLatch = loadLatch;
       myLoadSuccessful = loadSuccessful;
       myThrowsException = throwsException;

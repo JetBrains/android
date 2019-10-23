@@ -17,12 +17,14 @@ package com.android.tools.idea.editors.layoutInspector.ui;
 
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.adtui.ptable.PTableGroupItem;
-import com.android.tools.adtui.ptable.PTableItem;
-import com.android.tools.adtui.ptable.PTableModel;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableGroupItem;
+import com.android.tools.property.ptable.PTableItem;
+import com.android.tools.property.ptable.PTableModel;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SpeedSearchComparator;
@@ -43,9 +45,10 @@ public class PropertiesTablePanel extends JScrollPane implements ToolContent<Lay
   private MyFilter myFilter;
   private PTableModel myModel;
 
-  public PropertiesTablePanel() {
+  public PropertiesTablePanel(@NotNull Disposable parentDisposable) {
     myFilter = new MyFilter();
     myRowSorter = new TableRowSorter<>();
+    Disposer.register(parentDisposable, this);
   }
 
   @Override

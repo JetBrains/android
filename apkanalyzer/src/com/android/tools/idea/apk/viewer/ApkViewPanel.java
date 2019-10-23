@@ -29,6 +29,7 @@ import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ApkAnalyzerStats;
 import com.intellij.icons.AllIcons;
@@ -44,7 +45,7 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import com.intellij.util.ui.AnimatedIcon;
 import com.intellij.util.ui.AsyncProcessIcon;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -69,6 +70,7 @@ public class ApkViewPanel implements TreeSelectionListener {
   private AnimatedIcon mySizeAsyncIcon;
   private JButton myCompareWithButton;
   private Tree myTree;
+  private Project myProject;
 
   private DefaultTreeModel myTreeModel;
   private Listener myListener;
@@ -82,6 +84,7 @@ public class ApkViewPanel implements TreeSelectionListener {
 
   public ApkViewPanel(@NotNull Project project, @NotNull ApkParser apkParser) {
     myApkParser = apkParser;
+    myProject = project;
     // construct the main tree along with the uncompressed sizes
     Futures.addCallback(apkParser.constructTreeStructure(), new FutureCallBackAdapter<ArchiveNode>() {
       @Override
@@ -118,7 +121,7 @@ public class ApkViewPanel implements TreeSelectionListener {
     myNameAsyncIcon.setVisible(true);
     myNameComponent.append("Parsing Manifest");
 
-    Path pathToAapt = ProjectSystemUtil.getProjectSystem(project).getPathToAapt();
+    Path pathToAapt = ProjectSystemUtil.getProjectSystem(myProject).getPathToAapt();
     //find a suitable archive that has an AndroidManifest.xml file in the root ("/")
     //for APKs, this will always be the APK itself
     //for ZIP files (AIA bundles), this will be the first found APK using breadth-first search
@@ -318,9 +321,10 @@ public class ApkViewPanel implements TreeSelectionListener {
     }
 
     myNameComponent.append(appInfo.packageId, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-
-    myNameComponent.append(" (version ", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    myNameComponent.append(" (Version Name: ", SimpleTextAttributes.GRAY_ATTRIBUTES);
     myNameComponent.append(appInfo.versionName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    myNameComponent.append(", Version Code: ", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    myNameComponent.append(String.valueOf(appInfo.versionCode), SimpleTextAttributes.REGULAR_ATTRIBUTES);
     myNameComponent.append(")", SimpleTextAttributes.GRAY_ATTRIBUTES);
   }
 
@@ -427,7 +431,7 @@ public class ApkViewPanel implements TreeSelectionListener {
 
       if (!Files.isDirectory(path)) {
         if (fileName == SdkConstants.FN_ANDROID_MANIFEST_XML) {
-          return AndroidIcons.ManifestFile;
+          return StudioIcons.Shell.Filetree.MANIFEST_FILE;
         }
         else if (fileName.endsWith(SdkConstants.DOT_DEX)) {
           return AllIcons.FileTypes.JavaClass;
@@ -442,7 +446,7 @@ public class ApkViewPanel implements TreeSelectionListener {
         if (fileName.equals(SdkConstants.FD_RES)) {
           return AllIcons.Modules.ResourcesRoot;
         }
-        return AllIcons.Nodes.Package;
+        return AllIcons.Modules.SourceFolder;
       }
     }
   }
@@ -450,7 +454,7 @@ public class ApkViewPanel implements TreeSelectionListener {
   private static class SizeRenderer extends ColoredTreeCellRenderer {
     private final boolean myUseDownloadSize;
 
-    SizeRenderer(boolean useDownloadSize) {
+    public SizeRenderer(boolean useDownloadSize) {
       myUseDownloadSize = useDownloadSize;
       setTextAlign(SwingConstants.RIGHT);
     }

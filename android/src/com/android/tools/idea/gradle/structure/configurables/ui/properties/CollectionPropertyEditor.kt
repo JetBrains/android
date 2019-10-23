@@ -23,9 +23,12 @@ import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.table.JBTable
+import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil.getListSelectionBackground
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.event.FocusListener
 import java.awt.event.MouseWheelEvent
 import java.awt.event.MouseWheelListener
 import javax.swing.JComponent
@@ -43,10 +46,13 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<ValueT>,
   protected val editor: PropertyEditorCoreFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
-  variablesScope: PsVariablesScope?
+  variablesScope: PsVariablesScope?,
+  private val logValueEdited: () -> Unit
 ) : PropertyEditorBase<ModelPropertyT, ValueT>(property, propertyContext, variablesScope) {
 
-  override val component: JPanel = JPanel(BorderLayout())
+  override val component: JPanel = JPanel(BorderLayout()).apply {
+    isFocusable = false
+  }
   val statusComponent: JComponent? = null
 
   private var beingLoaded = false
@@ -62,8 +68,14 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
     .also {
       component.add(
         ToolbarDecorator.createDecorator(it)
-          .setAddAction { addItem() }
-          .setRemoveAction { removeItem() }
+          .setAddAction {
+            addItem()
+            logValueEdited()
+          }
+          .setRemoveAction {
+            removeItem()
+            logValueEdited()
+          }
           .setPreferredSize(Dimension(450, it.rowHeight * 3))
           .setToolbarPosition(ActionToolbarPosition.RIGHT)
           .createPanel()
@@ -86,16 +98,20 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
 
   protected abstract fun createTableModel(): DefaultTableModel
   protected abstract fun createColumnModel(): TableColumnModel
-  protected abstract fun addItem()
+  abstract fun addItem()
   protected abstract fun removeItem()
   protected abstract fun getPropertyAt(row: Int): ModelPropertyCore<ValueT>
 
   protected fun getValueAt(row: Int): Annotated<ParsedValue<ValueT>> = getPropertyAt(row).getParsedValue()
   protected fun setValueAt(row: Int, value: ParsedValue<ValueT>) = getPropertyAt(row).setParsedValue(value)
-  private fun calculateMinRowHeight() = editor(SimplePropertyStub(), propertyContext, null).component.minimumSize.height
+  private fun calculateMinRowHeight() = JBUI.scale(24)
 
   protected fun Annotated<ParsedValue<ValueT>>.toTableModelValue() = Value(this)
   protected fun ParsedValue<ValueT>.toTableModelValue() = Value(this.annotated())
+
+  fun addFocusListener(listener: FocusListener) {
+    table.addFocusListener(listener)
+  }
 
   /**
    * An [Annotated] [ParsedValue] wrapper for the table model that defines a [toString] implementation compatible with the implementation
@@ -120,13 +136,18 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
                                                column: Int): Component {
       @Suppress("UNCHECKED_CAST")
       val parsedValue = (value as CollectionPropertyEditor<*, ValueT>.Value?)?.value ?: ParsedValue.NotSet.annotated()
-      return SimpleColoredComponent().also { parsedValue.renderTo(it.toRenderer(), formatter, knownValueRenderers) }
+      return SimpleColoredComponent().also {
+        parsedValue.renderTo(it.toRenderer().toSelectedTextRenderer(isSelected && hasFocus), formatter, knownValueRenderers)
+        if (isSelected) it.background = getListSelectionBackground(hasFocus)
+      }
     }
   }
 
   inner class MyCellEditor : PropertyCellEditor<ValueT>() {
     override fun Annotated<ParsedValue<ValueT>>.toModelValue(): Any = toTableModelValue()
-    override fun initEditorFor(row: Int): ModelPropertyEditor<ValueT> = editor(getPropertyAt(row), propertyContext, variablesScope)
+    override fun initEditorFor(row: Int): ModelPropertyEditor<ValueT> =
+        editor(getPropertyAt(row), propertyContext, variablesScope, this)
+            .also { table.addTabKeySupportTo(it.component) }
   }
 }
 

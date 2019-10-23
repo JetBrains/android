@@ -15,20 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.instantapp;
 
-import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.instantapp.InstantAppUrlFinder;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
-import com.intellij.openapi.module.Module;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +37,6 @@ import org.junit.runner.RunWith;
 /**
  * Test that newly created Instant App projects do not have errors in them
  */
-@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRemoteRunner.class)
 public class NewInstantAppTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
@@ -64,51 +58,22 @@ public class NewInstantAppTest {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject();
 
-    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
-      // No longer possible to customize Instant Apps (eg "feature module name" and "include URL")
-      assert featureModuleName == null;
-      assert !includeUrl;
+    // No longer possible to customize Instant Apps (eg "feature module name" and "include URL")
+    assert featureModuleName == null;
+    assert !includeUrl;
 
-      newProjectWizard
-        .getChooseAndroidProjectStep()
-        .chooseActivity(activityName == null ? "Empty Activity" : activityName)
-        .wizard()
-        .clickNext()
-        .getConfigureNewAndroidProjectStep()
-        .enterName(projectName)
-        .selectMinimumSdkApi("23")
-        .setIncludeInstantApp(true)
-        .wizard()
-        .clickFinish();
-    }
-    else {
-      newProjectWizard
-        .getConfigureAndroidProjectStep()
-        .enterCompanyDomain("test.android.com")
-        .enterApplicationName(projectName)
-        .wizard()
-        .clickNext() // Complete project configuration
-        .getConfigureFormFactorStep()
-        .selectMinimumSdkApi(MOBILE, "23")
-        .selectInstantAppSupport(MOBILE)
-        .wizard()
-        .clickNext(); // Complete form factor configuration
-
-      if (featureModuleName != null) {
-        newProjectWizard
-          .getConfigureInstantModuleStep()
-          .enterFeatureModuleName(featureModuleName);
-      }
-
-      newProjectWizard
-        .clickNext() // Complete configuration of Instant App Module
-        .chooseActivity(activityName == null ? "Empty Activity" : activityName)
-        .clickNext() // Complete "Add Activity" step
-        .getConfigureActivityStep()
-        .selectIncludeUrl(includeUrl)
-        .wizard()
-        .clickFinish();
-    }
+    newProjectWizard
+      .getChooseAndroidProjectStep()
+      .chooseActivity(activityName == null ? "Empty Activity" : activityName)
+      .wizard()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .setSourceLanguage("Java")
+      .enterName(projectName)
+      .selectMinimumSdkApi("23")
+      .setIncludeInstantApp(true)
+      .wizard()
+      .clickFinish();
 
     guiTest.ideFrame()
       .waitForGradleProjectSyncToFinish()
@@ -127,7 +92,7 @@ public class NewInstantAppTest {
     createAndOpenDefaultAIAProject(projectName, featureModuleName, activityName, false);
   }
 
-  private void testNoWarningsInDefaultNewInstantAppProjects(boolean instantFlagOn, String testName) {
+  private void testNoWarningsInDefaultNewInstantAppProjects(boolean instantFlagOn) {
     StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(instantFlagOn);
     String projectName = "Warning";
     createAndOpenDefaultAIAProject(projectName, null, null);
@@ -138,7 +103,7 @@ public class NewInstantAppTest {
       .getResults();
 
     verifyOnlyExpectedWarnings(inspectionResults,
-                               "Project '.*" + testName + "/Warning' Warning",
+                               "InspectionViewTree",
                                "    Android",
                                "        Lint",
                                "            Correctness",
@@ -181,13 +146,12 @@ public class NewInstantAppTest {
 
   @Test
   public void testNoWarningsInDefaultNewInstantAppProjects_NO_UAB() {
-    testNoWarningsInDefaultNewInstantAppProjects(false, "testNoWarningsInDefaultNewInstantAppProjects_NO_UAB");
+    testNoWarningsInDefaultNewInstantAppProjects(false);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/116163055
   @Test
   public void testNoWarningsInDefaultNewInstantAppProjects_UAB() {
-    testNoWarningsInDefaultNewInstantAppProjects(true, "testNoWarningsInDefaultNewInstantAppProjects_UAB");
+    testNoWarningsInDefaultNewInstantAppProjects(true);
   }
 
   @Test
@@ -251,33 +215,19 @@ public class NewInstantAppTest {
   @Test
   public void testCanBuildNewInstantAppProjectsWithLoginActivity() {
     StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(false);
-    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
-      createAndOpenDefaultAIAProject("BuildApp", null, null);
-      guiTest.ideFrame()
-             .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Login Activity")
-             .clickFinish();
+    createAndOpenDefaultAIAProject("BuildApp", null, null);
+    guiTest.ideFrame()
+           .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Login Activity")
+           .clickFinish();
 
-      String baseStrings = guiTest.ideFrame()
-                                  .waitForGradleProjectSyncToFinish()
-                                  .getEditor()
-                                  .open("base/src/main/res/values/strings.xml")
-                                  .getCurrentFileContents();
+    String baseStrings = guiTest.ideFrame()
+                                .waitForGradleProjectSyncToFinish()
+                                .getEditor()
+                                .open("base/src/main/res/values/strings.xml")
+                                .getCurrentFileContents();
 
-      assertThat(baseStrings).contains("title_activity_login");
-      assertAbout(file()).that(guiTest.getProjectPath("feature/src/main/res/layout/activity_login.xml")).isFile();
-    }
-    else {
-      createAndOpenDefaultAIAProject("BuildApp", null, "Login Activity", true);
-      guiTest.ideFrame().getEditor()
-             .open("feature/src/main/res/layout/activity_login.xml")
-             .open("feature/src/main/AndroidManifest.xml")
-             .moveBetween("android:order=", "")
-             .moveBetween("android:host=", "")
-             .moveBetween("android:pathPattern=", "")
-             .moveBetween("android:scheme=\"https", "")
-             .moveBetween("android.intent.action.", "MAIN")
-             .moveBetween("android.intent.category.", "LAUNCHER");
-    }
+    assertThat(baseStrings).contains("title_activity_login");
+    assertAbout(file()).that(guiTest.getProjectPath("feature/src/main/res/layout/activity_login.xml")).isFile();
 
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
@@ -397,18 +347,6 @@ public class NewInstantAppTest {
     addFullscreenActivityToExistingIappModule(true, "app/src/main/res/values/strings.xml");
   }
 
-  @Test
-  public void testValidPathInDefaultNewInstantAppProjects() {
-    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
-      return; // On the new NPW design, Instant Apps are created with default options. This test no longer applies
-    }
-
-    createAndOpenDefaultAIAProject("RouteApp", "routefeature", null, true);
-
-    Module module = guiTest.ideFrame().getModule("routefeature");
-    assertThat(new InstantAppUrlFinder(module).getAllUrls()).isNotEmpty();
-  }
-
   // b/68684401
   private void addFullscreenActivityToExistingIappModule(boolean instantFlagOn, String stringXmlPath) {
     StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.override(instantFlagOn);
@@ -424,17 +362,6 @@ public class NewInstantAppTest {
                                 .getCurrentFileContents();
 
     assertThat(baseStrings).contains("title_activity_fullscreen");
-  }
-
-  @Test
-  public void testCanCustomizeFeatureModuleInNewInstantAppProjects() {
-    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
-      return; // On the new NPW design, Instant Apps are created with default options. This test no longer applies
-    }
-
-    createAndOpenDefaultAIAProject("SetFeatureNameApp", "testfeaturename", null);
-
-    guiTest.ideFrame().getModule("testfeaturename");
   }
 
   // With warnings coming from multiple projects the order of warnings is not deterministic, also there are some warnings that show up only

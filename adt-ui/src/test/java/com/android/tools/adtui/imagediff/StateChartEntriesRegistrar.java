@@ -31,7 +31,7 @@ import java.util.List;
 
 class StateChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
-  StateChartEntriesRegistrar() {
+  public StateChartEntriesRegistrar() {
     registerSimpleStateChart();
     registerMultipleSeriesStateChart();
     registerTextStateChart();

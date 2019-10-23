@@ -15,16 +15,21 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 /**
  * A project-wide registry for class lookup of resource classes (R classes).
@@ -35,22 +40,23 @@ public class ResourceClassRegistry implements ProjectComponent {
 
   /**
    * Adds definition of a new R class to the registry. The R class will contain resources from the given repo in the given namespace and
-   * will be generated when the {@link #findClassDefinition} is called with a class name that matches the {@code aarPackageName} and
+   * will be generated when the {@link #findClassDefinition} is called with a class name that matches the {@code packageName} and
    * the {@code repo} resource repository can be found in the {@link ResourceRepositoryManager} passed to {@link #findClassDefinition}.
    *
    * <p>Note that the {@link ResourceClassRegistry} is a project-level component, so the same R class may be generated in different ways
    * depending on the repository used. In non-namespaced project, the repository is the full {@link AppResourceRepository} of the module
-   * in question. In namespaced projects the repository is a {@link AarSourceResourceRepository} of just the AAR contents.
+   * in question. In namespaced projects the repository is a {@link com.android.tools.idea.resources.aar.AarResourceRepository} of just
+   * the AAR contents.
    */
   public void addLibrary(@NotNull ResourceRepository repo,
                          @NotNull ResourceIdManager idManager,
-                         @Nullable String aarPackageName,
+                         @Nullable String packageName,
                          @NotNull ResourceNamespace namespace) {
-    if (StringUtil.isNotEmpty(aarPackageName)) {
+    if (StringUtil.isNotEmpty(packageName)) {
       if (myPackages == null) {
         myPackages = new HashSet<>();
       }
-      myPackages.add(aarPackageName);
+      myPackages.add(packageName);
       if (!myGeneratorMap.containsKey(repo)) {
         ResourceClassGenerator generator = ResourceClassGenerator.create(idManager, repo, namespace);
         myGeneratorMap.put(repo, generator);
@@ -67,7 +73,7 @@ public class ResourceClassRegistry implements ProjectComponent {
       String pkg = className.substring(0, index);
       if (myPackages != null && myPackages.contains(pkg)) {
         ResourceNamespace namespace = ResourceNamespace.fromPackageName(pkg);
-        List<LocalResourceRepository> repositories = repositoryManager.getAppResourcesForNamespace(namespace);
+        List<ResourceRepository> repositories = repositoryManager.getAppResourcesForNamespace(namespace);
         ResourceClassGenerator generator = findClassGenerator(repositories, className);
         if (generator != null) {
           return generator.generate(className);
@@ -78,7 +84,7 @@ public class ResourceClassRegistry implements ProjectComponent {
   }
 
   @Nullable
-  private ResourceClassGenerator findClassGenerator(@NotNull List<LocalResourceRepository> repositories, @NotNull String className) {
+  private ResourceClassGenerator findClassGenerator(@NotNull List<ResourceRepository> repositories, @NotNull String className) {
     ResourceClassGenerator foundGenerator = null;
     for (int i = 0; i < repositories.size(); i++) {
       ResourceClassGenerator generator = myGeneratorMap.get(repositories.get(i));

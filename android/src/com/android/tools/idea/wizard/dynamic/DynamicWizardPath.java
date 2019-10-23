@@ -470,7 +470,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   }
 
   private class PathUpdate extends Update {
-    PathUpdate() {
+    public PathUpdate() {
       super(DynamicWizardPath.this);
     }
 

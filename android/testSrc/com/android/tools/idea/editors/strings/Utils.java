@@ -20,22 +20,25 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-
-import java.nio.file.Path;
-import java.util.Collections;
 
 final class Utils {
   private Utils() {
   }
 
-  static void loadResources(@NotNull StringResourceViewPanel panel, @NotNull Path res) {
+  static void loadResources(@NotNull StringResourceViewPanel panel, @NotNull Collection<Path> resPaths) {
     AndroidFacet facet = panel.getFacet();
+    LocalFileSystem system = LocalFileSystem.getInstance();
 
-    VirtualFile resAsVirtualFile = LocalFileSystem.getInstance().findFileByIoFile(res.toFile());
-    LocalResourceRepository repository = ResourcesTestsUtil.createTestModuleRepository(facet, Collections.singletonList(resAsVirtualFile));
+    Collection<VirtualFile> resVirtualFiles = resPaths.stream()
+      .map(path -> system.findFileByIoFile(path.toFile()))
+      .collect(Collectors.toList());
 
+    LocalResourceRepository repository = ResourcesTestsUtil.createTestModuleRepository(facet, resVirtualFiles);
     panel.getTable().setModel(new StringResourceTableModel(StringResourceRepository.create(repository), facet));
   }
 }

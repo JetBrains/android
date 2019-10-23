@@ -22,22 +22,24 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.surface.SceneLayer;
+import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
+import com.android.tools.idea.uibuilder.handlers.constraint.SecondarySelector;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Rectangle;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This defines the decorator
  * TODO: move to the ConstraintLayout handler
  */
 public class ConstraintLayoutDecorator extends SceneDecorator {
+  public static final String CONSTRAINT_HOVER = "CONSTRAINT_HOVER";
+  private static boolean ourBlockSelection = !StudioFlags.NELE_CONSTRAINT_SELECTOR.get();
   private final static String[] LEFT_DIR = {
     SdkConstants.ATTR_LAYOUT_START_TO_START_OF, SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
     SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
@@ -94,12 +96,15 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     SAME, BACKWARD
   }
 
-  private final static ConnectionType[] DIR_TABLE = {ConnectionType.SAME, ConnectionType.BACKWARD, ConnectionType.SAME, ConnectionType.BACKWARD};
-  private final static String[] ourDirections = {"LEFT", "RIGHT", "TOP", "BOTTOM"};
-  private final static String[] ourChainDirections = {"CHAIN_LEFT", "CHAIN_RIGHT", "CHAIN_TOP", "CHAIN_BOTTOM"};
-  private final static String[] ourDirectionsType = {"LEFT_TYPE", "RIGHT_TYPE", "TOP_TYPE", "BOTTOM_TYPE"};
-  private final static boolean[] isLeftRight = {true, true, false, false};
-  private final static int[] ourOppositeDirection = {1, 0, 3, 2};
+  private final static ConnectionType[] DIR_TABLE =
+    {ConnectionType.SAME, ConnectionType.BACKWARD, ConnectionType.SAME, ConnectionType.BACKWARD};
+  private final static String[] ourDirections = {"LEFT", "RIGHT", "TOP", "BOTTOM"}; // order matches SecondarySelector.Constraint.ordinal()
+  private final static String[] ourChainDirections = {"CHAIN_LEFT", "CHAIN_RIGHT", "CHAIN_TOP", "CHAIN_BOTTOM"}; // order matches
+  private final static String[] ourDirectionsType = {"LEFT_TYPE", "RIGHT_TYPE", "TOP_TYPE", "BOTTOM_TYPE"}; // order matches
+  private final static AnchorTarget.Type[] ourAnchorTypes =
+    {AnchorTarget.Type.LEFT, AnchorTarget.Type.RIGHT, AnchorTarget.Type.TOP, AnchorTarget.Type.BOTTOM}; // order matches
+  private final static boolean[] isLeftRight = {true, true, false, false}; // order matches
+  private final static int[] ourOppositeDirection = {1, 0, 3, 2}; // order matches
 
   private static void convert(@NotNull SceneContext sceneContext, Rectangle rect) {
     rect.x = sceneContext.getSwingXDip(rect.x);
@@ -168,13 +173,6 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     child.myCache.put(dirType, ConnectionType.SAME);
   }
 
-  @Override
-  protected void addBackground(@NotNull DisplayList list,
-                               @NotNull SceneContext sceneContext,
-                               @NotNull SceneComponent component) {
-    // no background
-  }
-
   /**
    * This is responsible for setting the clip and building the list for this component's children
    *
@@ -196,26 +194,21 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       }
       Rectangle rect = new Rectangle();
       component.fillRect(rect);
-      DisplayList.UNClip unClip = null;
-      if (!StudioFlags.NELE_DRAG_PLACEHOLDER.get()) {
-        unClip = list.addClip(sceneContext, rect);
-      }
+      list.pushClip(sceneContext, rect);
       Scene scene = component.getScene();
 
       boolean showAllConstraints = ConstraintLayoutHandler.getVisualProperty(ConstraintLayoutHandler.SHOW_CONSTRAINTS_PREF_KEY);
       List<NlComponent> selection = scene.getSelection();
       for (SceneComponent child : children) {
         child.buildDisplayList(time, list, sceneContext);
-        if (SceneLayer.SHOW_ON_HOVER && sceneContext.showOnlySelection()) {
+        if (sceneContext.showOnlySelection() && !child.isSelected()) {
           continue;
         }
         if ((showAllConstraints && scene.getRoot() == component) || selection.contains(child.getNlComponent())) {
           buildListConnections(list, time, sceneContext, component, child); // draw child connections
         }
       }
-      if (unClip != null) {
-        list.add(unClip);
-      }
+      list.popClip();
     }
   }
 
@@ -234,18 +227,18 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
 
     int[] mPrevious = new int[connectTypes.length];
     int[] mCurrent = new int[connectTypes.length];
-    long[] time = new long[connectTypes.length];
+    long[] mStartTime = new long[connectTypes.length];
 
     DecoratorUtilities.ViewStates componentPrevState;
     DecoratorUtilities.ViewStates componentCurrentState;
     Long componentChangeStateTime;
-    boolean mSelected = true;
+    boolean mMyViewSelected = true;
 
     void getConnectionInfo(NlComponent c, boolean isSelected) {
       componentPrevState = DecoratorUtilities.getTimedChange_prev(c, DecoratorUtilities.VIEW);
       componentCurrentState = DecoratorUtilities.getTimedChange_value(c, DecoratorUtilities.VIEW);
       componentChangeStateTime = DecoratorUtilities.getTimedChange_time(c, "drawState");
-      mSelected = isSelected;
+      mMyViewSelected = isSelected;
       for (int i = 0; i < connectTypes.length; i++) {
         String type = connectTypes[i];
         DecoratorUtilities.ViewStates current, prev;
@@ -262,18 +255,18 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         current = DecoratorUtilities.getTimedChange_value(c, type);
         Long event = DecoratorUtilities.getTimedChange_time(c, type);
         if (event != null) {
-          time[i] = event;
+          mStartTime[i] = event;
           mPrevious[i] = prev.getVal();
           mCurrent[i] = current.getVal();
         }
         else {
-          time[i] = -1;
+          mStartTime[i] = -1;
         }
       }
     }
 
     int getPreviousMode(int direction) {
-      if (time[direction] == -1) {
+      if (mStartTime[direction] == -1) {
         if (componentPrevState == DecoratorUtilities.ViewStates.NORMAL) {
           return DrawConnection.MODE_NORMAL;
         }
@@ -282,21 +275,58 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       return mPrevious[direction];
     }
 
-    int getCurrentMode(int direction) {
-      if (time[direction] == -1) {
-        if (mSelected) {
-          return DrawConnection.MODE_SELECTED;
-        }
-        return mCurrent[direction];
+    /**
+     * maps conditions to draw looks
+     *
+     * @param direction
+     * @param thisConstraintSelected
+     * @param fade
+     * @param anyConstraintSelected
+     * @param anyViewSelected
+     * @param hoverConnection
+     * @param onDelete
+     * @return
+     */
+    int getCurrentMode(int direction,
+                       boolean thisConstraintSelected,
+                       boolean fade,
+                       boolean anyConstraintSelected,
+                       boolean anyViewSelected,
+                       boolean hoverConnection,
+                       boolean onDelete) {
+      int ret = DrawConnection.MODE_NORMAL;
+      int hoverFlag = hoverConnection ? DrawConnection.HOVER_FLAG : 0x0;
+
+      if (onDelete) {
+        return hoverFlag | DrawConnection.MODE_DELETING;
       }
-      return mCurrent[direction];
+      else if (thisConstraintSelected) {
+        return hoverFlag | DrawConnection.MODE_CONSTRAINT_SELECTED;
+      }
+      else if (anyConstraintSelected) {
+        return hoverFlag | DrawConnection.MODE_SUBDUED;
+      }
+      else if (anyViewSelected && !mMyViewSelected) {
+        return hoverFlag | DrawConnection.MODE_SUBDUED;
+      }
+
+      if (mStartTime[direction] == -1) {
+        ret = mCurrent[direction];
+      }
+      else {
+        ret = mCurrent[direction];
+      }
+      if (ret == DrawConnection.MODE_NORMAL && fade) {
+        ret = DrawConnection.MODE_SUBDUED;
+      }
+      return hoverFlag | ret;
     }
 
     long getTime(int direction) {
-      if (time[direction] == -1) {
+      if (mStartTime[direction] == -1) {
         return (componentChangeStateTime == null) ? 0 : componentChangeStateTime;
       }
-      return time[direction];
+      return mStartTime[direction];
     }
   }
 
@@ -315,14 +345,29 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     convert(sceneContext, source_rect);
     ConnectionStatus connectStatus = new ConnectionStatus();
     List<NlComponent> selection = constraintComponent.getScene().getSelection();
-
-    boolean fade =  ConstraintLayoutHandler.getVisualProperty(ConstraintLayoutHandler.FADE_UNSELECTED_VIEWS);
+    NlComponent component = child.getNlComponent();
+    int hover = -1;
+    Object hover_obj = component.getClientProperty(CONSTRAINT_HOVER);
+    if (hover_obj != null && hover_obj instanceof SecondarySelector.Constraint) {
+      SecondarySelector.Constraint constraint = ((SecondarySelector.Constraint)hover_obj);
+      hover = constraint.ordinal();
+    }
+    // get the Secondary selection
+    Object ss = constraintComponent.getScene().getSecondarySelection();
+    int selectedDirection = -1;
+    if (ss != null && ss instanceof SecondarySelector.Constraint) {
+      SecondarySelector.Constraint constraint = ((SecondarySelector.Constraint)ss);
+      selectedDirection = constraint.ordinal();
+    }
+    boolean constraintSelected = selectedDirection != -1;
+    boolean anyViewSelected = selection != null && !selection.isEmpty();
+    boolean fade = ConstraintLayoutHandler.getVisualProperty(ConstraintLayoutHandler.FADE_UNSELECTED_VIEWS);
 
     if (fade && selection.isEmpty()) { // nothing selected do not fade
       fade = false;
     }
 
-    if (fade && selection.contains(constraintComponent.getNlComponent()) && selection.size() == 1) { // only parent selected don't fade
+    if (fade && selection.contains(component) && selection.size() == 1) { // only parent selected don't fade
       fade = false;
     }
 
@@ -340,7 +385,8 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     }
 
     for (int i = 0; i < ourDirections.length; i++) { // For each direction (not including baseline
-
+      boolean selectedConnection = (selectedDirection == i && viewSelected);
+      boolean hoverConnection = hover == i;
       ConnectionType type = connectionTypes[i];
       SceneComponent sc = connectionTo[i];
       int destType = DrawConnection.DEST_NORMAL;
@@ -352,7 +398,9 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
           destType = DrawConnection.DEST_PARENT;
         }
         else if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(NlComponentHelperKt.getComponentClassName(sc.getNlComponent()))
-              || SdkConstants.CONSTRAINT_LAYOUT_BARRIER.isEqualsIgnoreCase(NlComponentHelperKt.getComponentClassName(sc.getNlComponent()))) {
+                 ||
+                 SdkConstants.CONSTRAINT_LAYOUT_BARRIER
+                   .isEqualsIgnoreCase(NlComponentHelperKt.getComponentClassName(sc.getNlComponent()))) {
           destType = DrawConnection.DEST_GUIDELINE;
         }
         int connectType = DrawConnection.TYPE_NORMAL;
@@ -385,18 +433,18 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         float bias = 0.5f;
         boolean rtl = constraintComponent.getScene().isInRTL();
         String[] margin_attr = (rtl) ? MARGIN_ATTR_RTL[i] : MARGIN_ATTR_LTR[i];
-        String marginString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, margin_attr[0]);
+        String marginString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, margin_attr[0]);
         if (marginString == null && margin_attr.length > 1) {
-          marginString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, margin_attr[1]);
+          marginString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, margin_attr[1]);
         }
         if (marginString == null) {
           if (i == 0) { // left check if it is start
             marginString =
-              child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START);
+              child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START);
           }
           else if (i == 1) { // right check if it is end
             marginString =
-              child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END);
+              child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END);
           }
         }
         if (marginString != null) {
@@ -421,12 +469,13 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         if (destType == DrawConnection.DEST_GUIDELINE) { // connections to guidelines are always Opposite
           connect = ourOppositeDirection[i];
         }
+        AnchorTarget anchorTarget = AnchorTarget.findAnchorTarget(child, ourAnchorTypes[i]);
+        boolean onDelete = anchorTarget != null && anchorTarget.canDisconnect() && anchorTarget.isMouseHovered();
         changeStart = connectStatus.getTime(i);
         int previousMode = connectStatus.getPreviousMode(i);
-        int currentMode = connectStatus.getCurrentMode(i);
-        if (currentMode == DrawConnection.MODE_NORMAL && fade) {
-          currentMode = DrawConnection.MODE_SUBDUED;
-        }
+        int currentMode =
+          connectStatus.getCurrentMode(i, selectedConnection, fade, constraintSelected, anyViewSelected, hoverConnection, onDelete);
+
         int x1 = getX(source_rect, i);
         int x2 = getX(dest_rect, connect);
         int y1 = getY(source_rect, i);
@@ -441,15 +490,21 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
           margin = 0;
           marginDistance = 0;
         }
+
         DrawConnection
-          .buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance,
+          .buildDisplayList(list, ourBlockSelection
+                                  ? null
+                                  : SecondarySelector.get(child.getNlComponent(), SecondarySelector.Constraint.values()[i]), connectType,
+                            source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance,
                             isMarginReference, bias, previousMode, currentMode, changeStart);
-        if (currentMode == DrawConnection.MODE_WILL_DESTROY) {
+        if (((anchorTarget != null && anchorTarget.isMouseHovered()) || hoverConnection) && viewSelected) {
+          // When hovering the target or connection of a selected view, draw an animated frame around the target view.
           if (destType == DrawConnection.DEST_GUIDELINE) {
             int over_size_line = 3000;
-            dest_rect.grow((connect < 2)?1:over_size_line,(connect < 2)?over_size_line:1);
+            dest_rect.grow((connect < 2) ? 1 : over_size_line, (connect < 2) ? over_size_line : 1);
           }
-          DrawAnimatedFrame.add(list, dest_rect,  connect);
+          boolean drawFrameAsDelete = (currentMode & DrawConnection.HOVER_MASK) == DrawConnection.MODE_DELETING;
+          DrawAnimatedFrame.add(list, dest_rect, connect, drawFrameAsDelete);
         }
       }
     }
@@ -465,13 +520,17 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       dest_rect.y += dest_offset;
       dest_rect.height = 0;
       changeStart = connectStatus.getTime(ConnectionStatus.DIRECTION_BASELINE);
+      AnchorTarget anchorTarget = AnchorTarget.findAnchorTarget(child, AnchorTarget.Type.BASELINE);
+      boolean onDelete = anchorTarget != null && anchorTarget.canDisconnect() && anchorTarget.isMouseHovered();
       int previousMode = connectStatus.getPreviousMode(4);
-      int currentMode = connectStatus.getCurrentMode(4);
-      if (currentMode == DrawConnection.MODE_NORMAL && fade) {
-        currentMode = DrawConnection.MODE_SUBDUED;
-      }
+      boolean selectedConnection = selectedDirection == SecondarySelector.Constraint.BASELINE.ordinal() && viewSelected;
+      boolean hoverConnection = hover == SecondarySelector.Constraint.BASELINE.ordinal();
+      int currentMode =
+        connectStatus.getCurrentMode(4, selectedConnection, fade, constraintSelected, anyViewSelected, hoverConnection, onDelete);
+
       DrawConnection
         .buildDisplayList(list,
+                          ourBlockSelection ? null : SecondarySelector.get(child.getNlComponent(), SecondarySelector.Constraint.BASELINE),
                           DrawConnection.TYPE_BASELINE, source_rect,
                           DrawConnection.TYPE_BASELINE, dest_rect,
                           DrawConnection.TYPE_BASELINE,

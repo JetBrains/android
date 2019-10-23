@@ -17,10 +17,16 @@ package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.profilers.TraceSignatureConverter;
+import com.android.tools.nativeSymbolizer.NativeSymbolizer;
+import com.android.tools.nativeSymbolizer.Symbol;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.base.Strings;
+import com.intellij.build.FileNavigatable;
+import com.intellij.build.FilePosition;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -32,12 +38,15 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.ClassUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@link CodeNavigator} with logic to jump to code inside of an IntelliJ code editor.
@@ -46,24 +55,58 @@ public final class IntellijCodeNavigator extends CodeNavigator {
   @NotNull
   private final Project myProject;
   @NotNull
+  private final NativeSymbolizer myNativeSymbolizer;
+  @NotNull
   private final Map<String, String> myApkSrcDirMap;
 
-  public IntellijCodeNavigator(@NotNull Project project, @NotNull FeatureTracker featureTracker) {
+  /**
+   * Supplier of the target CPU architecture (e.g. arm64, x86, etc) used to build the process currently being profiled. Can be set by
+   * {@link #setCpuAbiArchSupplier(Supplier)}. Although it can't be null, it can return null so the result should be handled accordingly.
+   */
+  @NotNull private Supplier<String> myCpuAbiArchSupplier;
+
+  public IntellijCodeNavigator(@NotNull Project project,
+                               @NotNull NativeSymbolizer nativeSymbolizer,
+                               @NotNull FeatureTracker featureTracker) {
     super(featureTracker);
     myProject = project;
+    myNativeSymbolizer = nativeSymbolizer;
     myApkSrcDirMap = getApkSourceDirMap();
+    myCpuAbiArchSupplier = () -> null;
+  }
+
+  public void setCpuAbiArchSupplier(@NotNull Supplier<String> cpuAbiArch) {
+    myCpuAbiArchSupplier = cpuAbiArch;
+  }
+
+  /**
+   * Fetches the CPU architecture from {@link #myCpuAbiArchSupplier}.
+   */
+  @Nullable
+  public String fetchCpuAbiArch() {
+    return myCpuAbiArchSupplier.get();
   }
 
   @Override
   protected void handleNavigate(@NotNull CodeLocation location) {
-    Navigatable nav = getNavigatable(location);
-    if (nav != null) {
-      nav.navigate(true);
-    }
+    // Gets the navigatable in another thread, so we don't block the UI while potentially performing heavy operations, such as searching for
+    // the java class/method in the PSI tree or using llvm-symbolizer to get a native function name.
+    //
+    // Note: due to IntelliJ PSI threading rules, read operations performed on a non-UI thread need to wrap the action in a ReadAction.
+    // Hence all PSI-reading code inside getNavigatable() will need to wrapped in a ReadAction.
+    // See http://www.jetbrains.org/intellij/sdk/docs/basics/architectural_overview/general_threading_rules.html
+    CompletableFuture.supplyAsync(
+      () -> ReadAction.compute(() -> getNavigatable(location)), ApplicationManager.getApplication()::executeOnPooledThread)
+      .thenAcceptAsync(nav -> {
+        if (nav != null) {
+          nav.navigate(true);
+        }
+      }, ApplicationManager.getApplication()::invokeLater);
   }
 
   @Override
   public boolean isNavigatable(@NotNull CodeLocation location) {
+    // TODO(b/119398387): consider caching the call to getNavigatable to reuse it in the following call to handleNavigate
     return getNavigatable(location) != null;
   }
 
@@ -80,6 +123,10 @@ public final class IntellijCodeNavigator extends CodeNavigator {
       if (navigatable != null) {
         return navigatable;
       }
+    }
+
+    if (location.isNativeCode()) {
+      return getNativeNavigatable(location);
     }
 
     PsiClass psiClass = ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(myProject), location.getClassName());
@@ -164,6 +211,29 @@ public final class IntellijCodeNavigator extends CodeNavigator {
       }
     }
     return sourceMap;
+  }
+
+  /**
+   * Attempts to symbolize the code location to find and return the functions's corresponding {@link Navigatable} within the project.
+   */
+  @Nullable
+  private Navigatable getNativeNavigatable(@NotNull CodeLocation location) {
+    String arch = fetchCpuAbiArch();
+    if (location.getFileName() == null || arch == null) {
+      return null;
+    }
+    Symbol symbol;
+    try {
+      symbol = myNativeSymbolizer.symbolize(arch, location.getFileName(), location.getNativeVAddress());
+    }
+    catch (IOException e) {
+      return null;
+    }
+
+    if (symbol == null) {
+      return null;
+    }
+    return new FileNavigatable(myProject, new FilePosition(new File(symbol.getSourceFile()), symbol.getLineNumber() - 1, 0));
   }
 
   @Nullable

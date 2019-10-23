@@ -10,6 +10,15 @@ public class MotionSceneString {
   public static final String KeyPositionTitle = "Position";
   public static final String KeyCycleTitle = "Cycle";
   public static final String OnSwipeTitle = "OnSwipe";
+  public static final String OnClickTitle = "OnClick";
+
+  public static final String OnSwipeAttr_target="target";
+  public static final String OnSwipeAttr_dragDirection="dragDirection";
+  public static final String OnSwipeAttr_touchAnchorId="touchAnchorId";
+  public static final String OnSwipeAttr_touchAnchorSide="touchAnchorSide";
+
+  public static final String OnClickAttr_target="target";
+  public static final String OnClickAttr_mode="mode";
 
   public static final String MotionNameSpace = "motion:";
   public static final String AndroidNameSpace = "android:";
@@ -17,6 +26,7 @@ public class MotionSceneString {
   public static final String MotionSceneKeyFrameSet = "KeyFrameSet";
   public static final String MotionSceneTransition = "Transition";
   public static final String MotionSceneOnSwipe = "OnSwipe";
+  public static final String MotionSceneOnClick = "OnClick";
 
   public static final String MotionSceneConstraintSet = "ConstraintSet";
   public static final String ConstraintSetConstraint = "Constraint";
@@ -66,6 +76,15 @@ public class MotionSceneString {
   public static final String CustomAttributes_customDimensionValue = "customDimension";
   public static final String CustomAttributes_customBooleanValue = "customBoolean";
 
+  public static final String[] CustomAttributes_types = {
+    CustomAttributes_customColorValue,
+    CustomAttributes_customIntegerValue,
+    CustomAttributes_customFloatValue,
+    CustomAttributes_customStringValue,
+    CustomAttributes_customDimensionValue,
+    CustomAttributes_customBooleanValue,
+  };
+
   public static final String KeyCycle_android_alpha = "alpha";
   public static final String KeyCycle_android_translationX = "translationX";
   public static final String KeyCycle_android_translationY = "translationY";
@@ -87,11 +106,9 @@ public class MotionSceneString {
   public static final String KeyCycle_waveShape = "waveShape";
   public static final String KeyCycle_waveVariesBy = "waveVariesBy";
 
-
   public static final String KeyPosition_framePosition = "framePosition";
 
   public static final String KeyPosition_transitionEasing = "transitionEasing";
-
 
   public static final String KeyPositionPath_circleRadius = "circleRadius";
   public static final String KeyPositionPath_curveFit = "curveFit";
@@ -105,10 +122,23 @@ public class MotionSceneString {
   public static final String KeyPositionPath_target = "target";
   public static final String KeyPositionPath_transitionEasing = "transitionEasing";
 
-  public static final String[] ourStandardAttributes = {
-    "progress", "waveShape", "wavePeriod", "waveOffset", "waveVariesBy", "transitionPathRotate", "android:alpha", "android:elevation",
-    "android:rotation", "android:rotationX", "android:rotationY", "android:scaleX", "android:scaleY", "android:translationX",
-    "android:translationY", "android:translationZ"
+  public static final AttrName[] ourStandardAttributes = {
+    AttrName.motionAttr(KeyCycle_progress),
+    AttrName.motionAttr(KeyCycle_waveShape),
+    AttrName.motionAttr(KeyCycle_wavePeriod),
+    AttrName.motionAttr(KeyCycle_waveOffset),
+    AttrName.motionAttr(KeyCycle_waveVariesBy),
+    AttrName.motionAttr(KeyCycle_transitionPathRotate),
+    AttrName.androidAttr("alpha"),
+    AttrName.androidAttr("elevation"),
+    AttrName.androidAttr("rotation"),
+    AttrName.androidAttr("rotationX"),
+    AttrName.androidAttr("rotationY"),
+    AttrName.androidAttr("scaleX"),
+    AttrName.androidAttr("scaleY"),
+    AttrName.androidAttr("translationX"),
+    AttrName.androidAttr("translationY"),
+    AttrName.androidAttr("translationZ"),
   };
-  public static HashSet<String> ourStandardSet = new HashSet<>(Arrays.asList(ourStandardAttributes));
+  public static HashSet<AttrName> ourStandardSet = new HashSet<>(Arrays.asList(ourStandardAttributes));
 }

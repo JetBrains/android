@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.relative.targets
 
 import com.android.SdkConstants.*
-import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.common.model.NlComponent
@@ -31,13 +31,8 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor
 /**
  * Target offers the anchors in RelativeLayout.
  */
-class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTarget(type) {
+class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTarget(type, isParent) {
 
-  /**
-   * If this Anchor is dragging.
-   * Note that this doesn't mean the associated component is dragging. This means Anchor itself is dragging.
-   */
-  private var isDragging = false
   /**
    * Used to record the aligned component ids.
    */
@@ -66,13 +61,16 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     if (!isParent) {
       super.render(list, sceneContext)
 
-      if (isDragging) {
+      if (myIsDragging) {
         list.addConnection(sceneContext, centerX, centerY, myLastX.toFloat(), myLastY.toFloat(), type.ordinal)
       }
     }
   }
 
   override fun isEnabled(): Boolean {
+    if (!super.isEnabled()) {
+      return false
+    }
     if (myComponent.scene.selection.size > 1) {
       return false
     }
@@ -90,14 +88,29 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
   override fun getDrawMode(): DrawAnchor.Mode {
     return if (!myComponent.isSelected) {
       val canConnectToMe = isConnectible(myComponent.scene.filterType)
-      if (canConnectToMe) DrawAnchor.Mode.CAN_CONNECT else DrawAnchor.Mode.DO_NOT_DRAW
+      if (canConnectToMe) {
+        if (mIsOver) DrawAnchor.Mode.OVER else DrawAnchor.Mode.NORMAL
+      } else DrawAnchor.Mode.DO_NOT_DRAW
     } else if (mIsOver) {
-      DrawAnchor.Mode.OVER
-    } else if (!isConnected) {
-      DrawAnchor.Mode.NORMAL
+       if (isConnected) DrawAnchor.Mode.DELETE else DrawAnchor.Mode.OVER
     } else {
       DrawAnchor.Mode.NORMAL
     }
+  }
+
+  override fun isConnectible(dest: AnchorTarget): Boolean {
+    if (dest !is RelativeAnchorTarget) {
+      return false
+    }
+    val sameDirection = when (myType) {
+      Type.LEFT, Type.RIGHT -> dest.type == Type.LEFT || dest.type == Type.RIGHT
+      Type.TOP, Type.BOTTOM -> dest.type == Type.TOP || dest.type == Type.BOTTOM
+      Type.BASELINE -> dest.type == Type.BASELINE
+    }
+    if (!sameDirection) {
+      return false
+    }
+    return if (dest.isEdge) component.parent === dest.component else component.parent === dest.component.parent
   }
 
   /**
@@ -129,9 +142,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     if (isParent) {
       return
     }
-    myComponent.parent?.setExpandTargetArea(true)
-
-    isDragging = false
+    myIsDragging = false
     myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
   }
 
@@ -141,7 +152,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
       return
     }
 
-    isDragging = true
+    myIsDragging = true
   }
 
   override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
@@ -152,7 +163,6 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
 
     val parent = myComponent.parent
     if (parent != null) {
-      parent.setExpandTargetArea(false)
       val transactions = myComponent.authoritativeNlComponent.startAttributeTransaction()
       if (this in closestTargets) {
         handleConstraintDeletion(transactions)
@@ -162,14 +172,14 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
       }
     }
 
-    isDragging = false
+    myIsDragging = false
   }
 
   private fun handleConstraintDeletion(attributesTransaction: AttributesTransaction) {
     val nlComponent = myComponent.authoritativeNlComponent
     clearAssociatedAttribute(attributesTransaction)
     val message = "Remove constraint from ${myType.name} of ${nlComponent.tagName}"
-    NlWriteCommandAction.run(nlComponent, message) { attributesTransaction.commit() }
+    NlWriteCommandActionUtil.run(nlComponent, message) { attributesTransaction.commit() }
     myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
     updateAlignedComponentIds()
   }
@@ -179,7 +189,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     connectTo(target, attributesTransaction)
     val message = "Create constraint between ${myType.name} of ${nlComponent.tagName} " +
         "and ${target.myType} of ${target.myComponent.authoritativeNlComponent.tagName}"
-    NlWriteCommandAction.run(nlComponent, message) { attributesTransaction.commit() }
+    NlWriteCommandActionUtil.run(nlComponent, message) { attributesTransaction.commit() }
     myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
     updateAlignedComponentIds()
   }

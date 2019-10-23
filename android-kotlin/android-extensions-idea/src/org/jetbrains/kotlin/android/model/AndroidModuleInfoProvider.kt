@@ -51,10 +51,7 @@ interface AndroidModuleInfoProvider {
     fun getAllResourceDirectories(): List<VirtualFile>
 
     // For experimental Android Extensions
-    fun getApplicationResourceDirectories(createIfNecessary: Boolean): Collection<VirtualFile>
-    fun getAllSourceProviders(): List<SourceProviderMirror>
     fun getActiveSourceProviders(): List<SourceProviderMirror>
-
 
     interface SourceProviderMirror {
         val name: String

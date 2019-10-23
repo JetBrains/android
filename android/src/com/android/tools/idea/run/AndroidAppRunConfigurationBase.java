@@ -15,35 +15,52 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+
 import com.android.tools.idea.apk.ApkFacet;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
-import com.android.tools.idea.run.editor.*;
+import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
+import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
+import com.android.tools.idea.run.editor.ApplicationRunParameters;
+import com.android.tools.idea.run.editor.DeepLinkLaunch;
+import com.android.tools.idea.run.editor.DefaultActivityLaunch;
+import com.android.tools.idea.run.editor.LaunchOption;
+import com.android.tools.idea.run.editor.LaunchOptionState;
+import com.android.tools.idea.run.editor.NoLaunch;
+import com.android.tools.idea.run.editor.SpecificActivityLaunch;
 import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.android.tools.idea.run.util.MultiUserUtils;
 import com.android.tools.idea.stats.RunStats;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.ExecutionTarget;
+import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.Executor;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.RunnerIconProvider;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.execution.impl.ExecutionManagerImpl;
 import com.intellij.execution.junit.RefactoringListeners;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
@@ -54,22 +71,19 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
-import org.jdom.Element;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import javax.swing.Icon;
+import org.jdom.Element;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigurationBase implements RefactoringListenerProvider, RunnerIconProvider {
   @NonNls private static final String FEATURE_LIST_SEPARATOR = ",";
@@ -102,6 +116,8 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
     for (LaunchOption option : LAUNCH_OPTIONS) {
       myLaunchOptionStates.put(option.getId(), option.createState());
     }
+
+    putUserData(BaseAction.SHOW_APPLY_CHANGES_UI, true);
   }
 
   @Override
@@ -232,20 +248,6 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
   }
 
   @Override
-  public int getUserIdFromAmParameters() {
-    return MultiUserUtils.getUserIdFromAmParameters(ACTIVITY_EXTRA_FLAGS);
-  }
-
-  @Override
-  public boolean supportsInstantRun() {
-    Module module = getConfigurationModule().getModule();
-    if (module == null) {
-      return true;
-    }
-    return DynamicAppUtils.isInstantRunSupported(module) && !DEPLOY_AS_INSTANT;
-  }
-
-  @Override
   protected boolean supportMultipleDevices() {
     return true;
   }
@@ -284,7 +286,7 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
     }
     catch (ApkProvisionException e) {
       Logger.getInstance(AndroidAppRunConfigurationBase.class).error(e);
-      launchStatus.terminateLaunch("Unable to identify application id");
+      launchStatus.terminateLaunch("Unable to identify application id", true);
       return null;
     }
   }
@@ -349,11 +351,57 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
   @Nullable
   @Override
   public Icon getExecutorIcon(@NotNull RunConfiguration configuration, @NotNull Executor executor) {
-    // Defer to the executor for the icon, since this RunConfiguration class doesn't provide its own icon.
-    if (executor instanceof ExecutorIconProvider) {
-      return ((ExecutorIconProvider)executor).getExecutorIcon(getProject(), executor);
+    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
+      if (executor instanceof ExecutorIconProvider) {
+        return ((ExecutorIconProvider)executor).getExecutorIcon(getProject(), executor);
+      }
+      return null;
     }
-    return null;
+
+    // Customize the executor icon for the DeviceAndSnapshotComboBoxAction such that it's tied to the device in addition to the
+    // RunConfiguration.
+    Project project = configuration.getProject();
+    final ExecutionManagerImpl executionManager = ExecutionManagerImpl.getInstance(project);
+
+    // This code is lifted out of ExecutionRegistryImpl:getInformativeIcon to maintain the same functionality.
+    // I *believe* this code is attempting to find all running content (as in, Run/Debug tool window's tabs' contents)
+    // that are still running and have not been detached from the Executor or the ContentManager.
+    List<RunContentDescriptor> runningDescriptors =
+      executionManager.getRunningDescriptors(s -> s != null && s.getConfiguration() == configuration);
+    runningDescriptors = runningDescriptors.stream().filter(descriptor -> {
+      RunContentDescriptor contentDescriptor =
+        executionManager.getContentManager().findContentDescriptor(executor, descriptor.getProcessHandler());
+      return contentDescriptor != null && executionManager.getExecutors(contentDescriptor).contains(executor);
+    }).collect(Collectors.toList());
+
+    ExecutionTarget executionTarget = ExecutionTargetManager.getInstance(project).getActiveTarget();
+    ApplicationIdProvider applicationIdProvider = getApplicationIdProvider();
+    String applicationId = null;
+    try {
+      applicationId = applicationIdProvider == null ? null : applicationIdProvider.getPackageName();
+    }
+    catch (ApkProvisionException ignored) {
+    }
+    boolean isRunning =
+      executionTarget instanceof AndroidExecutionTarget &&
+      applicationId != null &&
+      ((AndroidExecutionTarget)executionTarget).isApplicationRunning(applicationId);
+
+    if (DefaultRunExecutor.EXECUTOR_ID.equals(executor.getId()) && !runningDescriptors.isEmpty() && isRunning) {
+      // Use the system's restart icon for the default run executor.
+      return AllIcons.Actions.Restart;
+    }
+
+    // Defer to the executor for the icon, since this RunConfiguration class doesn't provide its own icon.
+    Icon executorIcon = executor instanceof ExecutorIconProvider ?
+                        ((ExecutorIconProvider)executor).getExecutorIcon(getProject(), executor) :
+                        executor.getIcon();
+    if (runningDescriptors.isEmpty() || !isRunning) {
+      return executorIcon;
+    }
+    else {
+      return ExecutionUtil.getLiveIndicator(executorIcon);
+    }
   }
 
   @Override

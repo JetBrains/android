@@ -125,7 +125,7 @@ public class BuildApkActionTest extends JavaProjectTestCase {
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradlePath;
 
     GradleProject gradleProjectStub = new GradleProjectStub(emptyList(), gradlePath, getBaseDirPath(module.getProject()));
-    GradleModuleModel model = new GradleModuleModel(module.getName(), gradleProjectStub, emptyList(), null, null);
+    GradleModuleModel model = new GradleModuleModel(module.getName(), gradleProjectStub, emptyList(), null, null, null);
 
     gradleFacet.setGradleModuleModel(model);
   }

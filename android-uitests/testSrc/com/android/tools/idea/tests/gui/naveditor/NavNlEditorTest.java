@@ -45,6 +45,7 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import org.fest.swing.driver.BasicJListCellReader;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -97,7 +98,7 @@ public class NavNlEditorTest {
       .openAddDestinationMenu()
       .waitForContents();
 
-    assertEquals(5, menuFixture.visibleItemCount());
+    assertEquals(3, menuFixture.visibleItemCount());
     guiTest.robot().enterText("fragment_my");
     assertEquals(1, menuFixture.visibleItemCount());
 
@@ -111,15 +112,14 @@ public class NavNlEditorTest {
 
     guiTest.robot().type('\b');
 
-    layout.getAllComponents().forEach(component -> assertNotEquals("main_activity", component.getComponent().getId()));
-
     ApplicationManager.getApplication().invokeAndWait(() -> UIUtil.dispatchAllInvocationEvents());
+
+    layout.getAllComponents().forEach(component -> assertNotEquals("main_activity", component.getComponent().getId()));
 
     List<NlComponent> selectedComponents = fixture.getSelectedComponents();
     assertEquals(0, selectedComponents.size());
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testCreateAndDeleteWithSingleVariantSync() throws Exception {
     StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
@@ -229,7 +229,7 @@ public class NavNlEditorTest {
 
   @Test
   public void testAddDependency() throws Exception {
-    IdeFrameFixture frame = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture frame = guiTest.importSimpleApplication();
     frame.getProjectView().selectAndroidPane().clickPath("app");
     frame.invokeMenuPath("File", "New", "Android Resource File");
     CreateResourceFileDialogFixture.find(guiTest.robot())
@@ -244,12 +244,20 @@ public class NavNlEditorTest {
       .getLayoutEditor(false)
       .waitForRenderToFinish()
       .assertCanInteractWithSurface();
+
+    String contents = guiTest
+      .ideFrame()
+      .getEditor()
+      .open("app/build.gradle")
+      .getCurrentFileContents();
+
+    assertTrue(contents.contains("navigation-fragment"));
+    assertTrue(contents.contains("navigation-ui"));
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/110939241
   @Test
   public void testCancelAddDependency() throws Exception {
-    IdeFrameFixture frame = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture frame = guiTest.importSimpleApplication();
     frame.getProjectView().selectAndroidPane().clickPath("app");
     frame.invokeMenuPath("File", "New", "Android Resource File");
     CreateResourceFileDialogFixture.find(guiTest.robot())
@@ -261,7 +269,7 @@ public class NavNlEditorTest {
     assertFalse(guiTest
                   .ideFrame()
                   .getEditor()
-                  .getLayoutEditor(false)
+                  .getLayoutEditor(false, false)
                   .canInteractWithSurface());
 
     frame
@@ -279,6 +287,7 @@ public class NavNlEditorTest {
       .assertCanInteractWithSurface();
   }
 
+  @Ignore("b/123521236")
   @Test
   public void testKeyMappings() throws Exception {
     IdeFrameFixture frame = guiTest.importProject("Navigation");
@@ -310,5 +319,26 @@ public class NavNlEditorTest {
     double fitScale = fixture.getScale();
 
     assertTrue(Math.abs(fitScale - scale) < 0.001);
+  }
+
+  @Test
+  public void testEmptyDesigner() throws Exception {
+    NlEditorFixture layout = guiTest
+      .importProject("Navigation")
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("app/src/main/res/navigation/empty_navigation.xml", EditorFixture.Tab.DESIGN)
+      .getLayoutEditor(true);
+
+    NavDesignSurfaceFixture fixture = layout
+      .waitForRenderToFinish()
+      .getNavSurface();
+
+    fixture.clickOnEmptyDesignerTarget();
+
+    AddDestinationMenuFixture menuFixture = fixture
+      .getAddDestinationMenu()
+      .waitForContents();
+    assertTrue(menuFixture.isBalloonVisible());
   }
 }

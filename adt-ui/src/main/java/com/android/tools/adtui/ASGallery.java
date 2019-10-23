@@ -26,22 +26,42 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.IconUtil;
 import com.intellij.util.containers.Convertor;
-import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.LineBorder;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.BufferedImage;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A gallery widget for displaying a collection of images.
@@ -70,7 +90,7 @@ public class ASGallery<E> extends JBList {
   /**
    * Caches item images, is reset if different image provider is supplied.
    */
-  @Nullable private LoadingCache<E, Optional<Image>> myImagesCache;
+  @Nullable private LoadingCache<E, Optional<Icon>> myIconsCache;
   /**
    * Caches item images, is reset if different image provider is supplied.
    */
@@ -83,21 +103,21 @@ public class ASGallery<E> extends JBList {
   }
 
   public ASGallery(@NotNull ListModel model,
-                   @NotNull Function<? super E, Image> imageProvider,
+                   @NotNull Function<? super E, Icon> iconProvider,
                    @NotNull Function<? super E, String> labelProvider,
                    @NotNull Dimension thumbnailSize,
                    @Nullable Action defaultAction) {
-    this(model, imageProvider, labelProvider, thumbnailSize, defaultAction, false);
+    this(model, iconProvider, labelProvider, thumbnailSize, defaultAction, false);
   }
 
   public ASGallery(@NotNull ListModel model,
-                   @NotNull Function<? super E, Image> imageProvider,
+                   @NotNull Function<? super E, Icon> iconProvider,
                    @NotNull Function<? super E, String> labelProvider,
                    @NotNull Dimension thumbnailSize,
                    @Nullable Action defaultAction,
                    boolean disableSpeedSearch) {
 
-      myThumbnailSize = JBDimension.create(thumbnailSize);
+    myThumbnailSize = JBDimension.create(thumbnailSize);
     myLabelProvider = labelProvider;
     myDefaultAction = defaultAction;
 
@@ -106,7 +126,7 @@ public class ASGallery<E> extends JBList {
       setFont(listFont);
     }
 
-    setImageProvider(imageProvider);
+    setIconProvider(iconProvider);
     setLabelProvider(labelProvider);
     setModel(model);
     setThumbnailSize(thumbnailSize);
@@ -217,8 +237,8 @@ public class ASGallery<E> extends JBList {
   public void setModel(ListModel model) {
     final int oldSelectIndex  = getSelectedIndex();
     super.setModel(model);
-    if (myImagesCache != null)
-      myImagesCache.invalidateAll();
+    if (myIconsCache != null)
+      myIconsCache.invalidateAll();
     myCellRenderers.clear();
     if (oldSelectIndex >= 0) {
       setSelectedIndex(oldSelectIndex);
@@ -282,27 +302,17 @@ public class ASGallery<E> extends JBList {
    * use {@link Object#equals(Object)}. Please do not rely on this behaviour
    * as it may change without prior notice.
    */
-  public void setImageProvider(@NotNull final Function<? super E, Image> imageProvider) {
-    Function<? super E, Image> scaledImageProvider = new Function<E, Image> () {
-      @Nullable
-      @Override
-      public Image apply(@Nullable E input) {
-        Image img = imageProvider.apply(input);
-        if (img == null) {
-          return null;
-        }
-        BufferedImage image = ImageUtil.toBufferedImage(img);
-        if (image.getHeight() <= 0 || image.getWidth() <= 0) {
-          return null;
-        }
-        double xScale = (double) myThumbnailSize.width / image.getWidth();
-        double yScale = (double) myThumbnailSize.height / image.getHeight();
-        return ImageUtils.scale(image, xScale, yScale);
+  public void setIconProvider(@NotNull final Function<? super E, Icon> iconProvider) {
+    Function<? super E, Icon> scaledIconProvider = (Function<E, Icon>)input -> {
+      Icon icon = iconProvider.apply(input);
+      if (icon == null) {
+        return null;
       }
+      return IconUtil.scale(icon, ASGallery.this, (float)myThumbnailSize.height / icon.getIconHeight());
     };
-    CacheLoader<? super E, Optional<Image>> cacheLoader = CacheLoader.from(ToOptionalFunction.wrap(scaledImageProvider));
+    CacheLoader<? super E, Optional<Icon>> cacheLoader = CacheLoader.from(ToOptionalFunction.wrap(scaledIconProvider));
     myCellRenderers.clear();
-    myImagesCache = CacheBuilder.newBuilder().weakKeys().build(cacheLoader);
+    myIconsCache = CacheBuilder.newBuilder().weakKeys().build(cacheLoader);
     repaint(getVisibleRect());
   }
 
@@ -313,7 +323,7 @@ public class ASGallery<E> extends JBList {
   private static final class ToOptionalFunction<P, R> implements Function<P, Optional<R>> {
     private final Function<P, R> myFunction;
 
-    ToOptionalFunction(Function<P, R> function) {
+    public ToOptionalFunction(Function<P, R> function) {
       myFunction = function;
     }
 
@@ -342,10 +352,10 @@ public class ASGallery<E> extends JBList {
   }
 
   @Nullable
-  private Image getCellImage(E element) {
+  private Icon getCellIcon(E element) {
     try {
-      Optional<Image> image = myImagesCache.get(element);
-      return image.orElse(null);
+      Optional<Icon> icon = myIconsCache.get(element);
+      return icon.orElse(null);
     }
     catch (ExecutionException e) {
       Logger.getInstance(getClass()).error(e);
@@ -398,14 +408,14 @@ public class ASGallery<E> extends JBList {
     }
 
     public CellRenderer createCellRendererComponent(E element) {
-      final Image image = ASGallery.this.getCellImage(element);
+      final Icon icon = ASGallery.this.getCellIcon(element);
       final String label = ASGallery.this.getCellLabel(element);
 
-      if (image == null) {
+      if (icon == null) {
         return new TextOnlyCellRenderer(label);
       }
       else {
-        return new TextAndImageCellRenderer(getFont(), label, image);
+        return new TextAndImageCellRenderer(getFont(), label, icon);
       }
     }
   }
@@ -447,7 +457,7 @@ public class ASGallery<E> extends JBList {
   private static class TextOnlyCellRenderer extends AbstractCellRenderer {
     private JLabel myLabel;
 
-    TextOnlyCellRenderer(String label) {
+    public TextOnlyCellRenderer(String label) {
       // If no image, create a single JLabel for the whole cell.
       JLabel jlabel;
       jlabel = new JLabel(label);
@@ -472,7 +482,7 @@ public class ASGallery<E> extends JBList {
     private JPanel myPanel;
     private JLabel myLabel;
 
-    TextAndImageCellRenderer(Font font, String label, Image image) {
+    private TextAndImageCellRenderer(Font font, String label, Icon icon) {
       // If there is an image, create a panel with the image at the top and
       // the label at the bottom. Also take care of selection highlighting.
       // +-Panel-------+
@@ -483,8 +493,8 @@ public class ASGallery<E> extends JBList {
       // | (label,     |
       // |   bottom)   |
       // +-------------+
-      ImageIcon icon = new ImageIcon(image, label);
       JLabel imageLabel = new JLabel(icon);
+      imageLabel.getAccessibleContext().setAccessibleDescription(label);
 
       JLabel textLabel = new JLabel(label, SwingConstants.CENTER);
       textLabel.setHorizontalTextPosition(SwingConstants.CENTER);

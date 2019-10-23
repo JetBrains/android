@@ -1,5 +1,6 @@
 package org.jetbrains.android.augment;
 
+import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
 import com.google.common.base.MoreObjects;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.navigation.ItemPresentation;
@@ -9,9 +10,26 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Iconable;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
-import com.intellij.psi.*;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.HierarchicalMethodSignature;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassInitializer;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiModifierList;
+import com.intellij.psi.PsiReferenceList;
+import com.intellij.psi.PsiSubstitutor;
+import com.intellij.psi.PsiTypeParameter;
+import com.intellij.psi.PsiTypeParameterList;
+import com.intellij.psi.ResolveState;
+import com.intellij.psi.SyntheticElement;
 import com.intellij.psi.impl.InheritanceImplUtil;
 import com.intellij.psi.impl.PsiClassImplUtil;
 import com.intellij.psi.impl.PsiImplUtil;
@@ -24,22 +42,22 @@ import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.IncorrectOperationException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
-import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
-
-import javax.swing.*;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import org.jetbrains.kotlin.analyzer.ModuleInfo;
+import org.jetbrains.kotlin.idea.UserDataModuleInfoKt;
 
 /**
  * @author Eugene.Kudelevsky
  */
 public abstract class AndroidLightClassBase extends LightElement implements PsiClass, SyntheticElement {
-  private static final boolean KOTLIN_PLUGIN_AVAILABLE = isKotlinPluginAvailable();
+  private static final boolean KOTLIN_PLUGIN_AVAILABLE = AndroidStudioKotlinPluginUtils.isKotlinPluginAvailable();
 
   private final LightModifierList myPsiModifierList;
 
@@ -377,6 +395,11 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
   }
 
   @Override
+  public TextRange getTextRange() {
+    return TextRange.EMPTY_RANGE;
+  }
+
+  @Override
   public boolean processDeclarations(@NotNull final PsiScopeProcessor processor,
                                      @NotNull final ResolveState state,
                                      final PsiElement lastParent,
@@ -390,36 +413,20 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
     return MoreObjects.toStringHelper(this).addValue(getQualifiedName()).toString();
   }
 
-  private static boolean isKotlinPluginAvailable() {
-    try {
-      // Check if Kotlin IDE plugin classes can be loaded.
-      Class.forName("org.jetbrains.kotlin.idea.UserDataModuleInfoKt");
-      return true;
-    }
-    catch (ClassNotFoundException | LinkageError e) {
-      return false;
-    }
-  }
-
   /**
    * Encapsulates calls to Kotlin IDE plugin to prevent {@link NoClassDefFoundError} when Kotlin is not installed.
    */
   private static class KotlinRegistrationHelper {
-
-    static Key<Library> LIBRARY_KEY = Key.create("Kt_Library");
-    static Key<Sdk> SDK_KEY = Key.create("Kt_Sdk");
-    static Key<JpsModuleSourceRootType> MODULE_ROOT_TYPE_KEY = Key.create("Kt_SourceRootType");
-
     static void setModuleInfo(@NotNull PsiFile file, boolean isTest) {
-      file.putUserData(MODULE_ROOT_TYPE_KEY, isTest ? JavaSourceRootType.TEST_SOURCE : JavaSourceRootType.SOURCE);
+      file.putUserData(UserDataModuleInfoKt.MODULE_ROOT_TYPE_KEY, isTest ? JavaSourceRootType.TEST_SOURCE : JavaSourceRootType.SOURCE);
     }
 
     static void setModuleInfo(@NotNull PsiFile file, @NotNull Library library) {
-      file.putUserData(LIBRARY_KEY, library);
+      file.putUserData(UserDataModuleInfoKt.LIBRARY_KEY, library);
     }
 
     static void setModelInfo(@NotNull PsiFile file, @NotNull Sdk sdk) {
-      file.putUserData(SDK_KEY, sdk);
+      file.putUserData(UserDataModuleInfoKt.SDK_KEY, sdk);
     }
   }
 }

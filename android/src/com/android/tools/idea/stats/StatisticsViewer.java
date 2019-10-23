@@ -34,6 +34,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
+import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -84,6 +85,11 @@ public class StatisticsViewer extends JPanel implements Disposable {
           // This should not be happening as the server side expects an AndroidStudioEvent, so log an error.
           myConsoleView.print("Unable to parse AndroidStudioEvent from LogEvent: " + logEvent.build().toString(), ConsoleViewContentType.ERROR_OUTPUT);
         }
+      }
+
+      @Override
+      public void flush() throws IOException {
+        myOriginalUsageTracker.flush();
       }
 
       @Override

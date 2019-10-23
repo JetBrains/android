@@ -32,9 +32,11 @@ import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.exception.ComponentLookupException;
+import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -119,8 +121,6 @@ public class ConvertFrom9PatchTest {
     androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_launcher.9.png");
 
     // Try to convert to webp and verify.
-    int countOfBalloonBeforeConvert = getNotificationBalloonCount(ideFrame);
-
     androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res")
       .invokeMenuPath("Convert to WebP...");
     WebpConversionDialogFixture webpConversionDialog = WebpConversionDialogFixture.findDialog(guiTest.robot());
@@ -131,10 +131,18 @@ public class ConvertFrom9PatchTest {
     webpConversionDialog.clickOk();
 
     // Since the message like "0 files were converted" in the notification balloon cannot be retrieved,
-    // (NotificationsManagerImpl$5:model:Data:array), here we can only check there is only one
-    // more BalloomImpl:MyComponent instance after converting.
+    // (NotificationsManagerImpl$5:model:Data:array), here we can only check there is at least one
+    // BalloonImpl:MyComponent instance after converting.
     int countOfBalloonAfterConvert = getNotificationBalloonCount(ideFrame);
-    assertThat(countOfBalloonAfterConvert - countOfBalloonBeforeConvert).isEqualTo(1);
+    assertThat(countOfBalloonAfterConvert).isGreaterThan(1);
+
+    // Double check there is no .webp file generated.
+    try {
+      androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_launcher.webp");
+      Assert.fail(".webp file shouldn't exist");
+    } catch (LocationUnavailableException e) {
+      // LocationUnavailableException is expected, because there is no .webp file converted.
+    }
   }
 
   private int getNotificationBalloonCount(@NotNull IdeFrameFixture ideFrame) {

@@ -1,4 +1,5 @@
-This directory contains unpacked contents of an AAR file produced by the following procedure:
+This directory contains unpacked contents of an AAR file plus the corresponding source JAR
+produced by the following procedure:
 
 1. In Studio create a project with an empty activity.
 2. Enable namespacing
@@ -16,3 +17,9 @@ This directory contains unpacked contents of an AAR file produced by the followi
 6. In the application directory run:
 gw :mylibrary:assembleRelease
 7. Unzip mylibrary/build/outputs/aar/mylibrary-release.aar
+8. Run the following commands to create a source JAR:
+rm -rf /tmp/srcjar
+mkdir -p /tmp/srcjar/com/example/mylibrary/0
+cp -r mylibrary/src/main/res /tmp/srcjar/com/example/mylibrary/0
+pushd /tmp/srcjar && zip -R res-src.jar "*.xml"; popd
+9. Copy /tmp/srcjar/res-src.jar to this directory

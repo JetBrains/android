@@ -10,19 +10,13 @@
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
     <orderEntry type="module" module-name="intellij.android.observable" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="module" module-name="intellij.android.observable.ui" />
     <orderEntry type="library" name="protobuf" level="project" />
-    <orderEntry type="library" name="com.android.tools:repository" level="project" />
-    <orderEntry type="library" name="com.android.tools.analytics-library:protos" level="project" />
-    <orderEntry type="library" name="com.android.tools.analytics-library:tracker" level="project" />
-    <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="library" name="com.android.tools:common" level="project" />
-    <orderEntry type="library" name="com.android.tools:sdklib" level="project" />
-    <orderEntry type="library" name="com.android.tools:annotations" level="project" />
-    <orderEntry type="library" name="com.android.tools:sdk-common" level="project" />
+    <orderEntry type="library" name="analytics-proto" level="project" />
   </component>
 </module>

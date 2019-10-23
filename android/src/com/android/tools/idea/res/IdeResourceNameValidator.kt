@@ -36,10 +36,10 @@ private sealed class InputType {
  * @see FileResourceNameValidator
  */
 class IdeResourceNameValidator private constructor(
-    /** Describes the kind of input that is to be validated. */
-    private val inputType: InputType,
-    /** Set of existing NORMALIZED names to check for conflicts with. */
-    private val existing: Set<String>? = null)
+  /** Describes the kind of input that is to be validated. */
+  private val inputType: InputType,
+  /** Set of existing NORMALIZED names to check for conflicts with. */
+  private val existing: Set<String>? = null)
   : InputValidatorEx {
 
   companion object {
@@ -54,11 +54,20 @@ class IdeResourceNameValidator private constructor(
     @JvmStatic
     @JvmOverloads
     fun forResourceName(type: ResourceType, existing: ResourceRepository? = null): IdeResourceNameValidator {
-      val resourceNames = existing?.getResources(ResourceNamespace.TODO(), type)?.keySet()
+      val resourceNames = getExistingNames(existing, type)
       return IdeResourceNameValidator(
         InputType.ValueName(type),
-        resourceNames?.mapTo(HashSet(), ValueResourceNameValidator::normalizeName))
+        resourceNames.mapTo(HashSet(), ValueResourceNameValidator::normalizeName))
     }
+
+    /**
+     * Returns a set of strings representing the names of resources already present
+     * in the given [ResourceRepository].
+     */
+    private fun getExistingNames(existing: ResourceRepository?,
+                                 type: ResourceType): Set<String> =
+      existing?.getResources(ResourceNamespace.TODO(), type)?.keySet()
+      ?: emptySet()
 
     /**
      * Creates an [IdeResourceNameValidator] that checks if the input is a valid filename in a given folder type. Note that there are no
@@ -74,9 +83,14 @@ class IdeResourceNameValidator private constructor(
      */
     @JvmStatic
     @JvmOverloads
-    fun forFilename(type: ResourceFolderType, implicitExtension: String? = null): IdeResourceNameValidator {
+    fun forFilename(type: ResourceFolderType,
+                    implicitExtension: String? = null,
+                    existing: ResourceRepository? = null
+    ): IdeResourceNameValidator {
       require(implicitExtension == null || implicitExtension[0] == '.')
-      return IdeResourceNameValidator(InputType.FileName(type, implicitExtension))
+      val resourceType = ResourceType.fromFolderName(type.getName())
+      val existingNames = if (resourceType != null) getExistingNames(existing, resourceType) else null
+      return IdeResourceNameValidator(InputType.FileName(type, implicitExtension), existingNames)
     }
   }
 
@@ -96,7 +110,7 @@ class IdeResourceNameValidator private constructor(
       is InputType.ValueName -> ValueResourceNameValidator.getErrorText(inputString, inputType.type)
       is InputType.FileName -> {
         val inputWithoutExtension =
-            if (inputType.implicitExtension != null) inputString.removeSuffix(inputType.implicitExtension) else inputString
+          if (inputType.implicitExtension != null) inputString.removeSuffix(inputType.implicitExtension) else inputString
         FileResourceNameValidator.getErrorTextForNameWithoutExtension(inputWithoutExtension, inputType.type)
       }
     }

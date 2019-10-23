@@ -1,7 +1,3 @@
-/*
- * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
- */
-
 package com.android.tools.idea.actions;
 
 import com.intellij.ide.IdeView;
@@ -16,7 +12,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
-import icons.AndroidArtworkIcons;
+import icons.AndroidIcons;
 import org.jetbrains.android.actions.NewAndroidComponentDialog;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -31,7 +27,7 @@ public class LegacyNewAndroidComponentAction extends AnAction {
   protected LegacyNewAndroidComponentAction() {
     super(AndroidBundle.message("android.new.component.action.title.non.gradle"),
           AndroidBundle.message("android.new.component.action.description"),
-          AndroidArtworkIcons.Icons.Android);
+          AndroidIcons.Android);
   }
 
   @Override

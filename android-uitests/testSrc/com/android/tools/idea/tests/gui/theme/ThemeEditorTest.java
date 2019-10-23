@@ -117,10 +117,9 @@ public class ThemeEditorTest {
     checkNoErrors();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testConfigurationToolbar() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
 
     ActionButtonFixture apiButtonFixture = themeEditor.findToolbarButton("API Version for Preview");

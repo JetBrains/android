@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.IImageFactory;
 import com.intellij.reference.SoftReference;
 
 import java.awt.image.BufferedImage;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link IImageFactory} that caches the image so it is not re-created on every call.
@@ -34,6 +35,7 @@ class CachingImageFactory implements IImageFactory {
     myDelegate = delegate;
   }
 
+  @NotNull
   @Override
   public BufferedImage getImage(int width, int height) {
     BufferedImage cached = myCachedImageReference != null ? myCachedImageReference.get() : null;

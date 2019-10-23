@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import static com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_PARAMS;
+import static com.android.SdkConstants.CLASS_COORDINATOR_LAYOUT;
+import static com.android.resources.ResourceType.ID;
+import static java.util.Arrays.stream;
+
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.res.FloatResources;
@@ -29,19 +34,26 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-
-import static com.android.SdkConstants.*;
-import static com.android.resources.ResourceType.ID;
-import static java.util.Arrays.stream;
 
 /**
  * Class to handle the access to LayoutParams instances
@@ -371,15 +383,18 @@ public class LayoutParamsManager {
                               @NotNull Object layoutParams,
                               @NotNull String attributeName,
                               @Nullable String value,
-                              @NotNull NlModel model) {
+                              @NotNull Module module,
+                              @NotNull Configuration configuration) {
     // Try to get the types from the attribute definition
     EnumSet<AttributeFormat> inferredTypes =
-      attributeDefinition != null ? EnumSet.copyOf(attributeDefinition.getFormats()) : EnumSet.noneOf(AttributeFormat.class);
+      attributeDefinition != null && !attributeDefinition.getFormats().isEmpty()
+      ? EnumSet.copyOf(attributeDefinition.getFormats())
+      : EnumSet.noneOf(AttributeFormat.class);
     if (value != null &&
         (value.startsWith(SdkConstants.PREFIX_RESOURCE_REF) || value.startsWith(SdkConstants.PREFIX_THEME_REF)) &&
-        model.getConfiguration().getResourceResolver() != null) {
+        configuration.getResourceResolver() != null) {
       // This is a reference so we resolve the actual value and we try to infer the type from the given reference type
-      ResourceValue resourceValue = model.getConfiguration().getResourceResolver().findResValue(value, false);
+      ResourceValue resourceValue = configuration.getResourceResolver().findResValue(value, false);
 
       if (resourceValue != null) {
         value = resourceValue.getValue();
@@ -399,7 +414,7 @@ public class LayoutParamsManager {
 
         if (resourceValue.getResourceType() == ID) {
           // TODO: Remove this wrapping/unwrapping
-          value = String.valueOf(ResourceIdManager.get(model.getModule()).getOrGenerateId(resourceValue.asReference()));
+          value = String.valueOf(ResourceIdManager.get(module).getOrGenerateId(resourceValue.asReference()));
         }
       }
     }
@@ -443,7 +458,7 @@ public class LayoutParamsManager {
       for (AttributeFormat type : inferredTypes) {
         switch (type) {
           case DIMENSION:
-            fieldSet = setField(layoutParams, mappedField, getDimensionValue(value, model.getConfiguration()));
+            fieldSet = setField(layoutParams, mappedField, getDimensionValue(value, configuration));
             break;
           case INTEGER:
             try {
@@ -513,10 +528,11 @@ public class LayoutParamsManager {
   public static boolean setAttribute(@NotNull Object layoutParams,
                                      @NotNull String attributeName,
                                      @Nullable String value,
-                                     @NotNull NlModel model) {
+                                     @NotNull Module module,
+                                     @NotNull Configuration configuration) {
     AttributeDefinition attributeDefinition =
-      ResolutionUtils.getAttributeDefinition(model.getModule(), model.getConfiguration(), ATTR_LAYOUT_RESOURCE_PREFIX + attributeName);
-    return setAttribute(attributeDefinition, layoutParams, attributeName, value, model);
+      ResolutionUtils.getAttributeDefinition(module, configuration, ATTR_LAYOUT_RESOURCE_PREFIX + attributeName);
+    return setAttribute(attributeDefinition, layoutParams, attributeName, value, module, configuration);
   }
 
   /**

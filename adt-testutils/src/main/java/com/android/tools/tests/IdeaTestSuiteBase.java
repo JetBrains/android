@@ -15,33 +15,39 @@
  */
 package com.android.tools.tests;
 
+import static com.android.testutils.TestUtils.getWorkspaceRoot;
+
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
+import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import static com.android.testutils.TestUtils.getWorkspaceRoot;
+import org.jetbrains.annotations.NotNull;
 
 
 public class IdeaTestSuiteBase {
   protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
   static {
-    VfsRootAccess.allowRootAccess("/");  // Bazel tests are sandboxed so we disable VfsRoot checks.
+    VfsRootAccess.allowRootAccess("/", "C:\\");  // Bazel tests are sandboxed so we disable VfsRoot checks.
     setProperties();
+    setupKotlinPlugin();
   }
 
   private static void setProperties() {
     System.setProperty("idea.home", createTmpDir("tools/idea").toString());
     System.setProperty("gradle.user.home", createTmpDir("home").toString());
+
+    // Set roots for java.util.prefs API.
+    System.setProperty("java.util.prefs.userRoot", createTmpDir("userRoot").toString());
+    System.setProperty("java.util.prefs.systemRoot", createTmpDir("systemRoot").toString());
+
     System.setProperty("local.gradle.distribution.path", new File(getWorkspaceRoot(), "tools/external/gradle/").getAbsolutePath());
     // See AndroidLocation.java for more information on this system property.
     System.setProperty("ANDROID_SDK_HOME", createTmpDir(".android").toString());
@@ -51,6 +57,19 @@ public class IdeaTestSuiteBase {
     System.setProperty("resolve.descriptors.in.resources", "true");
 
     setRealJdkPathForGradle();
+  }
+
+  private static void setupKotlinPlugin() {
+    // Platform major version is needed to match the Kotlin plugin's compatibility range
+    symlinkToIdeaHome("tools/idea/build.txt");
+    // Run Kotlin in-process for easier control over its JVM args.
+    System.setProperty("kotlin.compiler.execution.strategy", "in-process");
+    // As a side-effect, the following line initializes an initial application. Some tests create
+    // their own temporary mock application and then dispose it. However, the ApplicationManager API
+    // doesn't fallback to an older application if one was never set, which leaves other tests that
+    // call ApplicationManager.getApplication() unexpectedly accessing a disposed application - leading
+    // to exceptions if the tests happen to be called in a bad order.
+    IdeaTestApplication.getInstance();
   }
 
   public static Path createTmpDir(String p) {

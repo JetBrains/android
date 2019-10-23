@@ -83,7 +83,7 @@ public class IdeaWizardAdapterTest {
     boolean canGoNextValue;
     boolean firstStepValue;
 
-    DummyHost(String title, @Nullable Project project) {
+    public DummyHost(String title, @Nullable Project project) {
       super(title, project);
       Reset();
       Disposer.register(myTestRootDisposable, getDisposable());

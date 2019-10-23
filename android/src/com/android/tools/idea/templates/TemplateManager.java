@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.annotations.concurrency.Slow;
 import com.android.prefs.AndroidLocation;
 import com.android.repository.Revision;
 import com.android.repository.io.FileOpUtils;
@@ -64,6 +65,7 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.templates.Template.TEMPLATE_XML_NAME;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Handles locating templates and providing template metadata
@@ -81,6 +83,8 @@ public class TemplateManager {
 
   public static final String CATEGORY_OTHER = "Other";
   public static final String CATEGORY_ACTIVITY = "Activity";
+  public static final String CATEGORY_AUTOMOTIVE = "Automotive";
+  public static final String CATEGORY_ANDROID_AUTO = "Android Auto";
   private static final String ACTION_ID_PREFIX = "template.create.";
   private static final Set<String> EXCLUDED_CATEGORIES = ImmutableSet.of("Application", "Applications");
   public static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of();
@@ -95,6 +99,7 @@ public class TemplateManager {
   private final Object CATEGORY_TABLE_LOCK = new Object();
 
   /** Table mapping (Category, Template Name) -> Template File */
+  @GuardedBy("CATEGORY_TABLE_LOCK")
   private Table<String, String, File> myCategoryTable;
 
   /**
@@ -425,12 +430,14 @@ public class TemplateManager {
     }
   }
 
+  @Slow
   @Nullable
   public ActionGroup getTemplateCreationMenu(@Nullable Project project) {
     refreshDynamicTemplateMenu(project);
     return myTopGroup;
   }
 
+  @Slow
   public void refreshDynamicTemplateMenu(@Nullable Project project) {
     synchronized (CATEGORY_TABLE_LOCK) {
       if (myTopGroup == null) {
@@ -448,7 +455,7 @@ public class TemplateManager {
         // Create the menu group item
         NonEmptyActionGroup categoryGroup = new NonEmptyActionGroup() {
           @Override
-          public void update(AnActionEvent e) {
+          public void update(@NotNull AnActionEvent e) {
             updateAction(e, category, getChildrenCount() > 0, false);
           }
         };
@@ -477,12 +484,12 @@ public class TemplateManager {
     if (CATEGORY_ACTIVITY.equals(category)) {
       AnAction galleryAction = new AnAction() {
         @Override
-        public void update(AnActionEvent e) {
+        public void update(@NotNull AnActionEvent e) {
           updateAction(e, "Gallery...", true, true);
         }
 
         @Override
-        public void actionPerformed(AnActionEvent e) {
+        public void actionPerformed(@NotNull AnActionEvent e) {
           ProjectSyncInvoker projectSyncInvoker = new ProjectSyncInvoker.DefaultProjectSyncInvoker();
 
           DataContext dataContext = e.getDataContext();
@@ -524,19 +531,31 @@ public class TemplateManager {
       categoryGroup.addSeparator();
       setPresentation(category, galleryAction);
     }
-    for (String templateName : categoryRow.keySet()) {
+    // Automotive category includes Car category templates. If a template is in both categories, use the automotive one.
+    Map<String, String> templateCategoryMap = categoryRow.keySet().stream().collect(toMap(it -> it, it -> category));
+    if (category.equals(CATEGORY_AUTOMOTIVE)) {
+      for (String templateName : myCategoryTable.row(CATEGORY_ANDROID_AUTO).keySet()) {
+        if (!templateCategoryMap.containsKey(templateName)) {
+          templateCategoryMap.put(templateName, CATEGORY_ANDROID_AUTO);
+        }
+      }
+    }
+    for (Map.Entry<String, String> templateNameAndCategory : templateCategoryMap.entrySet()) {
+      String templateName = templateNameAndCategory.getKey();
+      String templateCategory = templateNameAndCategory.getValue();
       if (EXCLUDED_TEMPLATES.contains(templateName)) {
         continue;
       }
-      TemplateMetadata metadata = getTemplateMetadata(myCategoryTable.get(category, templateName));
+      TemplateMetadata metadata = getTemplateMetadata(myCategoryTable.get(templateCategory, templateName));
       int minSdkVersion = metadata == null ? 0 : metadata.getMinSdk();
       int minBuildSdkApi = metadata == null ? 0 : metadata.getMinBuildApi();
-      NewAndroidComponentAction templateAction = new NewAndroidComponentAction(category, templateName, minSdkVersion, minBuildSdkApi);
-      String actionId = ACTION_ID_PREFIX + category + templateName;
-      am.unregisterAction(actionId);
-      am.registerAction(actionId, templateAction);
+      boolean androidXRequired = metadata == null ? false : metadata.getAndroidXRequired();
+      File templateFile = myCategoryTable.row(templateCategory).get(templateName);
+      NewAndroidComponentAction templateAction = new NewAndroidComponentAction(
+        category, templateName, minSdkVersion, minBuildSdkApi, androidXRequired, templateFile);
+      String actionId = ACTION_ID_PREFIX + templateCategory + templateName;
+      am.replaceAction(actionId, templateAction);
       categoryGroup.add(templateAction);
-
     }
   }
 
@@ -551,6 +570,7 @@ public class TemplateManager {
     return getCategoryTable(false, null);
   }
 
+  @Slow
   @GuardedBy("CATEGORY_TABLE_LOCK")
   private Table<String, String, File> getCategoryTable(boolean forceReload, @Nullable Project project) {
     if (myCategoryTable == null || forceReload) {
@@ -726,14 +746,7 @@ public class TemplateManager {
     try {
       File templateFile = new File(templateRoot, TEMPLATE_XML_NAME);
       if (templateFile.isFile()) {
-        String xml = Files.toString(templateFile, Charsets.UTF_8);
-        Document doc;
-        if (userDefinedTemplate) {
-          doc = XmlUtils.parseDocument(xml, true);
-        }
-        else {
-          doc = XmlUtils.parseDocumentSilently(xml, true);
-        }
+        Document doc = XmlUtils.parseUtfXmlFile(templateFile, true);
         if (doc != null && doc.getDocumentElement() != null) {
           TemplateMetadata metadata = new TemplateMetadata(doc);
           myTemplateMap.put(templateRoot, metadata);
@@ -742,7 +755,9 @@ public class TemplateManager {
       }
     }
     catch (Exception e) {
-      LOG.warn(e);
+      if (userDefinedTemplate) {
+        LOG.warn(e);
+      }
     }
 
     return null;

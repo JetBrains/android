@@ -17,7 +17,10 @@ package com.android.tools.idea.common.scene.draw
 
 import com.android.tools.idea.common.scene.LerpFloat
 import com.google.common.base.Joiner
-import java.awt.*
+import java.awt.BasicStroke
+import java.awt.Color
+import java.awt.Font
+import java.awt.Point
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 import java.awt.geom.RoundRectangle2D
@@ -68,6 +71,14 @@ fun stringToRoundRect2D(s: String): RoundRectangle2D.Float {
 
 fun roundRect2DToString(r: RoundRectangle2D.Float): String {
   return Joiner.on('x').join(r.x, r.y, r.width, r.height, r.arcwidth, r.arcHeight)
+}
+
+fun stringToColorOrNull(s: String): Color? {
+  return if (s == "null") null else stringToColor(s)
+}
+
+fun colorOrNullToString(c: Color?): String {
+  return if (c == null) "null" else colorToString(c)
 }
 
 fun stringToColor(s: String): Color {

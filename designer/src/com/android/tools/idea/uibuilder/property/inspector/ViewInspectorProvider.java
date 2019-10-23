@@ -95,7 +95,7 @@ public class ViewInspectorProvider implements InspectorProvider<NlPropertiesMana
     private final int mySrcPropertyIndex;
     private final int mySrcPropertyToolsIndex;
 
-    ViewInspectorComponent(@NotNull String tagName,
+    public ViewInspectorComponent(@NotNull String tagName,
                                   @NotNull Map<String, NlProperty> properties,
                                   @NotNull NlPropertiesManager propertiesManager,
                                   @NotNull List<String> propertyNames) {

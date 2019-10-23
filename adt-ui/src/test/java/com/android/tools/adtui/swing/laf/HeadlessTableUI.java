@@ -17,7 +17,7 @@ package com.android.tools.adtui.swing.laf;
 
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeMouse;
-import sun.swing.SwingUtilities2;
+import com.intellij.util.ui.UIUtilities;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicGraphicsUtils;
@@ -65,14 +65,14 @@ public class HeadlessTableUI extends BasicTableUI {
 
     @Override
     public void mousePressed(MouseEvent e) {
-      if (SwingUtilities2.shouldIgnore(e, table)) {
+      if (UIUtilities.shouldIgnore(e, table)) {
         return;
       }
 
       if (table.isEditing() && !table.getCellEditor().stopCellEditing()) {
         Component editorComponent = table.getEditorComponent();
         if (editorComponent != null && !editorComponent.hasFocus()) {
-          SwingUtilities2.compositeRequestFocus(editorComponent);
+          UIUtilities.compositeRequestFocus(editorComponent);
         }
         return;
       }
@@ -81,7 +81,7 @@ public class HeadlessTableUI extends BasicTableUI {
       pressedRow = table.rowAtPoint(p);
       pressedCol = table.columnAtPoint(p);
 
-      SwingUtilities2.adjustFocus(table);
+      UIUtilities.adjustFocus(table);
       setValueIsAdjusting(true);
       adjustSelection(e);
     }
@@ -121,7 +121,7 @@ public class HeadlessTableUI extends BasicTableUI {
       dispatchComponent =
         SwingUtilities.getDeepestComponentAt(editorComponent,
                                              p2.x, p2.y);
-      SwingUtilities2.setSkipClickCount(dispatchComponent,
+      UIUtilities.setSkipClickCount(dispatchComponent,
                                         e.getClickCount() - 1);
     }
 

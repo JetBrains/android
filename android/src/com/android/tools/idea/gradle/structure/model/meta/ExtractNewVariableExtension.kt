@@ -26,21 +26,28 @@ import javax.swing.Icon
 
 class ExtractNewVariableExtension<T : Any, PropertyCoreT : ModelPropertyCore<T>>(
   private val project: PsProject,
-  private val module: PsModule
+  private val module: PsModule?
 ) : EditorExtensionAction<T, PropertyCoreT> {
-  override val title: String = "Bind to New Variable"
-  override val tooltip: String = "Bind to New Variable"
+  override val title: String = "Extract Variable"
+  override val tooltip: String = "Extract Variable"
   override val icon: Icon = AllIcons.Nodes.Variable
+  override val isMainAction: Boolean = true
+
+  override fun isAvailableFor(property: PropertyCoreT, isPropertyContext: Boolean): Boolean =
+      property is GradleModelCoreProperty<*, *> && isPropertyContext
+
   override fun invoke(
     property: PropertyCoreT,
     editor: ModelPropertyEditor<T>,
-    editorFactory: ModelPropertyEditorFactory<T, PropertyCoreT>) {
-
+    editorFactory: ModelPropertyEditorFactory<T, PropertyCoreT>
+  ) {
     editor.updateProperty()
-    val dialog = ExtractVariableDialog(project,
-                                       module.variables,
-                                       property,
-                                       editorFactory)
+    val dialog =
+      ExtractVariableDialog(
+        project,
+        module?.variables ?: project.variables,
+        property,
+        editorFactory)
     if (dialog.showAndGet()) {
       editor.reload()
     }

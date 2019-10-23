@@ -56,7 +56,7 @@ public class AddSampleDataFileAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@NotNull AnActionEvent e) {
     AndroidFacet facet = getFacetFromAction(e);
     if (facet == null) {
       return;

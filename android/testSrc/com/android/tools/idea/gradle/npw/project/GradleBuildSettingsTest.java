@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.npw.project;
 
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import org.junit.Test;
 
 import static com.android.ide.common.repository.GradleVersion.parse;
@@ -25,7 +24,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Tests for {@link AndroidPluginGeneration}.
+ * Tests for {@link GradleBuildSettings}.
  */
 public class GradleBuildSettingsTest {
   private static final String CURRENT_BUILD_TOOLS = "27.0.3";

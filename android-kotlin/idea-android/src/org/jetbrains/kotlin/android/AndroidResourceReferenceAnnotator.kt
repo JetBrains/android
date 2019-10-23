@@ -15,17 +15,20 @@
  */
 package org.jetbrains.kotlin.android
 
-import com.android.SdkConstants
-import com.android.resources.ResourceType.*
+import com.android.resources.ResourceType.COLOR
+import com.android.resources.ResourceType.DRAWABLE
+import com.android.resources.ResourceType.MIPMAP
 import com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType.FRAMEWORK
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.GutterIconRenderer
 import com.android.tools.idea.res.resolveColor
-import com.android.tools.idea.res.resolveDrawable
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.AndroidAnnotatorUtil
-import org.jetbrains.android.AndroidAnnotatorUtil.*
+import org.jetbrains.android.AndroidAnnotatorUtil.ColorRenderer
+import org.jetbrains.android.AndroidAnnotatorUtil.findResourceValue
+import org.jetbrains.android.AndroidAnnotatorUtil.pickConfiguration
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.load.java.descriptors.JavaPropertyDescriptor
@@ -34,6 +37,8 @@ import org.jetbrains.kotlin.psi.KtReferenceExpression
 
 class AndroidResourceReferenceAnnotator : Annotator {
     override fun annotate(element: PsiElement, holder: AnnotationHolder) {
+        // Gutter icon annotator is run by {@link org.jetbrains.kotlin.android.AndroidKotlinResourceExternalAnnotator} when flag is set.
+        if (StudioFlags.GUTTER_ICON_ANNOTATOR_IN_BACKGROUND_ENABLED.get()) return
         val reference = element as? KtReferenceExpression ?: return
         val androidFacet = AndroidFacet.getInstance(element) ?: return
         val referenceTarget = reference.getResourceReferenceTargetDescriptor() ?: return
@@ -44,7 +49,7 @@ class AndroidResourceReferenceAnnotator : Annotator {
         }
 
         val referenceType = referenceTarget.getResourceReferenceType()
-        val configuration = pickConfiguration(androidFacet, androidFacet.module, element.containingFile) ?: return
+        val configuration = pickConfiguration(element.containingFile, androidFacet) ?: return
         val resourceValue = findResourceValue(
             resourceType,
             reference.text,
@@ -59,18 +64,15 @@ class AndroidResourceReferenceAnnotator : Annotator {
             val color = resourceResolver.resolveColor(resourceValue, element.project)
             if (color != null) {
                 val annotation = holder.createInfoAnnotation(element, null)
-                annotation.gutterIconRenderer = ColorRenderer(element, color)
+                annotation.gutterIconRenderer = ColorRenderer(element, color, false)
             }
         }
         else {
-            var file = resourceResolver.resolveDrawable(resourceValue, element.project)
-            if (file != null && file.path.endsWith(SdkConstants.DOT_XML)) {
-                file = pickBitmapFromXml(file, resourceResolver, element.project, androidFacet, resourceValue)
-            }
-            val iconFile = AndroidAnnotatorUtil.pickBestBitmap(file)
+            val iconFile =
+                AndroidAnnotatorUtil.resolveDrawableFile(resourceValue, resourceResolver, androidFacet)
             if (iconFile != null) {
                 val annotation = holder.createInfoAnnotation(element, null)
-                annotation.gutterIconRenderer = GutterIconRenderer(resourceResolver, element, iconFile)
+                annotation.gutterIconRenderer = GutterIconRenderer(resourceResolver, androidFacet, iconFile, configuration)
             }
         }
     }

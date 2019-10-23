@@ -14,6 +14,7 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.simpleperf.NodeNameParser;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -32,8 +33,8 @@ public class JniReferenceInstanceObject implements InstanceObject {
   private final long myObjectTag;
   @NotNull private ThreadId myAllocThreadId = ThreadId.INVALID_THREAD_ID;
   @NotNull private ThreadId myDeallocThreadId = ThreadId.INVALID_THREAD_ID;
-  @Nullable private MemoryProfiler.NativeBacktrace myAllocationBacktrace;
-  @Nullable private MemoryProfiler.NativeBacktrace myDeallocationBacktrace;
+  @Nullable private NativeCallStack myAllocationCallstack;
+  @Nullable private NativeCallStack myDeallocationCallstack;
   @Nullable private List<CodeLocation> myAllocationLocations;
   @Nullable private List<CodeLocation> myDeallocationLocations;
   @Nullable private List<FieldObject> myFields;
@@ -82,7 +83,7 @@ public class JniReferenceInstanceObject implements InstanceObject {
 
   @Override
   public int getCallStackDepth() {
-    if (myAllocationBacktrace == null) {
+    if (myAllocationCallstack == null) {
       return 0;
     }
     return getAllocationCodeLocations().size();
@@ -95,7 +96,7 @@ public class JniReferenceInstanceObject implements InstanceObject {
       return myAllocationLocations;
     }
 
-    myAllocationLocations = resolveBacktrace(myAllocationBacktrace);
+    myAllocationLocations = resolveCallstack(myAllocationCallstack);
     return myAllocationLocations;
   }
 
@@ -106,20 +107,16 @@ public class JniReferenceInstanceObject implements InstanceObject {
       return myDeallocationLocations;
     }
 
-    myDeallocationLocations = resolveBacktrace(myDeallocationBacktrace);
+    myDeallocationLocations = resolveCallstack(myDeallocationCallstack);
     return myDeallocationLocations;
   }
 
   @NotNull
-  private List<CodeLocation> resolveBacktrace(@Nullable MemoryProfiler.NativeBacktrace backtrace) {
-    if (backtrace == null || backtrace.getAddressesCount() == 0) {
+  private List<CodeLocation> resolveCallstack(@Nullable NativeCallStack callstack) {
+    if (callstack == null || callstack.getFramesCount() == 0) {
       return Collections.emptyList();
     }
-    ArrayList<CodeLocation> codeLocations = new ArrayList<>(backtrace.getAddressesCount());
-    MemoryProfiler.ResolveNativeBacktraceRequest request = MemoryProfiler.ResolveNativeBacktraceRequest.newBuilder()
-      .setSession(myCaptureObject.getSession())
-      .setBacktrace(backtrace).build();
-    MemoryProfiler.NativeCallStack callstack = myCaptureObject.getClient().resolveNativeBacktrace(request);
+    ArrayList<CodeLocation> codeLocations = new ArrayList<>(callstack.getFramesCount());
     for (MemoryProfiler.NativeCallStack.NativeFrame frame : callstack.getFramesList()) {
       if (isHiddenFrame(frame)) continue;
       String functionName = frame.getSymbolName();
@@ -154,7 +151,7 @@ public class JniReferenceInstanceObject implements InstanceObject {
     return codeLocations;
   }
 
-  private static boolean isHiddenFrame(@NotNull MemoryProfiler.NativeCallStack.NativeFrame frame) {
+  private static boolean isHiddenFrame(@NotNull NativeCallStack.NativeFrame frame) {
     String module = frame.getModuleName();
     return module == null || !module.startsWith(APP_DIR_PATH_PREFIX);
   }
@@ -167,14 +164,14 @@ public class JniReferenceInstanceObject implements InstanceObject {
     myDeallocThreadId = deallocThreadId;
   }
 
-  public void setAllocationBacktrace(@NotNull  MemoryProfiler.NativeBacktrace backtrace) {
+  public void setAllocationCallstack(@NotNull  NativeCallStack callstack) {
     myAllocationLocations = null;
-    myAllocationBacktrace = backtrace;
+    myAllocationCallstack = callstack;
   }
 
-  public void setDeallocationBacktrace(@NotNull MemoryProfiler.NativeBacktrace backtrace) {
+  public void setDeallocationCallstack(@NotNull NativeCallStack callstack) {
     myDeallocationLocations = null;
-    myDeallocationBacktrace = backtrace;
+    myDeallocationCallstack = callstack;
   }
 
   @Override

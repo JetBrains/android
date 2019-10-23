@@ -16,7 +16,7 @@
 package org.jetbrains.android.dom.animator.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.animator.Selector;
 
 /**
@@ -33,7 +33,7 @@ import org.jetbrains.android.dom.animator.Selector;
  *
  * Documentation on which folder is preferred for state lists is yet to be found.
  */
-public class AnimatorStateListDomFileDescription extends AbstractSingleRootFileDescription<Selector> {
+public class AnimatorStateListDomFileDescription extends SingleRootResourceDomFileDescription<Selector> {
   public AnimatorStateListDomFileDescription() {
     super(Selector.class, "selector", ResourceFolderType.ANIMATOR);
   }

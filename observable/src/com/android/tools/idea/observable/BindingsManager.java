@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.observable;
 
-import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
+import com.android.tools.idea.observable.core.ObservableBool;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import java.util.Iterator;
@@ -58,7 +58,7 @@ public final class BindingsManager {
    * break bindings conditionally.
    */
   public <T> void bind(@NotNull SettableValue<T> dest, @NotNull ObservableValue<T> src) {
-    bind(dest, src, BooleanExpression.ALWAYS_TRUE);
+    bind(dest, src, ObservableBool.TRUE);
   }
 
   /**
@@ -156,13 +156,13 @@ public final class BindingsManager {
     private final ObservableValue<Boolean> myEnabled;
 
     @Override
-    public void onInvalidated(@NotNull ObservableValue<?> sender) {
+    public void onInvalidated() {
       if (myEnabled.get()) {
         myInvoker.enqueue(new DestUpdater<>(myDest, mySrc));
       }
     }
 
-    OneWayBinding(SettableValue<T> dest, ObservableValue<T> src, ObservableValue<Boolean> enabled) {
+    public OneWayBinding(SettableValue<T> dest, ObservableValue<T> src, ObservableValue<Boolean> enabled) {
       myDest = dest;
       mySrc = src;
       myEnabled = enabled;
@@ -171,7 +171,7 @@ public final class BindingsManager {
       myEnabled.addListener(this);
 
       // Once bound, force the dest value to initialize itself with the src value
-      onInvalidated(src);
+      onInvalidated();
     }
 
     public void dispose() {
@@ -183,27 +183,20 @@ public final class BindingsManager {
   private final class TwoWayBinding<T> {
     private final SettableValue<T> myLhs;
     private final SettableValue<T> myRhs;
-    private final InvalidationListener myLeftChangedListener = new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        myInvoker.enqueue(new DestUpdater<>(myRhs, myLhs));
-      }
-    };
-    private final InvalidationListener myRightChangedListener = new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        myInvoker.enqueue(new DestUpdater<>(myLhs, myRhs));
-      }
-    };
+    private final InvalidationListener myLeftChangedListener;
+    private final InvalidationListener myRightChangedListener;
 
-    TwoWayBinding(SettableValue<T> lhs, SettableValue<T> rhs) {
+    public TwoWayBinding(SettableValue<T> lhs, SettableValue<T> rhs) {
       myLhs = lhs;
       myRhs = rhs;
+      myLeftChangedListener = () -> myInvoker.enqueue(new DestUpdater<>(myRhs, myLhs));
+      myRightChangedListener = () -> myInvoker.enqueue(new DestUpdater<>(myLhs, myRhs));
+
       myLhs.addListener(myLeftChangedListener);
       myRhs.addListener(myRightChangedListener);
 
       // Once bound, force the left value to initialize itself with the right value
-      myRightChangedListener.onInvalidated(rhs);
+      myRightChangedListener.onInvalidated();
     }
 
     public void dispose() {
@@ -221,7 +214,7 @@ public final class BindingsManager {
     private final SettableValue<T> myDest;
     private final ObservableValue<T> mySrc;
 
-    DestUpdater(SettableValue<T> dest, ObservableValue<T> src) {
+    public DestUpdater(SettableValue<T> dest, ObservableValue<T> src) {
       myDest = dest;
       mySrc = src;
     }

@@ -6,7 +6,7 @@
     Supports the development of <a href="https://developer.android.com">Android</a> applications with IntelliJ IDEA and Android Studio.
     ]]>
   </description>
-  <version>10.3.4</version>
+  <version>10.3.5</version>
   <vendor>JetBrains, Google</vendor>
   <depends>com.intellij.modules.android-capable</depends>
   <depends>com.intellij.modules.java</depends>
@@ -15,11 +15,20 @@
   <xi:include href="/META-INF/adt-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-debuggers.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-lang.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/android-lang-databinding.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/databinding.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/sdk-updates.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/designer.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/naveditor.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/pipeline.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/profilers.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-layout-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-gradle-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+<!-- FIXME-ank: <xi:include href="/META-INF/assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+<!-- FIXME-ank: <xi:include href="/META-INF/connection-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+<!-- FIXME-ank: <xi:include href="/META-INF/whats-new-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+  <xi:include href="/META-INF/layout-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
 </idea-plugin>

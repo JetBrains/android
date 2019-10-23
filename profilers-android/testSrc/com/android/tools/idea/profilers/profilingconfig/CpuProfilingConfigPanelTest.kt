@@ -20,18 +20,24 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
-import com.android.tools.profiler.proto.CpuProfiler
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.ProfilingConfiguration
+import com.android.tools.profilers.cpu.ProfilingTechnology
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-
-import javax.swing.*
+import javax.swing.JCheckBox
+import javax.swing.JLabel
+import javax.swing.JRadioButton
+import javax.swing.JSlider
+import javax.swing.JSpinner
+import javax.swing.JTextField
 
 
 class CpuProfilingConfigPanelTest {
-  @get:Rule public val myRestoreFlagRule = RestoreFlagRule(StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS)
+  @get:Rule
+  val myRestoreFlagRule = RestoreFlagRule(StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS)
 
   private lateinit var myConfigPanel: CpuProfilingConfigPanel
   private lateinit var myConfiguration: ProfilingConfiguration
@@ -39,7 +45,7 @@ class CpuProfilingConfigPanelTest {
   @Before
   fun setUp() {
     myConfigPanel = CpuProfilingConfigPanel(AndroidVersion.VersionCodes.O)
-    myConfiguration = ProfilingConfiguration()
+    myConfiguration = ProfilingConfiguration("myConfig", Cpu.CpuTraceType.ART, Cpu.CpuTraceMode.SAMPLED)
     myConfigPanel.setConfiguration(myConfiguration, false)
   }
 
@@ -97,7 +103,7 @@ class CpuProfilingConfigPanelTest {
   @Test
   fun fieldsAreDisabledWithAtraceSet() {
     myConfigPanel.setConfiguration(
-      ProfilingConfiguration("Test", CpuProfiler.CpuProfilerType.ATRACE, CpuProfiler.CpuProfilerMode.UNSPECIFIED_MODE), false)
+      ProfilingConfiguration("Test", Cpu.CpuTraceType.ATRACE, Cpu.CpuTraceMode.UNSPECIFIED_MODE), false)
 
     val treeWalker = TreeWalker(myConfigPanel.component)
     // All elements are enabled in non-default config.
@@ -110,7 +116,7 @@ class CpuProfilingConfigPanelTest {
 
   @Test
   fun fieldsAreEnabledWithArtSampled() {
-    myConfigPanel.setConfiguration(ProfilingConfiguration("Test", CpuProfiler.CpuProfilerType.ART, CpuProfiler.CpuProfilerMode.SAMPLED),
+    myConfigPanel.setConfiguration(ProfilingConfiguration("Test", Cpu.CpuTraceType.ART, Cpu.CpuTraceMode.SAMPLED),
                                    false)
 
     val treeWalker = TreeWalker(myConfigPanel.component)
@@ -125,7 +131,7 @@ class CpuProfilingConfigPanelTest {
   @Test
   fun fieldsAreEnabledWithArtInstrumented() {
     myConfigPanel.setConfiguration(
-      ProfilingConfiguration("Test", CpuProfiler.CpuProfilerType.ART, CpuProfiler.CpuProfilerMode.INSTRUMENTED), false)
+      ProfilingConfiguration("Test", Cpu.CpuTraceType.ART, Cpu.CpuTraceMode.INSTRUMENTED), false)
 
     val treeWalker = TreeWalker(myConfigPanel.component)
     // All elements are enabled in non-default config.
@@ -139,7 +145,7 @@ class CpuProfilingConfigPanelTest {
   @Test
   fun fieldsAreEnabledWithSimplePerf() {
     myConfigPanel.setConfiguration(
-      ProfilingConfiguration("Test", CpuProfiler.CpuProfilerType.SIMPLEPERF, CpuProfiler.CpuProfilerMode.SAMPLED), false)
+      ProfilingConfiguration("Test", Cpu.CpuTraceType.SIMPLEPERF, Cpu.CpuTraceMode.SAMPLED), false)
 
     val treeWalker = TreeWalker(myConfigPanel.component)
     // All elements are enabled in non-default config.
@@ -152,7 +158,8 @@ class CpuProfilingConfigPanelTest {
 
   @Test
   fun testUsingDefaultConfiguration() {
-    myConfigPanel.setConfiguration(ProfilingConfiguration(), true)
+    val defaultConfig = ProfilingConfiguration("myConfig", Cpu.CpuTraceType.ART, Cpu.CpuTraceMode.SAMPLED)
+    myConfigPanel.setConfiguration(defaultConfig, true)
 
     val treeWalker = TreeWalker(myConfigPanel.component)
     assertThat(myConfigPanel.preferredFocusComponent.isEnabled).isFalse()
@@ -222,16 +229,16 @@ class CpuProfilingConfigPanelTest {
       it.text == CpuProfilerConfig.Technology.ATRACE.getName()
     }
     val artSampledDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
-      it.text == CpuProfilingConfigPanel.ART_SAMPLED_DESCRIPTION
+      it.text == ProfilingTechnology.ART_SAMPLED.longDescription
     }
     val artInstrumentedDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
-      it.text == CpuProfilingConfigPanel.ART_INSTRUMENTED_DESCRIPTION
+      it.text == ProfilingTechnology.ART_INSTRUMENTED.longDescription
     }
     val simpleperfDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
-      it.text == CpuProfilingConfigPanel.SIMPLEPERF_DESCRIPTION
+      it.text == ProfilingTechnology.SIMPLEPERF.longDescription
     }
     val aTraceDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
-      it.text == CpuProfilingConfigPanel.ATRACE_DESCRIPTION
+      it.text == ProfilingTechnology.ATRACE.longDescription
     }
     assertThat(artSampledButton.isEnabled).isSameAs(artEnabled)
     assertThat(artInstrumentedButton.isEnabled).isSameAs(artInstEnabled)
@@ -245,10 +252,11 @@ class CpuProfilingConfigPanelTest {
 
   @Test
   fun testLoadingConfiguration() {
-    val configuration = ProfilingConfiguration()
-    configuration.profilingBufferSizeInMb = 1234
-    configuration.profilingSamplingIntervalUs = 56789
-    configuration.isDisableLiveAllocation = true
+    val configuration = ProfilingConfiguration("myConfig", Cpu.CpuTraceType.ART, Cpu.CpuTraceMode.SAMPLED).apply {
+      profilingBufferSizeInMb = 1234
+      profilingSamplingIntervalUs = 56789
+      isDisableLiveAllocation = true
+    }
 
     myConfigPanel.setConfiguration(configuration, false)
 

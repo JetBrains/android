@@ -31,7 +31,7 @@ import java.awt.image.BufferedImage;
 abstract class BitmapPopupEvaluator extends CustomPopupFullValueEvaluator<BufferedImage> {
   @Nullable private String myError;
 
-  BitmapPopupEvaluator(@NotNull EvaluationContextImpl evaluationContext) {
+  public BitmapPopupEvaluator(@NotNull EvaluationContextImpl evaluationContext) {
     super("\u2026 View Bitmap", evaluationContext);
   }
 

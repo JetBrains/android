@@ -76,17 +76,39 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
-      override fun getLatestCompatibleDependency(mavenGroupId: String, mavenArtifactId: String): GradleCoordinate? {
-        val wildcardCoordinate = GradleCoordinate(mavenGroupId, mavenArtifactId, "+")
-        return availableStableDependencies.firstOrNull { it.matches(wildcardCoordinate) }
-               ?: availablePreviewDependencies.firstOrNull { it.matches(wildcardCoordinate) }
+      override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
+        : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
+        val found = mutableListOf<GradleCoordinate>()
+        val missing = mutableListOf<GradleCoordinate>()
+        for (dependency in dependenciesToAdd) {
+          val wildcardCoordinate = GradleCoordinate(dependency.groupId!!, dependency.artifactId!!, "+")
+          val lookup = availableStableDependencies.firstOrNull { it.matches(wildcardCoordinate) }
+                       ?: availablePreviewDependencies.firstOrNull { it.matches(wildcardCoordinate) }
+          if (lookup != null) {
+            found.add(lookup)
+          }
+          else {
+            missing.add(dependency)
+          }
+        }
+        return Triple(found, missing, "")
       }
 
       override fun getResolvedDependentLibraries(): Collection<Library> {
         return emptySet()
       }
 
+      override fun canRegisterDependency(type: DependencyType): CapabilityStatus {
+        return CapabilitySupported()
+      }
+
+      override fun getResourceModuleDependencies() = emptyList<Module>()
+
       override fun registerDependency(coordinate: GradleCoordinate) {
+        registerDependency(coordinate, DependencyType.IMPLEMENTATION)
+      }
+
+      override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
         dependenciesByModule.put(module, coordinate)
       }
 
@@ -101,10 +123,6 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
       }
 
       override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
-        return CapabilityNotSupported()
-      }
-
-      override fun getInstantRunSupport(): CapabilityStatus {
         return CapabilityNotSupported()
       }
 
@@ -157,17 +175,11 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
     TODO("not implemented")
   }
 
-  override fun upgradeProjectToSupportInstantRun(): Boolean {
-    TODO("not implemented")
-  }
-
   override fun mergeBuildFiles(dependencies: String, destinationContents: String, supportLibVersionFilter: String?): String {
     TODO("not implemented")
   }
 
   override fun getPsiElementFinders() = emptyList<PsiElementFinder>()
-
-  override fun getAugmentRClasses() = true
 
   override fun getLightResourceClassService(): LightResourceClassService {
     return object : LightResourceClassService {

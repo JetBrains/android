@@ -347,7 +347,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     private BufferedImage myRotatedImage;
     private BufferedImage myProcessedImage;
 
-    ImageProcessorTask(@Nullable Project project,
+    public ImageProcessorTask(@Nullable Project project,
                               @NotNull BufferedImage srcImage,
                               int rotateByAngle,
                               @Nullable DeviceArtDescriptor descriptor,
@@ -604,7 +604,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private static class ImageTransferable implements Transferable {
     private final BufferedImage myImage;
 
-    ImageTransferable(@NotNull BufferedImage image) {
+    public ImageTransferable(@NotNull BufferedImage image) {
       myImage = image;
     }
 

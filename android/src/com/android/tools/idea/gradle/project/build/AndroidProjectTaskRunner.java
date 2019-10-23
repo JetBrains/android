@@ -89,7 +89,7 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
       projectName = projectPath.getName();
     }
     String executionName = "Build " + projectName;
-    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, buildMode, TestCompileType.ALL);
+    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, TestCompileType.ALL);
 
     GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
 
@@ -116,6 +116,12 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
           public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
             super.onFailure(id, e);
             aggregatedCallback.finished(new ProjectTaskResult(false, 1, 0));
+          }
+
+          @Override
+          public void onCancel(@NotNull ExternalSystemTaskId id) {
+            super.onCancel(id);
+            aggregatedCallback.finished(new ProjectTaskResult(true, 0, 0));
           }
         };
 

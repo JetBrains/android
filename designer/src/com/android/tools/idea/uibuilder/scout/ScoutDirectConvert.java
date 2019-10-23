@@ -77,7 +77,7 @@ public class ScoutDirectConvert {
     Dir mMddTargetMargin;
     int mConstrained;
 
-    Convert(String attribute, Dir addTargetMargin, boolean parent, int constraint, String... constraintAttributes) {
+    public Convert(String attribute, Dir addTargetMargin, boolean parent, int constraint, String... constraintAttributes) {
       mRelativeAttribute = attribute;
       mAttachToParent = parent;
       mConstrained = constraint;
@@ -95,10 +95,10 @@ public class ScoutDirectConvert {
   }
 
   public static boolean directProcess(NlComponent layout) {
-    if (!layout.getTag().getName().equals(RELATIVE_LAYOUT)) {
+    if (!layout.getTagDeprecated().getName().equals(RELATIVE_LAYOUT)) {
       return false;
     }
-    layout.getTag().setName(DependencyManagementUtil.mapAndroidxName(layout.getModel().getModule(), CLASS_CONSTRAINT_LAYOUT));
+    layout.getTagDeprecated().setName(DependencyManagementUtil.mapAndroidxName(layout.getModel().getModule(), CLASS_CONSTRAINT_LAYOUT));
     convert(layout);
     return true;
   }

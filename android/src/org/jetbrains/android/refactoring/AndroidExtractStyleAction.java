@@ -1,7 +1,6 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.refactoring;
 
-import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -159,7 +158,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
               createdStyleRef.set(style);
 
               for (XmlAttribute attribute : styledAttributes) {
-                if (SdkConstants.NS_RESOURCES.equals(attribute.getNamespace())) {
+                if (ANDROID_URI.equals(attribute.getNamespace())) {
                   final StyleItem item = style.addItem();
                   item.getName().setStringValue("android:" + attribute.getLocalName());
                   item.setStringValue(attribute.getValue());
@@ -236,7 +235,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
   }
 
   private static boolean canBeExtracted(@NotNull XmlAttribute attribute) {
-    if (!(SdkConstants.NS_RESOURCES.equals(attribute.getNamespace()))) {
+    if (!(ANDROID_URI.equals(attribute.getNamespace()))) {
       return false;
     }
     final String name = attribute.getLocalName();

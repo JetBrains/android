@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.SdkConstants.ANDROID_HOME_ENV;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
+import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
+
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
@@ -43,7 +49,11 @@ import com.android.utils.ILogger;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.AsyncFunction;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
@@ -63,10 +73,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.net.HttpConfigurable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Dimension;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -77,15 +84,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-
-import static com.android.SdkConstants.ANDROID_HOME_ENV;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
-import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A wrapper class for communicating with {@link AvdManager} and exposing helper functions
@@ -196,23 +200,26 @@ public class AvdManagerConnection {
     return AvdWizardUtils.getHardwarePropertyDefaultValue(AvdWizardUtils.INTERNAL_STORAGE_KEY, mySdkHandler);
   }
 
+  @Nullable
   private File getBinaryLocation(String filename) {
     assert mySdkHandler != null;
     LocalPackage sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, REPO_LOG);
     if (sdkPackage == null) {
-      sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_TOOLS, REPO_LOG);
+      return null;
     }
-    if (sdkPackage != null) {
-      return new File(sdkPackage.getLocation(), filename);
+    File binaryFile = new File(sdkPackage.getLocation(), filename);
+    if (!myFileOp.exists(binaryFile)) {
+      return null;
     }
-    // Fallback to old behavior, in the weird case nothing is installed.
-    return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, filename));
+    return binaryFile;
   }
 
+  @Nullable
   public File getEmulatorBinary() {
     return getBinaryLocation(SdkConstants.FN_EMULATOR);
   }
 
+  @Nullable
   public File getEmulatorCheckBinary() {
     return getBinaryLocation(SdkConstants.FN_EMULATOR_CHECK);
   }
@@ -346,12 +353,17 @@ public class AvdManagerConnection {
     myAvdManager.stopAvd(info);
   }
 
+  @NotNull
+  public ListenableFuture<IDevice> startAvd(@Nullable Project project, @NotNull AvdInfo info) {
+    return startAvd(project, info, null);
+  }
+
   /**
    * Launch the given AVD in the emulator.
    * @return a future with the device that was launched
    */
   @NotNull
-  public ListenableFuture<IDevice> startAvd(@Nullable final Project project, @NotNull final AvdInfo info) {
+  public ListenableFuture<IDevice> startAvd(@Nullable Project project, @NotNull AvdInfo info, @Nullable String snapshot) {
     if (!initIfNecessary()) {
       return Futures.immediateFailedFuture(new RuntimeException("No Android SDK Found"));
     }
@@ -372,7 +384,7 @@ public class AvdManagerConnection {
     }
 
     final File emulatorBinary = getEmulatorBinary();
-    if (!emulatorBinary.isFile()) {
+    if (emulatorBinary == null) {
       IJ_LOG.error("No emulator binary found!");
       return Futures.immediateFailedFuture(new RuntimeException("No emulator binary found"));
     }
@@ -399,21 +411,7 @@ public class AvdManagerConnection {
       return Futures.immediateFailedFuture(new RuntimeException(message));
     }
 
-
-    GeneralCommandLine commandLine = new GeneralCommandLine();
-    commandLine.setExePath(emulatorBinary.getPath());
-
-    addParameters(info, commandLine);
-
-    // The AVD Manager UI does not allow for passing additional command line parameters.
-    // For now, this environment variable allows users to specify any such parameters they need
-    //   e.g. export studio.emu.params=-dns-server,8.8.8.8 && studio.sh
-    String additionalParams = System.getenv("studio.emu.params");
-    if (additionalParams != null) {
-      commandLine.addParameters(Splitter.on(',').splitToList(additionalParams));
-    }
-
-    EmulatorRunner runner = new EmulatorRunner(commandLine, info);
+    EmulatorRunner runner = new EmulatorRunner(newEmulatorCommand(emulatorBinary, info, snapshot), info);
     addListeners(runner);
 
     final ProcessHandler processHandler;
@@ -457,6 +455,27 @@ public class AvdManagerConnection {
     });
 
     return EmulatorConnectionListener.getDeviceForEmulator(project, info.getName(), processHandler, 5, TimeUnit.MINUTES);
+  }
+
+  @NotNull
+  private GeneralCommandLine newEmulatorCommand(@NotNull File emulator, @NotNull AvdInfo device, @Nullable String snapshot) {
+    GeneralCommandLine command = new GeneralCommandLine();
+
+    command.setExePath(emulator.getPath());
+    addParameters(device, command);
+
+    CharSequence arguments = System.getenv("studio.emu.params");
+
+    if (arguments != null) {
+      // noinspection UnstableApiUsage
+      command.addParameters(Splitter.on(',').splitToList(arguments));
+    }
+
+    if (snapshot != null) {
+      command.addParameters("-snapshot", snapshot);
+    }
+
+    return command;
   }
 
   /**
@@ -697,7 +716,7 @@ public class AvdManagerConnection {
       return AccelerationErrorCode.UNKNOWN_ERROR;
     }
     File emulatorBinary = getEmulatorBinary();
-    if (!emulatorBinary.isFile()) {
+    if (emulatorBinary == null) {
       return AccelerationErrorCode.NO_EMULATOR_INSTALLED;
     }
     if (getMemorySize() < Storage.Unit.GiB.getNumberOfBytes()) {
@@ -707,9 +726,9 @@ public class AvdManagerConnection {
     if (!hasQEMU2Installed()) {
       return AccelerationErrorCode.TOOLS_UPDATE_REQUIRED;
     }
-    File checkBinary = getEmulatorCheckBinary();
     GeneralCommandLine commandLine = new GeneralCommandLine();
-    if (checkBinary.isFile()) {
+    File checkBinary = getEmulatorCheckBinary();
+    if (checkBinary != null) {
       commandLine.setExePath(checkBinary.getPath());
       commandLine.addParameter("accel");
     }
@@ -782,7 +801,7 @@ public class AvdManagerConnection {
       skinFolder = null;
     }
     if (skinFolder == null) {
-      skinName = String.format("%dx%d", Math.round(resolution.getWidth()), Math.round(resolution.getHeight()));
+      skinName = String.format(Locale.US, "%dx%d", Math.round(resolution.getWidth()), Math.round(resolution.getHeight()));
     }
     if (orientation == ScreenOrientation.LANDSCAPE) {
       hardwareProperties.put(HardwareProperties.HW_INITIAL_ORIENTATION,
@@ -923,7 +942,7 @@ public class AvdManagerConnection {
     int suffix = 1;
     String result = name;
     while (findAvdWithName(result)) {
-      result = String.format("%1$s %2$d", name, ++suffix);
+      result = String.format(Locale.US, "%1$s %2$d", name, ++suffix);
     }
     return result;
   }

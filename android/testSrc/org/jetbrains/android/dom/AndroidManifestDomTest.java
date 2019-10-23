@@ -12,10 +12,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-
 import java.util.List;
-import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
-import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
+import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection;
+import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidManifestDomTest extends AndroidDomTestCase {
@@ -108,6 +107,19 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   public void testTagNameCompletion1() throws Throwable {
     doTestCompletionVariants("tn1.xml", "uses-permission",  "uses-permission-sdk-23", "uses-sdk", "uses-configuration",
                              "uses-feature", "uses-split");
+  }
+
+  public void testNavGraphCompletion() throws Throwable {
+    doTestCompletionVariantsContains("navgraph1.xml", "nav-graph");
+  }
+
+  public void testNavGraphAttributeCompletion() throws Throwable {
+    doTestCompletionVariantsContains("navgraph2.xml", "android:value");
+  }
+
+  public void testNavGraphValueCompletion() throws Throwable {
+    copyFileToProject("nav_main.xml", "res/navigation/nav_main.xml");
+    doTestCompletionVariantsContains("navgraph3.xml", "@navigation/nav_main");
   }
 
   public void testSoftTagsAndAttrs() throws Throwable {
@@ -426,7 +438,6 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
 
   public void testJavaHighlighting() throws Throwable {
     copyFileToProject("PermissionsManifest.xml", "AndroidManifest.xml");
-    copyManifestJavaToGeneratedSources();
     doTestJavaHighlighting("p1.p2");
   }
 
@@ -508,7 +519,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     try {
       doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
                                "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
-                               "26", "27", "P");
+                               "26", "27", "28", "Q");
     }
     finally {
       ApplicationManager.getApplication().runWriteAction(() -> projectJdkTable.removeJdk(sdk));

@@ -78,8 +78,7 @@ class AbsolutePlaceholderTest : SceneTest() {
     textView.setPosition(absoluteLayout.drawX + 50, absoluteLayout.drawX + 60)
     mySceneManager.update()
 
-    val appliedResult = applyPlaceholderToSceneComponent(textView, placeholder)
-    assertTrue(appliedResult)
+    applyPlaceholderToSceneComponent(textView, placeholder)
 
     mySceneManager.update()
 

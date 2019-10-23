@@ -138,7 +138,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
       }
     };
 
-    myListeners.listen(model.sourceLocation(), source -> validator.invalidate());
+    myListeners.listen(model.sourceLocation(), () -> validator.invalidate());
   }
 
   @Override

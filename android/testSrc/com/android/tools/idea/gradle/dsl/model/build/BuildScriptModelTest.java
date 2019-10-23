@@ -15,28 +15,38 @@
  */
 package com.android.tools.idea.gradle.dsl.model.build;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_ADD_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EDIT_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_PARSE_DEPENDENCIES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_PARSE_REPOSITORIES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_REMOVE_REPOSITORIES_MULTIPLE_BLOCKS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_REMOVE_REPOSITORIES_SINGLE_BLOCK;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
+import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_NAME;
+import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_URL;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.ExpectedArtifactDependency;
 import com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl;
 import com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
-import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_NAME;
-import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_URL;
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 /**
  * Tests for {@link BuildScriptModelImpl}.
@@ -44,12 +54,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class BuildScriptModelTest extends GradleFileModelTestCase {
   @Test
   public void testParseDependencies() throws IOException {
-    String text = "buildscript {\n" +
-                  "  dependencies {\n" +
-                  "    classpath 'com.android.tools.build:gradle:2.0.0-alpha2'\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_SCRIPT_MODEL_PARSE_DEPENDENCIES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.buildscript().dependencies();
@@ -63,8 +68,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddDependency() throws IOException {
-    String text = "";
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_SCRIPT_MODEL_ADD_DEPENDENCY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildScriptModel buildScriptModel = buildModel.buildscript();
@@ -99,12 +103,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testEditDependency() throws IOException {
-    String text = "buildscript {\n" +
-                  "  dependencies {\n" +
-                  "    classpath 'com.android.tools.build:gradle:2.0.0-alpha2'\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_SCRIPT_MODEL_EDIT_DEPENDENCY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.buildscript().dependencies();
@@ -133,13 +132,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseRepositories() throws IOException {
-    String text = "buildscript {\n" +
-                  "  repositories {\n" +
-                  "    jcenter()\n" +
-                  "    google()\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_SCRIPT_MODEL_PARSE_REPOSITORIES);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().buildscript().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -159,13 +152,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveRepositoriesSingleBlock() throws IOException {
-    String text = "buildscript {\n" +
-                  "  repositories {\n" +
-                  "    jcenter()\n" +
-                  "    google()\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_SCRIPT_MODEL_REMOVE_REPOSITORIES_SINGLE_BLOCK);
     BuildScriptModel buildscript = getGradleBuildModel().buildscript();
     List<RepositoryModel> repositories = buildscript.repositories().repositories();
     assertThat(repositories).hasSize(2);
@@ -176,15 +163,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveRepositoriesMultipleBlocks() throws IOException {
-    String text = "buildscript {\n" +
-                  "  repositories {\n" +
-                  "    jcenter()\n" +
-                  "  }\n" +
-                  "  repositories {\n" +
-                  "    google()\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(BUILD_SCRIPT_MODEL_REMOVE_REPOSITORIES_MULTIPLE_BLOCKS);
     BuildScriptModel buildscript = getGradleBuildModel().buildscript();
     List<RepositoryModel> repositories = buildscript.repositories().repositories();
     assertThat(repositories).hasSize(2);
@@ -195,21 +174,49 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testExtPropertiesFromBuildscriptBlock() throws IOException {
-    String text = "buildscript {\n" +
-                  "  ext.hello = 'boo'\n" +
-                  "}\n";
-    String childText = "android {\n" +
-                       "  defaultConfig {\n" +
-                       "    applicationId ext.hello\n" +
-                       "  }\n" +
-                       "}\n";
-    writeToBuildFile(text);
-    writeToSubModuleBuildFile(childText);
-    writeToSettingsFile("include ':" + SUB_MODULE_NAME + "'");
+    writeToBuildFile(BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK);
+    writeToSubModuleBuildFile(BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK_SUB);
+    writeToSettingsFile(getSubModuleSettingsText());
 
     ProjectBuildModel projectBuildModel = ProjectBuildModel.get(myProject);
     GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(mySubModule);
 
     verifyPropertyModel(buildModel.android().defaultConfig().applicationId(), STRING_TYPE, "boo", STRING, PropertyType.REGULAR, 1);
+  }
+
+  @Test
+  public void testExtPropertiesNotVisibleFromBuildscriptBlock() throws IOException {
+    writeToBuildFile(BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ArtifactDependencyModel> artifacts = buildModel.buildscript().dependencies().artifacts();
+    assertSize(1, artifacts);
+    verifyPropertyModel(artifacts.get(0).completeModel(), "buildscript.dependencies.classpath", "com.android.tools.build:gradle:$VERSION");
+  }
+
+  @Test
+  public void testAddExtVariableToBuildscriptBlock() throws IOException {
+    writeToBuildFile(BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ArtifactDependencyModel> artifacts = buildModel.buildscript().dependencies().artifacts();
+    assertSize(1, artifacts);
+    verifyPropertyModel(artifacts.get(0).completeModel(), "buildscript.dependencies.classpath", "com.android.tools.build:gradle:$VERSION");
+
+    // Add the missing variable to the buildscript block.
+    buildModel.buildscript().ext().findProperty("VERSION").setValue("2.1.2");
+    // Add a new normal dependency that uses the VERSION property to ensure we don't resolve to the buildscript one.
+    buildModel.android().defaultConfig().applicationId().setValue(new ReferenceTo("VERSION"));
+
+    applyChangesAndReparse(buildModel);
+
+    artifacts = buildModel.buildscript().dependencies().artifacts();
+    assertSize(1, artifacts);
+    verifyPropertyModel(artifacts.get(0).completeModel(), "buildscript.dependencies.classpath", "com.android.tools.build:gradle:2.1.2");
+
+    ResolvedPropertyModel applicationId = buildModel.android().defaultConfig().applicationId();
+    verifyPropertyModel(applicationId, "android.defaultConfig.applicationId", "3.2.0");
   }
 }

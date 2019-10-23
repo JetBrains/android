@@ -37,6 +37,6 @@ dependencies {
   compile 'com.android.support:support-v4:18.0.+'
   compile 'com.nineoldandroids:library:+'
   testCompile 'junit:junit:4.11'
-  androidTestCompile 'com.android.support.test:runner:0.5'
+  androidTestCompile 'com.android.support.test:runner:1.0.2'
   androidTestUtil 'com.android.support.test:orchestrator:1.0.0'
 }

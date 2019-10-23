@@ -46,7 +46,7 @@ public class ChooseBundleOrApkStep extends ExportSignedPackageWizardStep {
 
   @Override
   public String getHelpId() {
-    return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "dynamic-delivery/overview.html";
+    return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "r/studio-ui/dynamic-delivery/overview.html";
   }
 
   @Override

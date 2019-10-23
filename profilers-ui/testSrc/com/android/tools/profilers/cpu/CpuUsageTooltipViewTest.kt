@@ -17,11 +17,14 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
@@ -33,17 +36,18 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 
 class CpuUsageTooltipViewTest {
-  private var cpuService = FakeCpuService()
+  private val cpuService = FakeCpuService()
+  private val timer = FakeTimer()
   private lateinit var cpuStage: CpuProfilerStage
   private lateinit var usageTooltipView: FakeCpuUsageTooltipView
   @Rule
   @JvmField
-  val myGrpcChannel = FakeGrpcChannel("CpuUsageTooltipViewTest", cpuService, FakeProfilerService())
+  val myGrpcChannel = FakeGrpcChannel("CpuUsageTooltipViewTest", cpuService,
+                                      FakeTransportService(timer), FakeProfilerService(timer))
 
   @Before
   fun setUp() {
-    val timer = FakeTimer()
-    val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), timer)
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.name), FakeIdeProfilerServices(), timer)
     cpuStage = CpuProfilerStage(profilers)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     profilers.stage = cpuStage
@@ -58,18 +62,18 @@ class CpuUsageTooltipViewTest {
       tooltipRange.set(tooltipTime.toDouble(), tooltipTime.toDouble())
       viewRange.set(0.0, TimeUnit.SECONDS.toMicros(10).toDouble())
     }
-    cpuService.addTraceInfo(CpuProfiler.TraceInfo.newBuilder()
+    cpuService.addTraceInfo(Cpu.CpuTraceInfo.newBuilder()
                               .setTraceId(1)
-                              .setProfilerType(CpuProfiler.CpuProfilerType.ATRACE)
+                              .setTraceType(Cpu.CpuTraceType.ATRACE)
                               .setFromTimestamp(TimeUnit.SECONDS.toNanos(2))
                               .setToTimestamp(TimeUnit.SECONDS.toNanos(4))
-                              .addThreads(CpuProfiler.Thread.newBuilder().setTid(3).setName("newThread")).build())
-    cpuService.addTraceInfo(CpuProfiler.TraceInfo.newBuilder()
+                              .addTids(3).build())
+    cpuService.addTraceInfo(Cpu.CpuTraceInfo.newBuilder()
                               .setTraceId(2)
-                              .setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF)
+                              .setTraceType(Cpu.CpuTraceType.SIMPLEPERF)
                               .setFromTimestamp(TimeUnit.SECONDS.toNanos(5))
                               .setToTimestamp(TimeUnit.SECONDS.toNanos(7))
-                              .addThreads(CpuProfiler.Thread.newBuilder().setTid(3).setName("newThread")).build())
+                              .addTids(3).build())
 
   }
 

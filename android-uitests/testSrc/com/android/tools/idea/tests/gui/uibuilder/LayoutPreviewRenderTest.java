@@ -59,7 +59,7 @@ public class LayoutPreviewRenderTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void layoutPreviewRendering() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest")
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
                                              .closeProjectPanel();
 
     EditorFixture editorFixture = ideFrameFixture.getEditor()

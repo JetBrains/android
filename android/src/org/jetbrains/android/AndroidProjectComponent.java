@@ -14,6 +14,9 @@ import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.PerformInBackgroundOption;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -24,7 +27,7 @@ import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.AndroidPrecompileTask;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidResourceFilesListener;
+import org.jetbrains.android.compiler.AndroidResourceFilesListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -85,13 +88,25 @@ public class AndroidProjectComponent implements ProjectComponent, Disposable {
       return;
     }
     ourDynamicTemplateMenuCreated = true;
-    DefaultActionGroup newGroup = (DefaultActionGroup)ActionManager.getInstance().getAction("NewGroup");
-    newGroup.addSeparator();
-    ActionGroup menu = TemplateManager.getInstance().getTemplateCreationMenu(null);
 
-    if (menu != null) {
-      newGroup.add(menu, new Constraints(Anchor.AFTER, "NewFromTemplate"));
-    }
+    new Task.Backgroundable(null, "Loading Dynamic Templates", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+      ActionGroup menu;
+
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        indicator.setIndeterminate(true);
+        menu = TemplateManager.getInstance().getTemplateCreationMenu(null);
+      }
+
+      @Override
+      public void onFinished() {
+        DefaultActionGroup newGroup = (DefaultActionGroup)ActionManager.getInstance().getAction("NewGroup");
+        newGroup.addSeparator();
+        if (menu != null) {
+          newGroup.add(menu, new Constraints(Anchor.AFTER, "NewFromTemplate"));
+        }
+      }
+    }.queue();
   }
 
   private void createAlarmForAutogeneration() {

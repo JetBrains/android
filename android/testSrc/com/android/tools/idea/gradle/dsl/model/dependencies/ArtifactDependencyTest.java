@@ -15,100 +15,135 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_ADD_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_ADD_DEPENDENCY_WITH_CONFIGURATION_CLOSURE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_ARTIFACT_NOTATION_EDGE_CASES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_COMPACT_NOTATION_ELEMENT_UNSUPPORTED_OPERATIONS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_COMPACT_NOTATION_PSI_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_COMPACT_NOTATION_SET_TO_REFERENCE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_COMPACT_SET_THROUGH_REFERENCES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_NO_PARENS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_PARENS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_WITH_PARENS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_CONTAINS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_CORRECT_OBTAIN_RESULT_MODEL;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_DELETE_GROUP_AND_VERSION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_DELETE_IN_METHOD_CALL_WITH_PROPERTIES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_DELETE_NAME_AND_RENAME_UNSUPPORTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_EMPTY_FAKE_ARTIFACT_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_FOLLOW_MULTIPLE_REFERENCES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_GET_ONLY_ARTIFACTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_MALFORMED_FAKE_ARTIFACT_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_MAP_NOTATION_PSI_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_METHOD_CALL_COMPACT_PSI_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_METHOD_CALL_MULTIPLE_COMPACT_PSI_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_MISSING_PROPERTIES_COMPACT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_MISSING_PROPERTIES_MAP;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_MULTIPLE_COMPACT_NOTATION_PSI_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_NON_DEPENDENCY_CODE_IN_DEPENDENCIES_SECTION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_COMPACT_NOTATION_CLOSURE_WITH_VARIABLES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_COMPACT_NOTATION_WITH_VARIABLES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_COMPACT_NOTATION_IN_SINGLE_LINE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_COMPACT_NOTATION_IN_SINGLE_LINE_WITH_COMMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_MAP_NOTATION_USING_SINGLE_CONFIGURATION_NAME;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_MAP_NOTATION_USING_SINGLE_CONFIGURATION_NAME_NO_PARENTHESES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_FULL_REFERENCES_COMPACT_APPLICATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_FULL_REFERENCE_MAP;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_MAP_NOTATION_CLOSURE_WITH_VARIABLES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_MAP_NOTATION_WITH_VARIABLES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSING_WITH_MAP_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_COMPACT_NOTATION_AND_SINGLE_CONFIGURATION_NAME;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_MAP_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_MAP_NOTATION_AND_SINGLE_CONFIGURATION_NAME;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_WHEN_MULTIPLE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_APPLICATION_DEPENDENCIES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_CHILD_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_PSI_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_FAILS_IS_PSI_ELEMENT_IS_NOT_FOUND;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_IN_ARGUMENT_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_ADDING_FIELDS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_DELETE_FIELDS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_WITH_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_EXCLUDES_BLOCK_TO_REFERENCES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_FULL_REFERENCES_COMPACT_APPLICATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_FULL_REFERENCE_COMPACT_METHOD;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_FULL_REFERENCE_MAP;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_I_STR_IN_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_I_STR_IN_COMPACT_NOTATION_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_SINGLE_REFERENCE_COMPACT_APPLICATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_SINGLE_REFERENCE_COMPACT_METHOD;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_THROUGH_MAP_REFERENCE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_MAP_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_REFERENCE;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.RUNTIME;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_COMPILE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
+import static com.google.common.truth.Truth.assertThat;
+
+import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.*;
-import com.android.tools.idea.gradle.dsl.api.ext.*;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyConfigurationModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ExcludedDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
+import java.io.IOException;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.util.List;
-
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*;
-import static com.google.common.truth.Truth.assertThat;
-
 /**
  * Tests for {@link DependenciesModelImpl} and {@link ArtifactDependencyModelImpl}.
  */
 public class ArtifactDependencyTest extends GradleFileModelTestCase {
-
-  private static final String CONFIGURATION_CLOSURE_PARENS =
-    "dependencies {\n" +
-    "  compile('org.hibernate:hibernate:3.1') {\n" +
-    "     //in case of versions conflict '3.1' version of hibernate wins:\n" +
-    "     force = true\n" +
-    "\n" +
-    "     //excluding a particular transitive dependency:\n" +
-    "     exclude module: 'cglib' //by artifact name\n" +
-    "     exclude group: 'org.jmock' //by group\n" +
-    "     exclude group: 'org.unwanted', module: 'iAmBuggy' //by both name and group\n" +
-    "\n" +
-    "     //disabling all transitive dependencies of this dependency\n" +
-    "     transitive = false\n" +
-    "   }" +
-    "}";
-
-  private static final String CONFIGURATION_CLOSURE_NO_PARENS =
-    "dependencies {\n" +
-    "  compile 'org.hibernate:hibernate:3.1', {\n" +
-    "     //in case of versions conflict '3.1' version of hibernate wins:\n" +
-    "     force = true\n" +
-    "\n" +
-    "     //excluding a particular transitive dependency:\n" +
-    "     exclude module: 'cglib' //by artifact name\n" +
-    "     exclude group: 'org.jmock' //by group\n" +
-    "     exclude group: 'org.unwanted', module: 'iAmBuggy' //by both name and group\n" +
-    "\n" +
-    "     //disabling all transitive dependencies of this dependency\n" +
-    "     transitive = false\n" +
-    "   }" +
-    "}";
-
-  private static final String CONFIGURATION_CLOSURE_WITHIN_PARENS =
-    "dependencies {\n" +
-    "  compile('org.hibernate:hibernate:3.1', {\n" +
-    "     //in case of versions conflict '3.1' version of hibernate wins:\n" +
-    "     force = true\n" +
-    "\n" +
-    "     //excluding a particular transitive dependency:\n" +
-    "     exclude module: 'cglib' //by artifact name\n" +
-    "     exclude group: 'org.jmock' //by group\n" +
-    "     exclude group: 'org.unwanted', module: 'iAmBuggy' //by both name and group\n" +
-    "\n" +
-    "     //disabling all transitive dependencies of this dependency\n" +
-    "     transitive = false\n" +
-    "   })" +
-    "}";
-
   @Test
   public void testParsingWithCompactNotationAndConfigurationClosure_parens() throws IOException {
-    doTestParsingConfigurationVersion(CONFIGURATION_CLOSURE_PARENS);
+    doTestParsingConfigurationVersion(ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_PARENS);
   }
 
   @Test
   public void testParsingWithCompactNotationAndConfigurationClosure_noParens() throws IOException {
-    doTestParsingConfigurationVersion(CONFIGURATION_CLOSURE_NO_PARENS);
+    doTestParsingConfigurationVersion(ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_NO_PARENS);
   }
 
   @Test
   public void testParsingWithCompactNotationAndConfigurationClosure_withinParens() throws IOException {
-    doTestParsingConfigurationVersion(CONFIGURATION_CLOSURE_WITHIN_PARENS);
+    doTestParsingConfigurationVersion(ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_WITH_PARENS);
   }
 
-  private void doTestParsingConfigurationVersion(@NotNull String text) throws IOException {
-    writeToBuildFile(text);
+  private void doTestParsingConfigurationVersion(@NotNull TestFileName fileName) throws IOException {
+    writeToBuildFile(fileName);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -147,21 +182,21 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetVersionOnDependencyWithCompactNotationAndConfigurationClosure_parens() throws IOException {
-    doTestSetVersionWithConfigurationClosure(CONFIGURATION_CLOSURE_PARENS);
+    doTestSetVersionWithConfigurationClosure(ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_PARENS);
   }
 
   @Test
   public void testSetVersionOnDependencyWithCompactNotationAndConfigurationClosure_noParens() throws IOException {
-    doTestSetVersionWithConfigurationClosure(CONFIGURATION_CLOSURE_NO_PARENS);
+    doTestSetVersionWithConfigurationClosure(ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_NO_PARENS);
   }
 
   @Test
   public void testSetVersionOnDependencyWithCompactNotationAndConfigurationClosure_withinParens() throws IOException {
-    doTestSetVersionWithConfigurationClosure(CONFIGURATION_CLOSURE_WITHIN_PARENS);
+    doTestSetVersionWithConfigurationClosure(ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_WITH_PARENS);
   }
 
-  private void doTestSetVersionWithConfigurationClosure(@NotNull String text) throws IOException {
-    writeToBuildFile(text);
+  private void doTestSetVersionWithConfigurationClosure(@NotNull TestFileName fileName) throws IOException {
+    writeToBuildFile(fileName);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -192,14 +227,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testGetOnlyArtifacts() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +
-                  "    compile('com.google.guava:guava:18.0')\n" +
-                  "    compile project(':javaLib')\n" +
-                  "    compile fileTree('libs')\n" +
-                  "    compile files('lib.jar')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_GET_ONLY_ARTIFACTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -216,12 +244,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParsingWithCompactNotation() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +
-                  "    runtime 'com.google.guava:guava:18.0'\n" +
-                  "    test 'org.gradle.test.classifiers:service:1.0:jdk15@jar'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -239,14 +262,13 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     expected.setClassifier("jdk15");
     expected.setExtension("jar");
     expected.assertMatches(dependencies.get(2));
+
+    // We do not support: test wrapped('something:else:1.0')
   }
 
   @Test
   public void testParsingWithMapNotation() throws IOException {
-    String text = "dependencies {\n" +
-                  "    runtime group: 'org.gradle.test.classifiers', name: 'service', version: '1.0', classifier: 'jdk14', ext: 'jar'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_PARSING_WITH_MAP_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -262,10 +284,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddDependency() throws IOException {
-    String text = "dependencies {\n" +
-                  "    runtime group: 'org.gradle.test.classifiers', name: 'service', version: '1.0', classifier: 'jdk14', ext: 'jar'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_ADD_DEPENDENCY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -290,10 +309,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddDependencyWithConfigurationClosure() throws IOException {
-    String text = "dependencies {\n" +
-                  "    runtime group: 'org.gradle.test.classifiers', name: 'service', version: '1.0', classifier: 'jdk14', ext: 'jar'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_ADD_DEPENDENCY_WITH_CONFIGURATION_CLOSURE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -353,10 +369,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetVersionOnDependencyWithCompactNotation() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_COMPACT_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -378,10 +391,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetVersionOnDependencyWithMapNotation() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_MAP_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -403,11 +413,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseDependenciesWithCompactNotationInSingleLine() throws IOException {
-    String text = "dependencies {\n" +
-                  "    runtime 'org.springframework:spring-core:2.5', 'org.springframework:spring-aop:2.5'\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_COMPACT_NOTATION_IN_SINGLE_LINE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -424,11 +430,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseDependenciesWithCompactNotationInSingleLineWithComments() throws IOException {
-    String text = "dependencies {\n" +
-                  "    runtime /* Hey */ 'org.springframework:spring-core:2.5', /* Hey */ 'org.springframework:spring-aop:2.5'\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_COMPACT_NOTATION_IN_SINGLE_LINE_WITH_COMMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -445,14 +447,24 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseDependenciesWithMapNotationUsingSingleConfigurationName() throws IOException {
-    String text = "dependencies {\n" +
-                  "    runtime(\n" +
-                  "        [group: 'org.springframework', name: 'spring-core', version: '2.5'],\n" +
-                  "        [group: 'org.springframework', name: 'spring-aop', version: '2.5']\n" +
-                  "    )\n" +
-                  "}";
+    writeToBuildFile(ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_MAP_NOTATION_USING_SINGLE_CONFIGURATION_NAME);
 
-    writeToBuildFile(text);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "spring-core", "org.springframework", "2.5");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency(RUNTIME, "spring-aop", "org.springframework", "2.5");
+    expected.assertMatches(dependencies.get(1));
+  }
+
+  @Test
+  public void testParseDependenciesWithMapNotationUsingSingleConfigNoParentheses() throws IOException {
+    writeToBuildFile(ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_MAP_NOTATION_USING_SINGLE_CONFIGURATION_NAME_NO_PARENTHESES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -469,10 +481,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testReset() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_RESET);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -498,12 +507,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveDependencyWithCompactNotation() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +
-                  "    runtime 'com.google.guava:guava:18.0'\n" +
-                  "    test 'org.gradle.test.classifiers:service:1.0:jdk15@jar'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_COMPACT_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -531,11 +535,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveDependencyWithCompactNotationAndSingleConfigurationName() throws IOException {
-    String text = "dependencies {\n" +
-                  "    runtime /* Hey */ 'org.springframework:spring-core:2.5', /* Hey */ 'org.springframework:spring-aop:2.5'\n" +
-                  "    test 'org.gradle.test.classifiers:service:1.0:jdk15@jar'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_COMPACT_NOTATION_AND_SINGLE_CONFIGURATION_NAME);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -563,12 +563,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveDependencyWithMapNotation() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
-                  "    compile group: 'com.google.guava', name: 'guava', version: '18.0'\n" +
-                  "    compile group: 'com.android.support', name: 'appcompat-v7', version: '22.1.1'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_MAP_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -594,14 +589,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveDependencyWithMapNotationAndSingleConfigurationName() throws IOException {
-    String text = "dependencies {\n" +
-                  "    runtime(\n" +
-                  "        [group: 'com.google.code.guice', name: 'guice', version: '1.0'],\n" +
-                  "        [group: 'com.google.guava', name: 'guava', version: '18.0'],\n" +
-                  "        [group: 'com.android.support', name: 'appcompat-v7', version: '22.1.1']\n" +
-                  "    )\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_MAP_NOTATION_AND_SINGLE_CONFIGURATION_NAME);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -626,13 +614,39 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testRemoveDependencyWhenMultiple() throws IOException {
+    writeToBuildFile(ARTIFACT_DEPENDENCY_REMOVE_WHEN_MULTIPLE);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(4);
+
+    ArtifactDependencyModel guiceGuava = dependencies.get(1);
+    assertThat(guiceGuava.compactNotation().toString()).isEqualTo("com.google.code.guice:guava:1.0");
+    dependenciesModel.remove(guiceGuava);
+
+    ArtifactDependencyModel guava = dependencies.get(2);
+    assertThat(guava.compactNotation().toString()).isEqualTo("com.google.guava:guava:18.0");
+    dependenciesModel.remove(guava);
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "guice", "com.google.code.guice", "1.0");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency(COMPILE, "something", "org.example", "1.0");
+    expected.assertMatches(dependencies.get(1));
+  }
+
+  @Test
   public void testContains() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
-                  "    compile group: 'com.google.guava', name: 'guava', version: '18.0'\n" +
-                  "    compile group: 'com.android.support', name: 'appcompat-v7', version: '22.1.1'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_CONTAINS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -647,15 +661,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseCompactNotationWithVariables() throws IOException {
-    String text = "ext {\n" +
-                  "    appcompat = 'com.android.support:appcompat-v7:22.1.1'\n" +
-                  "    guavaVersion = '18.0'\n" +
-                  "}\n" +
-                  "dependencies {\n" +
-                  "    compile appcompat\n" +
-                  "    runtime \"com.google.guava:guava:$guavaVersion\"\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_PARSE_COMPACT_NOTATION_WITH_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -687,13 +693,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMapNotationWithVariables() throws IOException {
-    String text = "ext {\n" +
-                  "    guavaVersion = '18.0'\n" +
-                  "}\n" +
-                  "dependencies {\n" +
-                  "    compile group: 'com.google.guava', name: 'guava', version: \"$guavaVersion\"\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_PARSE_MAP_NOTATION_WITH_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -725,15 +725,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseCompactNotationClosureWithVariables() throws IOException {
-    String text = "ext {\n" +
-                  "    appcompat = 'com.android.support:appcompat-v7:22.1.1'\n" +
-                  "    guavaVersion = '18.0'\n" +
-                  "}\n" +
-                  "dependencies {\n" +
-                  "    compile(appcompat, \"com.google.guava:guava:$guavaVersion\") {\n" +
-                  "    }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_PARSE_COMPACT_NOTATION_CLOSURE_WITH_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -766,14 +758,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMapNotationClosureWithVariables() throws IOException {
-    String text = "ext {\n" +
-                  "    guavaVersion = '18.0'\n" +
-                  "}\n" +
-                  "dependencies {\n" +
-                  "    compile(group: 'com.google.guava', name: 'guava', version: \"$guavaVersion\") {\n" +
-                  "    }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_PARSE_MAP_NOTATION_CLOSURE_WITH_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -809,15 +794,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testNonDependencyCodeInDependenciesSection() throws IOException {
-    String text = "dependencies {\n" +
-                  "  compile 'com.android.support:appcompat-v7:22.1.1'\n" +
-                  "  runtime group: 'com.google.guava', name: 'guava', version: '18.0'\n" +
-                  "  apply plugin:'com.test.xyz'\n" + // this line should not affect the dependencies parsing
-                  "  testCompile('org.hibernate:hibernate:3.1') { \n" +
-                  "    force = true\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_NON_DEPENDENCY_CODE_IN_DEPENDENCIES_SECTION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -837,10 +814,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceDependencyByPsiElement() throws IOException {
-    String text = "dependencies {\n" +
-                  "  compile 'com.android.support:appcompat-v7:22.1.1'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_PSI_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -866,14 +840,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceDependencyByChildElement() throws IOException {
-    String text = "dependencies {\n" +
-                  "  test 'org.gradle.test.classifiers:service:1.0:jdk15@jar'\n" +
-                  "  compile 'com.android.support:appcompat-v7:22.1.1'\n" +
-                  "  testCompile('org.hibernate:hibernate:3.1') { \n" +
-                  "    force = true\n" +
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_CHILD_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -899,13 +866,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceDependencyFailsIsPsiElementIsNotFound() throws IOException {
-    String text = "dependencies {\n" +
-                  "  testCompile('org.hibernate:hibernate:3.1') { \n" +
-                  "    force = true\n" +
-                  "  }\n" +
-                  "  testCompile 'org.gradle.test.classifiers:service:1.0:jdk15@jar'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_FAILS_IS_PSI_ELEMENT_IS_NOT_FOUND);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -935,10 +896,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceDependencyUsingMapNotationWithCompactNotation() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_WITH_COMPACT_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -963,10 +921,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceDependencyUsingMapNotationAddingFields() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile name: 'name'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_ADDING_FIELDS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -997,10 +952,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceDependencyUsingMapNotationDeleteFields() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0', classifier: 'high', ext: 'bleh'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_DELETE_FIELDS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -1025,10 +977,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceDependencyInArgumentList() throws IOException {
-    String text = "dependencies {\n" +
-                  "  compile('com.google.code.guice:guice:1.0', 'com.google.guava:guava:18.0')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_IN_ARGUMENT_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -1053,12 +1002,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceMethodDependencyWithClosure() throws IOException {
-    String text = "dependencies {\n" +
-                  "  testCompile('org.hibernate:hibernate:3.1') { \n" +
-                  "    force = true\n" + // Note: We currently preserve the whole closure.
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -1081,10 +1025,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceApplicationDependencies() throws IOException {
-    String text = "dependencies {\n" +
-                  "  testCompile 'org.gradle.test.classifiers:service:1.0',  'com.google.guava:guava:+'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_REPLACE_APPLICATION_DEPENDENCIES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependenciesModel = buildModel.dependencies();
@@ -1110,10 +1051,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testDeleteGroupAndVersion() throws IOException {
-    String text = "dependencies {\n" +
-                  "  testCompile 'org.gradle.test.classifiers:service:1.0',  'com.google.guava:guava:+'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_DELETE_GROUP_AND_VERSION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1146,10 +1084,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testDeleteNameAndRenameUnsupported() throws IOException {
-    String text = "dependencies {\n" +
-                  "  testCompile 'org.gradle.test.classifiers:service:1.0'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_DELETE_NAME_AND_RENAME_UNSUPPORTED);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1182,10 +1117,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testDeleteInMethodCallWithProperties() throws IOException {
-    String text = "dependencies {\n" +
-                  "  compile('com.google.code.guice:guice:1.0', 'com.google.guava:guava:18.0')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_DELETE_IN_METHOD_CALL_WITH_PROPERTIES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1211,10 +1143,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testMissingPropertiesCompact() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile 'com.android.support:appcompat-v7:22.1.1'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_MISSING_PROPERTIES_COMPACT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1233,10 +1162,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testMissingPropertiesMap() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile name: 'name'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_MISSING_PROPERTIES_MAP);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1255,10 +1181,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testCompactNotationPsiElement() throws IOException {
-    String text = "dependencies {\n" +
-                  "  testCompile 'org.gradle.test.classifiers:service:1.0'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_COMPACT_NOTATION_PSI_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1276,10 +1199,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testMultipleCompactNotationPsiElements() throws IOException {
-    String text = "dependencies {\n" +
-                  "  compile('com.google.code.guice:guice:1.0', 'com.google.guava:guava:18.0')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_MULTIPLE_COMPACT_NOTATION_PSI_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1304,12 +1224,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testMethodCallCompactPsiElement() throws IOException {
-    String text = "dependencies {\n" +
-                  "  testCompile('org.hibernate:hibernate:3.1') { \n" +
-                  "    force = true\n" + // Note: We currently preserve the whole closure.
-                  "  }\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_METHOD_CALL_COMPACT_PSI_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1327,10 +1242,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testMethodCallMultipleCompactPsiElement() throws IOException {
-    String text = "dependencies {\n" +
-                  "  compile('com.google.code.guice:guice:1.0', 'com.google.guava:guava:18.0')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_METHOD_CALL_MULTIPLE_COMPACT_PSI_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1355,10 +1267,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testMapNotationPsiElement() throws IOException {
-    String text = "dependencies {\n" +
-                  "    compile group: 'com.google.code.guice', name: 'guice', version: '1.0', classifier: 'high', ext: 'bleh'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_MAP_NOTATION_PSI_ELEMENT);
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
 
@@ -1376,14 +1285,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testCompactNotationSetToReference() throws IOException {
-    String text = "ext {\n" +
-                  "  version = '3.6'\n" +
-                  "  name = \"guava\"\n" +
-                  "}\n" +
-                  "dependencies {\n" +
-                  "  testCompile 'org.gradle.test.classifiers:service:1.0',  'com.google.guava:guava:+'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_COMPACT_NOTATION_SET_TO_REFERENCE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1417,10 +1319,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testCompactNotationElementUnsupportedOperations() throws IOException {
-    String text = "dependencies {\n" +
-                  "  testCompile 'org.gradle.test.classifiers:service:1.0'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_COMPACT_NOTATION_ELEMENT_UNSUPPORTED_OPERATIONS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1464,10 +1363,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetIStrInCompactNotation() throws IOException {
-    String text = "dependencies {\n" +
-                  "  testCompile 'org.gradle.test.classifiers:service:1.0'\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_I_STR_IN_COMPACT_NOTATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1484,22 +1380,12 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     artifacts = dependencies.artifacts();
     artifact = artifacts.get(0);
     assertThat(artifact.completeModel().toString()).isEqualTo("org.gradle.test.classifiers:service:3.2.1");
-    String expected = "dependencies {\n" +
-                      "  testCompile \"org.gradle.test.classifiers:service:3.2.1\"\n" +
-                      "}";
-    verifyFileContents(myBuildFile, expected);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_SET_I_STR_IN_COMPACT_NOTATION_EXPECTED);
   }
 
   @Test
   public void testParseFullReferencesCompactApplication() throws IOException {
-    String text = "ext {\n" +
-                  "  service = 'org.gradle.test.classifiers:service:1.0'\n" +
-                  "  guavaPart = 'google.guava:guava:+'\n" +
-                  "}\n" +
-                  "dependencies {\n" +
-                  "  testCompile service,  \"com.${guavaPart}\"\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_PARSE_FULL_REFERENCES_COMPACT_APPLICATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1515,8 +1401,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
   }
 
-  private void runSetFullReferencesTest(@NotNull String text) throws IOException {
-    writeToBuildFile(text);
+  private void runSetFullReferencesTest(@NotNull TestFileName testFileName) throws IOException {
+    writeToBuildFile(testFileName);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1542,8 +1428,9 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
   }
 
-  private void runSetFullSingleReferenceTest(@NotNull String text, @NotNull PropertyType type, @NotNull String name) throws IOException {
-    writeToBuildFile(text);
+  private void runSetFullSingleReferenceTest(@NotNull TestFileName testFileName, @NotNull PropertyType type, @NotNull String name)
+    throws IOException {
+    writeToBuildFile(testFileName);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1567,66 +1454,28 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetSingleReferenceCompactApplication() throws IOException {
-    String text = "ext {\n" +
-                  "  service = 'org.gradle.test.classifiers:service:1.0'\n" +
-                  "}\n" +
-                  "dependencies {\n" +
-                  "  testCompile 'some:gradle:thing'\n" +
-                  "}";
-    runSetFullSingleReferenceTest(text, REGULAR, "testCompile");
+    runSetFullSingleReferenceTest(ARTIFACT_DEPENDENCY_SET_SINGLE_REFERENCE_COMPACT_APPLICATION, REGULAR, "testCompile");
   }
 
   @Test
   public void testSetSingleReferenceCompactMethod() throws IOException {
-    String text = "ext {\n" +
-                  "  service = 'org.gradle.test.classifiers:service:1.0'\n" +
-                  "}\n" +
-                  "dependencies {\n" +
-                  "  testCompile('some:gradle:thing')\n" +
-                  "}";
     // Properties from within method calls are derived.
-    runSetFullSingleReferenceTest(text, DERIVED, "0");
+    runSetFullSingleReferenceTest(ARTIFACT_DEPENDENCY_SET_SINGLE_REFERENCE_COMPACT_METHOD, DERIVED, "0");
   }
 
   @Test
   public void testSetFullReferencesCompactApplication() throws IOException {
-    String text = "ext {\n" +
-                  "  service = 'org.gradle.test.classifiers:service:1.0'\n" +
-                  "  guavaPart = 'google.guava:guava:+'\n" +
-                  "}\n" +
-                  "dependencies {\n" +
-                  "  testCompile 'some:gradle:thing',  'some:other:gradle:thing'\n" +
-                  "}";
-    runSetFullReferencesTest(text);
+    runSetFullReferencesTest(ARTIFACT_DEPENDENCY_SET_FULL_REFERENCES_COMPACT_APPLICATION);
   }
 
   @Test
   public void testSetFullReferenceCompactMethod() throws IOException {
-    String text = "ext {\n" +
-                  "  service = 'org.gradle.test.classifiers:service:1.0'\n" +
-                  "  guavaPart = 'google.guava:guava:+'\n" +
-                  "}\n" +
-                  "dependencies {\n" +
-                  "  testCompile('some:gradle:thing',  'some:other:gradle:thing')\n" +
-                  "}";
-    runSetFullReferencesTest(text);
+    runSetFullReferencesTest(ARTIFACT_DEPENDENCY_SET_FULL_REFERENCE_COMPACT_METHOD);
   }
 
   @Test
   public void testParseFullReferenceMap() throws IOException {
-    String text = "ext {\n" +
-                  "  dependency = [group: 'group', name: 'name', version: '1.0']\n" +
-                  "  guavaGroup = 'com.google.guava'\n" +
-                  "  guavaName = 'guava'\n" +
-                  "  otherDependency = [group: 'g', name: 'n', version: '2.0']\n" +
-                  "}\n" +
-                  "dependencies {\n" +
-                  "  testCompile dependency\n" +
-                  "  compile group: guavaGroup, name: guavaName, version: '4.0', { }\n" +
-                  "  testCompile(otherDependency) { }\n" +
-                  "  compile(group: guavaName, name: guavaGroup, version: '3.0')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_PARSE_FULL_REFERENCE_MAP);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1649,19 +1498,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetFullReferenceMap() throws IOException {
-    String text = "ext {\n" +
-                  "  dependency = [group: 'group', name: 'name', version: '1.0']\n" +
-                  "  guavaGroup = 'com.google.guava'\n" +
-                  "  guavaName = 'guava'\n" +
-                  "  otherDependency = [group: 'g', name: 'n', version: '2.0']\n" +
-                  "}\n" +
-                  "dependencies {\n" +
-                  "  testCompile 'org.gradle.test.classifiers:service:1.0'\n" +
-                  "  compile group: 'boo', name: 'boo', version: '4.0', { }\n" +
-                  "  testCompile([group: 'up', name: 'down', version: '1.0']) { }\n" +
-                  "  compile(group: 'bar', name: 'bar', version: '3.0')\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_FULL_REFERENCE_MAP);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel dependencies = buildModel.dependencies();
@@ -1699,11 +1536,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testCorrectObtainResultModel() throws IOException {
-    String text = "ext.jUnitVersion = '2.3'\n" +
-                  "dependencies {\n" +
-                  "  implementation \"junit:junit:${jUnitVersion}\"\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_CORRECT_OBTAIN_RESULT_MODEL);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesModel depModel = buildModel.dependencies();
@@ -1715,7 +1548,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetVersionReference() throws IOException {
-    writeToBuildFile("ext.jUnitVersion = 2");
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_VERSION_REFERENCE);
 
     GradleBuildModel model = getGradleBuildModel();
     DependenciesModel depModel = model.dependencies();
@@ -1734,11 +1567,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetExcludesBlockToReferences() throws IOException {
-    writeToBuildFile("ext.junit_version = '2.3.1'\n" +
-                     "ext.excludes_name = 'bad'\n" +
-                     "ext.excludes_group = 'dependency'\n" +
-                     "dependencies {\n" +
-                     "}");
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_EXCLUDES_BLOCK_TO_REFERENCES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     ArtifactDependencySpec spec = ArtifactDependencySpec.create("junit:junit:$junit_version");
@@ -1759,12 +1588,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetThroughMapReference() throws IOException {
-    String text = "ext.version = 1.0\n" +
-                  "ext.dep = ['name': 'awesome', 'group' : 'some', 'version' : \"$version\"]\n" +
-                  "dependencies {\n" +
-                  "  compile dep\n" +
-                  "}\n";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_THROUGH_MAP_REFERENCE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -1781,31 +1605,18 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     verifyMapProperty(artModel.completeModel().getResultModel(), ImmutableMap.of("name", "boo", "group", "spooky", "version", "2.0"));
   }
 
+  @Test
   public void testMalformedFakeArtifactElement() throws IOException {
-    String text = "dependencies {\n" +
-                  "  compile \"[]#$a\"\n" +
-                  "}\n";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_MALFORMED_FAKE_ARTIFACT_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
-    ArtifactDependencyModel artModel = buildModel.dependencies().artifacts().get(0);
-    assertNotNull(artModel);
-
-    assertEquals("[]#$a", artModel.name().forceString());
-    assertNull(artModel.extension().toString());
-    assertNull(artModel.group().toString());
-    assertNull(artModel.version().toString());
-    assertNull(artModel.classifier().toString());
+    assertEmpty(buildModel.dependencies().artifacts());
   }
 
   @Test
   public void testCompactSetThroughReferences() throws IOException {
-    String text = "ext.dep = 'a:b:1.0'\n" +
-                  "dependencies {\n" +
-                  "  compile dep\n" +
-                  "}";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_COMPACT_SET_THROUGH_REFERENCES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
 
@@ -1828,39 +1639,263 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testEmptyFakeArtifactElement() throws IOException {
-    String text = "dependencies {\n" +
-                  "  compile \"\"\n" +
-                  "  compile \" \"\n" +
-                  "  compile \"\n\"\n" +
-                  "  compile \"\t\t\n\"\n" +
-                  "}\n";
-    writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_EMPTY_FAKE_ARTIFACT_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    
+
     assertSize(0, buildModel.dependencies().all());
   }
 
   @Test
   public void testFollowMultipleReferences() throws IOException {
-    String text = "ext.dep = 'a:b:1.0'\n" +
-                  "ext.other = dep\n" +
-                  "ext.someOther = other\n" +
-                  "dependencies {\n" +
-                  "  compile someOther\n" +
-                  "}\n";
-      writeToBuildFile(text);
+    writeToBuildFile(ARTIFACT_DEPENDENCY_FOLLOW_MULTIPLE_REFERENCES);
 
-      GradleBuildModel buildModel = getGradleBuildModel();
-      ArtifactDependencyModel artModel = buildModel.dependencies().artifacts().get(0);
-      verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "a:b:1.0", STRING, REGULAR, 1);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ArtifactDependencyModel artModel = buildModel.dependencies().artifacts().get(0);
+    verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "a:b:1.0", STRING, REGULAR, 1);
 
-      artModel.enableSetThrough();
-      artModel.name().setValue("z");
+    artModel.enableSetThrough();
+    artModel.name().setValue("z");
 
-      applyChangesAndReparse(buildModel);
+    applyChangesAndReparse(buildModel);
 
-      verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "a:z:1.0", STRING, REGULAR, 1);
+    verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "a:z:1.0", STRING, REGULAR, 1);
+  }
+
+  @Test
+  public void testArtifactNotationEdgeCases() throws IOException {
+    writeToBuildFile(ARTIFACT_DEPENDENCY_ARTIFACT_NOTATION_EDGE_CASES);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
+    assertSize(2, artifacts);
+
+    ArtifactDependencyModel firstArtifact = artifacts.get(0);
+    assertEquals("artifact", firstArtifact.name().toString());
+    assertEquals("com.cool.company", firstArtifact.group().toString());
+    assertMissingProperty(firstArtifact.version());
+
+    ArtifactDependencyModel secondArtifact = artifacts.get(1);
+    assertNotNull(secondArtifact.name());
+  }
+
+  @Test
+  public void testSetConfigurationWhenSingle() throws Exception {
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
+    assertSize(7, artifacts);
+
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("test");
+    artifacts.get(0).setConfigurationName("androidTest");
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("androidTest");
+
+    assertThat(artifacts.get(1).configurationName()).isEqualTo("compile");
+    artifacts.get(1).setConfigurationName("zapi");
+    assertThat(artifacts.get(1).configurationName()).isEqualTo("zapi");
+    artifacts.get(1).setConfigurationName("api"); // Try twice.
+    assertThat(artifacts.get(1).configurationName()).isEqualTo("api");
+
+    assertThat(artifacts.get(2).configurationName()).isEqualTo("api");
+    artifacts.get(2).setConfigurationName("zompile");
+    assertThat(artifacts.get(2).configurationName()).isEqualTo("zompile");
+    artifacts.get(2).setConfigurationName("compile"); // Try twice
+    assertThat(artifacts.get(2).configurationName()).isEqualTo("compile");
+
+    assertThat(artifacts.get(3).configurationName()).isEqualTo("testCompile");
+    artifacts.get(3).setConfigurationName("testImplementation");
+    assertThat(artifacts.get(3).configurationName()).isEqualTo("testImplementation");
+
+    assertThat(artifacts.get(4).configurationName()).isEqualTo("implementation");
+    artifacts.get(4).setConfigurationName("debugImplementation");
+    assertThat(artifacts.get(4).configurationName()).isEqualTo("debugImplementation");
+
+    assertThat(artifacts.get(5).configurationName()).isEqualTo("api");
+    artifacts.get(5).setConfigurationName("implementation");
+    assertThat(artifacts.get(5).configurationName()).isEqualTo("implementation");
+
+    assertThat(artifacts.get(6).configurationName()).isEqualTo("debug");
+    artifacts.get(6).setConfigurationName("prerelease");
+    assertThat(artifacts.get(6).configurationName()).isEqualTo("prerelease");
+    artifacts.get(6).setConfigurationName("release");
+    assertThat(artifacts.get(6).configurationName()).isEqualTo("release");
+
+    applyChangesAndReparse(buildModel);
+
+    artifacts = buildModel.dependencies().artifacts();
+    assertSize(7, artifacts);
+
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("androidTest");
+    assertThat(artifacts.get(0).compactNotation()).isEqualTo("org.gradle.test.classifiers:service:1.0:jdk15@jar");
+
+    assertThat(artifacts.get(1).configurationName()).isEqualTo("api");
+    assertThat(artifacts.get(1).compactNotation()).isEqualTo("a:b:1.0");
+
+    assertThat(artifacts.get(2).configurationName()).isEqualTo("compile");
+    assertThat(artifacts.get(2).compactNotation()).isEqualTo("a:b:1.0");
+
+    assertThat(artifacts.get(3).configurationName()).isEqualTo("testImplementation");
+    assertThat(artifacts.get(3).compactNotation()).isEqualTo("org.hibernate:hibernate:3.1");
+    assertThat(artifacts.get(3).configuration().force().toBoolean()).isEqualTo(true);
+
+    assertThat(artifacts.get(4).configurationName()).isEqualTo("debugImplementation");
+    assertThat(artifacts.get(4).compactNotation()).isEqualTo("com.example:artifact:1.0");
+
+    assertThat(artifacts.get(5).configurationName()).isEqualTo("implementation");
+    assertThat(artifacts.get(5).compactNotation()).isEqualTo("org.example:artifact:2.0");
+
+    assertThat(artifacts.get(6).configurationName()).isEqualTo("release");
+    assertThat(artifacts.get(6).compactNotation()).isEqualTo("org.example:artifact:2.0");
+    assertThat(artifacts.get(6).configuration().force().toBoolean()).isEqualTo(true);
+  }
+
+  @Test
+  public void testSetConfigurationWhenMultiple() throws Exception {
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
+    assertSize(11, artifacts);
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("test");
+    assertThat(artifacts.get(0).compactNotation()).isEqualTo("org.gradle.test.classifiers:service:1.0:jdk15@jar");
+
+    assertThat(artifacts.get(1).configurationName()).isEqualTo("test");
+    assertThat(artifacts.get(1).compactNotation()).isEqualTo("org.example:artifact:2.0");
+
+    assertThat(artifacts.get(2).configurationName()).isEqualTo("compile");
+    assertThat(artifacts.get(2).compactNotation()).isEqualTo("com.example:artifact:1.0");
+
+    assertThat(artifacts.get(3).configurationName()).isEqualTo("compile");
+    assertThat(artifacts.get(3).compactNotation()).isEqualTo("com.android.support:appcompat-v7:22.1.1");
+
+    assertThat(artifacts.get(4).configurationName()).isEqualTo("implementation");
+    assertThat(artifacts.get(4).compactNotation()).isEqualTo("com.example:artifact:1.0");
+
+    assertThat(artifacts.get(5).configurationName()).isEqualTo("implementation");
+    assertThat(artifacts.get(5).compactNotation()).isEqualTo("org.hibernate:hibernate:3.1");
+
+    assertThat(artifacts.get(6).configurationName()).isEqualTo("implementation");
+    assertThat(artifacts.get(6).compactNotation()).isEqualTo("org.example:artifact:2.0");
+
+    assertThat(artifacts.get(7).configurationName()).isEqualTo("releaseImplementation");
+    assertThat(artifacts.get(7).compactNotation()).isEqualTo("com.example.libs:lib1:2.0");
+
+    assertThat(artifacts.get(8).configurationName()).isEqualTo("releaseImplementation");
+    assertThat(artifacts.get(8).compactNotation()).isEqualTo("com.example.libs:lib2:1.0");
+
+    assertThat(artifacts.get(9).configurationName()).isEqualTo("api");
+    assertThat(artifacts.get(9).compactNotation()).isEqualTo("com.example.libs:lib3:2.0");
+
+    assertThat(artifacts.get(10).configurationName()).isEqualTo("api");
+    assertThat(artifacts.get(10).compactNotation()).isEqualTo("com.example.libs:lib4:1.0");
+
+    {
+      artifacts.get(1).setConfigurationName("androidTest");
+      List<ArtifactDependencyModel> updatedArtifacts = buildModel.dependencies().artifacts();
+      assertSize(11, updatedArtifacts);
+      // Note: The renamed element becomes the first in the group.
+      assertThat(updatedArtifacts.get(0).configurationName()).isEqualTo("androidTest");
+      assertThat(updatedArtifacts.get(0).compactNotation()).isEqualTo("org.example:artifact:2.0");
+
+      assertThat(updatedArtifacts.get(1).configurationName()).isEqualTo("test");
+      assertThat(updatedArtifacts.get(1).compactNotation()).isEqualTo("org.gradle.test.classifiers:service:1.0:jdk15@jar");
+    }
+
+    {
+      // Rename both elements of the same group and rename some of them twice.
+      artifacts.get(2).setConfigurationName("zapi");
+      artifacts.get(2).setConfigurationName("api");
+      artifacts.get(3).setConfigurationName("zimplementation");
+      artifacts.get(3).setConfigurationName("implementation");
+      List<ArtifactDependencyModel> updatedArtifacts = buildModel.dependencies().artifacts();
+      assertSize(11, updatedArtifacts);
+      // Note: The renamed element becomes the first in the group.
+      assertThat(updatedArtifacts.get(2).configurationName()).isEqualTo("api");
+      assertThat(updatedArtifacts.get(2).compactNotation()).isEqualTo("com.example:artifact:1.0");
+
+      assertThat(updatedArtifacts.get(3).configurationName()).isEqualTo("implementation");
+      assertThat(updatedArtifacts.get(3).compactNotation()).isEqualTo("com.android.support:appcompat-v7:22.1.1");
+    }
+
+    {
+      artifacts.get(6).setConfigurationName("zapi");
+      artifacts.get(6).setConfigurationName("api");
+      List<ArtifactDependencyModel> updatedArtifacts = buildModel.dependencies().artifacts();
+      assertSize(11, updatedArtifacts);
+      // Note: The renamed element becomes the first in the group.
+      assertThat(updatedArtifacts.get(4).configurationName()).isEqualTo("api");
+      assertThat(updatedArtifacts.get(4).compactNotation()).isEqualTo("org.example:artifact:2.0");
+      assertThat(updatedArtifacts.get(4).version().getUnresolvedModel().getValueType()).isEqualTo(REFERENCE);
+
+      assertThat(updatedArtifacts.get(5).configurationName()).isEqualTo("implementation");
+      assertThat(updatedArtifacts.get(5).compactNotation()).isEqualTo("com.example:artifact:1.0");
+
+      assertThat(updatedArtifacts.get(6).configurationName()).isEqualTo("implementation");
+      assertThat(updatedArtifacts.get(6).compactNotation()).isEqualTo("org.hibernate:hibernate:3.1");
+    }
+
+    {
+      try {
+        // Try an unsupported case.
+        artifacts.get(7).setConfigurationName("debugImplementation1");
+        fail();
+      }
+      catch (UnsupportedOperationException e) {
+      }
+    }
+    {
+      artifacts.get(10).setConfigurationName("debugApi1");
+      artifacts.get(10).setConfigurationName("debugApi");
+      List<ArtifactDependencyModel> updatedArtifacts = buildModel.dependencies().artifacts();
+      assertSize(11, updatedArtifacts);
+      // Note: The renamed element becomes the first in the group.
+      assertThat(updatedArtifacts.get(9).configurationName()).isEqualTo("debugApi");
+      assertThat(updatedArtifacts.get(9).compactNotation()).isEqualTo("com.example.libs:lib4:1.0");
+
+      assertThat(updatedArtifacts.get(10).configurationName()).isEqualTo("api");
+      assertThat(updatedArtifacts.get(10).compactNotation()).isEqualTo("com.example.libs:lib3:2.0");
+    }
+
+    applyChangesAndReparse(buildModel);
+
+    artifacts = buildModel.dependencies().artifacts();
+    assertSize(11, artifacts);
+
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("androidTest");
+    assertThat(artifacts.get(0).compactNotation()).isEqualTo("org.example:artifact:2.0");
+
+    assertThat(artifacts.get(1).configurationName()).isEqualTo("test");
+    assertThat(artifacts.get(1).compactNotation()).isEqualTo("org.gradle.test.classifiers:service:1.0:jdk15@jar");
+
+    assertThat(artifacts.get(2).configurationName()).isEqualTo("api");
+    assertThat(artifacts.get(2).compactNotation()).isEqualTo("com.example:artifact:1.0");
+
+    assertThat(artifacts.get(3).configurationName()).isEqualTo("implementation");
+    assertThat(artifacts.get(3).compactNotation()).isEqualTo("com.android.support:appcompat-v7:22.1.1");
+
+    assertThat(artifacts.get(4).configurationName()).isEqualTo("api");
+    assertThat(artifacts.get(4).compactNotation()).isEqualTo("org.example:artifact:2.0");
+    assertThat(artifacts.get(4).version().getUnresolvedModel().getValueType()).isEqualTo(REFERENCE);
+
+    assertThat(artifacts.get(5).configurationName()).isEqualTo("implementation");
+    assertThat(artifacts.get(5).compactNotation()).isEqualTo("com.example:artifact:1.0");
+
+    assertThat(artifacts.get(6).configurationName()).isEqualTo("implementation");
+    assertThat(artifacts.get(6).compactNotation()).isEqualTo("org.hibernate:hibernate:3.1");
+
+    assertThat(artifacts.get(7).configurationName()).isEqualTo("releaseImplementation");
+    assertThat(artifacts.get(7).compactNotation()).isEqualTo("com.example.libs:lib1:2.0");
+
+    assertThat(artifacts.get(8).configurationName()).isEqualTo("releaseImplementation");
+    assertThat(artifacts.get(8).compactNotation()).isEqualTo("com.example.libs:lib2:1.0");
+
+    assertThat(artifacts.get(9).configurationName()).isEqualTo("debugApi");
+    assertThat(artifacts.get(9).compactNotation()).isEqualTo("com.example.libs:lib4:1.0");
+
+    assertThat(artifacts.get(10).configurationName()).isEqualTo("api");
+    assertThat(artifacts.get(10).compactNotation()).isEqualTo("com.example.libs:lib3:2.0");
   }
 
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {

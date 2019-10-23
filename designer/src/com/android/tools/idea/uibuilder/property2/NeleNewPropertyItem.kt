@@ -16,16 +16,19 @@
 package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_STYLE
+import com.android.SdkConstants.TOOLS_PREFIX
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.property2.api.ActionIconButton
-import com.android.tools.idea.common.property2.api.FlagsPropertyItem
-import com.android.tools.idea.common.property2.api.NewPropertyItem
-import com.android.tools.idea.common.property2.api.PropertiesTable
+import com.android.tools.property.panel.api.ActionIconButton
+import com.android.tools.property.panel.api.FlagsPropertyItem
+import com.android.tools.property.panel.api.NewPropertyItem
+import com.android.tools.property.panel.api.PropertiesTable
+import org.jetbrains.android.dom.attrs.AttributeDefinition
 
 /**
  * A [NelePropertyItem] where it is possible to edit the name of the property.
@@ -36,12 +39,15 @@ import com.android.tools.idea.common.property2.api.PropertiesTable
  */
 class NeleNewPropertyItem(model: NelePropertiesModel,
                           var properties: PropertiesTable<NelePropertyItem>)
-  : NelePropertyItem("", "", NelePropertyType.UNKNOWN, null, "", model, listOf()), NewPropertyItem, FlagsPropertyItem<NeleFlagPropertyItem> {
+  : NelePropertyItem("", "", NelePropertyType.UNKNOWN, null, "", "", model, null, listOf()), NewPropertyItem,
+    FlagsPropertyItem<NeleFlagPropertyItem> {
 
   override var namespace: String = ""
+    get() = delegate?.namespace ?: field
     private set
 
   override var name: String = ""
+    get() = delegate?.name ?: field
     set(value) {
       val (propertyNamespace, propertyName) = parseName(value)
       namespace = propertyNamespace
@@ -49,8 +55,25 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
       delegate = findDelegate(propertyNamespace, propertyName)
 
       // Give the model a change to hide expanded flag items
-      model.firePropertyValueChange()
+      model.firePropertyValueChangeIfNeeded()
     }
+
+  override val type: NelePropertyType
+    get() = delegate?.type ?: NelePropertyType.UNKNOWN
+
+  override val definition: AttributeDefinition?
+    get() = delegate?.definition
+
+  override val componentName: String
+    get() = delegate?.componentName ?: ""
+
+  override val libraryName: String
+    get() = delegate?.libraryName ?: ""
+
+  override fun isSameProperty(qualifiedName: String): Boolean {
+    val (propertyNamespace, propertyName) = parseName(qualifiedName)
+    return name == propertyName && namespace == propertyNamespace
+  }
 
   // There should only be one instance of NeleNewPropertyItem per Property panel.
   override fun equals(other: Any?) = other is NeleNewPropertyItem
@@ -61,12 +84,12 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
    * When the property name is set to something valid, the [delegate] will be not null.
    * All remaining properties and functions should delegate to this [delegate] if present.
    */
-  var delegate: NelePropertyItem? = null
+  override var delegate: NelePropertyItem? = null
     private set
 
   override val nameEditingSupport = object : EditingSupport {
     override val completion = { getPropertyNamesWithPrefix() }
-    override val validation = { text: String -> validate(text)}
+    override val validation = { text: String? -> validateName(text)}
   }
 
   override var value: String?
@@ -116,7 +139,7 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
     }
     val prefix = value.substring(0, prefixIndex)
     val name = value.substring(prefixIndex + 1)
-    val namespace = namespaceResolver.prefixToUri(prefix) ?: ANDROID_URI
+    val namespace = namespaceResolver.prefixToUri(prefix) ?: if (prefix == TOOLS_PREFIX) TOOLS_URI else ANDROID_URI
     return Pair(namespace, name)
   }
 
@@ -125,11 +148,14 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
     if (property != null) {
       return property
     }
-    if (propertyNamespace == TOOLS_URI) {
+    if (delegate?.name == propertyName) {
+      return delegate
+    }
+    if (propertyNamespace == TOOLS_URI || propertyNamespace.isEmpty()) {
       for (ns in properties.namespaces) {
         property = properties.getOrNull(ns, propertyName)
         if (property != null) {
-          return property.designProperty
+          return if (propertyNamespace == TOOLS_URI) property.designProperty else property
         }
       }
     }
@@ -138,21 +164,35 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
 
   private fun getPropertyNamesWithPrefix(): List<String> {
     val resolver = namespaceResolver
-    return properties.values.filter { it.rawValue == null }.map { getPropertyNameWithPrefix(it, resolver) }
+    val result = properties.values
+      .filter { it.rawValue == null }
+      .map { getPropertyNameWithPrefix(it, resolver) }
+      .toMutableList()
+    properties.values
+      .filter {
+        it.designProperty.rawValue == null &&
+        it.name != ATTR_STYLE &&
+        properties.getOrNull(TOOLS_URI, it.name) == null
+      }
+      .mapTo(result) { getPropertyNameWithPrefix(it.designProperty, resolver) }
+    return result
   }
 
   private fun getPropertyNameWithPrefix(property: NelePropertyItem, resolver: ResourceNamespace.Resolver): String {
     val name = property.name
-    val prefix = resolver.uriToPrefix(property.namespace)
+    val prefixFromResolver = resolver.uriToPrefix(property.namespace)
+    val prefix = if (prefixFromResolver.isNullOrEmpty() && property.namespace == TOOLS_URI) TOOLS_PREFIX else prefixFromResolver
     return if (prefix.isNullOrEmpty()) name else "$prefix:$name"
   }
 
-  private fun validate(text: String): Pair<EditingErrorCategory, String> {
-    val (propertyNamespace, propertyName) = parseName(text)
+  private fun validateName(text: String?): Pair<EditingErrorCategory, String> {
+    val value = text.orEmpty()
+    val (propertyNamespace, propertyName) = parseName(value)
     val property = findDelegate(propertyNamespace, propertyName)
     return when {
-      property == null -> Pair(EditingErrorCategory.ERROR, "No property found by the name: $text")
-      property.rawValue != null -> Pair(EditingErrorCategory.ERROR, "A property by the name: $text is already specified")
+      value.isEmpty() -> EDITOR_NO_ERROR
+      property == null -> Pair(EditingErrorCategory.ERROR, "No property found by the name: '$value'")
+      property.rawValue != null -> Pair(EditingErrorCategory.ERROR, "A property by the name: '$value' is already specified")
       else -> EDITOR_NO_ERROR
     }
   }

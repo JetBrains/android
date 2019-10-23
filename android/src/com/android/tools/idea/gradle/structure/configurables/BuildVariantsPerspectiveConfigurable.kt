@@ -21,9 +21,10 @@ import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
+import javax.swing.JComponent
 
+const val BUILD_VARIANTS_VIEW = "BuildVariantsView"
 const val BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME = "Build Variants"
-const val BUILD_VARIANTS_PERSPECTIVE_PLACE_NAME = "build_variants.place"
 
 class BuildVariantsPerspectiveConfigurable(context: PsContext)
   : BasePerspectiveConfigurable(context, extraModules = listOf()), TrackedConfigurable {
@@ -36,10 +37,10 @@ class BuildVariantsPerspectiveConfigurable(context: PsContext)
     if (module is PsAndroidModule) createConfigurable(module)
     else JavaModuleUnsupportedConfigurable(context, module)
 
-  override val navigationPathName: String = BUILD_VARIANTS_PERSPECTIVE_PLACE_NAME
-
   override fun getDisplayName() = BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME
 
   private fun createConfigurable(module: PsAndroidModule): AndroidModuleBuildVariantsConfigurable =
       AndroidModuleBuildVariantsConfigurable(context, module).apply { history = myHistory }
+
+  override fun createComponent(): JComponent = super.createComponent().also { it.name = BUILD_VARIANTS_VIEW }
 }

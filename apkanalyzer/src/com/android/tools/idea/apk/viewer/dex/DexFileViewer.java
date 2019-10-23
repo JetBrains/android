@@ -457,7 +457,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
   private static class MethodCountRenderer extends ColoredTreeCellRenderer {
     private final boolean myShowDefinedCount;
 
-    MethodCountRenderer(boolean showDefinedCount) {
+    public MethodCountRenderer(boolean showDefinedCount) {
       myShowDefinedCount = showDefinedCount;
     }
 
@@ -499,7 +499,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
     private final Tree myTree;
     private final DexViewFilters myDexViewFilters;
 
-    ShowFieldsAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
+    public ShowFieldsAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
       super("Show fields", "Toggle between show/hide fields", PlatformIcons.FIELD_ICON);
       myTree = tree;
       myDexViewFilters = options;
@@ -521,7 +521,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
     private final Tree myTree;
     private final DexViewFilters myDexViewFilters;
 
-    ShowMethodsAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
+    public ShowMethodsAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
       super("Show methods", "Toggle between show/hide methods", PlatformIcons.METHOD_ICON);
       myTree = tree;
       myDexViewFilters = options;
@@ -543,7 +543,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
     private final Tree myTree;
     private final DexViewFilters myDexViewFilters;
 
-    ShowReferencedAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
+    public ShowReferencedAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
       super("Show referenced-only nodes", "Toggle between show/hide referenced-only nodes", AllIcons.ObjectBrowser.ShowMembers);
       myTree = tree;
       myDexViewFilters = options;
@@ -573,7 +573,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
     private final Tree myTree;
     private final DexViewFilters myDexViewFilters;
 
-    ShowRemovedNodesAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
+    public ShowRemovedNodesAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
       super("Show removed nodes", "Toggle between show/hide nodes removed by Proguard", AllIcons.ObjectBrowser.CompactEmptyPackages);
       myTree = tree;
       myDexViewFilters = options;
@@ -598,7 +598,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
   }
 
   private class DeobfuscateNodesAction extends ToggleAction {
-    DeobfuscateNodesAction() {
+    public DeobfuscateNodesAction() {
       super("Deobfuscate names", "Deobfuscate names using Proguard mapping", AllIcons.ObjectBrowser.AbbreviatePackageNames);
     }
 
@@ -621,7 +621,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
   }
 
   private class LoadProguardAction extends AnAction {
-    LoadProguardAction() {
+    public LoadProguardAction() {
       super("Load Proguard mappings...", null, EmptyIcon.ICON_0);
       getTemplatePresentation().setDisabledIcon(EmptyIcon.ICON_0);
     }

@@ -15,24 +15,23 @@
  */
 package com.android.tools.idea.wizard.model;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
+
 import com.android.tools.idea.observable.BatchInvokerStrategyRule;
 import com.android.tools.idea.observable.TestInvokeStrategy;
 import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
 import org.junit.Test;
-
-import javax.swing.*;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
 
 public class ModelWizardTest {
 
@@ -675,7 +674,7 @@ public class ModelWizardTest {
     @NotNull
     @Override
     protected ObservableBool canGoForward() {
-      return BooleanExpression.ALWAYS_FALSE;
+      return ObservableBool.FALSE;
     }
   }
 
@@ -793,7 +792,7 @@ public class ModelWizardTest {
   private static class NameStep extends NoUiStep<PersonModel> {
     private final String myName;
 
-    NameStep(PersonModel model, String name) {
+    public NameStep(PersonModel model, String name) {
       super(model);
       myName = name; // Normally, this would be set in some UI, but this is just a test
     }
@@ -807,7 +806,7 @@ public class ModelWizardTest {
   private static class AgeStep extends NoUiStep<PersonModel> {
     private final int myAge;
 
-    AgeStep(PersonModel model, int age) {
+    public AgeStep(PersonModel model, int age) {
       super(model);
       myAge = age; // Normally, this would be set in some UI, but this is just a test
     }
@@ -821,7 +820,7 @@ public class ModelWizardTest {
   private static class TitleStep extends NoUiStep<OccupationModel> {
     private final String myTitle;
 
-    TitleStep(OccupationModel model, String title) {
+    public TitleStep(OccupationModel model, String title) {
       super(model);
       myTitle = title; // Normally, this would be set in some UI, but this is just a test
     }
@@ -878,7 +877,7 @@ public class ModelWizardTest {
   private static class FakeStepException extends RuntimeException {
     private final ModelWizardStep<?> myStep;
 
-    FakeStepException(ModelWizardStep<?> step) {
+    public FakeStepException(ModelWizardStep<?> step) {
       myStep = step;
     }
 

@@ -18,11 +18,12 @@ package org.jetbrains.android
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
+import com.android.tools.idea.res.addBinaryAarDependency
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.goToElementAtCaret
+import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction
@@ -153,6 +154,30 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
                  "  <attr name=\"answer\">\n" +
                  "             ~|~~~~~~~\n",
                  describeElements(getDeclarationsFrom(file))
+    )
+  }
+
+  fun testGotoStyleableAttr_frameworkAttr() {
+    myFixture.copyFileToProject(basePath + "attrs.xml", "res/values/attrs.xml")
+    val psiFile = myFixture.configureByText(
+      "SomeClass.java",
+      //language=JAVA
+      """
+      package p1.p2;
+
+      import com.android.internal.R;public class SomeClass {
+          void f() {
+            int attrId = R.styleable.MyView_android_${caret}maxHeight;
+          }
+
+      }
+      """.trimIndent()
+    )
+    assertEquals(
+      "values/attrs.xml:8:\n" +
+      "  <attr name=\"android:maxHeight\" />\n" +
+      "             ~|~~~~~~~~~~~~~~~~~~  \n",
+      describeElements(getDeclarationsFrom(psiFile.virtualFile))
     )
   }
 
@@ -297,22 +322,18 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
 
 class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHandlerTestBase() {
 
-  override fun setUp() {
-    super.setUp()
-    copyRJavaToGeneratedSources()
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.copyFileToProject("Manifest.java", "gen/p1/p2/Manifest.java")
-      myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java")
-    }
-  }
-
   override fun addAarDependencyToMyModule() {
     addAarDependency(myModule, "aarLib", "com.example.aarLib") { resDir ->
       resDir.resolve("values/styles.xml").writeText(
+        // language=XML
         """
         <resources>
+          <dimen name="smallText">10dp</dimen>
+          <dimen name="libDimen">@dimen/smallText</dimen>
           <style name="ParentStyle"></style>
-          <style name="LibStyle" parent="ParentStyle"></style>
+          <style name="LibStyle" parent="ParentStyle">
+            <item name="android:textSize">@dimen/libDimen</item>
+          </style>
           <declare-styleable name="LibStyleable">
             <attr name="libAttr" format="string" />
           </declare-styleable>
@@ -321,6 +342,7 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
       )
       resDir.resolve("drawable").mkdirs()
       resDir.resolve("drawable/libLogo.xml").writeText(
+        // language=XML
         """
         <vector xmlns:android="http://schemas.android.com/apk/res/android">
           <group android:name="g">
@@ -335,28 +357,6 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
     val appResources = ResourceRepositoryManager.getAppResources(myFacet)
     assertSize(1, appResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "LibStyle"))
     assertSize(1, appResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "libAttr"))
-
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.addFileToProject(
-        "gen/p1/p2/aarLib/R.java",
-        // language=java
-        """
-      package p1.p2.aarLib;
-
-      public final class R {
-        public static final class attr {
-          public static final int libAttr = 0x7f010001;
-        }
-        public static final class style {
-          public static final int LibStyle = 0x7f020001;
-        }
-        public static final class drawable {
-          public static final int libLogo = 0x7f030001;
-        }
-      }
-      """.trimIndent()
-      )
-    }
   }
 
   fun testGotoStringFromLib_ownRClass() {
@@ -388,9 +388,9 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
   fun testGotoAarResourceFromCode_ownRClass() {
     addAarDependencyToMyModule()
 
-    assertEquals("values/styles.xml:3:\n" +
-                 "  <style name=\"LibStyle\" parent=\"ParentStyle\"></style>\n" +
-                 "              ~|~~~~~~~~~                             \n",
+    assertEquals("values/styles.xml:5:\n" +
+                 "  <style name=\"LibStyle\" parent=\"ParentStyle\">\n" +
+                 "              ~|~~~~~~~~~                     \n",
                  describeElements(
                    getDeclarationsFrom(
                      myFixture.addFileToProject(
@@ -410,7 +410,7 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
                  )
     )
 
-    assertEquals("values/styles.xml:5:\n" +
+    assertEquals("values/styles.xml:9:\n" +
                  "  <attr name=\"libAttr\" format=\"string\" />\n" +
                  "             ~|~~~~~~~~                  \n",
                  describeElements(
@@ -437,12 +437,12 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
     addAarDependencyToMyModule()
 
     val javaFile = myFixture.addFileToProject(
-      "src/p1/p2/GotoAarStyle.java",
+      "src/p1/p2/GotoAarDrawable.java",
       // language=java
       """
       package p1.p2;
 
-      public class GotoAarStyle {
+      public class GotoAarDrawable {
           public void f() {
               int id1 = R.drawable.lib${caret}Logo;
           }
@@ -479,12 +479,23 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
 
     navigateToElementAtCaretFromDifferentFile()
     assertThat(elementAtCurrentOffset.text).isEqualTo("LibStyle")
-    assertThat(elementAtCaret.parentOfType<XmlTag>()!!.text).isEqualTo("<style name=\"LibStyle\" parent=\"ParentStyle\"></style>")
-    editor.caretModel.moveToOffset(editor.caretModel.offset + 20)
-    assertThat(elementAtCurrentOffset.text).isEqualTo("ParentStyle")
+    assertThat(elementAtCaret.parentOfType<XmlAttribute>()!!.text).isEqualTo("""name="LibStyle"""")
+
+    // ParentStyleConverter:
+    moveCaret("""parent="Parent|Style""")
     goToElementAtCaret()
     assertThat(elementAtCurrentOffset.text).isEqualTo("ParentStyle")
-    assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text).isEqualTo("<style name=\"ParentStyle\"></style>")
+    assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text).isEqualTo("""<style name="ParentStyle"></style>""")
+
+    // StyleItemConverter:
+    moveCaret("""<item name="android:textSize">@dimen/|libDimen""")
+    goToElementAtCaret()
+    assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text).isEqualTo("""<dimen name="libDimen">@dimen/smallText</dimen>""")
+
+    // ResourceReferenceConverter:
+    moveCaret("""@dimen/|smallText""")
+    goToElementAtCaret()
+    assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text).isEqualTo("""<dimen name="smallText">10dp</dimen>""")
   }
 
   fun testGotoFrameworkResourceFromFrameworkXml() = with(myFixture) {
@@ -558,14 +569,30 @@ class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandle
   }
 
   override fun addAarDependencyToMyModule() {
-    TODO("not implemented") // TODO(b/110082720): implement support for source attachments.
-  }
-
-  fun testGotoAarResourceFromCode_ownRClass() {
-    // TODO(b/110082720): implement support for source attachments.
+    addBinaryAarDependency(myModule)
   }
 
   override fun testGotoAarResourceFromCode_libRClass() {
-    // TODO(b/110082720): implement support for source attachments.
+    addAarDependencyToMyModule()
+
+    val file = myFixture.addFileToProject(
+      "src/p1/p2/AarString.java",
+      // language=java
+      """
+      package p1.p2;
+
+      public class AarString {
+          public void f() {
+              int id1 = com.example.mylibrary.R.string.my_aar_str${caret}ing;
+          }
+      }
+      """.trimIndent()
+    )
+
+    assertThat(describeElements(getDeclarationsFrom(file.virtualFile)).trimEnd()).isEqualTo("""
+        values/strings.xml:3:
+          <string name="my_aar_string">This string came from an AARv2</string>
+                       ~|~~~~~~~~~~~~~~
+        """.trimIndent())
   }
 }

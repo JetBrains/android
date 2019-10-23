@@ -36,7 +36,7 @@
           <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="3" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Fusing (install module on devices that don't support on-demand delivery)"/>
+          <text value="Fusing (include module at install-time for pre-Lollipop devices)"/>
         </properties>
       </component>
       <component id="299f1" class="com.intellij.ui.components.JBLabel">

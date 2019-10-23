@@ -16,10 +16,10 @@
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.drawable.ColorDrawable;
 
-public class ColorDrawableDomFileDescription extends AbstractSingleRootFileDescription<ColorDrawable> {
+public class ColorDrawableDomFileDescription extends SingleRootResourceDomFileDescription<ColorDrawable> {
 
   public ColorDrawableDomFileDescription() {
     super(ColorDrawable.class, "color", ResourceFolderType.DRAWABLE);

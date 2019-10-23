@@ -114,7 +114,7 @@ public class SeriesLegendTest {
 
     @NotNull List<SeriesData<Long>> myDataList;
 
-    TestDataSeries(@NotNull List<SeriesData<Long>> data) {
+    public TestDataSeries(@NotNull List<SeriesData<Long>> data) {
       myDataList = data;
     }
 

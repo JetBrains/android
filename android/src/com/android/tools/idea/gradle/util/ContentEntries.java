@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.util;
 
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.Collection;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,16 +40,28 @@ public final class ContentEntries {
     return optional.isPresent() ? optional.get() : null;
   }
 
+  @NotNull
+  public static Collection<ContentEntry> findChildContentEntries(@NotNull File path, @NotNull Stream<ContentEntry> contentEntries) {
+    return contentEntries.filter(contentEntry -> isContentEntryUnderPath(path, contentEntry)).collect(Collectors.toList());
+  }
+
   public static boolean isPathInContentEntry(@NotNull File path, @NotNull ContentEntry contentEntry) {
+    return isAncestor(findContentEntryPath(contentEntry), path, false);
+  }
+
+  private static boolean isContentEntryUnderPath(@NotNull File path, @NotNull ContentEntry contentEntry) {
+    return isAncestor(path, findContentEntryPath(contentEntry), false);
+  }
+
+  @NotNull
+  private static File findContentEntryPath(@NotNull ContentEntry contentEntry) {
     VirtualFile rootFile = contentEntry.getFile();
-    File rootFilePath;
     if (rootFile == null) {
       String s = urlToPath(contentEntry.getUrl());
-      rootFilePath = new File(s);
+      return new File(s);
     }
     else {
-      rootFilePath = virtualToIoFile(rootFile);
+      return virtualToIoFile(rootFile);
     }
-    return isAncestor(rootFilePath, path, false);
   }
 }

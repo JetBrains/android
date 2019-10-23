@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.stats
 
+import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -27,13 +28,34 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.fileTypes.PlainTextFileType
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
+import com.intellij.util.Processor
 
-open class ProjectSizeUsageTracker(private val project: Project) : ProjectComponent {
+class ProjectSizeUsageTracker(private val project: Project) : ProjectComponent {
+  override fun projectOpened() {
+    val connection = project.messageBus.connect(project)
+    connection.subscribe<ProjectSystemSyncManager.SyncResultListener>(
+      PROJECT_SYSTEM_SYNC_TOPIC,
+      object : ProjectSystemSyncManager.SyncResultListener {
+        override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+          if (!result.isSuccessful && result != ProjectSystemSyncManager.SyncResult.PARTIAL_SUCCESS) {
+            return
+          }
+          connection.disconnect()
+          if (AnalyticsSettings.optedIn) {
+            ApplicationManager.getApplication().executeOnPooledThread(ReportProjectSizeTask(project));
+          }
+        }
+      })
+  }
+}
+
+class ReportProjectSizeTask(val project: Project) : Runnable {
   private enum class FileType(private val fileType: com.intellij.openapi.fileTypes.FileType,
                               private val statsFileType: IntellijProjectSizeStats.FileType) {
     JAVA(JavaFileType.INSTANCE, IntellijProjectSizeStats.FileType.JAVA),
@@ -67,45 +89,48 @@ open class ProjectSizeUsageTracker(private val project: Project) : ProjectCompon
     }
   }
 
-  private data class FileCountStats(val searchScope: SearchScope, val fileType: FileType, val count: Int)
-
-
-  override fun projectOpened() {
-    project.messageBus.connect(project).subscribe<ProjectSystemSyncManager.SyncResultListener>(
-      PROJECT_SYSTEM_SYNC_TOPIC,
-      object : ProjectSystemSyncManager.SyncResultListener {
-        override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-          if (result.isSuccessful || result === ProjectSystemSyncManager.SyncResult.PARTIAL_SUCCESS) {
-            val fileCountStats = ApplicationManager.getApplication().runReadAction(
-              Computable { collectStats() })
-            val builder = AndroidStudioEvent
-              .newBuilder()
-              .setKind(AndroidStudioEvent.EventKind.INTELLIJ_PROJECT_SIZE_STATS)
-              .withProjectId(project)
-            for (stats in fileCountStats) {
-              builder.addIntellijProjectSizeStats(
-                IntellijProjectSizeStats.newBuilder()
-                  .setScope(stats.searchScope.statsSearchScope())
-                  .setType(stats.fileType.statsFileType())
-                  .setCount(stats.count))
-            }
-            UsageTracker.log(builder)
+  override fun run() {
+    val builder = AndroidStudioEvent
+      .newBuilder()
+      .setKind(AndroidStudioEvent.EventKind.INTELLIJ_PROJECT_SIZE_STATS)
+      .withProjectId(project)
+    for (searchScope in SearchScope.values()) {
+      for (fileType in FileType.values()) {
+        val fileCount =
+          try {
+            fileCount(fileType, searchScope)
           }
-        }
-      })
+          catch (e: Exception) {
+            // in the case of any exception (project disposed, or ProcessCanceledException, etc)
+            // we just send an impossible value so that we can track how often such scenarios
+            // occur in the backend
+            -1
+          }
+        builder.addIntellijProjectSizeStats(IntellijProjectSizeStats
+                                              .newBuilder()
+                                              .setScope(searchScope.statsSearchScope())
+                                              .setType(fileType.statsFileType())
+                                              .setCount(fileCount))
+      }
+    }
+
+    UsageTracker.log(builder)
   }
 
-  private fun collectStats(): Array<FileCountStats> {
-    val searchScopeSize = SearchScope.values().size
-    val fileTypeSize = FileType.values().size
-    return Array(searchScopeSize * fileTypeSize) { i ->
-      val globalSearchScope = SearchScope.values()[i / fileTypeSize]
-      val fileType = FileType.values()[i % fileTypeSize]
-      FileCountStats(globalSearchScope, fileType,
-                     if (fileType.languageFileType() !is PlainTextFileType) {
-                       FileTypeIndex.getFiles(fileType.languageFileType(), globalSearchScope.globalSearchScope(project)).size
-                     }
-                     else 0)
+  private fun fileCount(fileType: FileType, searchScope: SearchScope): Int {
+    if (fileType.languageFileType() is PlainTextFileType) {
+      // If kotlin plugin is not enabled, we will get PlainTextFileType. In such case, we do not want to collect kotlin
+      // file count since it will include so many unrelated plain text file
+      return 0
+    }
+    else {
+      // note that this pauses the current thread until smart mode is available
+      return DumbService.getInstance(project).runReadActionInSmartMode(
+        Computable {
+          var numFiles = 0
+          FileTypeIndex.processFiles(fileType.languageFileType(), Processor { numFiles++; true }, searchScope.globalSearchScope(project))
+          numFiles;
+        })
     }
   }
 }

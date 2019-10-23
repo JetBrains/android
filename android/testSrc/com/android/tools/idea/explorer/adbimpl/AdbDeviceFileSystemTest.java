@@ -21,6 +21,7 @@ import com.android.tools.idea.explorer.fs.DeviceState;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import org.hamcrest.core.IsInstanceOf;
@@ -36,7 +37,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
@@ -68,7 +72,8 @@ public class AdbDeviceFileSystemTest {
     Function<Void, File> adbRuntimeError = aVoid -> {
       throw new RuntimeException("No Adb for unit tests");
     };
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(adbRuntimeError, myCallbackExecutor, taskExecutor);
+    AdbDeviceFileSystemService service =
+      new AdbDeviceFileSystemService(adbRuntimeError, myCallbackExecutor, taskExecutor, myParentDisposable);
     myFileSystem = new AdbDeviceFileSystem(service, myMockDevice.getIDevice());
     UniqueFileNameGenerator fileNameGenerator = new UniqueFileNameGenerator() {
       private int myNextId;
@@ -398,7 +403,7 @@ public class AdbDeviceFileSystemTest {
       }
     }));
     // Ensure all progress callbacks have been executed
-    ensureProgressCallbacksExecuted();
+    myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
 
     // Assert
     assertThat(result).isNull();
@@ -430,7 +435,7 @@ public class AdbDeviceFileSystemTest {
       }
     }));
     // Ensure all progress callbacks have been executed
-    ensureProgressCallbacksExecuted();
+    myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
 
     // Assert
     assertThat(result).isNull();
@@ -465,7 +470,7 @@ public class AdbDeviceFileSystemTest {
       }
     }));
     // Ensure all progress callbacks have been executed
-    ensureProgressCallbacksExecuted();
+    myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
 
     // Assert
     assertThat(error).isNotNull();
@@ -498,7 +503,7 @@ public class AdbDeviceFileSystemTest {
       }
     }));
     // Ensure all progress callbacks have been executed
-    ensureProgressCallbacksExecuted();
+    myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
 
     // Assert
     assertThat(result).isNull();
@@ -533,17 +538,12 @@ public class AdbDeviceFileSystemTest {
       }
     }));
     // Ensure all progress callbacks have been executed
-    ensureProgressCallbacksExecuted();
+    myCallbackExecutor.submit(EmptyRunnable.getInstance()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
 
     // Assert
     assertThat(result).isNull();
     assertThat(totalBytesRef.get()).isEqualTo(deviceEntry.getSize());
     assertThat(Files.exists(tempFile)).isTrue();
     assertThat(tempFile.toFile().length()).isEqualTo(deviceEntry.getSize());
-  }
-
-  private void ensureProgressCallbacksExecuted() throws InterruptedException, TimeoutException, ExecutionException {
-    Future<?> future = myCallbackExecutor.submit(() -> { });
-    future.get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
   }
 }

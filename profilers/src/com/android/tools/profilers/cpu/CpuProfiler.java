@@ -16,10 +16,10 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
+import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
+import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest;
-import com.android.tools.profiler.proto.CpuProfiler.TraceInfo;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StudioProfiler;
@@ -29,9 +29,6 @@ import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -45,6 +42,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CpuProfiler extends StudioProfiler {
 
@@ -162,9 +161,9 @@ public class CpuProfiler extends StudioProfiler {
   /**
    * Copies the content of the trace file corresponding to a {@link TraceInfo} to a given {@link FileOutputStream}.
    */
-  static void saveCaptureToFile(@NotNull TraceInfo info, @NotNull OutputStream outputStream) {
+  static void saveCaptureToFile(@NotNull CpuTraceInfo info, @NotNull OutputStream outputStream) {
     // Copy temp trace file to the output stream.
-    try (FileInputStream input = new FileInputStream(info.getTraceFilePath())) {
+    try {
       // Atrace Format = [HEADER|ZlibData][HEADER|ZlibData]
       // Systrace Expected format = [HEADER|ZlipData]
       // As such exporting the file raw Systrace will only read the first header/data chunk.
@@ -172,11 +171,11 @@ public class CpuProfiler extends StudioProfiler {
       // to handle converting the format to a format that Systrace can support. The reason for the multi-part file
       // is because Atrace dumps a compressed data file every X interval and this file represents the concatenation of all
       // the individual dumps.
-      if (info.getProfilerType() == com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType.ATRACE) {
-        AtraceExporter.export(input, outputStream);
+      if (info.getTraceType() == CpuTraceType.ATRACE) {
+        AtraceExporter.export(new File(info.getTraceFilePath()), outputStream);
       }
       else {
-        FileUtil.copy(input, outputStream);
+        FileUtil.copy(new FileInputStream(info.getTraceFilePath()), outputStream);
       }
     }
     catch (IOException exception) {
@@ -188,7 +187,7 @@ public class CpuProfiler extends StudioProfiler {
    * Generate a default name for a trace to be exported. The name suggested is based on the current timestamp and the capture type.
    */
   @NotNull
-  static String generateCaptureFileName(@NotNull CpuProfilerType profilerType) {
+  static String generateCaptureFileName(@NotNull CpuTraceType profilerType) {
     StringBuilder traceName = new StringBuilder(String.format("cpu-%s-", StringUtil.toLowerCase(profilerType.name())));
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
     traceName.append(LocalDateTime.now().format(formatter));

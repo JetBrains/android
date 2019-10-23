@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
@@ -27,6 +28,8 @@ import com.google.common.collect.Multimap;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.intellij.lang.annotations.Language;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,6 +52,17 @@ public class ConstraintLayoutTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
+  @Before
+  public void setUp() {
+    // Temporary: until this test can run with new properties panel
+    StudioFlags.NELE_NEW_PROPERTY_PANEL.override(false);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.NELE_NEW_PROPERTY_PANEL.clearOverride();
+  }
+
   /**
    * To verify that items from the tool kit can be added to a layout.
    * <p>
@@ -65,14 +79,15 @@ public class ConstraintLayoutTest {
    *   1. Verify the item displays in the xml view.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/117556696
   @Test
   public void addAllLayoutItemsFromToolbar() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
 
     NlEditorFixture design = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", Tab.DESIGN)
-      .getLayoutEditor(false);
+      .getLayoutEditor(false)
+      .waitForRenderToFinish();
 
     Multimap<String, String> widgets = ArrayListMultimap.create();
     widgets.put("Buttons", "Button");
@@ -126,7 +141,7 @@ public class ConstraintLayoutTest {
     @Language("XML")
     String expected =
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-      "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "<androidx.constraintlayout.widget.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
       "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
       "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
       "    android:layout_width=\"match_parent\"\n" +
@@ -143,7 +158,7 @@ public class ConstraintLayoutTest {
       "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
       "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
       "\n" +
-      "</android.support.constraint.ConstraintLayout>";
+      "</androidx.constraintlayout.widget.ConstraintLayout>";
 
     Wait.seconds(10).expecting("the editor to update and reformat the XML file")
       .until(() -> expected.equals(editor.getCurrentFileContents()));
@@ -154,7 +169,7 @@ public class ConstraintLayoutTest {
     WizardUtils.createNewProject(guiTest);
 
     @Language("XML")
-    String contents = "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+    String contents = "<androidx.constraintlayout.widget.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                       "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                       "    android:layout_width=\"match_parent\"\n" +
                       "    android:layout_height=\"match_parent\">\n" +
@@ -168,7 +183,7 @@ public class ConstraintLayoutTest {
                       "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                       "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
                       "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
-                      "</android.support.constraint.ConstraintLayout>";
+                      "</androidx.constraintlayout.widget.ConstraintLayout>";
 
     GuiTestFileUtils.writeAndReloadDocument(guiTest.getProjectPath().toPath().resolve(ACTIVITY_MAIN_XML_RELATIVE_PATH), contents);
 
@@ -184,7 +199,7 @@ public class ConstraintLayoutTest {
     editor.selectEditorTab(Tab.EDITOR);
 
     @Language("XML")
-    String expected = "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+    String expected = "<androidx.constraintlayout.widget.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                       "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                       "    android:layout_width=\"match_parent\"\n" +
                       "    android:layout_height=\"match_parent\">\n" +
@@ -196,7 +211,7 @@ public class ConstraintLayoutTest {
                       "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                       "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                       "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
-                      "</android.support.constraint.ConstraintLayout>";
+                      "</androidx.constraintlayout.widget.ConstraintLayout>";
 
     Wait.seconds(10).expecting("the editor to update and reformat the XML file")
       .until(() -> expected.equals(editor.getCurrentFileContents()));

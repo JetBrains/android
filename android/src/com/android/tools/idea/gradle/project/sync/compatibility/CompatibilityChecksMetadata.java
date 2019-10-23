@@ -163,7 +163,6 @@ class CompatibilityChecksMetadata {
     this.myDataVersion = dataVersion;
     myReadersByComponentName.put("gradle", GRADLE);
     myReadersByComponentName.put("android-gradle-plugin", ANDROID_GRADLE_PLUGIN);
-    myReadersByComponentName.put("android-gradle-experimental-plugin", ANDROID_GRADLE_EXPERIMENTAL_PLUGIN);
     if (IdeInfo.getInstance().isAndroidStudio()) {
       myReadersByComponentName.put("android-studio", ANDROID_STUDIO);
     }

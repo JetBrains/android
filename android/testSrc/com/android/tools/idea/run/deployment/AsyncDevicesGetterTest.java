@@ -15,62 +15,121 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.ddmlib.IDevice;
-import com.android.sdklib.ISystemImage;
-import com.android.sdklib.internal.avd.AvdInfo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.ModuleBasedConfiguration;
+import com.intellij.execution.configurations.RunConfigurationModule;
+import com.intellij.openapi.module.Module;
+import java.time.Clock;
+import java.time.Instant;
+import java.util.Arrays;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetConfiguration;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-
 public final class AsyncDevicesGetterTest {
-  private static final VirtualDevice VIRTUAL_DEVICE = new VirtualDevice(false, "Pixel 2 XL API 27");
+  @Rule
+  public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
-  private Map<VirtualDevice, AvdInfo> myVirtualDevices;
-  private IDevice myConnectedDevice;
-  private Collection<IDevice> myConnectedDevices;
-
-  @Before
-  public void newVirtualDevices() {
-    myVirtualDevices = Collections.singletonMap(VIRTUAL_DEVICE, new AvdInfo(
-      "Pixel_2_XL_API_27",
-      new File("/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_27.ini"),
-      "/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_27.avd",
-      Mockito.mock(ISystemImage.class),
-      null));
-  }
+  private AsyncDevicesGetter myGetter;
 
   @Before
-  public void newConnectedDevices() {
-    myConnectedDevice = Mockito.mock(IDevice.class);
+  public void setUp() {
+    Clock clock = Mockito.mock(Clock.class);
+    Mockito.when(clock.instant()).thenReturn(Instant.parse("2018-11-28T01:15:27.000Z"));
 
-    myConnectedDevices = new ArrayList<>(1);
-    myConnectedDevices.add(myConnectedDevice);
+    myGetter = new AsyncDevicesGetter(myRule.getProject(), new KeyToConnectionTimeMap(clock));
   }
 
   @Test
-  public void newVirtualDeviceIfItsConnectedAvdNamesAreEqual() {
-    Mockito.when(myConnectedDevice.getAvdName()).thenReturn("Pixel_2_XL_API_27");
+  public void getImpl() {
+    // Arrange
+    AndroidDevice pixel2ApiQAndroidDevice = Mockito.mock(AndroidDevice.class);
 
-    Object device = AsyncDevicesGetter.newVirtualDeviceIfItsConnected(VIRTUAL_DEVICE, myVirtualDevices, myConnectedDevices);
-    assertEquals(new VirtualDevice(true, "Pixel 2 XL API 27"), device);
+    VirtualDevice pixel2ApiQVirtualDevice = new VirtualDevice.Builder()
+      .setName("Pixel 2 API Q")
+      .setKey("Pixel_2_API_Q")
+      .setAndroidDevice(pixel2ApiQAndroidDevice)
+      .build();
 
-    assertEquals(Collections.emptyList(), myConnectedDevices);
+    VirtualDevice pixel3ApiQVirtualDevice = new VirtualDevice.Builder()
+      .setName("Pixel 3 API Q")
+      .setKey("Pixel_3_API_Q")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    AndroidDevice googlePixel3AndroidDevice = Mockito.mock(AndroidDevice.class);
+
+    ConnectedDevice googlePixel3ConnectedDevice = new TestConnectedDevice.Builder()
+      .setName("Connected Device")
+      .setKey("86UX00F4R")
+      .setAndroidDevice(googlePixel3AndroidDevice)
+      .setPhysicalDeviceName("Google Pixel 3")
+      .build();
+
+    AndroidDevice pixel3ApiQAndroidDevice = Mockito.mock(AndroidDevice.class);
+
+    ConnectedDevice pixel3ApiQConnectedDevice = new TestConnectedDevice.Builder()
+      .setName("Connected Device")
+      .setKey("emulator-5554")
+      .setAndroidDevice(pixel3ApiQAndroidDevice)
+      .setVirtualDeviceKey("Pixel_3_API_Q")
+      .build();
+
+    // Act
+    Object actualDevices = myGetter.getImpl(
+      Arrays.asList(pixel2ApiQVirtualDevice, pixel3ApiQVirtualDevice),
+      Arrays.asList(googlePixel3ConnectedDevice, pixel3ApiQConnectedDevice));
+
+    // Assert
+    Object expectedPixel3ApiQDevice = new VirtualDevice.Builder()
+      .setName("Pixel 3 API Q")
+      .setKey("Pixel_3_API_Q")
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
+      .setAndroidDevice(pixel3ApiQAndroidDevice)
+      .build();
+
+    Object expectedGooglePixel3Device = new PhysicalDevice.Builder()
+      .setName("Google Pixel 3")
+      .setKey("86UX00F4R")
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
+      .setAndroidDevice(googlePixel3AndroidDevice)
+      .build();
+
+    Object expectedPixel2ApiQDevice = new VirtualDevice.Builder()
+      .setName("Pixel 2 API Q")
+      .setKey("Pixel_2_API_Q")
+      .setAndroidDevice(pixel2ApiQAndroidDevice)
+      .build();
+
+    assertEquals(Arrays.asList(expectedPixel3ApiQDevice, expectedGooglePixel3Device, expectedPixel2ApiQDevice), actualDevices);
   }
 
   @Test
-  public void newVirtualDeviceIfItsConnected() {
-    Mockito.when(myConnectedDevice.getAvdName()).thenReturn("Pixel_2_XL_API_28");
+  public void initChecker() {
+    RunConfigurationModule configurationModule = Mockito.mock(RunConfigurationModule.class);
+    Mockito.when(configurationModule.getModule()).thenReturn(myRule.getModule());
 
-    assertSame(VIRTUAL_DEVICE, AsyncDevicesGetter.newVirtualDeviceIfItsConnected(VIRTUAL_DEVICE, myVirtualDevices, myConnectedDevices));
-    assertEquals(Collections.singletonList(myConnectedDevice), myConnectedDevices);
+    ModuleBasedConfiguration configuration = Mockito.mock(ModuleBasedConfiguration.class);
+    Mockito.when(configuration.getConfigurationModule()).thenReturn(configurationModule);
+
+    RunnerAndConfigurationSettings configurationAndSettings = Mockito.mock(RunnerAndConfigurationSettings.class);
+    Mockito.when(configurationAndSettings.getConfiguration()).thenReturn(configuration);
+
+    myGetter.initChecker(configurationAndSettings, AsyncDevicesGetterTest::newAndroidFacet);
+    assertNull(myGetter.getChecker());
+  }
+
+  @NotNull
+  private static AndroidFacet newAndroidFacet(@NotNull Module module) {
+    return new AndroidFacet(module, "Android", Mockito.mock(AndroidFacetConfiguration.class));
   }
 }

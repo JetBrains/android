@@ -26,13 +26,13 @@ public class InefficientWeightQuickFix implements AndroidLintQuickFix {
     String attrName;
 
     if (AndroidLintUtil.ATTR_VALUE_VERTICAL
-      .equals(parentTag.getAttributeValue(AndroidLintUtil.ATTR_ORIENTATION, SdkConstants.NS_RESOURCES))) {
+      .equals(parentTag.getAttributeValue(AndroidLintUtil.ATTR_ORIENTATION, SdkConstants.ANDROID_URI))) {
       attrName = AndroidLintUtil.ATTR_LAYOUT_HEIGHT;
     }
     else {
       attrName = AndroidLintUtil.ATTR_LAYOUT_WIDTH;
     }
-    tag.setAttribute(attrName, SdkConstants.NS_RESOURCES, "0dp");
+    tag.setAttribute(attrName, SdkConstants.ANDROID_URI, "0dp");
   }
 
   @Override

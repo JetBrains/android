@@ -36,17 +36,19 @@ import static com.android.tools.idea.flags.StudioFlags.NELE_SAMPLE_DATA_UI;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
-import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.scene.target.ComponentAssistantViewAction;
 import com.android.tools.idea.res.SampleDataResourceItem;
 import com.android.tools.idea.res.SampleDataResourceRepository;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.android.tools.idea.uibuilder.handlers.actions.PickDrawableViewAction;
+import com.android.tools.idea.uibuilder.handlers.actions.ScaleTypesViewActionMenu;
 import com.android.tools.idea.uibuilder.handlers.assistant.ImageViewAssistant;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
@@ -156,7 +158,7 @@ public class ImageViewHandler extends ViewHandler {
   }
 
   public void setSrcAttribute(@NotNull NlComponent component, @Nullable String imageSource) {
-    NlWriteCommandAction.run(component, "", () -> {
+    NlWriteCommandActionUtil.run(component, "", () -> {
       if (shouldUseSrcCompat(component.getModel())) {
         component.setAttribute(ANDROID_URI, ATTR_SRC, null);
         component.setAttribute(AUTO_URI, ATTR_SRC_COMPAT, imageSource);
@@ -180,7 +182,7 @@ public class ImageViewHandler extends ViewHandler {
 
   public void setToolsSrc(@NotNull NlComponent component, @Nullable String value) {
     String attr = shouldUseSrcCompat(component.getModel()) ? ATTR_SRC_COMPAT : ATTR_SRC;
-    NlWriteCommandAction.run(component, "Set sample source", () -> component.setAttribute(TOOLS_URI, attr, value));
+    NlWriteCommandActionUtil.run(component, "Set sample source", () -> component.setAttribute(TOOLS_URI, attr, value));
   }
 
   @Nullable
@@ -216,21 +218,25 @@ public class ImageViewHandler extends ViewHandler {
   }
 
   @Nullable
-  private ComponentAssistantFactory getComponentAssistant() {
+  private ComponentAssistantFactory getComponentAssistant(@NotNull NlComponent component) {
     if (!NELE_SAMPLE_DATA_UI.get()) {
       return null;
     }
     return (context) -> new ImageViewAssistant(context, this).getComponent();
   }
 
-  @NotNull
   @Override
-  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
-    ComponentAssistantFactory panelFactory =
-      getComponentAssistant();
+  public boolean addPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
+    boolean cacheable = super.addPopupMenuActions(component, actions);
 
-    return panelFactory != null ?
-           ImmutableList.of(new ComponentAssistantActionTarget(panelFactory)) :
-           ImmutableList.of();
+    actions.add(new ComponentAssistantViewAction(this::getComponentAssistant));
+
+    return cacheable;
+  }
+
+  @Override
+  public List<ViewAction> getPropertyActions(@NotNull List<NlComponent> components) {
+    return ImmutableList.of(new PickDrawableViewAction(ANDROID_URI, ATTR_SRC),
+                            new ScaleTypesViewActionMenu(ANDROID_URI, ATTR_SCALE_TYPE));
   }
 }

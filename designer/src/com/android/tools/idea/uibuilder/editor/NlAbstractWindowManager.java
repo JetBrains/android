@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
-import com.android.tools.idea.common.editor.NlEditorPanel;
-import com.android.tools.idea.common.model.NlLayoutType;
+import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.designer.DesignerEditorPanelFacade;
-import com.intellij.designer.LightToolWindow;
 import com.intellij.designer.LightToolWindowManager;
 import com.intellij.designer.ToggleEditorModeAction;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -39,8 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 public abstract class NlAbstractWindowManager extends LightToolWindowManager {
   private ToolWindowType myPreviousWindowType;
@@ -72,7 +68,7 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
 
         if (newWindowType != myPreviousWindowType || newWindowAnchor != myPreviousWindowAnchor) {
           // TODO: Report the window docking state
-          NlUsageTrackerManager.getInstance(myDesignSurface).logAction(LayoutEditorEvent.LayoutEditorEventType.UNKNOWN_EVENT_TYPE);
+          NlUsageTracker.getInstance(myDesignSurface).logAction(LayoutEditorEvent.LayoutEditorEventType.UNKNOWN_EVENT_TYPE);
 
           myPreviousWindowType = newWindowType;
           myPreviousWindowAnchor = newWindowAnchor;
@@ -105,8 +101,8 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
 
   @Nullable
   protected static DesignSurface getDesignSurface(@NotNull DesignerEditorPanelFacade designer) {
-    if (designer instanceof NlEditorPanel) {
-      NlEditorPanel editor = (NlEditorPanel)designer;
+    if (designer instanceof DesignerEditorPanel) {
+      DesignerEditorPanel editor = (DesignerEditorPanel)designer;
       return editor.getSurface();
     } else if (designer instanceof NlPreviewForm) {
       NlPreviewForm form = (NlPreviewForm)designer;
@@ -115,12 +111,6 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
 
     // Unexpected facade
     throw new RuntimeException(designer.getClass().getName());
-  }
-
-  @NotNull
-  protected static NlLayoutType getLayoutType(@NotNull DesignerEditorPanelFacade designer) {
-    DesignSurface designSurface = getDesignSurface(designer);
-    return designSurface != null ? designSurface.getLayoutType() : NlLayoutType.UNKNOWN;
   }
 
   protected void createWindowContent(@NotNull JComponent contentPane, @NotNull JComponent focusedComponent, @Nullable AnAction[] actions) {
@@ -134,36 +124,5 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
     }
     contentManager.addContent(content);
     contentManager.setSelectedContent(content, true);
-  }
-
-  @Nullable
-  public abstract Object getToolWindowContent(@NotNull DesignerEditorPanelFacade designer);
-
-  public void activateToolWindow(@NotNull DesignerEditorPanelFacade designer, @NotNull Runnable runnable) {
-    LightToolWindow toolWindow = (LightToolWindow)designer.getClientProperty(getComponentName());
-    if (toolWindow != null) {
-      restore(toolWindow);
-      runnable.run();
-    }
-    else {
-      myToolWindow.show(runnable);
-    }
-  }
-
-  // TODO: Add a restore method in LightToolWindow
-  private static void restore(@NotNull LightToolWindow toolWindow) {
-    try {
-      // When LightToolWindow#restore() is added to the base platform and upstreamed,
-      // replace this:
-      Method updateContent = LightToolWindow.class.getDeclaredMethod("updateContent", Boolean.TYPE, Boolean.TYPE);
-      if (updateContent != null) {
-        updateContent.setAccessible(true);
-        updateContent.invoke(toolWindow, Boolean.TRUE, Boolean.TRUE);
-      }
-      // with toolWindow.restore();
-    }
-    catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-      // ignore...
-    }
   }
 }

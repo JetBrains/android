@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ptable;
 
-import com.android.tools.adtui.ptable.*;
+import com.android.tools.property.ptable.*;
 import com.android.tools.idea.editors.layoutInspector.ui.PropertiesTablePanel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.util.SystemInfo;

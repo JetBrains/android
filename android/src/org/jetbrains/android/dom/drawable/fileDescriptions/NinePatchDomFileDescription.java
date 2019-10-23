@@ -16,10 +16,10 @@
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.drawable.BitmapElement;
 
-public class NinePatchDomFileDescription extends AbstractSingleRootFileDescription<BitmapElement> {
+public class NinePatchDomFileDescription extends SingleRootResourceDomFileDescription<BitmapElement> {
 
   public NinePatchDomFileDescription() {
     super(BitmapElement.class, "nine-patch", ResourceFolderType.DRAWABLE);

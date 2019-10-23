@@ -24,13 +24,16 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JRootPane;
+import javax.swing.JTextField;
 import org.fest.swing.core.matcher.JLabelMatcher;
+import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizardFixture> {
 
@@ -56,21 +59,27 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
 
   @NotNull
   public NewModuleWizardFixture setModuleName(String name) {
-    new JTextComponentFixture(robot(), robot().finder().findByName(target(), "ModuleName", JTextField.class)).deleteText().enterText(name);
+    new JTextComponentFixture(robot(), robot().finder().findByName(target(), "ModuleName", JTextField.class)).setText(name);
     return this;
   }
 
   @NotNull
   public NewModuleWizardFixture setFileName(String name) {
     TextFieldWithBrowseButton panel = robot().finder().findByLabel(target(), "File name:", TextFieldWithBrowseButton.class);
-    new JTextComponentFixture(robot(), robot().finder().findByType(panel, JTextField.class)).deleteText().enterText(name);
+    new JTextComponentFixture(robot(), robot().finder().findByType(panel, JTextField.class)).setText(name);
     return this;
   }
 
   @NotNull
   public NewModuleWizardFixture setSubprojectName(String name) {
-    new JTextComponentFixture(robot(), robot().finder().findByLabel(target(), "Subproject name:", JTextField.class))
-      .deleteText().enterText(name);
+    new JTextComponentFixture(robot(), robot().finder().findByLabel(target(), "Subproject name:", JTextField.class)).setText(name);
+    return this;
+  }
+
+  @NotNull
+  public NewModuleWizardFixture setSourceLanguage(String sourceLanguage) {
+    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Language:", JComboBox.class, true))
+      .selectItem(sourceLanguage);
     return this;
   }
 

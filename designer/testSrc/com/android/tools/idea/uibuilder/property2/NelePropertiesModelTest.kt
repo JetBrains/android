@@ -15,19 +15,30 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.SdkConstants
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_CONTEXT
+import com.android.SdkConstants.ATTR_TEXT
+import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
+import com.android.SdkConstants.BUTTON
+import com.android.SdkConstants.IMAGE_VIEW
+import com.android.SdkConstants.LINEAR_LAYOUT
+import com.android.SdkConstants.TEXT_VIEW
+import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.common.property2.api.PropertiesModel
-import com.android.tools.idea.common.property2.api.PropertiesModelListener
+import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
+import com.android.tools.property.panel.api.PropertiesModel
+import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.truth.Truth.assertThat
+import com.intellij.util.toArray
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import java.util.EnumSet
+import kotlin.test.assertNotEquals
 
 class NelePropertiesModelTest: LayoutTestCase() {
 
@@ -37,7 +48,6 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
-    model.updateQueue.isPassThrough = true
     model.addListener(listener)
 
     // test
@@ -69,6 +79,24 @@ class NelePropertiesModelTest: LayoutTestCase() {
   fun testPropertiesGeneratedEventAfterSelectionChange() {
     // setup
     @Suppress("UNCHECKED_CAST")
+    val listener = TimingPropertiesModelListener()
+    val model = createModel()
+    val nlModel = createNlModel(TEXT_VIEW)
+    model.surface = nlModel.surface
+    waitUntilEventsProcessed(model)
+    model.addListener(listener)
+    val textView = nlModel.find(TEXT_VIEW)!!
+
+    // test
+    nlModel.surface.selectionModel.setSelection(listOf(textView))
+    model.firePropertyValueChangeIfNeeded()
+    waitUntilEventsProcessed(model)
+    assertThat(listener.wasValuePropertyGeneratedCalledBeforeValueChanged).isTrue()
+  }
+
+  fun testPropertiesGeneratedEventBeforeValueChangedEventAfterSelectionChange() {
+    // setup
+    @Suppress("UNCHECKED_CAST")
     val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
@@ -83,23 +111,53 @@ class NelePropertiesModelTest: LayoutTestCase() {
     verify(listener).propertiesGenerated(model)
   }
 
-  fun testPropertiesChangedEventAfterRendering() {
+  fun testPropertyValuesChangedEventAfterModelChange() {
     // setup
     @Suppress("UNCHECKED_CAST")
     val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
+    val textView = nlModel.find(TEXT_VIEW)!!
     model.surface = nlModel.surface
+    nlModel.surface.selectionModel.setSelection(listOf(textView))
     waitUntilEventsProcessed(model)
     model.addListener(listener)
 
-    // test emulate the completion of rendering in the current scene
-    val manager = nlModel.surface.currentSceneView?.sceneManager!!
-    val method = LayoutlibSceneManager::class.java.getDeclaredMethod("fireRenderListeners")
-    method.isAccessible = true
-    method.invoke(manager)
-    UIUtil.dispatchAllInvocationEvents()
+    nlModel.resourcesChanged(EnumSet.of(ResourceNotificationManager.Reason.EDIT))
+    verify(listener).propertyValuesChanged(model)
+  }
 
+  fun testPropertyValuesChangedEventAfterLiveModelChange() {
+    // setup
+    @Suppress("UNCHECKED_CAST")
+    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
+    val model = createModel()
+    val nlModel = createNlModel(TEXT_VIEW)
+    val textView = nlModel.find(TEXT_VIEW)!!
+    model.surface = nlModel.surface
+    nlModel.surface.selectionModel.setSelection(listOf(textView))
+    waitUntilEventsProcessed(model)
+    model.addListener(listener)
+
+    nlModel.notifyLiveUpdate(false)
+    UIUtil.dispatchAllInvocationEvents()
+    verify(listener).propertyValuesChanged(model)
+  }
+
+  fun testPropertyValuesChangedEventAfterLiveComponentChange() {
+    // setup
+    @Suppress("UNCHECKED_CAST")
+    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
+    val model = createModel()
+    val nlModel = createNlModel(TEXT_VIEW)
+    val textView = nlModel.find(TEXT_VIEW)!!
+    model.surface = nlModel.surface
+    nlModel.surface.selectionModel.setSelection(listOf(textView))
+    waitUntilEventsProcessed(model)
+    model.addListener(listener)
+
+    textView.fireLiveChangeEvent()
+    UIUtil.dispatchAllInvocationEvents()
     verify(listener).propertyValuesChanged(model)
   }
 
@@ -110,7 +168,8 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val textView = nlModel.find(TEXT_VIEW)!!
     val view = nlModel.surface.currentSceneView!!
     val manager = view.sceneManager as SyncLayoutlibSceneManager
-    val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, null, "", model, listOf(textView))
+    val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE,
+                                    null, "", "", model, null, listOf(textView))
     manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     model.surface = nlModel.surface
     waitUntilEventsProcessed(model)
@@ -119,32 +178,112 @@ class NelePropertiesModelTest: LayoutTestCase() {
     assertThat(model.provideDefaultValue(property)?.value).isEqualTo("?attr/textAppearanceSmall")
   }
 
+  fun testPropertyValuesChangesAfterRendering() {
+    // setup
+    @Suppress("UNCHECKED_CAST")
+    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
+    val model = createModel()
+    val nlModel = createNlModel(TEXT_VIEW)
+    val textView = nlModel.find(TEXT_VIEW)!!
+    val view = nlModel.surface.currentSceneView!!
+    val manager = view.sceneManager as SyncLayoutlibSceneManager
+    val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, null, "", "", model, null, listOf(textView))
+    manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
+    model.surface = nlModel.surface
+    nlModel.surface.selectionModel.setSelection(listOf(textView))
+    waitUntilEventsProcessed(model)
+    assertThat(model.provideDefaultValue(property)?.value).isEqualTo("?attr/textAppearanceSmall")
+    model.addListener(listener)
+
+    // Value changed should not be reported if the default values are unchanged
+    manager.fireRenderCompleted()
+    UIUtil.dispatchAllInvocationEvents()
+    verify(listener, never()).propertyValuesChanged(model)
+
+    // Value changed notification is expected since the default values have changed
+    manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceLarge")
+    manager.fireRenderCompleted()
+    UIUtil.dispatchAllInvocationEvents()
+    verify(listener).propertyValuesChanged(model)
+  }
+
   fun testListenersAreConcurrentModificationSafe() {
     // Make sure that ConcurrentModificationException is NOT generated from the code below:
     val model = createModel()
+    val nlModel = createNlModel(TEXT_VIEW)
+    val textView = nlModel.find(TEXT_VIEW)!!
+    model.surface = nlModel.surface
+    nlModel.surface.selectionModel.setSelection(listOf(textView))
+    waitUntilEventsProcessed(model)
+
     val listener = RecursiveValueChangedListener()
     model.addListener(listener)
     model.firePropertiesGenerated()
-    model.firePropertyValueChange()
+    model.firePropertyValueChangeIfNeeded()
     assertThat(listener.called).isEqualTo(2)
   }
 
-  private fun createNlModel(tag: String): SyncNlModel {
+  fun testDoNotUpdateWhenOnlySecondarySelectionIsChanged() {
+    val model = createModel()
+    val nlModel = createNlModel(TEXT_VIEW, BUTTON)
+    val textView = nlModel.find(TEXT_VIEW)!!
+    val button = nlModel.find(BUTTON)!!
+    model.surface = nlModel.surface
+
+    nlModel.surface.selectionModel.setSelection(listOf(textView))
+    waitUntilEventsProcessed(model)
+
+    var lastSelectionUpdate = model.lastSelectionUpdate
+
+    nlModel.surface.selectionModel.setSecondarySelection(textView, null)
+    waitUntilEventsProcessed(model)
+    assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+
+    nlModel.surface.selectionModel.setSecondarySelection(textView, null)
+    waitUntilEventsProcessed(model)
+    assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+
+    nlModel.surface.selectionModel.setSecondarySelection(textView, Any())
+    waitUntilEventsProcessed(model)
+    assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+
+    nlModel.surface.selectionModel.setSecondarySelection(textView, Any())
+    waitUntilEventsProcessed(model)
+    assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+
+    nlModel.surface.selectionModel.setSecondarySelection(textView, null)
+    waitUntilEventsProcessed(model)
+    assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+
+    nlModel.surface.selectionModel.setSecondarySelection(button, null)
+    waitUntilEventsProcessed(model)
+    assertNotEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+
+    lastSelectionUpdate = model.lastSelectionUpdate
+
+    nlModel.surface.selectionModel.setSecondarySelection(textView, Any())
+    waitUntilEventsProcessed(model)
+    assertNotEquals(lastSelectionUpdate, model.lastSelectionUpdate)
+  }
+
+  private fun createNlModel(vararg tag: String): SyncNlModel {
     val builder = model(
-        "linear.xml",
-        component(SdkConstants.LINEAR_LAYOUT)
-          .withBounds(0, 0, 1000, 1500)
-          .id("@id/linear")
-          .matchParentWidth()
-          .matchParentHeight()
-          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_CONTEXT, "com.example.MyActivity")
-          .children(
-              component(tag)
-                .withBounds(100, 100, 100, 100)
-                .id("@id/$tag")
-                .width("wrap_content")
-                .height("wrap_content")
-          )
+      "linear.xml",
+      component(LINEAR_LAYOUT)
+        .withBounds(0, 0, 1000, 1500)
+        .id("@id/linear")
+        .matchParentWidth()
+        .matchParentHeight()
+        .withAttribute(TOOLS_URI, ATTR_CONTEXT, "com.example.MyActivity")
+        .children(
+          *tag.map {
+            component(it)
+              .withBounds(100, 100, 100, 100)
+              .id("@id/$it")
+              .width("wrap_content")
+              .height("wrap_content")
+          }.toArray(emptyArray())
+        )
     )
     return builder.build()
   }
@@ -155,15 +294,6 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val model = NelePropertiesModel(testRootDisposable, myFacet)
     model.updateQueue.isPassThrough = true
     return model
-  }
-
-  // Ugly hack:
-  // The production code is executing the properties creation on a separate thread.
-  // This code makes sure that the last scheduled worker thread is finished,
-  // then we also need to wait for events on the UI thread.
-  private fun waitUntilEventsProcessed(model: NelePropertiesModel) {
-    model.lastSelectionUpdate?.get()
-    UIUtil.dispatchAllInvocationEvents()
   }
 
   private class RecursiveValueChangedListener : PropertiesModelListener<NelePropertyItem> {
@@ -177,6 +307,49 @@ class NelePropertiesModelTest: LayoutTestCase() {
     override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
       model.addListener(RecursiveValueChangedListener())
       called++
+    }
+  }
+
+  private class TimingPropertiesModelListener : PropertiesModelListener<NelePropertyItem> {
+    var generatedCalled = 0L
+    var valuesChangedCalled = 0L
+
+    override fun propertiesGenerated(model: PropertiesModel<NelePropertyItem>) {
+      if (generatedCalled == 0L) {
+        generatedCalled = System.currentTimeMillis()
+      }
+    }
+
+    override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
+      if (valuesChangedCalled == 0L) {
+        valuesChangedCalled = System.currentTimeMillis()
+      }
+    }
+
+    val wasValuePropertyGeneratedCalledBeforeValueChanged: Boolean
+      get() {
+        if (generatedCalled == 0L) {
+          return false
+        }
+        if (valuesChangedCalled == 0L) {
+          return true
+        }
+        return generatedCalled < valuesChangedCalled
+      }
+  }
+
+  companion object {
+
+    // Ugly hack:
+    // The production code is executing the properties creation on a separate thread.
+    // This code makes sure that the last scheduled worker thread is finished,
+    // then we also need to wait for events on the UI thread.
+    fun waitUntilEventsProcessed(model: NelePropertiesModel) {
+      if (model.lastSelectionUpdate.get()) {
+        while (!model.lastUpdateCompleted) {
+          UIUtil.dispatchAllInvocationEvents()
+        }
+      }
     }
   }
 }

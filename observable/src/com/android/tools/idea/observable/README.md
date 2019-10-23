@@ -304,12 +304,7 @@ The following excerpt demonstrates how you could accomplish all this with a mini
     myBindings.bind(isActivityEnabled, createActivity);
 
     // Listen to activityText - if it is changed by the user and not its binding, break syncing!
-    activityText.addListener(new InvalidationListener() {
-      @Override
-      protected void onInvalidated(@NotNull Observable sender) {
-        isSynced.set(activityText.get().equals(activityNameExpression.get()));
-      }
-    });
+    activityText.addListener(() -> isSynced.set(activityText.get().equals(activityNameExpression.get())));
   }
 ```
 

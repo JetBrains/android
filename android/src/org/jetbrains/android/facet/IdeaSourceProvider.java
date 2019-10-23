@@ -15,6 +15,17 @@
  */
 package org.jetbrains.android.facet;
 
+import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.jetbrains.android.facet.AndroidRootUtil.getAidlGenDir;
+import static org.jetbrains.android.facet.AndroidRootUtil.getAssetsDir;
+import static org.jetbrains.android.facet.AndroidRootUtil.getFileByRelativeModulePath;
+import static org.jetbrains.android.facet.AndroidRootUtil.getRenderscriptGenDir;
+
+import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.Lists;
@@ -33,13 +44,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-
-import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static org.jetbrains.android.facet.AndroidRootUtil.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Like {@link SourceProvider}, but for IntelliJ, which means it provides
@@ -51,9 +57,12 @@ public abstract class IdeaSourceProvider {
   private IdeaSourceProvider() {
   }
 
+  /**
+   * Returns an {@link IdeaSourceProvider} wrapping the given {@link SourceProvider}.
+   */
   @NotNull
   public static IdeaSourceProvider create(@NotNull SourceProvider provider) {
-    return new Gradle(provider);
+    return new Delegate(provider);
   }
 
   @NotNull
@@ -65,9 +74,14 @@ public abstract class IdeaSourceProvider {
     return ideaProviders;
   }
 
+  /**
+   * Returns an {@link IdeaSourceProvider} for legacy android projects that do not require {@link AndroidProject}
+   * by extracting source set information from the given {@link AndroidFacet}.
+   * For android projects with {@link AndroidProject} support see {@link IdeaSourceProvider#create(SourceProvider)}.
+   */
   @NotNull
-  public static IdeaSourceProvider create(@NotNull AndroidFacet facet) {
-    return new Legacy(facet);
+  public static IdeaSourceProvider createForLegacyProject(@NotNull AndroidFacet facet) {
+    return new LegacyDelegate(facet);
   }
 
   @NotNull
@@ -103,13 +117,13 @@ public abstract class IdeaSourceProvider {
   @NotNull
   public abstract Collection<VirtualFile> getShadersDirectories();
 
-  /** {@linkplain IdeaSourceProvider} for a Gradle projects */
-  private static class Gradle extends IdeaSourceProvider {
+  /** {@linkplain IdeaSourceProvider} wrapping a {@linkplain SourceProvider}. */
+  private static class Delegate extends IdeaSourceProvider {
     private final SourceProvider myProvider;
     private VirtualFile myManifestFile;
     private File myManifestIoFile;
 
-    private Gradle(@NotNull SourceProvider provider) {
+    private Delegate(@NotNull SourceProvider provider) {
       myProvider = provider;
     }
 
@@ -205,16 +219,17 @@ public abstract class IdeaSourceProvider {
     }
 
     /**
-     * Compares another source provider with this for equality. Returns true if the specified object is also a Gradle source provider,
-     * has the same name, and the same set of source locations.
+     * Compares another source provider delegate with this for equality. Returns true if the specified object is also a
+     * {@link IdeaSourceProvider.Delegate}, has the same name, and the same manifest file path.
      */
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
 
-      Gradle that = (Gradle)o;
+      Delegate that = (Delegate) o;
       if (!myProvider.getName().equals(that.getName())) return false;
+      // Only check the manifest file, as each SourceProvider will be guaranteed to have a different manifest file.
       if (!myProvider.getManifestFile().getPath().equals(that.myProvider.getManifestFile().getPath())) return false;
 
       return true;
@@ -230,11 +245,11 @@ public abstract class IdeaSourceProvider {
     }
   }
 
-  /** {@linkplain IdeaSourceProvider} for a legacy (non-Gradle) Android project */
-  private static class Legacy extends IdeaSourceProvider {
+  /** {@linkplain IdeaSourceProvider} for legacy Android projects without {@link SourceProvider}. */
+  private static class LegacyDelegate extends IdeaSourceProvider {
     @NotNull private final AndroidFacet myFacet;
 
-    private Legacy(@NotNull AndroidFacet facet) {
+    private LegacyDelegate(@NotNull AndroidFacet facet) {
       myFacet = facet;
     }
 
@@ -284,7 +299,9 @@ public abstract class IdeaSourceProvider {
     @Override
     public Collection<VirtualFile> getAidlDirectories() {
       VirtualFile dir = getAidlGenDir(myFacet);
-      assert dir != null;
+      if (dir == null) {
+        return Collections.emptyList();
+      }
       return Collections.singleton(dir);
     }
 
@@ -292,7 +309,9 @@ public abstract class IdeaSourceProvider {
     @Override
     public Collection<VirtualFile> getRenderscriptDirectories() {
       VirtualFile dir = getRenderscriptGenDir(myFacet);
-      assert dir != null;
+      if (dir == null) {
+        return Collections.emptyList();
+      }
       return Collections.singleton(dir);
     }
 
@@ -338,7 +357,7 @@ public abstract class IdeaSourceProvider {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
 
-      Legacy that = (Legacy)o;
+      LegacyDelegate that = (LegacyDelegate)o;
       return myFacet.equals(that.myFacet);
     }
 
@@ -352,10 +371,10 @@ public abstract class IdeaSourceProvider {
   /**
    * Returns a list of source providers, in the overlay order (meaning that later providers
    * override earlier providers when they redefine resources) for the currently selected variant.
-   * <p>
-   * Note that the list will never be empty; there is always at least one source provider.
-   * <p>
-   * The overlay source order is defined by the Android Gradle plugin.
+   *
+   * <p>Note that the list will never be empty; there is always at least one source provider.
+   *
+   * <p>The overlay source order is defined by the underlying build system.
    */
   @NotNull
   public static List<IdeaSourceProvider> getCurrentSourceProviders(@NotNull AndroidFacet facet) {
@@ -369,6 +388,12 @@ public abstract class IdeaSourceProvider {
     return Collections.emptyList();
   }
 
+  /**
+   * Returns a list of source providers for all test artifacts (e.g. both {@code test/} and {@code androidTest/} source sets), in increasing
+   * precedence order.
+   *
+   * @see #getCurrentSourceProviders(AndroidFacet)
+   */
   @NotNull
   public static List<IdeaSourceProvider> getCurrentTestSourceProviders(@NotNull AndroidFacet facet) {
     if (!facet.requiresAndroidModel()) {
@@ -510,7 +535,7 @@ public abstract class IdeaSourceProvider {
    * <p>
    * Note that the list will never be empty; there is always at least one source provider.
    * <p>
-   * The overlay source order is defined by the Android Gradle plugin.
+   * The overlay source order is defined by the underlying build system.
    */
   @NotNull
   public static List<SourceProvider> getAllSourceProviders(@NotNull AndroidFacet facet) {
@@ -527,7 +552,7 @@ public abstract class IdeaSourceProvider {
    * <p>
    * Note that the list will never be empty; there is always at least one source provider.
    * <p>
-   * The overlay source order is defined by the Android Gradle plugin.
+   * The overlay source order is defined by the underlying build system.
    *
    * This method should be used when only on-disk source sets are required. It will return
    * empty source sets for all other source providers (since VirtualFiles MUST exist on disk).

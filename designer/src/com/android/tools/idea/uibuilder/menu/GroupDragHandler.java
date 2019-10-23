@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.menu;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
@@ -64,20 +64,18 @@ final class GroupDragHandler extends DragHandler {
   }
 
   @Override
-  public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
+  public void commit(@AndroidCoordinate int x,
+                     @AndroidCoordinate int y,
+                     int modifiers,
+                     @NotNull InsertType insertType) {
     NlComponent groupComponent = myGroup.getNlComponent();
     int insertIndex = getInsertIndex();
 
-    if (!editor.canInsertChildren(groupComponent, myItems, insertIndex)) {
-      return;
-    }
-
-    NlWriteCommandAction.run(myItems.get(0), "menu item addition", () -> {
+    NlWriteCommandActionUtil.run(myItems.get(0), "menu item addition", () -> {
       updateOrderInCategoryAttributes();
       updateShowAsActionAttribute();
-      editor.getDependencyManager().addDependencies(myItems, editor.getModel().getFacet());
-      editor.insertChildren(groupComponent, myItems, insertIndex, insertType);
     });
+    editor.insertChildren(groupComponent, myItems, insertIndex, insertType);
   }
 
   private void updateOrderInCategoryAttributes() {

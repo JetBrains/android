@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
@@ -115,7 +115,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
     if (myComponent.parent == null) {
       return
     }
-    mySnapTarget?.setMouseHovered(false)
+    mySnapTarget?.isMouseHovered = false
     mySnapTarget = null
     val snapTarget : Target? = closestTarget.firstOrNull { it is CoordinatorSnapTarget }
     if (snapTarget is CoordinatorSnapTarget) {
@@ -123,7 +123,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
       snapTarget.setMouseHovered(true)
     }
     myComponent.isDragging = true
-    myComponent.setPosition(x - myOffsetX, y - myOffsetY, false)
+    myComponent.setPosition(x - myOffsetX, y - myOffsetY)
     myComponent.scene.repaint()
     myChangedComponent = true
   }
@@ -145,10 +145,9 @@ class CoordinatorDragTarget : DragBaseTarget() {
     }
   }
 
-  override fun cancel() {
-    super.cancel()
-    myComponent.setPosition(myFirstMouseX - myOffsetX, myFirstMouseY - myOffsetY)
-    myComponent.scene.repaint()
+  override fun mouseCancel() {
+    updateInteractionState(CoordinatorLayoutHandler.InteractionState.NORMAL)
+    super.mouseCancel()
   }
 
   fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, component: NlComponent) {
@@ -158,7 +157,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
       updateAttributes(attributes, x, y)
       attributes.apply()
       if (Math.abs(x - myFirstMouseX) > 1 || Math.abs(y - myFirstMouseY) > 1) {
-        NlWriteCommandAction.run(component, "Dragged " + StringUtil.getShortName(component.tagName), { attributes.commit() })
+        NlWriteCommandActionUtil.run(component, "Dragged " + StringUtil.getShortName(component.tagName), { attributes.commit() })
       }
     }
     if (myChangedComponent) {

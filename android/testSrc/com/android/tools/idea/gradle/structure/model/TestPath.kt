@@ -23,13 +23,12 @@ data class TestPath(
   private val hyperlinkDestination: String? = null
 ) : PsPath {
   constructor(path: String, parentPath: PsPath) : this(path, parentPath, null)
-
   override fun getHyperlinkDestination(context: PsContext): String? = hyperlinkDestination
-
   override fun toString(): String = text
 
   companion object {
     val EMPTY_PATH: PsPath = object : PsPath {
+      override fun getHyperlinkDestination(context: PsContext): String? = null
       override fun toString(): String = ""
     }
   }

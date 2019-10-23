@@ -15,45 +15,70 @@
  */
 package com.android.tools.idea.common.surface;
 
+import static com.android.tools.idea.common.model.Coordinates.getAndroidXDip;
+import static com.android.tools.idea.common.model.Coordinates.getAndroidYDip;
+import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
+
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.ui.AdtUiCursors;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
 import com.android.tools.idea.uibuilder.surface.MarqueeInteraction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ide.util.PsiNavigationSupport;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
-import com.intellij.pom.Navigatable;
-import com.intellij.psi.PsiElement;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.datatransfer.Transferable;
-import java.awt.dnd.*;
-import java.awt.event.*;
-import java.util.Collections;
-import java.util.List;
-
-import static com.android.tools.idea.common.model.Coordinates.getAndroidXDip;
-import static com.android.tools.idea.common.model.Coordinates.getAndroidYDip;
-import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
 /**
  * The {@linkplain InteractionManager} is is the central manager of interactions; it is responsible
@@ -143,6 +168,11 @@ public class InteractionManager {
    * Flag to indicate that the user is panning the surface
    */
   private boolean myIsPanning;
+
+  /**
+   * Flag to indicate if interaction has canceled by pressing escape button.
+   */
+  private boolean myIsInteractionCanceled;
 
   /**
    * Constructs a new {@link InteractionManager} for the given
@@ -339,7 +369,7 @@ public class InteractionManager {
         if (component != null) {
           // TODO: find a way to move layout-specific logic elsewhere.
           if (mySurface instanceof NlDesignSurface && ((NlDesignSurface)mySurface).isPreviewSurface()) {
-            navigateEditor(component, true);
+            NlComponentHelperKt.tryNavigateTo(component, true);
           }
           else {
             SceneView view = mySurface.getSceneView(x, y);
@@ -357,11 +387,12 @@ public class InteractionManager {
         return;
       }
 
-      // If shift is down, the user is multi-selecting the component, no need to navigate XML file in this case.
-      if (clickCount == 1 && event.getButton() == MouseEvent.BUTTON1 && !event.isShiftDown()) {
+      boolean isControlMetaDown = SystemInfo.isMac ? event.isMetaDown() : event.isControlDown();
+      // No need to navigate XML when click was done holding some modifiers (e.g multi-selecting).
+      if (clickCount == 1 && event.getButton() == MouseEvent.BUTTON1 && !event.isShiftDown() && !isControlMetaDown) {
         // TODO: find a way to move layout-specific logic elsewhere.
         if (component != null && mySurface instanceof NlDesignSurface && ((NlDesignSurface)mySurface).isPreviewSurface()) {
-          navigateEditor(component, false);
+          NlComponentHelperKt.tryNavigateTo(component, false);
         }
       }
 
@@ -371,24 +402,13 @@ public class InteractionManager {
       }
     }
 
-    /**
-     * Warp to the text editor and show the corresponding XML for the clicked widget.
-     *
-     * @param component       the target we need to navigate to
-     * @param needFocusEditor true for focusing the editor after navigation. false otherwise.
-     */
-    private void navigateEditor(@NotNull NlComponent component, boolean needFocusEditor) {
-      PsiElement element = component.getTag().getNavigationElement();
-      if (PsiNavigationSupport.getInstance().canNavigate(element) && element instanceof Navigatable) {
-        ((Navigatable)element).navigate(needFocusEditor);
-      }
-    }
-
     @Override
     public void mousePressed(@NotNull MouseEvent event) {
       if (event.getID() == MouseEvent.MOUSE_PRESSED) {
         mySurface.getLayeredPane().requestFocusInWindow();
       }
+
+      myIsInteractionCanceled = false;
 
       myLastMouseX = event.getX();
       myLastMouseY = event.getY();
@@ -402,7 +422,8 @@ public class InteractionManager {
         return;
       }
 
-      if (interceptPanInteraction(event, myLastMouseX, myLastMouseY)) {
+      if (interceptPanInteraction(event)) {
+        handlePanInteraction(myLastMouseX, myLastMouseY);
         return;
       }
 
@@ -414,10 +435,17 @@ public class InteractionManager {
 
     @Override
     public void mouseReleased(@NotNull MouseEvent event) {
+      if (myIsInteractionCanceled) {
+        return;
+      }
       if (event.isPopupTrigger()) {
         NlComponent selected = selectComponentAt(event.getX(), event.getY(), false, true);
         mySurface.repaint();
         mySurface.getActionManager().showPopup(event, selected);
+        return;
+      }
+      else if (interceptPanInteraction(event)) {
+        setPanning(false);
         return;
       }
       else if (event.getButton() > 1 || SystemInfo.isMac && event.isControlDown()) {
@@ -430,10 +458,6 @@ public class InteractionManager {
       int y = event.getY();
       int modifiers = event.getModifiers();
 
-      if (interceptPanInteraction(event, x, y)) {
-        return;
-      }
-
       if (myCurrentInteraction == null) {
         boolean allowToggle = (modifiers & (InputEvent.SHIFT_MASK | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) != 0;
         selectComponentAt(x, y, allowToggle, false);
@@ -444,6 +468,7 @@ public class InteractionManager {
       }
       else {
         finishInteraction(x, y, modifiers, false);
+        myCurrentInteraction = null;
       }
       mySurface.repaint();
     }
@@ -526,10 +551,14 @@ public class InteractionManager {
 
     @Override
     public void mouseDragged(MouseEvent event) {
+      if (myIsInteractionCanceled) {
+        return;
+      }
       int x = event.getX();
       int y = event.getY();
 
-      if (interceptPanInteraction(event, x, y)) {
+      if (interceptPanInteraction(event)) {
+        handlePanInteraction(x, y);
         return;
       }
 
@@ -611,7 +640,8 @@ public class InteractionManager {
       myLastMouseX = x;
       myLastMouseY = y;
 
-      if (interceptPanInteraction(event, x, y)) {
+      if (interceptPanInteraction(event)) {
+        handlePanInteraction(x, y);
         return;
       }
       //noinspection AssignmentToStaticFieldFromInstanceMethod
@@ -647,11 +677,21 @@ public class InteractionManager {
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourLastStateMask = modifiers;
 
+      Scene scene = mySurface.getScene();
+      if (scene != null) {
+        // TODO: Make it so this step is only done when necessary. i.e Move to ConstraintSceneInteraction.keyPressed().
+        // Update scene modifiers. Since holding some of these keys might change some visuals, repaint.
+        scene.updateModifiers(ourLastStateMask);
+        scene.needsRebuildList();
+        scene.repaint();
+      }
+
       // Give interactions a first chance to see and consume the key press
       if (myCurrentInteraction != null) {
         // unless it's "Escape", which cancels the interaction
         if (keyCode == KeyEvent.VK_ESCAPE) {
           finishInteraction(myLastMouseX, myLastMouseY, ourLastStateMask, true);
+          myIsInteractionCanceled = true;
           return;
         }
 
@@ -676,7 +716,7 @@ public class InteractionManager {
         SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
         if (sceneView != null) {
           SelectionModel model = sceneView.getSelectionModel();
-          if (!model.isEmpty()) {
+          if (!model.isEmpty() && !ConstraintComponentUtilities.clearSelectedConstraint(mySurface)) {
             List<NlComponent> selection = model.getSelection();
             sceneView.getModel().delete(selection);
           }
@@ -689,6 +729,14 @@ public class InteractionManager {
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourLastStateMask = event.getModifiers();
 
+      Scene scene = mySurface.getScene();
+      if (scene != null) {
+        // TODO: Make it so this step is only done when necessary. i.e Move to ConstraintSceneInteraction.keyReleased().
+        // Update scene modifiers. Since holding some of these keys might change some visuals, repaint.
+        scene.updateModifiers(ourLastStateMask);
+        scene.needsRebuildList();
+        scene.repaint();
+      }
       if (myCurrentInteraction != null) {
         myCurrentInteraction.keyReleased(event);
       }
@@ -723,11 +771,22 @@ public class InteractionManager {
         DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
         InsertType insertType = model.determineInsertType(dragType, item, true /* preview */);
 
-        List<NlComponent> dragged = ApplicationManager.getApplication()
-                                                      .runWriteAction((Computable<List<NlComponent>>)() -> model
-                                                        .createComponents(item, insertType, mySurface));
+        List<NlComponent> dragged;
+        if (StudioFlags.NELE_DRAG_PLACEHOLDER.get() && !item.isFromPalette()) {
+          // When dragging from ComponentTree, it should reuse the existing NlComponents rather than creating the new ones.
+          // This impacts some Handlers, using StudioFlag to protect for now.
+          // Most of Handlers should be removed once this flag is removed.
+          dragged = new ArrayList<>(mySurface.getSelectionModel().getSelection());
+        }
+        else {
+          if (item.isFromPalette()) {
+            // remove selection when dragging from Palette.
+            mySurface.getSelectionModel().clear();
+          }
+          dragged = model.createComponents(item, insertType, mySurface);
+        }
 
-        if (dragged == null) {
+        if (dragged.isEmpty()) {
           event.reject();
           return;
         }
@@ -963,32 +1022,33 @@ public class InteractionManager {
   }
 
   /**
-   * Check if the mouse wheel button is down or the CTRL (or CMD for macs) key and scroll the {@link DesignSurface}
-   * by the same amount as the drag distance.
+   * Check if the mouse wheel button is down.
    *
    * @param event {@link MouseEvent} passed by {@link MouseMotionListener#mouseDragged}
-   * @param x     x position of the cursor for the passed event
-   * @param y     y position of the cursor for the passed event
    * @return true if the event has been intercepted and handled, false otherwise.
    */
-  boolean interceptPanInteraction(@NotNull MouseEvent event, int x, int y) {
-    int modifierKeyMask = InputEvent.BUTTON1_DOWN_MASK |
-                          (SystemInfo.isMac ? InputEvent.META_DOWN_MASK
-                                              : InputEvent.CTRL_DOWN_MASK);
-    if (myIsPanning
-        || (event.getModifiersEx() & InputEvent.BUTTON2_DOWN_MASK) != 0
-        || (event.getModifiersEx() & modifierKeyMask) == modifierKeyMask) {
-      DesignSurface surface = getSurface();
-      Point position = surface.getScrollPosition();
-      // position can be null in tests
-      if (position != null) {
-        position.translate(myLastMouseX - x, myLastMouseY - y);
-        surface.setScrollPosition(position);
-        mySurface.setCursor(AdtUiCursors.GRABBING);
-      }
+  public boolean interceptPanInteraction(@NotNull MouseEvent event) {
+    if (myIsPanning || (event.getModifiersEx() & InputEvent.BUTTON2_DOWN_MASK) != 0) {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Scroll the {@link DesignSurface} by the same amount as the drag distance.
+   *
+   * @param x     x position of the cursor for the passed event
+   * @param y     y position of the cursor for the passed event
+   */
+  void handlePanInteraction(int x, int y) {
+    DesignSurface surface = getSurface();
+    Point position = surface.getScrollPosition();
+    setPanning(true);
+    // position can be null in tests
+    if (position != null) {
+      position.translate(myLastMouseX - x, myLastMouseY - y);
+      surface.setScrollPosition(position);
+    }
   }
 
   /**

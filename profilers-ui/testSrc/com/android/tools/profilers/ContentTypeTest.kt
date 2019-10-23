@@ -31,4 +31,33 @@ class ContentTypeTest {
     assertThat(ContentType.fromMimeType("application")).isEqualTo(ContentType.DEFAULT)
     assertThat(ContentType.fromMimeType("application/unknown")).isEqualTo(ContentType.DEFAULT)
   }
+
+  @Test
+  fun fromMimeType_parsesTypeAndSubtype() {
+    val empty = ContentType.fromMimeType("")
+    assertThat(empty).isEqualTo(ContentType.DEFAULT)
+    assertThat(empty.type).isEmpty()
+    assertThat(empty.isSupportedTextType).isFalse()
+
+    val video = ContentType.fromMimeType("video")
+    assertThat(video).isEqualTo(ContentType.DEFAULT)
+    assertThat(video.type).isEqualTo("video")
+    assertThat(video.isSupportedTextType).isFalse()
+
+    val audioMpeg = ContentType.fromMimeType("audio/mpeg")
+    assertThat(audioMpeg).isEqualTo(ContentType.DEFAULT)
+    assertThat(audioMpeg.type).isEqualTo("audio")
+    assertThat(audioMpeg.isSupportedTextType).isFalse()
+
+    val textPlain = ContentType.fromMimeType("text/plain")
+    assertThat(textPlain).isEqualTo(ContentType.DEFAULT)
+    assertThat(textPlain.type).isEqualTo("text")
+    assertThat(textPlain.isSupportedTextType).isTrue()
+
+    // XML is a known text subtype so we consider it a supported text type.
+    val applicationXml = ContentType.fromMimeType("application/xml")
+    assertThat(applicationXml).isEqualTo(ContentType.XML)
+    assertThat(applicationXml.type).isEqualTo("application")
+    assertThat(applicationXml.isSupportedTextType).isTrue()
+  }
 }

@@ -16,6 +16,9 @@
 package com.android.tools.idea.connection.assistant.actions
 
 import com.android.annotations.VisibleForTesting
+import com.android.ddmlib.AdbDevice
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.IDevice
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.assistant.AssistActionState
 import com.android.tools.idea.assistant.AssistActionStateManager
@@ -23,22 +26,25 @@ import com.android.tools.idea.assistant.datamodel.ActionData
 import com.android.tools.idea.assistant.datamodel.DefaultActionState
 import com.android.tools.idea.assistant.view.StatefulButtonMessage
 import com.android.tools.idea.assistant.view.UIUtils
+import com.android.tools.idea.concurrent.toCompletionStage
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.usb.Platform
-import com.android.tools.usb.UsbDevice
 import com.android.tools.usb.UsbDeviceCollector
 import com.android.tools.usb.UsbDeviceCollectorImpl
 import com.android.utils.HtmlBuilder
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ConnectionAssistantEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.ui.EdtInvocationManager
 import org.jetbrains.android.util.AndroidBundle
-import java.util.*
+import java.util.Collections
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
 
-val Logger = com.intellij.openapi.diagnostic.Logger.getInstance(ListUsbDevicesActionStateManager::class.java)
+val Logger: Logger = com.intellij.openapi.diagnostic.Logger.getInstance(ListUsbDevicesActionStateManager::class.java)
 
 /**
  * StateManager for {@link ListUsbDevicesAction}, displays if there are any connected USB devices to the user
@@ -46,8 +52,10 @@ val Logger = com.intellij.openapi.diagnostic.Logger.getInstance(ListUsbDevicesAc
  */
 class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable {
   private lateinit var usbDeviceCollector: UsbDeviceCollector
-  private lateinit var myProject: Project
-  private lateinit var myDevicesFuture: CompletableFuture<List<UsbDevice>>
+  private var myProject: Project? = null
+  private var myDevicesFuture = CompletableFuture.completedFuture(emptyList<DeviceCrossReference>())
+  private lateinit var rawDeviceFunction: () -> CompletionStage<List<AdbDevice>>
+  private lateinit var deviceFunction: () -> List<IDevice>
 
   companion object {
     private lateinit var myInstance: ListUsbDevicesActionStateManager
@@ -56,55 +64,72 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
   }
 
   override fun init(project: Project, actionData: ActionData) {
-    init(project, actionData, UsbDeviceCollectorImpl())
+    init(
+      project,
+      actionData,
+      UsbDeviceCollectorImpl(),
+      { AndroidDebugBridge.getBridge()?.rawDeviceList?.toCompletionStage() ?: CompletableFuture.completedFuture(emptyList<AdbDevice>()) },
+      { AndroidDebugBridge.getBridge()?.devices?.toList() ?: emptyList() }
+    )
   }
 
   @VisibleForTesting
-  fun init(project: Project, actionData: ActionData, deviceCollector: UsbDeviceCollector) {
+  fun init(
+    project: Project,
+    actionData: ActionData,
+    deviceCollector: UsbDeviceCollector,
+    rawDeviceFunction: () -> CompletionStage<List<AdbDevice>>,
+    deviceFunction: () -> List<IDevice>) {
+
     myProject = project
     usbDeviceCollector = deviceCollector
     myInstance = this
+    this.rawDeviceFunction = rawDeviceFunction
+    this.deviceFunction = deviceFunction
     refresh()
     Disposer.register(project, this)
   }
 
-  private fun getDevices(): CompletableFuture<List<UsbDevice>> {
-    return myDevicesFuture.exceptionally(
-      {
-        Logger.warn(it)
-        Collections.emptyList()
-      }
-    )
+  private fun getDevices(): CompletionStage<List<DeviceCrossReference>> {
+    return myDevicesFuture
   }
 
   fun refresh() {
     myDevicesFuture = usbDeviceCollector.listUsbDevices()
-    getDevices().thenAccept {
-      if (!myProject.isDisposed) {
-        UsageTracker.log(
-          AndroidStudioEvent.newBuilder()
-            .setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
-            .setConnectionAssistantEvent(
-              ConnectionAssistantEvent.newBuilder()
-                .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.USB_DEVICES_DETECTED)
-                .setUsbDevicesDetected(it.size)
-            )
-            .withProjectId(myProject)
-        )
-        refreshDependencyState(myProject)
+      .thenCombine(rawDeviceFunction()) { a, b -> crossReference(a, deviceFunction(), b) }
+      .exceptionally {
+        Logger.warn(it)
+        Collections.emptyList()
       }
-    }
-    refreshDependencyState(myProject)
+    myDevicesFuture
+      .thenAccept {
+        EdtInvocationManager.getInstance().invokeLater {
+          if (!myProject!!.isDisposed) {
+            UsageTracker.log(
+              AndroidStudioEvent.newBuilder()
+                .setKind(AndroidStudioEvent.EventKind.CONNECTION_ASSISTANT_EVENT)
+                .setConnectionAssistantEvent(
+                  ConnectionAssistantEvent.newBuilder()
+                    .setType(ConnectionAssistantEvent.ConnectionAssistantEventType.USB_DEVICES_DETECTED)
+                    .setUsbDevicesDetected(it.size)
+                )
+                .withProjectId(myProject)
+            )
+            refreshDependencyState(myProject!!)
+          }
+        }
+      }
   }
 
   override fun dispose() {
     myDevicesFuture.cancel(true)
+    myProject = null
   }
 
   override fun getState(project: Project, actionData: ActionData): AssistActionState {
     if (!myDevicesFuture.isDone) return DefaultActionState.IN_PROGRESS
 
-    return if (getDevices().get().isEmpty()) DefaultActionState.ERROR_RETRY else CustomSuccessState
+    return if (myDevicesFuture.get().isEmpty()) DefaultActionState.ERROR_RETRY else CustomSuccessState
   }
 
   override fun getStateDisplay(project: Project, actionData: ActionData, message: String?): StatefulButtonMessage? {
@@ -114,39 +139,109 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
 
   override fun getId(): String = ListUsbDevicesAction.ACTION_ID
 
+  private fun getAllDevices(): List<DeviceCrossReference> {
+    return myDevicesFuture.get()
+  }
+
   private fun generateMessage(): ButtonMessage {
     if (!myDevicesFuture.isDone) return ButtonMessage("Loading...")
-    val devices = myDevicesFuture.get().sortedBy { it.name }
+
+    val devices = getAllDevices().map {
+      summarize(it)
+    }.sortedBy { it.label }
 
     val titleHtmlBuilder = HtmlBuilder().openHtmlBody()
-      if (devices.isNotEmpty()) {
-        titleHtmlBuilder
-          .addHtml("<span style=\"color: ${UIUtils.getCssColor(
-            UIUtils.getSuccessColor())};\">Android Studio detected the following ${devices.size} USB device(s):</span>")
-      } else {
-        titleHtmlBuilder
-          .addHtml("<span style=\"color: ${UIUtils.getCssColor(
-            UIUtils.getFailureColor())};\">${AndroidBundle.message("connection.assistant.usb.no_devices.title")}</span>")
-      }
+    if (devices.isNotEmpty()) {
+      titleHtmlBuilder
+        .beginSpan("color: " + UIUtils.getCssColor(UIUtils.getSuccessColor()))
+        .add("Android Studio detected ${devices.size} device(s).")
+        .endSpan()
+    }
+    else {
+      titleHtmlBuilder
+        .beginSpan("color: " + UIUtils.getCssColor(UIUtils.getFailureColor()))
+        .add(AndroidBundle.message("connection.assistant.usb.no_devices.title"))
+        .endSpan()
+    }
+
+    val workingDevices = devices.filter { it.section == ConnectionAssistantSection.WORKING }
+    val problemDevices = devices.filter { it.section == ConnectionAssistantSection.POSSIBLE_PROBLEM }
+    val usbDevices = devices.filter { it.section == ConnectionAssistantSection.OTHER_USB }
 
     val bodyHtmlBuilder = HtmlBuilder().openHtmlBody()
-    if (devices.isNotEmpty()) {
-      devices.forEach { (name, _, productId) ->
-        bodyHtmlBuilder.addHtml("<p>")
-          .addHtml("<b>$name</b> ($productId)")
-          .newlineIfNecessary().addHtml("</p>")
+
+    bodyHtmlBuilder.newline()
+
+    if (workingDevices.isNotEmpty()) {
+      bodyHtmlBuilder
+        .addHeading("Found ${workingDevices.size} Android device(s) ready for debugging:", "black")
+
+      workingDevices.forEach { device ->
+        val name = device.label
+        bodyHtmlBuilder
+          .beginParagraph()
+          .add(name)
+        bodyHtmlBuilder.newlineIfNecessary().endParagraph()
       }
-    } else {
-      bodyHtmlBuilder.addHtml("<p>${AndroidBundle.message("connection.assistant.usb.no_devices.body")}</p>")
+      bodyHtmlBuilder.beginParagraph().endParagraph()
+    }
+
+    if (problemDevices.isNotEmpty()) {
+      bodyHtmlBuilder
+        .addHeading("Found ${problemDevices.size} Android device(s) with possible problems:", "black")
+
+      problemDevices.forEach { device ->
+        val name = device.label
+        bodyHtmlBuilder
+          .beginParagraph().add(name).endParagraph()
+        if (device.errorMessage != null) {
+          bodyHtmlBuilder
+            .beginList()
+            .listItem().add(device.errorMessage)
+            .endList()
+        }
+      }
+      bodyHtmlBuilder.beginParagraph().endParagraph()
+    }
+
+    if (usbDevices.isNotEmpty()) {
+      bodyHtmlBuilder
+        .addHeading("Found ${usbDevices.size} USB device(s) not recognized as Android devices:", "black")
+      // Instead of displaying multiple devices of the same name, merge them into one and display the count
+      usbDevices.groupBy { usbDevice -> usbDevice }.forEach { _, deviceList ->
+        val device = deviceList.first()
+        val name = device.label
+
+        bodyHtmlBuilder
+          .beginParagraph()
+          .add(name)
+
+        if (deviceList.size > 1) {
+          bodyHtmlBuilder.addNbsp().add("(${deviceList.size}x)")
+        }
+
+        bodyHtmlBuilder.newlineIfNecessary().endParagraph()
+      }
+      bodyHtmlBuilder.beginParagraph().endParagraph()
+    }
+
+    if (devices.isEmpty()) {
+      bodyHtmlBuilder
+        .beginParagraph()
+        .add(AndroidBundle.message("connection.assistant.usb.no_devices.body"))
+        .endParagraph()
         .newlineIfNecessary()
     }
 
     if (usbDeviceCollector.getPlatform() == Platform.Windows) {
-      bodyHtmlBuilder.addHtml(
-        "<p><b>Install device drivers.</b> If you want to connect a device for testing, " +
-        "then you need to install the appropriate USB drivers. For more information, read the " +
-        "<a href=\"https://developer.android.com/studio/run/oem-usb.html\">online documentation</a>.</p>"
-      )
+      bodyHtmlBuilder
+        .beginParagraph()
+        .addBold("Install device drivers.")
+        .add(" If you want to connect a device for testing, then you need to " +
+             "install the appropriate USB drivers. For more information, read the ")
+        .addLink("online documentation", "https://developer.android.com/studio/run/oem-usb.html")
+        .add(".")
+        .endParagraph()
     }
 
     return ButtonMessage(titleHtmlBuilder.closeHtmlBody().html, bodyHtmlBuilder.closeHtmlBody().html)

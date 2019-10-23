@@ -27,12 +27,6 @@ import org.jetbrains.annotations.Nullable;
 public class LintIdeGradleDetectorTest extends AndroidTestCase {
   private static final String BASE_PATH = "gradle/";
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
-  }
-
   public void testDependencies() throws Exception {
     AndroidLintGradleDependencyInspection inspection = new AndroidLintGradleDependencyInspection();
     doTest(inspection, null);
@@ -101,7 +95,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
 
   public void testBadPlayServicesVersion() throws Exception {
     AndroidLintGradleCompatibleInspection inspection = new AndroidLintGradleCompatibleInspection();
-    doTest(inspection, "Change to 9.6.1");
+    doTest(inspection, "Change to 12.0.1");
   }
 
   public void testStringInt() throws Exception {
@@ -123,6 +117,31 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
 
   public void testIgnoresGStringsInDependencies() throws Exception {
     AndroidLintGradlePluginVersionInspection inspection = new AndroidLintGradlePluginVersionInspection();
+    doTest(inspection, null);
+  }
+
+  public void testDataBindingWithoutKaptUsingApplyPlugin() throws Exception {
+    AndroidLintDataBindingWithoutKaptInspection inspection = new AndroidLintDataBindingWithoutKaptInspection();
+    doTest(inspection, null);
+  }
+
+  public void testDataBindingWithKaptUsingApplyPlugin() throws Exception {
+    AndroidLintDataBindingWithoutKaptInspection inspection = new AndroidLintDataBindingWithoutKaptInspection();
+    doTest(inspection, null);
+  }
+
+  public void testDataBindingWithoutKaptUsingPluginsBlock() throws Exception {
+    AndroidLintDataBindingWithoutKaptInspection inspection = new AndroidLintDataBindingWithoutKaptInspection();
+    doTest(inspection, null);
+  }
+
+  public void testDataBindingWithKaptUsingPluginsBlock() throws Exception {
+    AndroidLintDataBindingWithoutKaptInspection inspection = new AndroidLintDataBindingWithoutKaptInspection();
+    doTest(inspection, null);
+  }
+
+  public void testDeprecatedConfigurationUse() throws Exception {
+    AndroidLintGradleDeprecatedConfigurationInspection inspection = new AndroidLintGradleDeprecatedConfigurationInspection();
     doTest(inspection, null);
   }
 

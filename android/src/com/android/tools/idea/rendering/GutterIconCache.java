@@ -24,7 +24,8 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidArtworkIcons;
+import icons.AndroidIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,7 +34,7 @@ import java.util.Map;
 
 public class GutterIconCache {
   private static final Logger LOG = Logger.getInstance(GutterIconCache.class);
-  private static final Icon NONE = AndroidArtworkIcons.Icons.Android; // placeholder
+  private static final Icon NONE = AndroidIcons.Android; // placeholder
 
   @VisibleForTesting static final int MAX_WIDTH = JBUIScale.scale(16);
   @VisibleForTesting static final int MAX_HEIGHT = JBUIScale.scale(16);
@@ -58,29 +59,27 @@ public class GutterIconCache {
   }
 
   @VisibleForTesting
-  boolean isIconUpToDate(@NotNull String path) {
+  boolean isIconUpToDate(@NotNull VirtualFile file) {
+    String path = file.getPath();
     if (myModificationStampCache.containsKey(path)) {
       // Entry is valid if image resource has not been modified since the entry was cached
-      VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
-      if (file != null) {
-        return myModificationStampCache.get(path) == file.getModificationStamp()
-               && !FileDocumentManager.getInstance().isFileModified(file);
-      }
+      return myModificationStampCache.get(path) == file.getModificationStamp() && !FileDocumentManager.getInstance().isFileModified(file);
     }
 
     return false;
   }
 
   @Nullable
-  public Icon getIcon(@NotNull String path, @Nullable RenderResources resolver) {
+  public Icon getIcon(@NotNull VirtualFile file, @Nullable RenderResources resolver, @NotNull AndroidFacet facet) {
     boolean isRetina = UIUtil.isRetina();
     if (myRetina != isRetina) {
       myRetina = isRetina;
       myThumbnailCache.clear();
     }
+    String path = file.getPath();
     Icon myIcon = myThumbnailCache.get(path);
-    if (myIcon == null || !isIconUpToDate(path)) {
-      myIcon = GutterIconFactory.createIcon(path, resolver, MAX_WIDTH, MAX_HEIGHT);
+    if (myIcon == null || !isIconUpToDate(file)) {
+      myIcon = GutterIconFactory.createIcon(file, resolver, MAX_WIDTH, MAX_HEIGHT, facet);
 
       if (myIcon == null) {
         myIcon = NONE;
@@ -89,10 +88,7 @@ public class GutterIconCache {
       myThumbnailCache.put(path, myIcon);
 
       // Record timestamp of image resource at the time of caching
-      VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
-      if (file != null) {
-        myModificationStampCache.put(path, file.getModificationStamp());
-      }
+      myModificationStampCache.put(path, file.getModificationStamp());
     }
 
     return myIcon != NONE ? myIcon : null;

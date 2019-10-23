@@ -2,7 +2,7 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.tools.idea.AndroidTextUtils;
-import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
 import com.intellij.codeInsight.daemon.EmptyResolveMessageProvider;
 import com.intellij.codeInspection.LocalQuickFix;
@@ -16,14 +16,39 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.ElementManipulator;
+import com.intellij.psi.ElementManipulators;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassOwner;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiPackage;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlAttributeValue;
-import com.intellij.util.*;
-import com.intellij.util.xml.*;
-import org.jetbrains.android.dom.CompleteLibraryClasses;
+import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.Consumer;
+import com.intellij.util.FilteredQuery;
+import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.Query;
+import com.intellij.util.xml.ConvertContext;
+import com.intellij.util.xml.Converter;
+import com.intellij.util.xml.CustomReferenceConverter;
+import com.intellij.util.xml.DomElement;
+import com.intellij.util.xml.GenericDomValue;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -32,10 +57,14 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-
-public class PackageClassConverter extends ResolvingConverter<PsiClass> implements CustomReferenceConverter<PsiClass> {
+public class PackageClassConverter extends Converter<PsiClass> implements CustomReferenceConverter<PsiClass> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.dom.converters.PackageClassConverter");
+
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface Options {
+    @Nullable String[] inheriting();
+    boolean completeLibraryClasses() default false;
+  }
 
   /**
    * Use this {@link Builder} to construct a {@link PackageClassConverter}.
@@ -67,7 +96,8 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
      * @param classNames list of the classes that the searched class can extend
      */
     public Builder withExtendClassNames(String... classNames) {
-      myExtendClassesNames = classNames;
+      // Names coming from AndroidX will be use $ for inner classes whereas IntelliJ works with dots.
+      myExtendClassesNames = Stream.of(classNames).map(jvmName -> jvmName.replace('$', '.')).toArray(String[]::new);
       return this;
     }
 
@@ -93,9 +123,6 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
 
   /**
    * Constructs a new {@link PackageClassConverter}.
-   *
-   *
-   * @see CompleteLibraryClasses
    */
   protected PackageClassConverter(boolean useManifestBasePackage,
                                   String[] extraBasePackages,
@@ -115,12 +142,6 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     this(false, ArrayUtilRt.EMPTY_STRING_ARRAY, false, ArrayUtilRt.EMPTY_STRING_ARRAY);
   }
 
-  @Override
-  @NotNull
-  public Collection<? extends PsiClass> getVariants(ConvertContext context) {
-    return Collections.emptyList();
-  }
-
   @Nullable
   private String getManifestPackage(@NotNull ConvertContext context) {
     DomElement domElement = context.getInvocationElement();
@@ -130,7 +151,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     if (manifestPackage == null && myUseManifestBasePackage) {
       Module module = context.getModule();
       if (module != null) {
-        manifestPackage = MergedManifest.get(module).getPackage();
+        manifestPackage = MergedManifestManager.getSnapshot(module).getPackage();
       }
     }
     return manifestPackage;
@@ -225,12 +246,8 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
 
     final DomElement domElement = context.getInvocationElement();
     final String manifestPackage = getManifestPackage(context);
-    final ExtendClass extendClassAnnotation = domElement.getAnnotation(ExtendClass.class);
-
-    final String[] extendClassesNames = extendClassAnnotation != null
-                                        ? new String[]{extendClassAnnotation.value()}
-                                        : myExtendClassesNames;
-    final boolean completeLibraryClasses = myCompleteLibraryClasses || domElement.getAnnotation(CompleteLibraryClasses.class) != null;
+    final String[] extendClassesNames = getClassNames(domElement);
+    final boolean completeLibraryClasses = getCompleteLibraryClasses(domElement);
 
     AndroidFacet facet = AndroidFacet.getInstance(context);
     // If the source XML file is contained within the test folders, we'll also allow to resolve test classes
@@ -272,6 +289,17 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     consumer.consume(strValue.length());
 
     return result.toArray(PsiReference.EMPTY_ARRAY);
+  }
+
+  public boolean getCompleteLibraryClasses(@NotNull DomElement domElement) {
+    Options options = domElement.getAnnotation(Options.class);
+    return options != null ? options.completeLibraryClasses() : myCompleteLibraryClasses;
+  }
+
+  @NotNull
+  private String[] getClassNames(@NotNull DomElement domElement) {
+    Options options = domElement.getAnnotation(Options.class);
+    return options != null ? options.inheriting() : myExtendClassesNames;
   }
 
   @Nullable
@@ -359,7 +387,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     private final boolean myCompleteLibraryClasses;
     private final boolean myIncludeTests;
 
-    MyReference(PsiElement element,
+    private MyReference(PsiElement element,
                        TextRange range,
                        String manifestPackage,
                        String[] extraBasePackages,
@@ -443,7 +471,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     }
 
     @NotNull
-    public Collection<PsiClass> findInheritors(@NotNull final String className) {
+    private Collection<PsiClass> findInheritors(@NotNull final String className) {
       Project project = myElement.getProject();
       PsiClass base = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project));
       if (base == null) {

@@ -17,10 +17,11 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
-import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.scene.target.ComponentAssistantViewAction;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.android.tools.idea.uibuilder.handlers.actions.PickTextAppearanceViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.TextViewAssistant;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
 import com.android.xml.XmlBuilder;
@@ -115,13 +116,17 @@ public class TextViewHandler extends ViewHandler {
     return TextViewAssistant::createComponent;
   }
 
-  @NotNull
   @Override
-  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
-    ComponentAssistantFactory panelFactory = getComponentAssistant(sceneComponent.getNlComponent());
+  public boolean addPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
+    boolean cacheable = super.addPopupMenuActions(component, actions);
 
-    return panelFactory != null ?
-           ImmutableList.of(new ComponentAssistantActionTarget(panelFactory)) :
-           ImmutableList.of();
+    actions.add(new ComponentAssistantViewAction(TextViewHandler::getComponentAssistant));
+
+    return cacheable;
+  }
+
+  @Override
+  public List<ViewAction> getPropertyActions(@NotNull List<NlComponent> components) {
+    return ImmutableList.of(new PickTextAppearanceViewAction(ANDROID_URI, ATTR_TEXT_APPEARANCE));
   }
 }

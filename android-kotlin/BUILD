@@ -8,7 +8,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
@@ -20,7 +19,7 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/idea/.idea/libraries:kotlin-plugin",
     ],
@@ -32,10 +31,8 @@ iml_module(
     srcs = ["idea-android/src"],
     iml_files = ["idea-android/intellij.android.kotlin.idea.iml"],
     visibility = ["//visibility:public"],
-    exports = ["//tools/idea/.idea/libraries:kotlin-plugin"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
@@ -57,12 +54,19 @@ iml_module(
         "//tools/idea:intellij.java.impl[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:Gradle",
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/idea/.idea/libraries:kotlin-plugin",
         "//tools/adt/idea/android-kotlin:lib/dx",
+        "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
+        "//tools/idea/.idea/libraries:kotlin-gradle-plugin-model",
         "//tools/idea/plugins/gradle:intellij.gradle.common[module]",
+        "//tools/idea/platform/projectModel-api:intellij.platform.projectModel[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )
 
@@ -74,7 +78,6 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/xml/relaxng:intellij.relaxng",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
@@ -101,7 +104,7 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module]",
         "//tools/analytics-library/crash:analytics-crash[module]",
         "//tools/idea/.idea/libraries:Gradle",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:kotlin-plugin",
     ],
 )
@@ -115,51 +118,19 @@ java_import(
 
 # managed by go/iml_to_build
 iml_module(
-    name = "intellij.android.kotlin.extensions.jps",
-    srcs = ["android-extensions-jps/src"],
-    iml_files = ["android-extensions-jps/intellij.android.kotlin.extensions.jps.iml"],
-    test_runtime_deps = ["//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl"],
-    visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    runtime_deps = [
-        "//tools/idea/platform/usageView:intellij.platform.usageView",
-        "//tools/idea/platform/lvcs-impl:intellij.platform.lvcs.impl",
-        "//tools/idea/xml/xml-structure-view-impl:intellij.xml.structureView.impl",
-        "//tools/idea/xml/dom-impl:intellij.xml.dom.impl",
-        "//tools/idea/spellchecker:intellij.spellchecker",
-        "//tools/idea/xml/relaxng:intellij.relaxng",
-        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/json:intellij.json",
-        "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
-        "//tools/idea/platform/configuration-store-impl:intellij.platform.configurationStore.impl",
-        "//tools/idea/platform/built-in-server:intellij.platform.builtInServer.impl",
-        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
-        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
-        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
-    ],
-    # do not sort: must match IML order
-    deps = [
-        "//tools/adt/idea/jps-plugin:intellij.android.jps[module]",
-        "//tools/idea/platform/core-api:intellij.platform.core[module]",
-        "//tools/idea:intellij.platform.jps.build_and_others[module]",
-        "//tools/idea/jps/model-api:intellij.platform.jps.model[module]",
-        "//tools/idea/jps/model-serialization:intellij.platform.jps.model.serialization[module]",
-        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
-        "//tools/idea/.idea/libraries:kotlin-plugin",
-    ],
-)
-
-# managed by go/iml_to_build
-iml_module(
     name = "intellij.android.kotlin.tests",
     iml_files = ["intellij.android.kotlin.tests.iml"],
+    tags = ["no_test_windows"],
     test_class = "org.jetbrains.kotlin.android.KotlinAndroidTestSuite",
+    test_coverage = True,
+    # keep sorted
     test_data = [
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
-        "//tools/adt/idea/android/annotations",
-        "//tools/idea:platform-build-info",
         ":testData",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:kotlinc-files",
+        "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/resources-aar:framework_res",
+        "//tools/idea:platform-build-info",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
@@ -170,13 +141,13 @@ iml_module(
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
-        "//tools/vendor/intellij/cidr:intellij.c.doxygen",
     ],
+    test_shard_count = 5,
     test_srcs = [
         "android-extensions-idea/tests",
         "idea-android/tests",
     ],
-    test_tags = ["manual"],
+    test_tags = ["slow"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -193,6 +164,11 @@ iml_module(
         "//tools/idea/.idea/libraries:gson[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/idea/.idea/libraries:kotlin-gradle-plugin-model[test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module, test]",
+        "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl[module, test]",
     ],
 )
 
@@ -201,7 +177,6 @@ filegroup(
     srcs = glob([
         "idea-android/testData/**",
         "android-extensions-idea/testData/**",
-        "android-extensions-jps/testData/**",
         "android-extensions-runtime/src/**",
     ]),
     visibility = ["//visibility:public"],

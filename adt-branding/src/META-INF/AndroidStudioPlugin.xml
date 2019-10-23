@@ -5,9 +5,9 @@
   <module value="com.intellij.modules.python-core-capable"/>
 
   <xi:include href="/META-INF/JavaIdePlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/connection-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/whats-new-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>
+<!-- FIXME-ank:  <xi:include href="/META-INF/assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+<!-- FIXME-ank:  <xi:include href="/META-INF/connection-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+<!-- FIXME-ank:  <xi:include href="/META-INF/whats-new-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
 
   <application-components>
     <component>

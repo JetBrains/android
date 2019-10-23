@@ -64,12 +64,12 @@ public class ViewAllPropertiesAction extends ToggleAction {
   }
 
   @Override
-  public boolean isSelected(AnActionEvent e) {
+  public boolean isSelected(@NotNull AnActionEvent e) {
     return myModel.isAllPropertiesPanelMode();
   }
 
   @Override
-  public void setSelected(AnActionEvent e, boolean state) {
+  public void setSelected(@NotNull AnActionEvent e, boolean state) {
     if (!myModel.isAccessoryPanelVisible()) {
       myModel.setAllPropertiesPanelVisible(state);
     }

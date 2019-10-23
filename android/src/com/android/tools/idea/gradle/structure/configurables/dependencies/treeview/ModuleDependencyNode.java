@@ -48,7 +48,7 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDepende
   }
 
   private void setUp(@NotNull PsResolvedModuleDependency moduleDependency) {
-    @Nullable PsDependencyCollection<?, ?, ?> dependencies = PsModuleDependencyKt.getTargetModuleResolvedDependencies(moduleDependency);
+    @Nullable PsDependencyCollection<?, ?, ?, ?> dependencies = PsModuleDependencyKt.getTargetModuleResolvedDependencies(moduleDependency);
     if (dependencies != null) {
       List<AbstractPsModelNode<?>> children =
         createNodesForResolvedDependencies(this, dependencies);

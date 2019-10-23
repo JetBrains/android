@@ -18,6 +18,6 @@ package com.android.tools.idea.gradle.project.sync.cleanup;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-abstract class ProjectCleanUpTask {
+public abstract class ProjectCleanUpTask {
   abstract void cleanUp(@NotNull Project project);
 }

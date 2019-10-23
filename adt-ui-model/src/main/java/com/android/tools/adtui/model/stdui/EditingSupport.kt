@@ -50,6 +50,12 @@ interface EditingSupport {
   val execution: PooledThreadExecution
     get() = EDITOR_IMMEDIATE_EXECUTION
 
+  /**
+   * The swing component must be updated on the UI thread.
+   */
+  val uiExecution: (runnable: Runnable) -> Unit
+    get() = { it.run() }
+
   companion object {
     val INSTANCE: EditingSupport = DefaultEditingSupport()
   }
@@ -68,13 +74,17 @@ enum class EditingErrorCategory(val outline: String?) {
   WARNING("warning");
 }
 
-/** A validation method for a text editor */
-typealias EditingValidation = (editedValue: String) -> Pair<EditingErrorCategory, String>
+/**
+ * A validation method for a text editor
+ *
+ * An editor should pass the string being edited or null if the editor doesn't have focus.
+ */
+typealias EditingValidation = (editedValue: String?) -> Pair<EditingErrorCategory, String>
 
 /** Completion callback */
 typealias EditorCompletion = () -> List<String>
 
-/** */
+/** Execute a longer running operation on a non UI thread */
 typealias PooledThreadExecution = (runnable: Runnable) -> Future<*>
 
 @JvmField

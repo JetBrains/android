@@ -16,14 +16,19 @@
 
 package org.jetbrains.android.dom;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.collect.Iterables;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
+import com.intellij.codeInsight.daemon.impl.IdentifierHighlighterPassFactory;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.module.Module;
@@ -42,15 +47,15 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.actions.InlineAction;
 import com.intellij.refactoring.util.CommonRefactoringUtil;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
-import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
+import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for code editor features when working with resources under res/values.
@@ -173,7 +178,11 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   }
 
   public void testResourceTypeCompletion() throws Throwable {
-    doTestCompletion();
+    // Be careful updating this. "declare-styleable" or "integer-array" is not recognized. "styleable" crashes aapt2.
+    doTestCompletionVariants("resourceTypeCompletion.xml",
+                             "drawable", "dimen", "bool", "color", "plurals", "string", "raw", "integer", "menu", "transition",
+                             "fraction", "layout", "navigation", "mipmap", "array", "interpolator", "xml", "style", "id", "anim", "attr",
+                             "animator", "font");
   }
 
   public void testStyles5() throws Throwable {
@@ -228,6 +237,10 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     toTestCompletion("integerArray.xml", "integerArray_after.xml");
   }
 
+  public void testItemArray() throws Throwable {
+    doTestHighlighting("itemArray.xml");
+  }
+
   public void testArray() throws Throwable {
     toTestCompletion("array.xml", "array_after.xml");
   }
@@ -276,6 +289,10 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
 
   public void testNameValidation() throws Throwable {
     doTestHighlighting("nameValidation.xml");
+  }
+
+  public void testMissingType() throws Throwable {
+    doTestHighlighting("missingType.xml");
   }
 
   public void testResourceReferenceAsValueCompletion1() throws Throwable {
@@ -430,10 +447,6 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     Module libModule = myAdditionalModules.get(0);
     deleteManifest(libModule);
     myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml");
-
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
-    }
 
     // Should be okay even if main module is missing a manifest since the resources come from the library.
     deleteManifest(myModule);
@@ -628,6 +641,42 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     // Regression test for https://code.google.com/p/android/issues/detail?id=199247
     // Allow colons in names for attributes
     doTestHighlighting("attrValidation.xml");
+  }
+
+  public void testIdentifierHighlightingStringName() {
+    PsiFile file = myFixture.addFileToProject("res/values/strings.xml",
+                                              //language=XML
+                                              "<resources>" +
+                                              "  <string name='f<caret>oo'>foo</string>" +
+                                              "  <string name='bar'>@string/foo</string>" +
+                                              "</resources>");
+    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+
+    IdentifierHighlighterPassFactory.doWithHighlightingEnabled(() -> {
+      List<HighlightInfo> highlightInfos = myFixture.doHighlighting();
+      assertThat(highlightInfos).hasSize(1);
+      HighlightInfo highlightInfo = Iterables.getOnlyElement(highlightInfos);
+      assertThat(highlightInfo.getSeverity()).isEqualTo(HighlightInfoType.ELEMENT_UNDER_CARET_SEVERITY);
+      assertThat(highlightInfo.getText()).isEqualTo("@string/foo");
+
+      myFixture.type('X');
+      dispatchEvents();
+
+      highlightInfos = myFixture.doHighlighting();
+      assertThat(highlightInfos).hasSize(1);
+      highlightInfo = Iterables.getOnlyElement(highlightInfos);
+      assertThat(highlightInfo.getSeverity()).isEqualTo(HighlightSeverity.ERROR);
+      assertThat(highlightInfo.getText()).isEqualTo("@string/foo");
+    });
+  }
+
+  public void dispatchEvents() {
+    try {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    }
+    catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {

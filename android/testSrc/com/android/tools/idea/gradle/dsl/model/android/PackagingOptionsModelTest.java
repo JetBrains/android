@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_APPEND_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_APPLICATION_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_ASSIGNMENT_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REMOVE_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REPLACE_ELEMENTS;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.PackagingOptionsModel;
@@ -28,18 +37,7 @@ import org.junit.Test;
 public class PackagingOptionsModelTest extends GradleFileModelTestCase {
   @Test
   public void testParseElementsInApplicationStatements() throws Exception {
-    String text = "android {\n" +
-                  "  packagingOptions {\n" +
-                  "    exclude 'exclude1'\n" +
-                  "    excludes 'exclude2', 'exclude3'\n" +
-                  "    merge 'merge1'\n" +
-                  "    merges 'merge2', 'merge3'\n" +
-                  "    pickFirst 'pickFirst1'\n" +
-                  "    pickFirsts 'pickFirst2', 'pickFirst3'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_APPLICATION_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -52,18 +50,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseElementsInAssignmentStatements() throws Exception {
-    String text = "android {\n" +
-                  "  packagingOptions {\n" +
-                  "    excludes = ['exclude1', 'exclude2']\n" +
-                  "    exclude 'exclude3'\n" +
-                  "    merges = ['merge1', 'merge2']\n" +
-                  "    merge 'merge3'\n" +
-                  "    pickFirsts = ['pickFirst1', 'pickFirst2']\n" +
-                  "    pickFirst 'pickFirst3'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_ASSIGNMENT_STATEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -76,18 +63,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceElements() throws Exception {
-    String text = "android {\n" +
-                  "  packagingOptions {\n" +
-                  "    exclude 'exclude1'\n" +
-                  "    excludes 'exclude2', 'exclude3'\n" +
-                  "    merges = ['merge1', 'merge2']\n" +
-                  "    merge 'merge3'\n" +
-                  "    pickFirst 'pickFirst1'\n" +
-                  "    pickFirsts 'pickFirst2', 'pickFirst3'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(PACKAGING_OPTIONS_MODEL_REPLACE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -114,12 +90,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddElements() throws Exception {
-    String text = "android {\n" +
-                  "  packagingOptions {\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -146,15 +117,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAppendElements() throws Exception {
-    String text = "android {\n" +
-                  "  packagingOptions {\n" +
-                  "    exclude 'exclude1'\n" +
-                  "    merges = ['merge1']\n" +
-                  "    pickFirsts 'pickFirst1'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(PACKAGING_OPTIONS_MODEL_APPEND_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -181,18 +144,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveElements() throws Exception {
-    String text = "android {\n" +
-                  "  packagingOptions {\n" +
-                  "    exclude 'exclude1'\n" +
-                  "    excludes 'exclude2', 'exclude3'\n" +
-                  "    merges = ['merge1', 'merge2']\n" +
-                  "    merge 'merge3'\n" +
-                  "    pickFirst 'pickFirst1'\n" +
-                  "    pickFirsts 'pickFirst2', 'pickFirst3'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(PACKAGING_OPTIONS_MODEL_REMOVE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -221,18 +173,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOneOfElements() throws Exception {
-    String text = "android {\n" +
-                  "  packagingOptions {\n" +
-                  "    exclude 'exclude1'\n" +
-                  "    excludes 'exclude2', 'exclude3'\n" +
-                  "    merges = ['merge1', 'merge2']\n" +
-                  "    merge 'merge3'\n" +
-                  "    pickFirst 'pickFirst1'\n" +
-                  "    pickFirsts 'pickFirst2', 'pickFirst3'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(PACKAGING_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -259,15 +200,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOnlyElement() throws Exception {
-    String text = "android {\n" +
-                  "  packagingOptions {\n" +
-                  "    exclude 'exclude'\n" +
-                  "    merges = ['merge']\n" +
-                  "    pickFirsts 'pickFirst'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(PACKAGING_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();

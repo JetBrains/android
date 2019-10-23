@@ -15,7 +15,14 @@
  */
 package com.android.tools.idea.testing.fixtures
 
-import com.android.projectmodel.*
+import com.android.projectmodel.ARTIFACT_NAME_MAIN
+import com.android.projectmodel.AndroidModel
+import com.android.projectmodel.AndroidPathType
+import com.android.projectmodel.AndroidSubmodule
+import com.android.projectmodel.Artifact
+import com.android.projectmodel.ProjectLibrary
+import com.android.projectmodel.submodulePathOf
+import com.android.projectmodel.visitEach
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.ide.highlighter.ModuleFileType
 import com.intellij.idea.IdeaTestApplication
@@ -30,7 +37,11 @@ import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.testFramework.LightProjectDescriptor
-import com.intellij.testFramework.fixtures.*
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
+import com.intellij.testFramework.fixtures.TempDirTestFixture
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
 import org.jetbrains.android.AndroidTestCase
@@ -134,9 +145,7 @@ object ModelToTestProjectConverter {
   }
 
   private val AndroidSubmodule.mainArtifact: Artifact
-    get() {
-      return (variants.singleOrNull() ?: error("Only single-variant modules are supported")).mainArtifact
-    }
+    get() = getArtifact(submodulePathOf(ARTIFACT_NAME_MAIN)) ?: error("Only single-variant modules are supported")
 
   private fun pickImlPath(moduleName: String, mode: Mode, tempDirFixture: TempDirTestFixture): String = when (mode) {
     Mode.DISK -> "${tempDirFixture.tempDirPath}/_imls/${moduleName}.${ModuleFileType.DEFAULT_EXTENSION}"

@@ -16,7 +16,7 @@
 package org.jetbrains.android.dom.animator.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.animator.Animator;
 
 /**
@@ -28,7 +28,7 @@ import org.jetbrains.android.dom.animator.Animator;
  *
  * This description handles "animator" root tag
  */
-public class AnimatorDomFileDescription extends AbstractSingleRootFileDescription<Animator> {
+public class AnimatorDomFileDescription extends SingleRootResourceDomFileDescription<Animator> {
   public AnimatorDomFileDescription() {
     super(Animator.class, "animator", ResourceFolderType.ANIMATOR);
   }

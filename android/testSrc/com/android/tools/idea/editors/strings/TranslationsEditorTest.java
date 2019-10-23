@@ -30,6 +30,7 @@ import com.intellij.openapi.util.Disposer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.table.TableColumn;
@@ -77,14 +78,14 @@ public final class TranslationsEditorTest {
   @Test
   public void reusedColumnHeaderValuesAreCleared() {
     myApplication.invokeAndWait(() -> {
-      Utils.loadResources(myPanel, myRes);
+      Utils.loadResources(myPanel, Collections.singletonList(myRes));
 
       AddLocaleAction action = myPanel.getAddLocaleAction();
       action.createItem(Locale.create("b+ace"));
-      Utils.loadResources(myPanel, myRes);
+      Utils.loadResources(myPanel, Collections.singletonList(myRes));
 
       action.createItem(Locale.create("ab"));
-      Utils.loadResources(myPanel, myRes);
+      Utils.loadResources(myPanel, Collections.singletonList(myRes));
     });
 
     TableColumnModel model = myTable.getScrollableTable().getColumnModel();
@@ -100,7 +101,7 @@ public final class TranslationsEditorTest {
   @Test
   public void setKeyName() {
     myApplication.invokeAndWait(() -> {
-      Utils.loadResources(myPanel, myRes);
+      Utils.loadResources(myPanel, Collections.singletonList(myRes));
       myTable.editCellAt(0, StringResourceTableModel.KEY_COLUMN);
 
       StringTableCellEditor cellEditor = (StringTableCellEditor)myTable.getCellEditor();

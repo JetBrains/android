@@ -16,16 +16,69 @@
 
 package org.jetbrains.android.util;
 
+import static com.android.SdkConstants.AAPT_PREFIX;
+import static com.android.SdkConstants.AAPT_URI;
+import static com.android.SdkConstants.ANDROID_NS_NAME;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.APP_PREFIX;
+import static com.android.SdkConstants.ATTR_COLOR;
+import static com.android.SdkConstants.ATTR_DRAWABLE;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.CLASS_R;
+import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.FD_RES;
+import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
+import static com.android.SdkConstants.ID_PREFIX;
+import static com.android.SdkConstants.NEW_ID_PREFIX;
+import static com.android.SdkConstants.TAG_ATTR;
+import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
+import static com.android.SdkConstants.TAG_ITEM;
+import static com.android.SdkConstants.TAG_LAYOUT;
+import static com.android.SdkConstants.TAG_STRING;
+import static com.android.SdkConstants.TOOLS_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VIEW_MERGE;
+import static com.android.SdkConstants.XMLNS_PREFIX;
+import static com.android.builder.model.AaptOptions.Namespacing;
+import static com.android.resources.ResourceType.ARRAY;
+import static com.android.resources.ResourceType.ATTR;
+import static com.android.resources.ResourceType.BOOL;
+import static com.android.resources.ResourceType.COLOR;
+import static com.android.resources.ResourceType.DIMEN;
+import static com.android.resources.ResourceType.DRAWABLE;
+import static com.android.resources.ResourceType.FRACTION;
+import static com.android.resources.ResourceType.ID;
+import static com.android.resources.ResourceType.INTEGER;
+import static com.android.resources.ResourceType.LAYOUT;
+import static com.android.resources.ResourceType.NAVIGATION;
+import static com.android.resources.ResourceType.PLURALS;
+import static com.android.resources.ResourceType.STRING;
+import static com.android.resources.ResourceType.STYLE;
+import static com.android.resources.ResourceType.STYLEABLE;
+import static com.android.resources.ResourceType.fromXmlTag;
+import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.FileResourceNameValidator;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.resources.ResourceUrl;
+import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.tools.idea.projectsystem.LightResourceClassService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.AndroidInternalRClassFinder;
+import com.android.tools.idea.res.AndroidRClassBase;
+import com.android.tools.idea.res.PsiResourceItem;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StateList;
+import com.android.tools.idea.res.StateListState;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -47,23 +100,44 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
-import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpression;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.XmlElementFactory;
+import com.intellij.psi.search.PsiElementProcessor;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Processor;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.actions.CreateTypedResourceFileAction;
 import org.jetbrains.android.augment.ManifestClass;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.color.ColorSelector;
 import org.jetbrains.android.dom.drawable.DrawableSelector;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
@@ -74,15 +148,6 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.builder.model.AaptOptions.Namespacing;
-import static com.android.resources.ResourceType.*;
-import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
 /**
  * @author Eugene.Kudelevsky
@@ -200,43 +265,10 @@ public class AndroidResourceUtil {
       return Collections.emptySet();
     }
 
+    LightResourceClassService resourceClassService =
+      ProjectSystemUtil.getProjectSystem(facet.getModule().getProject()).getLightResourceClassService();
 
-    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      LightResourceClassService resourceClassService =
-        ProjectSystemUtil.getProjectSystem(facet.getModule().getProject()).getLightResourceClassService();
-
-      return resourceClassService.getLightRClassesContainingModuleResources(module);
-    }
-    else {
-      Set<Module> dependentModules = new HashSet<>();
-      ModuleUtilCore.collectModulesDependsOn(module, dependentModules);
-      Set<PsiClass> rClasses = new HashSet<>();
-      JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
-
-      String targetPackage = onlyInOwnPackages ? null : AndroidManifestUtils.getPackageName(facet);
-      if (targetPackage != null) {
-        GlobalSearchScope[] scopes = new GlobalSearchScope[dependentModules.size()];
-        int i = 0;
-        for (Module dependentModule : dependentModules) {
-          scopes[i++] = dependentModule.getModuleScope();
-        }
-        rClasses.addAll(Arrays.asList(psiFacade.findClasses(packageToRClass(targetPackage), GlobalSearchScope.union(scopes))));
-      }
-
-      for (Module dependentModule : dependentModules) {
-        AndroidFacet dependentFacet = AndroidFacet.getInstance(dependentModule);
-        if (dependentFacet == null) {
-          continue;
-        }
-        String dependentPackage = AndroidManifestUtils.getPackageName(dependentFacet);
-        if (dependentPackage == null || dependentPackage.equals(targetPackage)) {
-          continue;
-        }
-        rClasses.addAll(Arrays.asList(psiFacade.findClasses(packageToRClass(dependentPackage), dependentModule.getModuleScope())));
-      }
-
-      return rClasses;
-    }
+    return resourceClassService.getLightRClassesContainingModuleResources(module);
   }
 
   @NotNull
@@ -674,13 +706,19 @@ public class AndroidResourceUtil {
       return true;
     }
 
-    // method can be invoked for system resource dir, so we should check it
     if (!FD_RES.equals(dir.getName())) return false;
     dir = dir.getParent();
     if (dir != null) {
+      String protocol = vf.getFileSystem().getProtocol();
+      // TODO: Figure out a better way to check if a directory belongs to proto AAR resources.
+      if (protocol.equals(JarFileSystem.PROTOCOL) || protocol.equals(ApkFileSystem.PROTOCOL)) {
+          return true; // The file belongs either to res.apk or a source attachment JAR of a library.
+      }
+
       if (dir.findFile(FN_ANDROID_MANIFEST_XML) != null) {
         return true;
       }
+      // The method can be invoked for a framework resource directory, so we should check it.
       dir = dir.getParent();
       if (dir != null) {
         if (containsAndroidJar(dir)) return true;
@@ -698,66 +736,11 @@ public class AndroidResourceUtil {
   }
 
   public static boolean isRJavaClass(@NotNull PsiClass psiClass) {
-    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      return psiClass instanceof AndroidRClassBase;
-    }
-    PsiFile file = psiClass.getContainingFile();
-    if (file == null) {
-      return false;
-    }
-    AndroidFacet facet = AndroidFacet.getInstance(psiClass);
-    if (facet == null) {
-      return false;
-    }
-
-    if (!AndroidUtils.R_CLASS_NAME.equals(psiClass.getName())) {
-      return false;
-    }
-
-    if (file.getName().equals(AndroidCommonUtils.R_JAVA_FILENAME) && file instanceof PsiJavaFile) {
-      final PsiJavaFile javaFile = (PsiJavaFile)file;
-
-      final Manifest manifest = facet.getManifest();
-      if (manifest != null) {
-        final String manifestPackage = manifest.getPackage().getValue();
-        if (manifestPackage != null && javaFile.getPackageName().equals(manifestPackage)) {
-          return true;
-        }
-      }
-
-      for (String aPackage : AndroidUtils.getDepLibsPackages(facet.getModule())) {
-        if (javaFile.getPackageName().equals(aPackage)) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return psiClass instanceof AndroidRClassBase;
   }
 
   public static boolean isManifestClass(@NotNull PsiClass psiClass) {
-    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
-      return psiClass instanceof ManifestClass;
-    }
-
-    PsiFile file = psiClass.getContainingFile();
-    if (file == null) {
-      return false;
-    }
-    AndroidFacet facet = AndroidFacet.getInstance(psiClass);
-    if (facet == null) {
-      return false;
-    }
-
-    if (!AndroidUtils.MANIFEST_CLASS_NAME.equals(psiClass.getName())) {
-      return false;
-    }
-
-    if (file.getName().equals(AndroidCommonUtils.MANIFEST_JAVA_FILE_NAME) && file instanceof PsiJavaFile) {
-      final Manifest manifest = facet.getManifest();
-      final PsiJavaFile javaFile = (PsiJavaFile)file;
-      return manifest != null && javaFile.getPackageName().equals(manifest.getPackage().getValue());
-    }
-    return false;
+    return psiClass instanceof ManifestClass;
   }
 
   public static boolean createValueResource(@NotNull Project project,
@@ -1058,7 +1041,7 @@ public class AndroidResourceUtil {
   @NotNull
   public static ResourceNamespace getRClassNamespace(@NotNull AndroidFacet facet, String qName) {
     ResourceNamespace resourceNamespace;
-    if (ResourceRepositoryManager.getOrCreateInstance(facet).getNamespacing() == Namespacing.DISABLED) {
+    if (ResourceRepositoryManager.getInstance(facet).getNamespacing() == Namespacing.DISABLED) {
       resourceNamespace = ResourceNamespace.RES_AUTO;
     } else {
       resourceNamespace = ResourceNamespace.fromPackageName(StringUtil.getPackageName(qName));
@@ -1200,6 +1183,64 @@ public class AndroidResourceUtil {
       }
     }
     return resDirectories;
+  }
+
+  /** Returns the {@link PsiFile} corresponding to the source of the given resource item, if possible. */
+  @Nullable
+  public static PsiFile getItemPsiFile(@NotNull Project project, @NotNull ResourceItem item) {
+    if (project.isDisposed()) {
+      return null;
+    }
+
+    if (item instanceof PsiResourceItem) {
+      PsiResourceItem psiResourceItem = (PsiResourceItem)item;
+      return psiResourceItem.getPsiFile();
+    }
+
+    VirtualFile virtualFile = ResourceHelper.getSourceAsVirtualFile(item);
+    if (virtualFile != null) {
+      PsiManager psiManager = PsiManager.getInstance(project);
+      return psiManager.findFile(virtualFile);
+    }
+
+    return null;
+  }
+
+  /**
+   * Returns the XML attribute containing declaration of the given ID resource.
+   *
+   * @param project the project containing the resource
+   * @param idResource the ID resource
+   * @return
+   */
+  @Nullable
+  public static XmlAttribute getIdDeclarationAttribute(@NotNull Project project, @NotNull ResourceItem idResource) {
+    assert idResource.getType() == ID;
+    PsiFile psiFile = getItemPsiFile(project, idResource);
+    if (!(psiFile instanceof XmlFile)) {
+      return null;
+    }
+
+    XmlFile xmlFile = (XmlFile)psiFile;
+    String resourceName = idResource.getName();
+
+    // TODO(b/113646219): find the right one, if there are multiple, not the first one.
+    PsiElementProcessor.FindFilteredElement processor = new PsiElementProcessor.FindFilteredElement(element -> {
+      if (element instanceof XmlAttribute) {
+        XmlAttribute attr = (XmlAttribute)element;
+        String attrValue = attr.getValue();
+        if (isIdDeclaration(attrValue)) {
+          ResourceUrl resourceUrl = ResourceUrl.parse(attrValue);
+          if (resourceUrl != null && resourceUrl.name.equals(resourceName)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    });
+    PsiTreeUtil.processElements(xmlFile, processor);
+
+    return (XmlAttribute)processor.getFoundElement();
   }
 
   /**

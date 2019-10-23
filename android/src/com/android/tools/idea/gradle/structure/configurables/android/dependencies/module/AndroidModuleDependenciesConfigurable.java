@@ -18,26 +18,19 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.module.MainPanel;
-import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 public class AndroidModuleDependenciesConfigurable extends AbstractModuleConfigurable<PsAndroidModule, MainPanel> {
-  @NotNull private final List<PsModule> myExtraModules;
 
-  public AndroidModuleDependenciesConfigurable(@NotNull PsAndroidModule module,
-                                               @NotNull PsContext context,
-                                               @NotNull List<PsModule> extraModules) {
+  public AndroidModuleDependenciesConfigurable(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     super(context, module);
-    myExtraModules = extraModules;
   }
 
   @Override
   public MainPanel createPanel() {
-    return new MainPanel(getModule(), getContext(), myExtraModules);
+    return new MainPanel(getModule(), getContext());
   }
 
   @Override

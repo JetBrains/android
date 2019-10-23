@@ -74,16 +74,17 @@ public class SceneCreationTest extends SceneTest {
     sceneBuilder.update();
     assertEquals(2, scene.getRoot().getChildren().size());
     List<SceneComponent> children = scene.getRoot().getChildren();
-    SceneComponent sceneTextView = children.get(0);
-    assertEquals(100, sceneTextView.getDrawX());
-    assertEquals(200, sceneTextView.getDrawY());
-    assertEquals(100, sceneTextView.getDrawWidth());
-    assertEquals(20, sceneTextView.getDrawHeight());
-    SceneComponent sceneEditText = children.get(1);
+    // editText is added before textView.
+    SceneComponent sceneEditText = children.get(0);
     assertEquals(110, sceneEditText.getDrawX());
     assertEquals(220, sceneEditText.getDrawY());
     assertEquals(200, sceneEditText.getDrawWidth());
     assertEquals(30, sceneEditText.getDrawHeight());
+    SceneComponent sceneTextView = children.get(1);
+    assertEquals(100, sceneTextView.getDrawX());
+    assertEquals(200, sceneTextView.getDrawY());
+    assertEquals(100, sceneTextView.getDrawWidth());
+    assertEquals(20, sceneTextView.getDrawHeight());
     parent.removeChild(textView);
     builder.updateModel(model);
     sceneBuilder.update();

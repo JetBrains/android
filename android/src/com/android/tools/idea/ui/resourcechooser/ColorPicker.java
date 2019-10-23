@@ -1,10 +1,10 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.ui.resourcechooser;
 
-import com.android.tools.adtui.ui.ClickableLabel;
-import com.android.tools.adtui.util.GraphicsUtil;
 import com.android.tools.idea.editors.theme.ColorUtils;
 import com.android.tools.idea.editors.theme.MaterialColorUtils;
+import com.android.tools.adtui.ui.ClickableLabel;
+import com.android.tools.adtui.util.GraphicsUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -27,7 +27,12 @@ import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.Alarm;
 import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.ui.*;
+import com.intellij.util.ui.ColorIcon;
+import com.intellij.util.ui.ImageUtil;
+import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
+import com.intellij.util.ui.UIUtil;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,8 +105,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
   }
 
   private ColorPicker(Disposable parent,
-                      @Nullable Color color, boolean enableOpacity,
-                      ColorPickerListener[] listeners, boolean opacityInPercent) {
+          @Nullable Color color, boolean enableOpacity,
+          ColorPickerListener[] listeners, boolean opacityInPercent) {
     myUpdateQueue = new Alarm(Alarm.ThreadToUse.SWING_THREAD, parent);
     myAlpha = createColorField(false);
     myRed = createColorField(false);
@@ -252,8 +257,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
   }
 
   public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithDescription,
-                                    boolean isBackground,
-                                    boolean displayWarning) {
+          boolean isBackground,
+          boolean displayWarning) {
     myPreviewComponent.setContrastParameters(contrastColorsWithDescription, isBackground, displayWarning);
   }
 
@@ -441,11 +446,11 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
   @Nullable
   public static Color showDialog(Component parent,
-                                 String caption,
-                                 @Nullable Color preselectedColor,
-                                 boolean enableOpacity,
-                                 @Nullable ColorPickerListener[] listeners,
-                                 boolean opacityInPercent) {
+          String caption,
+          @Nullable Color preselectedColor,
+          boolean enableOpacity,
+          @Nullable ColorPickerListener[] listeners,
+          boolean opacityInPercent) {
     final ColorPickerDialog dialog = new ColorPickerDialog(parent, caption, preselectedColor, enableOpacity, listeners, opacityInPercent);
     dialog.show();
     if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
@@ -777,8 +782,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
      * @param displayWarning whether or not to display a warning for contrast issues
      */
     public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithDescription,
-                                      boolean isBackgroundColor,
-                                      boolean displayWarning) {
+            boolean isBackgroundColor,
+            boolean displayWarning) {
       myIsContrastPreview = true;
       myContrastColorsWithDescription = contrastColorsWithDescription;
       myContrastColorSet = ImmutableSet.copyOf(contrastColorsWithDescription.values());
@@ -939,7 +944,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         if (name != null) {
           return name;
         }
-        return String.format("R: %d G: %d B: %d", color.getRed(), color.getGreen(), color.getBlue());
+        return String.format(Locale.US, "R: %d G: %d B: %d", color.getRed(), color.getGreen(), color.getBlue());
       }
 
       return super.getToolTipText(event);
@@ -1025,12 +1030,12 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     private ColorPipette myPicker;
     private final boolean myOpacityInPercent;
 
-    ColorPickerDialog(Component parent,
-                             String caption,
-                             @Nullable Color preselectedColor,
-                             boolean enableOpacity,
-                             @Nullable ColorPickerListener[] listeners,
-                             boolean opacityInPercent) {
+    public ColorPickerDialog(Component parent,
+            String caption,
+            @Nullable Color preselectedColor,
+            boolean enableOpacity,
+            @Nullable ColorPickerListener[] listeners,
+            boolean opacityInPercent) {
       super(parent, true);
       myListeners = listeners;
       setTitle(caption);
@@ -1258,7 +1263,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         graphics.dispose();
 
         myImage = myParent.getGraphicsConfiguration().createCompatibleImage(myMagnifierImage.getWidth(), myMagnifierImage.getHeight(),
-                                                                            Transparency.TRANSLUCENT);
+                Transparency.TRANSLUCENT);
 
         myGraphics = (Graphics2D)myImage.getGraphics();
         myGraphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
@@ -1404,8 +1409,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       }
 
       private static String formatValue(int value, Unit unit) {
-        return String.format("%d%s", (int) (getMaxValue(unit) / LEVEL_MAX_VALUE * value),
-                             unit.equals(PERCENT) ? "%" : "");
+        return String.format(Locale.US, "%d%s", (int)(getMaxValue(unit) / LEVEL_MAX_VALUE * value), unit.equals(PERCENT) ? "%" : "");
       }
     }
 
@@ -1457,7 +1461,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
           final int amount = e.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL ? e.getUnitsToScroll() * e.getScrollAmount() :
-                             e.getWheelRotation() < 0 ? -e.getScrollAmount() : e.getScrollAmount();
+                  e.getWheelRotation() < 0 ? -e.getScrollAmount() : e.getScrollAmount();
           int pointerValue = myPointerValue + amount;
           pointerValue = pointerValue < MARGIN ? MARGIN : pointerValue;
           int size = getWidth();
@@ -1502,12 +1506,12 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         myTooltipHint.setCancelOnOtherWindowOpen(false);
 
         final HintHint hint = new HintHint(this, point)
-          .setPreferredPosition(Balloon.Position.above)
-          .setBorderColor(Color.BLACK)
-          .setAwtTooltip(true)
-          .setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD))
-          .setTextBg(HintUtil.getInformationColor())
-          .setShowImmediately(true);
+                .setPreferredPosition(Balloon.Position.above)
+                .setBorderColor(Color.BLACK)
+                .setAwtTooltip(true)
+                .setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD))
+                .setTextBg(HintUtil.getInformationColor())
+                .setShowImmediately(true);
 
         final Component owner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
         myTooltipHint.show(this, point.x, point.y, owner instanceof JComponent ? (JComponent)owner : null, hint);
@@ -1651,7 +1655,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
 
     @Override
-     protected int valueToPointerValue(int value) {
+    protected int valueToPointerValue(int value) {
       float proportion = (getWidth() - 2 * MARGIN) / 360f;
       return MARGIN + (int)(value * proportion);
     }

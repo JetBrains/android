@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -640,7 +640,7 @@ public class ScoutChainsArrange {
       .map(AttributesTransaction::getComponent)
       .collect(Collectors.toList());
 
-    NlWriteCommandAction.run(components, name, () -> transactions.forEach(AttributesTransaction::commit));
+    NlWriteCommandActionUtil.run(components, name, () -> transactions.forEach(AttributesTransaction::commit));
   }
 
   /**

@@ -35,7 +35,7 @@ public class NdkModuleCleanupStepTest extends JavaProjectTestCase {
     myCleanupStep = new NdkModuleCleanupStep();
   }
 
-  public void testCleanUpModule() {
+  public void testCleanUpModule() throws Exception {
     createAndAddNdkFacet(myModule);
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     myCleanupStep.cleanUpModule(myModule, modelsProvider);

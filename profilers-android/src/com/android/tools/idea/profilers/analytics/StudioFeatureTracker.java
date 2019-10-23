@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.profilers.analytics;
 
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.SyncException;
+import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.Stage;
@@ -39,13 +43,28 @@ import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionItem;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.collect.ImmutableMap;
-import com.google.wireless.android.sdk.stats.*;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.CpuApiTracingMetadata;
+import com.google.wireless.android.sdk.stats.CpuCaptureMetadata;
+import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata;
+import com.google.wireless.android.sdk.stats.CpuProfilingConfig;
+import com.google.wireless.android.sdk.stats.CpuStartupProfilingMetadata;
+import com.google.wireless.android.sdk.stats.DeviceInfo;
+import com.google.wireless.android.sdk.stats.EnergyEvent;
+import com.google.wireless.android.sdk.stats.EnergyEventCount;
+import com.google.wireless.android.sdk.stats.EnergyEventMetadata;
+import com.google.wireless.android.sdk.stats.EnergyRangeMetadata;
+import com.google.wireless.android.sdk.stats.FilterMetadata;
+import com.google.wireless.android.sdk.stats.ProfilerSessionCreationMetaData;
+import com.google.wireless.android.sdk.stats.ProfilerSessionSelectionMetaData;
+import com.google.wireless.android.sdk.stats.TransportFailureMetadata;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import java.io.IOException;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public final class StudioFeatureTracker implements FeatureTracker {
 
@@ -93,8 +112,86 @@ public final class StudioFeatureTracker implements FeatureTracker {
       LegacyAllocationsSessionArtifact.class, ProfilerSessionSelectionMetaData.ArtifactType.ARTIFACT_LEGACY_ALLOCATIONS
     );
 
+  private final ImmutableMap<Class<? extends Exception>, TransportFailureMetadata.FailureType> TRANSPORT_FAILURE_MAP =
+    ImmutableMap.<Class<? extends Exception>, TransportFailureMetadata.FailureType>builder()
+      .put(TimeoutException.class, TransportFailureMetadata.FailureType.TIMEOUT)
+      .put(InterruptedException.class, TransportFailureMetadata.FailureType.INTERRUPTED)
+      .put(IOException.class, TransportFailureMetadata.FailureType.IO)
+      .put(SyncException.class, TransportFailureMetadata.FailureType.SYNC)
+      .put(ShellCommandUnresponsiveException.class, TransportFailureMetadata.FailureType.SHELL_COMMAND_UNRESPONSIVE)
+      .put(AdbCommandRejectedException.class, TransportFailureMetadata.FailureType.ADB_COMMAND_REJECTED)
+      .build();
+
+  private final static ImmutableMap<com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus, CpuCaptureMetadata.CaptureStatus>
+    CPU_CAPTURE_STATUS_MAP =
+    ImmutableMap.<com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus, CpuCaptureMetadata.CaptureStatus>builder()
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.SUCCESS,
+           CpuCaptureMetadata.CaptureStatus.SUCCESS)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE,
+           CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE,
+           CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING,
+           CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE,
+           CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_NO_GOING_PROFILING,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_NO_GOING_PROFILING)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_APP_PROCESS_DIED,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_APP_PROCESS_DIED)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_APP_PID_CHANGED,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_APP_PID_CHANGED)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_PROFILER_PROCESS_DIED,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_PROFILER_PROCESS_DIED)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_STOP_COMMAND_FAILED,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_STOP_COMMAND_FAILED)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_STILL_PROFILING_AFTER_STOP,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_STILL_PROFILING_AFTER_STOP)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_START_WAITING,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_START_WAITING)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_WAIT_TIMEOUT,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_WAIT_TIMEOUT)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_WAIT_FAILED,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_WAIT_FAILED)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_READ_WAIT_EVENT,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_READ_WAIT_EVENT)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_COPY_FILE,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_COPY_FILE)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_FORM_FILE,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_FORM_FILE)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_READ_FILE,
+           CpuCaptureMetadata.CaptureStatus.STOP_FAILED_CANNOT_READ_FILE)
+      .build();
+
+
   @NotNull
   private AndroidProfilerEvent.Stage myCurrStage = AndroidProfilerEvent.Stage.UNKNOWN_STAGE;
+
+  @Override
+  public void trackPreTransportDaemonStarts(@NotNull Common.Device transportDevice) {
+    newTracker(AndroidProfilerEvent.Type.PRE_TRANSPORT_DAEMON_STARTS).setDevice(transportDevice).track();
+  }
+
+  @Override
+  public void trackTransportDaemonFailed(@NotNull Common.Device transportDevice, Exception exception) {
+    TransportFailureMetadata.FailureType failureType =
+      TRANSPORT_FAILURE_MAP.getOrDefault(exception.getClass(), TransportFailureMetadata.FailureType.UNKNOWN_FAILURE_TYPE);
+    newTracker(AndroidProfilerEvent.Type.TRANSPORT_DAEMON_FAILED).setDevice(transportDevice)
+      .setTransportFailureMetadata(TransportFailureMetadata.newBuilder().setFailureType(failureType).build()).track();
+  }
+
+  @Override
+  public void trackTransportProxyCreationFailed(@NotNull Common.Device transportDevice, Exception exception) {
+    TransportFailureMetadata.FailureType failureType =
+      TRANSPORT_FAILURE_MAP.getOrDefault(exception.getClass(), TransportFailureMetadata.FailureType.UNKNOWN_FAILURE_TYPE);
+    newTracker(AndroidProfilerEvent.Type.TRANSPORT_PROXY_FAILED).setDevice(transportDevice)
+      .setTransportFailureMetadata(TransportFailureMetadata.newBuilder().setFailureType(failureType).build()).track();
+  }
+
+  @Override
+  public void trackProfilerInitializationFailed() {
+    track(AndroidProfilerEvent.Type.PROFILER_INITIALIZATION_FAILED);
+  }
 
   @Override
   public void trackEnterStage(@NotNull Class<? extends Stage> stage) {
@@ -105,6 +202,16 @@ public final class StudioFeatureTracker implements FeatureTracker {
   @Override
   public void trackRunWithProfiling() {
     track(AndroidProfilerEvent.Type.RUN_WITH_PROFILING);
+  }
+
+  @Override
+  public void trackAutoProfilingRequested() {
+    track(AndroidProfilerEvent.Type.AUTO_PROFILING_REQUESTED);
+  }
+
+  @Override
+  public void trackAutoProfilingSucceeded() {
+    track(AndroidProfilerEvent.Type.AUTO_PROFILING_SUCCEEDED);
   }
 
   @Override
@@ -131,6 +238,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
       myActiveProcess = process;
       newTracker(AndroidProfilerEvent.Type.CHANGE_PROCESS).setDevice(myActiveDevice).track();
     }
+  }
+
+  @Override
+  public void trackSessionDropdownClicked() {
+    track(AndroidProfilerEvent.Type.SESSION_DROPDOWN_CLICKED);
   }
 
   @Override
@@ -228,7 +340,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackImportTrace(@NotNull CpuProfiler.CpuProfilerType profilerType, boolean success) {
+  public void trackImportTrace(@NotNull Cpu.CpuTraceType profilerType, boolean success) {
     CpuImportTraceMetadata.Builder metadata = CpuImportTraceMetadata.newBuilder();
     metadata.setImportStatus(success ? CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_SUCCESS
                                      : CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_FAILURE);
@@ -252,16 +364,16 @@ public final class StudioFeatureTracker implements FeatureTracker {
   @Override
   public void trackCpuStartupProfiling(@NotNull ProfilingConfiguration configuration) {
     newTracker(AndroidProfilerEvent.Type.CPU_STARTUP_PROFILING).setDevice(myActiveDevice).setCpuStartupProfilingConfiguration(configuration)
-                                                               .track();
+      .track();
   }
 
   @Override
   public void trackCpuApiTracing(boolean sampling, boolean pathProvided, int bufferSize, int flags, int intervalUs) {
     CpuApiTracingMetadata metadata =
       CpuApiTracingMetadata.newBuilder().setUseSampling(sampling).setArgTracePath(pathProvided).setArgBufferSize(bufferSize)
-                           .setArgFlags(flags).setArgIntervalUs(intervalUs).build();
+        .setArgFlags(flags).setArgIntervalUs(intervalUs).build();
     newTracker(AndroidProfilerEvent.Type.CPU_API_TRACING).setDevice(myActiveDevice).setCpuApiTracingMetadata(metadata)
-                                                         .track();
+      .track();
   }
 
   @Override
@@ -456,6 +568,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @Nullable private ProfilerSessionCreationMetaData mySessionCreationMetadata;
     @Nullable private ProfilerSessionSelectionMetaData mySessionArtifactMetadata;
     @Nullable private ProfilingConfiguration myCpuStartupProfilingConfiguration;
+    @Nullable private TransportFailureMetadata myTransportFailureMetadata;
 
     private AndroidProfilerEvent.MemoryHeap myMemoryHeap = AndroidProfilerEvent.MemoryHeap.UNKNOWN_HEAP;
 
@@ -533,6 +646,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
       return this;
     }
 
+    @NotNull
+    public Tracker setTransportFailureMetadata(TransportFailureMetadata metadata) {
+      myTransportFailureMetadata = metadata;
+      return this;
+    }
+
     public void track() {
       AndroidProfilerEvent.Builder profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(myEventType);
 
@@ -550,6 +669,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
           break;
         case SESSION_ARTIFACT_SELECTED:
           profilerEvent.setSessionArtifactMetadata(mySessionArtifactMetadata);
+          break;
+        case TRANSPORT_DAEMON_FAILED:
+        case TRANSPORT_PROXY_FAILED:
+          assert myTransportFailureMetadata != null;
+          profilerEvent.setTransportFailureMetadata(myTransportFailureMetadata);
           break;
         case CPU_API_TRACING:
           profilerEvent.setCpuApiTracingMetadata(myCpuApiTracingMetadata);
@@ -569,8 +693,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
       }
 
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
-                                                           .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
-                                                           .setAndroidProfilerEvent(profilerEvent);
+        .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
+        .setAndroidProfilerEvent(profilerEvent);
 
       if (myDevice != null) {
         event.setDeviceInfo(
@@ -594,9 +718,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
       EnergyRangeMetadata.Builder builder = EnergyRangeMetadata.newBuilder();
       myEnergyRangeMetadata.getEventCounts().forEach(eventCount -> {
         builder.addEventCounts(EnergyEventCount.newBuilder()
-                                               .setType(toEnergyType(eventCount.getKind()))
-                                               .setCount(eventCount.getCount())
-                                               .build());
+                                 .setType(toEnergyType(eventCount.getKind()))
+                                 .setCount(eventCount.getCount())
+                                 .build());
       });
 
       profilerEvent.setEnergyRangeMetadata(builder.build());
@@ -674,25 +798,13 @@ public final class StudioFeatureTracker implements FeatureTracker {
           .setCaptureDurationMs(myCpuCaptureMetadata.getCaptureDurationMs())
           .setRecordDurationMs(myCpuCaptureMetadata.getRecordDurationMs())
           .setTraceFileSizeBytes(myCpuCaptureMetadata.getTraceFileSizeBytes())
-          .setParsingTimeMs(myCpuCaptureMetadata.getParsingTimeMs());
-
-        switch (myCpuCaptureMetadata.getStatus()) {
-          case SUCCESS:
-            captureMetadata.setCaptureStatus(CpuCaptureMetadata.CaptureStatus.SUCCESS);
-            break;
-          case PARSING_FAILURE:
-            captureMetadata.setCaptureStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILURE);
-            break;
-          case STOP_CAPTURING_FAILURE:
-            captureMetadata.setCaptureStatus(CpuCaptureMetadata.CaptureStatus.STOP_CAPTURING_FAILURE);
-            break;
-          case USER_ABORTED_PARSING:
-            captureMetadata.setCaptureStatus(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
-            break;
-        }
+          .setParsingTimeMs(myCpuCaptureMetadata.getParsingTimeMs())
+          .setStoppingTimeMs(myCpuCaptureMetadata.getStoppingTimeMs())
+          .setCaptureStatus(
+            CPU_CAPTURE_STATUS_MAP.getOrDefault(myCpuCaptureMetadata.getStatus(), CpuCaptureMetadata.CaptureStatus.SUCCESS));
 
         captureMetadata.setProfilingConfig(toStatsCpuProfilingConfig(myCpuCaptureMetadata.getProfilingConfiguration()));
-        if (myCpuCaptureMetadata.getProfilingConfiguration().getProfilerType() == CpuProfiler.CpuProfilerType.ART) {
+        if (myCpuCaptureMetadata.getProfilingConfiguration().getTraceType() == Cpu.CpuTraceType.ART) {
           captureMetadata.setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC);
         }
         profilerEvent.setCpuCaptureMetadata(captureMetadata);
@@ -705,10 +817,10 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @NotNull
     private CpuProfilingConfig toStatsCpuProfilingConfig(@NotNull ProfilingConfiguration config) {
       CpuProfilingConfig.Builder cpuConfigInfo = CpuProfilingConfig.newBuilder()
-                                                                   .setSampleInterval(config.getProfilingSamplingIntervalUs())
-                                                                   .setSizeLimit(config.getProfilingBufferSizeInMb());
+        .setSampleInterval(config.getProfilingSamplingIntervalUs())
+        .setSizeLimit(config.getProfilingBufferSizeInMb());
 
-      switch (config.getProfilerType()) {
+      switch (config.getTraceType()) {
         case ART:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.ART);
           break;
@@ -718,7 +830,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
         case ATRACE:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.ATRACE);
           break;
-        case UNSPECIFIED_PROFILER:
+        case UNSPECIFIED_TYPE:
         case UNRECOGNIZED:
           break;
       }
@@ -746,11 +858,16 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @NotNull
     private EnergyEvent.Type toEnergyType(@NotNull EnergyDuration.Kind energyKind) {
       switch (energyKind) {
-        case WAKE_LOCK: return EnergyEvent.Type.WAKE_LOCK;
-        case ALARM: return EnergyEvent.Type.ALARM;
-        case JOB: return EnergyEvent.Type.JOB;
-        case LOCATION: return EnergyEvent.Type.LOCATION;
-        default: return EnergyEvent.Type.UNKNOWN_EVENT_TYPE;
+        case WAKE_LOCK:
+          return EnergyEvent.Type.WAKE_LOCK;
+        case ALARM:
+          return EnergyEvent.Type.ALARM;
+        case JOB:
+          return EnergyEvent.Type.JOB;
+        case LOCATION:
+          return EnergyEvent.Type.LOCATION;
+        default:
+          return EnergyEvent.Type.UNKNOWN_EVENT_TYPE;
       }
     }
 
@@ -762,24 +879,35 @@ public final class StudioFeatureTracker implements FeatureTracker {
       if (energyEvent.getMetadataCase() == EnergyProfiler.EnergyEvent.MetadataCase.WAKE_LOCK_ACQUIRED) {
         EnergyProfiler.WakeLockAcquired wakeLockAcquired = energyEvent.getWakeLockAcquired();
         switch (wakeLockAcquired.getLevel()) {
-          case PARTIAL_WAKE_LOCK: return EnergyEvent.Subtype.WAKE_LOCK_PARTIAL;
-          case SCREEN_DIM_WAKE_LOCK: return EnergyEvent.Subtype.WAKE_LOCK_SCREEN_DIM;
-          case SCREEN_BRIGHT_WAKE_LOCK: return EnergyEvent.Subtype.WAKE_LOCK_SCREEN_BRIGHT;
-          case FULL_WAKE_LOCK: return EnergyEvent.Subtype.WAKE_LOCK_FULL;
-          case PROXIMITY_SCREEN_OFF_WAKE_LOCK: return EnergyEvent.Subtype.WAKE_LOCK_PROXIMITY_SCREEN_OFF;
+          case PARTIAL_WAKE_LOCK:
+            return EnergyEvent.Subtype.WAKE_LOCK_PARTIAL;
+          case SCREEN_DIM_WAKE_LOCK:
+            return EnergyEvent.Subtype.WAKE_LOCK_SCREEN_DIM;
+          case SCREEN_BRIGHT_WAKE_LOCK:
+            return EnergyEvent.Subtype.WAKE_LOCK_SCREEN_BRIGHT;
+          case FULL_WAKE_LOCK:
+            return EnergyEvent.Subtype.WAKE_LOCK_FULL;
+          case PROXIMITY_SCREEN_OFF_WAKE_LOCK:
+            return EnergyEvent.Subtype.WAKE_LOCK_PROXIMITY_SCREEN_OFF;
           // Default case should never happen unless framework adds a new wake lock type and we forget to handle it
-          default: return EnergyEvent.Subtype.UNKNOWN_EVENT_SUBTYPE;
+          default:
+            return EnergyEvent.Subtype.UNKNOWN_EVENT_SUBTYPE;
         }
       }
       else if (energyEvent.getMetadataCase() == EnergyProfiler.EnergyEvent.MetadataCase.ALARM_SET) {
         EnergyProfiler.AlarmSet alarmSet = energyEvent.getAlarmSet();
         switch (alarmSet.getType()) {
-          case RTC: return EnergyEvent.Subtype.ALARM_RTC;
-          case RTC_WAKEUP: return EnergyEvent.Subtype.ALARM_RTC_WAKEUP;
-          case ELAPSED_REALTIME: return EnergyEvent.Subtype.ALARM_ELAPSED_REALTIME;
-          case ELAPSED_REALTIME_WAKEUP: return EnergyEvent.Subtype.ALARM_ELAPSED_REALTIME_WAKEUP;
+          case RTC:
+            return EnergyEvent.Subtype.ALARM_RTC;
+          case RTC_WAKEUP:
+            return EnergyEvent.Subtype.ALARM_RTC_WAKEUP;
+          case ELAPSED_REALTIME:
+            return EnergyEvent.Subtype.ALARM_ELAPSED_REALTIME;
+          case ELAPSED_REALTIME_WAKEUP:
+            return EnergyEvent.Subtype.ALARM_ELAPSED_REALTIME_WAKEUP;
           // Default case should never happen unless framework adds a new alarm type and we forget to handle it
-          default: return EnergyEvent.Subtype.UNKNOWN_EVENT_SUBTYPE;
+          default:
+            return EnergyEvent.Subtype.UNKNOWN_EVENT_SUBTYPE;
         }
       }
 
@@ -789,22 +917,34 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @NotNull
     private EnergyEvent.Subevent toEnergySubevent(@NotNull EnergyProfiler.EnergyEvent energyEvent) {
       switch (energyEvent.getMetadataCase()) {
-        case WAKE_LOCK_ACQUIRED: return EnergyEvent.Subevent.WAKE_LOCK_ACQUIRED;
-        case WAKE_LOCK_RELEASED: return EnergyEvent.Subevent.WAKE_LOCK_RELEASED;
-        case ALARM_SET: return EnergyEvent.Subevent.ALARM_SET;
-        case ALARM_CANCELLED: return EnergyEvent.Subevent.ALARM_CANCELLED;
-        case ALARM_FIRED: return EnergyEvent.Subevent.ALARM_FIRED;
-        case JOB_SCHEDULED: return EnergyEvent.Subevent.JOB_SCHEDULED;
-        case JOB_STARTED: return EnergyEvent.Subevent.JOB_STARTED;
-        case JOB_STOPPED: return EnergyEvent.Subevent.JOB_STOPPED;
-        case JOB_FINISHED: return EnergyEvent.Subevent.JOB_FINISHED;
-        case LOCATION_UPDATE_REQUESTED: return EnergyEvent.Subevent.LOCATION_UPDATE_REQUESTED;
-        case LOCATION_UPDATE_REMOVED: return EnergyEvent.Subevent.LOCATION_UPDATE_REMOVED;
-        case LOCATION_CHANGED: return EnergyEvent.Subevent.LOCATION_CHANGED;
-        default: return EnergyEvent.Subevent.UNKNOWN_ENERGY_SUBEVENT;
+        case WAKE_LOCK_ACQUIRED:
+          return EnergyEvent.Subevent.WAKE_LOCK_ACQUIRED;
+        case WAKE_LOCK_RELEASED:
+          return EnergyEvent.Subevent.WAKE_LOCK_RELEASED;
+        case ALARM_SET:
+          return EnergyEvent.Subevent.ALARM_SET;
+        case ALARM_CANCELLED:
+          return EnergyEvent.Subevent.ALARM_CANCELLED;
+        case ALARM_FIRED:
+          return EnergyEvent.Subevent.ALARM_FIRED;
+        case JOB_SCHEDULED:
+          return EnergyEvent.Subevent.JOB_SCHEDULED;
+        case JOB_STARTED:
+          return EnergyEvent.Subevent.JOB_STARTED;
+        case JOB_STOPPED:
+          return EnergyEvent.Subevent.JOB_STOPPED;
+        case JOB_FINISHED:
+          return EnergyEvent.Subevent.JOB_FINISHED;
+        case LOCATION_UPDATE_REQUESTED:
+          return EnergyEvent.Subevent.LOCATION_UPDATE_REQUESTED;
+        case LOCATION_UPDATE_REMOVED:
+          return EnergyEvent.Subevent.LOCATION_UPDATE_REMOVED;
+        case LOCATION_CHANGED:
+          return EnergyEvent.Subevent.LOCATION_CHANGED;
+        default:
+          return EnergyEvent.Subevent.UNKNOWN_ENERGY_SUBEVENT;
       }
     }
-
   }
 
   private final static Logger getLogger() {

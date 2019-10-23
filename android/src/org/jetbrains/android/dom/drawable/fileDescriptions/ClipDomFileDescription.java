@@ -16,10 +16,10 @@
 package org.jetbrains.android.dom.drawable.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
-import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.android.dom.drawable.Clip;
 
-public class ClipDomFileDescription extends AbstractSingleRootFileDescription<Clip> {
+public class ClipDomFileDescription extends SingleRootResourceDomFileDescription<Clip> {
 
   public ClipDomFileDescription() {
     super(Clip.class, "clip", ResourceFolderType.DRAWABLE);

@@ -15,41 +15,42 @@
  */
 package com.android.tools.idea.gradle.dsl.model.files
 
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_APPLY_FROM_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_APPLY_FROM_BLOCK_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_ONE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_TWO
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_INVOLVED_FILES
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_INVOLVED_FILES_SUB
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_ONE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_TWO
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_PROPERTIES_LIST
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_PROPERTIES_LIST_SUB
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTEGER
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.PROPERTIES_FILE
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.utils.FileUtils.toSystemIndependentPath
+import com.intellij.openapi.vfs.VirtualFile
 import org.junit.Test
-import java.io.File
 
 class GradleDslFileTest : GradleFileModelTestCase() {
   @Test
   fun testInvolvedFiles() {
-    val parentText = """
-                      def parentVar1 = true
-
-                      ext {
-                        parentProperty1 = "hello"
-                      }
-
-                      def parentVar2 = parentVar1
-                      """.trimIndent()
-    val childText = """
-                           ext {
-                             def childVar1 = 23
-                             childProp1 = childVar1
-                             childProp3 = [parentProperty1, childProp1]
-                           }
-
-                           def childVar2 = "value"
-                           """.trimIndent()
     val childProperties = "childPropProp1 = somevalue"
     val parentProperties = "parentPropProp1 = othervalue"
-    writeToBuildFile(parentText)
-    writeToSubModuleBuildFile(childText)
-    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+    writeToBuildFile(GRADLE_DSL_FILE_INVOLVED_FILES)
+    writeToSubModuleBuildFile(GRADLE_DSL_FILE_INVOLVED_FILES_SUB)
+    writeToSettingsFile(subModuleSettingsText)
     writeToPropertiesFile(parentProperties)
     writeToSubModulePropertiesFile(childProperties)
 
@@ -58,37 +59,19 @@ class GradleDslFileTest : GradleFileModelTestCase() {
     run {
       val files = buildModel.involvedFiles
       assertSize(4, files)
-      val expected = listOf(myBuildFile.absolutePath, mySubModuleBuildFile.absolutePath,
-          myPropertiesFile.absolutePath, mySubModulePropertiesFile.absolutePath)
+      val expected = listOf(myBuildFile.path, mySubModuleBuildFile.path,
+                            myPropertiesFile.path, mySubModulePropertiesFile.path)
       assertContainsElements(files.map { it.virtualFile.path }, expected.map { toSystemIndependentPath(it) })
     }
   }
 
   @Test
   fun testPropertiesList() {
-    val parentText = """
-                      def parentVar1 = true
-
-                      ext {
-                        parentProperty1 = "hello"
-                      }
-
-                      def parentVar2 = parentVar1
-                      """.trimIndent()
-    val childText = """
-                           ext {
-                             def childVar1 = 23
-                             childProp1 = childVar1
-                             childProp3 = [parentProperty1, childProp1]
-                           }
-
-                           def childVar2 = "value"
-                           """.trimIndent()
     val childProperties = "childPropProp1 = somevalue"
     val parentProperties = "parentPropProp1 = othervalue"
-    writeToBuildFile(parentText)
-    writeToSubModuleBuildFile(childText)
-    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+    writeToBuildFile(GRADLE_DSL_FILE_PROPERTIES_LIST)
+    writeToSubModuleBuildFile(GRADLE_DSL_FILE_PROPERTIES_LIST_SUB)
+    writeToSettingsFile(subModuleSettingsText)
     writeToPropertiesFile(parentProperties)
     writeToSubModulePropertiesFile(childProperties)
 
@@ -130,79 +113,32 @@ class GradleDslFileTest : GradleFileModelTestCase() {
 
   @Test
   fun testInvolvedAppliedFiles() {
-    val firstApplyFileText = """
-                           def var1 = "1"
-
-                           ext {
-                             prop1 = [var1, var2, var3]
-                             prop2 = true
-                           }""".trimIndent()
-    val secondApplyFileText = """
-                            ext {
-                              def hello = "hello"
-                              prop2 = false
-                            }
-
-                            apply from: "b.gradle"
-                            """.trimIndent()
-    val text = """
-             apply from: "a.gradle"
-
-             def goodbye = "goodbye"
-
-             ext {
-               prop5 = 5
-             }""".trimIndent()
-    writeToNewProjectFile("b.gradle", firstApplyFileText)
-    writeToNewProjectFile("a.gradle", secondApplyFileText)
-    writeToBuildFile(text)
+    writeToNewProjectFile("b.gradle", GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_ONE)
+    writeToNewProjectFile("a.gradle", GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_TWO)
+    writeToBuildFile(GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES)
 
     val buildModel = gradleBuildModel
 
     run {
       val files = buildModel.involvedFiles
-      assertSize(3, files)
-      val fileParent = myBuildFile.parentFile
-      val expected = listOf(myBuildFile.absolutePath,
-          File(fileParent, "a.gradle").absolutePath, File(fileParent, "b.gradle").absolutePath)
+      assertSize(4, files)
+      val fileParent = myBuildFile.parent
+      val expected = listOf(myBuildFile.path,
+                            fileParent.findChild("a.gradle")!!.path, fileParent.findChild("b.gradle")!!.path,
+                            fileParent.findChild("gradle.properties")!!.path)
       assertContainsElements(files.map { it.virtualFile.path }, expected.map { toSystemIndependentPath(it) })
     }
   }
 
   @Test
   fun testListPropertiesFromAppliedFiles() {
-    val firstApplyFileText = """
-                           def var1 = "1"
-                           def var2 = 2
-                           def var3 = "3"
-
-                           ext {
-                             prop1 = [var1, var2, var3]
-                             prop2 = true
-                           }""".trimIndent()
-    val secondApplyFileText = """
-                            ext {
-                              def hello = "hello"
-                              prop2 = false
-                            }
-
-                            apply from: "b.gradle"
-                            """.trimIndent()
-    val text = """
-             apply from: "a.gradle"
-
-             def goodbye = "goodbye"
-
-             ext {
-               prop5 = 5
-             }""".trimIndent()
-    writeToNewProjectFile("b.gradle", firstApplyFileText)
-    writeToNewProjectFile("a.gradle", secondApplyFileText)
-    writeToBuildFile(text)
+    writeToNewProjectFile("b.gradle", GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_ONE)
+    writeToNewProjectFile("a.gradle", GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_TWO)
+    writeToBuildFile(GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES)
 
     val buildModel = gradleBuildModel
     val files = buildModel.involvedFiles
-    val fileParent = myBuildFile.parentFile
+    val fileParent = myBuildFile.parent
 
     run {
       val properties = getFile(myBuildFile, files).declaredProperties
@@ -212,14 +148,14 @@ class GradleDslFileTest : GradleFileModelTestCase() {
     }
 
     run {
-      val properties = getFile(File(fileParent, "a.gradle"), files).declaredProperties
+      val properties = getFile(fileParent.findChild("a.gradle")!!, files).declaredProperties
       assertSize(2, properties)
       verifyPropertyModel(properties[0], STRING_TYPE, "hello", STRING, VARIABLE, 0, "hello")
       verifyPropertyModel(properties[1], BOOLEAN_TYPE, false, BOOLEAN, REGULAR, 0, "prop2")
     }
 
     run {
-      val properties = getFile(File(fileParent, "b.gradle"), files).declaredProperties
+      val properties = getFile(fileParent.findChild("b.gradle")!!, files).declaredProperties
       assertSize(5, properties)
       verifyPropertyModel(properties[0], STRING_TYPE, "1", STRING, VARIABLE, 0, "var1")
       verifyPropertyModel(properties[1], INTEGER_TYPE, 2, INTEGER, VARIABLE, 0, "var2")
@@ -231,22 +167,14 @@ class GradleDslFileTest : GradleFileModelTestCase() {
 
   @Test
   fun testApplyFromBlock() {
-    val appliedFile = "ext.prop = \"value\""
-    val text = """
-               buildscript {
-                 apply from: 'a.gradle'
-                 dependencies {
-                   classpath ext.prop
-                 }
-               }""".trimIndent()
-    writeToNewProjectFile("a.gradle", appliedFile)
-    writeToBuildFile(text)
+    writeToNewProjectFile("a.gradle", GRADLE_DSL_FILE_APPLY_FROM_BLOCK_APPLIED)
+    writeToBuildFile(GRADLE_DSL_FILE_APPLY_FROM_BLOCK)
 
     val buildModel = gradleBuildModel
 
     val property = buildModel.buildscript().dependencies().artifacts()[0].completeModel()
-    verifyPropertyModel(property, STRING_TYPE, "value", STRING, REGULAR, 1)
+    verifyPropertyModel(property, STRING_TYPE, "value:name:2", STRING, REGULAR, 1)
   }
 
-  fun getFile(file : File, files : Set<GradleFileModel>) = files.first { toSystemIndependentPath(file.absolutePath) == it.virtualFile.path }
+  fun getFile(file: VirtualFile, files: Set<GradleFileModel>) = files.first { toSystemIndependentPath(file.path) == it.virtualFile.path }
 }

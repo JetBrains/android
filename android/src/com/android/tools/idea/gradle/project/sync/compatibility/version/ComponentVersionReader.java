@@ -23,16 +23,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
-import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.ORIGINAL;
-
 /**
  * Obtains the version of a component in a project (e.g. Gradle, Android Gradle plugin, etc.)
  */
 public interface ComponentVersionReader {
   ComponentVersionReader ANDROID_STUDIO = new IdeVersionReader("Android Studio");
-  ComponentVersionReader ANDROID_GRADLE_PLUGIN = new AndroidGradlePluginVersionReader(ORIGINAL);
-  ComponentVersionReader ANDROID_GRADLE_EXPERIMENTAL_PLUGIN = new AndroidGradlePluginVersionReader(COMPONENT);
+  ComponentVersionReader ANDROID_GRADLE_PLUGIN = new AndroidGradlePluginVersionReader();
   ComponentVersionReader GRADLE = new GradleVersionReader();
 
   /**

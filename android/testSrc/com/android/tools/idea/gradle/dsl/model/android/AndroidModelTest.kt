@@ -15,6 +15,58 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
+import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_BLOCK_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SOURCE_SET_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SOURCE_SET_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_REMOVE_BUILD_TYPE_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_REMOVE_PRODUCT_FLAVOR_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_RESET_BUILD_TYPE_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_RESET_DEFAULT_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_RESET_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_RESET_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_RESET_PRODUCT_FLAVOR_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_ONE_ARGUMENT
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS_WITH_ARGUMENT
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_APPLICATION_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_ASSIGNMENT_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_BUILD_TYPE_BLOCKS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_DEFAULT_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_EXTERNAL_NATIVE_BUILD_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_NO_DIMENSIONS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_NO_DIMENSIONS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_OVERRIDE_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_PRODUCT_FLAVOR_BLOCKS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_EDIT_AND_RESET_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_BLOCK_APPLICATION_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_BUILD_TYPE_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_DEFAULT_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_PRODUCT_FLAVOR_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_SOURCE_SET_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_RESET_BUILD_TYPE_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_RESET_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_RESET_PRODUCT_FLAVOR_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_FROM_AND_RESET_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REPLACE_AND_RESET_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl
 import com.google.common.truth.Truth.assertThat
@@ -25,8 +77,8 @@ import org.junit.Test
  */
 class AndroidModelTest : GradleFileModelTestCase() {
 
-  private fun runBasicAndroidBlockTest(text : String) {
-    writeToBuildFile(text)
+  private fun runBasicAndroidBlockTest(buildFile: TestFileName) {
+    writeToBuildFile(buildFile)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -59,70 +111,37 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidBlockWithApplicationStatements() {
-    val text = """android {
-                    buildToolsVersion "23.0.0"
-                    compileSdkVersion 23
-                    defaultPublishConfig "debug"
-                    flavorDimensions "abi", "version"
-                    generatePureSplits true
-                    publishNonDefault false
-                    resourcePrefix "abcd"
-                  }""".trimIndent()
-    runBasicAndroidBlockTest(text)
+    runBasicAndroidBlockTest(ANDROID_MODEL_ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS)
   }
 
   @Test
   fun testAndroidBlockWithApplicationStatementsWithParentheses() {
-    val text = """android {
-                    buildToolsVersion("23.0.0")
-                    compileSdkVersion(23)
-                    defaultPublishConfig("debug")
-                    flavorDimensions("abi", "version")
-                    generatePureSplits(true)
-                    publishNonDefault(false)
-                    resourcePrefix("abcd")
-                  }""".trimIndent()
-    runBasicAndroidBlockTest(text)
+    runBasicAndroidBlockTest(ANDROID_MODEL_ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES)
   }
 
   @Test
   fun testAndroidBlockWithAssignmentStatements() {
-    val text = """android {
-                    buildToolsVersion = "23.0.0"
-                    compileSdkVersion = "android-23"
-                    defaultPublishConfig = "debug"
-                    generatePureSplits = true
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS)
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "android-23", android.compileSdkVersion())
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
   }
 
   @Test
   fun testAndroidApplicationStatements() {
-    val text = """android.buildToolsVersion "23.0.0"
-                  android.compileSdkVersion 23
-                  android.defaultPublishConfig "debug"
-                  android.flavorDimensions "abi", "version"
-                  android.generatePureSplits true
-                  android.publishNonDefault false
-                  android.resourcePrefix "abcd"""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ANDROID_APPLICATION_STATEMENTS)
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
@@ -131,13 +150,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidAssignmentStatements() {
-    val text = """android.buildToolsVersion = "23.0.0"
-                  android.compileSdkVersion = "android-23"
-                  android.defaultPublishConfig = "debug"
-                  android.generatePureSplits = true""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ANDROID_ASSIGNMENT_STATEMENTS)
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
@@ -149,32 +162,14 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidBlockWithOverrideStatements() {
-    val text = """android {
-                    buildToolsVersion = "23.0.0"
-                    compileSdkVersion 23
-                    defaultPublishConfig "debug"
-                    flavorDimensions "abi", "version"
-                    generatePureSplits = true
-                    publishNonDefault false
-                    resourcePrefix "abcd"
-                  }
-                  android.buildToolsVersion "21.0.0"
-                  android.compileSdkVersion = "android-21"
-                  android.defaultPublishConfig "release"
-                  android.flavorDimensions "abi1", "version1"
-                  android.generatePureSplits = false
-                  android.publishNonDefault true
-                  android.resourcePrefix "efgh"""".trimIndent()
-
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ANDROID_BLOCK_WITH_OVERRIDE_STATEMENTS)
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "21.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "android-21", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
+    assertEquals("dynamicFeatures", listOf(":g1", ":g2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi1", "version1"), android.flavorDimensions())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("publishNonDefault", true, android.publishNonDefault())
@@ -183,14 +178,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidBlockWithDefaultConfigBlock() {
-    val text = """android {
-                    defaultConfig {
-                      applicationId "com.example.myapplication"
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ANDROID_BLOCK_WITH_DEFAULT_CONFIG_BLOCK)
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
@@ -200,19 +188,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidBlockWithBuildTypeBlocks() {
-    val text = """android {
-                    buildTypes {
-                      type1 {
-                        applicationIdSuffix "typeSuffix-1"
-                      }
-                      type2 {
-                        applicationIdSuffix "typeSuffix-2"
-                      }
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ANDROID_BLOCK_WITH_BUILD_TYPE_BLOCKS)
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
@@ -228,39 +204,23 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidBlockWithNoDimensions() {
-    val text = """android {
-                  }""".trimIndent()
-    writeToBuildFile(text)
+    writeToBuildFile(ANDROID_MODEL_ANDROID_BLOCK_WITH_NO_DIMENSIONS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
+
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
     android.flavorDimensions().addListValue().setValue("strawberry")
     applyChangesAndReparse(buildModel)
     android = buildModel.android()
     assertNotNull(android)
     assertEquals("flavorDimensions", listOf("strawberry"), android.flavorDimensions())
-    val expected = """android{
-        flavorDimensions 'strawberry'
-        }""".trimIndent()
-    verifyFileContents(myBuildFile, expected)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ANDROID_BLOCK_WITH_NO_DIMENSIONS_EXPECTED)
   }
 
   @Test
   fun testAndroidBlockWithProductFlavorBlocks() {
-    val text = """android {
-                    productFlavors {
-                      flavor1 {
-                        applicationId "com.example.myapplication.flavor1"
-                      }
-                      flavor2 {
-                        applicationId "com.example.myapplication.flavor2"
-                      }
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ANDROID_BLOCK_WITH_PRODUCT_FLAVOR_BLOCKS)
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
@@ -276,16 +236,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidBlockWithExternalNativeBuildBlock() {
-    val text = """android {
-                    externalNativeBuild {
-                      cmake {
-                        path file("foo/bar")
-                      }
-                    }
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ANDROID_BLOCK_WITH_EXTERNAL_NATIVE_BUILD_BLOCK)
     val android = gradleBuildModel.android()
     assertNotNull(android)
 
@@ -298,18 +249,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveAndResetElements() {
-    val text = """android {
-                    buildToolsVersion "23.0.0"
-                    compileSdkVersion "23"
-                    defaultPublishConfig "debug"
-                    flavorDimensions "abi", "version"
-                    generatePureSplits true
-                    publishNonDefault false
-                    resourcePrefix "abcd"
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_REMOVE_AND_RESET_ELEMENTS)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
@@ -317,6 +257,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
@@ -325,6 +266,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.buildToolsVersion().delete()
     android.compileSdkVersion().delete()
     android.defaultPublishConfig().delete()
+    android.dynamicFeatures().delete()
     android.flavorDimensions().delete()
     android.generatePureSplits().delete()
     android.publishNonDefault().delete()
@@ -333,6 +275,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("buildToolsVersion", android.buildToolsVersion())
     assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
     assertMissingProperty("defaultPublishConfig", android.defaultPublishConfig())
+    assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
     assertMissingProperty("generatePureSplits", android.generatePureSplits())
     assertMissingProperty("publishNonDefault", android.publishNonDefault())
@@ -343,6 +286,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
@@ -351,17 +295,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testEditAndResetLiteralElements() {
-    val text = """android {
-                    buildToolsVersion "23.0.0"
-                    compileSdkVersion "23"
-                    defaultPublishConfig "debug"
-                    generatePureSplits true
-                    publishNonDefault false
-                    resourcePrefix "abcd"
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_EDIT_AND_RESET_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
@@ -411,11 +345,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndResetLiteralElements() {
-    val text = """android {
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_RESET_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
@@ -465,53 +395,48 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testReplaceAndResetListElements() {
-    val text = """android {
-                    flavorDimensions "abi", "version"
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_REPLACE_AND_RESET_LIST_ELEMENTS)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
 
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
     android.flavorDimensions().getListValue("abi")!!.setValue("xyz")
     assertEquals("flavorDimensions", listOf("xyz", "version"), android.flavorDimensions())
 
+    android.dynamicFeatures().getListValue(":f2")!!.setValue(":g2")
+    assertEquals("dynamicFeatures", listOf(":f1", ":g2"), android.dynamicFeatures())
+
     buildModel.resetState()
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
   }
 
   @Test
   fun testAddAndResetListElements() {
-    val text = """android {
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_RESET_LIST_ELEMENTS)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
 
+    assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
 
     android.flavorDimensions().addListValue().setValue("xyz")
+    android.dynamicFeatures().addListValue().setValue(":f")
+    assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
 
     buildModel.resetState()
+    assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
   }
 
   @Test
   fun testAddToAndResetListElementsWithArgument() {
-    val text = """android {
-                    flavorDimensions "abi"
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS_WITH_ARGUMENT)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
@@ -527,50 +452,49 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddToAndResetListElementsWithMultipleArguments() {
-    val text = """android {
-                    flavorDimensions "abi", "version"
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
 
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
+
+    android.dynamicFeatures().addListValue().setValue(":f")
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2", ":f"), android.dynamicFeatures())
 
     android.flavorDimensions().addListValue().setValue("xyz")
     assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android.flavorDimensions())
 
     buildModel.resetState()
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
   }
 
   @Test
   fun testRemoveFromAndResetListElements() {
-    val text = """android {
-                    flavorDimensions "abi", "version"
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_REMOVE_FROM_AND_RESET_LIST_ELEMENTS)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
 
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
+
+    android.dynamicFeatures().getListValue(":f1")!!.delete()
+    assertEquals("dynamicFeatures", listOf(":f2"), android.dynamicFeatures())
 
     android.flavorDimensions().getListValue("version")!!.delete()
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
 
     buildModel.resetState()
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
   }
 
   @Test
   fun testAddAndResetDefaultConfigBlock() {
-    val text = """android {
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_RESET_DEFAULT_CONFIG_BLOCK)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
@@ -588,10 +512,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndResetBuildTypeBlock() {
-    val text = """android {
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_RESET_BUILD_TYPE_BLOCK)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
@@ -609,10 +530,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndResetProductFlavorBlock() {
-    val text = """android {
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_RESET_PRODUCT_FLAVOR_BLOCK)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
@@ -630,16 +548,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveAndResetBuildTypeBlock() {
-    val text = """android {
-                    buildTypes {
-                      type1 {
-                      }
-                      type2 {
-                      }
-                    }
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_REMOVE_AND_RESET_BUILD_TYPE_BLOCK)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
@@ -663,15 +572,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveAndResetProductFlavorBlock() {
-    val text = """android {
-                    productFlavors {
-                      flavor1 {
-                      }
-                      flavor2 {    }
-                    }
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_REMOVE_AND_RESET_PRODUCT_FLAVOR_BLOCK)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     assertNotNull(android)
@@ -695,18 +596,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveAndApplyElements() {
-    val text = """android {
-                    buildToolsVersion "23.0.0"
-                    compileSdkVersion "23"
-                    defaultPublishConfig "debug"
-                    flavorDimensions "abi", "version"
-                    generatePureSplits true
-                    publishNonDefault false
-                    resourcePrefix "abcd"
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_REMOVE_AND_APPLY_ELEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -714,6 +604,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
@@ -722,6 +613,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.buildToolsVersion().delete()
     android.compileSdkVersion().delete()
     android.defaultPublishConfig().delete()
+    android.dynamicFeatures().delete()
     android.flavorDimensions().delete()
     android.generatePureSplits().delete()
     android.publishNonDefault().delete()
@@ -730,6 +622,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("buildToolsVersion", android.buildToolsVersion())
     assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
     assertMissingProperty("defaultPublishConfig", android.defaultPublishConfig())
+    assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
     assertMissingProperty("generatePureSplits", android.generatePureSplits())
     assertMissingProperty("publishNonDefault", android.publishNonDefault())
@@ -739,6 +632,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("buildToolsVersion", android.buildToolsVersion())
     assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
     assertMissingProperty("defaultPublishConfig", android.defaultPublishConfig())
+    assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
     assertMissingProperty("generatePureSplits", android.generatePureSplits())
     assertMissingProperty("publishNonDefault", android.publishNonDefault())
@@ -752,10 +646,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndRemoveBuildTypeBlock() {
-    val text = """android {
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_REMOVE_BUILD_TYPE_BLOCK)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -780,10 +671,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndRemoveProductFlavorBlock() {
-    val text = """android {
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_REMOVE_PRODUCT_FLAVOR_BLOCK)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -808,10 +696,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyEmptySigningConfigBlock() {
-    val text = """android {
-                        }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -832,10 +717,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyEmptySourceSetBlock() {
-    val text = """android {
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SOURCE_SET_BLOCK)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -856,10 +738,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyDefaultConfigBlock() {
-    val text = """android {
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -878,10 +757,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyBuildTypeBlock() {
-    val text = """android {
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -918,10 +794,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyProductFlavorBlock() {
-    val text = """android {
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -958,10 +831,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplySigningConfigBlock() {
-    val text = """android {
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_BLOCK)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -998,10 +868,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplySourceSetBlock() {
-    val text = """android {
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_SOURCE_SET_BLOCK)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -1038,13 +905,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveAndApplyDefaultConfigBlock() {
-    val text = """android {
-                    defaultConfig {
-                      applicationId "foo.bar"
-                    }
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_REMOVE_AND_APPLY_DEFAULT_CONFIG_BLOCK)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -1070,16 +931,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveAndApplyBuildTypeBlock() {
-    val text = """android {
-                            buildTypes {
-                              type1 {
-                              }
-                              type2 {
-                              }
-                            }
-                          }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_REMOVE_AND_APPLY_BUILD_TYPE_BLOCK)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -1110,15 +962,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveAndApplyProductFlavorBlock() {
-    val text = """android {
-                    productFlavors {
-                      flavor1 {
-                      }
-                      flavor2 {    }
-                    }
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_REMOVE_AND_APPLY_PRODUCT_FLAVOR_BLOCK)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -1149,15 +993,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveAndApplySigningConfigBlock() {
-    val text = """android {
-                    signingConfigs {
-                      config1 {
-                      }
-                      config2 {    }
-                    }
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG_BLOCK)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -1188,15 +1024,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveAndApplySourceSetBlock() {
-    val text = """android {
-                    sourceSets {
-                      set1 {
-                      }
-                      set2 {    }
-                    }
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_REMOVE_AND_APPLY_SOURCE_SET_BLOCK)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -1227,10 +1055,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveAndApplyBlockApplicationStatements() {
-    val text = """android.defaultConfig.applicationId "com.example.myapplication"
-                  android.defaultConfig.proguardFiles "proguard-android.txt", "proguard-rules.pro"""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_REMOVE_AND_APPLY_BLOCK_APPLICATION_STATEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -1253,11 +1078,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyBlockStatements() {
-    val text = """android.defaultConfig.applicationId "com.example.myapplication"
-                  android.defaultConfig.proguardFiles "proguard-android.txt", "proguard-rules.pro"""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_BLOCK_STATEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -1283,16 +1104,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testEditAndApplyLiteralElements() {
-    val text = """android {
-                    buildToolsVersion "23.0.0"
-                    compileSdkVersion "23"
-                    defaultPublishConfig "debug"
-                    generatePureSplits true
-                    publishNonDefault false
-                    resourcePrefix "abcd"
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -1342,13 +1154,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testEditAndApplyIntegerLiteralElements() {
-    val text = """android {
-                    buildToolsVersion "23.0.0"
-                    compileSdkVersion "23"
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -1377,11 +1183,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyLiteralElements() {
-    val text = """android {
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -1430,11 +1232,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyIntegerLiteralElements() {
-    val text = """android {
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
@@ -1463,63 +1261,65 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testReplaceAndApplyListElements() {
-    val text = """android {
-                    flavorDimensions "abi", "version"
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
+
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
+
+    android.dynamicFeatures().getListValue(":f2")!!.setValue(":g2")
+    assertEquals("dynamicFeatures", listOf(":f1", ":g2"), android.dynamicFeatures())
 
     android.flavorDimensions().getListValue("abi")!!.setValue("xyz")
     assertEquals("flavorDimensions", listOf("xyz", "version"), android.flavorDimensions())
 
     applyChanges(buildModel)
+    assertEquals("dynamicFeatures", listOf(":f1", ":g2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("xyz", "version"), android.flavorDimensions())
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
+    assertEquals("dynamicFeatures", listOf(":f1", ":g2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("xyz", "version"), android.flavorDimensions())
   }
 
   @Test
   fun testAddAndApplyListElements() {
-    val text = """android {
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_LIST_ELEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
 
+    assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
+
+    android.dynamicFeatures().addListValue().setValue(":f")
+    assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
 
     android.flavorDimensions().addListValue().setValue("xyz")
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
 
     applyChanges(buildModel)
+    assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
+    assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
   }
 
   @Test
   fun testAddToAndApplyListElementsWithOneArgument() {
-    val text = """android {
-                    flavorDimensions "abi"
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_ONE_ARGUMENT)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
+
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
 
     android.flavorDimensions().addListValue().setValue("version")
@@ -1536,50 +1336,55 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddToAndApplyListElementsWithMultipleArguments() {
-    val text = """android {
-                    flavorDimensions "abi", "version"
-                  }""".trimIndent()
-
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
+
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
+
+    android.dynamicFeatures().addListValue().setValue(":f")
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2", ":f"), android.dynamicFeatures())
 
     android.flavorDimensions().addListValue().setValue("xyz")
     assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android.flavorDimensions())
 
     applyChanges(buildModel)
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2", ":f"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android.flavorDimensions())
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2", ":f"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android.flavorDimensions())
   }
 
   @Test
   fun testRemoveFromAndApplyListElements() {
-    val text = """android {
-                    flavorDimensions "abi", "version"
-                  }""".trimIndent()
-    writeToBuildFile(text)
-
+    writeToBuildFile(ANDROID_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
+
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
+
+    android.dynamicFeatures().getListValue(":f1")!!.delete()
+    assertEquals("dynamicFeatures", listOf(":f2"), android.dynamicFeatures())
 
     android.flavorDimensions().getListValue("version")!!.delete()
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
 
     applyChanges(buildModel)
+    assertEquals("dynamicFeatures", listOf(":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
+    assertEquals("dynamicFeatures", listOf(":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
   }
 }

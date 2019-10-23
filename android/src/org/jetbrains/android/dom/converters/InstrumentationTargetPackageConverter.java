@@ -49,7 +49,7 @@ public class InstrumentationTargetPackageConverter extends Converter<String> imp
   private static class MyReference extends PsiReferenceBase<PsiElement> {
     private final Module myModule;
 
-    MyReference(@NotNull PsiElement element, @NotNull Module module) {
+    public MyReference(@NotNull PsiElement element, @NotNull Module module) {
       super(element, true);
       myModule = module;
     }

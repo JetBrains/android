@@ -15,31 +15,23 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import com.android.tools.idea.tests.gui.framework.BuildSpecificGuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(Parameterized.class)
-@Parameterized.UseParametersRunnerFactory(BuildSpecificGuiTestRunner.Factory.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class BasicLayoutEditTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
-
-  @Parameterized.Parameters(name="{0}")
-  public static TargetBuildSystem.BuildSystem[] data() {
-    return TargetBuildSystem.BuildSystem.values();
-  }
 
   /**
    * Verifies addition of components to designer screen
@@ -56,10 +48,9 @@ public class BasicLayoutEditTest {
    * </pre>
    */
   @RunIn(TestGroup.SANITY_BAZEL)
-  @TargetBuildSystem({TargetBuildSystem.BuildSystem.GRADLE, TargetBuildSystem.BuildSystem.BAZEL})
   @Test
   public void basicLayoutEdit() throws Exception {
-    NlEditorFixture editorFixture = guiTest.importSimpleLocalApplication()
+    NlEditorFixture editorFixture = guiTest.importSimpleApplication()
                                            .getEditor()
                                            .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
                                            .getLayoutEditor(false)
