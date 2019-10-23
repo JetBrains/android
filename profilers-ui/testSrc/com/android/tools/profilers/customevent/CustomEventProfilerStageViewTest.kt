@@ -19,16 +19,20 @@ import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.trackgroup.TrackGroupListPanel
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerScrollbar
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.energy.FakeEnergyService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import javax.swing.JList
 
@@ -40,10 +44,14 @@ class CustomEventProfilerStageViewTest {
   private lateinit var stage: CustomEventProfilerStage
   private lateinit var view: StudioProfilersView
 
+  @get:Rule
+  var grpcChannel = FakeGrpcChannel("CustomEventProfilerStageViewTest", transportService, FakeProfilerService(timer),
+                                    FakeEnergyService())
+
   @Before
   fun setUp() {
     val services = FakeIdeProfilerServices().apply { enableCustomEventVisualization(true) }
-    val profilers = StudioProfilers(ProfilerClient(CustomEventProfilerStageViewTest::class.java.simpleName), services, timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), services, timer)
     transportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE)
     stage = CustomEventProfilerStage(profilers)
     profilers.stage = stage

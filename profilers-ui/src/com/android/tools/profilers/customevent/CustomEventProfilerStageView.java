@@ -56,6 +56,9 @@ public class CustomEventProfilerStageView extends StageView<CustomEventProfilerS
     // Add a dependency for when the range changes so the track group list has to be repainted as the timeline moves.
     myStudioProfilers.getTimeline().getViewRange().addDependency(this).onChange(Range.Aspect.RANGE, this::updateTrackGroupList);
 
+    // Add a dependency for when an event has been added so the track group list can be updated
+    stage.getUserCounterAspectModel().addDependency(this).onChange(UserCounterAspectModel.Aspect.USER_COUNTER, this::reloadTrackGroup);
+
     buildUI();
   }
 
@@ -100,5 +103,10 @@ public class CustomEventProfilerStageView extends StageView<CustomEventProfilerS
   private void updateTrackGroupList() {
     // Force track group list to validate its children.
     myTrackGroupList.getComponent().updateUI();
+  }
+
+  private void reloadTrackGroup() {
+    myTrackGroupList.loadTrackGroups(getStage().getTrackGroupModels());
+    updateTrackGroupList();
   }
 }
