@@ -16,14 +16,17 @@
 package org.jetbrains.android.compose
 
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_AUTO_DOCUMENTATION
+import com.intellij.codeInsight.CodeInsightSettings
 import com.intellij.codeInsight.completion.CompletionService
 import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.codeInsight.lookup.LookupEvent
 import com.intellij.codeInsight.lookup.LookupListener
 import com.intellij.codeInsight.lookup.LookupManager
+import com.intellij.codeInsight.lookup.impl.LookupImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.IndexNotReadyException
+import com.intellij.util.Alarm
 import java.beans.PropertyChangeListener
 
 /**
@@ -41,7 +44,6 @@ class AndroidComposeAutoDocumentation(
       val lookup = evt.newValue as Lookup
       lookup.addLookupListener(object : LookupListener {
         override fun currentItemChanged(event: LookupEvent) {
-          super.currentItemChanged(event)
           showJavaDoc(lookup)
         }
       })
@@ -57,11 +59,20 @@ class AndroidComposeAutoDocumentation(
   private fun showJavaDoc(lookup: Lookup) {
     if (lookupManager.activeLookup !== lookup) return
 
+    // If we open doc when lookup is not visible, doc will have wrong parent window (editor window instead of lookup).
+    if ((lookup as? LookupImpl)?.isVisible != true) {
+      Alarm().addRequest({ showJavaDoc(lookup) }, CodeInsightSettings.getInstance().JAVADOC_INFO_DELAY)
+      return
+    }
+
     val psiElement = lookup.currentItem?.psiElement ?: return
 
     if (!psiElement.isComposableFunction()) {
       // Close documentation for not composable function if it was opened by [AndroidComposeAutoDocumentation].
-      if (documentationOpenedByCompose) {
+      // Case docManager.docInfoHint?.isFocused == true: user clicked on doc window and after that clicked on lookup and selected another
+      // element. Due to bug docManager.docInfoHint?.isFocused == true even after clicking on lookup element, in that case if we close
+      // docManager.docInfoHint, lookup will be closed as well.
+      if (documentationOpenedByCompose && docManager.docInfoHint?.isFocused == false) {
         docManager.docInfoHint?.cancel()
         documentationOpenedByCompose = false
       }
