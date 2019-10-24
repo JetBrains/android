@@ -225,7 +225,6 @@ public class TimeLinePanel extends JPanel {
     mTimeLine.setBackground(MEUI.ourAvgBackground);
     myTimeLineTopPanel.setRange(TIMELINE_MIN, TIMELINE_MAX);
     mTimeLine.addListSelectionListener(e -> {
-      mTimeLine.requestFocus();
       if (!e.getValueIsAdjusting()) {
         groupSelected();
       }
