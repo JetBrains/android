@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,39 +15,32 @@
  */
 package com.android.tools.idea.gradle.project.build.compiler;
 
-import static com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.android.tools.idea.testing.TestProjectPaths.MULTI_FEATURE;
 
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.compiler.impl.ProjectCompileScope;
+import com.intellij.compiler.impl.ModuleCompileScope;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.util.Key;
 import java.util.List;
 import org.jetbrains.jps.api.CmdlineRemoteProto.Message.ControllerMessage.ParametersMessage.TargetTypeBuildScope;
 
-public class AndroidGradleBuildTargetProviderTest extends AndroidGradleTestCase {
+/**
+ * Tests for {@link AndroidGradleBuildTargetScopeProvider} that depend on old versions of AGP.
+ */
+public class AndroidGradleBuildTargetProviderOldAgpTest extends AndroidGradleTestCase {
+  public void testModuleCompileScope() throws Exception {
+    // Use a plugin version with feature support
+    loadProject(MULTI_FEATURE, null, null, "3.5.0");
 
-  public void testNoAndroidFacetAddsScope() throws Exception {
-    prepareProjectForImport(PURE_JAVA_PROJECT);
-    importProject();
+    Module[] modules = ModuleManager.getInstance(getProject()).getModules();
+    assertSize(6, modules);
 
-    CompileScope scope = new ProjectCompileScope(getProject());
-
-    AndroidGradleBuildTargetScopeProvider provider = new AndroidGradleBuildTargetScopeProvider();
-    List<TargetTypeBuildScope> targetScopes = provider.getBuildTargetScopes(scope, getProject(), true);
-    assertSize(1, targetScopes);
-
-    TargetTypeBuildScope targetScope = targetScopes.get(0);
-    assertContainsElements(targetScope.getTargetIdList(), "android_gradle_build_target");
-  }
-
-  public void testProjectCompileScope() throws Exception {
-    loadProject(SIMPLE_APPLICATION);
-
-    CompileScope scope = new ProjectCompileScope(getProject());
+    CompileScope scope = new ModuleCompileScope(modules[0], true);
+    scope.putUserData(Key.create("Test"), "RUN_CONFIGURATION");
 
     AndroidGradleBuildTargetScopeProvider provider = new AndroidGradleBuildTargetScopeProvider();
     List<TargetTypeBuildScope> targetScopes = provider.getBuildTargetScopes(scope, getProject(), true);
@@ -57,9 +50,9 @@ public class AndroidGradleBuildTargetProviderTest extends AndroidGradleTestCase 
     assertContainsElements(targetScope.getTargetIdList(), "android_gradle_build_target");
 
     BuildSettings buildSettings = BuildSettings.getInstance(getProject());
-    assertEquals(BuildMode.REBUILD, buildSettings.getBuildMode());
+    assertEquals(BuildMode.ASSEMBLE, buildSettings.getBuildMode());
 
-    Module[] modules = ModuleManager.getInstance(getProject()).getModules();
-    assertSameElements(buildSettings.getModulesToBuild(), modules);
+    Module[] expectedModule = {modules[0]};
+    assertSameElements(buildSettings.getModulesToBuild(), expectedModule);
   }
 }

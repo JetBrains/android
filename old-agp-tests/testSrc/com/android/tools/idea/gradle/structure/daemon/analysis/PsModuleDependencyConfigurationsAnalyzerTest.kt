@@ -178,7 +178,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest : DependencyTestCase() {
     }
   }
 
-  // TODO(b/129135682): enable when bug is fixed
+  // TODO(b/129135682): enable when bug is fixed. Also, should use "3.5.0"?
   fun laterTestObsoleteTestCompileConfigurationInFeature() {
     loadProject(TestProjectPaths.PSD_UPGRADE)
     val resolvedProject = myFixture.project
@@ -201,7 +201,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest : DependencyTestCase() {
     }
   }
 
-  // TODO(b/129135682): enable when bug is fixed
+  // TODO(b/129135682): enable when bug is fixed. Also, should use "3.5.0"?
   fun laterTestObsoleteCompileConfigurationInFeature() {
     loadProject(TestProjectPaths.PSD_UPGRADE)
     val resolvedProject = myFixture.project
