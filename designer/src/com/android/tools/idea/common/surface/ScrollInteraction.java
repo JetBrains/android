@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.common.surface;
 
+import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
+
 import com.android.annotations.NonNull;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.uibuilder.api.ScrollHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -24,8 +27,11 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import java.awt.Dimension;
 import java.awt.event.MouseWheelEvent;
 import java.util.EventObject;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,8 +99,37 @@ public class ScrollInteraction extends Interaction {
   @Override
   public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
     if (event instanceof MouseWheelEvent) {
-      MouseWheelEvent mouseWheelEvent = (MouseWheelEvent) event;
-      scroll(mouseWheelEvent.getX(), mouseWheelEvent.getY(), mouseWheelEvent.getScrollAmount());
+      MouseWheelEvent mouseWheelEvent = (MouseWheelEvent)event;
+      int x = mouseWheelEvent.getX();
+      int y = mouseWheelEvent.getY();
+      int scrollAmount = mouseWheelEvent.getScrollType() == WHEEL_UNIT_SCROLL ? mouseWheelEvent.getUnitsToScroll()
+                                                                              : (mouseWheelEvent.getWheelRotation() < 0 ? -1 : 1);
+      DesignSurface surface = mySceneView.getSurface();
+
+      SceneView sceneView = surface.getSceneView(x, y);
+      if (sceneView == null) {
+        mouseWheelEvent.getComponent().getParent().dispatchEvent(mouseWheelEvent);
+        return;
+      }
+
+      final NlComponent component = Coordinates.findComponent(sceneView, x, y);
+      if (component == null) {
+        // There is no component consuming the scroll
+        mouseWheelEvent.getComponent().getParent().dispatchEvent(mouseWheelEvent);
+        return;
+      }
+
+      if (!canScroll(scrollAmount)) {
+        JScrollPane scrollPane = surface.getScrollPane();
+        JViewport viewport = scrollPane.getViewport();
+        Dimension extentSize = viewport.getExtentSize();
+        Dimension viewSize = viewport.getViewSize();
+        if (viewSize.width > extentSize.width || viewSize.height > extentSize.height) {
+          mouseWheelEvent.getComponent().getParent().dispatchEvent(mouseWheelEvent);
+          return;
+        }
+      }
+      scroll(x, y, scrollAmount);
     }
   }
 

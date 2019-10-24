@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.api.DragType
+import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.flags.StudioFlags
@@ -24,6 +25,7 @@ import com.android.tools.idea.uibuilder.model.NlDropEvent
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction
 import java.awt.dnd.DnDConstants
 import java.awt.dnd.DropTargetDragEvent
+import java.awt.event.MouseWheelEvent
 
 interface InteractionProvider {
   fun createInteractionOnClick(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction?
@@ -31,6 +33,8 @@ interface InteractionProvider {
   fun createInteractionOnDrag(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction?
 
   fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction?
+
+  fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction?
 }
 
 abstract class InteractionProviderBase(private val surface: DesignSurface) : InteractionProvider {
@@ -82,5 +86,13 @@ abstract class InteractionProviderBase(private val surface: DesignSurface) : Int
     // that reflects the users choice i.e. controlled by the modifier key.
     event.accept(insertType)
     return interaction
+  }
+
+  override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? {
+    val x = mouseWheelEvent.x
+    val y = mouseWheelEvent.y
+    val sceneView = surface.getSceneView(x, y) ?: return null
+    val component = Coordinates.findComponent(sceneView, x, y) ?: return null // There is no component consuming the scroll
+    return ScrollInteraction.createScrollInteraction(sceneView, component)
   }
 }

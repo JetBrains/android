@@ -864,7 +864,6 @@ public class InteractionManager implements Disposable {
     public void mouseWheelMoved(MouseWheelEvent e) {
       int x = e.getX();
       int y = e.getY();
-
       int scrollAmount;
       if (e.getScrollType() == WHEEL_UNIT_SCROLL) {
         scrollAmount = e.getUnitsToScroll();
@@ -877,9 +876,7 @@ public class InteractionManager implements Disposable {
       // interpreted as a mouseWheel Event with Shift down.
       // If some scrolling imprecision happens for other scroll interaction, it might be good
       // to do the filtering at a higher level
-      if (!e.isShiftDown()
-          && (SystemInfo.isMac && e.isMetaDown()
-              || e.isControlDown())) {
+      if (!e.isShiftDown() && (SystemInfo.isMac && e.isMetaDown() || e.isControlDown())) {
         if (scrollAmount < 0) {
           mySurface.zoom(ZoomType.IN, x, y);
         }
@@ -889,22 +886,9 @@ public class InteractionManager implements Disposable {
         return;
       }
 
-      SceneView sceneView = mySurface.getSceneView(x, y);
-      if (sceneView == null) {
-        e.getComponent().getParent().dispatchEvent(e);
-        return;
-      }
-
-      final NlComponent component = Coordinates.findComponent(sceneView, x, y);
-      if (component == null) {
-        // There is no component consuming the scroll
-        e.getComponent().getParent().dispatchEvent(e);
-        return;
-      }
-
-      boolean isScrollInteraction;
       if (myCurrentInteraction == null) {
-        ScrollInteraction scrollInteraction = ScrollInteraction.createScrollInteraction(sceneView, component);
+        Interaction scrollInteraction = myInteractionProvider.createInteractionOnMouseWheelMoved(e);
+
         if (scrollInteraction == null) {
           // There is no component consuming the scroll
           e.getComponent().getParent().dispatchEvent(e);
@@ -918,25 +902,42 @@ public class InteractionManager implements Disposable {
         else {
           startInteraction(x, y, scrollInteraction, 0);
         }
-        isScrollInteraction = true;
         myScrollEndTimer.addActionListener(myScrollEndListener);
       }
       else {
-        isScrollInteraction = myCurrentInteraction instanceof ScrollInteraction;
-      }
+        // TODO: Remove below code after StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
+        SceneView sceneView = mySurface.getSceneView(x, y);
+        if (sceneView == null) {
+          e.getComponent().getParent().dispatchEvent(e);
+          return;
+        }
 
-      if (isScrollInteraction && !((ScrollInteraction)myCurrentInteraction).canScroll(scrollAmount)) {
-        JScrollPane scrollPane = mySurface.getScrollPane();
-        JViewport viewport = scrollPane.getViewport();
-        Dimension extentSize = viewport.getExtentSize();
-        Dimension viewSize = viewport.getViewSize();
-        if (viewSize.width > extentSize.width || viewSize.height > extentSize.height) {
+        final NlComponent component = Coordinates.findComponent(sceneView, x, y);
+        if (component == null) {
+          // There is no component consuming the scroll
           e.getComponent().getParent().dispatchEvent(e);
           return;
         }
       }
-      myCurrentInteraction.scroll(e.getX(), e.getY(), scrollAmount);
 
+      boolean isScrollInteraction = myCurrentInteraction instanceof ScrollInteraction;
+      if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+        myCurrentInteraction.update(e, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+      }
+      else {
+        // TODO: Remove below code after StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
+        if (isScrollInteraction && !((ScrollInteraction)myCurrentInteraction).canScroll(scrollAmount)) {
+          JScrollPane scrollPane = mySurface.getScrollPane();
+          JViewport viewport = scrollPane.getViewport();
+          Dimension extentSize = viewport.getExtentSize();
+          Dimension viewSize = viewport.getViewSize();
+          if (viewSize.width > extentSize.width || viewSize.height > extentSize.height) {
+            e.getComponent().getParent().dispatchEvent(e);
+            return;
+          }
+        }
+        myCurrentInteraction.scroll(e.getX(), e.getY(), scrollAmount);
+      }
       if (isScrollInteraction) {
         myScrollEndTimer.restart();
       }
