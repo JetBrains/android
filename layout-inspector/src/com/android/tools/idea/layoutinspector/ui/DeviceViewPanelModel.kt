@@ -108,11 +108,20 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
                               parentClip: Rectangle,
                               levelListCollector: MutableList<MutableList<Pair<ViewNode, Rectangle>>>,
                               level: Int = 0) {
-    val levelList = levelListCollector.find { it.none { (node, _) -> node.bounds.intersects(root.bounds) } }
-                ?: mutableListOf<Pair<ViewNode, Rectangle>>().also { levelListCollector.add(it) }
+    var newLevelIndex = levelListCollector
+      .subList(level, levelListCollector.size)
+      .indexOfFirst { it.none { (node, _) -> node.bounds.intersects(root.bounds) } }
+    if (newLevelIndex == -1) {
+      newLevelIndex = levelListCollector.size
+      levelListCollector.add(mutableListOf())
+    }
+    else {
+      newLevelIndex += level
+    }
+    val levelList = levelListCollector[newLevelIndex]
     val clip = parentClip.intersection(root.bounds)
     levelList.add(Pair(root, clip))
-    root.children.forEach { buildLevelLists(it, clip, levelListCollector, level + 1) }
+    root.children.forEach { buildLevelLists(it, clip, levelListCollector, newLevelIndex) }
   }
 
   private fun rebuildRectsForLevel(transform: AffineTransform,
