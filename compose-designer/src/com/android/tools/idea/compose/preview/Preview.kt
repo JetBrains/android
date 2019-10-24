@@ -669,18 +669,6 @@ private class ComposeTextEditorWithPreview constructor(
   init {
     ForceCompileAndRefreshAction().registerCustomShortcutSet(getBuildAndRefreshShortcut(), component, this)
   }
-
-  override fun canNavigateTo(navigatable: Navigatable): Boolean {
-    return composeTextEditor.canNavigateTo(navigatable)
-  }
-
-  override fun navigateTo(navigatable: Navigatable) {
-    composeTextEditor.navigateTo(navigatable)
-  }
-
-  override fun getEditor(): Editor {
-    return composeTextEditor.editor
-  }
 }
 
 /**
