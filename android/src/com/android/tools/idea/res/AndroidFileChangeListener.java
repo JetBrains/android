@@ -24,7 +24,7 @@ import com.android.tools.idea.fileTypes.FontFileType;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
-import com.android.utils.SdkUtils;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.google.common.collect.Iterables;
 import com.intellij.AppTopics;
 import com.intellij.openapi.Disposable;
@@ -77,20 +77,22 @@ import org.jetbrains.kotlin.idea.KotlinFileType;
  * time to correctly (hopefully) handle different supported scenarios:
  *
  * <ul>
- *   <li>PSI modification
- *   <li>Document with no PSI being modified
- *   <li>Document with uncommitted PSI being modified
- *   <li>File with no Document being modified
- *   <li>Files being created, deleted or moved
+ *   <li>Files being created, deleted or moved are handled on the VFS level by a {@link BulkFileListener}.
+ *   <li>Changes to files with no cached {@link Document} or binary files are handled by a {@link FileDocumentManagerListener}.
+ *   <li>Changes to files with a {@link Document} but no cached {@link PsiFile} are handled by {@link DocumentListener}.
+ *   <li>Changes to files with a cached {@link PsiFile} are handled by a {@link PsiTreeChangeListener}.
  * </ul>
  *
- * <p>It also means we can quickly ignore irrelevant events, if e.g. they don't correspond to an Android module. Information is forwarded
- * to:
+ * <p>Note that these cases are exclusive, so only one event is actually handled by the receiver, no matter what action the user took. This
+ * includes cases like user typing with auto-save off (modifies Document and PSI but not VFS), background git checkouts (modifies VFS, but
+ * not Document or PSI in some cases).
+ *
+ * <p>Information is forwarded to:
  * <ul>
- *   <li>{@link ResourceFolderRegistry} and from there to {@link ResourceFolderRepository}
+ *   <li>{@link ResourceFolderRegistry} and from there to {@link ResourceFolderRepository} and {@link LayoutLibrary}
  *   <li>{@link SampleDataListener} and from there to {@link SampleDataResourceRepository}
  *   <li>{@link ResourceNotificationManager}
- *   <li>{@link EditorNotifications} when a Gradle file is modified.
+ *   <li>{@link EditorNotifications} when a Gradle file is modified
  * </ul>
  */
 public class AndroidFileChangeListener implements Disposable {
@@ -312,7 +314,7 @@ public class AndroidFileChangeListener implements Disposable {
           onFileOrDirectoryCreated(renameEvent.getFile().getParent(), (String)renameEvent.getNewValue());
         }
         else if (event instanceof VFileContentChangeEvent) {
-          onFileContentChanged(((VFileContentChangeEvent)event).getFile());
+          // Content changes are not handled at the VFS level but either in fileWithNoDocumentChanged, documentChanged or MyPsiListener.
         }
       }
     }
@@ -362,16 +364,6 @@ public class AndroidFileChangeListener implements Disposable {
 
     private void onFileOrDirectoryRemoved(@NotNull VirtualFile file) {
       myRegistry.dispatchToRepositories(file, ResourceFolderRepository::onFileOrDirectoryRemoved);
-    }
-
-    private void onFileContentChanged(@NotNull VirtualFile file) {
-      if (file.isDirectory()) {
-        return;
-      }
-
-      if (SdkUtils.hasImageExtension(file.getName())) {
-        myRegistry.dispatchToRepositories(file, ResourceFolderRepository::onBitmapFileUpdated);
-      }
     }
   }
 
