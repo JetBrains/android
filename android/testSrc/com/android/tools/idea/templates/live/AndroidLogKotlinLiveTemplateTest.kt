@@ -164,7 +164,7 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
     testLog(
       TEMPLATE_LOGM,
       methodHeader = "myMethod(foo: String, bar: String)",
-      expectedCompletion = "Log.d(TAG, \"myMethod() called with: foo = [foo], bar = [bar]\")"
+      expectedCompletion = "Log.d(TAG, \"myMethod() called with: foo = \$foo, bar = \$bar\")"
     )
   }
 
