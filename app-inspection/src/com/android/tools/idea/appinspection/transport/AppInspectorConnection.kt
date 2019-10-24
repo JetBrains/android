@@ -102,8 +102,7 @@ internal class AppInspectorConnection(
         val appInspectionCommand = AppInspectionCommand.newBuilder().setDisposeInspectorCommand(disposeInspectorCommand).build()
         val commandId = transport.executeCommand(appInspectionCommand)
         val listener = transport.registerEventListener(MoreExecutors.directExecutor(), { it.appInspectionEvent.commandId == commandId }) {
-          disposeFuture.set(it.appInspectionEvent.response)
-          cleanup("Inspector $inspectorId was disposed.")
+          cleanup("Inspector $inspectorId was disposed.", it.appInspectionEvent.response)
           // we manually call unregister, because future can be completed from other places, so we clean up the listeners there
           false
         }
@@ -137,15 +136,22 @@ internal class AppInspectorConnection(
     return settableFuture
   }
 
-  private fun cleanup(message: String) {
+  /**
+   * Cleans up inspector connection by unregistering listeners and completing futures.
+   * All futures are completed exceptionally with [futureExceptionMessage]. In the case this is
+   * called as part of the dispose code path, [disposeFuture] is completed with [disposeResponse].
+   */
+  private fun cleanup(futureExceptionMessage: String, disposeResponse: ServiceResponse? = null) {
     if (isDisposed.compareAndSet(false, true)) {
       transport.poller.unregisterListener(inspectorEventListener)
       transport.poller.unregisterListener(processEndListener)
       transport.poller.unregisterListener(responsesListener)
-      pendingCommands.values.forEach { it.setException(RuntimeException(message)) }
+      pendingCommands.values.forEach { it.setException(RuntimeException(futureExceptionMessage)) }
       pendingCommands.clear()
-      if (!disposeFuture.isDone) {
-        disposeFuture.setException(RuntimeException(message))
+      if (disposeResponse == null) {
+        disposeFuture.setException(RuntimeException(futureExceptionMessage))
+      } else {
+        disposeFuture.set(disposeResponse)
       }
       clientEventListener!!.onDispose()
     }
