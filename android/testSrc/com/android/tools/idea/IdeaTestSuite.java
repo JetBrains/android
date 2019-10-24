@@ -62,7 +62,6 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
       setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
       setUpOfflineRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip", "prebuilts/tools/common/m2/repository");
       // Please consider adding tests that depend on specific versions of AGP into old-agp-tests instead of b/141628806
-      setUpOfflineRepo("tools/base/build-system/previous-versions/3.5.0.zip", "prebuilts/tools/common/m2/repository");
       setUpOfflineRepo("tools/data-binding/data_binding_runtime.zip", "prebuilts/tools/common/m2/repository");
     }
     catch (Throwable e) {

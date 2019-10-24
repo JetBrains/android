@@ -92,5 +92,12 @@ iml_module(
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/idea/xml/openapi:intellij.xml[module, test]",
+        "//tools/idea/xml/dom-impl:intellij.xml.dom.impl[module, test]",
+        "//tools/idea/java/compiler/openapi:intellij.java.compiler[module, test]",
+        "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
     ],
 )
