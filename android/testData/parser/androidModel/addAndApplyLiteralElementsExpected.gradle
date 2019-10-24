@@ -4,5 +4,5 @@ android {
   defaultPublishConfig = 'release'
   generatePureSplits = false
   publishNonDefault = true
-  resourcePrefix = 'efgh'
+  resourcePrefix 'efgh'
 }

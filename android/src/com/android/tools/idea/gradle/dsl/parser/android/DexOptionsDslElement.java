@@ -32,7 +32,7 @@ public class DexOptionsDslElement extends GradlePropertiesDslElement {
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
     if (element instanceof GradleDslSimpleExpression && (element.getName().equals("additionalParameters"))) {
-      addAsParsedDslExpressionList((GradleDslSimpleExpression)element);
+      addAsParsedDslExpressionList(element.getName(), (GradleDslSimpleExpression)element);
       return;
     }
     super.addParsedElement(element);

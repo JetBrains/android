@@ -38,7 +38,7 @@ public class AaptOptionsDslElement extends GradleDslBlockElement {
   public void addParsedElement(@NotNull GradleDslElement element) {
     if (element instanceof GradleDslSimpleExpression &&
         (element.getName().equals("additionalParameters") || element.getName().equals("noCompress"))) {
-      addAsParsedDslExpressionList((GradleDslSimpleExpression)element);
+      addAsParsedDslExpressionList(element.getName(), (GradleDslSimpleExpression)element);
       return;
     }
     super.addParsedElement(element);
