@@ -689,6 +689,11 @@ public final class StudioFlags {
     SYSTEM_HEALTH, "antivirus.metrics.enabled", "Enable antivirus metrics collection",
     "If enabled, metrics about the status of antivirus realtime scanning and excluded directories will be collected",
     true);
+
+  public static final Flag<Boolean> ANTIVIRUS_CHECK_USE_REGISTRY = Flag.create(
+    SYSTEM_HEALTH, "antivirus.check.registry", "Use registry instead of PowerShell for checking antivirus status",
+    "If enabled, the antivirus status checker will use the Windows registry instead of PowerShell commands",
+    true);
   //endregion
 
   //region Compose
