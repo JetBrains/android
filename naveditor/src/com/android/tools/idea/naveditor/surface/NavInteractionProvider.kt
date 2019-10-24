@@ -15,18 +15,54 @@
  */
 package com.android.tools.idea.naveditor.surface
 
+import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.model.Coordinates.getAndroidXDip
+import com.android.tools.idea.common.model.Coordinates.getAndroidYDip
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionProviderBase
+import com.android.tools.idea.uibuilder.surface.MarqueeInteraction
 
 class NavInteractionProvider(private val surface: DesignSurface): InteractionProviderBase(surface) {
 
-  override fun createInteractionOnClick(mouseX: Int, mouseY: Int): Interaction? {
+  override fun createInteractionOnClick(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction? {
     val sceneView = surface.getSceneView(mouseX, mouseY) ?: return null
     return SceneInteraction(sceneView);
   }
 
-  override fun createInteractionOnDrag(draggedSceneComponent: SceneComponent, primarySceneComponent: SceneComponent?): Interaction? = null
+  override fun createInteractionOnDrag(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction? {
+    val sceneView = surface.getSceneView(mouseX, mouseY) ?: return null
+    val scene = sceneView.scene
+    val selectionModel = sceneView.selectionModel
+
+    val xDp = getAndroidXDip(sceneView, mouseX)
+    val yDp = getAndroidYDip(sceneView, mouseY)
+
+    val model = sceneView.model
+
+    // Make sure we start from root if we don't have anything selected
+    if (selectionModel.isEmpty && !model.components.isEmpty()) {
+      selectionModel.setSelection(listOf(model.components[0].root!!))
+    }
+
+    // See if you're dragging inside a selected parent; if so, drag the selection instead of any
+    // leaf nodes inside it
+    var component: SceneComponent? = null
+    val primary = scene.getSceneComponent(selectionModel.primary)
+    if (primary != null && primary.parent != null && primary.containsX(xDp) && primary.containsY(yDp)) {
+      component = primary
+    }
+    if (component == null) {
+      component = scene.findComponent(sceneView.context, xDp, yDp)
+    }
+
+    if (component?.parent == null) {
+      // Dragging on the background/root view: start a marquee selection
+      return MarqueeInteraction(sceneView)
+    }
+
+    return null
+  }
 }
