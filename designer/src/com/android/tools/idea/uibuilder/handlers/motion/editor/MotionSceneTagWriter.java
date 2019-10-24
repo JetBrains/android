@@ -25,7 +25,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSc
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
@@ -38,7 +37,8 @@ import java.util.LinkedHashMap;
  * The Writer form of the WrapMotionScene used when you are modifying the tag.
  */
 public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWriter {
-  String mType;
+  private MotionSceneTag mTag;
+  private String mType;
   private ArrayList<CommitListener> myListeners = new ArrayList<>();
   private HashMap<String, Attribute> mNewAttrList = new LinkedHashMap<>();
   private DeleteTag deleteRun;
@@ -59,6 +59,7 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
    */
   public MotionSceneTagWriter(MotionSceneTag tag) {
     super(tag.myXmlTag, tag.mParent);
+    mTag = tag;
     mType = tag.getTagName();
   }
 
@@ -120,6 +121,7 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
         Attribute attr = mNewAttrList.get(key);
         String namespace = MotionSceneAttrs.lookupName(attr);
         myXmlTag.setAttribute(attr.mAttribute, namespace, attr.mValue);
+        mTag.getAttrList().put(attr.mAttribute, attr);
       }
     }, root.mXmlFile, root.mModel.getFile());
 
