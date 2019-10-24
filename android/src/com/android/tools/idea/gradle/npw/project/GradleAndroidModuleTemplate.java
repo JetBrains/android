@@ -26,6 +26,7 @@ import static com.android.tools.idea.templates.SourceProviderUtilKt.getSourcePro
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.module.ModuleModelKt;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
+import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -41,7 +42,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

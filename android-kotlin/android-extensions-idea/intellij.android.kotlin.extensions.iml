@@ -25,5 +25,6 @@
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="kotlin-plugin" level="project" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
   </component>
 </module>

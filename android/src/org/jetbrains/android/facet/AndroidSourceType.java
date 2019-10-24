@@ -17,6 +17,7 @@ package org.jetbrains.android.facet;
 
 import static java.util.Collections.emptyList;
 
+import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.vfs.VirtualFile;

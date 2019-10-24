@@ -39,7 +39,6 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
-import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.SystemIndependent
 import org.w3c.dom.Element

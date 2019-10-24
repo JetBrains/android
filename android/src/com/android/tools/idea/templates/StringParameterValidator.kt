@@ -38,7 +38,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.GlobalSearchScope.EMPTY_SCOPE
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
-import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.SystemIndependent
 import java.io.File
