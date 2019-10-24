@@ -261,8 +261,10 @@ public class DeploymentTest {
       }
 
       VirtualFile apkFile = VfsUtil.findFileByIoFile(TestUtils.getWorkspaceFile(new File(APKS_LOCATION, apk.myFileName).getPath()), true);
-      VirtualFile targetApkCopy = VfsUtilCore.copyFile(this, apkFile, baseDir, DEPLOY_APK_NAME);
-      assertThat(targetApkCopy.isValid()).isTrue();
+      GuiTask.execute(() -> WriteAction.run(() -> {
+        VirtualFile targetApkCopy = VfsUtilCore.copyFile(this, apkFile, baseDir, DEPLOY_APK_NAME);
+        assertThat(targetApkCopy.isValid()).isTrue();
+      }));
     }
     finally {
       // We need to refresh the VFS because we're modifying files here and some listeners may fire

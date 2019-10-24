@@ -130,7 +130,7 @@ public class SceneLayer extends Layer {
   }
 
   @Override
-  public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
+  public void onHover(@SwingCoordinate int x, @SwingCoordinate int y) {
     boolean show = false;
     if (getSceneView() == myDesignSurface.getHoverSceneView(x, y)) {
       show = true;

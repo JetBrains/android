@@ -68,7 +68,7 @@ public class OrientationMenuAction extends DropDownAction {
     removeAll();
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null) {
-      Device device = configuration.getDevice();
+      Device device = configuration.getCachedDevice();
       if (device != null) {
         State currentDeviceState = configuration.getDeviceState();
 

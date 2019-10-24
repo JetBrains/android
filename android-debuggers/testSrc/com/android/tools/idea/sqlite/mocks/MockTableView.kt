@@ -23,6 +23,7 @@ import org.mockito.Mockito.mock
 import javax.swing.JComponent
 
 open class MockTableView : TableView {
+
   val listeners = mutableListOf<TableViewListener>()
 
   override val component = mock(JComponent::class.java)
@@ -37,7 +38,7 @@ open class MockTableView : TableView {
 
   override fun stopTableLoading() { }
 
-  override fun reportError(message: String, t: Throwable) { }
+  override fun reportError(message: String, t: Throwable?) { }
 
   override fun setFetchPreviousRowsButtonState(enable: Boolean) { }
 
@@ -53,5 +54,5 @@ open class MockTableView : TableView {
 
   override fun removeRows() { }
 
-  override fun showRowCount(maxRowCount: Int) { }
+  override fun showPageSizeValue(maxRowCount: Int) { }
 }

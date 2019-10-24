@@ -407,7 +407,6 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     application.executeOnPooledThread(this::checkRuntime);
 
     new WindowsPerformanceHintsChecker().run();
-    new Win32DeprecationNotifier(myGroup.getDisplayId()).run();
 
     if (SystemInfo.isWindows && StudioFlags.WINDOWS_UCRT_CHECK_ENABLED.get()) {
       application.getMessageBus().connect(application).subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {

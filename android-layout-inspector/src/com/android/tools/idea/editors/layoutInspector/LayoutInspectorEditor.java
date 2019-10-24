@@ -15,32 +15,87 @@
  */
 package com.android.tools.idea.editors.layoutInspector;
 
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 import com.android.ddmlib.Client;
 import com.android.layoutinspector.model.ClientWindow;
-import com.android.layoutinspector.model.LayoutFileData;
 import com.android.layoutinspector.parser.LayoutFileDataParser;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.ui.EditorNotificationPanel;
+import com.intellij.ui.EditorNotifications;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.SwingConstants;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LayoutInspectorEditor extends UserDataHolderBase implements FileEditor {
   private final VirtualFile myVirtualFile;
   private final Project myProject;
   private LayoutInspectorEditorPanel myPanel;
   private LayoutInspectorContext myContext;
+
+  public static class NewVersionNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
+    private static Key<EditorNotificationPanel> KEY = Key.create("new.layout.inspector.notification");
+    private static final Key<String> HIDDEN_KEY = Key.create("new.layout.inspector.notification.hidden");
+    private static final String DISABLE_KEY = "new.layout.inspector.notification.disabled";
+
+    @NotNull
+    @Override
+    public Key<EditorNotificationPanel> getKey() {
+      return KEY;
+    }
+
+    @Nullable
+    @Override
+    public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
+                                                           @NotNull FileEditor fileEditor,
+                                                           @NotNull Project project) {
+      if (fileEditor instanceof LayoutInspectorEditor && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get()) {
+        EditorNotificationPanel panel = new EditorNotificationPanel();
+        panel.setText("Using API 29? Try out the new layout inspector.");
+
+        if (fileEditor.getUserData(HIDDEN_KEY) != null || PropertiesComponent.getInstance().isTrueValue(DISABLE_KEY)) {
+          return null;
+        }
+
+        panel.createActionLabel("Try it", () -> {
+          ToolWindowManager windowManager = ToolWindowManager.getInstance(project);
+          final ToolWindow window = windowManager.getToolWindow("Layout Inspector");
+          window.activate(null);
+        });
+        panel.createActionLabel("Hide notification", () -> {
+          fileEditor.putUserData(HIDDEN_KEY, "true");
+          update(file, project);
+        });
+        panel.createActionLabel("Don't show again", () -> {
+          PropertiesComponent.getInstance().setValue(DISABLE_KEY, "true");
+          update(file, project);
+        });
+
+        return panel;
+      }
+      return null;
+    }
+
+    private static void update(@NotNull VirtualFile file, @NotNull Project project) {
+      EditorNotifications.getInstance(project).updateNotifications(file);
+    }
+  }
 
   public LayoutInspectorEditor(@NotNull Project project, @NotNull VirtualFile file) {
     myVirtualFile = file;

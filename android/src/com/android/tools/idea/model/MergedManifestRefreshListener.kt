@@ -33,6 +33,7 @@ import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.facet.SourceProviderManager
+import org.jetbrains.android.facet.isManifestFile
 
 
 /**
@@ -63,7 +64,7 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
    *  @see [MergedManifestContributors]
    */
   override fun isRelevant(file: VirtualFile, facet: AndroidFacet): Boolean {
-    if (file.name == FN_ANDROID_MANIFEST_XML) return IdeaSourceProvider.isManifestFile(facet, file)
+    if (file.name == FN_ANDROID_MANIFEST_XML) return isManifestFile(facet, file)
 
     fun VirtualFile.couldBeNavigationFolder(): Boolean {
       return isDirectory && parent != null && ResourceFolderType.getFolderType(name) == ResourceFolderType.NAVIGATION

@@ -18,7 +18,6 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.model.SqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewListener
 import com.google.common.util.concurrent.FutureCallback
@@ -37,7 +36,7 @@ class SqliteEvaluatorController(
   private val edtExecutor: FutureCallbackExecutor
 ) : Disposable {
 
-  private var currentQueryResultSetController: ResultSetController? = null
+  private var currentTableController: TableController? = null
   private val sqliteEvaluatorViewListener: SqliteEvaluatorViewListener = SqliteEvaluatorViewListenerImpl()
   private val listeners = mutableListOf<SqliteEvaluatorControllerListener>()
 
@@ -106,26 +105,21 @@ class SqliteEvaluatorController(
     })
   }
 
-  private fun executeQuery(database: SqliteDatabase, sqlQueryCommand: String, doOnFailure: (Throwable) -> Unit) {
+  private fun executeQuery(database: SqliteDatabase, sqliteQuery: String, doOnFailure: (Throwable) -> Unit) {
     val sqliteService = database.sqliteService
-    edtExecutor.addCallback(sqliteService.executeQuery(sqlQueryCommand), object : FutureCallback<SqliteResultSet> {
-      override fun onSuccess(sqliteResultSet: SqliteResultSet?) {
-        if (sqliteResultSet == null) return
 
-        currentQueryResultSetController = ResultSetController(
-          parentDisposable = this@SqliteEvaluatorController,
-          view = view.tableView,
-          tableName = null,
-          resultSet = sqliteResultSet,
-          edtExecutor = edtExecutor
-        ).also { it.setUp() }
-        currentQueryResultSetController
-      }
+    currentTableController = TableController(
+      parentDisposable = this@SqliteEvaluatorController,
+      view = view.tableView,
+      tableName = null,
+      sqliteService = sqliteService,
+      query = sqliteQuery,
+      edtExecutor = edtExecutor
+    )
 
-      override fun onFailure(t: Throwable) {
-        doOnFailure(t)
-      }
-    })
+    edtExecutor.catching(currentTableController!!.setUp(), Throwable::class.java) { throwable ->
+      doOnFailure(throwable)
+    }
   }
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorViewListener {

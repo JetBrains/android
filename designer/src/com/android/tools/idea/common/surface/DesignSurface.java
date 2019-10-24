@@ -682,7 +682,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
     for (Layer layer : myLayers) {
-      layer.hover(x, y);
+      layer.onHover(x, y);
     }
   }
 
@@ -1272,7 +1272,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
       Rectangle bounds = myScrollPane.getViewport().getViewRect();
       for (Layer layer : myLayers) {
-        if (!layer.isHidden()) {
+        if (layer.isVisible()) {
           g2d.setClip(bounds);
           layer.paint(g2d);
         }
@@ -1283,10 +1283,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
 
       // Temporary overlays:
-      List<Layer> layers = myInteractionManager.getLayers();
-      if (layers != null) {
-        for (Layer layer : layers) {
-          if (!layer.isHidden()) {
+      List<Layer> interactionLayers = myInteractionManager.getLayers();
+      if (interactionLayers != null) {
+        for (Layer layer : interactionLayers) {
+          if (layer.isVisible()) {
             layer.paint(g2d);
           }
         }
@@ -1698,6 +1698,17 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   public ConfigurationManager getConfigurationManager(@NotNull AndroidFacet facet) {
     return ConfigurationManager.getOrCreateInstance(facet);
+  }
+
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    if (myModelToSceneManagers != null) {
+      // updateUI() is called in the parent constructor, at that time all class member in this class has not initialized.
+      for (SceneManager manager : myModelToSceneManagers.values()) {
+        manager.getSceneView().updateUI();
+      }
+    }
   }
 
   /**

@@ -142,7 +142,7 @@ public final class IconGeneratorTestUtil {
   private static File getSourceFile(@NotNull SourceType sourceType) throws IOException {
     switch (sourceType) {
       case CLIPART:
-        VirtualFile inputFile = VfsUtil.findFileByURL(MaterialDesignIcons.getDefaultIcon());
+        VirtualFile inputFile = VfsUtil.findFileByIoFile(getTestIconFile(), false);
         File file = FileUtil.createTempFile("clipart", ".xml");
         try (InputStream input = inputFile.getInputStream(); OutputStream output = new BufferedOutputStream(new FileOutputStream(file))) {
           StreamUtil.copyStreamContent(input, output);
@@ -150,7 +150,7 @@ public final class IconGeneratorTestUtil {
         return file;
 
       case PNG: {
-        VdIcon androidIcon = new VdIcon(MaterialDesignIcons.getDefaultIcon());
+        VdIcon androidIcon = new VdIcon(getTestIconFile().toURI().toURL());
         BufferedImage sourceImage = androidIcon.renderIcon(512, 512);
         File pngFile = FileUtil.createTempFile("android", ".png");
         BufferedImage coloredImage = AssetUtil.filledImage(sourceImage, new Color(0xA4C639));
@@ -282,6 +282,10 @@ public final class IconGeneratorTestUtil {
     }
 
     return new File(System.getProperty("java.io.tmpdir"));
+  }
+
+  private static File getTestIconFile() {
+    return new File(getTestDataPath(), "images/vd/ic_android_black_24dp.xml");
   }
 
   private IconGeneratorTestUtil() {}

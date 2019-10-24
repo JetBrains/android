@@ -24,11 +24,11 @@ import java.io.File
  * [RecipeExecutor] that collects references as a result of executing instructions in a [Recipe].
  */
 internal class FindReferencesRecipeExecutor2(private val context: RenderingContext2) : RecipeExecutor2 {
-  override fun hasDependency(artifact: String, configuration: String?): Boolean {
+  override fun hasDependency(mavenCoordinate: String, configuration: String?): Boolean {
     return false
-  }  // TODO is it okay?
+  }
 
-  override fun save(source: String, to: File) {
+  override fun save(source: String, to: File, trimVertical: Boolean, squishEmptyLines: Boolean) {
     addTargetFile(to)
   }
 
@@ -73,11 +73,8 @@ internal class FindReferencesRecipeExecutor2(private val context: RenderingConte
   private fun resolveTargetFile(file: File): File = if (file.isAbsolute) file else File(context.outputRoot, file.path)
 
   override fun addSourceSet(type: SourceSetType, name: String, dir: File) {
-    TODO("not implemented")
   }
 
   override fun setExtVar(name: String, value: Any) {
-    TODO("not implemented")
   }
-
 }

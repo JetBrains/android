@@ -410,7 +410,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
       .thenAcceptAsync(model -> {
         // Set the default density to XXXHDPI for adaptive icon preview
         if (model.getType() == AdaptiveIconFileType.INSTANCE) {
-          Device device = model.getConfiguration().getDevice();
+          Device device = model.getConfiguration().getCachedDevice();
           if (device != null && !NlModelHelperKt.CUSTOM_DENSITY_ID.equals(device.getId())) {
             NlModelHelperKt.overrideConfigurationDensity(model, Density.XXXHIGH);
           }

@@ -55,6 +55,7 @@ import java.util.List;
 import org.apache.commons.io.input.CharSequenceInputStream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -398,7 +399,7 @@ final class MergedManifestInfo {
             continue;
           }
 
-          Collection<VirtualFile> manifestFiles = IdeaSourceProvider.getManifestFiles(androidFacet);
+          Collection<VirtualFile> manifestFiles = IdeaSourceProviderUtil.getManifestFiles(androidFacet);
           for (VirtualFile manifestFile : manifestFiles) {
             if (vFile.equals(manifestFile)) {
               return m;

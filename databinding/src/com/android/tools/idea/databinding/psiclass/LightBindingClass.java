@@ -73,7 +73,11 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import kotlin.Pair;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NonNls;
@@ -148,12 +152,47 @@ public class LightBindingClass extends AndroidLightClassBase {
   }
 
   private PsiField[] computeFields() {
-    List<ViewIdData> viewIds = myConfig.getViewIds();
-    if (viewIds.isEmpty()) {
+    Map<BindingLayout, Collection<ViewIdData>> scopedViewIds = myConfig.getScopedViewIds();
+    if (scopedViewIds.isEmpty()) {
+      return PsiField.EMPTY_ARRAY;
+    }
+    boolean allEmpty = true;
+    for (Collection<ViewIdData> viewIds : scopedViewIds.values()) {
+      if (!viewIds.isEmpty()) {
+        allEmpty = false;
+        break;
+      }
+    }
+    if (allEmpty) {
       return PsiField.EMPTY_ARRAY;
     }
 
-    return viewIds.stream().map(viewId -> createPsiField(viewId)).toArray(PsiField[]::new);
+    int numLayouts = scopedViewIds.keySet().size();
+    if (numLayouts == 1) {
+      // In the overwhelmingly common case, there's only a single layout, which means that all the
+      // IDs are present in every layout (there's only the one!), so the fields generated for it
+      // are always non-null.
+      Collection<ViewIdData> viewIds = scopedViewIds.values().stream().findFirst().get();
+      return viewIds.stream().map(viewId -> createPsiField(viewId, true)).toArray(PsiField[]::new);
+    }
+
+    // If here, we have multiple layouts. Generated fields are non-null only if their source IDs
+    // are defined consistently across all layouts.
+    Map<String, Integer> idCounts = new HashMap<>();
+    Set<ViewIdData> dedupedViewIds = new HashSet<>(); // Only create one field per ID
+    for (Collection<ViewIdData> viewIds : scopedViewIds.values()) {
+      for (ViewIdData viewId : viewIds) {
+        int count = idCounts.compute(viewId.getId(), (key, value) -> (value == null) ? 1 : (value + 1));
+        if (count == 1) {
+          // It doesn't matter which copy of the ID we keep, so just keep the first one
+          dedupedViewIds.add(viewId);
+        }
+      }
+    }
+
+    return dedupedViewIds.stream()
+      .map(viewId -> createPsiField(viewId, idCounts.get(viewId.getId()) == numLayouts))
+      .toArray(PsiField[]::new);
   }
 
   /**
@@ -430,13 +469,14 @@ public class LightBindingClass extends AndroidLightClassBase {
   }
 
   @Nullable
-  private PsiField createPsiField(@NotNull ViewIdData viewIdData) {
+  private PsiField createPsiField(@NotNull ViewIdData viewIdData, boolean isNonNull) {
     String name = DataBindingUtil.convertToJavaFieldName(viewIdData.getId());
     PsiType type = LayoutBindingTypeUtil.resolveViewPsiType(viewIdData, this);
     if (type == null) {
       return null;
     }
-    LightFieldBuilder field = new LightFieldBuilder(PsiManager.getInstance(getProject()), name, type);
+
+    LightFieldBuilder field = new NullabilityLightFieldBuilder(PsiManager.getInstance(getProject()), name, type, isNonNull);
     field.setModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL);
     return new LightDataBindingField(myConfig.getTargetLayout(), viewIdData, getManager(), field, this);
   }

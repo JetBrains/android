@@ -26,7 +26,7 @@ public class CanvasResizeLayer extends Layer {
    * Returns whether that required any modification to the state of the layer.
    */
   @Override
-  public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
+  public void onHover(@SwingCoordinate int x, @SwingCoordinate int y) {
     boolean oldHovering = myIsHovering;
     Dimension size = myScreenView.getSize();
     Rectangle resizeZone =
@@ -52,7 +52,7 @@ public class CanvasResizeLayer extends Layer {
   }
 
   @Override
-  public boolean isHidden() {
-    return !myDesignSurface.isResizeAvailable();
+  public boolean isVisible() {
+    return myDesignSurface.isResizeAvailable();
   }
 }

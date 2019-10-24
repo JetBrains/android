@@ -31,7 +31,7 @@ import com.intellij.psi.search.GlobalSearchScope
  * Provides a build-system-agnostic interface to the build system. Instances of this interface
  * contain methods that apply to a specific [Module].
  */
-interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
+interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, ModuleHierarchyProvider {
 
   /** [Module] that this [AndroidModuleSystem] handles. */
   val module: Module
@@ -184,6 +184,19 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
   /** Returns an [TestArtifactSearchScopes] instance for a given module, if multiple test types are supported. */
   @JvmDefault
   fun getTestArtifactSearchScopes(): TestArtifactSearchScopes? = null
+
+  /** Whether the Jetpack Compose feature is enabled for this module. */
+  @JvmDefault
+  val usesCompose: Boolean get() = false
+
+  /**
+   * Whether the R class generated for this module is transitive.
+   *
+   * If it is transitive it will contain all of the resources defined in its transitive dependencies alongside those defined in this
+   * module. If non-transitive it will only contain the resources defined in this module.
+   */
+  @JvmDefault
+  val isRClassTransitive: Boolean get() = true
 }
 
 /**

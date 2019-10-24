@@ -65,6 +65,7 @@ import java.util.stream.Stream;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -265,7 +266,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
     AndroidFacet facet = AndroidFacet.getInstance(context);
     // If the source XML file is contained within the test folders, we'll also allow to resolve test classes
     VirtualFile file = element.getContainingFile().getVirtualFile();
-    final boolean isTestFile = facet != null && file != null && IdeaSourceProvider.isTestFile(facet, file);
+    final boolean isTestFile = facet != null && file != null && IdeaSourceProviderUtil.isTestFile(facet, file);
 
     if (strValue.isEmpty()) {
       return PsiReference.EMPTY_ARRAY;

@@ -40,7 +40,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.mockito.Mockito
 import javax.imageio.metadata.IIOMetadataNode

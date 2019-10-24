@@ -23,7 +23,9 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import java.util.concurrent.Executor
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Small helper class to work with the one exact process and app-inspection events & commands.
@@ -32,9 +34,18 @@ internal class AppInspectionTransport(
   private val client: TransportClient,
   private val stream: Common.Stream,
   private val process: Common.Process,
-  val poller: TransportEventPoller = TransportEventPoller.createPoller(client.transportStub,
-                                                                       TimeUnit.MILLISECONDS.toNanos(100))
+  private val executorService: ExecutorService,
+  val poller: TransportEventPoller = TransportEventPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
 ) {
+
+  companion object {
+    /**
+     * It is used to assign a unique id to each outgoing inspector command.
+     *
+     * We use the id to map events from agent to the correct handler.
+     */
+    private val inspectorCommandId = AtomicInteger(1)
+  }
 
   fun createEventListener(
     executor: Executor,
@@ -59,12 +70,13 @@ internal class AppInspectionTransport(
     return listener
   }
 
-  fun executeCommand(appInspectionCommand: AppInspection.AppInspectionCommand): Transport.ExecuteResponse {
+  fun executeCommand(appInspectionCommand: AppInspection.AppInspectionCommand): Int {
     val command = Commands.Command.newBuilder()
       .setType(Commands.Command.CommandType.APP_INSPECTION)
       .setStreamId(stream.streamId)
       .setPid(process.pid)
-      .setAppInspectionCommand(appInspectionCommand)
-    return client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
+      .setAppInspectionCommand(appInspectionCommand.toBuilder().setCommandId(inspectorCommandId.getAndIncrement()).build())
+    executorService.submit{ client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build()) }
+    return command.appInspectionCommand.commandId
   }
 }

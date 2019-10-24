@@ -27,11 +27,11 @@ interface DownloadProgress {
   val isCancelled: Boolean
 
   @UiThread
-  fun onStarting(entryFullPath: Path)
+  fun onStarting(entryFullPath: String)
 
   @UiThread
-  fun onProgress(entryFullPath: Path, currentBytes: Long, totalBytes: Long)
+  fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long)
 
   @UiThread
-  fun onCompleted(entryFullPath: Path)
+  fun onCompleted(entryFullPath: String)
 }

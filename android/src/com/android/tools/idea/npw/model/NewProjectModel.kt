@@ -105,6 +105,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       val newProject = GradleProjectImporter.getInstance().createProject(projectName, File(projectLocation))
       project.value = newProject
       AndroidNewProjectInitializationStartupActivity.setProjectInitializer(newProject) {
+        logger.info("Rendering a new project.")
         NonProjectFileWritingAccessProvider.disableChecksDuring {
           renderer(newProject)
         }
@@ -358,3 +359,4 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     }
   }
 }
+private val log = logger<NewProjectModel>()

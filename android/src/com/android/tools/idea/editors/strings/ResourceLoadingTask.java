@@ -23,36 +23,41 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class ResourceLoadingTask extends Task.Backgroundable {
+  @NotNull
   private final StringResourceViewPanel myPanel;
-  private final Supplier<? extends LocalResourceRepository> myRepositorySupplier;
 
-  private LocalResourceRepository myRepository;
+  @NotNull
+  private final Supplier<? extends LocalResourceRepository> myGetModuleResources;
+
+  @Nullable
+  private StringResourceRepository myRepository;
 
   ResourceLoadingTask(@NotNull StringResourceViewPanel panel) {
     this(panel, () -> ResourceRepositoryManager.getModuleResources(panel.getFacet()));
   }
 
   @VisibleForTesting
-  ResourceLoadingTask(@NotNull StringResourceViewPanel panel, @NotNull Supplier<? extends LocalResourceRepository> repositorySupplier) {
+  ResourceLoadingTask(@NotNull StringResourceViewPanel panel, @NotNull Supplier<? extends LocalResourceRepository> getModuleResources) {
     super(panel.getFacet().getModule().getProject(), "Loading String Resources...");
 
     myPanel = panel;
-    myRepositorySupplier = repositorySupplier;
+    myGetModuleResources = getModuleResources;
   }
 
   @Override
   public void run(@NotNull ProgressIndicator indicator) {
     indicator.setIndeterminate(true);
-    myRepository = myRepositorySupplier.get();
+    myRepository = StringResourceRepository.create(myGetModuleResources.get());
   }
 
   @Override
   public void onSuccess() {
-    StringResourceRepository repository = StringResourceRepository.create(myRepository);
+    assert myRepository != null;
+    myPanel.getTable().setModel(new StringResourceTableModel(myRepository, myPanel.getFacet().getModule().getProject()));
 
-    myPanel.getTable().setModel(new StringResourceTableModel(repository, myPanel.getFacet().getModule().getProject()));
     myPanel.getLoadingPanel().stopLoading();
   }
 

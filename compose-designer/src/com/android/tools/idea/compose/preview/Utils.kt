@@ -29,6 +29,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
@@ -142,6 +143,10 @@ interface PreviewElementFinder {
 }
 
 internal fun requestBuild(project: Project, module: Module) {
+  if (project.isDisposed || module.isDisposed) {
+    return
+  }
+
   val modules = mutableSetOf(module)
   ModuleUtil.collectModulesDependsOn(module, modules)
   GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray(), TestCompileType.NONE)
@@ -151,3 +156,10 @@ fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
   val bodyPsiElement = this?.sourcePsi ?: return null
   return SmartPointerManager.createPointer(bodyPsiElement)
 }
+
+/**
+ * Extension method that returns if the file is a Kotlin file. This method first checks for the extension to fail fast without having to
+ * actually trigger the potentially costly [VirtualFile#fileType] call.
+ */
+internal fun VirtualFile.isKotlinFileType(): Boolean =
+  extension == KotlinFileType.INSTANCE.defaultExtension && fileType == KotlinFileType.INSTANCE

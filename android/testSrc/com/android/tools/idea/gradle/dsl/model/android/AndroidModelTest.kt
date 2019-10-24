@@ -17,15 +17,22 @@ package com.android.tools.idea.gradle.dsl.model.android
 
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_BLOCK_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_BLOCK_STATEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SOURCE_SET_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SOURCE_SET_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_REMOVE_BUILD_TYPE_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_REMOVE_PRODUCT_FLAVOR_BLOCK
@@ -35,7 +42,9 @@ import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_RESE
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_RESET_LITERAL_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_RESET_PRODUCT_FLAVOR_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_ONE_ARGUMENT
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_ONE_ARGUMENT_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS_WITH_ARGUMENT
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_APPLICATION_STATEMENTS
@@ -51,21 +60,29 @@ import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOC
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_OVERRIDE_STATEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_PRODUCT_FLAVOR_BLOCKS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_EDIT_AND_RESET_LITERAL_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_BLOCK_APPLICATION_STATEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_BUILD_TYPE_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_DEFAULT_CONFIG_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_PRODUCT_FLAVOR_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_PRODUCT_FLAVOR_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_SOURCE_SET_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_SOURCE_SET_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_RESET_BUILD_TYPE_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_RESET_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_RESET_PRODUCT_FLAVOR_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_FROM_AND_RESET_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REPLACE_AND_RESET_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl
@@ -211,11 +228,13 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
     android.flavorDimensions().addListValue().setValue("strawberry")
+
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ANDROID_BLOCK_WITH_NO_DIMENSIONS_EXPECTED)
+
     android = buildModel.android()
     assertNotNull(android)
     assertEquals("flavorDimensions", listOf("strawberry"), android.flavorDimensions())
-    verifyFileContents(myBuildFile, ANDROID_MODEL_ANDROID_BLOCK_WITH_NO_DIMENSIONS_EXPECTED)
   }
 
   @Test
@@ -707,6 +726,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("signingConfigs", "config", signingConfigs[0].name())
 
     applyChanges(buildModel)
+    // TODO(xof): empty blocks, as the comments below say, are not saved to the file.  Arguably this is wrong for Kotlin, which
+    //  requires explicit creation of signingConfigs (and sourceSets, below)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK)
+
     assertThat(android.signingConfigs()).isEmpty() // Empty blocks are not saved to the file.
 
     buildModel.reparse()
@@ -728,6 +751,9 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("sourceSets", "set", sourceSets[0].name())
 
     applyChanges(buildModel)
+    // TODO(xof): see comment in testAddAndApplyEmptySigningConfigBlock
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SOURCE_SET_BLOCK)
+
     assertThat(android.sourceSets()).isEmpty() // Empty blocks are not saved to the file.
 
     buildModel.reparse()
@@ -775,6 +801,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("buildTypes", "mySuffix", buildType.applicationIdSuffix())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED)
+
     buildTypes = android.buildTypes()
     assertThat(buildTypes).hasSize(1)
     buildType = buildTypes[0]
@@ -812,6 +840,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("productFlavors", "abc.xyz", productFlavor.applicationId())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK_EXPECTED)
+
     productFlavors = android.productFlavors()
     assertThat(productFlavors).hasSize(1)
     productFlavor = productFlavors[0]
@@ -849,6 +879,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("signingConfigs", "myKeyAlias", signingConfig.keyAlias())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_BLOCK_EXPECTED)
+
     signingConfigs = android.signingConfigs()
     assertThat(signingConfigs).hasSize(1)
     signingConfig = signingConfigs[0]
@@ -918,6 +950,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     checkForValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, "")
+
     assertMissingProperty(android.defaultConfig().applicationId())
     checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
 
@@ -947,6 +981,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("buildTypes", "type2", buildTypes[0].name())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_REMOVE_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED)
+
     buildTypes = android.buildTypes()
     assertThat(buildTypes).hasSize(1)
     assertEquals("buildTypes", "type2", buildTypes[0].name())
@@ -978,6 +1014,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("productFlavors", "flavor1", productFlavors[0].name())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_REMOVE_AND_APPLY_PRODUCT_FLAVOR_BLOCK_EXPECTED)
+
     productFlavors = android.productFlavors()
     assertThat(productFlavors).hasSize(1)
     assertEquals("productFlavors", "flavor1", productFlavors[0].name())
@@ -1009,6 +1047,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("signingConfigs", "config1", signingConfigs[0].name())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG_BLOCK_EXPECTED)
+
     signingConfigs = android.signingConfigs()
     assertThat(signingConfigs).hasSize(1)
     assertEquals("signingConfigs", "config1", signingConfigs[0].name())
@@ -1040,6 +1080,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("sourceSets", "set1", sourceSets[0].name())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_REMOVE_AND_APPLY_SOURCE_SET_BLOCK_EXPECTED)
+
     sourceSets = android.sourceSets()
     assertThat(sourceSets).hasSize(1)
     assertEquals("sourceSets", "set1", sourceSets[0].name())
@@ -1068,6 +1110,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     defaultConfig.proguardFiles().delete()
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, "")
+
     android = buildModel.android()
     assertNotNull(android)
 
@@ -1093,6 +1137,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("dimension", "abcd", defaultConfig.dimension())
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_BLOCK_STATEMENTS_EXPECTED)
+
     android = buildModel.android()
     assertNotNull(android)
 
@@ -1132,6 +1178,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
@@ -1169,6 +1216,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("compileSdkVersion", "21", android.compileSdkVersion())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED)
 
     assertEquals("buildToolsVersion", "22", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "21", android.compileSdkVersion())
@@ -1210,6 +1258,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
@@ -1247,6 +1296,9 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("compileSdkVersion", "21", android.compileSdkVersion())
 
     applyChanges(buildModel)
+    // TODO(b/143196166): blocking Kotlinscript version
+    // TODO(b/143196529): blocking Kotlinscript version
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED)
 
     assertEquals("buildToolsVersion", "22", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "21", android.compileSdkVersion())
@@ -1276,6 +1328,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("flavorDimensions", listOf("xyz", "version"), android.flavorDimensions())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED)
+
     assertEquals("dynamicFeatures", listOf(":f1", ":g2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("xyz", "version"), android.flavorDimensions())
 
@@ -1303,6 +1357,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED)
+
     assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
 
@@ -1326,6 +1382,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_ONE_ARGUMENT_EXPECTED)
+
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
     buildModel.reparse()
@@ -1351,6 +1409,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android.flavorDimensions())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS_EXPECTED)
+
     assertEquals("dynamicFeatures", listOf(":f1", ":f2", ":f"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android.flavorDimensions())
 
@@ -1378,6 +1438,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_EXPECTED)
+
     assertEquals("dynamicFeatures", listOf(":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
 

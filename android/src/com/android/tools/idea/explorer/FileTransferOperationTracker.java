@@ -110,7 +110,7 @@ public class FileTransferOperationTracker extends LongRunningOperationTracker {
     setStatusText(text);
   }
 
-  public void setDownloadFileText(@NotNull Path entryFullPath, long currentBytes, long totalBytes) {
+  public void setDownloadFileText(@NotNull String entryFullPath, long currentBytes, long totalBytes) {
     String text;
     if (myTotalFileCount > 1) {
       text = String.format(Locale.US, "Downloading file %,d of %,d: \"%s\"", myCurrentFileCount, myTotalFileCount,

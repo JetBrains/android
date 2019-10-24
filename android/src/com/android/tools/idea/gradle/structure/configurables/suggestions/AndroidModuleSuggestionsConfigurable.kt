@@ -25,10 +25,9 @@ import com.android.tools.idea.gradle.structure.model.PsModulePath
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.Place
-import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import java.awt.BorderLayout
 
-class AndroidModuleSuggestionsConfigurable(
+open class AndroidModuleSuggestionsConfigurable(
   context: PsContext,
   perspectiveConfigurable: BasePerspectiveConfigurable,
   module: PsModule

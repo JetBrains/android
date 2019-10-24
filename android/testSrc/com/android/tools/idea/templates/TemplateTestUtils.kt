@@ -36,11 +36,11 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_ANDROIDX_SUPPORT
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_TOOLS_VERSION
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_KOTLIN_VERSION
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_LANGUAGE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_BUILD_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_NAME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_RES_OUT
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_BUILD_API
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.templates.recipe.RenderingContext.Builder
 import com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME
@@ -208,12 +208,18 @@ internal fun TemplateMetadata.validateTemplate(currentMinSdk: Int, buildApi: Int
 
 private const val specialChars = "!@#$^&()_+=-.`~"
 private const val nonAsciiChars = "你所有的基地都属于我们"
-internal fun getModifiedProjectName(projectName: String, activityState: TestTemplateWizardState?): String = when {
-  SystemInfo.isWindows -> "app"
-  // Bug 137161906
-  usesSafeArgs(projectName) && activityState != null && Language.KOTLIN.toString() == activityState.getString(ATTR_LANGUAGE) -> projectName
-  else -> "$projectName$specialChars,$nonAsciiChars"
-}
+internal fun getModifiedProjectName(
+  projectName: String, activityState: TestTemplateWizardState?, isNewRenderingContext: Boolean = false
+): String =
+  when {
+    SystemInfo.isWindows -> "app"
+    // Bug 142926378
+    isNewRenderingContext -> projectName
+    // Bug 137161906
+    usesSafeArgs(projectName) && activityState != null && Language.KOTLIN.toString() == activityState.getString(
+      ATTR_LANGUAGE) -> projectName
+    else -> "$projectName$specialChars,$nonAsciiChars"
+  }
 
 private fun usesSafeArgs(projectName: String) =
   projectName.startsWith("BasicActivity") ||
@@ -344,8 +350,8 @@ private fun Element.readSdkAttribute(sdkAttr: String): Int {
 internal fun Element.toOption() = Option(
   id = getAttribute(SdkConstants.ATTR_ID),
   minSdk = readSdkAttribute(ATTR_MIN_API),
-  minBuild =  readSdkAttribute(ATTR_MIN_BUILD_API)
-  )
+  minBuild = readSdkAttribute(ATTR_MIN_BUILD_API)
+)
 
 internal fun getCheckKey(category: String, name: String, createWithProject: Boolean) = "$category:$name:$createWithProject"
 

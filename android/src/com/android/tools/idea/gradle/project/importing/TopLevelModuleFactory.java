@@ -72,6 +72,7 @@ class TopLevelModuleFactory {
         //       therefore it is still possible that the module created here will be disposed and re-created by sync.
         if (!module.getName().equals(project.getName())) {
           projectModifieableModel.renameModule(module, project.getName());
+          projectModifieableModel.setModuleGroupPath(module, new String[]{project.getName()});
         }
       }
       catch (ModuleWithNameAlreadyExists ex) {

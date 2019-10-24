@@ -18,6 +18,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.compose.preview.ComposeFileEditorProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposePreviewNotificationProvider"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposeNewPreviewNotificationProvider" />
 
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewAnnotationInFunctionWithParametersInspection"
                      language="kotlin"
@@ -32,4 +33,11 @@
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
 
   </extensions>
+
+  <project-components>
+    <component>
+      <implementation-class>com.android.tools.idea.compose.preview.ComposeNewPreviewNotificationManager</implementation-class>
+    </component>
+  </project-components>
+
 </idea-plugin>

@@ -75,7 +75,7 @@ class MultiProjectSyncTest {
       val projectPath = copyProjectBeforeOpening("MultipleLinked")
       createGradleWrapper(projectPath.resolve("firstapp"), SdkConstants.GRADLE_LATEST_VERSION)
       createGradleWrapper(projectPath.resolve("secondapp"), SdkConstants.GRADLE_LATEST_VERSION)
-      AndroidGradleTests.updateGradleVersions(projectPath)
+      AndroidGradleTests.updateToolingVersionsAndPaths(projectPath)
       updateLocalProperties(projectPath.resolve("firstapp"))
       updateLocalProperties(projectPath.resolve("secondapp"))
       refreshFiles()

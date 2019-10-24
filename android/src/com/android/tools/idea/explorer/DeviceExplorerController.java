@@ -494,7 +494,7 @@ public class DeviceExplorerController {
     }
 
     @Nullable
-    private DeviceFileEntryNode getTreeNodeFromEntry(@NonNull DeviceFileEntryNode treeNode, @NonNull Path entryFullPath) {
+    private DeviceFileEntryNode getTreeNodeFromEntry(@NonNull DeviceFileEntryNode treeNode, @NonNull String entryFullPath) {
       TreeNode treeNodeRoot = getTreeNodeRoot(treeNode);
 
       if (!(treeNodeRoot instanceof DeviceFileEntryNode)) {
@@ -514,10 +514,10 @@ public class DeviceExplorerController {
     }
 
     @Nullable
-    private DeviceFileEntryNode findDeviceFileEntryNodeFromPath(@NonNull DeviceFileEntryNode root, @NonNull Path filePath) {
-      String[] pathComponents = filePath.toString().trim().substring(1).split("/");
+    private DeviceFileEntryNode findDeviceFileEntryNodeFromPath(@NonNull DeviceFileEntryNode root, @NonNull String entryFullPath) {
+      List<String> pathComponents = AdbPathUtil.getSegments(entryFullPath);
 
-      if (pathComponents.length == 0) {
+      if (pathComponents.isEmpty()) {
         return root;
       }
 
@@ -1438,7 +1438,7 @@ public class DeviceExplorerController {
         private long previousBytes;
 
         @Override
-        public void onStarting(@NotNull Path entryFullPath) {
+        public void onStarting(@NotNull String entryFullPath) {
           DeviceFileEntryNode currentNode = getTreeNodeFromEntry(treeNode, entryFullPath);
           assert currentNode != null;
 
@@ -1447,7 +1447,7 @@ public class DeviceExplorerController {
         }
 
         @Override
-        public void onProgress(@NotNull Path entryFullPath, long currentBytes, long totalBytes) {
+        public void onProgress(@NotNull String entryFullPath, long currentBytes, long totalBytes) {
           DeviceFileEntryNode currentNode = getTreeNodeFromEntry(treeNode, entryFullPath);
           assert currentNode != null;
 
@@ -1458,7 +1458,7 @@ public class DeviceExplorerController {
         }
 
         @Override
-        public void onCompleted(@NotNull Path entryFullPath) {
+        public void onCompleted(@NotNull String entryFullPath) {
           DeviceFileEntryNode currentNode = getTreeNodeFromEntry(treeNode, entryFullPath);
           assert currentNode != null;
 

@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT_ID
 import com.android.builder.model.BuildType
 import com.android.ide.common.gradle.model.GradleModelConverter
+import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GradleVersionRange
@@ -31,12 +32,14 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ManifestOverrides
+import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
@@ -90,6 +93,7 @@ private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
 class GradleModuleSystem(
   override val module: Module,
   private val projectBuildModelHandler: ProjectBuildModelHandler,
+  private val moduleHierarchyProvider: ModuleHierarchyProvider,
   @TestOnly private val repoUrlManager: RepositoryUrlManager = RepositoryUrlManager.get()
 ) : AndroidModuleSystem,
     ClassFileFinder by GradleClassFileFinder(module),
@@ -441,6 +445,14 @@ class GradleModuleSystem(
 
   override fun getTestArtifactSearchScopes(): TestArtifactSearchScopes? = GradleTestArtifactSearchScopes.getInstance(module)
 
+  private inline fun <T> readFromAgpFlags(read: (IdeAndroidGradlePluginProjectFlags) -> T): T? {
+    return AndroidModuleModel.get(module)?.androidProject?.agpFlags?.let(read)
+  }
+
+  override val usesCompose: Boolean get() = readFromAgpFlags { it.usesCompose } ?: false
+
+  override val isRClassTransitive: Boolean get() = readFromAgpFlags { it.transitiveRClasses } ?: true
+
   /**
    * Specifies a version incompatibility between [conflict1] from [module1] and [conflict2] from [module2].
    * Some incompatibilities are indirect incompatibilities i.e. from the dependencies of [conflict1] and [conflict2].
@@ -575,4 +587,7 @@ class GradleModuleSystem(
       }
     }
   }
+
+  override val submodules: Collection<Module>
+    get() = moduleHierarchyProvider.submodules
 }

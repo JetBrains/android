@@ -82,11 +82,11 @@ class AndroidProcessMonitorManager(
   }
 
   /**
-   * Returns true if a given [device] is managed by this class.
+   * Returns a process monitor for a given [device] if it is managed by this class, otherwise null is returned.
    */
   @WorkerThread
   @Synchronized
-  fun isAssociated(device: IDevice) = myMonitors.containsKey(device)
+  fun getMonitor(device: IDevice): SingleDeviceAndroidProcessMonitor? = myMonitors[device]
 
   /**
    * Removes a [device] and notifies [AndroidProcessMonitorManagerListener.onAllTargetProcessesTerminated] if this is the very last one.

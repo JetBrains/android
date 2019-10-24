@@ -15,7 +15,6 @@ package com.android.tools.idea.naveditor.editor
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
-import com.android.resources.ResourceType
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.actions.NewAndroidFragmentAction
@@ -32,9 +31,6 @@ import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_TEXT
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.structure.findReferences
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.android.tools.idea.ui.resourcemanager.ImageCache
-import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.rendering.DrawableIconProvider
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -52,7 +48,6 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.util.PsiUtil
@@ -74,7 +69,6 @@ import org.jetbrains.android.dom.navigation.isInProject
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import org.jetbrains.android.util.AndroidUtils
 import java.awt.BorderLayout
-import java.awt.Dimension
 import java.awt.event.HierarchyEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
@@ -105,12 +99,6 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   private lateinit var button: JComponent
   private var creatingInProgress = false
   private val createdFiles: MutableList<File> = mutableListOf()
-  private val iconProvider: DrawableIconProvider
-
-  init {
-    val model = surface.model!!
-    iconProvider = DrawableIconProvider(model.facet, model.configuration.resourceResolver, ImageCache.createSmallImageCache(model.project))
-  }
 
   @VisibleForTesting
   val destinations: List<Destination>
@@ -232,16 +220,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     }
     destinationsList.emptyText.text = "Loading..."
     destinationsList.setPaintBusy(true)
-    destinationsList.setCellRenderer { list, value, index, selected, _ ->
-      val iconCallback = { file: VirtualFile, dimension: Dimension ->
-        iconProvider.getIcon(DesignAsset(file, listOf(), ResourceType.LAYOUT),
-                             dimension.width,
-                             dimension.height,
-                             { list.getCellBounds(index, index)?.let(list::repaint) },
-                             { index in list.firstVisibleIndex..list.lastVisibleIndex })
-      }
-
-      THUMBNAIL_RENDERER.icon = ImageIcon(value.thumbnail(iconCallback))
+    destinationsList.setCellRenderer { _, value, _, selected, _ ->
+      THUMBNAIL_RENDERER.icon = ImageIcon(value.thumbnail)
       THUMBNAIL_RENDERER.iconTextGap = (maxIconWidth - THUMBNAIL_RENDERER.icon.iconWidth).coerceAtLeast(0)
       PRIMARY_TEXT_RENDERER.text = value.label
       SECONDARY_TEXT_RENDERER.text = value.typeLabel
@@ -291,7 +271,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       object : Task.Backgroundable(surface.project, "Get Available Destinations") {
         override fun run(indicator: ProgressIndicator) {
           val dests = DumbService.getInstance(project).runReadActionInSmartMode(Computable { destinations })
-          maxIconWidth = dests.map { it.iconWidth }.max() ?: 0
+          maxIconWidth = dests.map { it.thumbnail.getWidth(null) }.max() ?: 0
           val listModel = FilteringListModel<Destination>(CollectionListModel<Destination>(dests))
           listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.toLowerCase()) }
           searchField.addDocumentListener(

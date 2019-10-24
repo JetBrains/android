@@ -133,28 +133,45 @@ public class AndroidDependenciesCache implements Disposable {
     return ContainerUtil.mapNotNull(refs, ref -> {
       AndroidFacet facet = ref.get();
       if (facet == null) {
-        Logger.getInstance(AndroidDependenciesCache.class).error("null in dereference");
+        logNullReference();
         return null;
       }
 
       if (facet.isDisposed()) {
-        Logger.getInstance(AndroidDependenciesCache.class).error("disposed facet");
+        logDisposedFacet();
         return null;
       }
 
       AndroidFacet facetFromModule = AndroidFacet.getInstance(facet.getModule());
       if (facetFromModule == null) {
-        Logger.getInstance(AndroidDependenciesCache.class).error("non-Android module");
+        logNonAndroidModule();
         return null;
       }
 
       if (facetFromModule != facet) {
-        Logger.getInstance(AndroidDependenciesCache.class).error("left-over facet");
+        // This means the facet thinks it belongs to a module which uses a different instance of AndroidFacet already.
+        logObsoleteFacet();
         return null;
       }
 
       return facet;
     });
+  }
+
+  private static void logObsoleteFacet() {
+    Logger.getInstance(AndroidDependenciesCache.class).error("obsolete facet");
+  }
+
+  private static void logNonAndroidModule() {
+    Logger.getInstance(AndroidDependenciesCache.class).error("non-Android module");
+  }
+
+  private static void logDisposedFacet() {
+    Logger.getInstance(AndroidDependenciesCache.class).error("disposed facet");
+  }
+
+  private static void logNullReference() {
+    Logger.getInstance(AndroidDependenciesCache.class).error("null in dereference");
   }
 
   private static void collectAllAndroidDependencies(@NotNull Module module,

@@ -87,9 +87,8 @@ class RenderTemplateModel private constructor(
   private val commandName: String,
   private val shouldOpenFiles: Boolean,
   /** Populated in [Template.render] */
-  val createdFiles: MutableList<File> = arrayListOf(),
+  val createdFiles: MutableList<File> = arrayListOf()
   // TODO(qumeric): this should replace templateHandle eventually
-  var newTemplate: Template2 = Template2.NoActivity
 ) : WizardModel(), ModuleModelData by moduleModelData {
   /**
    * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
@@ -100,12 +99,17 @@ class RenderTemplateModel private constructor(
    * This is used in place of [templateValues] for the new templates.
    */
   val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(false) // FIXME(qumeric)
-  val wizardParameterData = WizardParameterData(
-    packageName.get(),
-    module == null,
-    template.get().name,
-    newTemplate.parameters
-  )
+  lateinit var wizardParameterData: WizardParameterData
+  var newTemplate: Template2 = Template2.NoActivity
+  set(value) {
+    field = value
+    wizardParameterData = WizardParameterData(
+      packageName.get(),
+      module == null,
+      template.get().name,
+      value.parameters
+    )
+  }
   var iconGenerator: IconGenerator? = null
   val renderLanguage = ObjectValueProperty(getInitialSourceLanguage(project.valueOrNull)).apply {
     addListener {
@@ -155,7 +159,7 @@ class RenderTemplateModel private constructor(
           moduleTemplateDataBuilder.setModuleRoots(
             paths, projectLocation.get(), moduleName.get(), this@RenderTemplateModel.packageName.get())
 
-          projectTemplateDataBuilder.language = language.get().get()
+          projectTemplateDataBuilder.language = renderLanguage.get()
 
           if (androidFacet == null) {
             return@apply
@@ -243,7 +247,9 @@ class RenderTemplateModel private constructor(
 
         val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
 
-        return newTemplate.render(context, executor)
+        return newTemplate.render(context, executor).also {
+          createdFiles.addAll(context.filesToOpen)
+        }
       }
 
       val template = templateHandle!!.template

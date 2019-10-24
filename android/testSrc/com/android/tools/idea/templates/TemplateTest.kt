@@ -28,8 +28,23 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareNewBasicActivity() {
+    checkCreateTemplate("activities", "BasicActivity", false, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewBasicActivityWithKotlin() {
     checkCreateTemplate("activities", "BasicActivity", false, withKotlin)
+  }
+
+  @TemplateCheck
+  fun testCompareNewBasicActivityWithKotlin() {
+    checkCreateTemplate("activities", "BasicActivity", false, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareNewEmptyActivityWithKotlin() {
+    checkCreateTemplate("activities", "EmptyActivity", false, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -55,6 +70,11 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewEmptyActivity() {
     checkCreateTemplate("activities", "EmptyActivity", false)
+  }
+
+  @TemplateCheck
+  fun testCompareNewEmptyActivity() {
+    checkCreateTemplate("activities", "EmptyActivity", false, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -658,7 +678,9 @@ open class TemplateTest : TemplateTestBase() {
       }
     }
 
-    override fun checkCreateTemplate(category: String, name: String, createWithProject: Boolean, customizer: ProjectStateCustomizer) {
+    override fun checkCreateTemplate(
+      category: String, name: String, createWithProject: Boolean, vararg customizers: ProjectStateCustomizer
+    ) {
       templatesChecked.add(getCheckKey(category, name, createWithProject))
     }
 
@@ -684,7 +706,6 @@ open class TemplateTest : TemplateTestBase() {
       val failurePrefix = """
         The following templates were not covered by TemplateTest. Please ensure that tests are added to cover
         these templates and that they are annotated with @TemplateCheck.
-        
         """.trimIndent()
       assertWithMessage(failurePrefix).that(failureMessages).isEmpty()
     }

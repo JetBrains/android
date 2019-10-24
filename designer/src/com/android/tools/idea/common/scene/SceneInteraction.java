@@ -85,22 +85,29 @@ public class SceneInteraction extends Interaction {
    * @param x         The most recent mouse x coordinate applicable to this interaction
    * @param y         The most recent mouse y coordinate applicable to this interaction
    * @param modifiersEx current modifier key mask
-   * @param canceled  True if the interaction was canceled, and false otherwise.
    */
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx, boolean canceled) {
-    super.end(x, y, modifiersEx, canceled);
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     final int androidX = Coordinates.getAndroidX(mySceneView, x);
     final int androidY = Coordinates.getAndroidY(mySceneView, y);
     int dpX = Coordinates.pxToDp(mySceneView, androidX);
     int dpY = Coordinates.pxToDp(mySceneView, androidY);
     Scene scene = mySceneView.getScene();
-    if (canceled) {
-      scene.mouseCancel();
-    }
-    else {
-      scene.mouseRelease(SceneContext.get(mySceneView), dpX, dpY, modifiersEx);
-    }
+    scene.mouseRelease(SceneContext.get(mySceneView), dpX, dpY, modifiersEx);
+    mySceneView.getSurface().repaint();
+  }
+
+  /**
+   * Ends the mouse interaction and commit the modifications if any
+   *
+   * @param x         The most recent mouse x coordinate applicable to this interaction
+   * @param y         The most recent mouse y coordinate applicable to this interaction
+   * @param modifiersEx current modifier key mask
+   */
+  @Override
+  public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
+    Scene scene = mySceneView.getScene();
+    scene.mouseCancel();
     mySceneView.getSurface().repaint();
   }
 }

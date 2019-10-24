@@ -24,6 +24,7 @@ import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.workbench.WorkBench;
+import com.android.tools.editor.ActionToolbarUtil;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.res.ResourceHelper;
@@ -53,6 +54,12 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.DefaultFocusTraversalPolicy;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -96,6 +103,12 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   private ActionToolbar myActionToolbar;
   private JLabel myFileNameLabel;
 
+  /**
+   * The mouse listener in all visible component in visualization tool to make visualization tool can grab the focus.
+   * TODO(b/142469546): Remove this once the interaction of visualization tool is defined.
+   */
+  private final MouseListener myClickToFocusWindowListener;
+
   @Nullable private Runnable myCancelPreviousAddModelsRequestTask = null;
 
   @Nullable private List<NlModel> myModels = null;
@@ -132,12 +145,28 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
     mySurface.setCentered(true);
     mySurface.setName(VISUALIZATION_DESIGN_SURFACE);
 
+    myClickToFocusWindowListener = new MouseAdapter() {
+      @Override
+      public void mousePressed(MouseEvent event) {
+        if (event.getID() == MouseEvent.MOUSE_PRESSED) {
+          mySurface.getLayeredPane().requestFocusInWindow();
+        }
+      }
+    };
+
+    // TODO(b/142469546): Remove this once the interaction of visualization tool is defined.
+    // The interaction of mySurface is disabled because mySurface is not editable so its InteractionManager is not listening any
+    // mouse and keyboard events. Here we add a mouse listener to focus visualization tool when clicking on previews area.
+    mySurface.getLayeredPane().addMouseListener(myClickToFocusWindowListener);
+
     myWorkBench = new WorkBench<>(myProject, "Visualization", null, this);
     myWorkBench.setLoadingText("Loading...");
     myWorkBench.setToolContext(mySurface);
 
     myRoot.add(createToolbarPanel(), BorderLayout.NORTH);
     myRoot.add(myWorkBench, BorderLayout.CENTER);
+    myRoot.setFocusCycleRoot(true);
+    myRoot.setFocusTraversalPolicy(new VisualizationTraversalPolicy(mySurface));
   }
 
   @NotNull
@@ -148,12 +177,15 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
     // In IJ's implementation, only the actions in ActionPlaces.EDITOR_TOOLBAR toolbar will be tweaked when ui is changed.
     // See com.intellij.openapi.actionSystem.impl.ActionToolbarImpl.tweakActionComponentUI()
     myActionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, group, true);
+    ActionToolbarUtil.makeToolbarNavigable(myActionToolbar);
 
     JComponent toolbarPanel = new AdtPrimaryPanel(new BorderLayout());
     toolbarPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
                                                               BorderFactory.createEmptyBorder(0, 6, 0, 0)));
     toolbarPanel.add(myFileNameLabel, BorderLayout.WEST);
     toolbarPanel.add(myActionToolbar.getComponent(), BorderLayout.CENTER);
+    toolbarPanel.addMouseListener(myClickToFocusWindowListener);
+    myActionToolbar.getComponent().addMouseListener(myClickToFocusWindowListener);
     return toolbarPanel;
   }
 
@@ -256,6 +288,8 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
     if (myContentPanel == null) {
       createContentPanel();
       myWorkBench.init(myContentPanel, mySurface, ImmutableList.of(), false);
+      // The toolbar is in the root panel which contains myWorkBench. To traverse to toolbar we need to traverse out from myWorkBench.
+      myWorkBench.setFocusCycleRoot(false);
     }
     initNeleModel();
   }
@@ -439,5 +473,18 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   @Nullable
   public final FileEditor getEditor() {
     return myEditor;
+  }
+
+  private static class VisualizationTraversalPolicy extends DefaultFocusTraversalPolicy {
+    @NotNull private DesignSurface mySurface;
+
+    private VisualizationTraversalPolicy(@NotNull DesignSurface surface) {
+      mySurface = surface;
+    }
+
+    @Override
+    public Component getDefaultComponent(Container aContainer) {
+      return mySurface.getLayeredPane();
+    }
   }
 }

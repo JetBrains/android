@@ -528,7 +528,7 @@ public class RenderService implements Disposable {
     }
 
     /**
-     * @see RenderTask#setOverrideBgColor(Integer)
+     * @see RenderTask#setTransparentBackground()
      */
     @NotNull
     public RenderTaskBuilder useTransparentBackground() {
@@ -611,7 +611,7 @@ public class RenderService implements Disposable {
           }
 
           if (useTransparentBackground) {
-            task.setOverrideBgColor(0);
+            task.setTransparentBackground();
           }
 
           if (myRenderingMode != null) {

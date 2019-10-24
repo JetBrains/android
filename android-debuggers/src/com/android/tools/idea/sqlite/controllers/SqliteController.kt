@@ -20,9 +20,9 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
+import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.SqliteServiceFactory
 import com.android.tools.idea.sqlite.model.SqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.SqliteEditorViewFactory
@@ -43,8 +43,6 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.ide.PooledThreadExecutor
 import java.nio.file.Path
-import java.util.Collections
-import java.util.TreeMap
 import java.util.concurrent.Executor
 import java.util.function.Consumer
 
@@ -227,14 +225,19 @@ class SqliteController(
   private fun openNewEvaluatorTab(): SqliteEvaluatorController {
     val tabId = TabId.AdHocQueryTab()
 
-    val sqliteEvaluatorView = viewFactory.createEvaluatorView(project, sqliteExplorerProjectService)
+    val sqliteEvaluatorView = viewFactory.createEvaluatorView(
+      project,
+      sqliteExplorerProjectService,
+      viewFactory.createTableView()
+    )
 
     // TODO(b/136556640) What name should we use for these tabs?
-    sqliteView.displayResultSet(tabId, "New Query", sqliteEvaluatorView.component)
+    sqliteView.openTab(tabId, "New Query", sqliteEvaluatorView.component)
 
     val sqliteEvaluatorController = SqliteEvaluatorController(
       this@SqliteController,
-      sqliteEvaluatorView, edtExecutor
+      sqliteEvaluatorView,
+      edtExecutor
     ).also { it.setUp() }
     sqliteEvaluatorController.addListener(SqliteEvaluatorControllerListenerImpl())
 
@@ -257,23 +260,21 @@ class SqliteController(
 
       val sqliteService = database.sqliteService
 
-      edtExecutor.addCallback(sqliteService.readTable(table), object : FutureCallback<SqliteResultSet> {
-        override fun onSuccess(sqliteResultSet: SqliteResultSet?) {
-          if (sqliteResultSet != null) {
+      val tableView = viewFactory.createTableView()
+      sqliteView.openTab(tableId, table.name, tableView.component)
 
-            val tableView = viewFactory.createTableView()
-            sqliteView.displayResultSet(tableId, table.name, tableView.component)
+      val tableController = TableController(
+        parentDisposable = this@SqliteController,
+        view = tableView,
+        tableName = table.name,
+        query = "SELECT * FROM ${AndroidSqlLexer.getValidName(table.name)}",
+        sqliteService = sqliteService,
+        edtExecutor = edtExecutor
+      )
 
-            val resultSetController = ResultSetController(
-              parentDisposable = this@SqliteController,
-              view = tableView,
-              tableName = table.name,
-              resultSet = sqliteResultSet,
-              edtExecutor = edtExecutor
-            ).also { it.setUp() }
-
-            resultSetControllers[tableId] = resultSetController
-          }
+      edtExecutor.addCallback(tableController.setUp(), object : FutureCallback<Unit> {
+        override fun onSuccess(result: Unit?) {
+          resultSetControllers[tableId] = tableController
         }
 
         override fun onFailure(t: Throwable) {
@@ -300,16 +301,16 @@ class SqliteController(
         override val isCancelled: Boolean
           get() = false
 
-        override fun onStarting(entryFullPath: Path) {
-          sqliteView.reportSyncProgress("${entryFullPath.fileName}: start sync")
+        override fun onStarting(entryFullPath: String) {
+          sqliteView.reportSyncProgress("${entryFullPath}: start sync")
         }
 
-        override fun onProgress(entryFullPath: Path, currentBytes: Long, totalBytes: Long) {
-          sqliteView.reportSyncProgress("${entryFullPath.fileName}: sync progress $currentBytes/$totalBytes")
+        override fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long) {
+          sqliteView.reportSyncProgress("${entryFullPath}: sync progress $currentBytes/$totalBytes")
         }
 
-        override fun onCompleted(entryFullPath: Path) {
-          sqliteView.reportSyncProgress("${entryFullPath.fileName}: sync completed")
+        override fun onCompleted(entryFullPath: String) {
+          sqliteView.reportSyncProgress("${entryFullPath}: sync completed")
         }
       })
 

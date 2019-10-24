@@ -32,6 +32,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.facet.SourceProviderManager
+import org.jetbrains.android.facet.getManifestFiles
 import java.io.File
 
 /**
@@ -71,6 +72,11 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
     assertIsEqualToSnapshot(text)
   }
 
+  fun testWithBuildSrc() {
+    val text = importSyncAndDumpProject(TestProjectPaths.APP_WITH_BUILDSRC)
+    assertIsEqualToSnapshot(text)
+  }
+
   fun testDependentNativeModules() {
     val text = importSyncAndDumpProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES)
     assertIsEqualToSnapshot(text)
@@ -95,6 +101,11 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
 
   fun testCompatibilityWithAndroidStudio36Project() {
     val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36)
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testCompatibilityWithAndroidStudio36NoImlProject() {
+    val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36_NO_IML)
     assertIsEqualToSnapshot(text)
   }
 
@@ -216,7 +227,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
               }
               nest("by IdeaSourceProviders:") {
                 val sourceProviderManager = SourceProviderManager.getInstance(androidFacet)
-                dumpPathsCore("Manifests", { IdeaSourceProvider.getManifestFiles(androidFacet) }, { it.url })
+                dumpPathsCore("Manifests", { getManifestFiles(androidFacet) }, { it.url })
                 nest("AllIdeaSourceProviders:") { sourceProviderManager.allSourceProviders.forEach { it.dump() } }
                 nest("CurrentSourceProviders:") { sourceProviderManager.currentSourceProviders.forEach { it.dump() } }
                 nest("CurrentTestSourceProviders:") { sourceProviderManager.currentTestSourceProviders.forEach { it.dump() } }

@@ -19,8 +19,10 @@ package com.android.tools.idea.projectsystem
 
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFinder
 import java.nio.file.Path
 
@@ -28,7 +30,7 @@ import java.nio.file.Path
  * Provides a build-system-agnostic interface to the build system. Instances of this interface
  * only apply to a specific [Project].
  */
-interface AndroidProjectSystem {
+interface AndroidProjectSystem: ModuleHierarchyProvider {
   /**
    * Uses build-system-specific heuristics to locate the APK file produced by the given project, or null if none. The heuristics try
    * to determine the most likely APK file corresponding to the application the user is working on in the project's current configuration.
@@ -114,8 +116,13 @@ fun Project.getSyncManager(): ProjectSystemSyncManager {
 }
 
 /**
- * Returns the instance of {@link AndroidModuleSystem} that applies to the given {@link Module}.
+ * Returns the instance of [AndroidModuleSystem] that applies to the given [Module].
  */
 fun Module.getModuleSystem(): AndroidModuleSystem {
   return project.getProjectSystem().getModuleSystem(this)
 }
+
+/**
+ * Returns the instance of [AndroidModuleSystem] that applies to the given [PsiElement], if it can be determined.
+ */
+fun PsiElement.getModuleSystem(): AndroidModuleSystem? = ModuleUtilCore.findModuleForPsiElement(this)?.getModuleSystem()
