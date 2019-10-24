@@ -100,6 +100,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
   @Override
   public void run(@NotNull ProgressIndicator indicator) {
+    final boolean destroyProcessOnCancellation = !isSwap();
     indicator.setText(getTitle());
     indicator.setIndeterminate(false);
     myStats.beginLaunchTasks();
@@ -121,37 +122,11 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         AndroidProcessText.attach(myProcessHandler);
       }
 
-      StringBuilder launchString = new StringBuilder("\n");
-      DateFormat dateFormat = new SimpleDateFormat("MM/dd HH:mm:ss");
-      launchString.append(dateFormat.format(new Date())).append(": ");
-      launchString.append(getLaunchVerb()).append(" ");
-      launchString.append("'").append(myConfigName).append("'");
-      if (!StringUtil.isEmpty(myExecutionTargetName)) {
-        launchString.append(" on ");
-        launchString.append(myExecutionTargetName);
-      }
-      launchString.append(".");
-      consolePrinter.stdout(launchString.toString());
+      printLaunchTaskStartedMessage(consolePrinter);
 
       indicator.setText("Waiting for all target devices to come online");
       List<IDevice> devices = listenableDeviceFutures.stream()
-        .map(deviceFuture -> {
-          // Check for cancellation via progress bar.
-          if (indicator.isCanceled()) {
-            launchStatus.terminateLaunch("User cancelled launch", !isSwap());
-            return null;
-          }
-
-          // Check for cancellation via stop button.
-          if (launchStatus.isLaunchTerminated()) {
-            return null;
-          }
-
-          myStats.beginWaitForDevice();
-          IDevice device = waitForDevice(deviceFuture, indicator, launchStatus);
-          myStats.endWaitForDevice(device);
-          return device;
-        })
+        .map(deviceFuture -> waitForDevice(deviceFuture, indicator, launchStatus, destroyProcessOnCancellation))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
       if (devices.size() != listenableDeviceFutures.size()) {
@@ -177,7 +152,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
             return;
           }
           if (listener.getIsDeviceAlive()) {
-            AndroidProcessHandler procHandler = (AndroidProcessHandler) myProcessHandler;
+            AndroidProcessHandler procHandler = (AndroidProcessHandler)myProcessHandler;
             procHandler.addTargetDevice(device);
           }
         }
@@ -204,8 +179,11 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         // This totalDuration and elapsed step count is used only for showing a progress bar.
         int totalDuration = getTotalDuration(launchTasks, debugSessionTask);
         int elapsed = 0;
-
         for (LaunchTask task : launchTasks) {
+          if (!checkIfLaunchIsAliveAndTerminateIfCancelIsRequested(indicator, launchStatus, destroyProcessOnCancellation)) {
+            return;
+          }
+
           LaunchTaskDetail.Builder details = myStats.beginLaunchTask(task);
           indicator.setText(task.getDescription());
           LaunchResult result = task.run(myLaunchInfo.executor, device, launchStatus, consolePrinter);
@@ -232,18 +210,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
           // Update progress.
           elapsed += task.getDuration();
-          indicator.setFraction((double) (elapsed / totalDuration + deviceIndex) / devices.size());
-
-          // Check for cancellation via progress bar.
-          if (indicator.isCanceled()) {
-            launchStatus.terminateLaunch("User cancelled launch", !isSwap());
-            return;
-          }
-
-          // Check for cancellation via stop button.
-          if (launchStatus.isLaunchTerminated()) {
-            return;
-          }
+          indicator.setFraction((double)(elapsed / totalDuration + deviceIndex) / devices.size());
         }
 
         // A debug session task should be performed at last.
@@ -251,16 +218,32 @@ public class LaunchTaskRunner extends Task.Backgroundable {
           debugSessionTask.perform(myLaunchInfo, device, launchStatus, consolePrinter);
         }
       }
-    } finally {
+    }
+    finally {
       myStats.endLaunchTasks();
     }
+  }
+
+  private void printLaunchTaskStartedMessage(ConsolePrinter consolePrinter) {
+    StringBuilder launchString = new StringBuilder("\n");
+    DateFormat dateFormat = new SimpleDateFormat("MM/dd HH:mm:ss");
+    launchString.append(dateFormat.format(new Date())).append(": ");
+    launchString.append(getLaunchVerb()).append(" ");
+    launchString.append("'").append(myConfigName).append("'");
+    if (!StringUtil.isEmpty(myExecutionTargetName)) {
+      launchString.append(" on ");
+      launchString.append(myExecutionTargetName);
+    }
+    launchString.append(".");
+    consolePrinter.stdout(launchString.toString());
   }
 
   @Override
   public void onSuccess() {
     if (myError == null) {
       myStats.success();
-    } else {
+    }
+    else {
       myStats.fail();
       LaunchUtils.showNotification(
         myProject, myLaunchInfo.executor, myConfigName, myError, NotificationType.ERROR, myErrorNotificationListener);
@@ -277,32 +260,55 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
   @Nullable
   private IDevice waitForDevice(@NotNull ListenableFuture<IDevice> deviceFuture,
-                                       @NotNull ProgressIndicator indicator,
-                                       @NotNull LaunchStatus launchStatus) {
-    while (true) {
+                                @NotNull ProgressIndicator indicator,
+                                @NotNull LaunchStatus launchStatus,
+                                boolean destroyProcess) {
+    myStats.beginWaitForDevice();
+    IDevice device = null;
+    while (checkIfLaunchIsAliveAndTerminateIfCancelIsRequested(indicator, launchStatus, destroyProcess)) {
       try {
-        return deviceFuture.get(1, TimeUnit.SECONDS);
+        device = deviceFuture.get(1, TimeUnit.SECONDS);
+        break;
       }
       catch (TimeoutException ignored) {
+        // Let's check the cancellation request then continue to wait for a device again.
       }
       catch (InterruptedException e) {
-        launchStatus.terminateLaunch("Interrupted while waiting for device", true);
-        return null;
+        launchStatus.terminateLaunch("Interrupted while waiting for device", destroyProcess);
+        break;
       }
       catch (ExecutionException e) {
-        launchStatus.terminateLaunch("Error while waiting for device: " + e.getCause().getMessage(), true);
-        return null;
-      }
-
-      if (indicator.isCanceled()) {
-        launchStatus.terminateLaunch("User cancelled launch", !isSwap());
-        return null;
-      }
-
-      if (launchStatus.isLaunchTerminated()) {
-        return null;
+        launchStatus.terminateLaunch("Error while waiting for device: " + e.getCause().getMessage(), destroyProcess);
+        break;
       }
     }
+    myStats.endWaitForDevice(device);
+    return device;
+  }
+
+  /**
+   * Checks if the launch is still alive and good to continue. Upon cancellation request, it updates a given {@code launchStatus} to
+   * be terminated state. The associated process will be forcefully destroyed if {@code destroyProcess} is true.
+   *
+   * @param indicator      an progress indicator to check the user cancellation request
+   * @param launchStatus   a launch status to be checked and updated upon the cancellation request
+   * @param destroyProcess true to destroy the associated process upon cancellation, false to detach the process instead
+   * @return true if the launch is still good to go, false otherwise.
+   */
+  private static boolean checkIfLaunchIsAliveAndTerminateIfCancelIsRequested(
+    @NotNull ProgressIndicator indicator, @NotNull LaunchStatus launchStatus, boolean destroyProcess) {
+    // Check for cancellation via stop button or unexpected failures in launch tasks.
+    if (launchStatus.isLaunchTerminated()) {
+      return false;
+    }
+
+    // Check for cancellation via progress bar.
+    if (indicator.isCanceled()) {
+      launchStatus.terminateLaunch("User cancelled launch", destroyProcess);
+      return false;
+    }
+
+    return true;
   }
 
   private static int getTotalDuration(@NotNull List<LaunchTask> launchTasks, @Nullable DebugConnectorTask debugSessionTask) {
@@ -340,7 +346,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
   /**
    * A waiter to ensure that all existing Clients matching the application ID are fully terminated before proceeding with handoff to
    * AndroidProcessHandler.
-   *
+   * <p>
    * When the remote debugger is attached or when the app is run from the device directly, Running/Debugging an unchanged app may be fast
    * enough that the delta install "am force-stop" command's effect does not get reflected in ddmlib before the same IDevice is added to
    * AndroidProcessHandler. This is caused by the fact that a no-change Run does not wait until the stale Client is actually terminated
