@@ -399,7 +399,7 @@ public class GuiTestRule implements TestRule {
   }
 
   protected void updateGradleVersions(@NotNull File projectPath) throws IOException {
-    AndroidGradleTests.updateGradleVersions(projectPath);
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath);
   }
 
   @NotNull

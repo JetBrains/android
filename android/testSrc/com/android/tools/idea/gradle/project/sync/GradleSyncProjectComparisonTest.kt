@@ -72,8 +72,8 @@ import java.io.File
  *       update multiple snapshots used in one test.
  *
  *       Or with bazel:
-         bazel test //tools/adt/idea/android:intellij.android.core.tests_tests  --test_sharding_strategy=disabled  \
-               --test_filter="GradleSyncProjectComparisonTest" --nocache_test_results --strategy=TestRunner=standalone \
+           bazel test //tools/adt/idea/android:intellij.android.core.tests_tests  --test_sharding_strategy=disabled  \
+                 --test_filter="GradleSyncProjectComparisonTest" --nocache_test_results --strategy=TestRunner=standalone \
                --jvmopt='-DUPDATE_TEST_SNAPSHOTS' --test_output=streamed --runs_per_test=3
  */
 abstract class GradleSyncProjectComparisonTest(
@@ -242,7 +242,7 @@ b/137231583 */
       }
       $localRepositories
       """
-      AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
+      AndroidGradleTests.updateToolingVersionsAndPaths(projectRoot, repositories, null, null)
     }
     val oldModuleCContent = WriteAction.compute<ByteArray, Throwable> {
       val jModuleMFile = project.guessProjectDir()?.findFileByRelativePath("jModuleM/build.gradle")!!
@@ -309,7 +309,7 @@ b/137231583 */
       }
       $localRepositories
       """
-      AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
+      AndroidGradleTests.updateToolingVersionsAndPaths(projectRoot, repositories, null, null)
     }
     PsProjectImpl(project).let { projectModel ->
       projectModel
@@ -348,6 +348,11 @@ b/137231583 */
     assertIsEqualToSnapshot(text)
   }
 
+  fun testWithBuildSrc() {
+    val text = importSyncAndDumpProject(TestProjectPaths.APP_WITH_BUILDSRC)
+    assertIsEqualToSnapshot(text)
+  }
+
   fun testSwitchingVariants_simpleApplication() {
     val debugBefore = importSyncAndDumpProject(SIMPLE_APPLICATION)
     BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "release")
@@ -383,6 +388,11 @@ b/137231583 */
     assertIsEqualToSnapshot(text)
   }
 
+  fun testCompatibilityWithAndroidStudio36NoImlProject() {
+    val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36_NO_IML)
+    assertIsEqualToSnapshot(text)
+  }
+
   private fun createEmptyGradleSettingsFile() {
     val settingsFilePath = File(projectFolderPath, FN_SETTINGS_GRADLE)
     assertTrue(delete(settingsFilePath))
@@ -402,7 +412,7 @@ b/137231583 */
         }
         $localRepositories
         """
-    AndroidGradleTests.updateGradleVersionsAndRepositories(projectRoot, repositories, null)
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectRoot, repositories, null, null)
   }
 }
 

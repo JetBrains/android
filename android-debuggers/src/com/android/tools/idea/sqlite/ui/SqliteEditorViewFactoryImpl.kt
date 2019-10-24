@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.ui
 
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
+import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
@@ -27,7 +28,11 @@ class SqliteEditorViewFactoryImpl : SqliteEditorViewFactory {
     @JvmStatic fun getInstance() = ServiceManager.getService(SqliteEditorViewFactoryImpl::class.java)!!
   }
 
-  override fun createEvaluatorView(project: Project, schemaProvider: SchemaProvider) = SqliteEvaluatorViewImpl(project, schemaProvider)
-
   override fun createTableView() = TableViewImpl()
+
+  override fun createEvaluatorView(
+    project: Project,
+    schemaProvider: SchemaProvider,
+    tableView: TableView
+  ) = SqliteEvaluatorViewImpl(project, tableView, schemaProvider)
 }

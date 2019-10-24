@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
+import com.android.SdkConstants
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration
@@ -81,10 +82,17 @@ class ProjectDumper(
   private var currentRootDirectoryName = "/"
   private var currentNestingPrefix: String = ""
 
+  private val gradleDistStub = "x".repeat(25)
   private val gradleHashStub = "x".repeat(32)
   private val gradleLongHashStub = "x".repeat(40)
+  private val gradleDistPattern = Regex("/[0-9a-z]{${gradleDistStub.length}}/")
   private val gradleHashPattern = Regex("[0-9a-f]{${gradleHashStub.length}}")
   private val gradleLongHashPattern = Regex("[0-9a-f]{${gradleLongHashStub.length}}")
+  private val gradleVersionPattern = Regex("gradle-.*${SdkConstants.GRADLE_LATEST_VERSION}")
+  private val kotlinVersionPattern =
+    // org.jetbrains.kotlin:kotlin-smth-smth-smth:1.3.1-eap-23"
+    // kotlin-something-1.3.1-eap-23
+    Regex("(?:(?:org.jetbrains.kotlin:kotlin(?:-[0-9a-z]*)*:)|(?:kotlin(?:-[0-9a-z]+)*)-)(\\d+\\.\\d+.[0-9a-z\\-]+)")
 
   fun String.toPrintablePaths(): Collection<String> =
     split(JpsAndroidModuleProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION).map { it.toPrintablePath() }
@@ -113,15 +121,27 @@ class ProjectDumper(
   }
 
   fun String.replaceKnownPaths(): String =
-      offlineRepos
-          .fold(initial = this) { text, repo -> text.replace(repo.absolutePath, "<M2>", ignoreCase = false) }
-          .replace(currentRootDirectory.absolutePath, "<$currentRootDirectoryName>", ignoreCase = false)
-          .replace(gradleCache.absolutePath, "<GRADLE>", ignoreCase = false)
-          .replace(androidSdk.absolutePath, "<ANDROID_SDK>", ignoreCase = false)
-          .replace(devBuildHome.absolutePath, "<DEV>", ignoreCase = false)
-          .replace(gradleLongHashPattern, gradleLongHashStub)
-          .replace(gradleHashPattern, gradleHashStub)
-          .removeAndroidVersionsFromPath()
+    offlineRepos
+      .fold(initial = this) { text, repo -> text.replace(repo.absolutePath, "<M2>", ignoreCase = false) }
+      .replace(currentRootDirectory.absolutePath, "<$currentRootDirectoryName>", ignoreCase = false)
+      .replace(gradleCache.absolutePath, "<GRADLE>", ignoreCase = false)
+      .replace(androidSdk.absolutePath, "<ANDROID_SDK>", ignoreCase = false)
+      .replace(devBuildHome.absolutePath, "<DEV>", ignoreCase = false)
+      .let {
+        if (it.contains(gradleVersionPattern)) {
+          it.replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
+        }
+        else it
+      }
+      .replace(gradleLongHashPattern, gradleLongHashStub)
+      .replace(gradleHashPattern, gradleHashStub)
+      .replace(gradleDistPattern, "/$gradleDistStub/")
+      .let {
+        kotlinVersionPattern.find(it)?.let { match ->
+          it.replace(match.groupValues[1], "<KOTLIN_VERSION>")
+        } ?: it
+      }
+      .removeAndroidVersionsFromPath()
 
   fun appendln(data: String) {
     output.append(currentNestingPrefix)

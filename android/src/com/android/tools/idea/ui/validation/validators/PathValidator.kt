@@ -94,7 +94,7 @@ class PathValidator
       withCommonRules()
       withError(IS_EMPTY)
       withError(PATH_NOT_WRITABLE)
-      withError(NON_EMPTY_DIRECTORY)
+      withWarning(NON_EMPTY_DIRECTORY)
       return this
     }
 
@@ -256,7 +256,7 @@ val PATH_INSIDE_ANDROID_STUDIO = createSimpleRule(
 
 val NON_EMPTY_DIRECTORY = createSimpleRule(
   { fileOp, file -> fileOp.listFiles(file).isNotEmpty() },
-  { file, fieldName -> "'${file.name}' already exists at the specified $fieldName." }
+  { file, fieldName -> "'${file.name}' already exists at the specified $fieldName and it is not empty." }
 )
 
 val WINDOWS_PATH_TOO_LONG = createSimpleRule(

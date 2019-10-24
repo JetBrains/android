@@ -541,9 +541,9 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
           -keep public class com.example.MyApplication {
               public <methods>;
           }
-          
+
           -flag
-          
+
           -keepclassmembers class * implements android.os.Parcelable {
               public <methods>;
           }
@@ -814,8 +814,9 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
                       ProguardR8TypeListImpl(TYPE_LIST)
                         <empty list>
                       PsiElement(right parenthesis)(')')
-                PsiErrorElement:'}' unexpected
-                  PsiElement(closing brace)('}')
+              PsiErrorElement:semicolon expected, got '}'
+                <empty list>
+              PsiElement(closing brace)('}')
       """.trimIndent(),
       toParseTreeText(
         """
@@ -897,7 +898,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
                         PsiElement(JAVA_IDENTIFIER)('my')
                     PsiErrorElement:<class member name>, '[]', dot or left parenthesis expected, got '}'
                       <empty list>
-                PsiElement(closing brace)('}')
+              PsiElement(closing brace)('}')
       """.trimIndent(),
       toParseTreeText(
         """
@@ -928,8 +929,9 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
                       PsiElement(public)('public')
                     ProguardR8ClassMemberNameImpl(CLASS_MEMBER_NAME)
                       PsiElement(JAVA_IDENTIFIER)('my')
-                PsiErrorElement:<class member name>, '[]' or dot expected, got '}'
-                  PsiElement(closing brace)('}')
+              PsiErrorElement:<class member name>, '[]', dot or semicolon expected, got '}'
+                <empty list>
+              PsiElement(closing brace)('}')
       """.trimIndent(),
       toParseTreeText(
         """
@@ -961,8 +963,9 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
                       PsiElement(volatile)('volatile')
                     ProguardR8ClassMemberNameImpl(CLASS_MEMBER_NAME)
                       PsiElement(JAVA_IDENTIFIER)('my')
-                PsiErrorElement:<class member name>, '[]' or dot expected, got '}'
-                  PsiElement(closing brace)('}')
+              PsiErrorElement:<class member name>, '[]', dot or semicolon expected, got '}'
+                <empty list>
+              PsiElement(closing brace)('}')
       """.trimIndent(),
       toParseTreeText(
         """
@@ -1031,7 +1034,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       toParseTreeText(
         """
         @keep-rules.txt
-        
+
         -secondrule
         """.trimIndent()
       )
@@ -1169,7 +1172,42 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """.trimIndent(),
       toParseTreeText(
         """
-        -keep class a.b.c, a, g {} 
+        -keep class a.b.c, a, g {}
+        """.trimIndent()
+      )
+    )
+  }
+
+  fun testRecoveryAfterMissingSemicolon() {
+    assertEquals(
+      """
+        FILE
+          ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
+            PsiElement(FLAG)('-keep')
+            ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
+              ProguardR8ClassTypeImpl(CLASS_TYPE)
+                PsiElement(class)('class')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(JAVA_IDENTIFIER)('a')
+            ProguardR8ClassSpecificationBodyImpl(CLASS_SPECIFICATION_BODY)
+              PsiElement(opening brace)('{')
+              ProguardR8JavaRuleImpl(JAVA_RULE)
+                ProguardR8MethodSpecificationImpl(METHOD_SPECIFICATION)
+                  PsiElement(<methods>)('<methods>')
+              PsiErrorElement:semicolon expected, got '}'
+                <empty list>
+              PsiElement(closing brace)('}')
+          ProguardR8RuleImpl(RULE)
+            PsiElement(FLAG)('-rule')
+      """.trimIndent(),
+      toParseTreeText(
+        """
+        -keep class a {
+          <methods>
+        }
+
+        -rule
         """.trimIndent()
       )
     )

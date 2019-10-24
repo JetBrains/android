@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.run.util;
 
+import com.intellij.execution.process.ProcessHandler;
 import java.util.function.BooleanSupplier;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -36,11 +38,17 @@ public interface LaunchStatus {
   void addLaunchTerminationCondition(BooleanSupplier launchTerminatedCondition);
 
   /**
+   * Returns the process handler associated with this launch status.
+   */
+  @NotNull
+  ProcessHandler getProcessHandler();
+
+  /**
    * Forcefully terminates this launch regardless of {@link #isLaunchTerminated()} value.
    *
    * @param errorMessage an optional error message to be shown to users to explain why the launch is terminated. Set null or
    *                     empty string if this termination is not an error.
-   * @param destroyProcess if this is true, the underlying processes (if any) will be destroyed as well.
+   * @param destroyProcess if this is true, the process returned by {@link #getProcessHandler()} will be destroyed.
    */
   void terminateLaunch(@Nullable String errorMessage, boolean destroyProcess);
 }

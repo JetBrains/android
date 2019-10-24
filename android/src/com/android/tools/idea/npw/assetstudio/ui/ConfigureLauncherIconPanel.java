@@ -27,6 +27,7 @@ import com.android.tools.idea.npw.assetstudio.IconGenerator.Shape;
 import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
+import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
 import com.android.tools.idea.npw.assetstudio.wizard.PersistentStateUtil;
@@ -276,7 +277,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
   @NotNull private final BoolProperty myShowGrid;
   @NotNull private final BoolProperty myShowSafeZone;
   @NotNull private final AbstractProperty<Density> myPreviewDensity;
-  private AbstractProperty<Color> myForegroundColor;
+  private ColorProperty myForegroundColor;
   private AbstractProperty<Color> myBackgroundColor;
   private BoolProperty myForegroundTrimmed;
   private BoolProperty myBackgroundTrimmed;
@@ -310,6 +311,8 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myIconGenerator =
         new LauncherIconGenerator(facet.getModule().getProject(), androidModuleInfo.getMinSdkVersion().getApiLevel(), renderer);
     myValidatorPanel = validatorPanel;
+
+    myForegroundTextAssetEditor.setDefaultText(TextAsset.DEFAULT_TEXT);
 
     DefaultComboBoxModel<Shape> legacyShapesModel = new DefaultComboBoxModel<>();
     for (Shape shape : myShapeNames.keySet()) {
@@ -486,7 +489,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     StringProperty backgroundResizeValueString = new TextProperty(myBackgroundResizeValueLabel);
     myGeneralBindings.bind(backgroundResizeValueString, new FormatExpression("%d %%", myBackgroundResizePercent));
 
-    myForegroundColor = ObjectProperty.wrap(new ColorProperty(myForegroundColorPanel));
+    myForegroundColor = new ColorProperty(myForegroundColorPanel);
     myBackgroundColor = ObjectProperty.wrap(new ColorProperty(myBackgroundColorPanel));
     myGenerateLegacyIcon = new SelectedProperty(myGenerateLegacyIconYesRadioButton);
     myGenerateRoundIcon = new SelectedProperty(myGenerateRoundIconYesRadioButton);
@@ -535,9 +538,9 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
       myForegroundActiveAssetBindings.bindTwoWay(myForegroundResizePercent, asset.scalingPercent());
       OptionalValueProperty<Color> assetColor = asset.color();
       if (assetColor.getValueOrNull() == null) {
-        assetColor.setValue(myForegroundColor.get());
+        assetColor.setNullableValue(myForegroundColor.getValueOrNull());
       }
-      myForegroundActiveAssetBindings.bindTwoWay(myForegroundColor, ObjectProperty.wrap(assetColor));
+      myForegroundActiveAssetBindings.bindTwoWay(myForegroundColor, assetColor);
       myForegroundActiveAssetBindings.bind(foregroundIsResizable, asset.isResizable());
       if (asset instanceof ImageAsset) {
         myForegroundActiveAssetBindings.bind(myForegroundAssetValidityState, ((ImageAsset)asset).getValidityState());

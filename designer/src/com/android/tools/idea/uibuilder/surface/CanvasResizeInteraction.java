@@ -122,7 +122,7 @@ public class CanvasResizeInteraction extends Interaction {
     myUpdateQueue = new MergingUpdateQueue("layout.editor.canvas.resize", 100, true, null, myDesignSurface);
     myUpdateQueue.setRestartTimerOnAdd(true);
 
-    myOriginalDevice = configuration.getDevice();
+    myOriginalDevice = configuration.getCachedDevice();
     myOriginalDeviceState = configuration.getDeviceState();
 
     double currentDpi = configuration.getDensity().getDpiValue();
@@ -247,9 +247,8 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     myPerfDebugHelper.start("[Simple Resize] - end");
-    super.end(x, y, modifiersEx, canceled);
 
     // Set the surface in resize mode so it doesn't try to re-center the screen views all the time
     myDesignSurface.setResizeMode(false);
@@ -257,7 +256,7 @@ public class CanvasResizeInteraction extends Interaction {
     int androidX = Coordinates.getAndroidX(myScreenView, x);
     int androidY = Coordinates.getAndroidY(myScreenView, y);
 
-    if (canceled || androidX < 0 || androidY < 0) {
+    if (androidX < 0 || androidY < 0) {
       myConfiguration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);
     }
     else {
@@ -272,6 +271,12 @@ public class CanvasResizeInteraction extends Interaction {
     }
     myPerfDebugHelper.end("[Simple Resize] - end");
     myPerfDebugHelper.print();
+  }
+
+  @Override
+  public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
+    myPerfDebugHelper.start("[Simple Resize] - end");
+    myConfiguration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);
   }
 
   @Override
@@ -294,14 +299,6 @@ public class CanvasResizeInteraction extends Interaction {
    * size will be after resizing.
    */
   private class ResizeLayer extends Layer {
-    @Override
-    public void create() {
-    }
-
-    @Override
-    public void dispose() {
-    }
-
     @Override
     public void paint(@NotNull Graphics2D g2d) {
       int x = myScreenView.getX();

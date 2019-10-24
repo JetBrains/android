@@ -12,6 +12,7 @@ public final class TestProjectPaths {
   public static final String CENTRAL_BUILD_DIRECTORY = "projects/centralBuildDirectory";
   public static final String CIRCULAR_MODULE_DEPS = "projects/circularModuleDeps";
   public static final String COMPATIBILITY_TESTS_AS_36 = "projects/compatibility_tests/AS36";
+  public static final String COMPATIBILITY_TESTS_AS_36_NO_IML = "projects/compatibility_tests/AS36_noiml";
   public static final String COMPOSITE_BUILD = "projects/compositeBuild";
   public static final String DEPENDENT_MODULES = "projects/dependentModules";
   public static final String DEPENDENT_NATIVE_MODULES = "projects/dependentNativeModules";
@@ -86,6 +87,7 @@ public final class TestProjectPaths {
   public static final String SIGNAPK_MULTIFLAVOR = "projects/signapk/multiflavor";
   public static final String SIGNAPK_NO_FLAVORS = "projects/signapk/no_flavors";
   public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
+  public static final String SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY = "projects/simpleApplicationUnresolvedDependency";
   public static final String SIMPLE_APPLICATION_PRE30 = "projects/simpleApplication_pre30";
   public static final String SIMPLE_APP_WITH_OLDER_SUPPORT_LIB = "projects/simpleAppWithOlderSupportLib";
   public static final String SPLIT_BUILD_FILES = "projects/splitBuildFiles";

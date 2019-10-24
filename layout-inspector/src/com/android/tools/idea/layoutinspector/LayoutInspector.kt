@@ -15,14 +15,23 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.InspectorView
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.profiler.proto.Common
+import com.google.common.util.concurrent.FutureCallback
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.MoreExecutors
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
@@ -88,6 +97,7 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel) {
             // We were unable to parse the skia image. Allow the user to interact with the component tree.
             viewRoot = null
           }
+          (client as? DefaultInspectorClient)?.logInitialRender(viewRoot != null)
         }
         catch (ex: Exception) {
           Logger.getInstance(LayoutInspector::class.java).warn(ex)
@@ -170,9 +180,9 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel) {
       val viewId = stringTable[view.viewId]
       val textValue = stringTable[view.textValue]
       val layout = stringTable[view.layout]
-      val x = view.x + (parent?.x ?: 0)
-      val y = view.y + (parent?.y ?: 0)
-      val node = ViewNode(view.drawId, qualifiedName, layout, x, y, view.width, view.height, viewId, textValue)
+      val x = view.x + (parent?.let { it.x - it.scrollX } ?: 0)
+      val y = view.y + (parent?.let { it.y - it.scrollY } ?: 0)
+      val node = ViewNode(view.drawId, qualifiedName, layout, x, y, view.scrollX, view.scrollY, view.width, view.height, viewId, textValue)
       view.subViewList.map { loadView(it, node) }.forEach {
         node.children.add(it)
         it.parent = node

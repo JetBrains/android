@@ -102,18 +102,18 @@ public class ScrollInteraction extends Interaction {
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiersEx, boolean canceled) {
-    if (canceled) {
-      // Make sure we reset the scroll to where it was
-      myHandler.update(0);
-      mySceneView.getSceneManager().requestLayoutAndRender(false);
-      return;
-    }
-
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiersEx) {
     // Reset scroll multiplier back to 1
     myScrollMultiplier = 1;
     myHandler.commit(myScrolledAmount);
     myScrolledAmount = 0;
+  }
+
+  @Override
+  public void cancel(int x, int y, int modifiersEx) {
+    // Make sure we reset the scroll to where it was
+    myHandler.update(0);
+    mySceneView.getSceneManager().requestLayoutAndRender(false);
   }
 
   public boolean canScroll(int scrollAmount) {

@@ -80,6 +80,11 @@ public class MarqueeInteraction extends Interaction {
   }
 
   @Override
+  public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
+    mySceneView.getSelectionModel().clear();
+  }
+
+  @Override
   public List<Layer> createOverlays() {
     ColorSet colorSet = mySceneView.getColorSet();
     myOverlay = new MarqueeLayer(colorSet);
@@ -137,14 +142,6 @@ public class MarqueeInteraction extends Interaction {
       this.mouseY = mouseY;
       this.androidWidth = androidWidth;
       this.androidHeight = androidHeight;
-    }
-
-    @Override
-    public void create() {
-    }
-
-    @Override
-    public void dispose() {
     }
 
     @Override

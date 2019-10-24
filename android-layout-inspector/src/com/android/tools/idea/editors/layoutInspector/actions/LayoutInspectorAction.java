@@ -23,7 +23,6 @@ import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.AbstractClientAction;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorCaptureTask;
 import com.android.tools.idea.editors.layoutInspector.WindowPickerDialog;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -42,16 +41,11 @@ public class LayoutInspectorAction extends AbstractClientAction {
 
   public LayoutInspectorAction(@NotNull Project project, @NotNull DeviceContext deviceContext) {
     super(deviceContext,
+          (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get() ? "Legacy " : "") +
           AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
           AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
           StudioIcons.Shell.Menu.LAYOUT_INSPECTOR);
     myProject = project;
-  }
-
-  @Override
-  public void update(@NotNull AnActionEvent event) {
-    super.update(event);
-    event.getPresentation().setVisible(!StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get());
   }
 
   @Override

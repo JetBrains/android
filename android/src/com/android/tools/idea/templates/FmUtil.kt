@@ -24,6 +24,7 @@ import java.io.File
 /**
  * Tries to find the [Module] for the given `modulePath`. Returns `null` when a valid module is not found.
  */
+// TODO(qumeric): rewrite to accept a file?
 fun findModule(modulePath: String): Module? {
   val file = LocalFileSystem.getInstance().findFileByIoFile(File(modulePath.replace('/', File.separatorChar))) ?: return null
   val project = ProjectLocator.getInstance().guessProjectForFile(file) ?: return null

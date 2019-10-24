@@ -3367,7 +3367,7 @@ public class GradleImportTest extends AndroidTestCase {
     args.add("assembleDebug");
     GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(args);
     removeJcenter(new File(base, "build.gradle"));
-    AndroidGradleTests.updateGradleVersions(base);
+    AndroidGradleTests.updateToolingVersionsAndPaths(base);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
     cmdLine.withEnvironment("JAVA_HOME", EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getAbsolutePath());
     cmdLine.withEnvironment("ANDROID_SDK_HOME", AndroidLocation.getFolder());

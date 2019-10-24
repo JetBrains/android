@@ -19,7 +19,7 @@ import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
 import com.android.tools.idea.npw.template.TemplateHandle
-import com.android.tools.idea.npw.ui.ActivityGallery.getTemplateIcon
+import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
@@ -34,7 +34,7 @@ class NewLibraryModuleDescriptionProvider : ModuleDescriptionProvider {
     private val templateHandle = TemplateHandle(TemplateManager.getInstance().getTemplateFile(
         Template.CATEGORY_APPLICATION, message("android.wizard.module.new.java.or.kotlin.library"))!!)
 
-    override val icon: Icon? = getTemplateIcon(templateHandle, false)
+    override val icon: Icon? = getTemplateIcon(templateHandle)
     override val name: String = templateHandle.metadata.title!!
     override val description: String? = templateHandle.metadata.description
     override fun toString(): String = name

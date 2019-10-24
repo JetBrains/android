@@ -58,7 +58,7 @@ class InspectorViewDescriptor(private val drawId: Long,
     view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, body)
 
   fun build(): ViewNode {
-    val result = ViewNode(drawId, qualifiedName, null, x, y, width, height, viewId, textValue)
+    val result = ViewNode(drawId, qualifiedName, null, x, y, 0, 0, width, height, viewId, textValue)
     children.forEach { result.children.add(it.build()) }
     result.children.forEach { it.parent = result }
     return result

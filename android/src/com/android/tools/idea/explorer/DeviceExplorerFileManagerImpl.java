@@ -198,7 +198,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
                                                      @NotNull DownloadProgress progress,
                                                      @Nullable FutureCallback<VirtualFile> callback) {
     FileTransferProgress fileTransferProgress = createFileTransferProgress(entry, progress);
-    progress.onStarting(Paths.get(entry.getFullPath()));
+    progress.onStarting(entry.getFullPath());
     ListenableFuture<Void> downloadFileFuture = entry.downloadFile(localPath, fileTransferProgress);
     ListenableFuture<VirtualFile> getVirtualFile = myTaskExecutor.transformAsync(downloadFileFuture,
                                                                                  aVoid -> DeviceExplorerFilesUtils.findFile(localPath));
@@ -210,13 +210,13 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
         DeviceFileId fileInfo = new DeviceFileId(entry.getFileSystem().getName(), entry.getFullPath());
         virtualFile.putUserData(DeviceFileId.KEY, fileInfo);
 
-        progress.onCompleted(Paths.get(entry.getFullPath()));
+        progress.onCompleted(entry.getFullPath());
         if (callback != null) callback.onSuccess(virtualFile);
       }
 
       @Override
       public void onFailure(@NotNull Throwable t) {
-        progress.onCompleted(Paths.get(entry.getFullPath()));
+        progress.onCompleted(entry.getFullPath());
         deleteTemporaryFile(localPath);
         if (callback != null) callback.onFailure(t);
       }
@@ -311,7 +311,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     return new FileTransferProgress() {
       @Override
       public void progress(long currentBytes, long totalBytes) {
-        progress.onProgress(Paths.get(entry.getFullPath()), currentBytes, totalBytes);
+        progress.onProgress(entry.getFullPath(), currentBytes, totalBytes);
       }
 
       @Override

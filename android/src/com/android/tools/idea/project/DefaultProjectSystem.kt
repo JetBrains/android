@@ -18,6 +18,7 @@ package com.android.tools.idea.project
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
@@ -89,4 +90,7 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
   }
 
   override fun getLightResourceClassService() = ProjectLightResourceClassService.getInstance(project)
+
+  override val submodules: Collection<Module>
+    get() = getSubmodules(project, null)
 }

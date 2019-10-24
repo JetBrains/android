@@ -789,20 +789,18 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // (java_rule SEMICOLON)*
+  // (java_rule ';')*
   static boolean java(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "java")) return false;
-    Marker marker = enter_section_(builder, level, _NONE_);
     while (true) {
       int pos = current_position_(builder);
       if (!java_0(builder, level + 1)) break;
       if (!empty_element_parsed_guard_(builder, "java", pos)) break;
     }
-    exit_section_(builder, level, marker, true, false, ProguardR8Parser::not_close_brace);
     return true;
   }
 
-  // java_rule SEMICOLON
+  // java_rule ';'
   private static boolean java_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "java_0")) return false;
     boolean result, pinned;
@@ -880,15 +878,16 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // !(<<eof>>|CLOSE_BRACE|WHITE_SPACE) (fields_specification|method_specification)
+  // !(<<eof>>|CLOSE_BRACE|WHITE_SPACE) (fields_specification|method_specification) &';'
   public static boolean java_rule(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "java_rule")) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, JAVA_RULE, "<java rule>");
     result = java_rule_0(builder, level + 1);
     pinned = result; // pin = 1
-    result = result && java_rule_1(builder, level + 1);
-    exit_section_(builder, level, marker, result, pinned, ProguardR8Parser::not_semicolon);
+    result = result && report_error_(builder, java_rule_1(builder, level + 1));
+    result = pinned && java_rule_2(builder, level + 1) && result;
+    exit_section_(builder, level, marker, result, pinned, ProguardR8Parser::not_semicolon_or_brace);
     return result || pinned;
   }
 
@@ -920,6 +919,16 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     boolean result;
     result = fields_specification(builder, level + 1);
     if (!result) result = method_specification(builder, level + 1);
+    return result;
+  }
+
+  // &';'
+  private static boolean java_rule_2(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "java_rule_2")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder, level, _AND_);
+    result = consumeToken(builder, SEMICOLON);
+    exit_section_(builder, level, marker, result, false, null);
     return result;
   }
 
@@ -1186,13 +1195,22 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // !SEMICOLON
-  static boolean not_semicolon(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "not_semicolon")) return false;
+  // !(SEMICOLON|CLOSE_BRACE)
+  static boolean not_semicolon_or_brace(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "not_semicolon_or_brace")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NOT_);
-    result = !consumeToken(builder, SEMICOLON);
+    result = !not_semicolon_or_brace_0(builder, level + 1);
     exit_section_(builder, level, marker, result, false, null);
+    return result;
+  }
+
+  // SEMICOLON|CLOSE_BRACE
+  private static boolean not_semicolon_or_brace_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "not_semicolon_or_brace_0")) return false;
+    boolean result;
+    result = consumeToken(builder, SEMICOLON);
+    if (!result) result = consumeToken(builder, CLOSE_BRACE);
     return result;
   }
 

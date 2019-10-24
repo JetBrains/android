@@ -20,7 +20,7 @@ import com.android.tools.idea.npw.FormFactor.Companion.get
 import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.template.TemplateHandle
-import com.android.tools.idea.npw.ui.ActivityGallery.getTemplateIcon
+import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.templates.Template.ANDROID_PROJECT_TEMPLATE
 import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.TemplateManager
@@ -40,7 +40,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
         val minSdk = metadata.minSdk
         val formFactor = get(metadata.formFactor!!)
 
-        fun File.getIcon(): Icon = getTemplateIcon(TemplateHandle(this), false)!!
+        fun File.getIcon(): Icon = getTemplateIcon(TemplateHandle(this))!!
         fun createTemplateEntry(isLibrary: Boolean, icon: Icon, title: String = metadata.title!!) =
           AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, isLibrary, icon, title, metadata.description!!)
 

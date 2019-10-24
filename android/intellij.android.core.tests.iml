@@ -123,5 +123,6 @@
     <orderEntry type="module" module-name="intellij.android.debuggers" />
     <orderEntry type="module" module-name="intellij.platform.objectSerializer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.wizardTemplate.impl" scope="TEST" />
   </component>
 </module>

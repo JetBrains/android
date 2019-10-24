@@ -110,9 +110,9 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
     assertEquals("bar1", virtualFile.name)
     assertEmpty(additionalFiles)
 
-    orderVerifier.verify(downloadProgress).onStarting(Paths.get("/foo/bar1"))
-    orderVerifier.verify(downloadProgress).onProgress(Paths.get("/foo/bar1"), 0, 0)
-    orderVerifier.verify(downloadProgress).onCompleted(Paths.get("/foo/bar1"))
+    orderVerifier.verify(downloadProgress).onStarting("/foo/bar1")
+    orderVerifier.verify(downloadProgress).onProgress("/foo/bar1", 0, 0)
+    orderVerifier.verify(downloadProgress).onCompleted("/foo/bar1")
     verifyNoMoreInteractions(downloadProgress)
   }
 
@@ -138,13 +138,13 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
 
     assertTrue(Utils.VirtualFilePathArgumentMatcher("/foo/bar2").matches(additionalFiles.first()))
 
-    orderVerifier.verify(downloadProgress).onStarting(Paths.get("/foo/bar1"))
-    orderVerifier.verify(downloadProgress).onProgress(Paths.get("/foo/bar1"), 0, 0)
-    orderVerifier.verify(downloadProgress).onCompleted(Paths.get("/foo/bar1"))
+    orderVerifier.verify(downloadProgress).onStarting("/foo/bar1")
+    orderVerifier.verify(downloadProgress).onProgress("/foo/bar1", 0, 0)
+    orderVerifier.verify(downloadProgress).onCompleted("/foo/bar1")
 
-    orderVerifier.verify(downloadProgress).onStarting(Paths.get("/foo/bar2"))
-    orderVerifier.verify(downloadProgress).onProgress(Paths.get("/foo/bar2"), 0, 0)
-    orderVerifier.verify(downloadProgress).onCompleted(Paths.get("/foo/bar2"))
+    orderVerifier.verify(downloadProgress).onStarting("/foo/bar2")
+    orderVerifier.verify(downloadProgress).onProgress("/foo/bar2", 0, 0)
+    orderVerifier.verify(downloadProgress).onCompleted("/foo/bar2")
   }
 
   fun testDownloadFileEntryAdditionalEntriesDifferentParent() {

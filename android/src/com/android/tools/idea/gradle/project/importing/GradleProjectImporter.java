@@ -20,6 +20,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toC
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ExceptionUtil.rethrowUnchecked;
+import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -30,6 +31,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
@@ -40,6 +42,7 @@ import java.util.Set;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
@@ -136,18 +139,13 @@ public class GradleProjectImporter {
   public Project createProject(@NotNull String projectName, @NotNull File projectFolderPath) {
     Project newProject;
     newProject = myNewProjectSetup.createProject(projectName, projectFolderPath.getPath());
-    GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
-    gradleSettings.setGradleVmOptions("");
 
     String externalProjectPath = toCanonicalPath(projectFolderPath.getPath());
-    GradleProjectSettings projectSettings = gradleSettings.getLinkedProjectSettings(externalProjectPath);
-    if (projectSettings == null) {
-      Set<GradleProjectSettings> projects = ContainerUtilRt.newHashSet(gradleSettings.getLinkedProjectsSettings());
-      projectSettings = new GradleProjectSettings();
-      projectSettings.setExternalProjectPath(externalProjectPath);
-      projects.add(projectSettings);
-      gradleSettings.setLinkedProjectsSettings(projects);
-    }
+    GradleProjectSettings projectSettings = new GradleProjectSettings();
+    GradleProjectImportUtil.setupGradleSettings(projectSettings, externalProjectPath, newProject, null);
+    //noinspection unchecked
+    ExternalSystemApiUtil.getSettings(newProject, SYSTEM_ID).linkProject(projectSettings);
+
     return newProject;
   }
 

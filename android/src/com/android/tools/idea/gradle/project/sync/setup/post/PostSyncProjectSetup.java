@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.project.RunConfigurationChecker;
 import com.android.tools.idea.gradle.project.SupportedModuleChecker;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.build.events.AndroidSyncFailure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
@@ -74,6 +75,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
+import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
+import com.intellij.openapi.externalSystem.service.notification.NotificationData;
+import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -187,8 +191,9 @@ public class PostSyncProjectSetup {
         myProjectSetup.setUpProject(true /* sync failed */);
         // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
         // previous sync, and not the one from the sync that just ended.
-        mySyncState.syncFailed("", null, syncListener);
-        finishFailedSync(taskId, myProject);
+        String message = "Sync issues found";
+        mySyncState.syncFailed(message, new RuntimeException(message), syncListener);
+        finishFailedSync(taskId, myProject, message);
         return;
       }
 
@@ -247,7 +252,7 @@ public class PostSyncProjectSetup {
     }
     catch (Throwable t) {
       mySyncState.syncFailed("setup project failed: " + t.getMessage(), t, syncListener);
-      finishFailedSync(taskId, myProject);
+      finishFailedSync(taskId, myProject, t.getMessage());
     }
   }
 
@@ -315,10 +320,18 @@ public class PostSyncProjectSetup {
     });
   }
 
-  public static void finishFailedSync(@Nullable ExternalSystemTaskId taskId, @NotNull Project project) {
+  public static void finishFailedSync(@Nullable ExternalSystemTaskId taskId, @NotNull Project project, @Nullable String exceptionMessage) {
     if (taskId != null) {
       GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
-      List<Failure> failures = messages.showEvents(taskId);
+      List<Failure> failures = new ArrayList<>(messages.showEvents(taskId));
+      // In order to ensure that exception messages are correctly displayed we need to use them to create a failure and pass it to the
+      // FinishBuildEventImpl. If we already have failure messages we don't want to pollute the output so we don't process the message
+      // in these cases.
+      if (exceptionMessage != null && failures.isEmpty()) {
+        NotificationData notificationData =
+          new NotificationData(exceptionMessage, exceptionMessage, NotificationCategory.ERROR, NotificationSource.PROJECT_SYNC);
+        failures.add(AndroidSyncFailure.create(notificationData));
+      }
       FailureResultImpl failureResult = new FailureResultImpl(failures);
       FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), "failed", failureResult);
       ServiceManager.getService(project, SyncViewManager.class).onEvent(taskId, finishBuildEvent);
@@ -326,7 +339,7 @@ public class PostSyncProjectSetup {
   }
 
   public void onCachedModelsSetupFailure(@Nullable ExternalSystemTaskId taskId, @NotNull Request request) {
-    finishFailedSync(taskId, myProject);
+    finishFailedSync(taskId, myProject, null);
     // Sync with cached model failed (e.g. when Studio has a newer embedded builder-model interfaces and the cache is using an older
     // version of such interfaces.
     long syncTimestamp = request.lastSyncTimestamp;

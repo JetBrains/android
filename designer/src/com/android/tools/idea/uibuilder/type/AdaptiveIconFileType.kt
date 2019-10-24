@@ -33,7 +33,7 @@ object AdaptiveIconFileType : DesignerEditorFileType {
 
   override fun setTypePrerequisites(model: NlModel) {
     // Set the default density to XXXHDPI
-    val device = model.configuration.device
+    val device = model.configuration.cachedDevice
     if (device != null && CUSTOM_DENSITY_ID != device.id) {
       model.overrideConfigurationDensity(Density.XXXHIGH)
     }

@@ -40,12 +40,13 @@ interface TableView {
   /**
    * Updates the UI to show the number of rows loaded per page.
    */
-  fun showRowCount(maxRowCount: Int)
+  fun showPageSizeValue(maxRowCount: Int)
+
   fun startTableLoading()
   fun showTableColumns(columns: List<SqliteColumn>)
   fun showTableRowBatch(rows: List<SqliteRow>)
   fun stopTableLoading()
-  fun reportError(message: String, t: Throwable)
+  fun reportError(message: String, t: Throwable?)
 
   /**
    * Enables or disables the button to fetch the previous page of rows.
@@ -64,9 +65,16 @@ interface TableView {
 interface TableViewListener {
   fun loadPreviousRowsInvoked()
   fun loadNextRowsInvoked()
+  fun loadFirstRowsInvoked()
+  fun loadLastRowsInvoked()
 
   /**
    * Invoked when the user changes the number of rows to display per page.
    */
   fun rowCountChanged(rowCount: Int)
+
+  /**
+   * Invoked when the user wants to order the data by a specific column
+   */
+  fun toggleOrderByColumnInvoked(sqliteColumn: SqliteColumn)
 }

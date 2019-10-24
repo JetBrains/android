@@ -455,22 +455,33 @@ public class Configuration implements Disposable, ModificationTracker {
   private static final String NO_ACTIVITY = new String();
 
   /**
-   * Returns the chosen device.
+   * Returns the chosen device, computing the best one if the currently cached value is null.
    *
-   * @return the chosen device
+   * Use {@link #getCachedDevice()} to get the current cached device regardless of its nullability.
    */
   @Slow
   @Nullable
   public Device getDevice() {
-    if (myDevice == null) {
-      if (mySpecificDevice != null) {
-        myDevice = mySpecificDevice;
-      }
-      else {
-        myDevice = computeBestDevice();
-      }
+    Device cached = getCachedDevice();
+    if (cached != null) {
+      return cached;
     }
 
+    if (mySpecificDevice != null) {
+      myDevice = mySpecificDevice;
+    }
+    else {
+      myDevice = computeBestDevice();
+    }
+    return myDevice;
+  }
+
+  /**
+   * Returns the current value of the effective device. Please note this will return the cached value of the field, which is actually
+   * computed in {@link #getDevice()}.
+   */
+  @Nullable
+  public Device getCachedDevice() {
     return myDevice;
   }
 

@@ -58,6 +58,9 @@ iml_module(
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/idea/.idea/libraries:protobuf",
     ],
 )
 

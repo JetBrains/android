@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
 import java.nio.file.Path
+import java.util.concurrent.ExecutorService
 
 /**
  * Sends ATTACH command to transport daemon, that makes sure perfa is running and is ready to receive
@@ -44,9 +45,10 @@ import java.nio.file.Path
 internal fun attachAppInspectionPipelineConnection(
   client: TransportClient,
   stream: Stream,
-  process: Process
+  process: Process,
+  executorService: ExecutorService
 ): ListenableFuture<AppInspectionPipelineConnection> {
-  val transport = AppInspectionTransport(client, stream, process)
+  val transport = AppInspectionTransport(client, stream, process, executorService)
   val connectionFuture = SettableFuture.create<AppInspectionPipelineConnection>()
 
   // The device daemon takes care of the case if and when the agent is previously attached already.
@@ -116,9 +118,10 @@ fun <T : AppInspectorClient> launchInspectorForTest(
   client: TransportClient,
   stream: Stream,
   process: Process,
+  executorService: ExecutorService,
   creator: (AppInspectorClient.CommandMessenger) -> T
 ): T {
-  val transport = AppInspectionTransport(client, stream, process)
+  val transport = AppInspectionTransport(client, stream, process, executorService)
   val connection = AppInspectorConnection(transport, inspectorId)
   return setupEventListener(creator, connection)
 }

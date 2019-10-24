@@ -13,6 +13,7 @@ import com.intellij.testFramework.LightVirtualFileBase;
 import com.intellij.util.xml.DomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,7 +61,7 @@ public class ManifestDomFileDescription extends DomFileDescription<Manifest> {
 
   public static boolean isManifestFile(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
     return file.getName().equals(FN_ANDROID_MANIFEST_XML) ||
-           AndroidModel.isRequired(facet) && file.getVirtualFile() != null && IdeaSourceProvider.isManifestFile(facet, file.getVirtualFile());
+           AndroidModel.isRequired(facet) && file.getVirtualFile() != null && IdeaSourceProviderUtil.isManifestFile(facet, file.getVirtualFile());
   }
 
   @Override

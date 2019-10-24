@@ -179,10 +179,10 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     //MotionSceneModel.KeyFrame keyFrame = getSelectedKeyframe();
     //if (keyFrame == null || !keyFrame.getName().equals("KeyPosition")) {
-    //  super.end(x, y, modifiersEx, canceled);
+    //  super.end(x, y, modifiersEx);
     //  return;
     //}
     //

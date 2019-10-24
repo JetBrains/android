@@ -608,9 +608,7 @@ public class SceneComponent {
     if (componentId.equalsIgnoreCase(myNlComponent.getId())) {
       return this;
     }
-    int count = myChildren.size();
-    for (int i = 0; i < count; i++) {
-      SceneComponent child = myChildren.get(i);
+    for (SceneComponent child : myChildren) {
       SceneComponent found = child.getSceneComponent(componentId);
       if (found != null) {
         return found;
@@ -712,9 +710,7 @@ public class SceneComponent {
       needsRebuildDisplayList |= target.layout(sceneTransform, myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom);
     }
 
-    int childCount = myChildren.size();
-    for (int i = 0; i < childCount; i++) {
-      SceneComponent child = myChildren.get(i);
+    for (SceneComponent child : myChildren) {
       needsRebuildDisplayList |= child.layout(sceneTransform, time);
     }
     return needsRebuildDisplayList;
@@ -753,9 +749,7 @@ public class SceneComponent {
       Target target = targets.get(i);
       target.addHit(sceneTransform, picker, modifiersEx);
     }
-    int childCount = myChildren.size();
-    for (int i = 0; i < childCount; i++) {
-      SceneComponent child = myChildren.get(i);
+    for (SceneComponent child : myChildren) {
       if (child instanceof TemporarySceneComponent) {
         continue;
       }

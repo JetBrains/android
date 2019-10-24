@@ -25,7 +25,7 @@ import icons.StudioIcons
  * Pre-defined Configuration sets for visualization tools.
  */
 @Suppress("unused") // Entries are indirectly used by for-loop.
-enum class ConfigurationSet(val title: String, val modelsProvider: VisualizationModelsProvider) {
+enum class ConfigurationSet(val title: String, val modelsProvider: VisualizationModelsProvider, val visible: Boolean = true) {
   PIXEL_DEVICES("Pixel Devices", PixelDeviceModelsProvider),
   PROJECT_LOCALES("Project Locales", LocaleModelsProvider)
 }
@@ -47,7 +47,7 @@ class ConfigurationSetMenuAction(private val listener: ConfigurationSetListener,
   private var currentConfigurationSet = defaultSet
 
   init {
-    for (configurationSet in ConfigurationSet.values()) {
+    for (configurationSet in ConfigurationSet.values().filter { it.visible }) {
       add(SetConfigurationSetAction(configurationSet))
     }
   }

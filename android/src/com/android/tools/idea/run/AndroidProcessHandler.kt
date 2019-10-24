@@ -101,10 +101,18 @@ class AndroidProcessHandler @JvmOverloads constructor(
   }
 
   /**
+   * Detaches a given device from target devices. No-op if the given device is not associated with this handler.
+   */
+  @WorkerThread
+  fun detachDevice(device: IDevice) {
+    myMonitorManager.getMonitor(device)?.detachAndClose()
+  }
+
+  /**
    * Checks if a given device is monitored by this handler. Returns true if it is monitored otherwise false.
    */
   @WorkerThread
-  fun isAssociated(device: IDevice) = myMonitorManager.isAssociated(device)
+  fun isAssociated(device: IDevice) = myMonitorManager.getMonitor(device) != null
 
   /**
    * Returns jdwp client of a target application running on a given device, or null if the device is not monitored by
@@ -144,7 +152,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
     if (activeTarget === DefaultExecutionTarget.INSTANCE || activeTarget !is AndroidExecutionTarget) {
       return false
     }
-    return activeTarget.iDevice?.let { myMonitorManager.isAssociated(it) } ?: false
+    return activeTarget.iDevice?.let { isAssociated(it) } ?: false
   }
 
   override fun killProcess() {
@@ -160,7 +168,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
     }
 
     if (executionTarget is AndroidExecutionTarget) {
-      return executionTarget.iDevice?.let { myMonitorManager.isAssociated(it) } ?: false
+      return executionTarget.iDevice?.let { isAssociated(it) } ?: false
     }
 
     return sessionInfo.executionTarget.id == executionTarget.id

@@ -26,6 +26,8 @@ import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLE
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_LAYOUT_ICON
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_REQUIRED_ONLY
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_COMPLETION_TRAILING_LAMBDA
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionLocation
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -117,7 +119,7 @@ private val List<ValueParameterDescriptor>.hasComposableChildren: Boolean get() 
  */
 class AndroidComposeCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
-    if (allFlags.all { !it.get() } || !parameters.isInsideComposableCode()) return
+    if (parameters.position.getModuleSystem()?.usesCompose != true || !parameters.isInsideComposableCode()) return
 
     if (COMPOSE_COMPLETION_BANNER.get()) {
       ApplicationManager.getApplication().invokeLater {

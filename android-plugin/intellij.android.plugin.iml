@@ -27,6 +27,7 @@
     <orderEntry type="module" module-name="intellij.android.naveditor" />
     <orderEntry type="module" module-name="intellij.android.layout-inspector" />
     <orderEntry type="module" module-name="intellij.android.compose-designer" />
+    <orderEntry type="module" module-name="intellij.android.designer.customview" />
     <orderEntry type="module" module-name="intellij.android.room" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.impl" />
   </component>

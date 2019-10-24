@@ -21,6 +21,7 @@ import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
@@ -112,15 +113,9 @@ class SqliteJdbcService(
     return columns
   }
 
-  override fun readTable(table: SqliteTable): ListenableFuture<SqliteResultSet> {
-    return executeQuery("select * from " + escapeName(table.name))
-  }
-
   override fun executeQuery(query: String): ListenableFuture<SqliteResultSet> {
-    return execute(query) { preparedStatement ->
-      val resultSet = preparedStatement.executeQuery()
-      SqliteJdbcResultSet(this, preparedStatement, resultSet)
-    }
+    val newSqliteResultSet = SqliteJdbcResultSet(this, connection!!, query)
+    return Futures.immediateFuture(newSqliteResultSet)
   }
 
   override fun executeUpdate(query: String): ListenableFuture<Int> {
@@ -135,9 +130,5 @@ class SqliteJdbcService(
         logger.info("SQL statement \"$query\" executed with success.")
       }
     }
-  }
-
-  private fun escapeName(tableName: String): String {
-    return "'${tableName.replace("\'", "")}'"
   }
 }

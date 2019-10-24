@@ -82,7 +82,7 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
   private void syncProjectWithGradle2Dot2(@NotNull String projectName) throws Exception {
     loadProject(projectName);
     Project project = getProject();
-    AndroidGradleTests.updateGradleVersions(Projects.getBaseDirPath(project), "2.2.0");
+    AndroidGradleTests.updateToolingVersionsAndPaths(Projects.getBaseDirPath(project), null, "2.2.0");
     GradleWrapper wrapper = GradleWrapper.find(project);
     assertNotNull(wrapper);
     wrapper.updateDistributionUrl("3.5");

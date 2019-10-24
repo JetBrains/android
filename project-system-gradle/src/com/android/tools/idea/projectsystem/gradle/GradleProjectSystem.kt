@@ -39,6 +39,7 @@ import com.intellij.psi.PsiElementFinder
 import java.nio.file.Path
 
 class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
+  private val moduleHierarchyProvider: GradleModuleHierarchyProvider = GradleModuleHierarchyProvider(project)
   private val mySyncManager: ProjectSystemSyncManager = GradleProjectSystemSyncManager(project)
   private val myProjectBuildModelHandler: ProjectBuildModelHandler = ProjectBuildModelHandler.getInstance(project)
 
@@ -77,10 +78,13 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   }
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
-    return GradleModuleSystem(module, myProjectBuildModelHandler)
+    return GradleModuleSystem(module, myProjectBuildModelHandler, moduleHierarchyProvider.createForModule(module))
   }
 
   override fun getPsiElementFinders(): List<PsiElementFinder> = myPsiElementFinders
 
   override fun getLightResourceClassService() = ProjectLightResourceClassService.getInstance(project)
+
+  override val submodules: Collection<Module>
+    get() = moduleHierarchyProvider.forProject.submodules
 }

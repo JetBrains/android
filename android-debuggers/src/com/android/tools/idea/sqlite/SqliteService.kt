@@ -17,7 +17,6 @@ package com.android.tools.idea.sqlite
 
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
-import com.android.tools.idea.sqlite.model.SqliteTable
 import com.google.common.util.concurrent.ListenableFuture
 
 /**
@@ -33,11 +32,6 @@ interface SqliteService {
   fun openDatabase(): ListenableFuture<Unit>
   fun closeDatabase(): ListenableFuture<Unit>
   fun readSchema(): ListenableFuture<SqliteSchema>
-
-  /**
-   * @see SqliteService.readTable
-   */
-  fun readTable(table: SqliteTable): ListenableFuture<SqliteResultSet>
 
   /**
    * Executes a query on the database.
