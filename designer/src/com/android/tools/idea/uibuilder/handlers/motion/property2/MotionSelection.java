@@ -54,6 +54,17 @@ public class MotionSelection {
     myComponents = components;
   }
 
+  public boolean sameSelection(@NotNull MotionSelection other) {
+    return myType == other.myType &&
+           myComponents.equals(other.myComponents) &&
+           myTags.length == other.myTags.length &&
+           myTags[0].isSameTreeIdHierarchy(other.myTags[0]);
+  }
+
+  public void update(@NotNull MotionSelection newSelection) {
+    System.arraycopy(newSelection.myTags, 0, myTags, 0, myTags.length);
+  }
+
   @NotNull
   public MotionEditorSelector.Type getType() {
     return myType;

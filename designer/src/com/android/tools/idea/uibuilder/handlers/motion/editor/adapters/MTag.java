@@ -16,13 +16,11 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintStream;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 
 /**
  * The main interface to tags
@@ -69,6 +67,19 @@ public interface MTag {
   public MTag getChildTagWithTreeId(String type, String treeId);
 
   public String getTreeId();
+
+  default boolean isSameTreeIdHierarchy(MTag other) {
+    if (!Objects.equals(getTagName(), other.getTagName()) ||
+        !Objects.equals(getTreeId(), other.getTreeId())) {
+      return false;
+    }
+    MTag parent = getParent();
+    MTag otherParent = other.getParent();
+    if (parent == null || otherParent == null) {
+      return parent == null && otherParent == null;
+    }
+    return parent.isSameTreeIdHierarchy(otherParent);
+  }
 
   public void print(String space);
 
