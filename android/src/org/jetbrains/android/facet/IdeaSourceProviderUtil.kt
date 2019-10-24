@@ -16,55 +16,10 @@
 @file:JvmName("IdeaSourceProviderUtil")
 package org.jetbrains.android.facet
 
-import com.android.builder.model.SourceProvider
+import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.intellij.openapi.vfs.VfsUtilCore.isAncestor
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.containers.ContainerUtil.flatten
-import java.io.File
-
-/**
- * Like [SourceProvider], but for IntelliJ, which means it provides
- * [VirtualFile] and IDEA's url references rather than [File] references.
- *
- * Note: VirtualFile versions may return fewer items or a null manifest where the url versions return a non-empty url(s) if the file
- * referred to does not exist in the VFS.
- *
- * @see VirtualFile.getUrl
- */
-interface IdeaSourceProvider {
-
-  val name: String
-
-  val manifestFileUrl: String
-  val manifestFile: VirtualFile?
-
-  val javaDirectoryUrls: Collection<String>
-  val javaDirectories: Collection<VirtualFile>
-
-  val resourcesDirectoryUrls: Collection<String>
-  val resourcesDirectories: Collection<VirtualFile>
-
-  val aidlDirectoryUrls: Collection<String>
-  val aidlDirectories: Collection<VirtualFile>
-
-  val renderscriptDirectoryUrls: Collection<String>
-  val renderscriptDirectories: Collection<VirtualFile>
-
-  val jniDirectoryUrls: Collection<String>
-  val jniDirectories: Collection<VirtualFile>
-
-  val jniLibsDirectoryUrls: Collection<String>
-  val jniLibsDirectories: Collection<VirtualFile>
-
-  val resDirectoryUrls: Collection<String>
-  val resDirectories: Collection<VirtualFile>
-
-  val assetsDirectoryUrls: Collection<String>
-  val assetsDirectories: Collection<VirtualFile>
-
-  val shadersDirectoryUrls: Collection<String>
-  val shadersDirectories: Collection<VirtualFile>
-}
 
 /**
  * Returns true if this SourceProvider has one or more source folders contained by (or equal to)

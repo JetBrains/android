@@ -33,7 +33,6 @@ import org.jetbrains.android.dom.AndroidXmlExtension;
 import org.jetbrains.android.dom.converters.*;
 import org.jetbrains.android.dom.resources.DeclareStyleableNameConverter;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;

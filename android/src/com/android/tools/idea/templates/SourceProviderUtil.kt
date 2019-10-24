@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.facet.allSourceFolders
 import org.jetbrains.android.facet.containsFile

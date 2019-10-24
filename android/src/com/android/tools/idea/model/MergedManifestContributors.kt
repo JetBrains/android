@@ -19,11 +19,11 @@ import com.android.builder.model.AndroidLibrary
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
-import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.util.AndroidUtils
 import java.io.File

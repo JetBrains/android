@@ -20,6 +20,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAN
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.collect.MoreCollectors;

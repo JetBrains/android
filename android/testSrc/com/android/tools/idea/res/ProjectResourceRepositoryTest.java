@@ -62,7 +62,6 @@ import java.util.stream.Collectors;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.util.AndroidUtils;

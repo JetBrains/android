@@ -12,7 +12,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.LightVirtualFileBase;
 import com.intellij.util.xml.DomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;

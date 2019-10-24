@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.builder.model.SourceProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.utils.reflection.qualifiedName
 import com.google.common.collect.Lists
 import com.intellij.ProjectTopics
@@ -38,7 +39,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.impl.DebugUtil
 import java.io.File
 
 // TODO(solodkyy): Remove default implementation when

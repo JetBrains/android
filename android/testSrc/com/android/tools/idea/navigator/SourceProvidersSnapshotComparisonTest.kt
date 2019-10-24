@@ -18,6 +18,7 @@ package com.android.tools.idea.navigator
 import com.android.builder.model.SourceProvider
 import com.android.testutils.TestUtils
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.SnapshotComparisonTest
@@ -30,7 +31,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.facet.getManifestFiles
 import java.io.File
