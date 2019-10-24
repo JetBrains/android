@@ -103,7 +103,8 @@ final class ConnectedDevicesTask implements Callable<Collection<ConnectedDevice>
     AndroidDevice androidDevice = new ConnectedAndroidDevice(ddmlibDevice, null);
 
     ConnectedDevice.Builder builder = new ConnectedDevice.Builder()
-      .setKey(new Key(ddmlibDevice.getSerialNumber()))
+      .setName(ddmlibDevice.isEmulator() ? "Virtual Device" : "Physical Device")
+      .setKey(newKey(ddmlibDevice))
       .setAndroidDevice(androidDevice);
 
     if (myChecker == null) {
@@ -116,5 +117,24 @@ final class ConnectedDevicesTask implements Callable<Collection<ConnectedDevice>
       .setValid(!compatibility.isCompatible().equals(ThreeState.NO))
       .setValidityReason(compatibility.getReason())
       .build();
+  }
+
+  @NotNull
+  private static Key newKey(@NotNull IDevice connectedDevice) {
+    if (!connectedDevice.isEmulator()) {
+      return new Key(connectedDevice.getSerialNumber());
+    }
+
+    String virtualDevice = connectedDevice.getAvdName();
+    assert virtualDevice != null;
+
+    if (virtualDevice.equals("<build>")) {
+      // The developer built their own system image. I try to consistently use names as virtual device keys but I assume that all self built
+      // system images will be named "<build>". Fall back to the serial number.
+      return new Key(connectedDevice.getSerialNumber());
+    }
+
+    // TODO Get the snapshot from the virtual device
+    return new Key(virtualDevice);
   }
 }
