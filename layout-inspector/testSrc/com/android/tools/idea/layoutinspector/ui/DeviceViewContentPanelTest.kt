@@ -150,22 +150,16 @@ class DeviceViewContentPanelTest {
     }
 
     val inspector = LayoutInspector(model)
-    val settings = DeviceViewSettings(scalePercent = 100, viewMode = ViewMode.X_ONLY)
+    val settings = DeviceViewSettings(scalePercent = 100)
     val panel = DeviceViewContentPanel(inspector, settings)
     panel.setSize(200, 300)
     val fakeUi = FakeUi(panel)
-    fakeUi.mouse.drag(10, 10, 10, 10)
-    assertEquals(0.01, panel.model.xOff)
-    assertEquals(0.0, panel.model.yOff)
-    panel.model.resetRotation()
 
-    settings.viewMode = ViewMode.XY
     fakeUi.mouse.drag(10, 10, 10, 10)
     assertEquals(0.01, panel.model.xOff)
     assertEquals(0.01, panel.model.yOff)
 
-    settings.viewMode = ViewMode.FIXED
-    fakeUi.mouse.drag(10, 10, 10, 10)
+    panel.model.resetRotation()
     assertEquals(0.0, panel.model.xOff)
     assertEquals(0.0, panel.model.yOff)
   }

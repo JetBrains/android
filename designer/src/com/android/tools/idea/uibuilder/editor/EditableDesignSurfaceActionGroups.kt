@@ -40,10 +40,10 @@ class EditableDesignSurfaceActionGroups(private val shortcutConsumer: JComponent
   override val zoomLabelGroup: ActionGroup
     get() = createZoomLabelGroup()
 
-  override val panControlsGroup: ActionGroup
-    get() = DefaultActionGroup().apply {
+  override val otherGroups: List<ActionGroup>
+    get() = listOf(DefaultActionGroup().apply {
       add(PanSurfaceAction)
-    }
+    })
 }
 
 /**
@@ -57,8 +57,8 @@ class BasicDesignSurfaceActionGroups(private val shortcutConsumer: JComponent) :
   override val zoomLabelGroup: ActionGroup
     get() = createZoomLabelGroup()
 
-  override val panControlsGroup: ActionGroup
-    get() = DefaultActionGroup.EMPTY_GROUP
+  override val otherGroups: List<ActionGroup>
+    get() = listOf()
 }
 
 private fun createZoomControlsGroup(shortcutConsumer: JComponent, parentDisposable: Disposable) =

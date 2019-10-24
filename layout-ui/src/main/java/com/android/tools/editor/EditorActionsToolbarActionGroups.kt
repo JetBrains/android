@@ -26,7 +26,7 @@ interface EditorActionsToolbarActionGroups : Disposable {
 
   val zoomLabelGroup: ActionGroup?
 
-  val panControlsGroup: ActionGroup?
+  val otherGroups: List<ActionGroup>
 
   override fun dispose() {
     // Do nothing
@@ -41,6 +41,6 @@ object DesignSurfaceEmptyActionGroups: EditorActionsToolbarActionGroups {
   override val zoomLabelGroup: ActionGroup
     get() = DefaultActionGroup.EMPTY_GROUP
 
-  override val panControlsGroup: ActionGroup
-    get() = DefaultActionGroup.EMPTY_GROUP
+  override val otherGroups: List<ActionGroup>
+    get() = listOf()
 }

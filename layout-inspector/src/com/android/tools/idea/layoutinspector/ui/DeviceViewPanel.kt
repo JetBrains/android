@@ -30,7 +30,6 @@ import com.android.tools.profiler.proto.Common
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
@@ -79,7 +78,7 @@ class DeviceViewPanel(
   override val screenScalingFactor = 1f
 
   private val contentPanel = DeviceViewContentPanel(layoutInspector, viewSettings)
-  private val panIntercepterPanel = JPanel()
+  private val panInterceptorPanel = JPanel()
 
   private val scrollPane = JBScrollPane(contentPanel)
   private val layeredPane = JLayeredPane()
@@ -92,7 +91,7 @@ class DeviceViewPanel(
     private fun currentlyPanning(e: MouseEvent) = isPanning || SwingUtilities.isMiddleMouseButton(e)
 
     private fun redispatch(e: MouseEvent?) {
-      val retargetedEvent = SwingUtilities.convertMouseEvent(panIntercepterPanel, e, contentPanel)
+      val retargetedEvent = SwingUtilities.convertMouseEvent(panInterceptorPanel, e, contentPanel)
       contentPanel.dispatchEvent(retargetedEvent)
     }
 
@@ -169,7 +168,7 @@ class DeviceViewPanel(
 
   init {
     scrollPane.border = JBUI.Borders.empty()
-    val (toolbar, toolbarComponent) = createToolbar()
+    val toolbarComponent = createToolbar()
     add(toolbarComponent, BorderLayout.NORTH)
     add(layeredPane, BorderLayout.CENTER)
 
@@ -178,10 +177,10 @@ class DeviceViewPanel(
     val floatingToolbar = deviceViewPanelActionsToolbar.designSurfaceToolbar
 
     layeredPane.setLayer(scrollPane, JLayeredPane.DEFAULT_LAYER)
-    layeredPane.setLayer(panIntercepterPanel, 50)
+    layeredPane.setLayer(panInterceptorPanel, 50)
     layeredPane.setLayer(floatingToolbar, JLayeredPane.PALETTE_LAYER)
     layeredPane.add(scrollPane)
-    layeredPane.add(panIntercepterPanel)
+    layeredPane.add(panInterceptorPanel)
     layeredPane.add(floatingToolbar)
 
     layoutInspector.layoutInspectorModel.modificationListeners.add { _, _, structural ->
@@ -195,8 +194,6 @@ class DeviceViewPanel(
         deviceViewPanelActionsToolbar.zoomChanged()
         prevZoom = viewSettings.scalePercent
       }
-      toolbar.updateActionsImmediately()
-      //deviceViewPanelActionsToolbar.updateActionsImmediately()
     }
     layeredPane.addComponentListener(object: ComponentAdapter() {
       override fun componentResized(e: ComponentEvent?) {
@@ -204,14 +201,14 @@ class DeviceViewPanel(
       }
     })
 
-    panIntercepterPanel.isOpaque = false
-    panIntercepterPanel.addMouseListener(panMouseListener)
-    panIntercepterPanel.addMouseMotionListener(panMouseListener)
+    panInterceptorPanel.isOpaque = false
+    panInterceptorPanel.addMouseListener(panMouseListener)
+    panInterceptorPanel.addMouseMotionListener(panMouseListener)
   }
 
   private fun updateLayeredPaneSize() {
     scrollPane.size = layeredPane.size
-    panIntercepterPanel.size = layeredPane.size
+    panInterceptorPanel.size = layeredPane.size
     val floatingToolbar = deviceViewPanelActionsToolbar.designSurfaceToolbar
     floatingToolbar.size = floatingToolbar.preferredSize
     floatingToolbar.location = Point(layeredPane.width - floatingToolbar.width - TOOLBAR_INSET,
@@ -273,13 +270,16 @@ class DeviceViewPanel(
     if (ZOOMABLE_KEY.`is`(dataId) || PANNABLE_KEY.`is`(dataId)) {
       return this
     }
+    if (DEVICE_VIEW_MODEL_KEY.`is`(dataId)) {
+      return contentPanel.model
+    }
     return null
   }
 
   override val isPannable: Boolean
     get() = contentPanel.width > scrollPane.viewport.width || contentPanel.height > scrollPane.viewport.height
 
-  private fun createToolbar(): Pair<ActionToolbar, JComponent> {
+  private fun createToolbar(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
     panel.border = BorderFactory.createMatteBorder(0, 0, 1, 0, com.android.tools.adtui.common.border)!!
 
@@ -309,21 +309,7 @@ class DeviceViewPanel(
     leftPanel.add(ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true).component,
                   BorderLayout.CENTER)
     panel.add(leftPanel, BorderLayout.CENTER)
-
-    val rightGroup = DefaultActionGroup()
-    rightGroup.add(object : AnAction("reset") {
-      override fun actionPerformed(event: AnActionEvent) {
-        viewSettings.viewMode = viewSettings.viewMode.next
-      }
-
-      override fun update(event: AnActionEvent) {
-        event.presentation.icon = viewSettings.viewMode.icon
-      }
-    })
-    val toolbar = ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorRight", rightGroup, true)
-    toolbar.setTargetComponent(this)
-    panel.add(toolbar.component, BorderLayout.EAST)
-    return Pair(toolbar, panel)
+    return panel
   }
 
   private class SelectProcessAction(val client: InspectorClient) :
