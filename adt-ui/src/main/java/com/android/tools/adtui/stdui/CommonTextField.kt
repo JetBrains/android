@@ -52,6 +52,8 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
       val myLookup = Lookup(this)
       registerActionKey({ enterInLookup() }, KeyStrokes.ENTER, "enter")
       registerActionKey({ escapeInLookup() }, KeyStrokes.ESCAPE, "escape")
+      registerActionKey({ tab() }, KeyStrokes.TAB, "tab")
+      registerActionKey({ backTab() }, KeyStrokes.BACKTAB, "backTab")
       registerActionKey({ myLookup.showLookup() }, KeyStrokes.CTRL_SPACE, "showCompletions")
       registerActionKey({ myLookup.selectNext() }, KeyStrokes.DOWN, "selectNext", { myLookup.enabled })
       registerActionKey({ myLookup.selectPrevious() }, KeyStrokes.UP, "selectPrevious", { myLookup.enabled })
@@ -59,6 +61,7 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
       registerActionKey({ myLookup.selectPreviousPage() }, KeyStrokes.PAGE_UP, "selectPreviousPage", { myLookup.enabled })
       registerActionKey({ myLookup.selectFirst() }, KeyStrokes.CMD_HOME, "selectFirst", { myLookup.enabled })
       registerActionKey({ myLookup.selectLast() }, KeyStrokes.CMD_END, "selectLast", { myLookup.enabled })
+      focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
       super.addFocusListener(object: FocusAdapter() {
         override fun focusLost(event: FocusEvent) {
           myLookup.close()
@@ -125,6 +128,16 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
     finally {
       documentChangeFromSetText = false
     }
+  }
+
+  private fun tab() {
+    enterInLookup()
+    transferFocus()
+  }
+
+  private fun backTab() {
+    enterInLookup()
+    transferFocusBackward()
   }
 
   // Update the outline property on component such that the Darcula border will
