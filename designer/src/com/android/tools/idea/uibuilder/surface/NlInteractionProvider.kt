@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
@@ -28,7 +29,7 @@ import java.awt.Rectangle
 
 class NlInteractionProvider(private val surface: DesignSurface): InteractionProviderBase(surface) {
 
-  override fun createInteractionOnClick(mouseX: Int, mouseY: Int): Interaction? {
+  override fun createInteractionOnClick(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction? {
     val view = surface.getSceneView(mouseX, mouseY) ?: return null
     val screenView = view as ScreenView
     val size = screenView.size
@@ -84,21 +85,52 @@ class NlInteractionProvider(private val surface: DesignSurface): InteractionProv
     return interaction
   }
 
-  override fun createInteractionOnDrag(draggedSceneComponent: SceneComponent, primarySceneComponent: SceneComponent?): Interaction? {
-    val primary = primarySceneComponent ?: draggedSceneComponent
+  override fun createInteractionOnDrag(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction? {
+    val sceneView = surface.getSceneView(mouseX, mouseY) ?: return null
+    val scene = sceneView.scene
+    val selectionModel = sceneView.selectionModel
+
+    val xDp = Coordinates.getAndroidXDip(sceneView, mouseX)
+    val yDp = Coordinates.getAndroidYDip(sceneView, mouseY)
+
+    val model = sceneView.model
+    var component: SceneComponent? = null
+
+    // Make sure we start from root if we don't have anything selected
+    if (selectionModel.isEmpty && !model.components.isEmpty()) {
+      selectionModel.setSelection(listOf(model.components[0].root!!))
+    }
+
+    // See if you're dragging inside a selected parent; if so, drag the selection instead of any
+    // leaf nodes inside it
+    val primarySelectedComponent = selectionModel.primary
+    val primary = scene.getSceneComponent(primarySelectedComponent)
+    if (primary != null && primary.parent != null && primary.containsX(xDp) && primary.containsY(yDp)) {
+      component = primary
+    }
+    if (component == null) {
+      component = scene.findComponent(sceneView.context, xDp, yDp)
+    }
+
+    if (component?.parent == null) {
+      // Dragging on the background/root view: start a marquee selection
+      return MarqueeInteraction(sceneView)
+    }
+
+    val primaryDraggedComponent = primary ?: component
     val dragged: List<NlComponent>
     // Dragging over a non-root component: move the set of components (if the component dragged over is
     // part of the selection, drag them all, otherwise drag just this component)
-    if (surface.selectionModel.isSelected(draggedSceneComponent.nlComponent)) {
+    if (surface.selectionModel.isSelected(component.nlComponent)) {
       val selectedDraggedComponents = mutableListOf<NlComponent>()
 
       val primaryNlComponent: NlComponent?
-      // Make sure the primary is the first element
-      if (primary.parent == null) {
+      // Make sure the primaryDraggedComponent is the first element
+      if (primaryDraggedComponent.parent == null) {
         primaryNlComponent = null
       }
       else {
-        primaryNlComponent = primary.nlComponent
+        primaryNlComponent = primaryDraggedComponent.nlComponent
         selectedDraggedComponents.add(primaryNlComponent)
       }
 
@@ -110,7 +142,7 @@ class NlInteractionProvider(private val surface: DesignSurface): InteractionProv
       dragged = selectedDraggedComponents
     }
     else {
-      dragged = listOf(primary.nlComponent)
+      dragged = listOf(primaryDraggedComponent.nlComponent)
     }
     return DragDropInteraction(surface, dragged)
   }

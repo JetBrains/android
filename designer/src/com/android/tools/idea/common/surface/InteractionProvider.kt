@@ -19,7 +19,6 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.model.NlDropEvent
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction
@@ -29,7 +28,7 @@ import java.awt.dnd.DropTargetDragEvent
 interface InteractionProvider {
   fun createInteractionOnClick(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction?
 
-  fun createInteractionOnDrag(draggedSceneComponent: SceneComponent, primarySceneComponent: SceneComponent?): Interaction?
+  fun createInteractionOnDrag(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction?
 
   fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction?
 }

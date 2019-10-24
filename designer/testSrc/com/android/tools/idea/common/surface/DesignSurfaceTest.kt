@@ -141,7 +141,7 @@ class TestActionManager(surface: DesignSurface) : ActionManager<DesignSurface>(s
 class TestInteractionProvider(surface: DesignSurface) : InteractionProviderBase(surface) {
   override fun createInteractionOnClick(mouseX: Int, mouseY: Int): Interaction? = null
 
-  override fun createInteractionOnDrag(draggedSceneComponent: SceneComponent, primarySceneComponent: SceneComponent?): Interaction? = null
+  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int): Interaction? = null
 }
 
 private class TestDesignSurface(project: Project, disposible: Disposable)

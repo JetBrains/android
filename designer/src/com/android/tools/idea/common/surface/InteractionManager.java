@@ -31,15 +31,12 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
-import com.android.tools.idea.uibuilder.surface.MarqueeInteraction;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
@@ -604,43 +601,8 @@ public class InteractionManager implements Disposable {
         x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
         y = myLastMouseY;
         myLastModifiersEx = modifiersEx;
-        SceneView sceneView = mySurface.getSceneView(x, y);
-        if (sceneView == null) {
-          return;
-        }
-        Scene scene = sceneView.getScene();
-        SelectionModel selectionModel = sceneView.getSelectionModel();
 
-        int xDp = getAndroidXDip(sceneView, x);
-        int yDp = getAndroidYDip(sceneView, y);
-
-        Interaction interaction;
-        NlModel model = sceneView.getModel();
-        SceneComponent component = null;
-
-        // Make sure we start from root if we don't have anything selected
-        if (selectionModel.isEmpty() && !model.getComponents().isEmpty()) {
-          selectionModel.setSelection(ImmutableList.of(model.getComponents().get(0).getRoot()));
-        }
-
-        // See if you're dragging inside a selected parent; if so, drag the selection instead of any
-        // leaf nodes inside it
-        NlComponent primaryNlComponent = selectionModel.getPrimary();
-        SceneComponent primary = scene.getSceneComponent(primaryNlComponent);
-        if (primary != null && primary.getParent() != null && primary.containsX(xDp) && primary.containsY(yDp)) {
-          component = primary;
-        }
-        if (component == null) {
-          component = scene.findComponent(SceneContext.get(sceneView), xDp, yDp);
-        }
-
-        if (component == null || component.getParent() == null) {
-          // Dragging on the background/root view: start a marquee selection
-          interaction = new MarqueeInteraction(sceneView);
-        }
-        else {
-          interaction = myInteractionProvider.createInteractionOnDrag(component, primary);
-        }
+        Interaction interaction = myInteractionProvider.createInteractionOnDrag(x, y);
 
         if (interaction != null) {
           if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
@@ -652,7 +614,6 @@ public class InteractionManager implements Disposable {
         }
         updateCursor(x, y, modifiersEx);
       }
-
       myHoverTimer.restart();
     }
 
