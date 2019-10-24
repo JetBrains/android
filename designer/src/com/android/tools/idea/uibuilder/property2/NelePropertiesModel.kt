@@ -352,6 +352,10 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     listeners.toTypedArray().forEach { it.propertiesGenerated(this) }
   }
 
+  fun firePropertyValueChanged() {
+    listeners.toTypedArray().forEach { it.propertyValuesChanged(this) }
+  }
+
   fun firePropertyValueChangeIfNeeded() {
     val components = activeSurface?.selectionModel?.selection ?: return
     if (components.isEmpty() || !sameAsTheCurrentLiveListeners(components)) {
@@ -361,7 +365,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
       // values.
       return
     }
-    listeners.toTypedArray().forEach { it.propertyValuesChanged(this) }
+    firePropertyValueChanged()
   }
 
   private fun createDefaultPropertyValueProvider(): DefaultPropertyValueProvider? {

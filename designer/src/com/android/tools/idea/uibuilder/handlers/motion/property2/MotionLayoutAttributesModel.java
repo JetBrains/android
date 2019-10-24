@@ -39,6 +39,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
@@ -82,6 +83,16 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     MotionEditorSelector.Type type = (MotionEditorSelector.Type)accessoryType;
     MTag[] tags = (MTag[])accessory;
     MotionSelection selection = new MotionSelection(type, tags, components);
+    MotionSelection sameOldSelection = findSameOldSelection(selection);
+    if (sameOldSelection != null) {
+      UIUtil.invokeLaterIfNeeded(() -> {
+        if (wantUpdate.invoke()) {
+          sameOldSelection.update(selection);
+          firePropertyValueChanged();
+        }
+      });
+      return true;
+    }
     Map<String, PropertiesTable<NelePropertyItem>> newProperties =
       myMotionLayoutPropertyProvider.getAllProperties(this, selection);
     setLastUpdateCompleted(false);
@@ -102,6 +113,29 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
       }
     });
     return true;
+  }
+
+  @Nullable
+  private MotionSelection findSameOldSelection(@NotNull MotionSelection selection) {
+    if (myAllProperties == null) {
+      return null;
+    }
+    PropertiesTable<NelePropertyItem> nonEmptyTable = myAllProperties.values().stream()
+      .filter(table -> !table.isEmpty())
+      .findFirst()
+      .orElse(null);
+
+    if (nonEmptyTable == null) {
+      return null;
+    }
+    NelePropertyItem property = nonEmptyTable.getFirst();
+    if (property == null) {
+      Logger.getInstance(MotionLayoutAttributesModel.class).info("This table should not be empty!");
+      // Should never happen...
+      return null;
+    }
+    MotionSelection oldSelection = getMotionSelection(property);
+    return oldSelection != null && oldSelection.sameSelection(selection) ? oldSelection : null;
   }
 
   @Override
