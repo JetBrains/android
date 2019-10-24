@@ -50,7 +50,7 @@ abstract class EditorActionsFloatingToolbar(
   val designSurfaceToolbar: JComponent = JPanel(GridBagLayout()).apply { isOpaque = false }
 
   private val zoomToolbars: MutableList<ActionToolbar> = mutableListOf()
-  private val panToolbars: MutableList<ActionToolbar> = mutableListOf()
+  private val otherToolbars: MutableList<ActionToolbar> = mutableListOf()
 
   private val emptyBoxConstraints = GridBagConstraints().apply {
     gridx = 0
@@ -62,25 +62,17 @@ abstract class EditorActionsFloatingToolbar(
     anchor = GridBagConstraints.LAST_LINE_END
     insets = JBUI.insets(0)
   }
-  private val panControlsConstraints
-    get() = GridBagConstraints().apply {
-      gridx = 0
-      gridy = 1
-      gridwidth = 2
-      anchor = GridBagConstraints.FIRST_LINE_END
-      insets = VERTICAL_PANEL_MARGINS
-    }
   private val zoomControlsConstraints
     get() = GridBagConstraints().apply {
       gridx = 1
-      gridy = 2
+      gridy = getActionGroups().otherGroups.size + 2
       anchor = GridBagConstraints.FIRST_LINE_END
       insets = VERTICAL_PANEL_MARGINS
     }
   private val zoomLabelConstraints
     get() = GridBagConstraints().apply {
       gridx = 0
-      gridy = 2
+      gridy = getActionGroups().otherGroups.size + 2
       weightx = 1.0
       anchor = GridBagConstraints.FIRST_LINE_END
       insets = VERTICAL_PANEL_MARGINS
@@ -119,7 +111,6 @@ abstract class EditorActionsFloatingToolbar(
         component.border = JBUI.Borders.empty(2)
       }
     }
-    val panControlsToolbar = actionGroups.panControlsGroup?.let { createToolbar(actionManager, it, component) }
     zoomToolbars.apply {
       clear()
       if (zoomControlsToolbar != null) {
@@ -129,21 +120,24 @@ abstract class EditorActionsFloatingToolbar(
         add(zoomLabelToolbar)
       }
     }
-    panToolbars.apply {
-      clear()
-      if (panControlsToolbar != null) {
-        add(panControlsToolbar)
-      }
-    }
+    otherToolbars.clear()
+    actionGroups.otherGroups.mapTo(otherToolbars) { createToolbar(actionManager, it, component) }
 
     designSurfaceToolbar.removeAll()
-    if (zoomControlsToolbar != null || panControlsToolbar != null || zoomLabelToolbar != null) {
+    if (zoomControlsToolbar != null || otherToolbars.isNotEmpty() || zoomLabelToolbar != null) {
       // Empty space with weight to push components down.
       designSurfaceToolbar.add(Box.createRigidArea(JBUI.size(10)), emptyBoxConstraints)
     }
-    if (panControlsToolbar != null) {
-      val panControlsPanel = panControlsToolbar.component.wrapInDesignSurfaceUI()
-      designSurfaceToolbar.add(panControlsPanel, panControlsConstraints)
+    for ((index, toolbar) in otherToolbars.withIndex()) {
+      val controlsPanel = toolbar.component.wrapInDesignSurfaceUI()
+      val otherControlsConstraints = GridBagConstraints().apply {
+        gridx = 0
+        gridy = index + 1
+        gridwidth = 2
+        anchor = GridBagConstraints.FIRST_LINE_END
+        insets = VERTICAL_PANEL_MARGINS
+      }
+      designSurfaceToolbar.add(controlsPanel, otherControlsConstraints)
     }
     if (zoomLabelToolbar != null) {
       val zoomLabelPanel = zoomLabelToolbar.component.wrapInDesignSurfaceUI()
@@ -174,7 +168,7 @@ abstract class EditorActionsFloatingToolbar(
   }
 
   override fun panningChanged(adjustmentEvent: AdjustmentEvent?) {
-    panToolbars.forEach { it.updateActionsImmediately() }
+    otherToolbars.forEach { it.updateActionsImmediately() }
   }
 
   abstract fun getActionGroups(): EditorActionsToolbarActionGroups

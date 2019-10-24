@@ -39,7 +39,7 @@ private const val MARGIN = 50
 class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings: DeviceViewSettings) : AdtPrimaryPanel() {
 
   private val inspectorModel = layoutInspector.layoutInspectorModel
-  var model = DeviceViewPanelModel(inspectorModel)
+  val model = DeviceViewPanelModel(inspectorModel)
 
   private val HQ_RENDERING_HINTS = mapOf(
     RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
@@ -75,16 +75,10 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
       }
 
       override fun mouseDragged(e: MouseEvent) {
-        var xRotation = 0.0
-        var yRotation = 0.0
-        if (viewSettings.viewMode != ViewMode.FIXED) {
-          xRotation = (e.x - x) * 0.001
-          x = e.x
-        }
-        if (viewSettings.viewMode == ViewMode.XY) {
-          yRotation = (e.y - y) * 0.001
-          y = e.y
-        }
+        val xRotation = (e.x - x) * 0.001
+        val yRotation = (e.y - y) * 0.001
+        x = e.x
+        y = e.y
         if (xRotation != 0.0 || yRotation != 0.0) {
           model.rotate(xRotation, yRotation)
         }
@@ -94,13 +88,8 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
     addMouseListener(listener)
     addMouseMotionListener(listener)
 
-    viewSettings.modificationListeners.add {
-      if (viewSettings.viewMode == ViewMode.FIXED) {
-        model.resetRotation()
-      }
-      // no need to handle X_ONLY since we can only get there starting at FIXED, so rotation will already be 0
-      repaint()
-    }
+    viewSettings.modificationListeners.add { repaint() }
+    model.modificationListeners.add { repaint() }
   }
 
   override fun paint(g: Graphics?) {

@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.actionSystem.DataKey
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.Shape
@@ -30,6 +31,8 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 private const val LAYER_SPACING = 150
+
+val DEVICE_VIEW_MODEL_KEY = DataKey.create<DeviceViewPanelModel>(DeviceViewPanelModel::class.qualifiedName!!)
 
 data class ViewDrawInfo(val bounds: Shape, val transform: AffineTransform, val node: ViewNode, val clip: Rectangle)
 
@@ -48,8 +51,13 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   internal val maxHeight
     get() = hypot((maxDepth * LAYER_SPACING).toFloat(), rootDimension.height.toFloat()).toInt()
 
+  val isRotated
+    get() = xOff != 0.0 || yOff != 0.0
+
   @VisibleForTesting
   var hitRects = listOf<ViewDrawInfo>()
+
+  val modificationListeners = mutableListOf<() -> Unit>()
 
   init {
     refresh()
@@ -74,6 +82,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
       rootDimension = Dimension(0, 0)
       maxDepth = 0
       hitRects = emptyList()
+      modificationListeners.forEach { it() }
       return
     }
     rootDimension = Dimension(root.width, root.height)
@@ -92,6 +101,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     rebuildRectsForLevel(transform, magnitude, angle, levelLists, newHitRects)
     maxDepth = levelLists.size
     hitRects = newHitRects.toList()
+    modificationListeners.forEach { it() }
   }
 
   private fun buildLevelLists(root: ViewNode,
