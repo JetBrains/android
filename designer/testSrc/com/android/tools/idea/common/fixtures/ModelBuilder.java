@@ -37,6 +37,7 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionManager;
+import com.android.tools.idea.common.surface.InteractionProvider;
 import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -85,6 +86,7 @@ public class ModelBuilder {
   private final BiConsumer<? super NlModel, ? super NlModel> myModelUpdater;
   private final String myPath;
   private final Class<? extends DesignSurface> mySurfaceClass;
+  private final Function<DesignSurface, InteractionProvider> myInteractionProviderCreator;
   @NotNull private final Consumer<NlComponent> myComponentConsumer;
   private Device myDevice;
   private String myModelDisplayName;
@@ -97,6 +99,7 @@ public class ModelBuilder {
                       @NotNull BiConsumer<? super NlModel, ? super NlModel> modelUpdater,
                       @NotNull String path,
                       @NotNull Class<? extends DesignSurface> surfaceClass,
+                      @NotNull Function<DesignSurface, InteractionProvider> interactionProviderCreator,
                       @NotNull Consumer<NlComponent> componentRegistrar) {
     assertTrue(name, name.endsWith(DOT_XML));
     myFacet = facet;
@@ -107,6 +110,7 @@ public class ModelBuilder {
     myModelUpdater = modelUpdater;
     myPath = path;
     mySurfaceClass = surfaceClass;
+    myInteractionProviderCreator = interactionProviderCreator;
     myComponentConsumer = componentRegistrar;
   }
 
@@ -186,7 +190,7 @@ public class ModelBuilder {
       XmlDocument document = xmlFile.getDocument();
       assertNotNull(document);
 
-      DesignSurface surface = createSurface(project, mySurfaceClass);
+      DesignSurface surface = createSurface(project, mySurfaceClass, myInteractionProviderCreator);
       when(surface.getComponentRegistrar()).thenReturn(myComponentConsumer);
       SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myModelDisplayName, myFacet, xmlFile.getVirtualFile());
       when(surface.getModel()).thenReturn(model);
@@ -202,6 +206,7 @@ public class ModelBuilder {
 
       SceneManager sceneManager = myManagerFactory.apply(model);
       when(surface.getSceneManager()).thenReturn(sceneManager);
+      when(surface.getSceneView(anyInt(), anyInt())).thenCallRealMethod();
       when(surface.getFocusedSceneView()).thenReturn(sceneManager.getSceneView());
       if (myDevice != null) {
         model.getConfiguration().setDevice(myDevice, true);
@@ -210,9 +215,6 @@ public class ModelBuilder {
       sceneManager.update();
       when(surface.getScene()).thenReturn(scene);
       when(surface.getProject()).thenReturn(project);
-      when(surface.createInteractionOnClick(anyInt(), anyInt())).thenCallRealMethod();
-      when(surface.doCreateInteractionOnClick(anyInt(), anyInt(), any())).thenCallRealMethod();
-      when(surface.createInteractionOnDrag(any(), any())).thenCallRealMethod();
       when(surface.getLayoutType()).thenCallRealMethod();
 
       return model;
@@ -229,7 +231,9 @@ public class ModelBuilder {
     return null;
   }
 
-  public static DesignSurface createSurface(Disposable disposableParent, Class<? extends DesignSurface> surfaceClass) {
+  public static DesignSurface createSurface(Disposable disposableParent,
+                                            Class<? extends DesignSurface> surfaceClass,
+                                            Function<DesignSurface, InteractionProvider> interactionProviderCreator) {
     JComponent layeredPane = new JPanel();
     DesignSurface surface = mock(surfaceClass);
     Disposer.register(disposableParent, surface);
@@ -240,7 +244,7 @@ public class ModelBuilder {
     when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
     when(surface.getScale()).thenReturn(0.5);
     when(surface.getSelectionAsTransferable()).thenCallRealMethod();
-    when(surface.getInteractionManager()).thenReturn(new InteractionManager(surface));
+    when(surface.getInteractionManager()).thenReturn(new InteractionManager(surface, interactionProviderCreator.apply(surface)));
     if (surface instanceof NlDesignSurface) {
       when(surface.getAnalyticsManager()).thenReturn(new NlAnalyticsManager(surface));
     }

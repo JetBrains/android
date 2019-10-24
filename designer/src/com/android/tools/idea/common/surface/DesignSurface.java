@@ -211,6 +211,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
     @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
+    @NotNull Function<DesignSurface, InteractionProvider> interactionProviderCreator,
     boolean isEditable) {
     super(new BorderLayout());
     Disposer.register(parentDisposable, this);
@@ -234,7 +235,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     };
     mySelectionModel.addListener(selectionListener);
-    myInteractionManager = new InteractionManager(this);
+    myInteractionManager = new InteractionManager(this, interactionProviderCreator.apply(this));
 
     myLayeredPane = new MyLayeredPane();
     myLayeredPane.setFocusable(true);
@@ -1714,22 +1715,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected List<Layer> getLayers() {
     return myLayers;
   }
-
-  @Nullable
-  public final Interaction createInteractionOnClick(@SwingCoordinate int mouseX, @SwingCoordinate int mouseY) {
-    SceneView sceneView = getSceneView(mouseX, mouseY);
-    if (sceneView == null) {
-      return null;
-    }
-    return doCreateInteractionOnClick(mouseX, mouseY, sceneView);
-  }
-
-  @VisibleForTesting
-  @Nullable
-  public abstract Interaction doCreateInteractionOnClick(@SwingCoordinate int mouseX, @SwingCoordinate int mouseY, @NotNull SceneView view);
-
-  @Nullable
-  public abstract Interaction createInteractionOnDrag(@NotNull SceneComponent draggedSceneComponent, @Nullable SceneComponent primary);
 
   @NotNull
   public ConfigurationManager getConfigurationManager(@NotNull AndroidFacet facet) {

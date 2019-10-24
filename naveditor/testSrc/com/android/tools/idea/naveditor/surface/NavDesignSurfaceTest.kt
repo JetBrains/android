@@ -26,6 +26,7 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.InteractionManager
+import com.android.tools.idea.common.surface.InteractionProvider
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -350,7 +351,7 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
 
-    val manager = InteractionManager(surface)
+    val manager = InteractionManager(surface, NavInteractionProvider(surface))
     manager.startListening()
 
     val fragment1 = scene.getSceneComponent("fragment1")!!
