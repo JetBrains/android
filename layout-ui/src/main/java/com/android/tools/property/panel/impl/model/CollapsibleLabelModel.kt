@@ -19,6 +19,11 @@ import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.util.text.Matcher
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.TestOnly
@@ -48,6 +53,7 @@ open class CollapsibleLabelModel(
 ) : GenericInspectorLineModel() {
   @VisibleForTesting var children: MutableList<InspectorLineModel>? = null
   private var defaultExpansionValue = true
+  private val actions = mutableListOf<RegisteredAction>()
 
   var expandable = false
     private set(value) {
@@ -108,6 +114,7 @@ open class CollapsibleLabelModel(
 
   override fun refresh() {
     editorModel?.refresh()
+    actions.forEach { it.action.update(it.event) }
   }
 
   override fun makeExpandable(initiallyExpanded: Boolean) {
@@ -138,6 +145,13 @@ open class CollapsibleLabelModel(
       visible = true
     }
   }
+
+  fun registerAction(action: AnAction, presentation: Presentation, context: DataContext) {
+    val event = AnActionEvent.createFromDataContext(ActionPlaces.TOOLBAR, presentation, context)
+    actions.add(RegisteredAction(action, event))
+  }
+
+  class RegisteredAction(val action: AnAction, val event: AnActionEvent)
 }
 
 /**
