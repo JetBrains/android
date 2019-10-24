@@ -45,7 +45,6 @@ import com.android.tools.property.panel.api.PropertiesView;
 import com.android.tools.property.panel.api.TableLineModel;
 import com.android.tools.property.panel.api.TableUIProvider;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Table;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
@@ -141,7 +140,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
           addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false);
           break;
       }
-      addCustomAttributes(inspector, selection, any, myModel);
+      addCustomAttributes(inspector, selection, myModel);
     }
 
     private void addSubTagSections(@NotNull InspectorPanel inspector,
@@ -164,7 +163,6 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
     private void addCustomAttributes(@NotNull InspectorPanel inspector,
                                      @NotNull MotionSelection selection,
-                                     @NotNull NelePropertyItem any,
                                      @NotNull MotionLayoutAttributesModel model) {
       if (!shouldDisplaySection(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, selection)) {
         return;
@@ -175,7 +173,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
       FilteredPTableModel<NelePropertyItem> tableModel = PTableModelFactory.create(
         customModel, filter, deleteOp, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), false, true);
-      AddCustomFieldAction addFieldAction = new AddCustomFieldAction(any);
+      AddCustomFieldAction addFieldAction = new AddCustomFieldAction(myModel, selection);
       DeleteCustomFieldAction deleteFieldAction = new DeleteCustomFieldAction();
       List<AnAction> actions = ImmutableList.<AnAction>builder().add(addFieldAction).add(deleteFieldAction).build();
 
