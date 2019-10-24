@@ -58,7 +58,8 @@ abstract class PsModule protected constructor(
     get() = myParsedDependencies ?: PsParsedDependencies(parsedModel).also { myParsedDependencies = it }
 
   val variables: PsVariablesScope
-    get() = myVariables ?: PsVariables(this, name, "Module: $name", parentModule?.variables ?: parent.variables).also { myVariables = it }
+    get() = myVariables ?: PsVariables(this, gradlePath ?: name, "Module: $name",
+                                       parentModule?.variables ?: parent.variables).also { myVariables = it }
 
   override val isDeclared: Boolean get() = parsedModel != null
 

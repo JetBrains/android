@@ -118,7 +118,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
     assertThat(module).isNotNull()
     assertThat(module!!.parentModule).isSameAs(project.findModuleByGradlePath(":nested1")!!)
     assertThat(module.variables.getVariableScopes().map { it.name })
-        .containsExactly("${project.name} (build script)", "${project.name} (project)", "nested1", "nested1-deep")
+        .containsExactly("${project.name} (build script)", "${project.name} (project)", ":nested1", ":nested1:deep")
   }
 
   fun testRelocatedModules_withoutResolvedModels() {
