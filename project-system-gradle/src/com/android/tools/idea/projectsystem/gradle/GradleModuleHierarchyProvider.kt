@@ -108,8 +108,8 @@ class GradleModuleHierarchyProvider(private val project: Project) {
       hierarchyIdToSubmodulesMap[projectRootHierarchyId]
         ?.singleOrNull()
         ?.takeIf {
-          // Do not display the only root module if it does not contains any sources and it is not the only module in the project.
-          hierarchyIdToSubmodulesMap.size > 2 /* = project + root module */ && ModuleRootManager.getInstance(it).sourceRootUrls.isEmpty()
+          // If there is only one top level module and it is empty, flatten it.
+          ModuleRootManager.getInstance(it).sourceRootUrls.isEmpty()
         }
 
     if (emptyOnlyRootModule != null) {
