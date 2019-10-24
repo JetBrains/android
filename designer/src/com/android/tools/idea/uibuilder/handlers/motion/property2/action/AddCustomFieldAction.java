@@ -15,31 +15,25 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2.action;
 
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
-import com.android.tools.idea.uibuilder.handlers.motion.property2.CustomAttributeType;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel;
-import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutPropertyProvider;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionSelection;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.NewCustomAttributePanel;
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.property.panel.api.TableLineModel;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.util.text.StringUtil;
-import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
 public class AddCustomFieldAction extends AnAction {
-  private final NelePropertyItem myProperty;
   private final MotionLayoutAttributesModel myModel;
+  private final MotionSelection mySelection;
   private TableLineModel myLineModel;
+  private NewCustomAttributePanel myDialog;
 
-  public AddCustomFieldAction(@NotNull NelePropertyItem property) {
+  public AddCustomFieldAction(@NotNull MotionLayoutAttributesModel model, @NotNull MotionSelection selection) {
     super(null, "Add custom attribute", AllIcons.General.Add);
-    myProperty = property;
-    myModel = (MotionLayoutAttributesModel)myProperty.getModel();
+    myModel = model;
+    mySelection = selection;
   }
 
   public void setLineModel(@NotNull TableLineModel lineModel) {
@@ -48,31 +42,9 @@ public class AddCustomFieldAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    MotionSelection selection = MotionLayoutAttributesModel.getMotionSelection(myProperty);
-    if (selection == null) {
-      return;
+    if (myDialog == null || myDialog.isDisposed()) {
+      myDialog = new NewCustomAttributePanel(myModel, mySelection, myLineModel);
     }
-    NlComponent component = selection.getComponent();
-    if (component == null) {
-      return;
-    }
-    NewCustomAttributePanel newAttributePanel = new NewCustomAttributePanel(myProperty.getModel(), selection, component);
-    newAttributePanel.show();
-    if (!newAttributePanel.isOK()) {
-      return;
-    }
-    String attributeName = newAttributePanel.getAttributeName();
-    String value = newAttributePanel.getInitialValue();
-    CustomAttributeType type = newAttributePanel.getType();
-    if (type == null || StringUtil.isEmpty(attributeName)) {
-      return;
-    }
-    Consumer<MotionSceneTag> applyToModel = newCustomTag -> {
-      NelePropertyItem newProperty = MotionLayoutPropertyProvider.createCustomProperty(
-        attributeName, type.getTagName(), selection, myProperty.getModel());
-      myLineModel.addItem(newProperty);
-    };
-
-    myModel.createCustomXmlTag(selection, attributeName, value, type, applyToModel);
+    myDialog.show();
   }
 }

@@ -24,20 +24,28 @@ import com.android.tools.adtui.model.stdui.EditingSupport;
 import com.android.tools.adtui.model.stdui.ValueChangedListener;
 import com.android.tools.adtui.stdui.CommonTextField;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
-import com.android.tools.idea.uibuilder.property2.NelePropertiesModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.property2.NelePropertyType;
+import com.android.tools.property.panel.api.TableLineModel;
+import com.intellij.concurrency.JobScheduler;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.popup.util.PopupUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.EditorComboBox;
 import icons.StudioIcons;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -61,18 +69,21 @@ public class NewCustomAttributePanel extends DialogWrapper {
   private JLabel myError;
   private MyTextFieldModel myNewAttributeNameModel;
   private MyTextFieldModel myInitialValueModel;
-  private final NelePropertiesModel myPropertiesModel;
+  private final MotionLayoutAttributesModel myPropertiesModel;
   private final MotionSelection mySelection;
+  private final TableLineModel myLineModel;
   private final Supplier<CustomAttributeType> myTypeSupplier;
   private final DefaultComboBoxModel<CustomAttributeType> myModel;
+  private final WindowFocusListener myWindowFocusListener;
   private NelePropertyItem myProperty;
 
-  public NewCustomAttributePanel(@NotNull NelePropertiesModel propertiesModel,
+  public NewCustomAttributePanel(@NotNull MotionLayoutAttributesModel propertiesModel,
                                  @NotNull MotionSelection selection,
-                                 @NotNull NlComponent component) {
-    super(false);
+                                 @NotNull TableLineModel lineModel) {
+    super(propertiesModel.getProject(), false, IdeModalityType.MODELESS);
     myPropertiesModel = propertiesModel;
     mySelection = selection;
+    myLineModel = lineModel;
     myModel = new DefaultComboBoxModel<>();
     myTypeSupplier = () -> {
       Object selectedType = myDataType.getSelectedItem();
@@ -81,7 +92,10 @@ public class NewCustomAttributePanel extends DialogWrapper {
       }
       return CustomAttributeType.CUSTOM_STRING;
     };
-    myNewAttributeNameModel.setEditingSupport(new AttributeNameEditingSupport(component, myTypeSupplier));
+    NlComponent component = selection.getComponent();
+    if (component != null) {
+      myNewAttributeNameModel.setEditingSupport(new AttributeNameEditingSupport(component, myTypeSupplier));
+    }
     Arrays.stream(CustomAttributeType.values()).forEach(type -> myModel.addElement(type));
     myModel.setSelectedItem(CustomAttributeType.CUSTOM_STRING);
     //noinspection unchecked
@@ -89,6 +103,38 @@ public class NewCustomAttributePanel extends DialogWrapper {
     myDataType.setEditable(false);
     initValidations();
     init();
+    myWindowFocusListener = new WindowFocusListener() {
+      private boolean myActivated;
+
+      @Override
+      public void windowGainedFocus(WindowEvent event) {
+        // After we gain focus, wait a second (since focus may bounce back and forth a couple of times),
+        // mark the dialog activated if it still has focus after a second. Otherwise close it.
+        Runnable setActive = () -> {
+          if (getWindow().isFocused()) {
+            myActivated = true;
+          }
+          else {
+            close(0);
+          }
+        };
+        JobScheduler.getScheduler().schedule(setActive, 1, TimeUnit.SECONDS);
+      }
+
+      @Override
+      public void windowLostFocus(WindowEvent event) {
+        if (myActivated) {
+          close(0);
+        }
+      }
+    };
+    getWindow().addWindowFocusListener(myWindowFocusListener);
+  }
+
+  @Override
+  protected void dispose() {
+    getWindow().removeWindowFocusListener(myWindowFocusListener);
+    super.dispose();
   }
 
   @Override
@@ -100,6 +146,28 @@ public class NewCustomAttributePanel extends DialogWrapper {
   @Override
   protected JComponent createCenterPanel() {
     return myContentPanel;
+  }
+
+  @NotNull
+  @Override
+  protected ActionListener createCancelAction() {
+    return e -> doCancelAction(e);
+  }
+
+  @Override
+  protected void doOKAction() {
+    String attributeName = getAttributeName();
+    String value = getInitialValue();
+    CustomAttributeType type = getType();
+    Consumer<MotionSceneTag> applyToModel = newCustomTag -> {
+      NelePropertyItem newProperty = MotionLayoutPropertyProvider.createCustomProperty(
+        attributeName, type.getTagName(), mySelection, myPropertiesModel);
+      myLineModel.addItem(newProperty);
+    };
+
+    myPropertiesModel.createCustomXmlTag(mySelection, attributeName, value, type, applyToModel);
+
+    super.doOKAction();
   }
 
   @NotNull
