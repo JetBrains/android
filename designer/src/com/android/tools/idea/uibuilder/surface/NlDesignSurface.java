@@ -256,7 +256,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @NotNull SurfaceLayoutManager layoutManager,
                           @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
                           @Nullable NavigationHandler navigationHandler) {
-    super(project, parentDisposable, actionManagerProvider, isEditable);
+    super(project, parentDisposable, actionManagerProvider, NlInteractionProvider::new, isEditable);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;
@@ -806,96 +806,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   protected void notifySelectionListeners(@NotNull List<NlComponent> newSelection) {
     super.notifySelectionListeners(newSelection);
     scrollToCenter(newSelection);
-  }
-
-  @VisibleForTesting
-  @Nullable
-  @Override
-  public Interaction doCreateInteractionOnClick(@SwingCoordinate int mouseX, @SwingCoordinate int mouseY, @NotNull SceneView view) {
-    ScreenView screenView = (ScreenView)view;
-    Dimension size = screenView.getSize();
-    Rectangle resizeZone =
-      new Rectangle(view.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-    if (resizeZone.contains(mouseX, mouseY) && isResizeAvailable()) {
-      Configuration configuration = getConfiguration();
-      assert configuration != null;
-      return new CanvasResizeInteraction(this, screenView, configuration);
-    }
-
-    SelectionModel selectionModel = screenView.getSelectionModel();
-    NlComponent component = Coordinates.findComponent(screenView, mouseX, mouseY);
-    if (component == null) {
-      // If we cannot find an element where we clicked, try to use the first element currently selected
-      // (if any) to find the view group handler that may want to handle the mousePressed()
-      // This allows us to correctly handle elements out of the bounds of the screen view.
-      if (!selectionModel.isEmpty()) {
-        component = selectionModel.getPrimary();
-      }
-      else {
-        return null;
-      }
-    }
-
-    Interaction interaction = null;
-
-    // Give a chance to the current selection's parent handler
-    if (!selectionModel.isEmpty()) {
-      NlComponent primary = screenView.getSelectionModel().getPrimary();
-      NlComponent parent = primary != null ? primary.getParent() : null;
-      if (parent != null) {
-        ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(parent);
-        if (handler != null) {
-          interaction = handler.createInteraction(screenView, primary);
-        }
-      }
-    }
-
-    if (interaction == null) {
-      // Check if we have a ViewGroupHandler that might want
-      // to handle the entire interaction
-      ViewGroupHandler viewGroupHandler = component != null ? NlComponentHelperKt.getViewGroupHandler(component) : null;
-      if (viewGroupHandler != null) {
-        interaction = viewGroupHandler.createInteraction(screenView, component);
-      }
-    }
-
-    if (interaction == null) {
-      interaction = new SceneInteraction(screenView);
-    }
-    return interaction;
-  }
-
-  @Override
-  @Nullable
-  public Interaction createInteractionOnDrag(@NotNull SceneComponent draggedSceneComponent, @Nullable SceneComponent primary) {
-    if (primary == null) {
-      primary = draggedSceneComponent;
-    }
-    List<NlComponent> dragged;
-    NlComponent primaryNlComponent = primary.getNlComponent();
-    // Dragging over a non-root component: move the set of components (if the component dragged over is
-    // part of the selection, drag them all, otherwise drag just this component)
-    if (getSelectionModel().isSelected(draggedSceneComponent.getNlComponent())) {
-      dragged = Lists.newArrayList();
-
-      // Make sure the primary is the first element
-      if (primary.getParent() == null) {
-        primaryNlComponent = null;
-      }
-      else {
-        dragged.add(primaryNlComponent);
-      }
-
-      for (NlComponent selected : getSelectionModel().getSelection()) {
-        if (!selected.isRoot() && selected != primaryNlComponent) {
-          dragged.add(selected);
-        }
-      }
-    }
-    else {
-      dragged = Collections.singletonList(primaryNlComponent);
-    }
-    return new DragDropInteraction(this, dragged);
   }
 
   @NotNull

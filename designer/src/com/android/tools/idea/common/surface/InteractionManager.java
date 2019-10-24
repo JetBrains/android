@@ -101,6 +101,12 @@ public class InteractionManager implements Disposable {
   private final DesignSurface mySurface;
 
   /**
+   * The {@linkplain InteractionProvider} which provides the {@linkplain Interaction} during interacting.
+   */
+  @NotNull
+  private final InteractionProvider myInteractionProvider;
+
+  /**
    * The currently executing {@link Interaction}, or null.
    */
   @Nullable
@@ -183,8 +189,9 @@ public class InteractionManager implements Disposable {
    *
    * @param surface The surface which controls this {@link InteractionManager}
    */
-  public InteractionManager(@NotNull DesignSurface surface) {
+  public InteractionManager(@NotNull DesignSurface surface, @NotNull InteractionProvider provider) {
     mySurface = surface;
+    myInteractionProvider = provider;
     Disposer.register(surface, this);
 
     myListener = new Listener();
@@ -441,7 +448,7 @@ public class InteractionManager implements Disposable {
         return;
       }
 
-      Interaction interaction = getSurface().createInteractionOnClick(myLastMouseX, myLastMouseY);
+      Interaction interaction = myInteractionProvider.createInteractionOnClick(myLastMouseX, myLastMouseY);
       if (interaction != null) {
         startInteraction(myLastMouseX, myLastMouseY, interaction, myLastModifiersEx);
       }
@@ -566,7 +573,7 @@ public class InteractionManager implements Disposable {
           interaction = new MarqueeInteraction(sceneView);
         }
         else {
-          interaction = getSurface().createInteractionOnDrag(component, primary);
+          interaction = myInteractionProvider.createInteractionOnDrag(component, primary);
         }
 
         if (interaction != null) {
