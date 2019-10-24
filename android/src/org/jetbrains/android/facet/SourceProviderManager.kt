@@ -41,7 +41,6 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
 
-// TODO(solodkyy): Remove default implementation when
 interface SourceProviderManager {
   companion object {
     @JvmStatic
@@ -130,45 +129,42 @@ private abstract class SourceProviderManagerBase(val facet: AndroidFacet) : Sour
   }
 }
 
-private class SourceProviderManagerImpl(facet: AndroidFacet, private val model: AndroidModel) : SourceProviderManagerBase(facet) {
-  private var mainIdeaSourceSet: IdeaSourceProvider? = null
-  private var mainIdeaSourceSetCreatedFor: SourceProvider? = null
-
-  /**
-   * Returns the main source provider for the project. For projects that are not backed by a Gradle model, this method returns a
-   * [SourceProvider] wrapper which provides information about the old project.
-   */
-  private val mainSourceProvider: SourceProvider get() = model.defaultSourceProvider
+private class SourceProviderManagerImpl(facet: AndroidFacet, model: AndroidModel) : SourceProviderManagerBase(facet) {
 
   override val mainIdeaSourceProvider: IdeaSourceProvider
-    get() {
-      val mainSourceSet = mainSourceProvider
-      if (mainIdeaSourceSet == null || mainIdeaSourceSetCreatedFor != mainSourceSet) {
-        mainIdeaSourceSet = Delegate(mainSourceSet)
-        mainIdeaSourceSetCreatedFor = mainSourceSet
-      }
-
-      return mainIdeaSourceSet!!
-    }
-
   override val currentSourceProviders: List<IdeaSourceProvider>
-    get() = @Suppress("DEPRECATION") model.activeSourceProviders.toIdeaProviders()
-
   override val currentTestSourceProviders: List<IdeaSourceProvider>
-    get() = @Suppress("DEPRECATION") model.testSourceProviders.toIdeaProviders()
-
   override val allSourceProviders: List<IdeaSourceProvider>
-    get() = @Suppress("DEPRECATION") model.allSourceProviders.toIdeaProviders()
 
   @Suppress("OverridingDeprecatedMember")
   override val mainAndFlavorSourceProviders: List<IdeaSourceProvider>
-    get() {
-      val androidModel = model as? AndroidModuleModel ?: return emptyList()
-      val result = mutableListOf<IdeaSourceProvider>()
-      result.add(mainIdeaSourceProvider)
-      result.addAll(androidModel.flavorSourceProviders.toIdeaProviders())
-      return result
-    }
+
+  init {
+    val all =
+      @Suppress("DEPRECATION")
+      (
+        model.allSourceProviders.asSequence() +
+        model.activeSourceProviders.asSequence() +
+        model.testSourceProviders.asSequence() +
+        model.defaultSourceProvider +
+        (model as? AndroidModuleModel)?.flavorSourceProviders?.asSequence().orEmpty()
+      )
+        .toSet()
+        .associateWith { Delegate(it) }
+
+    fun SourceProvider.toIdeaSourceProvider() = all.getValue(this)
+
+    mainIdeaSourceProvider = @Suppress("DEPRECATION") model.defaultSourceProvider.toIdeaSourceProvider()
+    currentSourceProviders = @Suppress("DEPRECATION") model.activeSourceProviders.map { it.toIdeaSourceProvider() }
+    currentTestSourceProviders = @Suppress("DEPRECATION") model.testSourceProviders.map { it.toIdeaSourceProvider() }
+    allSourceProviders = @Suppress("DEPRECATION") model.allSourceProviders.map { it.toIdeaSourceProvider() }
+
+    @Suppress("DEPRECATION")
+    mainAndFlavorSourceProviders =
+      (model as? AndroidModuleModel)
+        ?.let { listOf(mainIdeaSourceProvider) + @Suppress("DEPRECATION") it.flavorSourceProviders.map { it.toIdeaSourceProvider() } }
+      ?: emptyList()
+  }
 }
 
 private class LegacySourceProviderManagerImpl(facet: AndroidFacet) : SourceProviderManagerBase(facet) {
@@ -257,30 +253,6 @@ internal class Delegate constructor(private val provider: SourceProvider) : Idea
   /** Convert a set of IO files into a set of equivalent virtual files  */
   private fun convertToUrlSet(fileSet: Collection<File>): Collection<String> =
     fileSet.mapTo(Lists.newArrayListWithCapacity(fileSet.size)) { VfsUtil.fileToUrl(it) }
-
-  /**
-   * Compares another source provider delegate with this for equality. Returns true if the specified object is also a
-   * [Delegate], has the same name, and the same manifest file path.
-   */
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (other == null || javaClass != other.javaClass) return false
-
-    val that = other as Delegate?
-    if (provider.name != that!!.name) return false
-    // Only check the manifest file, as each SourceProvider will be guaranteed to have a different manifest file.
-    if (provider.manifestFile.path != that.provider.manifestFile.path) return false
-
-    return true
-  }
-
-  /**
-   * Returns the hash code for this source provider. The hash code simply provides the hash of the manifest file's location,
-   * but this follows the required contract that if two source providers are equal, their hash codes will be the same.
-   */
-  override fun hashCode(): Int {
-    return provider.manifestFile.path.hashCode()
-  }
 }
 
 /** [IdeaSourceProvider] for legacy Android projects without [SourceProvider].  */
