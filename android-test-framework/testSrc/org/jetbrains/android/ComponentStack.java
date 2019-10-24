@@ -15,8 +15,10 @@
  */
 package org.jetbrains.android;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ComponentManager;
-import com.intellij.openapi.components.impl.ComponentManagerImpl;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.picocontainer.MutablePicoContainer;
@@ -29,39 +31,41 @@ public class ComponentStack {
   private final MutablePicoContainer myContainer;
   private final Deque<ComponentItem> myComponents;
   private final Deque<ComponentItem> myServices;
+  private final Disposable myDisposable;
 
   public ComponentStack(@NotNull ComponentManager manager) {
     myComponentManager = manager;
     myContainer = (MutablePicoContainer)manager.getPicoContainer();
     myComponents = new ArrayDeque<>();
     myServices = new ArrayDeque<>();
+    myDisposable = Disposer.newDisposable();
   }
 
   public <T> void registerServiceInstance(@NotNull Class<T> key, @NotNull T instance) {
-    String keyName = key.getName();
-    Object old = myContainer.getComponentInstance(keyName);
-    myContainer.unregisterComponent(keyName);
-    myServices.push(new ComponentItem(key, old));
-    myContainer.registerComponentInstance(keyName, instance);
+    T oldInstance = myComponentManager.getService(key, false);
+    if (oldInstance == null) {
+      ServiceContainerUtil.registerServiceInstance(myComponentManager, key, instance);
+      myServices.push(new ComponentItem(key, oldInstance));
+    } else {
+      ServiceContainerUtil.replaceService(myComponentManager, key, instance, myDisposable);
+      // Don't add oldInstance to myServices; BaseComponentAdaptor.replaceInstance will register a Disposable to restore it.
+    }
   }
 
   public <T> void registerComponentInstance(@NotNull Class<T> key, @NotNull T instance) {
     Object old = myComponentManager.getComponent(key);
     myComponents.push(new ComponentItem(key, old));
-    ((ComponentManagerImpl)myComponentManager).registerComponentInstance(key, instance);
+    ServiceContainerUtil.registerComponentInstance(myComponentManager, key, instance, myDisposable);
   }
 
   public void restore() {
+    Disposer.dispose(myDisposable);
     while (!myComponents.isEmpty()) {
       ComponentItem component = myComponents.pop();
-      ((ComponentManagerImpl)myComponentManager).registerComponentInstance((Class)component.key, component.instance);
+      ServiceContainerUtil.registerComponentInstance(myComponentManager, component.key, component.instance, null);
     }
     while (!myServices.isEmpty()) {
-      ComponentItem service = myServices.pop();
-      myContainer.unregisterComponent(service.key.getName());
-      if (service.instance != null) {
-        myContainer.registerComponentInstance(service.key.getName(), service.instance);
-      }
+      myContainer.unregisterComponent(myServices.pop().key);
     }
   }
 
