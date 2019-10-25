@@ -38,7 +38,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.jps.android.model.impl.AndroidFacetProperties;
 
 public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
   // It is safe to use "/" instead of File.separator. JpsAndroidModule uses it.
@@ -66,7 +66,7 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   private static void configureFacet(@NotNull AndroidFacet facet, @NotNull AndroidModuleModel androidModel) {
-    JpsAndroidModuleProperties facetProperties = facet.getProperties();
+    AndroidFacetProperties facetProperties = facet.getProperties();
     //noinspection deprecation  This is one of legitimate assignments to this property.
     facetProperties.ALLOW_USER_CONFIGURATION = false;
 
@@ -87,7 +87,7 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
         androidModel.getMainArtifact().getGeneratedResourceFolders().stream()
       )
         .map(it -> VfsUtilCore.pathToUrl(it.getAbsolutePath()))
-        .collect(Collectors.joining(JpsAndroidModuleProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION));
+        .collect(Collectors.joining(AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION));
 
     IdeAndroidArtifact androidTestArtifact = androidModel.getArtifactForAndroidTest();
     facetProperties.TEST_RES_FOLDERS_RELATIVE_PATH =
@@ -99,14 +99,14 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
         androidTestArtifact != null ? androidTestArtifact.getGeneratedResourceFolders().stream() : Stream.empty()
       )
         .map(it -> VfsUtilCore.pathToUrl(it.getAbsolutePath()))
-        .collect(Collectors.joining(JpsAndroidModuleProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION));
+        .collect(Collectors.joining(AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION));
 
     syncSelectedVariant(facetProperties, androidModel);
     AndroidModel.set(facet, androidModel);
     androidModel.syncSelectedVariantAndTestArtifact(facet);
   }
 
-  private static void syncSelectedVariant(@NotNull JpsAndroidModuleProperties facetProperties,
+  private static void syncSelectedVariant(@NotNull AndroidFacetProperties facetProperties,
                                           @NotNull AndroidModuleModel androidModel) {
     String variantStoredInFacet = facetProperties.SELECTED_BUILD_VARIANT;
     if (isNotEmpty(variantStoredInFacet) && androidModel.getVariantNames().contains(variantStoredInFacet)) {

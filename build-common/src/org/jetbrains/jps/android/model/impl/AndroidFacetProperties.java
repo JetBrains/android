@@ -15,15 +15,6 @@
  */
 package org.jetbrains.jps.android.model.impl;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static org.jetbrains.android.util.AndroidBuildCommonUtils.ARCHITECTURE_ATTRIBUTE;
-import static org.jetbrains.android.util.AndroidBuildCommonUtils.DIRECTORY_FOR_LOGS_NAME;
-import static org.jetbrains.android.util.AndroidBuildCommonUtils.INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME;
-import static org.jetbrains.android.util.AndroidBuildCommonUtils.ITEM_ELEMENT;
-import static org.jetbrains.android.util.AndroidBuildCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL;
-import static org.jetbrains.android.util.AndroidBuildCommonUtils.TARGET_FILE_NAME_ATTRIBUTE;
-import static org.jetbrains.android.util.AndroidBuildCommonUtils.URL_ATTRIBUTE;
-
 import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
 import com.google.common.collect.Lists;
@@ -35,14 +26,18 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import kotlin.jvm.functions.Function2;
+import org.jetbrains.annotations.NonNls;
 
 /**
  * @author nik
  */
-public class JpsAndroidModuleProperties {
+public class AndroidFacetProperties {
 
   public static final String PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION = ";";
+  @NonNls public static final String ITEM_ELEMENT = "item";
+  @NonNls public static final String ARCHITECTURE_ATTRIBUTE = "architecture";
+  @NonNls public static final String URL_ATTRIBUTE = "url";
+  @NonNls public static final String TARGET_FILE_NAME_ATTRIBUTE = "targetFileName";
 
   public String SELECTED_BUILD_VARIANT = "";
 
@@ -111,8 +106,12 @@ public class JpsAndroidModuleProperties {
 
   public boolean RUN_PROGUARD = false;
 
+  @NonNls public static final String DIRECTORY_FOR_LOGS_NAME = "proguard_logs";
   public String PROGUARD_LOGS_FOLDER_RELATIVE_PATH = "/" + DIRECTORY_FOR_LOGS_NAME;
 
+  public static final String SDK_HOME_MACRO = "%MODULE_SDK_HOME%";
+  public static final String PROGUARD_SYSTEM_CFG_FILE_URL =
+    "file://" + SDK_HOME_MACRO + "/tools/proguard/proguard-android.txt";
   @XCollection(propertyElementName = "proGuardCfgFiles", elementName = "file", valueAttributeName = "")
   public List<String> myProGuardCfgFiles = Lists.newArrayList(PROGUARD_SYSTEM_CFG_FILE_URL);
 
@@ -135,6 +134,7 @@ public class JpsAndroidModuleProperties {
   public String MAIN_DEX_LIST = "";
   public boolean MINIMAL_MAIN_DEX = false;
 
+  @NonNls public static final String INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME = "includeAssetsFromLibraries";
   @Tag(INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME)
   public boolean myIncludeAssetsFromLibraries = false;
 

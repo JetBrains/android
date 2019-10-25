@@ -31,7 +31,7 @@ import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.jps.android.model.impl.AndroidFacetProperties;
 
 /**
  * @author yole
@@ -92,8 +92,8 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   @NotNull
-  public JpsAndroidModuleProperties getProperties() {
-    JpsAndroidModuleProperties state = getConfiguration().getState();
+  public AndroidFacetProperties getProperties() {
+    AndroidFacetProperties state = getConfiguration().getState();
     assert state != null;
     return state;
   }

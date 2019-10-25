@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
@@ -56,7 +55,7 @@ import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.jps.android.model.impl.AndroidFacetProperties;
 
 public class GradleTaskFinder {
   private final GradleRootPathFinder myRootPathFinder;
@@ -183,7 +182,7 @@ public class GradleTaskFinder {
 
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet != null) {
-      JpsAndroidModuleProperties properties = androidFacet.getProperties();
+      AndroidFacetProperties properties = androidFacet.getProperties();
 
       AndroidModuleModel androidModel = AndroidModuleModel.get(module);
 
@@ -318,7 +317,7 @@ public class GradleTaskFinder {
 
   private void addAfterSyncTasks(@NotNull Set<String> tasks,
                                  @NotNull String gradlePath,
-                                 @NotNull JpsAndroidModuleProperties properties) {
+                                 @NotNull AndroidFacetProperties properties) {
     // Make sure all the generated sources, unpacked aars and mockable jars are in place. They are usually up to date, since we
     // generate them at sync time, so Gradle will just skip those tasks. The generated files can be missing if this is a "Rebuild
     // Project" run or if the user cleaned the project from the command line. The mockable jar is necessary to run unit tests, but the

@@ -79,7 +79,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.jps.android.model.impl.AndroidFacetProperties;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 import org.jetbrains.jps.model.java.JavaSourceRootProperties;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
@@ -819,7 +819,7 @@ public class AndroidCompileUtil {
 
     // facet
     final AndroidFacetConfiguration configuration = facet.getConfiguration();
-    final JpsAndroidModuleProperties properties = configuration.getState();
+    final AndroidFacetProperties properties = configuration.getState();
     if (properties != null && properties.RUN_PROGUARD) {
       final List<String> urls = properties.myProGuardCfgFiles;
       final List<String> paths = AndroidUtils.urlsToOsPaths(urls, sdkHomePath);

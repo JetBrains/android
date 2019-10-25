@@ -57,10 +57,9 @@ import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.jps.android.model.impl.AndroidFacetProperties;
 
 import java.io.File;
 import java.util.*;
@@ -621,7 +620,7 @@ public class LintIdeProject extends Project {
     @Override
     public List<File> getProguardFiles() {
       if (proguardFiles == null) {
-        final JpsAndroidModuleProperties properties = myFacet.getProperties();
+        final AndroidFacetProperties properties = myFacet.getProperties();
 
         if (properties.RUN_PROGUARD) {
           final List<String> urls = properties.myProGuardCfgFiles;
@@ -630,7 +629,7 @@ public class LintIdeProject extends Project {
             proguardFiles = new ArrayList<>();
 
             for (String osPath : AndroidUtils.urlsToOsPaths(urls, null)) {
-              if (!osPath.contains(AndroidBuildCommonUtils.SDK_HOME_MACRO)) {
+              if (!osPath.contains(AndroidFacetProperties.SDK_HOME_MACRO)) {
                 proguardFiles.add(new File(osPath));
               }
             }

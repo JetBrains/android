@@ -22,7 +22,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidNativeLibData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,9 +47,9 @@ import java.util.List;
  */
 public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModuleExtensionImpl> implements JpsAndroidModuleExtension {
   public static final JpsElementChildRoleBase<JpsAndroidModuleExtension> KIND = JpsElementChildRoleBase.create("android extension");
-  private final JpsAndroidModuleProperties myProperties;
+  private final AndroidFacetProperties myProperties;
 
-  public JpsAndroidModuleExtensionImpl(JpsAndroidModuleProperties properties) {
+  public JpsAndroidModuleExtensionImpl(AndroidFacetProperties properties) {
     myProperties = properties;
   }
 
@@ -79,7 +78,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
   @Override
   public List<AndroidNativeLibData> getAdditionalNativeLibs() {
     final List<AndroidNativeLibData> libDatas = new ArrayList<AndroidNativeLibData>();
-    for (JpsAndroidModuleProperties.AndroidNativeLibDataEntry nativeLib : myProperties.myNativeLibs) {
+    for (AndroidFacetProperties.AndroidNativeLibDataEntry nativeLib : myProperties.myNativeLibs) {
       if (nativeLib.myArchitecture != null && nativeLib.myUrl != null && nativeLib.myTargetFileName != null) {
         libDatas.add(new AndroidNativeLibData(nativeLib.myArchitecture, JpsPathUtil.urlToPath(nativeLib.myUrl), nativeLib.myTargetFileName));
       }
@@ -190,7 +189,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
 
     for (String url : urls) {
       if (sdkHomePath != null) {
-        url = StringUtil.replace(url, AndroidBuildCommonUtils.SDK_HOME_MACRO, sdkHomePath);
+        url = StringUtil.replace(url, AndroidFacetProperties.SDK_HOME_MACRO, sdkHomePath);
       }
       result.add(JpsPathUtil.urlToFile(url));
     }
@@ -215,7 +214,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
     return aidlGenDir != null ? canonizeFilePath(aidlGenDir) : null;
   }
 
-  public JpsAndroidModuleProperties getProperties() {
+  public AndroidFacetProperties getProperties() {
     return myProperties;
   }
 

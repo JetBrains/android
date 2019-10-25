@@ -33,7 +33,7 @@ import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.messages.Topic
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties
+import org.jetbrains.jps.android.model.impl.AndroidFacetProperties
 
 /**
  * The resource folder manager is responsible for returning the current set of resource folders used in the project. It provides hooks for
@@ -199,7 +199,7 @@ class ResourceFolderManager(
   }
 
   private fun String.toVirtualFiles(manager: VirtualFileManager): List<VirtualFile> {
-    return Splitter.on(JpsAndroidModuleProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION)
+    return Splitter.on(AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION)
       .omitEmptyStrings()
       .trimResults()
       .split(this)
