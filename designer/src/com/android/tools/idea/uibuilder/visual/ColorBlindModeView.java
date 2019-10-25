@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.surface.DiagnosticsLayer;
 import com.android.tools.idea.uibuilder.surface.ModelNameLayer;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.ScreenViewLayer;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
@@ -52,7 +53,13 @@ public class ColorBlindModeView extends ScreenView {
 
     // Always has border in visualization tool.
     builder.add(new BorderLayer(this));
-    builder.add(new ColorBlindModeScreenViewLayer(this, getMode()));
+    ColorBlindMode mode = getMode();
+    if (mode != null) {
+      builder.add(new ColorBlindModeScreenViewLayer(this, mode));
+    } else {
+      // ERROR - at least show the original.
+      builder.add(new ScreenViewLayer(this));
+    }
 
     if (NELE_RENDER_DIAGNOSTICS.get()) {
       builder.add(new DiagnosticsLayer(getSurface()));
@@ -67,17 +74,9 @@ public class ColorBlindModeView extends ScreenView {
 
   /**
    * Returns appropriate mode based on model display name.
-   *
-   * TODO: support original from the Mode directly so we don't use name == null as an indication for original.
    */
   @Nullable
   private ColorBlindMode getMode() {
-    List<NlModel> models = getSurface().getModels();
-
-    if (models.isEmpty()) {
-      return null;
-    }
-
     NlModel model = getSceneManager().getModel();
 
     for (ColorBlindMode mode : ColorBlindMode.values()) {
