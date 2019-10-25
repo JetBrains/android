@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.common.surface;
 
-import static com.android.tools.idea.common.model.Coordinates.getAndroidXDip;
-import static com.android.tools.idea.common.model.Coordinates.getAndroidYDip;
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.uibuilder.surface.PanInteraction;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.actions.ZoomType;
@@ -32,7 +31,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
@@ -420,27 +418,23 @@ public class InteractionManager implements Disposable {
    * <li>Otherwise, show the default arrow cursor.
    * </ul>
    */
-  void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifier) {
-    Cursor cursor = null;
-    SceneView sceneView = mySurface.getSceneView(x, y);
-    if (sceneView != null) {
-      Dimension sceneViewSize = sceneView.getSize();
-      // Check if the mouse position is at the bottom-right corner of sceneView.
-      Rectangle resizeZone = new Rectangle(sceneView.getX() + sceneViewSize.width,
-                                           sceneView.getY() + sceneViewSize.height,
-                                           NlConstants.RESIZING_HOVERING_SIZE,
-                                           NlConstants.RESIZING_HOVERING_SIZE);
-      if (resizeZone.contains(x, y) && sceneView.getSurface().isResizeAvailable()) {
-        cursor = Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR);
+  void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
+    if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+      Cursor cursor;
+      if (myCurrentInteraction == null || myCurrentInteraction instanceof SceneInteraction) {
+        // TODO (b/142953949): The Scene.mouseHover() shouldn't be done when updating cursor in SceneInteraction.
+        cursor = myInteractionProvider.getCursorWhenNoInteraction(x, y, modifiersEx);
       }
       else {
-        SceneContext context = SceneContext.get(sceneView);
-        context.setMouseLocation(x, y);
-        sceneView.getScene().mouseHover(context, getAndroidXDip(sceneView, x), getAndroidYDip(sceneView, y), modifier);
-        cursor = sceneView.getScene().getMouseCursor();
+        cursor = myCurrentInteraction.getCursor();
       }
+      mySurface.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
     }
-    mySurface.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
+    else {
+      // TODO: Remove below code after StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
+      Cursor cursor = myInteractionProvider.getCursorWhenNoInteraction(x, y, modifiersEx);
+      mySurface.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
+    }
   }
 
   public boolean isInteractionInProgress() {

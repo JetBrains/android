@@ -24,6 +24,7 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 import java.util.EventObject
 import org.intellij.lang.annotations.JdkConstants.InputEventMask
+import java.awt.Cursor
 
 /**
  * An interaction is a mouse or keyboard driven user operation, such as a swipe-select or a resize. It can be thought of as a session, since
@@ -89,6 +90,11 @@ interface Interaction2 {
    * canceled because the file is closed, then it can find the most recent event information from it.
    */
   fun cancel(event: EventObject?, interactionInformation: InteractionInformation)
+
+  /**
+   * Called when [InteractionManager] asks for the current cursor during interaction.
+   */
+  fun getCursor(): Cursor?
 }
 
 data class InteractionInformation(@SwingCoordinate val x: Int, @SwingCoordinate val y: Int, @InputEventMask val modifiersEx: Int)

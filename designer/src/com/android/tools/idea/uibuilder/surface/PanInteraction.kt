@@ -16,13 +16,18 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.ui.AdtUiCursors
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionInformation
+import java.awt.Cursor
 import java.awt.event.MouseEvent
 import java.util.EventObject
 
 class PanInteraction(private val surface: DesignSurface): Interaction() {
+
+  private var isGrabbing = false
+
   override fun begin(event: EventObject?, interactionInformation: InteractionInformation) {
     begin(interactionInformation.x, interactionInformation.y, interactionInformation.modifiersEx)
   }
@@ -30,9 +35,11 @@ class PanInteraction(private val surface: DesignSurface): Interaction() {
   override fun update(event: EventObject, interactionInformation: InteractionInformation) {
     if (event is MouseEvent) {
       if (event.button == MouseEvent.NOBUTTON) {
+        isGrabbing = false
         // Never pan when there is no mouse down.
         return
       }
+      isGrabbing = true
       handlePanInteraction(surface, event.x, event.y, interactionInformation)
     }
   }
@@ -44,6 +51,8 @@ class PanInteraction(private val surface: DesignSurface): Interaction() {
   override fun cancel(event: EventObject?, interactionInformation: InteractionInformation) {
     cancel(interactionInformation.x, interactionInformation.y, interactionInformation.modifiersEx)
   }
+
+  override fun getCursor(): Cursor? = if (isGrabbing) AdtUiCursors.GRABBING else AdtUiCursors.GRAB
 
   companion object {
 
