@@ -47,7 +47,7 @@ import com.intellij.testFramework.PlatformTestCase;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.jps.android.model.impl.AndroidFacetProperties;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.mockito.Mock;
 
 /**

@@ -69,7 +69,7 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.jps.android.model.impl.AndroidFacetProperties;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.mockito.Mock;
 
 public class MakeBeforeRunTaskProviderTest extends PlatformTestCase {

@@ -48,7 +48,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.sanitizeFileName
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacetConfiguration
-import org.jetbrains.jps.android.model.impl.AndroidFacetProperties
+import org.jetbrains.android.facet.AndroidFacetProperties
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.config.CompilerSettings
 import org.jetbrains.kotlin.idea.facet.KotlinFacetConfiguration

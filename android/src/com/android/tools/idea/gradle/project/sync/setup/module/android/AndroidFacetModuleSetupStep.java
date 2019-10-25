@@ -38,7 +38,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.AndroidFacetProperties;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 
 public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
   // It is safe to use "/" instead of File.separator. JpsAndroidModule uses it.
