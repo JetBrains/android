@@ -125,11 +125,11 @@ public class PalettePanelTest extends LayoutTestCase {
     myPopupMenuComponent = mock(JPopupMenu.class);
     myActionManager = mock(ActionManager.class);
     myGradleDependencyManager = mock(GradleDependencyManager.class);
-    registerApplicationComponent(BrowserLauncher.class, myBrowserLauncher);
-    registerApplicationComponent(CopyPasteManager.class, myCopyPasteManager);
-    registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
-    registerApplicationComponentImplementation(ActionManager.class, myActionManager);
-    registerProjectComponent(GradleDependencyManager.class, myGradleDependencyManager);
+    registerApplicationService(BrowserLauncher.class, myBrowserLauncher);
+    registerApplicationService(CopyPasteManager.class, myCopyPasteManager);
+    registerApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
+    registerApplicationComponent(ActionManager.class, myActionManager);
+    registerProjectService(GradleDependencyManager.class, myGradleDependencyManager);
     when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myPopupMenu);
     when(myPopupMenu.getComponent()).thenReturn(myPopupMenuComponent);
     myPanel = new PalettePanel(getProject(), myDependencyManager, getProject());
@@ -426,7 +426,7 @@ public class PalettePanelTest extends LayoutTestCase {
 
   public void testPopupMenuWithPreferences() {
     ActionManager actionManager = mock(ActionManager.class);
-    registerApplicationComponentImplementation(ActionManager.class, actionManager);
+    registerApplicationComponent(ActionManager.class, actionManager);
 
     setUpPreferenceDesignSurface();
     ItemList itemList = myPanel.getItemList();
@@ -441,7 +441,7 @@ public class PalettePanelTest extends LayoutTestCase {
     WindowManager windowManager = mock(WindowManagerEx.class);
     IdeFrame frame = mock(IdeFrame.class);
     StatusBarEx statusBar = mock(StatusBarEx.class);
-    registerApplicationComponentImplementation(WindowManager.class, windowManager);
+    registerApplicationComponent(WindowManager.class, windowManager);
     when(windowManager.getIdeFrame(getProject())).thenReturn(frame);
     when(frame.getStatusBar()).thenReturn(statusBar);
     return statusBar;

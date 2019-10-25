@@ -605,7 +605,7 @@ class NelePropertyItemTest {
     property.value = "@android:style/TextAppearance.Material.Display2"
 
     val fileManager = mock(FileEditorManager::class.java)
-    componentStack!!.registerComponentImplementation(FileEditorManager::class.java, fileManager)
+    componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager)
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
     Mockito.`when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(mock(FileEditor::class.java)))
@@ -621,7 +621,7 @@ class NelePropertyItemTest {
   @Test
   fun testSetValueIgnoredDuringUndo() {
     val undoManager = mock(UndoManagerImpl::class.java)
-    componentStack!!.registerComponentImplementation(UndoManager::class.java, undoManager)
+    componentStack!!.registerComponentInstance(UndoManager::class.java, undoManager)
     `when`(undoManager.isUndoInProgress).thenReturn(true)
 
     val util = SupportTestUtil(projectRule, createTextView())
@@ -634,7 +634,7 @@ class NelePropertyItemTest {
   @Test
   fun testSetValueIgnoredDuringRedo() {
     val undoManager = mock(UndoManagerImpl::class.java)
-    componentStack!!.registerComponentImplementation(UndoManager::class.java, undoManager)
+    componentStack!!.registerComponentInstance(UndoManager::class.java, undoManager)
     `when`(undoManager.isRedoInProgress).thenReturn(true)
 
     val util = SupportTestUtil(projectRule, createTextView())

@@ -35,7 +35,7 @@ public class ComponentStack {
     myComponents = new ArrayDeque<>();
   }
 
-  public <T> void registerComponentInstance(@NotNull Class<T> key, @NotNull T instance) {
+  public <T> void registerServiceInstance(@NotNull Class<T> key, @NotNull T instance) {
     String keyName = key.getName();
     Object old = myContainer.getComponentInstance(keyName);
     myContainer.unregisterComponent(keyName);
@@ -43,7 +43,7 @@ public class ComponentStack {
     myContainer.registerComponentInstance(keyName, instance);
   }
 
-  public <T> void registerComponentImplementation(@NotNull Class<T> key, @NotNull T instance) {
+  public <T> void registerComponentInstance(@NotNull Class<T> key, @NotNull T instance) {
     Object old = myComponentManager.getComponent(key);
     myComponents.push(new ComponentItem(key, old));
     myComponentManager.registerComponentInstance(key, instance);
