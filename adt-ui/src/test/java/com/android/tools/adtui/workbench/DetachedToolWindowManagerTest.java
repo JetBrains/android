@@ -74,7 +74,6 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     initMocks(this);
     registerProjectComponentImplementation(FileEditorManager.class, myEditorManager);
     KeyboardFocusManager.setCurrentKeyboardFocusManager(myKeyboardFocusManager);
-    myEditorManager = FileEditorManager.getInstance(myProject);
     when(myWorkBench1.getDetachedToolWindows()).thenReturn(ImmutableList.of(myAttachedToolWindow1));
     when(myWorkBench2.getDetachedToolWindows()).thenReturn(ImmutableList.of(myAttachedToolWindow2));
     when(myAttachedToolWindow1.getDefinition()).thenReturn(PalettePanelToolContent.getDefinition());
