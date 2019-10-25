@@ -1,7 +1,7 @@
 android {
   buildTypes {
     create("type1") {
-      proguardFiles = listOf("proguard-android-1.txt", "proguard-rules-1.txt")
+      setProguardFiles(listOf("proguard-android-1.txt", "proguard-rules-1.txt"))
     }
     create("type2") {
       proguardFiles("proguard-android-2.txt", "proguard-rules-2.txt")
