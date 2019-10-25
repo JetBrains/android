@@ -42,17 +42,17 @@ import org.jetbrains.android.util.AndroidNativeLibData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.AndroidImportableProperty;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.jps.android.model.impl.AndroidFacetProperties;
 
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidFacetConfiguration implements FacetConfiguration, PersistentStateComponent<JpsAndroidModuleProperties> {
+public class AndroidFacetConfiguration implements FacetConfiguration, PersistentStateComponent<AndroidFacetProperties> {
   private static final FacetEditorTab[] NO_EDITOR_TABS = new FacetEditorTab[0];
 
   private AndroidFacet myFacet = null;
 
-  private JpsAndroidModuleProperties myProperties = new JpsAndroidModuleProperties();
+  private AndroidFacetProperties myProperties = new AndroidFacetProperties();
 
   public void init(@NotNull Module module, @NotNull VirtualFile contentRoot) {
     init(module, contentRoot.getPath());
@@ -100,7 +100,7 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
 
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext, FacetValidatorsManager validatorsManager) {
-    JpsAndroidModuleProperties state = getState();
+    AndroidFacetProperties state = getState();
     assert state != null;
     //noinspection deprecation  This is one of legitimate assignments to this property.
     if (state.ALLOW_USER_CONFIGURATION) {
@@ -121,7 +121,7 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
     myProperties.myNativeLibs = new ArrayList<>(additionalNativeLibraries.size());
 
     for (AndroidNativeLibData lib : additionalNativeLibraries) {
-      JpsAndroidModuleProperties.AndroidNativeLibDataEntry data = new JpsAndroidModuleProperties.AndroidNativeLibDataEntry();
+      AndroidFacetProperties.AndroidNativeLibDataEntry data = new AndroidFacetProperties.AndroidNativeLibDataEntry();
       data.myArchitecture = lib.getArchitecture();
       data.myUrl = VfsUtilCore.pathToUrl(lib.getPath());
       data.myTargetFileName = lib.getTargetFileName();
@@ -156,12 +156,12 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
 
   @Nullable
   @Override
-  public JpsAndroidModuleProperties getState() {
+  public AndroidFacetProperties getState() {
     return myProperties;
   }
 
   @Override
-  public void loadState(@NotNull JpsAndroidModuleProperties properties) {
+  public void loadState(@NotNull AndroidFacetProperties properties) {
     myProperties = properties;
   }
 

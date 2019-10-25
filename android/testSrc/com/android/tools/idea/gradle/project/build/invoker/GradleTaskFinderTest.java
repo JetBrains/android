@@ -62,7 +62,7 @@ import java.util.List;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.jps.android.model.impl.AndroidFacetProperties;
 import org.mockito.Mock;
 
 /**
@@ -271,7 +271,7 @@ public class GradleTaskFinderTest extends PlatformTestCase {
     when(myArtifact.getIdeSetupTaskNames()).thenReturn(Sets.newHashSet("ideSetupTask1", "ideSetupTask2"));
 
     AndroidFacet androidFacet = createAndAddAndroidFacet(module);
-    JpsAndroidModuleProperties state = androidFacet.getConfiguration().getState();
+    AndroidFacetProperties state = androidFacet.getConfiguration().getState();
     assertNotNull(state);
     state.ASSEMBLE_TASK_NAME = "assembleTask2";
     state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet("afterSyncTask1", "afterSyncTask2");

@@ -36,7 +36,7 @@ public class JpsAndroidModelSerializerExtension extends JpsModelSerializerExtens
       public JpsAndroidModuleExtension loadExtension(@NotNull Element facetConfigurationElement,
                                                      String name,
                                                      JpsElement parent, JpsModule module) {
-        return new JpsAndroidModuleExtensionImpl(XmlSerializer.deserialize(facetConfigurationElement, JpsAndroidModuleProperties.class));
+        return new JpsAndroidModuleExtensionImpl(XmlSerializer.deserialize(facetConfigurationElement, AndroidFacetProperties.class));
       }
 
       @Override

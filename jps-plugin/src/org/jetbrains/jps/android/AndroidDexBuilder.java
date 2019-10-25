@@ -40,6 +40,7 @@ import org.jetbrains.jps.android.model.JpsAndroidDexCompilerConfiguration;
 import org.jetbrains.jps.android.model.JpsAndroidExtensionService;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
 import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
+import org.jetbrains.jps.android.model.impl.AndroidFacetProperties;
 import org.jetbrains.jps.builders.BuildOutputConsumer;
 import org.jetbrains.jps.builders.BuildRootDescriptor;
 import org.jetbrains.jps.builders.DirtyFilesHolder;
@@ -444,7 +445,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
       logsDir = proguardLogsDir;
     }
     else {
-      logsDir = new File(mainContentRoot.getPath() + '/' + AndroidBuildCommonUtils.DIRECTORY_FOR_LOGS_NAME);
+      logsDir = new File(mainContentRoot.getPath() + '/' + AndroidFacetProperties.DIRECTORY_FOR_LOGS_NAME);
     }
     final AndroidProGuardStateStorage.MyState newState = new AndroidProGuardStateStorage.MyState(
       proguardCfgFiles);

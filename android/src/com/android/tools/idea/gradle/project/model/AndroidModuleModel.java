@@ -91,7 +91,7 @@ import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.jps.android.model.impl.AndroidFacetProperties;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
@@ -798,7 +798,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   public void syncSelectedVariantAndTestArtifact(@NotNull AndroidFacet facet) {
     IdeVariant variant = getSelectedVariant();
-    JpsAndroidModuleProperties state = facet.getProperties();
+    AndroidFacetProperties state = facet.getProperties();
     state.SELECTED_BUILD_VARIANT = variant.getName();
 
     IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
@@ -807,7 +807,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     updateGradleTaskNames(state, mainArtifact);
   }
 
-  private static void updateGradleTaskNames(@NotNull JpsAndroidModuleProperties state, @NotNull IdeAndroidArtifact mainArtifact) {
+  private static void updateGradleTaskNames(@NotNull AndroidFacetProperties state, @NotNull IdeAndroidArtifact mainArtifact) {
     state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
     state.COMPILE_JAVA_TASK_NAME = mainArtifact.getCompileTaskName();
     state.AFTER_SYNC_TASK_NAMES = new HashSet<>(mainArtifact.getIdeSetupTaskNames());

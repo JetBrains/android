@@ -48,7 +48,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.sanitizeFileName
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacetConfiguration
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties
+import org.jetbrains.jps.android.model.impl.AndroidFacetProperties
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.config.CompilerSettings
 import org.jetbrains.kotlin.idea.facet.KotlinFacetConfiguration
@@ -96,7 +96,7 @@ class ProjectDumper(
     Regex("(?:(?:org.jetbrains.kotlin:kotlin(?:-[0-9a-z]*)*:)|(?:kotlin(?:-[0-9a-z]+)*)-)(\\d+\\.\\d+.[0-9a-z\\-]+)")
 
   fun String.toPrintablePaths(): Collection<String> =
-    split(JpsAndroidModuleProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION).map { it.toPrintablePath() }
+    split(AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION).map { it.toPrintablePath() }
 
   /**
    * Replaces well-known instable parts of a path/url string with stubs and adds [-] to the end if the file does not exist.
