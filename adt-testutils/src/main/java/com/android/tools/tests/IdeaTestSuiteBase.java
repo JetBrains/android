@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -37,7 +38,8 @@ public class IdeaTestSuiteBase {
 
   static {
     try {
-      VfsRootAccess.allowRootAccess("/", "C:\\");  // Bazel tests are sandboxed so we disable VfsRoot checks.
+      String[] roots = Arrays.stream(File.listRoots()).map(file -> file.getPath()).toArray(String[]::new);
+      VfsRootAccess.allowRootAccess(roots);  // Bazel tests are sandboxed so we disable VfsRoot checks.
       BazelRunfilesManifestProcessor.setUpRunfiles();
       setProperties();
       setupKotlinPlugin();
