@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.dynamicapp;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.idea.gradle.util.DynamicAppUtils.baseIsInstantEnabled;

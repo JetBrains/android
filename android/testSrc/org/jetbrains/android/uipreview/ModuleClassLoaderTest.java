@@ -19,7 +19,7 @@ import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.android.builder.model.AndroidProject;
+import com.android.AndroidProjectTypes;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
@@ -231,8 +231,8 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     VirtualFile defaultManifest = sourceProviderManager.getMainManifestFile();
 
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
-    androidProject.setProjectType(AndroidProject.PROJECT_TYPE_LIBRARY);
-    myFacet.getConfiguration().getState().PROJECT_TYPE = AndroidProject.PROJECT_TYPE_LIBRARY;
+    androidProject.setProjectType(AndroidProjectTypes.PROJECT_TYPE_LIBRARY);
+    myFacet.getConfiguration().getState().PROJECT_TYPE = AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
     AndroidModel.set(myFacet,
       AndroidModuleModel.create(androidProject.getName(),
                                 Projects.getBaseDirPath(getProject()),

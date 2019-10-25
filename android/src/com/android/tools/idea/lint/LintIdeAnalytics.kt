@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint
 
-import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
+import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
 import com.android.builder.model.LintOptions
 import com.android.tools.analytics.Anonymizer
 import com.android.tools.analytics.CommonMetricsData

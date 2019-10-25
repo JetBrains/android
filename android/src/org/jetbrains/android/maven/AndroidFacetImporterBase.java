@@ -84,7 +84,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 
 /**

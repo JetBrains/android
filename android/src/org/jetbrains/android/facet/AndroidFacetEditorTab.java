@@ -15,6 +15,9 @@
  */
 package org.jetbrains.android.facet;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+
 import com.android.SdkConstants;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
@@ -66,9 +69,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.*;
 import java.util.List;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
 /**
  * @author yole
@@ -150,13 +150,13 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     myManifestFileField.getButton().addActionListener(
       new MyFolderFieldListener(myManifestFileField, AndroidRootUtil.getPrimaryManifestFile(facet), true, new MyManifestFilter()));
-    
+
     myResFolderField.getButton().addActionListener(new MyFolderFieldListener(myResFolderField,
                                                                              AndroidRootUtil.getResourceDir(facet), false, null));
-    
+
     myAssetsFolderField.getButton().addActionListener(new MyFolderFieldListener(myAssetsFolderField,
                                                                                 AndroidRootUtil.getAssetsDir(facet), false, null));
-    
+
     myNativeLibsFolder.getButton().addActionListener(new MyFolderFieldListener(myNativeLibsFolder,
                                                                                AndroidRootUtil.getLibsDir(facet), false, null));
 
@@ -168,7 +168,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         myProGuardConfigFilesPanel.setEnabled(myRunProguardCheckBox.isSelected());
       }
     });
-    
+
     myCustomDebugKeystoreField.getButton().addActionListener(new MyFolderFieldListener(myCustomDebugKeystoreField, null, true, null));
 
     myResetPathsButton.addActionListener(new ActionListener() {
@@ -857,7 +857,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     };
     return FileChooser.chooseFiles(descriptor, myContentPanel, myContext.getProject(), initialFile);
   }
-  
+
   private static class MyManifestFilter implements Condition<VirtualFile> {
 
     @Override

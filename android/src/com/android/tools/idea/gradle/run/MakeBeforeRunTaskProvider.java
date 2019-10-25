@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.builder.model.AndroidProject.PROPERTY_APK_SELECT_CONFIG;
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_ABI;
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_API;

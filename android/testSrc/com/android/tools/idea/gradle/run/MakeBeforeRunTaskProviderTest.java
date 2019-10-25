@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.run;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;

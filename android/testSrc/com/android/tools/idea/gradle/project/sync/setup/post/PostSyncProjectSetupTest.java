@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.getMaxJavaLanguageLevel;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_CACHED_SETUP_FAILED;

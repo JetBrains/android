@@ -19,7 +19,7 @@ import static com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT;
 import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.dependsOn;
 import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;

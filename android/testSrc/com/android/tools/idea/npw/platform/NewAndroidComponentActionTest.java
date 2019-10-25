@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.npw.platform;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_FEATURE;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
 import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX;
 import static com.google.common.truth.Truth.assertThat;

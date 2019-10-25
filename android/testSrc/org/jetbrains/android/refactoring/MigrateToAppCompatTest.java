@@ -16,33 +16,19 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.lint.AndroidLintAppCompatCustomViewInspection;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.projectsystem.TestProjectSystem;
-import com.android.tools.idea.testing.AndroidTestUtils;
 import com.google.common.collect.Sets;
-import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.SmartHashMap;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.migration.MigrationMapEntry;
-import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.SmartList;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.*;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -52,7 +38,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.*;
 import static org.jetbrains.android.refactoring.MigrateToAppCompatProcessor.*;
 

@@ -15,6 +15,8 @@
  */
 package org.jetbrains.jps.android.model.impl;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.Function;
@@ -40,8 +42,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
 /**
  * @author nik

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.res
 
+import com.android.AndroidProjectTypes
 import com.android.SdkConstants
-import com.android.builder.model.AndroidProject
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
@@ -496,7 +496,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         projectBuilder,
         modules,
         "mylib",
-        AndroidProject.PROJECT_TYPE_LIBRARY,
+        AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
         true
       )
     }
@@ -584,7 +584,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         projectBuilder,
         modules,
         "unrelatedLib",
-        AndroidProject.PROJECT_TYPE_LIBRARY,
+        AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
         false
       )
     }

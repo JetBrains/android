@@ -15,11 +15,11 @@
  */
 package org.jetbrains.android.facet;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_FEATURE;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.facet.FacetConfiguration;

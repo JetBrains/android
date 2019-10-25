@@ -17,7 +17,7 @@ package com.android.tools.idea.naveditor.editor
 
 import com.android.SdkConstants
 import com.android.SdkConstants.TAG_INCLUDE
-import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
+import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.tools.idea.actions.NewAndroidComponentAction.CREATED_FILES
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ModelBuilder
@@ -409,7 +409,7 @@ class AddDestinationMenuTest : NavTestCase() {
     }
   }
   */
-  
+
   private fun addFragment(name: String) {
     addDestination(name, "android.support.v4.app.Fragment")
   }

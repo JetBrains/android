@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE
+import com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet

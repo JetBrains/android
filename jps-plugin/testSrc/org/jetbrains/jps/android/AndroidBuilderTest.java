@@ -1,5 +1,8 @@
 package org.jetbrains.jps.android;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
+import static org.jetbrains.jps.builders.CompileScopeTestBuilder.make;
+
 import com.android.SdkConstants;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
@@ -53,9 +56,6 @@ import java.util.Map;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static org.jetbrains.jps.builders.CompileScopeTestBuilder.make;
 
 /**
  * @author Eugene.Kudelevsky

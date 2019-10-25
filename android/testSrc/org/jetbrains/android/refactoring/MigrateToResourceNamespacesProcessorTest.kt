@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.refactoring
 
-import com.android.builder.model.AndroidProject
+import com.android.AndroidProjectTypes
 import com.intellij.codeInsight.daemon.impl.analysis.XmlUnusedNamespaceInspection
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -41,7 +41,7 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
       projectBuilder,
       modules,
       "lib",
-      AndroidProject.PROJECT_TYPE_LIBRARY,
+      AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
       true
     )
   }

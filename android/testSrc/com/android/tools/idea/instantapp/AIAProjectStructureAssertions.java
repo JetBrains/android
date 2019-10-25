@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.instantapp;
 
+import com.android.AndroidProjectTypes;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.google.common.collect.ImmutableList;
-import com.google.common.truth.Truth;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.android.builder.model.AndroidProject.*;
 import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
@@ -43,7 +42,7 @@ public class AIAProjectStructureAssertions {
    */
   public static void assertModuleIsValidAIAApp(@NotNull Module module, @NotNull Collection<String> expectedDependencies)
     throws InterruptedException {
-    assertModuleIsValidForAIA(module, expectedDependencies, PROJECT_TYPE_APP, true);
+    assertModuleIsValidForAIA(module, expectedDependencies, AndroidProjectTypes.PROJECT_TYPE_APP, true);
   }
 
   /**
@@ -54,7 +53,7 @@ public class AIAProjectStructureAssertions {
     throws InterruptedException {
     // At the moment we have no way to actually get InstantApp module dependencies (they aren't reported in the model) so we can't check
     // them. Hence expectedDependencies is replaced with ImmutableList.of() below
-    assertModuleIsValidForAIA(module, ImmutableList.of(), PROJECT_TYPE_INSTANTAPP, false);
+    assertModuleIsValidForAIA(module, ImmutableList.of(), AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP, false);
   }
 
   /**
@@ -63,7 +62,7 @@ public class AIAProjectStructureAssertions {
    */
   public static void assertModuleIsValidAIAFeature(@NotNull Module module,
                                                    @NotNull Collection<String> expectedDependencies) throws InterruptedException {
-    assertModuleIsValidForAIA(module, expectedDependencies, PROJECT_TYPE_FEATURE, false);
+    assertModuleIsValidForAIA(module, expectedDependencies, AndroidProjectTypes.PROJECT_TYPE_FEATURE, false);
   }
 
   /**
@@ -71,7 +70,7 @@ public class AIAProjectStructureAssertions {
    */
   public static void assertModuleIsValidAIABaseFeature(@NotNull Module module,
                                                        @NotNull Collection<String> expectedDependencies) throws InterruptedException {
-    assertModuleIsValidForAIA(module, expectedDependencies, PROJECT_TYPE_FEATURE, true);
+    assertModuleIsValidForAIA(module, expectedDependencies, AndroidProjectTypes.PROJECT_TYPE_FEATURE, true);
   }
 
   private static void assertModuleIsValidForAIA(@NotNull Module module,

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.assertHasExactResourceTypes;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.getFirstItem;

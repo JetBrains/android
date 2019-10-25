@@ -21,7 +21,7 @@ import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TAG_LAYOUT;
 import static com.android.SdkConstants.TAG_NAVIGATION;
 import static com.android.SdkConstants.VIEW_MERGE;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.resources.ResourceType;
