@@ -1,17 +1,17 @@
 android {
   defaultConfig {
-    applicationId("com.example.myapplication-1")
+    setApplicationId("com.example.myapplication-1")
     setDimension("efgh")
     maxSdkVersion(24)
     minSdkVersion("16")
-    multiDexEnabled(false)
+    setMultiDexEnabled(false)
     targetSdkVersion("23")
-    testApplicationId("com.example.myapplication-1.test")
+    setTestApplicationId("com.example.myapplication-1.test")
     setTestFunctionalTest(true)
     setTestHandleProfiling(false)
     testInstrumentationRunner("efgh")
     useJack(true)
-    versionCode("2")
-    versionName("2.0")
+    setVersionCode("2")
+    setVersionName("2.0")
   }
 }

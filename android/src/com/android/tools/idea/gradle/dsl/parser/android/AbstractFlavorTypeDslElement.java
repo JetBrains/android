@@ -38,17 +38,22 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
   @NotNull
   public static final ImmutableMap<Pair<String, Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"applicationIdSuffix", property, APPLICATION_ID_SUFFIX, VAR},
+    {"setApplicationIdSuffix", exactly(1), APPLICATION_ID_SUFFIX, SET},
     {"buildConfigField", exactly(3), BUILD_CONFIG_FIELD, OTHER}, // ADD: add argument list as property to Dsl
     {"consumerProguardFiles", atLeast(0), CONSUMER_PROGUARD_FILES, OTHER}, // APPENDN: append each argument
+    {"setConsumerProguardFiles", exactly(1), CONSUMER_PROGUARD_FILES, SET},
     {"manifestPlaceholders", property, MANIFEST_PLACEHOLDERS, VAR},
     {"matchingFallbacks", property, MATCHING_FALLBACKS, VAR},
     {"multiDexEnabled", property, MULTI_DEX_ENABLED, VAR},
+    {"setMultiDexEnabled", exactly(1), MULTI_DEX_ENABLED, SET},
     {"multiDexKeepFile", property, MULTI_DEX_KEEP_FILE, VAR},
     {"multiDexKeepProguard", property, MULTI_DEX_KEEP_PROGUARD, VAR},
     {"proguardFiles", atLeast(0), PROGUARD_FILES, OTHER},
+    {"setProguardFiles", exactly(1), PROGUARD_FILES, SET},
     {"resValue", exactly(3), RES_VALUE, OTHER},
     {"signingConfig", property, SIGNING_CONFIG, VAR},
     {"useJack", property, USE_JACK, VAR}, // actually deprecated / nonexistent
+    {"useJack", exactly(1), USE_JACK, SET}, // see above
     {"versionNameSuffix", property, VERSION_NAME_SUFFIX, VAR}
   })
     .collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
@@ -60,6 +65,7 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     {"applicationIdSuffix", exactly(1), APPLICATION_ID_SUFFIX, SET},
     {"buildConfigField", exactly(3), BUILD_CONFIG_FIELD, OTHER},
     {"consumerProguardFiles", atLeast(0), CONSUMER_PROGUARD_FILES, OTHER},
+    {"consumerProguardFiles", property, CONSUMER_PROGUARD_FILES, VAR},
     {"manifestPlaceholders", property, MANIFEST_PLACEHOLDERS, VAR},
     {"manifestPlaceholders", exactly(1), MANIFEST_PLACEHOLDERS, SET},
     {"matchingFallbacks", property, MATCHING_FALLBACKS, VAR},
@@ -68,6 +74,7 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     {"multiDexKeepFile", exactly(1), MULTI_DEX_KEEP_FILE, SET},
     {"multiDexKeepProguard", exactly(1), MULTI_DEX_KEEP_PROGUARD, SET},
     {"proguardFiles", atLeast(0), PROGUARD_FILES, OTHER},
+    {"proguardFiles", property, PROGUARD_FILES, VAR},
     {"resValue", exactly(3), RES_VALUE, OTHER},
     {"signingConfig", property, SIGNING_CONFIG, VAR},
     {"signingConfig", exactly(1), SIGNING_CONFIG, SET},

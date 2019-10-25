@@ -49,6 +49,7 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
       }),
       Stream.of(new Object[][]{
         {"applicationId", property, APPLICATION_ID, VAR},
+        {"setApplicationId", exactly(1), APPLICATION_ID, SET},
         {"setDimension", exactly(1), DIMENSION, SET},
         {"dimension", property, DIMENSION, VAL}, // VAL: can read but not assign
         {"maxSdkVersion", exactly(1), MAX_SDK_VERSION, SET},
@@ -62,6 +63,7 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
         {"resConfig", exactly(1), RES_CONFIGS, OTHER},
         {"targetSdkVersion", exactly(1), TARGET_SDK_VERSION, SET},
         {"testApplicationId", property, TEST_APPLICATION_ID, VAR},
+        {"setTestApplicationId", exactly(1), TEST_APPLICATION_ID, SET},
         {"setTestFunctionalTest", exactly(1), TEST_FUNCTIONAL_TEST, SET},
         {"testFunctionalTest", property, TEST_FUNCTIONAL_TEST, VAL},
         {"setTestHandleProfiling", exactly(1), TEST_HANDLE_PROFILING, SET},
@@ -71,7 +73,9 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
         {"testInstrumentationRunnerArguments", property, TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, VAR},
         {"testInstrumentationRunnerArguments", exactly(1), TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, OTHER}, // PUTALL
         {"versionCode", property, VERSION_CODE, VAR},
+        {"setVersionCode", exactly(1), VERSION_CODE, SET},
         {"versionName", property, VERSION_NAME, VAR},
+        {"setVersionName", exactly(1), VERSION_NAME, SET},
         {"wearAppUnbundled", property, WEAR_APP_UNBUNDLED, VAR}
       }))
       .collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),

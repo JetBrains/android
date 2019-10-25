@@ -16,10 +16,10 @@
 android {
   productFlavors {
     getByName("flavor1") {
-      applicationId("com.example.myapplication.flavor1")
+      setApplicationId("com.example.myapplication.flavor1")
     }
     getByName("flavor2") {
-      applicationId("com.example.myapplication.flavor2")
+      setApplicationId("com.example.myapplication.flavor2")
     }
   }
 }

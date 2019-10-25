@@ -1,17 +1,17 @@
 android {
   defaultConfig {
-    applicationId("com.example.myapplication")
+    setApplicationId("com.example.myapplication")
     setDimension("abcd")
     maxSdkVersion(23)
     minSdkVersion("15")
-    multiDexEnabled(true)
+    setMultiDexEnabled(true)
     targetSdkVersion("22")
-    testApplicationId("com.example.myapplication.test")
+    setTestApplicationId("com.example.myapplication.test")
     setTestFunctionalTest(false)
     setTestHandleProfiling(true)
     testInstrumentationRunner("abcd")
     useJack(false)
-    versionCode(1)
-    versionName("1.0")
+    setVersionCode(1)
+    setVersionName("1.0")
   }
 }
