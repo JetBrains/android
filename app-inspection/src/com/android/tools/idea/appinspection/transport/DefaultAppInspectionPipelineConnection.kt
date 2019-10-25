@@ -88,9 +88,11 @@ private class DefaultAppInspectionPipelineConnection(val processTransport: AppIn
       .setDexPath(inspectorJar.toString())
       .build()
     val appInspectionCommand = AppInspectionCommand.newBuilder().setCreateInspectorCommand(createInspectorCommand).build()
+    val commandId = processTransport.executeCommand(appInspectionCommand)
     processTransport.registerEventListener(
       eventKind = APP_INSPECTION,
-      executor = MoreExecutors.directExecutor()
+      executor = MoreExecutors.directExecutor(),
+      filter = { it.appInspectionEvent.commandId == commandId }
     ) {
       if (it.appInspectionEvent.response.status == SUCCESS) {
         connectionFuture.set(AppInspectorConnection(processTransport, inspectorId))
@@ -100,8 +102,6 @@ private class DefaultAppInspectionPipelineConnection(val processTransport: AppIn
       }
       true
     }
-
-    processTransport.executeCommand(appInspectionCommand)
     return Futures.transform(connectionFuture, Function { setupEventListener(creator, it!!) }, MoreExecutors.directExecutor())
   }
 }
