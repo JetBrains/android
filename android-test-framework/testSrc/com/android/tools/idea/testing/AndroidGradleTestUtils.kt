@@ -350,7 +350,7 @@ fun setupTestProjectFromAndroidModel(
     DataNode<JavaProjectData>(
       JavaProjectData.KEY,
       JavaProjectData(GRADLE_SYSTEM_ID, buildPath.path),
-      projectDataNode
+      null
     )
   )
 
@@ -374,7 +374,7 @@ fun setupTestProjectFromAndroidModel(
         override fun getArtifacts(): List<File> = listOf()
         override fun getArtifactsByConfiguration(): Map<String, MutableSet<File>> = mapOf()
       },
-      projectDataNode
+      null
     )
   )
 
@@ -388,7 +388,7 @@ fun setupTestProjectFromAndroidModel(
       basePath.path,
       basePath.path
     ),
-    projectDataNode
+    null
   )
 
   moduleDataNode.addChild(
@@ -405,7 +405,7 @@ fun setupTestProjectFromAndroidModel(
         null,
         false
       ),
-      projectDataNode
+      null
     )
   )
 
@@ -422,7 +422,7 @@ fun setupTestProjectFromAndroidModel(
           null),
         "debug"
       ),
-      projectDataNode
+      null
     )
   )
   projectDataNode.addChild(moduleDataNode)
