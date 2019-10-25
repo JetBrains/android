@@ -181,6 +181,7 @@ enum class TestFileName(val path: String) {
   ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS_EXPECTED("androidModel/addToAndApplyListElementsWithMultipleArgumentsExpected"),
   ANDROID_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS("androidModel/removeFromAndApplyListElements"),
   ANDROID_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_EXPECTED("androidModel/removeFromAndApplyListElementsExpected"),
+  ANDROID_MODEL_PARSE_NO_RESCONFIGS_PROPERTY("androidModel/parseNoResConfigsProperty"),
   BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_APPLICATION_STATEMENTS("buildTypeModel/buildTypeBlockWithApplicationStatements"),
   BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_ASSIGNMENT_STATEMENTS("buildTypeModel/buildTypeBlockWithAssignmentStatements"),
   BUILD_TYPE_MODEL_BUILD_TYPE_APPLICATION_STATEMENTS("buildTypeModel/buildTypeApplicationStatements"),
