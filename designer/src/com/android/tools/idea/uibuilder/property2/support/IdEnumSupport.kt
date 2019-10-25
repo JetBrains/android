@@ -15,14 +15,50 @@
  */
 package com.android.tools.idea.uibuilder.property2.support
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_AFTER
+import com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE
+import com.android.SdkConstants.ATTR_CHECKED_BUTTON
+import com.android.SdkConstants.ATTR_CHECKED_CHIP
+import com.android.SdkConstants.ATTR_CONSTRAINT_SET_END
+import com.android.SdkConstants.ATTR_CONSTRAINT_SET_START
+import com.android.SdkConstants.ATTR_DERIVE_CONSTRAINTS_FROM
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_LABEL_FOR
+import com.android.SdkConstants.ATTR_LAYOUT_ABOVE
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_BASELINE
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_BOTTOM
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_END
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_LEFT
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_RIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_START
+import com.android.SdkConstants.ATTR_LAYOUT_ALIGN_TOP
+import com.android.SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF
+import com.android.SdkConstants.ATTR_LAYOUT_BELOW
+import com.android.SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF
+import com.android.SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF
+import com.android.SdkConstants.ATTR_LAYOUT_END_TO_END_OF
+import com.android.SdkConstants.ATTR_LAYOUT_END_TO_START_OF
+import com.android.SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF
+import com.android.SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF
+import com.android.SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF
+import com.android.SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF
+import com.android.SdkConstants.ATTR_LAYOUT_START_TO_END_OF
+import com.android.SdkConstants.ATTR_LAYOUT_START_TO_START_OF
+import com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF
+import com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF
+import com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF
+import com.android.SdkConstants.ATTR_LAYOUT_TO_LEFT_OF
+import com.android.SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF
+import com.android.SdkConstants.ATTR_LAYOUT_TO_START_OF
+import com.android.SdkConstants.ATTR_MOTION_TARGET_ID
+import com.android.SdkConstants.ID_PREFIX
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.property.panel.api.EnumSupport
-import com.android.tools.property.panel.api.EnumValue
-import com.android.tools.idea.gradle.structure.model.PsVariablesScope.NONE.name
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.lint.detector.api.stripIdPrefix
+import com.android.tools.property.panel.api.EnumSupport
+import com.android.tools.property.panel.api.EnumValue
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.containers.notNullize
@@ -69,7 +105,9 @@ class IdEnumSupport(val property: NelePropertyItem) : EnumSupport {
         ATTR_CHECKED_CHIP -> findChildIds()
 
         ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE,
-        ATTR_ACCESSIBILITY_TRAVERSAL_AFTER -> findLayoutIds()
+        ATTR_ACCESSIBILITY_TRAVERSAL_AFTER -> findLayoutIdsExcludeSelf()
+
+        ATTR_MOTION_TARGET_ID -> findLayoutIds()
 
         ATTR_LABEL_FOR -> findSiblingIds()
 
@@ -77,7 +115,7 @@ class IdEnumSupport(val property: NelePropertyItem) : EnumSupport {
         ATTR_CONSTRAINT_SET_END,
         ATTR_DERIVE_CONSTRAINTS_FROM -> findConstraintSetIds()
 
-        else -> error("$UNEXPECTED_ATTR: $name")
+        else -> error("$UNEXPECTED_ATTR: ${property.name}")
       }
 
   private fun findCommonParent(): NlComponent? {
@@ -104,8 +142,18 @@ class IdEnumSupport(val property: NelePropertyItem) : EnumSupport {
   private fun findLayoutIds(): List<EnumValue> {
     val values = mutableListOf<EnumValue>()
     property.components.firstOrNull()?.model?.flattenComponents()
+      ?.map { it.id }
+      .notNullize()
+      .forEach { values.add(EnumValue.item(ID_PREFIX + it)) }
+    return values
+  }
+
+  private fun findLayoutIdsExcludeSelf(): List<EnumValue> {
+    val values = mutableListOf<EnumValue>()
+    property.components.firstOrNull()?.model?.flattenComponents()
       ?.filter { !property.components.contains(it) }
-      ?.map { it.id }.notNullize()
+      ?.map { it.id }
+      .notNullize()
       .forEach { values.add(EnumValue.item(ID_PREFIX + it)) }
     return values
   }
