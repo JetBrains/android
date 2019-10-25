@@ -170,7 +170,7 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
+  public void begin(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
     if (event instanceof MouseEvent) {
       MouseEvent mouseEvent = (MouseEvent) event;
       begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
