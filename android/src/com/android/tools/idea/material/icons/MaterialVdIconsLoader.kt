@@ -63,7 +63,7 @@ class MaterialVdIconsLoader(
 
     // Visitor callback to traverse ZipEntrys and load the VectorDrawable files into VdIcon.
     val iconZipVisitor: (ZipEntry) -> Unit = { entry ->
-      val entrySplitName = entry.name.split(File.separatorChar)
+      val entrySplitName = entry.name.split('/')
       // Expected format for a 'bar' icon under the 'foo' style is: "foo/bar/any.xml"
       val entryFileName = entrySplitName.getOrElse(entrySplitName.lastIndex) { "" }
       val entryFileParent = entrySplitName.getOrElse(entrySplitName.lastIndex - 1) { "" }
@@ -115,6 +115,10 @@ class MaterialVdIconsLoader(
   }
 
   private fun loadIcon(style: String, iconName: String, iconFileName: String): URL? {
+    val iconUrl = urlProvider.getIconUrl(style, iconName, iconFileName)
+    if (iconUrl == null) {
+      LOG.warn("Could not load icon: Name=$iconName FileName=$iconFileName")
+    }
     return urlProvider.getIconUrl(style, iconName, iconFileName)
   }
 
@@ -132,6 +136,7 @@ class MaterialVdIconsLoader(
           return
         }
       }
+      else -> LOG.error("Unsupported protocol: ${url.protocol}, will not load any icons")
     }
   }
 
