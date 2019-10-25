@@ -394,7 +394,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public ResolvedPropertyModel publishNonDefault() {
-    return getModelForProperty(PUBLISH_NON_DEFAULT);
+    return getModelForProperty(PUBLISH_NON_DEFAULT, true);
   }
 
   @Override
