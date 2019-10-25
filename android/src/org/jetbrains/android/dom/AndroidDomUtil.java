@@ -60,6 +60,7 @@ import static com.android.SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF;
 import static com.android.SdkConstants.ATTR_LAYOUT_TO_START_OF;
 import static com.android.SdkConstants.ATTR_LISTITEM;
 import static com.android.SdkConstants.ATTR_MENU;
+import static com.android.SdkConstants.ATTR_MOTION_TARGET_ID;
 import static com.android.SdkConstants.ATTR_ON_CLICK;
 import static com.android.SdkConstants.ATTR_SHOW_MOTION_SPEC;
 import static com.android.SdkConstants.ATTR_SRC;
@@ -212,7 +213,8 @@ public class AndroidDomUtil {
                            ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
                            ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF,
                            ATTR_LAYOUT_START_TO_END_OF, ATTR_LAYOUT_START_TO_START_OF, ATTR_LAYOUT_END_TO_START_OF,
-                           ATTR_LAYOUT_END_TO_END_OF, ATTR_CONSTRAINT_SET_START, ATTR_CONSTRAINT_SET_END, ATTR_DERIVE_CONSTRAINTS_FROM);
+                           ATTR_LAYOUT_END_TO_END_OF, ATTR_CONSTRAINT_SET_START, ATTR_CONSTRAINT_SET_END, ATTR_DERIVE_CONSTRAINTS_FROM,
+                           ATTR_MOTION_TARGET_ID);
     addSpecialResourceType(ResourceType.LAYOUT, ATTR_LISTITEM, ATTR_LAYOUT);
     addSpecialResourceType(ResourceType.FONT, ATTR_FONT_FAMILY);
     addSpecialResourceType(ResourceType.MENU, ATTR_MENU);
