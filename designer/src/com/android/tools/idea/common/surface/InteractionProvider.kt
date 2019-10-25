@@ -18,11 +18,15 @@ package com.android.tools.idea.common.surface
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.idea.common.model.Coordinates.getAndroidXDip
+import com.android.tools.idea.common.model.Coordinates.getAndroidYDip
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.model.NlDropEvent
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction
+import org.intellij.lang.annotations.JdkConstants
+import java.awt.Cursor
 import java.awt.dnd.DnDConstants
 import java.awt.dnd.DropTargetDragEvent
 import java.awt.event.MouseWheelEvent
@@ -35,6 +39,13 @@ interface InteractionProvider {
   fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction?
 
   fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction?
+
+  /**
+   * Get Cursor by [InteractionManager] when there is no active [Interaction].
+   */
+  fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
+                                 @SwingCoordinate mouseY: Int,
+                                 @JdkConstants.InputEventMask modifiersEx: Int): Cursor?
 }
 
 abstract class InteractionProviderBase(private val surface: DesignSurface) : InteractionProvider {
@@ -94,5 +105,16 @@ abstract class InteractionProviderBase(private val surface: DesignSurface) : Int
     val sceneView = surface.getSceneView(x, y) ?: return null
     val component = Coordinates.findComponent(sceneView, x, y) ?: return null // There is no component consuming the scroll
     return ScrollInteraction.createScrollInteraction(sceneView, component)
+  }
+
+  override fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
+                                          @SwingCoordinate mouseY: Int,
+                                          @JdkConstants.InputEventMask modifiersEx: Int): Cursor? {
+    val sceneView = surface.getSceneView(mouseX, mouseY) ?: return null
+    val context = sceneView.context
+    // TODO (b/142953949): Move below code out of cursor updating...
+    context.setMouseLocation(mouseX, mouseY)
+    sceneView.scene.mouseHover(context, getAndroidXDip(sceneView, mouseX), getAndroidYDip(sceneView, mouseY), modifiersEx)
+    return sceneView.scene.mouseCursor
   }
 }
