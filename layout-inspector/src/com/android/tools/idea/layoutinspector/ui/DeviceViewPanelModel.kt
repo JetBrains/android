@@ -19,7 +19,6 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataKey
-import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
@@ -42,14 +41,14 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   @VisibleForTesting
   var yOff = 0.0
 
-  private var rootDimension: Dimension = Dimension()
+  private var rootBounds: Rectangle = Rectangle()
   private var maxDepth: Int = 0
 
   internal val maxWidth
-    get() = hypot((maxDepth * LAYER_SPACING).toFloat(), rootDimension.width.toFloat()).toInt()
+    get() = hypot((maxDepth * LAYER_SPACING).toFloat(), rootBounds.width.toFloat()).toInt()
 
   internal val maxHeight
-    get() = hypot((maxDepth * LAYER_SPACING).toFloat(), rootDimension.height.toFloat()).toInt()
+    get() = hypot((maxDepth * LAYER_SPACING).toFloat(), rootBounds.height.toFloat()).toInt()
 
   val isRotated
     get() = xOff != 0.0 || yOff != 0.0
@@ -79,27 +78,35 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   fun refresh() {
     val root = model.root
     if (root == null) {
-      rootDimension = Dimension(0, 0)
+      rootBounds = Rectangle()
       maxDepth = 0
       hitRects = emptyList()
       modificationListeners.forEach { it() }
       return
     }
-    rootDimension = Dimension(root.width, root.height)
-    val newHitRects = mutableListOf<ViewDrawInfo>()
-    val transform = AffineTransform()
-    transform.translate(-root.width / 2.0, -root.height / 2.0)
 
-    val magnitude = min(1.0, hypot(xOff, yOff))
-    val angle = if (abs(xOff) < 0.00001) PI / 2.0 else atan(yOff / xOff)
-
-    transform.translate(rootDimension.width / 2.0 - root.x, rootDimension.height / 2.0 - root.y)
-    transform.rotate(angle)
     val levelLists = mutableListOf<MutableList<Pair<ViewNode, Rectangle>>>()
     buildLevelLists(root, root.bounds, levelLists)
-
-    rebuildRectsForLevel(transform, magnitude, angle, levelLists, newHitRects)
     maxDepth = levelLists.size
+
+    val newHitRects = mutableListOf<ViewDrawInfo>()
+    val transform = AffineTransform()
+    var magnitude = 0.0
+    var angle = 0.0
+    if (maxDepth > 0) {
+      rootBounds = levelLists[0].map { it.second }.reduce { acc, bounds -> acc.apply { add(bounds) } }
+      transform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
+
+      magnitude = min(1.0, hypot(xOff, yOff))
+      angle = if (abs(xOff) < 0.00001) PI / 2.0 else atan(yOff / xOff)
+
+      transform.translate(rootBounds.width / 2.0 - rootBounds.x, rootBounds.height / 2.0 - rootBounds.y)
+      transform.rotate(angle)
+    }
+    else {
+      rootBounds = Rectangle()
+    }
+    rebuildRectsForLevel(transform, magnitude, angle, levelLists, newHitRects)
     hitRects = newHitRects.toList()
     modificationListeners.forEach { it() }
   }
@@ -108,20 +115,24 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
                               parentClip: Rectangle,
                               levelListCollector: MutableList<MutableList<Pair<ViewNode, Rectangle>>>,
                               level: Int = 0) {
-    var newLevelIndex = levelListCollector
-      .subList(level, levelListCollector.size)
-      .indexOfFirst { it.none { (node, _) -> node.bounds.intersects(root.bounds) } }
-    if (newLevelIndex == -1) {
-      newLevelIndex = levelListCollector.size
-      levelListCollector.add(mutableListOf())
+    var childClip = parentClip
+    var newLevelIndex = level
+    if (root.visible) {
+      newLevelIndex = levelListCollector
+        .subList(level, levelListCollector.size)
+        .indexOfFirst { it.none { (node, _) -> node.bounds.intersects(root.bounds) } }
+      if (newLevelIndex == -1) {
+        newLevelIndex = levelListCollector.size
+        levelListCollector.add(mutableListOf())
+      }
+      else {
+        newLevelIndex += level
+      }
+      val levelList = levelListCollector[newLevelIndex]
+      childClip = parentClip.intersection(root.bounds)
+      levelList.add(Pair(root, childClip))
     }
-    else {
-      newLevelIndex += level
-    }
-    val levelList = levelListCollector[newLevelIndex]
-    val clip = parentClip.intersection(root.bounds)
-    levelList.add(Pair(root, clip))
-    root.children.forEach { buildLevelLists(it, clip, levelListCollector, newLevelIndex) }
+    root.children.forEach { buildLevelLists(it, childClip, levelListCollector, newLevelIndex) }
   }
 
   private fun rebuildRectsForLevel(transform: AffineTransform,
@@ -137,7 +148,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
         viewTransform.translate(magnitude * (level - maxDepth / 2) * LAYER_SPACING * sign, 0.0)
         viewTransform.scale(sqrt(1.0 - magnitude * magnitude), 1.0)
         viewTransform.rotate(-angle)
-        viewTransform.translate(-rootDimension.width / 2.0, -rootDimension.height / 2.0)
+        viewTransform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
         val rect = viewTransform.createTransformedShape(view.bounds)
         newHitRects.add(ViewDrawInfo(rect, viewTransform, view, clip))

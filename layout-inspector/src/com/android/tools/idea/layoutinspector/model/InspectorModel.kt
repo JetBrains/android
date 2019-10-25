@@ -66,6 +66,8 @@ class InspectorModel(val project: Project, initialRoot: ViewNode? = null) {
     modificationListeners.forEach { it(oldRoot, root, structuralChange) }
   }
 
+  fun notifyModified() = modificationListeners.forEach { it(root, root, false) }
+
   private class Updater(private val oldRoot: ViewNode, private val newRoot: ViewNode) {
     private val oldNodes = oldRoot.flatten().associateBy { it.drawId }
 

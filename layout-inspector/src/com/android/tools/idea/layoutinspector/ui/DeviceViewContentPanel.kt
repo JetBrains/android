@@ -17,14 +17,17 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
+import com.intellij.ui.PopupHandler
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.AlphaComposite
 import java.awt.BasicStroke
 import java.awt.Color
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -91,15 +94,24 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
       }
 
       override fun mouseMoved(e: MouseEvent) {
-        inspectorModel.hoveredNode = nodeAtPoint(e)
+        inspectorModel.hoveredNode = findClickedComponent(e.x, e.y)
       }
     }
     addMouseListener(listener)
     addMouseMotionListener(listener)
 
+    addMouseListener(object : PopupHandler() {
+      override fun invokePopup(comp: Component, x: Int, y: Int) {
+        showViewContextMenu(findClickedComponent(x, y), layoutInspector, this@DeviceViewContentPanel, x, y)
+      }
+    })
+
     viewSettings.modificationListeners.add { repaint() }
     model.modificationListeners.add { repaint() }
   }
+
+  private fun findClickedComponent(x: Int, y: Int) = model.findTopRect((x - size.width / 2.0) / viewSettings.scaleFraction,
+                                                                      (y - size.height / 2.0) / viewSettings.scaleFraction)
 
   override fun paint(g: Graphics?) {
     val g2d = g as? Graphics2D ?: return
