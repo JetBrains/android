@@ -5,6 +5,6 @@ android {
   dynamicFeatures = listOf(":f1", ":f2")
   flavorDimensions("abi", "version")
   generatePureSplits(true)
-  publishNonDefault(false)
-  setResourcePrefix("abcd")
+  setPublishNonDefault(false)
+  resourcePrefix("abcd")
 }

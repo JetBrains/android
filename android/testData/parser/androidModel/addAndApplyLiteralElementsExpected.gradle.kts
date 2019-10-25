@@ -3,6 +3,6 @@ android {
   compileSdkVersion = "24"
   defaultPublishConfig = "release"
   generatePureSplits = false
-  publishNonDefault = true
-  setResourcePrefix("efgh")
+  setPublishNonDefault(true)
+  resourcePrefix("efgh")
 }

@@ -3,6 +3,6 @@ android {
   compileSdkVersion("23")
   defaultPublishConfig("debug")
   generatePureSplits(true)
-  publishNonDefault(false)
-  setResourcePrefix("abcd")
+  setPublishNonDefault(false)
+  resourcePrefix("abcd")
 }

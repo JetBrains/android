@@ -42,10 +42,9 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"flavorDimensions", AndroidModelImpl.FLAVOR_DIMENSIONS},
     {"generatePureSplits", AndroidModelImpl.GENERATE_PURE_SPLITS},
     {"ndkVersion", AndroidModelImpl.NDK_VERSION},
-    {"publishNonDefault", AndroidModelImpl.PUBLISH_NON_DEFAULT},
-    // TODO(b/142111082): this works to handle the fact that Kotlin does not provide a writeable resourePrefix property, but means that
-    //  resolution of the property would fail.
-    {"setResourcePrefix", AndroidModelImpl.RESOURCE_PREFIX}
+    // TODO(b/142111082): this works to handle the fact that Kotlin does not provide a writeable publishNonDefault property.
+    {"setPublishNonDefault", AndroidModelImpl.PUBLISH_NON_DEFAULT},
+    {"resourcePrefix", AndroidModelImpl.RESOURCE_PREFIX}
   }).collect(toImmutableMap(data -> data[0], data -> data[1]));
 
   @NotNull
