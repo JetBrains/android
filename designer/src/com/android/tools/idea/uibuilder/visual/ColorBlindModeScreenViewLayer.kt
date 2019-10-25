@@ -19,39 +19,35 @@ import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
-import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorLut
-import com.android.tools.idea.uibuilder.visual.colorblindmode.buildColorLut
-import com.android.tools.idea.uibuilder.visual.colorblindmode.convert
-
-private const val DIM = 16
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorConverter
+import com.intellij.openapi.util.Disposer
 
 /**
  * Screen view layer that can override the results from the layoutlib to simulate different
  * color blind modes.
  *
- * @param mode enum that represents the different color blind mode to simulate. Null if the view layer is displaying the original image.
+ * @param mode enum that represents the different color blind mode to simulate.
  */
-class ColorBlindModeScreenViewLayer(screenView: ScreenView, val mode: ColorBlindMode?) :
+class ColorBlindModeScreenViewLayer(screenView: ScreenView, val mode: ColorBlindMode) :
   ScreenViewLayer(screenView) {
 
-  private var lut: ColorLut? = null
+  private val colorConverter = ColorConverter(mode)
+  init {
+    Disposer.register(this, colorConverter)
+  }
 
   override fun setLastRenderResult(result: RenderResult?) {
     super.setLastRenderResult(result)
 
-    if (mode == null) {
+    if (mode == ColorBlindMode.NONE) {
       // Displaying the original image. No need to apply the simulation.
       return
     }
 
-    if (lut == null) {
-      lut = buildColorLut(DIM, mode)
-    }
-
+    colorConverter.init()
     val original = result?.renderedImage ?: return
     val copied = original.copy ?: return
-
-    convert(copied, copied, mode, lut)
+    colorConverter.convert(copied, copied)
 
     original.paint{ g2D ->
       val w = original.width

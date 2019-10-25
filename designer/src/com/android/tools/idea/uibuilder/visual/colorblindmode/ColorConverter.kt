@@ -15,58 +15,73 @@
  */
 package com.android.tools.idea.uibuilder.visual.colorblindmode
 
+import com.intellij.openapi.Disposable
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
 import java.lang.StringBuilder
+import java.util.function.Function
+import kotlin.math.pow
 
 /**
  * All the numbers, math and explanation on how things work is documented in:
  * go/cbm_simulator
  */
 
-private const val DIM = 16
-private const val DEBUG = false
-internal const val MUTATED_FACTOR = 0.25
-
-enum class ColorBlindMode(val displayName: String) {
-  PROTANOPES("Protanopes"), // Missing L
-  PROTANOMALY("Protanomaly"), // Mutated L
-  DEUTERANOPES("Deuteranopes"), // Missing M
-  DEUTERANOMALY("Deuteranomaly"), // Mutated M
-  // TRITANOPES("Tritanopes"), // Missing S TODO: MAP NOT COMPLETE
-  // TRITANOMALY, // Mutated S TODO: MAP NOT COMPLETE
-}
-
-fun buildClut(mode: ColorBlindMode): ColorLut {
-  return buildColorLut(DIM, mode)
-}
-
 /**
- * Pre condition : BufferedImage either [BufferedImage.TYPE_3BYTE_BGR] or [BufferedImage.TYPE_INT_ARGB]
+ * Color blind simulator.
  */
-fun convert(startImage: BufferedImage, postImage: BufferedImage, mode: ColorBlindMode, lut: ColorLut? = null) {
-  ColorConverterLogger.start("CLUT build ${mode.name}")
-  val lut = lut ?: buildColorLut(DIM, mode)
+class ColorConverter(val mode: ColorBlindMode) : Disposable {
 
-  ColorConverterLogger.end("CLUT build ${mode.name}")
-
-  ColorConverterLogger.start("Apply ${mode.name}")
-  val inData = (startImage.raster.dataBuffer as DataBufferInt).data
-  val outData = (postImage.raster.dataBuffer as DataBufferInt).data
-
-  for (i in inData.indices) {
-    val inputColor = inData[i]
-    outData[i] = lut.interpolate(inputColor)
+  companion object {
+    private var removeGammaCLut: DoubleArray? = null
   }
-  ColorConverterLogger.end("Apply ${mode.name}")
+  private var cbmCLut: ColorLut? = null
 
-  if (DEBUG) {
-    println(ColorConverterLogger.dumpAndClearLog())
+  /**
+   * Ensure that all necessary color lookup table is built.
+   * Encouraged to call it every time before calling [convert]
+   */
+  fun init() {
+    if (removeGammaCLut == null) {
+      ColorConverterLogger.start("Build CLut for ${mode.name}")
+      removeGammaCLut = buildGammaCLut(Function { (it / 255.0).pow(GAMMA) })
+      ColorConverterLogger.end("Build CLut for ${mode.name}")
+    }
+
+    if (cbmCLut == null) {
+      ColorConverterLogger.start("Build gamma CLut for ${mode.name}")
+      cbmCLut = buildColorLut(DIM, mode, removeGammaCLut!!)
+      ColorConverterLogger.end("Build gamma CLut for ${mode.name}")
+    }
   }
-}
 
-fun convert(color: Int, mode: ColorBlindMode): Int {
-  return convertSingleColor(color, getMat3D(mode))
+  /**
+   * Pre condition : BufferedImage either [BufferedImage.TYPE_3BYTE_BGR] or [BufferedImage.TYPE_INT_ARGB]
+   */
+  fun convert(startImage: BufferedImage, postImage: BufferedImage) {
+    if (cbmCLut == null || removeGammaCLut == null) {
+      throw RuntimeException("Make sure the converter.init is called.")
+    }
+
+    ColorConverterLogger.start("Apply ${mode.name}")
+    val inData = (startImage.raster.dataBuffer as DataBufferInt).data
+    val outData = (postImage.raster.dataBuffer as DataBufferInt).data
+
+    for (i in inData.indices) {
+      val inputColor = inData[i]
+      outData[i] = cbmCLut!!.interpolate(inputColor)
+    }
+    ColorConverterLogger.end("Apply ${mode.name}")
+
+    if (DEBUG) {
+      println(ColorConverterLogger.dumpAndClearLog())
+    }
+  }
+
+  override fun dispose() {
+    removeGammaCLut = null
+    cbmCLut = null
+  }
 }
 
 class ColorLut(val lut: IntArray, val dim: Int) {

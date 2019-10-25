@@ -41,14 +41,6 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
     val defaultConfig = configurationManager.getConfiguration(virtualFile)
 
     val models = mutableListOf<NlModel>()
-    models.add(NlModel.create(
-      parent,
-      "Original",
-      facet,
-      virtualFile,
-      defaultConfig,
-      Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
-
     for (mode in ColorBlindMode.values()) {
       models.add(NlModel.create(
         parent,
@@ -58,7 +50,6 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
         defaultConfig,
         Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
     }
-
     return models
   }
 }
