@@ -36,10 +36,16 @@ public class IdeaTestSuiteBase {
   protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
   static {
-    VfsRootAccess.allowRootAccess("/", "C:\\");  // Bazel tests are sandboxed so we disable VfsRoot checks.
-    BazelRunfilesManifestProcessor.setUpRunfiles();
-    setProperties();
-    setupKotlinPlugin();
+    try {
+      VfsRootAccess.allowRootAccess("/", "C:\\");  // Bazel tests are sandboxed so we disable VfsRoot checks.
+      BazelRunfilesManifestProcessor.setUpRunfiles();
+      setProperties();
+      setupKotlinPlugin();
+    } catch(Throwable e) {
+      // See b/143359533 for why we are handling errors here
+      System.err.println("ERROR: Error initializing test suite, tests will likely fail following this error");
+      e.printStackTrace();
+    }
   }
 
   private static void setProperties() {
