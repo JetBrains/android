@@ -73,9 +73,9 @@ public class WorkBenchTest extends WorkBenchTestCase {
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    registerApplicationComponent(WorkBenchManager.class, myWorkBenchManager);
-    registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
-    registerProjectComponentImplementation(FileEditorManager.class, myFileEditorManager);
+    registerApplicationService(WorkBenchManager.class, myWorkBenchManager);
+    registerApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
+    registerProjectComponent(FileEditorManager.class, myFileEditorManager);
     myContent = new JPanel();
     myContent.setPreferredSize(new Dimension(500, 400));
     mySplitter = new ThreeComponentsSplitter();

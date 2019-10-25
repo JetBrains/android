@@ -229,7 +229,7 @@ class NeleIdPropertyItemTest {
   @Test
   fun testSetValueIgnoredDuringUndo() {
     val undoManager = Mockito.mock(UndoManagerImpl::class.java)
-    componentStack!!.registerComponentImplementation(UndoManager::class.java, undoManager)
+    componentStack!!.registerComponentInstance(UndoManager::class.java, undoManager)
     Mockito.`when`(undoManager.isUndoInProgress).thenReturn(true)
 
     val util = SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()
@@ -242,7 +242,7 @@ class NeleIdPropertyItemTest {
   @Test
   fun testSetValueIgnoredDuringRedo() {
     val undoManager = Mockito.mock(UndoManagerImpl::class.java)
-    componentStack!!.registerComponentImplementation(UndoManager::class.java, undoManager)
+    componentStack!!.registerComponentInstance(UndoManager::class.java, undoManager)
     Mockito.`when`(undoManager.isRedoInProgress).thenReturn(true)
 
     val util = SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()

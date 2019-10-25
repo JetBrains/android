@@ -120,7 +120,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
       .build();
     mySurface.setModel(myModel);
     myTree = new NlComponentTree(getProject(), mySurface);
-    registerApplicationComponent(BrowserLauncher.class, myBrowserLauncher);
+    registerApplicationService(BrowserLauncher.class, myBrowserLauncher);
     myActionHandler = getActionHandler(myTree);
     myDataContext = mock(DataContext.class);
 

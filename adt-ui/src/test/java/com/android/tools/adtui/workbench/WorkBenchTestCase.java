@@ -49,15 +49,15 @@ public abstract class WorkBenchTestCase extends PlatformTestCase {
     myApplicationComponentStack.registerComponentInstance(key, instance);
   }
 
-  public <T> void registerApplicationComponentImplementation(@NotNull Class<T> key, @NotNull T instance) {
-    myApplicationComponentStack.registerComponentImplementation(key, instance);
+  public <T> void registerApplicationService(@NotNull Class<T> key, @NotNull T instance) {
+    myApplicationComponentStack.registerServiceInstance(key, instance);
   }
 
   public <T> void registerProjectComponent(@NotNull Class<T> key, @NotNull T instance) {
     myProjectComponentStack.registerComponentInstance(key, instance);
   }
 
-  public <T> void registerProjectComponentImplementation(@NotNull Class<T> key, @NotNull T instance) {
-    myProjectComponentStack.registerComponentImplementation(key, instance);
+  public <T> void registerProjectService(@NotNull Class<T> key, @NotNull T instance) {
+    myProjectComponentStack.registerServiceInstance(key, instance);
   }
 }
