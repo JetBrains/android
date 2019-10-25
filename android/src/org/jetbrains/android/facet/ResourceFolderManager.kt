@@ -33,7 +33,6 @@ import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.messages.Topic
-import org.jetbrains.jps.android.model.impl.AndroidFacetProperties
 
 /**
  * The resource folder manager is responsible for returning the current set of resource folders used in the project. It provides hooks for

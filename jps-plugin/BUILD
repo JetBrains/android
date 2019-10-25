@@ -64,8 +64,9 @@ iml_module(
         "//tools/idea/jps/model-api:intellij.platform.jps.model[module]",
         "//tools/idea/jps/model-serialization:intellij.platform.jps.model.serialization[module]",
         "//tools/idea/jps/model-impl:intellij.platform.jps.model.impl[module]",
-        "//tools/idea/plugins/maven/jps-plugin:intellij.maven.jps[module, test]",
         "//tools/base/build-system:studio.android.sdktools.manifest-merger[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/idea/plugins/maven/jps-plugin:intellij.maven.jps[module, test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
     ],
 )

@@ -41,8 +41,6 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidNativeLibData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.AndroidImportableProperty;
-import org.jetbrains.jps.android.model.impl.AndroidFacetProperties;
 
 /**
  * @author Eugene.Kudelevsky

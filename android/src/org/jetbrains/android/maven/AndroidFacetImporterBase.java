@@ -21,7 +21,6 @@ import com.android.tools.idea.ui.CustomNotificationListener;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.Jdks;
-import com.android.tools.idea.ui.CustomNotificationListener;
 import com.intellij.facet.FacetType;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -76,7 +75,7 @@ import org.jetbrains.idea.maven.server.MavenEmbedderWrapper;
 import org.jetbrains.idea.maven.server.NativeMavenProjectHolder;
 import org.jetbrains.idea.maven.utils.MavenProcessCanceledException;
 import org.jetbrains.idea.maven.utils.MavenProgressIndicator;
-import org.jetbrains.jps.android.model.impl.AndroidImportableProperty;
+import org.jetbrains.android.facet.AndroidImportableProperty;
 import org.jetbrains.jps.util.JpsPathUtil;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 

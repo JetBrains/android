@@ -50,7 +50,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.SaveFileListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.AndroidFacetProperties;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 
 /**
  * @author Eugene.Kudelevsky

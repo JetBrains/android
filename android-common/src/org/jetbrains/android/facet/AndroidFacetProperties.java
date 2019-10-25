@@ -1,11 +1,11 @@
 /*
- * Copyright 2000-2012 JetBrains s.r.o.
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.jps.android.model.impl;
+package org.jetbrains.android.facet;
 
 import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
@@ -29,7 +29,14 @@ import java.util.Set;
 import org.jetbrains.annotations.NonNls;
 
 /**
- * @author nik
+ * Android-specific information saved in the IML file corresponding to an Android module.
+ *
+ * <p>These objects are serialized to XML by {@link org.jetbrains.android.facet.AndroidFacetConfiguration} using {@link
+ * com.intellij.util.xmlb.XmlSerializer}.
+ *
+ * <p>Avoid using instances of this class if at all possible. This information should be provided by
+ * {@link com.android.tools.idea.projectsystem.AndroidProjectSystem} and it is up to the project system used by the project to choose how
+ * this information is obtained and persisted.
  */
 public class AndroidFacetProperties {
 

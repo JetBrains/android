@@ -9,7 +9,7 @@ import org.jetbrains.android.compiler.artifact.AndroidArtifactPropertiesProvider
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.AndroidFacetProperties;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.jps.model.serialization.PathMacroUtil;
 
 import java.util.ArrayList;

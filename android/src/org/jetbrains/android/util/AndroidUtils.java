@@ -123,7 +123,7 @@ import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.AndroidFacetProperties;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 
 /**
  * @author yole, coyote
