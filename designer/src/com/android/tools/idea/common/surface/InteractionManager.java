@@ -20,6 +20,7 @@ import static com.android.tools.idea.common.model.Coordinates.getAndroidYDip;
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.idea.uibuilder.surface.PanInteraction;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -224,6 +225,9 @@ public class InteractionManager implements Disposable {
   }
 
   public boolean isPanning() {
+    if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+      return myCurrentInteraction instanceof PanInteraction;
+    }
     return myIsPanning;
   }
 
@@ -277,7 +281,7 @@ public class InteractionManager implements Disposable {
    * @param event       The event makes the interaction start.
    * @param interaction The given interaction to start
    */
-  private void startInteraction(@NotNull EventObject event, @Nullable Interaction interaction) {
+  private void startInteraction(@Nullable EventObject event, @Nullable Interaction interaction) {
     if (myCurrentInteraction != null) {
       finishInteraction(event, true);
       assert myCurrentInteraction == null;
@@ -490,8 +494,22 @@ public class InteractionManager implements Disposable {
         event.consume();
         return;
       }
-
-      if (interceptPanInteraction(event)) {
+      if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+        // TODO: move this logic into InteractionProvider.createInteractionOnClick()
+        if (myCurrentInteraction instanceof PanInteraction) {
+          myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+          // TODO: move cursor into Interaction interface.
+          mySurface.setCursor(SwingUtilities.isLeftMouseButton(event) || SwingUtilities.isMiddleMouseButton(event) ? AdtUiCursors.GRABBING
+                                                                                                                   : AdtUiCursors.GRAB);
+          return;
+        }
+        else if (SwingUtilities.isMiddleMouseButton(event)) {
+          startInteraction(event, new PanInteraction(mySurface));
+          mySurface.setCursor(AdtUiCursors.GRABBING);
+          return;
+        }
+      }
+      else if (interceptPanInteraction(event)) {
         handlePanInteraction(myLastMouseX, myLastMouseY);
         return;
       }
@@ -509,6 +527,7 @@ public class InteractionManager implements Disposable {
 
     @Override
     public void mouseReleased(@NotNull MouseEvent event) {
+      // TODO: Should we update the last mouse position and modifiers here?
       if (myIsInteractionCanceled) {
         return;
       }
@@ -516,7 +535,22 @@ public class InteractionManager implements Disposable {
         mySurface.onPopupMenuTrigger(event, true);
         return;
       }
-      else if (interceptPanInteraction(event)) {
+
+      if (myCurrentInteraction instanceof PanInteraction) {
+        // This never be true because PanInteraction never be created when NELE_NEW_INTERACTION_INTERFACE is disable.
+        // Consume event, but only stop panning if the middle mouse button was released.
+        if (SwingUtilities.isMiddleMouseButton(event)) {
+          finishInteraction(event, true);
+        }
+        else {
+          myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+          // TODO: move cursor into Interaction interface.
+          mySurface.setCursor(AdtUiCursors.GRAB);
+        }
+        return;
+      }
+
+      if (interceptPanInteraction(event)) {
         if (SwingUtilities.isMiddleMouseButton(event)) {
           // Consume event, but only disable panning if the middle mouse button was released.
           setPanning(false);
@@ -569,7 +603,15 @@ public class InteractionManager implements Disposable {
       int x = event.getX();
       int y = event.getY();
 
-      if (interceptPanInteraction(event)) {
+      if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+        if (myCurrentInteraction instanceof PanInteraction) {
+          myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+          // TODO: move cursor into Interaction interface.
+          mySurface.setCursor(AdtUiCursors.GRABBING);
+          return;
+        }
+      }
+      else if (interceptPanInteraction(event)) {
         handlePanInteraction(x, y);
         return;
       }
@@ -621,15 +663,23 @@ public class InteractionManager implements Disposable {
     public void mouseMoved(@NotNull MouseEvent event) {
       int x = event.getX();
       int y = event.getY();
+      int modifier = event.getModifiersEx();
       myLastMouseX = x;
       myLastMouseY = y;
+      myLastModifiersEx = modifier;
 
-      if (interceptPanInteraction(event)) {
+      if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+        if (myCurrentInteraction instanceof PanInteraction) {
+          myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+          // TODO: move cursor into Interaction interface.
+          mySurface.setCursor(AdtUiCursors.GRAB);
+          return;
+        }
+      }
+      else if (interceptPanInteraction(event)) {
         handlePanInteraction(x, y);
         return;
       }
-      int modifier = event.getModifiersEx();
-      myLastModifiersEx = modifier;
 
       mySurface.hover(x, y);
       if ((myLastModifiersEx & InputEvent.BUTTON1_DOWN_MASK) != 0) {
@@ -945,10 +995,22 @@ public class InteractionManager implements Disposable {
   }
 
   void setPanning(boolean panning) {
-    if (panning != myIsPanning) {
-      myIsPanning = panning;
-      mySurface.setCursor(panning ? AdtUiCursors.GRAB
-                                  : Cursor.getDefaultCursor());
+    if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+      if (panning && !(myCurrentInteraction instanceof PanInteraction)) {
+        startInteraction(null, new PanInteraction(mySurface));
+        mySurface.setCursor(AdtUiCursors.GRAB);
+      }
+      else if (!panning && myCurrentInteraction instanceof PanInteraction) {
+        finishInteraction(null, false);
+        mySurface.setCursor(Cursor.getDefaultCursor());
+      }
+    }
+    else {
+      if (panning != myIsPanning) {
+        myIsPanning = panning;
+        mySurface.setCursor(panning ? AdtUiCursors.GRAB
+                                    : Cursor.getDefaultCursor());
+      }
     }
   }
 
@@ -960,7 +1022,7 @@ public class InteractionManager implements Disposable {
    */
   public boolean interceptPanInteraction(@NotNull MouseEvent event) {
     boolean wheelClickDown = SwingUtilities.isMiddleMouseButton(event);
-    if (myIsPanning || wheelClickDown) {
+    if (isPanning() || wheelClickDown) {
       boolean leftClickDown = SwingUtilities.isLeftMouseButton(event);
       mySurface.setCursor((leftClickDown || wheelClickDown) ? AdtUiCursors.GRABBING : AdtUiCursors.GRAB);
       return true;
@@ -974,19 +1036,14 @@ public class InteractionManager implements Disposable {
 
   /**
    * Scroll the {@link DesignSurface} by the same amount as the drag distance.
+   * TODO: remove this function after {@link StudioFlags#NELE_NEW_INTERACTION_INTERFACE} is removed.
    *
    * @param x     x position of the cursor for the passed event
    * @param y     y position of the cursor for the passed event
    */
-  void handlePanInteraction(@SwingCoordinate int x, @SwingCoordinate int y) {
-    DesignSurface surface = getSurface();
-    Point position = surface.getScrollPosition();
+  private void handlePanInteraction(@SwingCoordinate int x, @SwingCoordinate int y) {
     setPanning(true);
-    // position can be null in tests
-    if (position != null) {
-      position.translate(myLastMouseX - x, myLastMouseY - y);
-      surface.setScrollPosition(position);
-    }
+    PanInteraction.handlePanInteraction(mySurface, x, y, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
   }
 
   /**

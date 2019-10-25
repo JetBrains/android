@@ -148,7 +148,7 @@ public class DragDropInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
+  public void begin(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
     assert event instanceof DropTargetDragEvent;
     DropTargetDragEvent dropEvent = (DropTargetDragEvent) event;
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.

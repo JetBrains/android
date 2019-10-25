@@ -52,10 +52,13 @@ interface Interaction2 {
   /**
    * Called when the interaction is started.
    *
+   * Argument [event] may be null if this interaction is started without any events. For example, the action is forced started by an action
+   * in [DesignSurface].
+   *
    * The [interactionInformation] provided the most recent event information when the interaction is started. For example, if an interaction
    * is started by a [KeyEvent] but it needs to know the current mouse information, then it can find it from [interactionInformation].
    */
-  fun begin(event: EventObject, interactionInformation: InteractionInformation)
+  fun begin(event: EventObject?, interactionInformation: InteractionInformation)
 
   /**
    * Called when the interaction is updated.

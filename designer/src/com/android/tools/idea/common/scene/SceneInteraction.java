@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.SceneView;
+import com.intellij.openapi.diagnostic.Logger;
 import java.awt.event.MouseEvent;
 import java.util.EventObject;
 import org.intellij.lang.annotations.JdkConstants;
@@ -47,10 +48,14 @@ public class SceneInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
-    assert event instanceof MouseEvent;
-    MouseEvent mouseEvent = (MouseEvent)event;
-    begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
+  public void begin(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    if (event instanceof MouseEvent) {
+      MouseEvent mouseEvent = (MouseEvent)event;
+      begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
+    }
+    else {
+      Logger.getInstance(SceneInteraction.class).warn("The Scene Interaction shouldn't be started by event " + event);
+    }
   }
 
   /**
