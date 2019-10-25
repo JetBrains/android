@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android
 
-import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
+import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.testing.moveCaret

@@ -29,8 +29,8 @@ import org.mockito.Mockito;
 
 import java.util.*;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 
 /**
  * Additional tests for {@link NonGradleApkProvider} that require a project setup with

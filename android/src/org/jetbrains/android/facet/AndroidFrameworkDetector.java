@@ -40,7 +40,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static org.jetbrains.android.facet.AndroidRootUtil.getProjectPropertyValue;
 import static org.jetbrains.android.util.AndroidUtils.*;
 

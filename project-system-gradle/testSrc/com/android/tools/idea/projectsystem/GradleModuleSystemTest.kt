@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
-import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
+import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.ide.common.gradle.model.stubs.l2AndroidLibrary
 import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuilder

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.templates.TemplateManager.CATEGORY_AUTOMOTIVE;
 import static com.android.tools.idea.templates.TemplateManager.CATEGORY_COMPOSE;
 import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX;

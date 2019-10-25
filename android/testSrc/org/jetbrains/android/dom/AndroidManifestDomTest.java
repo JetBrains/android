@@ -1,6 +1,6 @@
 package org.jetbrains.android.dom;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 
 import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionType;

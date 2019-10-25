@@ -24,6 +24,7 @@ import static org.jetbrains.android.util.AndroidBuildCommonUtils.PROGUARD_SYSTEM
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.TARGET_FILE_NAME_ATTRIBUTE;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.URL_ATTRIBUTE;
 
+import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -100,7 +101,7 @@ public class JpsAndroidModuleProperties {
 
   public String APK_PATH = "";
 
-  public int PROJECT_TYPE = PROJECT_TYPE_APP;
+  public int PROJECT_TYPE = AndroidProjectTypes.PROJECT_TYPE_APP;
 
   public boolean RUN_PROCESS_RESOURCES_MAVEN_TASK = true;
 

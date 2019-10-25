@@ -17,7 +17,7 @@ package org.jetbrains.android.util;
 
 import static com.android.SdkConstants.ATTR_CONTEXT;
 import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.intellij.openapi.application.ApplicationManager.getApplication;
 
 import com.android.SdkConstants;
