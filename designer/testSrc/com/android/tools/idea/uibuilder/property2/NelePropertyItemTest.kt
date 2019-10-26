@@ -113,7 +113,7 @@ class NelePropertyItemTest {
 
   @After
   fun tearDown() {
-    componentStack!!.restoreComponents()
+    componentStack!!.restore()
     componentStack = null
   }
 

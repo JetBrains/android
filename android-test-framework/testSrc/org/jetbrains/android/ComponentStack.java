@@ -51,7 +51,7 @@ public class ComponentStack {
     ((ComponentManagerImpl)myComponentManager).registerComponentInstance(key, instance);
   }
 
-  public void restoreComponents() {
+  public void restore() {
     while (!myComponents.isEmpty()) {
       ComponentItem component = myComponents.pop();
       ((ComponentManagerImpl)myComponentManager).registerComponentInstance((Class)component.key, component.instance);
