@@ -24,12 +24,12 @@ import java.util.Deque;
 
 // TODO: Move this to a place to be shared with AndroidTestCase
 public class ComponentStack {
-  private final ComponentManagerImpl myComponentManager;
+  private final ComponentManager myComponentManager;
   private final MutablePicoContainer myContainer;
   private final Deque<ComponentItem> myComponents;
 
   public ComponentStack(@NotNull ComponentManager manager) {
-    myComponentManager = (ComponentManagerImpl)manager;
+    myComponentManager = manager;
     myContainer = (MutablePicoContainer)manager.getPicoContainer();
     myComponents = new ArrayDeque<>();
   }
@@ -45,7 +45,7 @@ public class ComponentStack {
   public <T> void registerComponentInstance(@NotNull Class<T> key, @NotNull T instance) {
     Object old = myComponentManager.getComponent(key);
     myComponents.push(new ComponentItem(key, old));
-    myComponentManager.registerComponentInstance(key, instance);
+    ((ComponentManagerImpl)myComponentManager).registerComponentInstance(key, instance);
   }
 
   public void restoreComponents() {
@@ -53,7 +53,7 @@ public class ComponentStack {
       ComponentItem component = myComponents.pop();
       if (component.key instanceof Class) {
         //noinspection unchecked
-        myComponentManager.registerComponentInstance((Class)component.key, component.instance);
+        ((ComponentManagerImpl)myComponentManager).registerComponentInstance((Class)component.key, component.instance);
       }
       else {
         myContainer.unregisterComponent(component.key.toString());
