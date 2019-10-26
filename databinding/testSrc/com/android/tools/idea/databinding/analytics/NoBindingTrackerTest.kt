@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding.analytics
 
-import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -23,7 +22,6 @@ import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.createAndroidProjectBuilder
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -35,10 +33,12 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-class ViewBindingTrackerTest {
+/**
+ * Tracking on a project without view binding or data binding enabled on it.
+ */
+class NoBindingTrackerTest {
   @get:Rule
-  val projectRule =
-    AndroidProjectRule.withAndroidModel(createAndroidProjectBuilder(viewBindingOptions = { ViewBindingOptionsStub(true) }))
+  val projectRule = AndroidProjectRule.onDisk()
 
   /**
    * Expose the underlying project rule fixture directly.
@@ -54,7 +54,7 @@ class ViewBindingTrackerTest {
 
   @Before
   fun setUp() {
-    assertThat(facet.isViewBindingEnabled()).isTrue()
+    assertThat(facet.isViewBindingEnabled()).isFalse()
     fixture.addFileToProject("src/main/AndroidManifest.xml", """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
@@ -64,7 +64,7 @@ class ViewBindingTrackerTest {
   }
 
   @Test
-  fun trackViewBindingPollingMetadata() {
+  fun trackNonViewBindingEnabledProject() {
     fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
       <?xml version="1.0" encoding="utf-8"?>
         <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
@@ -85,46 +85,7 @@ class ViewBindingTrackerTest {
           .map { it.dataBindingEvent.viewBindingMetadata }
           .lastOrNull()
 
-        assertThat(viewBindingPollMetadata!!.viewBindingEnabled).isTrue()
-        assertThat(viewBindingPollMetadata.layoutXmlCount).isEqualTo(1)
-      }
-      finally {
-        tracker.close()
-        UsageTracker.cleanAfterTesting()
-      }
-    }
-  }
-
-  @Test
-  fun trackViewBindingProjectWithIgnoredLayouts() {
-    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
-      <?xml version="1.0" encoding="utf-8"?>
-        <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
-            <TextView android:id="@+id/testId"/>
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    """.trimIndent())
-    fixture.addFileToProject("src/main/res/layout/activity_ignored.xml", """
-      <?xml version="1.0" encoding="utf-8"?>
-        <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools" tools:viewBindingIgnore="true">
-            <TextView android:id="@+id/testId"/>
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    """.trimIndent())
-
-    val tracker = TestUsageTracker(VirtualTimeScheduler())
-    WriteCommandAction.runWriteCommandAction(projectRule.project) {
-      try {
-        UsageTracker.setWriterForTest(tracker)
-        val syncState = GradleSyncState.getInstance(projectRule.project)
-        syncState.syncStarted(GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED), null)
-        syncState.syncSucceeded()
-        val viewBindingPollMetadata = tracker.usages
-          .map { it.studioEvent }
-          .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
-          .map { it.dataBindingEvent.viewBindingMetadata }
-          .lastOrNull()
-
-        assertThat(viewBindingPollMetadata!!.layoutXmlCount).isEqualTo(1)
+        assertThat(viewBindingPollMetadata).isNull()
       }
       finally {
         tracker.close()
