@@ -70,7 +70,7 @@ public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
   @Override
   public void tearDown() throws Exception {
     try {
-      myComponentStack.restoreComponents();
+      myComponentStack.restore();
       myIdeSdks = null;
       myJdks = null;
       myIdeInfo = null;

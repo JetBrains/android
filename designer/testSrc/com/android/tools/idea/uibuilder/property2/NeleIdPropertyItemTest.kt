@@ -68,7 +68,7 @@ class NeleIdPropertyItemTest {
   @After
   fun tearDown() {
     NeleIdRenameProcessor.choiceForNextRename = RefactoringChoice.ASK
-    componentStack!!.restoreComponents()
+    componentStack!!.restore()
     componentStack = null
   }
 

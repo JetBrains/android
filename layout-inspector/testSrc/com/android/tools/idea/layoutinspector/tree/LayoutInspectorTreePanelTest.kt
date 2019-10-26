@@ -57,7 +57,7 @@ class LayoutInspectorTreePanelTest {
   @After
   fun tearDown() {
     InspectorBuilder.tearDownDemo()
-    componentStack!!.restoreComponents()
+    componentStack!!.restore()
     componentStack = null
   }
 

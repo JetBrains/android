@@ -32,9 +32,9 @@ public abstract class WorkBenchTestCase extends PlatformTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
-      myApplicationComponentStack.restoreComponents();
+      myApplicationComponentStack.restore();
       myApplicationComponentStack = null;
-      myProjectComponentStack.restoreComponents();
+      myProjectComponentStack.restore();
       myProjectComponentStack = null;
     }
     catch (Throwable e) {
