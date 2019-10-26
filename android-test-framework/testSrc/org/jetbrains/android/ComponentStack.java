@@ -28,18 +28,20 @@ public class ComponentStack {
   private final ComponentManager myComponentManager;
   private final MutablePicoContainer myContainer;
   private final Deque<ComponentItem> myComponents;
+  private final Deque<ComponentItem> myServices;
 
   public ComponentStack(@NotNull ComponentManager manager) {
     myComponentManager = manager;
     myContainer = (MutablePicoContainer)manager.getPicoContainer();
     myComponents = new ArrayDeque<>();
+    myServices = new ArrayDeque<>();
   }
 
   public <T> void registerServiceInstance(@NotNull Class<T> key, @NotNull T instance) {
     String keyName = key.getName();
     Object old = myContainer.getComponentInstance(keyName);
     myContainer.unregisterComponent(keyName);
-    myComponents.push(new ComponentItem(keyName, old));
+    myServices.push(new ComponentItem(key, old));
     myContainer.registerComponentInstance(keyName, instance);
   }
 
@@ -52,24 +54,22 @@ public class ComponentStack {
   public void restoreComponents() {
     while (!myComponents.isEmpty()) {
       ComponentItem component = myComponents.pop();
-      if (component.key instanceof Class) {
-        //noinspection unchecked
-        ((ComponentManagerImpl)myComponentManager).registerComponentInstance((Class)component.key, component.instance);
-      }
-      else {
-        myContainer.unregisterComponent(component.key.toString());
-        if (component.instance != null) {
-          myContainer.registerComponentInstance(component.key.toString(), component.instance);
-        }
+      ((ComponentManagerImpl)myComponentManager).registerComponentInstance((Class)component.key, component.instance);
+    }
+    while (!myServices.isEmpty()) {
+      ComponentItem service = myServices.pop();
+      myContainer.unregisterComponent(service.key.getName());
+      if (service.instance != null) {
+        myContainer.registerComponentInstance(service.key.getName(), service.instance);
       }
     }
   }
 
   private static class ComponentItem {
-    private final Object key;
+    private final Class key;
     private final Object instance;
 
-    private ComponentItem(@NotNull Object key, @Nullable Object instance) {
+    private ComponentItem(@NotNull Class key, @Nullable Object instance) {
       this.key = key;
       this.instance = instance;
     }
