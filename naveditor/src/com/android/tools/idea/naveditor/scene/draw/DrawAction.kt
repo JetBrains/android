@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingLength
+import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.adtui.common.toSwingRect
 import com.android.tools.idea.common.model.Scale
+import com.android.tools.idea.common.model.times
 import com.android.tools.idea.common.model.toScale
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
@@ -24,9 +27,7 @@ import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorToString
 import com.android.tools.idea.common.scene.draw.parse
-import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToColor
-import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.naveditor.scene.ACTION_ARROW_PARALLEL
 import com.android.tools.idea.naveditor.scene.ACTION_ARROW_PERPENDICULAR
 import com.android.tools.idea.naveditor.scene.ACTION_STROKE
@@ -39,23 +40,22 @@ import com.android.tools.idea.naveditor.scene.makeDrawArrowCommand
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.geom.GeneralPath
-import java.awt.geom.Rectangle2D
 
 /**
  * [DrawCommand] that draw a nav editor action (an arrow between two screens).
  */
-class DrawAction(@VisibleForTesting @SwingCoordinate val source: Rectangle2D.Float,
-                 @VisibleForTesting @SwingCoordinate val dest: Rectangle2D.Float,
+class DrawAction(@VisibleForTesting val source: SwingRectangle,
+                 @VisibleForTesting val dest: SwingRectangle,
                  @VisibleForTesting val scale: Scale,
                  @VisibleForTesting val color: Color,
                  @VisibleForTesting val isPopAction: Boolean) : CompositeDrawCommand() {
 
   private constructor(tokens: Array<String>)
-    : this(stringToRect2D(tokens[0]), stringToRect2D(tokens[1]), tokens[2].toScale(), stringToColor(tokens[3]), tokens[4].toBoolean())
+    : this(tokens[0].toSwingRect(), tokens[1].toSwingRect(), tokens[2].toScale(), stringToColor(tokens[3]), tokens[4].toBoolean())
 
   constructor(serialized: String) : this(parse(serialized, 5))
 
-  override fun serialize(): String = buildString(javaClass.simpleName, rect2DToString(source), rect2DToString(dest),
+  override fun serialize(): String = buildString(javaClass.simpleName, source.toString(), dest.toString(),
                                                  scale, colorToString(color), isPopAction)
 
   override fun buildCommands(): List<DrawCommand> {
@@ -63,8 +63,8 @@ class DrawAction(@VisibleForTesting @SwingCoordinate val source: Rectangle2D.Flo
 
     val (p1, p2, p3, p4, direction) = getCurvePoints(source, dest, scale)
     val path = GeneralPath()
-    path.moveTo(p1.x, p1.y)
-    path.curveTo(p2.x, p2.y, p3.x, p3.y, p4.x, p4.y)
+    path.moveTo(p1.x.toDouble(), p1.y.toDouble())
+    path.curveTo(p2.x.toDouble(), p2.y.toDouble(), p3.x.toDouble(), p3.y.toDouble(), p4.x.toDouble(), p4.y.toDouble())
     list.add(DrawShape(path, color, ACTION_STROKE))
 
     val arrowDirection = getArrowDirection(direction)
@@ -81,22 +81,30 @@ class DrawAction(@VisibleForTesting @SwingCoordinate val source: Rectangle2D.Flo
     return list
   }
 
-  @SwingCoordinate
-  fun getArrowRectangle(direction: ConnectionDirection): Rectangle2D.Float {
+  private fun getArrowRectangle(direction: ConnectionDirection): SwingRectangle {
     val p = getArrowPoint(scale, dest, direction)
 
-    val rectangle = Rectangle2D.Float()
-    val parallel = ACTION_ARROW_PARALLEL * scale.value.toFloat()
-    val perpendicular = ACTION_ARROW_PERPENDICULAR * scale.value.toFloat()
-    val deltaX = direction.deltaX.toFloat()
-    val deltaY = direction.deltaY.toFloat()
+    val parallel = ACTION_ARROW_PARALLEL * scale
+    val perpendicular = ACTION_ARROW_PERPENDICULAR * scale
 
-    rectangle.x = p.x + (if (deltaX == 0f) -perpendicular else parallel * (deltaX - 1)) / 2
-    rectangle.y = p.y + (if (deltaY == 0f) -perpendicular else parallel * (deltaY - 1)) / 2
-    rectangle.width = Math.abs(deltaX * parallel) + Math.abs(deltaY * perpendicular)
-    rectangle.height = Math.abs(deltaX * perpendicular) + Math.abs(deltaY * parallel)
+    val x = p.x + when (direction) {
+      ConnectionDirection.TOP, ConnectionDirection.BOTTOM -> -perpendicular / 2
+      ConnectionDirection.LEFT -> -parallel
+      else -> SwingLength(0f)
+    }
 
-    return rectangle
+    val y = p.y + when (direction) {
+      ConnectionDirection.LEFT, ConnectionDirection.RIGHT -> -perpendicular / 2
+      ConnectionDirection.TOP -> -parallel
+      else -> SwingLength(0f)
+    }
+
+    val (width, height) = when (direction) {
+      ConnectionDirection.LEFT, ConnectionDirection.RIGHT -> Pair(parallel, perpendicular)
+      else -> Pair(perpendicular, parallel)
+    }
+
+    return SwingRectangle(x, y, width, height)
   }
 
   companion object {

@@ -20,15 +20,16 @@ import com.android.ide.common.rendering.api.ResourceValue
 import com.android.resources.ScreenOrientation
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.common.model.AndroidLength
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.scaledAndroidLength
 import com.android.tools.idea.common.scene.HitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.scene.TemporarySceneComponent
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.model.ActionType
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.model.actionDestination
@@ -77,24 +78,13 @@ private val PAN_LIMIT = JBUIScale.scale(150)
 @NavCoordinate
 private val BOUNDING_BOX_PADDING = JBUIScale.scale(100)
 
-@NavCoordinate
-val ACTION_ARROW_PARALLEL = JBUIScale.scale(10f)
-@NavCoordinate
-val ACTION_ARROW_PERPENDICULAR = JBUIScale.scale(12f)
-
-@NavCoordinate
 private val ACTION_HEIGHT = ACTION_ARROW_PERPENDICULAR
-@NavCoordinate
-private val ACTION_VERTICAL_PADDING = JBUIScale.scale(6)
-@NavCoordinate
-private val POP_ICON_VERTICAL_PADDING = JBUIScale.scale(10)
+private val ACTION_VERTICAL_PADDING = scaledAndroidLength(6f)
+private val POP_ICON_VERTICAL_PADDING = scaledAndroidLength(10f)
 
-@NavCoordinate
-private val ACTION_LINE_LENGTH = JBUIScale.scale(14)
-@NavCoordinate
+private val ACTION_LINE_LENGTH = scaledAndroidLength(14f)
 private val ACTION_WIDTH = ACTION_ARROW_PARALLEL + ACTION_LINE_LENGTH
-@NavCoordinate
-private val ACTION_HORIZONTAL_PADDING = JBUIScale.scale(8)
+private val ACTION_HORIZONTAL_PADDING = scaledAndroidLength(8f)
 
 /**
  * [SceneManager] for the navigation editor.
@@ -487,11 +477,11 @@ open class NavSceneManager(
                                   globalActions: MutableList<SceneComponent?>,
                                   skip: Boolean) {
     layoutActions(destination, globalActions, skip,
-                  (destination.drawX.toFloat() - ACTION_WIDTH - ACTION_HORIZONTAL_PADDING.toFloat()).toInt())
+                  (AndroidLength(destination.drawX.toFloat()) - ACTION_WIDTH - ACTION_HORIZONTAL_PADDING).toInt())
   }
 
   private fun layoutExitActions(source: SceneComponent, exitActions: MutableList<SceneComponent?>, skip: Boolean) {
-    layoutActions(source, exitActions, skip, source.drawX + source.drawWidth + ACTION_HORIZONTAL_PADDING)
+    layoutActions(source, exitActions, skip, source.drawX + source.drawWidth + ACTION_HORIZONTAL_PADDING.toInt())
   }
 
   private fun layoutActions(component: SceneComponent, actions: MutableList<SceneComponent?>, skip: Boolean, @NavCoordinate x: Int) {
@@ -517,12 +507,12 @@ open class NavSceneManager(
 
     @NavCoordinate var y = (component.drawY + component.drawHeight / 2
                             - ACTION_HEIGHT.toInt() / 2 - count / 2 * (ACTION_HEIGHT + ACTION_VERTICAL_PADDING).toInt()
-                            - popIconCount * POP_ICON_VERTICAL_PADDING)
+                            - popIconCount * POP_ICON_VERTICAL_PADDING.toInt())
 
     for (action in actions) {
       if (action != null) {
         if (action.nlComponent.popUpTo != null) {
-          y += POP_ICON_VERTICAL_PADDING
+          y += POP_ICON_VERTICAL_PADDING.toInt()
         }
 
         action.setPosition(x, y)

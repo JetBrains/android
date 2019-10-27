@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BACKGROUND
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_TEXT
@@ -33,7 +34,7 @@ import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 
 var IMAGE_DIMENSION = Dimension(5, 5)
-var DRAW_COMMAND_RECTANGLE = Rectangle2D.Float(1f, 2f, 3f, 4f)
+var DRAW_COMMAND_RECTANGLE = SwingRectangle(Rectangle2D.Float(1f, 2f, 3f, 4f))
 
 class TestDrawNavScreen {
   @Test
@@ -86,8 +87,8 @@ class TestDrawNavScreen {
     return graphics
   }
 
-  private fun createRectangle() : Rectangle2D.Float {
-    return Rectangle2D.Float(DRAW_COMMAND_RECTANGLE.x, DRAW_COMMAND_RECTANGLE.y,
+  private fun createRectangle() : SwingRectangle {
+    return SwingRectangle(DRAW_COMMAND_RECTANGLE.x, DRAW_COMMAND_RECTANGLE.y,
                                   DRAW_COMMAND_RECTANGLE.width, DRAW_COMMAND_RECTANGLE.height)
   }
 

@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.scene.decorator
 import com.android.SdkConstants
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
-import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
@@ -26,14 +26,11 @@ import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.naveditor.model.className
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
-import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
-import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import com.android.tools.idea.res.resolve
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.xml.XmlFile
 import java.awt.Dimension
-import java.awt.geom.Rectangle2D
 import java.io.File
 
 /**
@@ -53,7 +50,7 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
 
   protected fun buildImage(sceneContext: SceneContext,
                            component: SceneComponent,
-                           @SwingCoordinate rectangle: Rectangle2D.Float): RefinableImage? {
+                           rectangle: SwingRectangle): RefinableImage? {
     val layout = component.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT)
     val className = component.nlComponent.className
 
