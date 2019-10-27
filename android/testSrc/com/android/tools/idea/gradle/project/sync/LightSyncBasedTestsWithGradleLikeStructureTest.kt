@@ -15,20 +15,25 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.testutils.TestUtils
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.createAndroidProjectBuilder
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.idea.testing.saveAndDump
+import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.android.AndroidTestCase
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TestName
+import java.io.File
 
 /**
  * A test case that ensures the correct behavior of [AndroidProjectRule.withAndroidModel] way to set up test projects.
@@ -78,3 +83,22 @@ class LightSyncBasedTestsWithDefaultTestProjectStructureTest : SnapshotCompariso
     assertIsEqualToSnapshot(dump)
   }
 }
+
+class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTest {
+  override val snapshotDirectoryName: String = "syncedProjectSnapshots"
+
+  override fun setUp() {
+    super.setUp()
+    AndroidGradleTests.setUpSdks(myFixture, TestUtils.getSdk())
+  }
+
+  @Test
+  fun testLightTestsWithDefaultTestProjectStructureForAndroidTestCase() {
+    setupTestProjectFromAndroidModel(project, File(myFixture.tempDirPath), createAndroidProjectBuilderForDefaultTestProjectStructure())
+    assertThat(ModuleManager.getInstance(project).modules).asList().hasSize(1)
+    assertThat(ModuleManager.getInstance(project).modules).asList().contains(myModule)
+    val dump = project.saveAndDump(additionalRoots = mapOf("TEMP" to File(myFixture.tempDirPath)))
+    assertIsEqualToSnapshot(dump)
+  }
+}
+
