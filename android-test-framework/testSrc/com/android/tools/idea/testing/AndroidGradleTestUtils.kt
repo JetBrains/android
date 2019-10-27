@@ -57,7 +57,9 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetu
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.common.truth.TruthJUnit
+import com.google.common.truth.TruthJUnit.assume
 import com.intellij.externalSystem.JavaProjectData
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ModuleData
@@ -66,7 +68,9 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ExternalProjectSystemRegistry.EXTERNAL_SYSTEM_ID_KEY
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet
@@ -323,7 +327,27 @@ fun setupTestProjectFromAndroidModel(
 ) {
 
   val moduleManager = ModuleManager.getInstance(project)
-  TruthJUnit.assume().that(moduleManager.modules.size).isEqualTo(0)
+  if (moduleManager.modules.size == 1) {
+    runWriteAction {
+      val module = moduleManager.modules[0]
+      val modifiableModel = moduleManager.modifiableModel
+      if (module.name != project.name) {
+        modifiableModel.renameModule(module, project.name)
+        modifiableModel.setModuleGroupPath(module, arrayOf(project.name))
+      }
+      modifiableModel.commit()
+      module.setOption(EXTERNAL_SYSTEM_ID_KEY, GRADLE_SYSTEM_ID.id)
+      ExternalSystemModulePropertyManager
+        .getInstance(module)
+        .setExternalOptions(
+          GRADLE_SYSTEM_ID,
+          ModuleData(":", GRADLE_SYSTEM_ID, JAVA.id, project.name, basePath.path, basePath.path),
+          ProjectData(GRADLE_SYSTEM_ID, project.name, project.basePath!!, basePath.path))
+    }
+  }
+  else {
+    assume().that(moduleManager.modules.size).isEqualTo(0)
+  }
 
   val gradlePlugins = listOf(
     "com.android.java.model.builder.JavaLibraryPlugin", "org.gradle.buildinit.plugins.BuildInitPlugin",
