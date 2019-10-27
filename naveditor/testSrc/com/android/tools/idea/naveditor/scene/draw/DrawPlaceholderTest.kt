@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.naveditor.NavTestCase
@@ -32,7 +33,7 @@ private const val HEIGHT = 120f
 
 class DrawPlaceholderTest : NavTestCase() {
   fun testDrawPlaceholder() {
-    val rectangle = Rectangle2D.Float(X, Y, WIDTH, HEIGHT)
+    val rectangle = SwingRectangle(Rectangle2D.Float(X, Y, WIDTH, HEIGHT))
     val drawPlaceholder = DrawPlaceholder(rectangle)
     val stroke = BasicStroke(REGULAR_FRAME_THICKNESS)
 
