@@ -61,7 +61,8 @@ import java.lang.Math.max
  */
 class ProjectDumper(
   private val offlineRepos: List<File> = getOfflineM2Repositories(),
-  private val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!
+  private val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!,
+  private val additionalRoots: Map<String, File> = emptyMap()
 ) {
   private val devBuildHome: File = getStudioSourcesLocation()
   private val gradleCache: File = getGradleCacheLocation()
@@ -121,8 +122,9 @@ class ProjectDumper(
   }
 
   fun String.replaceKnownPaths(): String =
-    offlineRepos
-      .fold(initial = this) { text, repo -> text.replace(repo.absolutePath, "<M2>", ignoreCase = false) }
+    this
+      .let { offlineRepos.fold(it) { text, repo -> text.replace(repo.absolutePath, "<M2>", ignoreCase = false) } }
+      .let { additionalRoots.entries.fold(it) { text, (name, dir) -> text.replace(dir.absolutePath, "<$name>", ignoreCase = false) } }
       .replace(currentRootDirectory.absolutePath, "<$currentRootDirectoryName>", ignoreCase = false)
       .replace(gradleCache.absolutePath, "<GRADLE>", ignoreCase = false)
       .replace(androidSdk.absolutePath, "<ANDROID_SDK>", ignoreCase = false)
