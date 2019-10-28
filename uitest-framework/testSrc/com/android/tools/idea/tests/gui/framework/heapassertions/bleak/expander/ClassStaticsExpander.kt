@@ -17,7 +17,8 @@ package com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander
 
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Edge
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.HeapGraph
-import com.intellij.util.ref.DebugReflectionUtil
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.ReflectionUtil
+import sun.misc.Unsafe
 import java.lang.reflect.Modifier
 
 /** [ClassStaticsExpander] takes a Class object and generates children for all of its static fields,
@@ -26,8 +27,8 @@ import java.lang.reflect.Modifier
 class ClassStaticsExpander(g: HeapGraph): DefaultObjectExpander(g, { _, _, _ -> false}) {
   override fun canExpand(obj: Any) = obj is Class<*>
   override fun expand(n: Node) {
-    if (DebugReflectionUtil.isInitialized(n.obj as Class<*>)) {
-      for (field in DebugReflectionUtil.getAllFields(n.obj)) {
+    if ((n.obj as Class<*>).isInitialized()) {
+      for (field in ReflectionUtil.getAllFields(n.obj)) {
         if ((field.modifiers and Modifier.STATIC) != 0) {
           val value = field.get(null)
           if (value != null) {
@@ -53,6 +54,22 @@ class ClassStaticsExpander(g: HeapGraph): DefaultObjectExpander(g, { _, _, _ -> 
     }
     // for the instance fields of the Class object. Note the classLoader field is not exposed via reflection.
     return super.getChildForLabel(n, label)
+  }
+
+  companion object {
+    private val Unsafe_shouldBeInitialized = Unsafe::class.java.getDeclaredMethod("shouldBeInitialized", Class::class.java)
+    private val unsafe: Unsafe
+
+    init {
+      Unsafe_shouldBeInitialized.isAccessible = true
+      val theUnsafeField = Unsafe::class.java.getDeclaredField("theUnsafe")
+      theUnsafeField.isAccessible = true
+      unsafe = theUnsafeField.get(null) as Unsafe
+    }
+
+    private fun Class<*>.isInitialized(): Boolean {
+      return !(Unsafe_shouldBeInitialized.invoke(unsafe, this) as Boolean)
+    }
   }
 
 }

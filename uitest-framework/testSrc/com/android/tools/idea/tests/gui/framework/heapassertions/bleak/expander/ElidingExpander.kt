@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander
 
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.HeapGraph
-import com.intellij.util.ref.DebugReflectionUtil
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.ReflectionUtil
 import java.util.ArrayDeque
 import java.util.IdentityHashMap
 
@@ -39,7 +39,7 @@ class ElidingExpander(g: HeapGraph, val baseTypeName: String, val childFinder: A
 
   companion object {
     private fun List<Any>.fields(vararg names: String): List<Any> = flatMap { obj ->
-      names.mapNotNull { name -> DebugReflectionUtil.getAllFields(obj.javaClass).find { it.name == name }?.get(obj) } }
+      names.mapNotNull { name -> ReflectionUtil.getAllFields(obj.javaClass).find { it.name == name }?.get(obj) } }
 
     private fun List<Any>.expandArrays(): List<Any> = flatMap { obj ->
       if (obj is Array<*>) {
