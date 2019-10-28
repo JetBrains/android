@@ -738,6 +738,20 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION = Flag.create(
+    COMPOSE, "documentation.render.sample",
+    "Render samples of compose elements inside documentation",
+    "If enabled, adds rendered image of sample for compose element if such exists",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION_SLOW = Flag.create(
+    COMPOSE, "documentation.render.sample.slow",
+    "Slow down rendering of samples of compose elements inside documentation",
+    "If enabled, slow down rendering of samples of compose elements inside documentation, this flag is used for demonstration of non-blocking behavior",
+    false
+  );
+
   //endregion
 
   //region Manifests
@@ -746,6 +760,7 @@ public final class StudioFlags {
     MANIFESTS, "index.enabled", "Enable Android Manifest Indexing",
     "Enables a custom index for pre-parsing your project's AndroidManifest.xml files",
     true);
+
   //endregion
   private StudioFlags() { }
 }
