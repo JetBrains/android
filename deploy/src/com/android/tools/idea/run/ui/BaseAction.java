@@ -22,7 +22,9 @@ import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
+import com.intellij.debugger.memory.utils.AndroidUtil;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.Executor;
@@ -38,6 +40,7 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.runners.ProgramRunner;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -119,7 +122,7 @@ public abstract class BaseAction extends AnAction {
   public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     Project project = e.getProject();
-    if (project == null) {
+    if (project == null || !CommonAndroidUtil.getInstance().isAndroidProject(project)) {
       presentation.setVisible(false);
       return;
     }
@@ -302,6 +305,7 @@ public abstract class BaseAction extends AnAction {
   }
 
   protected void disableAction(@NotNull Presentation presentation, @NotNull DisableMessage disableMessage) {
+    if (!presentation.isVisible()) return;
     presentation.setVisible(disableMessage.myDisableMode != DisableMessage.DisableMode.INVISIBLE);
     presentation.setEnabled(false);
     presentation.setText(String.format("%s (disabled: %s)", myName, disableMessage.myTooltip));
