@@ -18,11 +18,8 @@ package com.android.tools.idea.transport
 import com.android.ddmlib.IDevice
 import com.android.sdklib.devices.Abi
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
-import com.intellij.util.messages.MessageBusFactory
+import com.intellij.util.messages.MessageBus
 
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -42,19 +39,14 @@ class TransportFileManagerTest {
   val temporaryFolder = TemporaryFolder()
 
   private lateinit var mockDevice: IDevice
-  private lateinit var disposable: Disposable
+  private lateinit var messageBus: MessageBus
   private lateinit var fileManager: TransportFileManager
 
   @Before
   fun setUp() {
     mockDevice = mock(IDevice::class.java)
-    disposable = Disposer.newDisposable()
-    fileManager = TransportFileManager(mockDevice, MessageBusFactory.newMessageBus(disposable))
-  }
-
-  @After
-  fun tearDown() {
-    Disposer.dispose(disposable)
+    messageBus = mock(MessageBus::class.java);
+    fileManager = TransportFileManager(mockDevice, messageBus)
   }
 
   @Test
