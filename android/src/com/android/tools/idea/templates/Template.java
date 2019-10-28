@@ -90,7 +90,6 @@ public class Template {
   public static final String TAG_PARAMETER = "parameter";
   public static final String TAG_THUMB = "thumb";
   public static final String TAG_THUMBS = "thumbs";
-  public static final String TAG_ICONS = "icons";
   public static final String ATTR_FORMAT = "format";
   public static final String ATTR_VALUE = "value";
   public static final String ATTR_DEFAULT = "default";
@@ -558,7 +557,6 @@ public class Template {
                      !name.equals("option") &&
                      !name.equals(TAG_THUMBS) &&
                      !name.equals(TAG_THUMB) &&
-                     !name.equals(TAG_ICONS) &&
                      !name.equals(TAG_FORM_FACTOR)) {
               LOG.error("WARNING: Unknown template directive " + name);
             }
