@@ -712,12 +712,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
-    for (Layer layer : myLayers) {
-      layer.onHover(x, y);
-    }
-  }
-
   /**
    * Execute a zoom on the content. See {@link ZoomType} for the different type of zoom available.
    *

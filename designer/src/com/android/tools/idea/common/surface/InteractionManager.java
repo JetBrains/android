@@ -18,7 +18,6 @@ package com.android.tools.idea.common.surface;
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.uibuilder.surface.PanInteraction;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.actions.ZoomType;
@@ -336,15 +335,20 @@ public class InteractionManager implements Disposable {
   /**
    * Updates the current interaction, if any, for the given event.
    */
-  private void updateMouse(@NotNull MouseEvent event, @SwingCoordinate int x, @SwingCoordinate int y) {
-    if (myCurrentInteraction != null) {
-      if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+  private void updateMouseMoved(@NotNull MouseEvent event, @SwingCoordinate int x, @SwingCoordinate int y) {
+    if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+      if (myCurrentInteraction != null) {
         myCurrentInteraction.update(event, new InteractionInformation(x, y, myLastModifiersEx));
       }
       else {
+        myInteractionProvider.hoverWhenNoInteraction(x, y, myLastModifiersEx);
+      }
+    }
+    else {
+      // TODO: Remove below code when StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
+      if (myCurrentInteraction != null) {
         myCurrentInteraction.update(x, y, myLastModifiersEx);
       }
-      mySurface.repaint();
     }
   }
 
@@ -372,6 +376,9 @@ public class InteractionManager implements Disposable {
       }
       myCurrentInteraction = null;
       myLastModifiersEx = 0;
+      if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+        myInteractionProvider.hoverWhenNoInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx);
+      }
       updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
       mySurface.repaint();
     }
@@ -421,8 +428,7 @@ public class InteractionManager implements Disposable {
   void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
       Cursor cursor;
-      if (myCurrentInteraction == null || myCurrentInteraction instanceof SceneInteraction) {
-        // TODO (b/142953949): The Scene.mouseHover() shouldn't be done when updating cursor in SceneInteraction.
+      if (myCurrentInteraction == null) {
         cursor = myInteractionProvider.getCursorWhenNoInteraction(x, y, modifiersEx);
       }
       else {
@@ -492,14 +498,12 @@ public class InteractionManager implements Disposable {
         // TODO: move this logic into InteractionProvider.createInteractionOnClick()
         if (myCurrentInteraction instanceof PanInteraction) {
           myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
-          // TODO: move cursor into Interaction interface.
-          mySurface.setCursor(SwingUtilities.isLeftMouseButton(event) || SwingUtilities.isMiddleMouseButton(event) ? AdtUiCursors.GRABBING
-                                                                                                                   : AdtUiCursors.GRAB);
+          updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
           return;
         }
         else if (SwingUtilities.isMiddleMouseButton(event)) {
           startInteraction(event, new PanInteraction(mySurface));
-          mySurface.setCursor(AdtUiCursors.GRABBING);
+          updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
           return;
         }
       }
@@ -538,8 +542,7 @@ public class InteractionManager implements Disposable {
         }
         else {
           myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
-          // TODO: move cursor into Interaction interface.
-          mySurface.setCursor(AdtUiCursors.GRAB);
+          updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
         }
         return;
       }
@@ -600,8 +603,7 @@ public class InteractionManager implements Disposable {
       if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
         if (myCurrentInteraction instanceof PanInteraction) {
           myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
-          // TODO: move cursor into Interaction interface.
-          mySurface.setCursor(AdtUiCursors.GRABBING);
+          updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
           return;
         }
       }
@@ -657,16 +659,15 @@ public class InteractionManager implements Disposable {
     public void mouseMoved(@NotNull MouseEvent event) {
       int x = event.getX();
       int y = event.getY();
-      int modifier = event.getModifiersEx();
+      int modifiersEx = event.getModifiersEx();
       myLastMouseX = x;
       myLastMouseY = y;
-      myLastModifiersEx = modifier;
+      myLastModifiersEx = modifiersEx;
 
       if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
         if (myCurrentInteraction instanceof PanInteraction) {
           myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
-          // TODO: move cursor into Interaction interface.
-          mySurface.setCursor(AdtUiCursors.GRAB);
+          updateCursor(x, y, modifiersEx);
           return;
         }
       }
@@ -675,17 +676,23 @@ public class InteractionManager implements Disposable {
         return;
       }
 
-      mySurface.hover(x, y);
-      if ((myLastModifiersEx & InputEvent.BUTTON1_DOWN_MASK) != 0) {
-        if (myCurrentInteraction != null) {
-          updateMouse(event, x, y);
-          mySurface.repaint();
-        }
+      if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+        updateMouseMoved(event, x, y);
+        updateCursor(x, y, modifiersEx);
       }
       else {
-        updateCursor(x, y, modifier);
+        myInteractionProvider.hoverWhenNoInteraction(x, y, modifiersEx);
+        if ((myLastModifiersEx & InputEvent.BUTTON1_DOWN_MASK) != 0) {
+          if (myCurrentInteraction != null) {
+            updateMouseMoved(event, x, y);
+          }
+        }
+        else {
+          updateCursor(x, y, modifiersEx);
+        }
       }
 
+      mySurface.repaint();
       myHoverTimer.restart();
     }
 
@@ -899,7 +906,11 @@ public class InteractionManager implements Disposable {
       int y = myLastMouseY;
 
       // TODO: find the correct tooltip? to show
-      mySurface.hover(x, y);
+
+      // TODO (b/142953949): Should layer be hovered when action performed?
+      for (Layer layer : mySurface.getLayers()) {
+        layer.onHover(x, y);
+      }
     }
 
     // --- Implements MouseWheelListener ----
@@ -992,11 +1003,11 @@ public class InteractionManager implements Disposable {
     if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
       if (panning && !(myCurrentInteraction instanceof PanInteraction)) {
         startInteraction(null, new PanInteraction(mySurface));
-        mySurface.setCursor(AdtUiCursors.GRAB);
+        updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
       }
       else if (!panning && myCurrentInteraction instanceof PanInteraction) {
         finishInteraction(null, false);
-        mySurface.setCursor(Cursor.getDefaultCursor());
+        updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
       }
     }
     else {
