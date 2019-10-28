@@ -20,7 +20,6 @@ import com.intellij.ide.DataManager
 import com.intellij.ide.ui.UISettings
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.testFramework.registerServiceInstance
 import org.mockito.Mockito.mock
 
 class PropertyAppRule : ApplicationRule() {
@@ -30,8 +29,8 @@ class PropertyAppRule : ApplicationRule() {
    */
   override fun before() {
     super.before()
-    testApplication.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock())
-    testApplication.registerServiceInstance(ActionManager::class.java, mock(ActionManager::class.java))
-    testApplication.registerServiceInstance(DataManager::class.java, mock(DataManager::class.java))
+    testApplication.registerService(PropertiesComponent::class.java, PropertiesComponentMock())
+    testApplication.registerService(ActionManager::class.java, mock(ActionManager::class.java))
+    testApplication.registerService(DataManager::class.java, mock(DataManager::class.java))
   }
 }
