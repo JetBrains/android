@@ -426,7 +426,6 @@ filegroup(
         ":transport-artifacts",
         ":experimental-sqlite-inspector-artifacts",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
-        "//tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents:ObjectSizeInstrumentationAgent_deploy.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/base/bazel:studio-grpc",
         "//tools/base/bazel:studio-proto",

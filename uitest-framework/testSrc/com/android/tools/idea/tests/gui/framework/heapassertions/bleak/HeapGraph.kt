@@ -79,8 +79,7 @@ class HeapGraph: DoNotTrace {
     var mark = 0
     var growing = false
       private set
-    var leakShareDivisor = 0
-    private var approximateSize = -1
+    private var approximateSize = -1L
 
     init {
       objToNode[obj] = this
@@ -98,12 +97,11 @@ class HeapGraph: DoNotTrace {
       return e.end
     }
 
-    // uses an instrumentation agent to compute the (shallow) size of the object represented by this node.
     // This is done lazily, as it is only of interest on the final iteration, and the computation would be
     // wasteful on previous iterations.
-    fun getApproximateSize(): Int {
-      if (approximateSize == -1) {
-        approximateSize = obj.approxSize()
+    fun getApproximateSize(): Long {
+      if (approximateSize == -1L) {
+        approximateSize = ReflectionUtil.estimateSize(obj)
       }
       return approximateSize
     }
@@ -164,7 +162,7 @@ class HeapGraph: DoNotTrace {
     // trashes marks
     fun dominatedNodes(roots: Collection<Node> = rootNodes, followWeakSoftRefs: Boolean = false) = dominatedNodes(setOf(this), roots)
 
-    fun retainedSize() = dominatedNodes().fold(0) { acc, node -> acc + node.approximateSize }
+    fun retainedSize() = dominatedNodes().fold(0L) { acc, node -> acc + node.approximateSize }
   }
 
   fun forEachNode(action: Node.() -> Unit) = nodes.forEach { it.action() }
@@ -321,18 +319,6 @@ class HeapGraph: DoNotTrace {
 
   companion object {
     val jniHelper: BleakHelper = if (System.getProperty("bleak.jvmti.enabled") == "true") JniBleakHelper() else JavaBleakHelper()
-
-    private val objSizeMethod: Method? = try {
-      Class.forName(
-        "com.android.tools.idea.tests.gui.framework.heapassertions.bleak.agents.ObjectSizeInstrumentationAgent", true,
-        ClassLoader.getSystemClassLoader()).getMethod("getObjectSize", Any::class.java)
-    } catch (e: ClassNotFoundException) {
-      null
-    }
-
-    fun Any?.approxSize(): Int {
-      return (objSizeMethod?.invoke(null, this) as? Long)?.toInt() ?: 0
-    }
 
     fun withThreadsPaused(action: () -> Unit) {
       jniHelper.pauseThreads()
