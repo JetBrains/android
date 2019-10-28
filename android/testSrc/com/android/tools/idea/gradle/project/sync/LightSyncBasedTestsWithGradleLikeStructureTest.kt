@@ -17,7 +17,10 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.AndroidModuleDependency
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.JavaModuleModelBuilder.Companion.rootModuleBuilder
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.createAndroidProjectBuilder
@@ -36,9 +39,9 @@ import org.junit.rules.TestName
 import java.io.File
 
 /**
- * A test case that ensures the correct behavior of [AndroidProjectRule.withAndroidModel] way to set up test projects.
+ * A test case that ensures the correct behavior of [AndroidProjectRule.withAndroidModels] way to set up test projects.
  *
- * See [AndroidProjectRule.withAndroidModel] for more details.
+ * See [AndroidProjectRule.withAndroidModels] for more details.
  */
 @RunsInEdt
 class LightSyncBasedTestsWithGradleLikeStructureTest : SnapshotComparisonTest {
@@ -84,6 +87,29 @@ class LightSyncBasedTestsWithDefaultTestProjectStructureTest : SnapshotCompariso
   }
 }
 
+@RunsInEdt
+class LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest : SnapshotComparisonTest {
+  @get:Rule
+  var testName = TestName()
+
+  val projectRule = AndroidProjectRule.withAndroidModels(rootModuleBuilder, appModuleBuilder, libModuleBuilder)
+
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+
+  override fun getName(): String = testName.methodName
+
+  override val snapshotDirectoryName: String = "syncedProjectSnapshots"
+
+  @Test
+  fun testLightTestsWithMultipleModulesTestProjectStructure() {
+    assertThat(ModuleManager.getInstance(projectRule.project).modules).asList().contains(projectRule.module)
+    assertThat(ModuleManager.getInstance(projectRule.project).modules).asList().hasSize(3)
+    val dump = projectRule.project.saveAndDump()
+    assertIsEqualToSnapshot(dump)
+  }
+}
+
 class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTest {
   override val snapshotDirectoryName: String = "syncedProjectSnapshots"
 
@@ -94,11 +120,31 @@ class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTes
 
   @Test
   fun testLightTestsWithDefaultTestProjectStructureForAndroidTestCase() {
-    setupTestProjectFromAndroidModel(project, File(myFixture.tempDirPath), createAndroidProjectBuilderForDefaultTestProjectStructure())
+    setupTestProjectFromAndroidModel(
+      project,
+      File(myFixture.tempDirPath),
+      AndroidModuleModelBuilder(":", "debug", createAndroidProjectBuilderForDefaultTestProjectStructure())
+    )
     assertThat(ModuleManager.getInstance(project).modules).asList().hasSize(1)
+    assertThat(ModuleManager.getInstance(project).modules).asList().contains(myModule)
+    val dump = project.saveAndDump(additionalRoots = mapOf("TEMP" to File(myFixture.tempDirPath)))
+    assertIsEqualToSnapshot(dump)
+  }
+
+  @Test
+  fun testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase() {
+    setupTestProjectFromAndroidModel(
+      project, File(myFixture.tempDirPath), rootModuleBuilder, appModuleBuilder, libModuleBuilder)
+    assertThat(ModuleManager.getInstance(project).modules).asList().hasSize(3)
     assertThat(ModuleManager.getInstance(project).modules).asList().contains(myModule)
     val dump = project.saveAndDump(additionalRoots = mapOf("TEMP" to File(myFixture.tempDirPath)))
     assertIsEqualToSnapshot(dump)
   }
 }
 
+private val appModuleBuilder = AndroidModuleModelBuilder(
+  ":app",
+  "debug",
+  createAndroidProjectBuilder(androidModuleDependencyList = { listOf(AndroidModuleDependency(":lib", "debug")) })
+)
+private val libModuleBuilder = AndroidModuleModelBuilder(":lib", "debug", createAndroidProjectBuilder())
