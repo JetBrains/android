@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.DoNotTrace
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Edge
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.HeapGraph
-import com.intellij.util.ref.DebugReflectionUtil
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.ReflectionUtil
 import java.lang.ref.Reference
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
@@ -50,7 +50,7 @@ open class DefaultObjectExpander(g: HeapGraph, val shouldOmitEdge: (Any, Field, 
   override fun canExpand(obj: Any) = true
 
   override fun expand(n: Node) {
-    for (field in DebugReflectionUtil.getAllFields(
+    for (field in ReflectionUtil.getAllFields(
       n.type).filter { it.modifiers and Modifier.STATIC == 0 }) {
       val value = field.get(n.obj)
       if (value != null && !shouldOmitEdge(n.obj, field, value)) {
