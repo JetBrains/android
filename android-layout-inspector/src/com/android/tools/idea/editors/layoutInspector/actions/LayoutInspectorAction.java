@@ -15,33 +15,32 @@
  */
 package com.android.tools.idea.editors.layoutInspector.actions;
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.layoutinspector.model.ClientWindow;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.AbstractClientAction;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorCaptureTask;
 import com.android.tools.idea.editors.layoutInspector.WindowPickerDialog;
+import com.android.tools.idea.ui.LayoutInspectorSettingsKt;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import icons.StudioIcons;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LayoutInspectorAction extends AbstractClientAction {
   private final Project myProject;
 
   public LayoutInspectorAction(@NotNull Project project, @NotNull DeviceContext deviceContext) {
     super(deviceContext,
-          (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get() ? "Legacy " : "") +
           AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
           AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
           StudioIcons.Shell.Menu.LAYOUT_INSPECTOR);
@@ -51,6 +50,11 @@ public class LayoutInspectorAction extends AbstractClientAction {
   @Override
   protected void performAction(@NotNull final Client client) {
     new GetClientWindowsTask(myProject, client).queue();
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent e) {
+    e.getPresentation().setVisible(!LayoutInspectorSettingsKt.getEnableLiveLayoutInspector());
   }
 
   public static final class GetClientWindowsTask extends Task.Backgroundable {

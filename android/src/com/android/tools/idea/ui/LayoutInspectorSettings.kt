@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector
+package com.android.tools.idea.ui
 
-import com.android.tools.idea.ui.enableLiveLayoutInspector
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Condition
+import com.intellij.ide.util.PropertiesComponent
 
-class LayoutInspectorToolWindowCondition : Condition<Project> {
-  override fun value(project: Project) = enableLiveLayoutInspector
-}
+private const val PREFERENCE_KEY = "live.layout.inspector.enabled"
+
+var enableLiveLayoutInspector
+  get() = PropertiesComponent.getInstance().getBoolean(PREFERENCE_KEY, false)
+  set(value) = PropertiesComponent.getInstance().setValue(PREFERENCE_KEY, value)
+
