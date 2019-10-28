@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker.Request
 import com.android.tools.idea.io.FilePaths
-import com.android.tools.idea.npw.assetstudio.IconGenerator
 import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset
 import com.android.tools.idea.npw.model.render
@@ -76,7 +75,6 @@ import com.android.tools.idea.wizard.template.ThemesData
 import com.android.tools.idea.wizard.template.WizardParameterData
 import com.google.common.base.Charsets.UTF_8
 import com.google.common.io.Files
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
@@ -151,8 +149,8 @@ data class ProjectChecker(
         createProjectForNewRenderingContext(project, activityState, newTemplate)
       }
       else {
-        val context = createRenderingContext(template, project, moduleRoot, moduleRoot, activityState.templateValues)
-        ApplicationManager.getApplication().runWriteAction {
+        val context = createRenderingContext(template, project, projectRoot, moduleRoot, activityState.templateValues)
+        runWriteAction {
           template.render(context, false)
           addIconsIfNecessary(activityState)
         }
@@ -295,7 +293,6 @@ data class ProjectChecker(
     }
   }
 
-
   // TODO(parentej) test the icon generator
   private fun Project.createWithIconGenerator() {
     runWriteAction {
@@ -304,7 +301,7 @@ data class ProjectChecker(
       try {
         iconGenerator.outputName().set("ic_launcher")
         iconGenerator.sourceAsset().value = ImageAsset()
-        this.create(iconGenerator)
+        this.create()
       }
       finally {
         Disposer.dispose(iconGenerator)
@@ -334,50 +331,37 @@ data class ProjectChecker(
   }
 
   /**
-   * Renders the project.
+   * Renders project, module and possibly activity template. Also checks if logging was correct after each rendering step.
    */
-  private fun Project.create(iconGenerator: IconGenerator?) {
-    moduleState.populateDirectoryParameters()
+  private fun Project.create() {
     val projectPath = moduleState.getString(ATTR_TOP_OUT)
-    val moduleName = moduleState.getString(ATTR_MODULE_NAME)
-    val paths = GradleAndroidModuleTemplate.createDefaultTemplateAt(projectPath, moduleName).paths
-
     val projectRoot = File(projectPath)
-    val moduleRoot = paths.moduleRoot!!
-
-    val projectTemplate = projectState.projectTemplate
-    val moduleTemplate = moduleState.template
-
-    projectState.updateParameters()
-
     if (!FileUtilRt.createDirectory(projectRoot)) {
       throw IOException("Unable to create directory '$projectPath'.")
     }
 
-    fun createRenderingContext(template: Template, templateValues: Map<String, Any>) =
-      createRenderingContext(template, this, projectRoot, moduleRoot, templateValues)
+    moduleState.populateDirectoryParameters()
+    val moduleName = moduleState.getString(ATTR_MODULE_NAME)
+    val moduleRoot = GradleAndroidModuleTemplate.createDefaultTemplateAt(projectPath, moduleName).paths.moduleRoot!!
 
-    fun Template.renderAndCheck(templateValues: Map<String, Any>): MutableCollection<File> {
-      val context = createRenderingContext(this, templateValues)
+    projectState.updateParameters()
+
+    fun Template.renderAndCheck(templateValues: Map<String, Any>) {
+      val context = createRenderingContext(this, this@create, projectRoot, moduleRoot, templateValues)
       render(context, false)
-      usageTracker.checkAfterRender(metadata!!, templateValues)
-      return context.filesToOpen
+      verifyLastLoggedUsage(usageTracker, titleToTemplateRenderer(metadata!!.title), templateValues)
     }
 
     // TODO(qumeric): should it be projectState.templateValues?
-    projectTemplate.renderAndCheck(moduleState.templateValues)
+    projectState.projectTemplate.renderAndCheck(moduleState.templateValues)
     setGradleWrapperExecutable(projectRoot)
-    val moduleFilesToOpen = moduleTemplate.renderAndCheck(moduleState.templateValues)
+    moduleState.template.renderAndCheck(moduleState.templateValues)
 
     if (createActivity) {
       val activityState = projectState.activityTemplateState
-      val activityFilesToOpen = activityState.template.renderAndCheck(activityState.templateValues)
-      moduleFilesToOpen.addAll(activityFilesToOpen)
+      activityState.template.renderAndCheck(activityState.templateValues)
     }
   }
-
-  private fun TestUsageTracker.checkAfterRender(metadata: TemplateMetadata, paramMap: Map<String, Any>) =
-    verifyLastLoggedUsage(this, titleToTemplateRenderer(metadata.title), paramMap)
 
   companion object {
     /**
