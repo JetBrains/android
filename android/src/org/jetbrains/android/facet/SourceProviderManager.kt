@@ -20,6 +20,7 @@ import com.android.builder.model.SourceProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
+import com.android.tools.idea.projectsystem.IdeaSourceProviderImpl
 import com.android.utils.reflection.qualifiedName
 import com.google.common.collect.Lists
 import com.intellij.ProjectTopics
@@ -37,7 +38,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
 import java.io.File
 
 interface SourceProviderManager {
@@ -149,7 +149,23 @@ private class SourceProviderManagerImpl(facet: AndroidFacet, model: AndroidModel
         (model as? AndroidModuleModel)?.flavorSourceProviders?.asSequence().orEmpty()
       )
         .toSet()
-        .associateWith { Delegate(it) }
+        .associateWith {
+          IdeaSourceProviderImpl(
+            it.name,
+            VfsUtil.fileToUrl(it.manifestFile),
+            javaDirectoryUrls = convertToUrlSet(it.javaDirectories),
+            resourcesDirectoryUrls = convertToUrlSet(it.resourcesDirectories),
+            aidlDirectoryUrls = convertToUrlSet(it.aidlDirectories),
+            renderscriptDirectoryUrls = convertToUrlSet(it.renderscriptDirectories),
+            // Even though the model has separate methods to get the C and Cpp directories,
+            // they both return the same set of folders. So we combine them here.
+            jniDirectoryUrls = convertToUrlSet(it.cDirectories + it.cppDirectories).toSet(),
+            jniLibsDirectoryUrls = convertToUrlSet(it.jniLibsDirectories),
+            resDirectoryUrls = convertToUrlSet(it.resDirectories),
+            assetsDirectoryUrls = convertToUrlSet(it.assetsDirectories),
+            shadersDirectoryUrls = convertToUrlSet(it.shadersDirectories)
+          )
+        }
 
     fun SourceProvider.toIdeaSourceProvider() = all.getValue(this)
 
@@ -190,66 +206,6 @@ private class LegacySourceProviderManagerImpl(facet: AndroidFacet) : SourceProvi
   @Suppress("OverridingDeprecatedMember")
   override val mainAndFlavorSourceProviders: List<IdeaSourceProvider>
     get() = listOf(mainIdeaSourceProvider)
-}
-
-/** [IdeaSourceProvider] wrapping a [SourceProvider].  */
-internal class Delegate constructor(provider: SourceProvider) : IdeaSourceProvider {
-  @Volatile
-  private var myManifestFile: VirtualFile? = null
-
-  override val name: String = provider.name
-
-  override val manifestFileUrl: String = VfsUtil.fileToUrl(provider.manifestFile)
-
-  override val manifestFile: VirtualFile?
-    get() {
-      if (myManifestFile == null || !myManifestFile!!.isValid) {
-        myManifestFile = VirtualFileManager.getInstance().findFileByUrl(manifestFileUrl)
-      }
-
-      return myManifestFile
-    }
-
-  override val javaDirectoryUrls: Collection<String> = convertToUrlSet(provider.javaDirectories)
-  override val javaDirectories: Collection<VirtualFile> get() = convertFileSet(javaDirectoryUrls)
-
-  override val resourcesDirectoryUrls: Collection<String> = convertToUrlSet(provider.resourcesDirectories)
-  override val resourcesDirectories: Collection<VirtualFile> get() = convertFileSet(resourcesDirectoryUrls)
-
-  override val aidlDirectoryUrls: Collection<String> = convertToUrlSet(provider.aidlDirectories)
-  override val aidlDirectories: Collection<VirtualFile> get() = convertFileSet(aidlDirectoryUrls)
-
-  override val renderscriptDirectoryUrls: Collection<String> = convertToUrlSet(provider.renderscriptDirectories)
-  override val renderscriptDirectories: Collection<VirtualFile> get() = convertFileSet(renderscriptDirectoryUrls)
-
-  override val jniDirectoryUrls: Collection<String> = convertToUrlSet(provider.cDirectories + provider.cppDirectories).toSet()
-  override val jniDirectories: Collection<VirtualFile>
-    // Even though the model has separate methods to get the C and Cpp directories,
-    // they both return the same set of folders. So we combine them here.
-    get() = convertFileSet(jniDirectoryUrls)
-
-  override val jniLibsDirectoryUrls: Collection<String> = convertToUrlSet(provider.jniLibsDirectories)
-  override val jniLibsDirectories: Collection<VirtualFile> get() = convertFileSet(jniLibsDirectoryUrls)
-
-  // TODO: Perform some caching; this method gets called a lot!
-  override val resDirectoryUrls: Collection<String> = convertToUrlSet(provider.resDirectories)
-  override val resDirectories: Collection<VirtualFile> get() = convertFileSet(resDirectoryUrls)
-
-  override val assetsDirectoryUrls: Collection<String> = convertToUrlSet(provider.assetsDirectories)
-  override val assetsDirectories: Collection<VirtualFile> get() = convertFileSet(assetsDirectoryUrls)
-
-  override val shadersDirectoryUrls: Collection<String> = convertToUrlSet(provider.shadersDirectories)
-  override val shadersDirectories: Collection<VirtualFile> get() = convertFileSet(shadersDirectoryUrls)
-
-  /** Convert a set of IO files into a set of equivalent virtual files  */
-  private fun convertFileSet(fileUrls: Collection<String>): Collection<VirtualFile> {
-    val fileManager = VirtualFileManager.getInstance()
-    return fileUrls.mapNotNullTo(Lists.newArrayListWithCapacity(fileUrls.size)) { fileManager.findFileByUrl(it) }
-  }
-
-  /** Convert a set of IO files into a set of equivalent virtual files  */
-  private fun convertToUrlSet(fileSet: Collection<File>): Collection<String> =
-    fileSet.mapTo(Lists.newArrayListWithCapacity(fileSet.size)) { VfsUtil.fileToUrl(it) }
 }
 
 /** [IdeaSourceProvider] for legacy Android projects without [SourceProvider].  */
@@ -393,3 +349,5 @@ private class SourceProviderManagerComponent(val project: Project) : ProjectComp
     connection.disconnect()
   }
 }
+/** Convert a set of IO files into a set of IDEA file urls referring to equivalent virtual files  */
+private fun convertToUrlSet(fileSet: Collection<File>): Collection<String> = fileSet.map { VfsUtil.fileToUrl(it) }
