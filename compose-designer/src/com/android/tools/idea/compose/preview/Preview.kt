@@ -27,6 +27,7 @@ import com.android.tools.idea.common.editor.SmartAutoRefresher
 import com.android.tools.idea.common.editor.SmartRefreshable
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.error.IssuePanelSplitter
+import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
@@ -307,7 +308,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
       setScreenMode(SceneMode.SCREEN_COMPOSE_ONLY, true)
     }
 
-  private val modelUpdater: NlModel.NlModelUpdaterInterface = PreviewModelUpdater(surface)
+  private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
 
   /**
    * List of [PreviewElement] being rendered by this editor
