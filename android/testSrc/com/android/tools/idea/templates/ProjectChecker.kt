@@ -26,8 +26,6 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker.Request
 import com.android.tools.idea.io.FilePaths
-import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator
-import com.android.tools.idea.npw.assetstudio.assets.ImageAsset
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.setGradleWrapperExecutable
@@ -76,11 +74,9 @@ import com.android.tools.idea.wizard.template.WizardParameterData
 import com.google.common.base.Charsets.UTF_8
 import com.google.common.io.Files
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -131,7 +127,7 @@ data class ProjectChecker(
     moduleState.put(ATTR_MODULE_NAME, projectName)
     moduleState.put(ATTR_TOP_OUT, projectDir.path)
     println("Checking project $projectName in $projectDir")
-    project.createWithIconGenerator()
+    project.create()
     val projectRoot = project.guessProjectDir()!!.toIoFile()
     if (!createActivity) {
       val template = activityState.template
@@ -152,7 +148,6 @@ data class ProjectChecker(
         val context = createRenderingContext(template, project, projectRoot, moduleRoot, activityState.templateValues)
         runWriteAction {
           template.render(context, false)
-          addIconsIfNecessary(activityState)
         }
       }
     }
@@ -293,27 +288,6 @@ data class ProjectChecker(
     }
   }
 
-  // TODO(parentej) test the icon generator
-  private fun Project.createWithIconGenerator() {
-    runWriteAction {
-      val minSdkVersion = moduleState.getString(ATTR_MIN_API).toInt()
-      val iconGenerator = LauncherIconGenerator(this, minSdkVersion, null)
-      try {
-        iconGenerator.outputName().set("ic_launcher")
-        iconGenerator.sourceAsset().value = ImageAsset()
-        this.create()
-      }
-      finally {
-        Disposer.dispose(iconGenerator)
-      }
-      FileDocumentManager.getInstance().saveAllDocuments()
-    }
-
-    val projectRoot = File(moduleState.getString(ATTR_TOP_OUT))
-    assertEquals(projectRoot, guessProjectDir()!!.toIoFile())
-    updateGradleAndSyncIfNeeded(projectRoot, moduleState.getString(ATTR_MODULE_NAME))
-  }
-
   private fun Project.updateGradleAndSyncIfNeeded(projectRoot: File, moduleName: String) {
     AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION)
     val gradleFile = File(projectRoot, SdkConstants.FN_BUILD_GRADLE)
@@ -361,6 +335,9 @@ data class ProjectChecker(
       val activityState = projectState.activityTemplateState
       activityState.template.renderAndCheck(activityState.templateValues)
     }
+
+    assertEquals(projectRoot, guessProjectDir()!!.toIoFile())
+    updateGradleAndSyncIfNeeded(projectRoot, moduleName)
   }
 
   companion object {
