@@ -147,54 +147,50 @@ open class TemplateTestBase : AndroidGradleTestCase() {
   ) {
     require(!isBroken(templateFile.name))
     val sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk()!!
+
     val projectState = createNewProjectState(sdkData, getModuleTemplateForFormFactor(templateFile))
     val moduleState = projectState.moduleTemplateState
     val activityState = projectState.activityTemplateState.apply { setTemplateLocation(templateFile) }
+
     val moduleMetadata = moduleState.template.metadata!!
     val activityMetadata = activityState.template.metadata!!
+
+    val hasEnums = moduleMetadata.parameters.any { it.type == Type.ENUM }
+    if (hasEnums && templateOverrides.isEmpty()) {
+      // TODO: Handle all enums here. None of the projects have this currently at this level.
+      return fail("Not expecting enums at the root level")
+    }
 
     val lowestSupportedApi = maxOf(
       moduleState.getString(ATTR_MIN_API).toInt(),
       moduleMetadata.minSdk,
       activityMetadata.minSdk
     )
+
     val buildTargets = sdkData.targets.reversed()
       .filter { it.isPlatform && isInterestingApiLevel(it.version.apiLevel, MANUAL_BUILD_API, apiSensitive) }
       .takeOneIfTrueElseAll(TEST_JUST_ONE_BUILD_TARGET)
+
     // Iterate over all (valid) combinations of build target, minSdk and targetSdk
     // TODO: Assert that the SDK manager has a minimum set of SDKs installed needed to be certain the test is comprehensive
     // For now make sure there's at least one
     var ranTest = false
     for (buildTarget in buildTargets) {
+      val buildSdk = buildTarget.version.apiLevel
       val interestingMinSdks = (lowestSupportedApi..SdkVersionInfo.HIGHEST_KNOWN_API)
         .filter { isInterestingApiLevel(it, MANUAL_MIN_API, apiSensitive) }
         .takeOneIfTrueElseAll(TEST_JUST_ONE_MIN_SDK)
-      for (minSdk in interestingMinSdks) {
-        val interestingTargetSdks = (minSdk..SdkVersionInfo.HIGHEST_KNOWN_API)
-          .filter { isInterestingApiLevel(it, MANUAL_TARGET_API, apiSensitive) }
-          .takeOneIfTrueElseAll(TEST_JUST_ONE_TARGET_SDK_VERSION)
-          .filter {
-            moduleMetadata.validateTemplate(minSdk, buildTarget.version.apiLevel) == null &&
-            activityMetadata.validateTemplate(minSdk, buildTarget.version.apiLevel) == null
-          }
-        for (targetSdk in interestingTargetSdks) {
-          // Should we try all options of theme with all platforms, or just try all platforms, with one setting for each?
-          // Doesn't seem like we need to multiply, just pick the best setting that applies instead for each platform.
-          val hasEnums = moduleMetadata.parameters.any { it.type == Type.ENUM }
-          if (hasEnums && templateOverrides.isEmpty()) {
-            // TODO: Handle all enums here. None of the projects have this currently at this level.
-            return fail("Not expecting enums at the root level")
-          }
-          var base = "${templateFile.name}_min_${minSdk}_target_${targetSdk}_build_${buildTarget.version.apiLevel}"
+
+      interestingMinSdks
+        .filter { moduleMetadata.validateTemplate(it, buildSdk) == null && activityMetadata.validateTemplate(it, buildSdk) == null }
+        .forEach { minSdk ->
+          var base = "${templateFile.name}_min_${minSdk}_build_${buildSdk}"
           if (templateOverrides.isNotEmpty()) {
             base += "_overrides"
           }
-          checkApiTarget(
-            minSdk, targetSdk, buildTarget.version, projectState, base, activityState, createWithProject
-          )
+          checkApiTarget(minSdk, buildTarget.version, projectState, base, activityState, createWithProject)
           ranTest = true
         }
-      }
     }
     assertTrue("Didn't run any tests! Make sure you have the right platforms installed.", ranTest)
   }
@@ -206,7 +202,6 @@ open class TemplateTestBase : AndroidGradleTestCase() {
    */
   protected fun checkApiTarget(
     minSdk: Int,
-    targetSdk: Int,
     buildVersion: AndroidVersion,
     projectState: TestNewProjectWizardState,
     projectNameBase: String,
@@ -222,8 +217,6 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     val moduleState = projectState.moduleTemplateState.apply {
       put(ATTR_MIN_API, minSdk.toString())
       put(ATTR_MIN_API_LEVEL, minSdk)
-      put(ATTR_TARGET_API, targetSdk)
-      put(ATTR_TARGET_API_STRING, targetSdk.toString())
       put(ATTR_BUILD_API, buildVersion.apiLevel)
       put(ATTR_BUILD_API_STRING, getBuildApiString(buildVersion))
       putAll(moduleOverrides)
@@ -333,8 +326,6 @@ private val MANUAL_BUILD_API =
   System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_BUILD_API")?.toIntOrNull() ?: -1
 private val MANUAL_MIN_API =
   System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_MIN_API")?.toIntOrNull() ?: -1
-private val MANUAL_TARGET_API =
-  System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_TARGET_API")?.toIntOrNull() ?: -1
 /**
  * Flags used to quickly check each template once (for one version), to get
  * quicker feedback on whether something is broken instead of waiting for
@@ -343,7 +334,6 @@ private val MANUAL_TARGET_API =
 internal val TEST_FEWER_API_VERSIONS = !COMPREHENSIVE
 private val TEST_JUST_ONE_MIN_SDK = !COMPREHENSIVE
 private val TEST_JUST_ONE_BUILD_TARGET = !COMPREHENSIVE
-private val TEST_JUST_ONE_TARGET_SDK_VERSION = !COMPREHENSIVE
 
 /**
  * Const for toggling the behavior of a test.
