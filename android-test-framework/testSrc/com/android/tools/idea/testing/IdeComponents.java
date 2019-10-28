@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.testing;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Verify.verify;
 import static org.mockito.Mockito.mock;
 
 import com.intellij.openapi.Disposable;
@@ -84,7 +84,7 @@ public final class IdeComponents implements Disposable {
   @NotNull
   public <T> T mockProjectService(@NotNull Class<T> serviceType) {
     T mock = mock(serviceType);
-    assertNotNull(myProject);
+    checkState(myProject != null);
     doReplaceService(myProject, serviceType, mock, myUndoQueue);
     return mock;
   }
@@ -114,11 +114,12 @@ public final class IdeComponents implements Disposable {
     T oldServiceInstance = (T)componentInstance;
 
     ComponentAdapter componentAdapter = picoContainer.unregisterComponent(componentKey);
-    assert componentAdapter != null : String.format("%s not registered in %s, are you using the right service scope (application vs project)?",
-                                                    componentKey, componentManager.getClass().getSimpleName());
+    verify(componentAdapter != null, String.format(
+      "%s not registered in %s, are you using the right service scope (application vs project)?",
+      componentKey, componentManager.getClass().getSimpleName()));
 
     picoContainer.registerComponentInstance(componentKey, newServiceInstance);
-    assertSame(newServiceInstance, picoContainer.getComponentInstance(componentKey));
+    verify(picoContainer.getComponentInstance(componentKey) == newServiceInstance);
 
     if (undoQueue != null && oldServiceInstance != null) {
       undoQueue.add(() -> doReplaceService(componentManager, serviceType, oldServiceInstance, null));
