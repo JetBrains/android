@@ -17,7 +17,7 @@ package com.android.tools.idea.templates
 
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
-import com.android.testutils.TestUtils.getKotlinVersionForTests
+import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker.cleanAfterTesting
@@ -28,16 +28,12 @@ import com.android.tools.idea.templates.Parameter.Type
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_ANDROIDX_SUPPORT
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API_STRING
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_CPP_FLAGS
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_CPP_SUPPORT
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_HAS_APPLICATION_THEME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LAUNCHER
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_KOTLIN_VERSION
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_LANGUAGE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API_LEVEL
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_TARGET_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_TARGET_API_STRING
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_THEME_EXISTS
@@ -62,25 +58,29 @@ typealias ProjectStateCustomizer = (templateMap: MutableMap<String, Any>, projec
  * - Add metadata to template parameters (e.g. values to test) and simplify code here.
  */
 open class TemplateTestBase : AndroidGradleTestCase() {
-  /**
-   * A UsageTracker implementation that allows introspection of logged metrics in tests.
-   */
-  private lateinit var usageTracker: TestUsageTracker
+  /** A UsageTracker implementation that allows introspection of logged metrics in tests. */
+  private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
+
+  private val templateOverrides = mutableMapOf<String, Any>()
+  private val moduleOverrides = mutableMapOf<String, Any>()
 
   override fun createDefaultProject() = false
 
   override fun setUp() {
     super.setUp()
-    usageTracker = TestUsageTracker(VirtualTimeScheduler())
     setWriterForTest(usageTracker)
-    apiSensitiveTemplate = true
 
-    // Replace the default RepositoryUrlManager with one that enables repository checks in tests. (myForceRepositoryChecksInTests)
-    // This is necessary to fully resolve dynamic gradle coordinates such as ...:appcompat-v7:+ => appcompat-v7:25.3.1
-    // keeping it exactly the same as they are resolved within the NPW flow.
+    /**
+     * Replace the default RepositoryUrlManager with one that enables repository checks in tests.
+     * This is necessary to fully resolve dynamic gradle coordinates (e.g. appcompat-v7:+ => appcompat-v7:25.3.1).
+     * It will keep coordinates exactly the same as they are resolved within the NPW flow.
+     *
+     * @see RepositoryUrlManager.forceRepositoryChecksInTests
+     */
     IdeComponents(null, testRootDisposable).replaceApplicationService(
       RepositoryUrlManager::class.java,
-      RepositoryUrlManager(IdeGoogleMavenRepository, OfflineIdeGoogleMavenRepository, true))
+      RepositoryUrlManager(IdeGoogleMavenRepository, OfflineIdeGoogleMavenRepository, true)
+    )
   }
 
   override fun tearDown() {
@@ -94,46 +94,28 @@ open class TemplateTestBase : AndroidGradleTestCase() {
   }
 
   /**
-   * If true, check this template with all the interesting ([isInterestingApiLevel]) API versions.
-   */
-  protected var apiSensitiveTemplate = false
-
-  protected val withKotlin = { templateMap: MutableMap<String, Any>, projectMap: MutableMap<String, Any> ->
-    projectMap[ATTR_KOTLIN_VERSION] = getKotlinVersionForTests()
-    projectMap[ATTR_LANGUAGE] = Language.KOTLIN.toString()
-    templateMap[ATTR_LANGUAGE] = Language.KOTLIN.toString()
-    templateMap[ATTR_PACKAGE_NAME] = "test.pkg.in" // Add in a Kotlin keyword ("in") in the package name to trigger escape code too
-  }
-
-  protected val withCpp = { templateMap: MutableMap<String, Any>, projectMap: MutableMap<String, Any> ->
-    projectMap[ATTR_CPP_SUPPORT] = true
-    projectMap[ATTR_CPP_FLAGS] = ""
-    templateMap[ATTR_CPP_SUPPORT] = true
-    templateMap[ATTR_CPP_FLAGS] = ""
-  }
-
-  protected val withNewRenderingContext = { templateMap: MutableMap<String, Any>, _: MutableMap<String, Any> ->
-    templateMap[COMPARE_NEW_RENDERING_CONTEXT] = true
-  }
-
-  /**
    * A wrapper to allow Kotlin "last argument is a lambda" syntax.
    */
   protected fun checkCreateTemplate(
-    category: String, name: String, createWithProject: Boolean = false, customizer: ProjectStateCustomizer
-  ): Unit = checkCreateTemplate(category, name, createWithProject, customizer, {_, _ -> })
+    category: String, name: String, createWithProject: Boolean = false, apiSensitive: Boolean = true, customizer: ProjectStateCustomizer
+  ): Unit = checkCreateTemplate(category, name, createWithProject, apiSensitive, customizer, { _, _ -> })
 
   /**
-   * Checks the given template in the given category
+   * Checks the given template in the given category. Supports overridden template values.
    *
    * @param category          the template category
    * @param name              the template name
    * @param createWithProject whether the template should be created as part of creating the project (only for activities), or whether it
    * should be added as as a separate template into an existing project (which is created first, followed by the template).
+   * @param apiSensitive       If true, check this template with all the interesting ([isInterestingApiLevel]) API versions.
    * @param customizers        An instance of [ProjectStateCustomizer]s used for providing template and project overrides.
    */
   protected open fun checkCreateTemplate(
-    category: String, name: String, createWithProject: Boolean = false, vararg customizers: ProjectStateCustomizer
+    category: String,
+    name: String,
+    createWithProject: Boolean = false,
+    apiSensitive: Boolean = false,
+    vararg customizers: ProjectStateCustomizer
   ) {
     if (DISABLED) {
       return
@@ -143,13 +125,11 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     if (isBroken(templateFile.name)) {
       return
     }
-    val templateOverrides = mutableMapOf<String, Any>()
-    val projectOverrides = mutableMapOf<String, Any>()
     customizers.forEach {
-      it(templateOverrides, projectOverrides)
+      it(templateOverrides, moduleOverrides)
     }
     val msToCheck = measureTimeMillis {
-      checkTemplate(templateFile, createWithProject, templateOverrides, projectOverrides)
+      checkTemplate(templateFile, createWithProject, apiSensitive)
     }
     println("Checked ${templateFile.name} successfully in ${msToCheck}ms")
   }
@@ -161,15 +141,15 @@ open class TemplateTestBase : AndroidGradleTestCase() {
    * @see isInterestingApiLevel
    */
   private fun checkTemplate(
-    templateFile: File, createWithProject: Boolean, overrides: Map<String, Any>, projectOverrides: Map<String, Any>
+    templateFile: File,
+    createWithProject: Boolean,
+    apiSensitive: Boolean
   ) {
     require(!isBroken(templateFile.name))
     val sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk()!!
-
     val projectState = createNewProjectState(sdkData, getModuleTemplateForFormFactor(templateFile))
     val moduleState = projectState.moduleTemplateState
     val activityState = projectState.activityTemplateState.apply { setTemplateLocation(templateFile) }
-
     val moduleMetadata = moduleState.template.metadata!!
     val activityMetadata = activityState.template.metadata!!
 
@@ -178,43 +158,39 @@ open class TemplateTestBase : AndroidGradleTestCase() {
       moduleMetadata.minSdk,
       activityMetadata.minSdk
     )
-
     val buildTargets = sdkData.targets.reversed()
-      .filter { it.isPlatform && isInterestingApiLevel(it.version.apiLevel, MANUAL_BUILD_API, apiSensitiveTemplate) }
+      .filter { it.isPlatform && isInterestingApiLevel(it.version.apiLevel, MANUAL_BUILD_API, apiSensitive) }
       .takeOneIfTrueElseAll(TEST_JUST_ONE_BUILD_TARGET)
-
     // Iterate over all (valid) combinations of build target, minSdk and targetSdk
     // TODO: Assert that the SDK manager has a minimum set of SDKs installed needed to be certain the test is comprehensive
     // For now make sure there's at least one
     var ranTest = false
     for (buildTarget in buildTargets) {
       val interestingMinSdks = (lowestSupportedApi..SdkVersionInfo.HIGHEST_KNOWN_API)
-        .filter { isInterestingApiLevel(it, MANUAL_MIN_API, apiSensitiveTemplate) }
+        .filter { isInterestingApiLevel(it, MANUAL_MIN_API, apiSensitive) }
         .takeOneIfTrueElseAll(TEST_JUST_ONE_MIN_SDK)
-
       for (minSdk in interestingMinSdks) {
         val interestingTargetSdks = (minSdk..SdkVersionInfo.HIGHEST_KNOWN_API)
-          .filter { isInterestingApiLevel(it, MANUAL_TARGET_API, apiSensitiveTemplate) }
+          .filter { isInterestingApiLevel(it, MANUAL_TARGET_API, apiSensitive) }
           .takeOneIfTrueElseAll(TEST_JUST_ONE_TARGET_SDK_VERSION)
           .filter {
             moduleMetadata.validateTemplate(minSdk, buildTarget.version.apiLevel) == null &&
             activityMetadata.validateTemplate(minSdk, buildTarget.version.apiLevel) == null
           }
-
         for (targetSdk in interestingTargetSdks) {
           // Should we try all options of theme with all platforms, or just try all platforms, with one setting for each?
           // Doesn't seem like we need to multiply, just pick the best setting that applies instead for each platform.
           val hasEnums = moduleMetadata.parameters.any { it.type == Type.ENUM }
-          if (hasEnums && overrides.isEmpty()) {
+          if (hasEnums && templateOverrides.isEmpty()) {
             // TODO: Handle all enums here. None of the projects have this currently at this level.
             return fail("Not expecting enums at the root level")
           }
           var base = "${templateFile.name}_min_${minSdk}_target_${targetSdk}_build_${buildTarget.version.apiLevel}"
-          if (overrides.isNotEmpty()) {
+          if (templateOverrides.isNotEmpty()) {
             base += "_overrides"
           }
           checkApiTarget(
-            minSdk, targetSdk, buildTarget.version, projectState, base, activityState, overrides, projectOverrides, createWithProject
+            minSdk, targetSdk, buildTarget.version, projectState, base, activityState, createWithProject
           )
           ranTest = true
         }
@@ -235,8 +211,6 @@ open class TemplateTestBase : AndroidGradleTestCase() {
     projectState: TestNewProjectWizardState,
     projectNameBase: String,
     activityState: TestTemplateWizardState,
-    overrides: Map<String, Any>,
-    projectOverrides: Map<String, Any>,
     createActivity: Boolean = true
   ) {
     fun Option.needsCheck(initial: Any?, moduleState: TestTemplateWizardState): Boolean {
@@ -252,9 +226,9 @@ open class TemplateTestBase : AndroidGradleTestCase() {
       put(ATTR_TARGET_API_STRING, targetSdk.toString())
       put(ATTR_BUILD_API, buildVersion.apiLevel)
       put(ATTR_BUILD_API_STRING, getBuildApiString(buildVersion))
-      putAll(projectOverrides)
+      putAll(moduleOverrides)
     }
-    val templateState = (if (createActivity) projectState.activityTemplateState else activityState).apply { putAll(overrides) }
+    val templateState = (if (createActivity) projectState.activityTemplateState else activityState).apply { putAll(templateOverrides) }
 
     val parameters = if (!createActivity) {
       templateState.setParameterDefaults()
@@ -264,7 +238,7 @@ open class TemplateTestBase : AndroidGradleTestCase() {
       moduleState.template.metadata!!.parameters + templateState.template.metadata!!.parameters
     }
 
-    parameters.filterNot { it.type == Type.STRING || it.type == Type.SEPARATOR || overrides.containsKey(it.id) }.forEach { p ->
+    parameters.filterNot { it.type == Type.STRING || it.type == Type.SEPARATOR || templateOverrides.containsKey(it.id) }.forEach { p ->
       val initial = p.getDefaultValue(templateState)!!
 
       fun checkAndRestore(parameterValue: Any) {
@@ -336,20 +310,18 @@ open class TemplateTestBase : AndroidGradleTestCase() {
   annotation class TemplateCheck
 }
 
+private fun getBoolFromEnvironment(key: String) = System.getProperty(key).orEmpty().toBoolean() || System.getenv(key).orEmpty().toBoolean()
+
 /**
  * Whether we should run comprehensive tests or not. This flag allows a simple run to just check a small set of
  * template combinations, and when the flag is set on the build server, a much more comprehensive battery of
  * checks to be performed.
  */
-private val COMPREHENSIVE =
-  System.getProperty("com.android.tools.idea.templates.TemplateTest.COMPREHENSIVE").orEmpty().toBoolean() ||
-  "true".equals(System.getenv("com.android.tools.idea.templates.TemplateTest.COMPREHENSIVE"), true)
+private val COMPREHENSIVE = getBoolFromEnvironment("com.android.tools.idea.templates.TemplateTest.COMPREHENSIVE")
 /**
  * Whether we should run these tests or not.
  */
-internal val DISABLED =
-  System.getProperty("DISABLE_STUDIO_TEMPLATE_TESTS").orEmpty().toBoolean() ||
-  "true".equals(System.getenv("DISABLE_STUDIO_TEMPLATE_TESTS"), true)
+internal val DISABLED = getBoolFromEnvironment("DISABLE_STUDIO_TEMPLATE_TESTS")
 /**
  * Whether we should enforce that lint passes cleanly on the projects
  */
