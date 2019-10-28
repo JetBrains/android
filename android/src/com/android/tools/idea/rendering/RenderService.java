@@ -87,6 +87,10 @@ public class RenderService implements Disposable {
   private static ExecutorService ourRenderingExecutor;
   private static final AtomicInteger ourTimeoutExceptionCounter = new AtomicInteger(0);
 
+  /**
+   * {@link Key} used to keep the RenderService instance project association. They key is also used as synchronization object to guard the
+   * access to the new instances.
+   */
   private static final Key<RenderService> KEY = Key.create(RenderService.class.getName());
   private static boolean isFirstCall = true;
 
@@ -157,17 +161,21 @@ public class RenderService implements Disposable {
    */
   @NotNull
   public static RenderService getInstance(@NotNull Project project) {
-    RenderService renderService = project.getUserData(KEY);
-    if (renderService == null) {
-      renderService = new RenderService(project);
-      project.putUserData(KEY, renderService);
+    synchronized (KEY) {
+      RenderService renderService = project.getUserData(KEY);
+      if (renderService == null) {
+        renderService = new RenderService(project);
+        project.putUserData(KEY, renderService);
+      }
+      return renderService;
     }
-    return renderService;
   }
 
   @TestOnly
   public static void setForTesting(@NotNull Project project, @Nullable RenderService renderService) {
-    project.putUserData(KEY, renderService);
+    synchronized (KEY) {
+      project.putUserData(KEY, renderService);
+    }
   }
 
   @VisibleForTesting
