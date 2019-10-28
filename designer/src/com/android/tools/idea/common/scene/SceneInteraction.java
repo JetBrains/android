@@ -81,7 +81,10 @@ public class SceneInteraction extends Interaction {
   public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
     if (event instanceof MouseEvent) {
       MouseEvent mouseEvent = (MouseEvent)event;
-      update(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
+      int mouseX = mouseEvent.getX();
+      int mouseY = mouseEvent.getY();
+      mySceneView.getContext().setMouseLocation(mouseX, mouseY);
+      update(mouseX, mouseY, mouseEvent.getModifiersEx());
     }
   }
 

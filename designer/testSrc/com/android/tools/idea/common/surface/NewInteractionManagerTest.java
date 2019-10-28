@@ -15,7 +15,15 @@
  */
 package com.android.tools.idea.common.surface;
 
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.uibuilder.surface.NlInteractionProvider;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.collect.ImmutableList;
+import java.awt.Cursor;
 
 /**
  * This class is used to test all tests in InteractionManagerTest with NELE_NEW_INTERACTION_INTERFACE enabled.
@@ -76,12 +84,43 @@ public class NewInteractionManagerTest extends InteractionManagerTest {
 
   @Override
   public void testLinearLayoutCursorHoverComponent() {
-    super.testLinearLayoutCursorHoverComponent();
+    // TODO: replace this test to InteractionManagerTest when StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
+    // When flag is on, it can check the return value of InteractionProvider directly rather than mocked DesignSurface.
+    DesignSurface surface = setupLinearLayoutCursorTest().getSurface();
+    InteractionProvider interactionProvider = new NlInteractionProvider(surface);
+
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+
+    int mouseX = Coordinates.getSwingXDip(screenView, textView.getCenterX());
+    int mouseY = Coordinates.getSwingYDip(screenView, textView.getCenterY());
+    int modifiersEx = 0;
+
+    interactionProvider.hoverWhenNoInteraction(mouseX, mouseY, modifiersEx);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR),
+                 interactionProvider.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx));
   }
 
   @Override
   public void testLinearLayoutCursorHoverComponentHandle() {
-    super.testLinearLayoutCursorHoverComponentHandle();
+    // TODO: replace this test to InteractionManagerTest when StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
+    // When flag is on, it can check the return value of InteractionProvider directly rather than mocked DesignSurface.
+    DesignSurface surface = setupConstraintLayoutCursorTest().getSurface();
+    InteractionProvider interactionProvider = new NlInteractionProvider(surface);
+
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+    SelectionModel selectionModel = screenView.getSelectionModel();
+    selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
+    textView.layout(SceneContext.get(screenView), 0);
+
+    int mouseX = Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth());
+    int mouseY = Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight());
+    int modifiersEx = 0;
+
+    interactionProvider.hoverWhenNoInteraction(mouseX, mouseY, modifiersEx);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR),
+                 interactionProvider.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx));
   }
 
   @Override
@@ -96,12 +135,41 @@ public class NewInteractionManagerTest extends InteractionManagerTest {
 
   @Override
   public void testConstraintLayoutCursorHoverComponent() {
-    super.testConstraintLayoutCursorHoverComponent();
+    // TODO: replace this test to InteractionManagerTest when StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
+    // When flag is on, it can check the return value of InteractionProvider directly rather than mocked DesignSurface.
+    DesignSurface surface = setupConstraintLayoutCursorTest().getSurface();
+    InteractionProvider interactionProvider = new NlInteractionProvider(surface);
+
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+    int mouseX = Coordinates.getSwingXDip(screenView, textView.getCenterX());
+    int mouseY = Coordinates.getSwingYDip(screenView, textView.getCenterY());
+    int modifiersEx = 0;
+    interactionProvider.hoverWhenNoInteraction(mouseX, mouseY, modifiersEx);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR),
+                 interactionProvider.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx));
   }
 
   @Override
   public void testConstraintLayoutCursorHoverComponentHandle() {
-    super.testConstraintLayoutCursorHoverComponentHandle();
+    // TODO: replace this test to InteractionManagerTest when StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
+    // When flag is on, it can check the return value of InteractionProvider directly rather than mocked DesignSurface.
+    DesignSurface surface = setupConstraintLayoutCursorTest().getSurface();
+    InteractionProvider interactionProvider = new NlInteractionProvider(surface);
+
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+    SelectionModel selectionModel = screenView.getSelectionModel();
+    selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
+    textView.layout(SceneContext.get(screenView), 0);
+
+    int mouseX = Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth());
+    int mouseY = Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight());
+    int modifiersEx = 0;
+
+    interactionProvider.hoverWhenNoInteraction(mouseX, mouseY, modifiersEx);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR),
+                 interactionProvider.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx));
   }
 
   @Override
