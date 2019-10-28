@@ -1,9 +1,9 @@
 android { buildTypes {
     debug {
-      applicationIdSuffix = '-debug'
+      applicationIdSuffix '-debug'
     }
     release {
-      applicationIdSuffix = '-release'
+      applicationIdSuffix '-release'
     }
   }
 }

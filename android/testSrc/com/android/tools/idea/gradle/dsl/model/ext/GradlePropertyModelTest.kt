@@ -605,7 +605,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.android().defaultConfig().manifestPlaceholders()
-      verifyMapProperty(propertyModel, mapOf())
+      assertMissingProperty(propertyModel)
     }
   }
 

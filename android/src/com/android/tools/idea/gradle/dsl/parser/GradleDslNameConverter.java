@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.psi.PsiElement;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public interface GradleDslNameConverter {
@@ -47,10 +48,13 @@ public interface GradleDslNameConverter {
    *
    * @param modelName the canonical model namestring for this name
    * @param context the parent element of the element whose name this is
-   * @return a string containing a dotted-hierarchy of external names
+   * @return a pair whose first is the string containing a dotted-hierarchy of external names, and whose second indicates whether that
+   *         name is to be used as a setter method (true) or in a property assignment (false), or we don't know (null).
    */
   @NotNull
-  default String externalNameForParent(@NotNull String modelName, @NotNull GradleDslElement context) { return ""; }
+  default Pair<String, Boolean> externalNameForParent(@NotNull String modelName, @NotNull GradleDslElement context) {
+    return new Pair<>("", null);
+  }
 
   /**
    * Converts a dotted-hierarchy name with hierarchy denoting external names to a dotted-hierarchy name of canonical model names for

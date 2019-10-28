@@ -5,6 +5,6 @@ ext {
 configurations {
   newConfig
   otherNewConfig {
-    visible = var1
+    visible var1
   }
 }
