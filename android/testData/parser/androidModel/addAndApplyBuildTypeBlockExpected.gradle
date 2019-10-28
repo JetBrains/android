@@ -1,7 +1,7 @@
 android {
   buildTypes {
     type {
-      applicationIdSuffix = 'mySuffix'
+      applicationIdSuffix 'mySuffix'
     }
   }
 }

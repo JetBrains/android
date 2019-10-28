@@ -171,7 +171,6 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
       GradleDslExpressionMap testInstrumentationRunnerArgumentsElement =
         getPropertyElement(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, GradleDslExpressionMap.class);
       if (testInstrumentationRunnerArgumentsElement == null) {
-        oldElement.getNameElement().rename(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS);
         testInstrumentationRunnerArgumentsElement =
           new GradleDslExpressionMap(this, element.getPsiElement(), oldElement.getNameElement(), true);
         setParsedElement(testInstrumentationRunnerArgumentsElement);

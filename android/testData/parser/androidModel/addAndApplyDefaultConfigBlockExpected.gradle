@@ -1,5 +1,5 @@
 android {
   defaultConfig {
-    applicationId = 'foo.bar'
+    applicationId 'foo.bar'
   }
 }
