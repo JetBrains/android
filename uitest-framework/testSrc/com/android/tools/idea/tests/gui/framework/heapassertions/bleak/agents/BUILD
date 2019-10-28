@@ -22,16 +22,3 @@ cc_library(
         "//prebuilts/studio/jdk:jni_headers",
     ],
 )
-
-java_binary(
-    name = "ObjectSizeInstrumentationAgent",
-    srcs = [
-        "ObjectSizeInstrumentationAgent.java",
-    ],
-    create_executable = False,
-    deploy_manifest_lines = [
-        "Premain-class: com.android.tools.idea.tests.gui.framework.heapassertions.bleak.",
-        " agents.ObjectSizeInstrumentationAgent",
-    ],
-    visibility = ["//visibility:public"],
-)

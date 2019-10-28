@@ -39,8 +39,13 @@ public class ReflectionUtil {
       return o1 == o2;
     }
   };
+  private static final Map<Class, Long> objectSizes = new THashMap<>(hashingStrategy);
   private static final Map<Class, Field[]> allFields = new THashMap<>(hashingStrategy);
   private static final Field[] EMPTY_FIELD_ARRAY = new Field[0];
+
+  private static final int OBJECT_HEADER_SIZE = 16;
+  private static final int ARRAY_HEADER_SIZE = 20;
+  private static final int POINTER_SIZE = 4; // assuming we're using compressed oops
 
   @NotNull
   public static Field[] getAllFields(@NotNull Class aClass) {
@@ -53,6 +58,7 @@ public class ReflectionUtil {
         for (Field declaredField : declaredFields) {
           declaredField.setAccessible(true);
           Class<?> type = declaredField.getType();
+          if ((declaredField.getModifiers() & Modifier.STATIC) == 0) size += sizeOf(type);
           if (isTrivial(type)) continue; // unable to hold references, skip
           fields.add(declaredField);
         }
@@ -63,8 +69,10 @@ public class ReflectionUtil {
               fields.add(sup);
             }
           }
+          size += objectSizes.get(superclass);
         }
         cached = fields.isEmpty() ? EMPTY_FIELD_ARRAY : fields.toArray(new Field[0]);
+        objectSizes.put(aClass, size);
       }
       catch (IncompatibleClassChangeError | NoClassDefFoundError | SecurityException e) {
         //this exception may be thrown because there are two different versions of org.objectweb.asm.tree.ClassNode from different plugins
@@ -88,6 +96,50 @@ public class ReflectionUtil {
 
   private static boolean isTrivial(@NotNull Class<?> type) {
     return type.isPrimitive() || type == Class.class;
+  }
+
+  // the size that a field of type 'type' takes in an object.
+  private static long sizeOf(Class<?> type) {
+    if (!type.isPrimitive()) return POINTER_SIZE;
+    if (type == Boolean.TYPE) return 1;
+    if (type == Byte.TYPE) return 1;
+    if (type == Character.TYPE) return 2;
+    if (type == Short.TYPE) return 2;
+    if (type == Integer.TYPE) return 4;
+    if (type == Long.TYPE) return 8;
+    if (type == Float.TYPE) return 4;
+    if (type == Double.TYPE) return 8;
+    throw new IllegalStateException("Size computation: unknown type: " + type.getName());
+  }
+
+  private static int arrayLength(Object obj) {
+    if (obj.getClass().getComponentType().isPrimitive()) {
+      if (obj instanceof boolean[]) return ((boolean[]) obj).length;
+      if (obj instanceof byte[]) return ((byte[]) obj).length;
+      if (obj instanceof char[]) return ((char[]) obj).length;
+      if (obj instanceof short[]) return ((short[]) obj).length;
+      if (obj instanceof int[]) return ((int[]) obj).length;
+      if (obj instanceof long[]) return ((long[]) obj).length;
+      if (obj instanceof float[]) return ((float[]) obj).length;
+      if (obj instanceof double[]) return ((double[]) obj).length;
+    } else {
+      return ((Object[]) obj).length;
+    }
+    throw new IllegalStateException("Bad array type: " + obj.getClass().getName());
+  }
+
+  // estimates the size of obj. This is an underestimate of the real size, as it does not take into account any
+  // padding between fields or alignment requirements of the whole object.
+  public static long estimateSize(Object obj) {
+    if (obj == null) return 0;
+    Class<?> klass = obj.getClass();
+    if (klass.isArray()) {
+      return sizeOf(klass.getComponentType()) * arrayLength(obj) + ARRAY_HEADER_SIZE;
+    }
+    if (!objectSizes.containsKey(klass)) {
+      getAllFields(klass);
+    }
+    return objectSizes.get(klass) + OBJECT_HEADER_SIZE;
   }
 
 }
