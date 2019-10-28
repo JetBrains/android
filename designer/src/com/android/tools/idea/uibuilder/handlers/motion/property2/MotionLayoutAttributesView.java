@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2;
 
-import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
-import static com.android.SdkConstants.AUTO_URI;
 import static com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory;
 
 import com.android.tools.idea.common.model.NlComponent;
@@ -47,11 +45,9 @@ import com.android.tools.property.panel.api.TableLineModel;
 import com.android.tools.property.panel.api.TableUIProvider;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.xml.XmlElementDescriptor;
 import java.util.Collections;
@@ -82,20 +78,17 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(enumSupportProvider, controlTypeProvider);
     TableUIProvider tableUIProvider = TableUIProvider.Companion.create(NelePropertyItem.class, controlTypeProvider, editorProvider);
     getMain().getBuilders().add(new SelectedTargetBuilder());
-    addTab("").getBuilders().add(new MotionInspectorBuilder(model, editorProvider, tableUIProvider));
+    addTab("").getBuilders().add(new MotionInspectorBuilder(model, tableUIProvider));
   }
 
   private static class MotionInspectorBuilder implements InspectorBuilder<NelePropertyItem> {
     private final MotionLayoutAttributesModel myModel;
-    private final EditorProvider<NelePropertyItem> myEditorProvider;
     private final TableUIProvider myTableUIProvider;
     private final XmlElementDescriptorProvider myDescriptorProvider;
 
     private MotionInspectorBuilder(@NotNull MotionLayoutAttributesModel model,
-                                   @NotNull EditorProvider<NelePropertyItem> editorProvider,
                                    @NotNull TableUIProvider tableUIProvider) {
       myModel = model;
-      myEditorProvider = editorProvider;
       myTableUIProvider = tableUIProvider;
       myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     }
@@ -114,27 +107,14 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
       switch (selection.getType()) {
         case CONSTRAINT:
-          NelePropertyItem targetId = properties.getOrNull(ANDROID_URI, ATTR_ID);
           boolean showConstraintPanel = !shouldDisplaySection(MotionSceneAttrs.Tags.LAYOUT, selection);
-          addPropertyTable(inspector, selection, MotionSceneAttrs.Tags.CONSTRAINT, myModel, true, false, showConstraintPanel, targetId);
+          addPropertyTable(inspector, selection, MotionSceneAttrs.Tags.CONSTRAINT, myModel, true, false, showConstraintPanel);
           addSubTagSections(inspector, selection, myModel);
           break;
 
         case TRANSITION:
           addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false, false);
           addSubTagSections(inspector, selection, myModel);
-          break;
-
-        case KEY_FRAME:
-          NelePropertyItem target = properties.getOrNull(AUTO_URI, MotionSceneAttrs.Key.MOTION_TARGET);
-          NelePropertyItem position = properties.getOrNull(AUTO_URI, MotionSceneAttrs.Key.FRAME_POSITION);
-          if (target == null || position == null) {
-            // All KeyFrames should have target and position.
-            Logger.getInstance(NelePropertyItem.class).warn("KeyFrame without target and position");
-            return;
-          }
-          inspector.addEditor(myEditorProvider.createEditor(position, false), null);
-          addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false, false, target, position);
           break;
 
         default:
@@ -192,15 +172,13 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
                                   @NotNull PropertiesModel<NelePropertyItem> model,
                                   boolean showDefaultValues,
                                   boolean showSectionControl,
-                                  boolean showConstraintPanel,
-                                  @NotNull NelePropertyItem... excluded) {
+                                  boolean showConstraintPanel) {
       if (!shouldDisplaySection(sectionTagName, selection)) {
         return;
       }
       NelePropertyItem any = model.getProperties().getFirst();
       Function1<NelePropertyItem, Boolean> filter =
         (item) -> !item.getNamespace().isEmpty() &&
-                  ArrayUtil.find(excluded, item) < 0 &&
                   (item.getRawValue() != null || (showDefaultValues && item.getDefaultValue() != null));
       Function1<NelePropertyItem, Unit> deleteOp = (item) -> { item.setValue(null); return null; };
 
