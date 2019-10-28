@@ -27,6 +27,7 @@ import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
 import com.android.ide.common.gradle.model.stubs.AaptOptionsStub
 import com.android.ide.common.gradle.model.stubs.AndroidArtifactStub
 import com.android.ide.common.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub
+import com.android.ide.common.gradle.model.stubs.AndroidLibraryStub
 import com.android.ide.common.gradle.model.stubs.AndroidProjectStub
 import com.android.ide.common.gradle.model.stubs.ApiVersionStub
 import com.android.ide.common.gradle.model.stubs.BuildTypeContainerStub
@@ -36,6 +37,7 @@ import com.android.ide.common.gradle.model.stubs.DependencyGraphsStub
 import com.android.ide.common.gradle.model.stubs.InstantRunStub
 import com.android.ide.common.gradle.model.stubs.JavaCompileOptionsStub
 import com.android.ide.common.gradle.model.stubs.LintOptionsStub
+import com.android.ide.common.gradle.model.stubs.MavenCoordinatesStub
 import com.android.ide.common.gradle.model.stubs.ProductFlavorContainerStub
 import com.android.ide.common.gradle.model.stubs.ProductFlavorStub
 import com.android.ide.common.gradle.model.stubs.SourceProviderContainerStub
@@ -51,12 +53,14 @@ import com.android.testutils.TestUtils.getLatestAndroidPlatform
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
+import com.android.tools.idea.gradle.project.model.JavaModuleModel
+import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.sdk.IdeSdks
-import com.google.common.truth.TruthJUnit
+import com.android.utils.FileUtils
 import com.google.common.truth.TruthJUnit.assume
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -66,11 +70,12 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY
 import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ExternalProjectSystemRegistry.EXTERNAL_SYSTEM_ID_KEY
+import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet
@@ -80,10 +85,30 @@ import java.io.File
 
 typealias AndroidProjectBuilder = (projectName: String, basePath: File) -> AndroidProject
 
+sealed class ModuleModelBuilder {
+  abstract val gradlePath: String
+}
+
+data class AndroidModuleModelBuilder(
+  override val gradlePath: String,
+  val selectedBuildVariant: String,
+  val projectBuilder: AndroidProjectBuilder
+) : ModuleModelBuilder()
+
+data class JavaModuleModelBuilder(
+  override val gradlePath: String
+) : ModuleModelBuilder() {
+  companion object {
+    val rootModuleBuilder = JavaModuleModelBuilder(":")
+  }
+}
+
+data class AndroidModuleDependency(val moduleGradlePath: String, val variant: String?)
 /**
  * An interface providing access to [AndroidProject] sub-model builders are used to build [AndroidProject] and its other sub-models.
  */
 interface AndroidProjectStubBuilder {
+  val buildId: String
   val projectName: String
   val basePath: File
   val buildPath: File
@@ -98,7 +123,8 @@ interface AndroidProjectStubBuilder {
   val debugBuildType: BuildTypeContainer?
   val releaseBuildType: BuildTypeContainer?
   val viewBindingOptions: ViewBindingOptions
-  val mainArtifact: AndroidArtifact
+  fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
+  fun mainArtifact(variant: String): AndroidArtifact
   val androidProject: AndroidProject
 }
 
@@ -109,6 +135,7 @@ interface AndroidProjectStubBuilder {
  * sub-model builders.
  */
 fun createAndroidProjectBuilder(
+  buildId: AndroidProjectStubBuilder.() -> String = { "/tmp/buildId" }, //  buildId should not be assumed to be a path.
   minSdk: AndroidProjectStubBuilder.() -> Int = { 16 },
   targetSdk: AndroidProjectStubBuilder.() -> Int = { 22 },
   defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub = { buildDefaultConfigStub() },
@@ -120,11 +147,13 @@ fun createAndroidProjectBuilder(
   debugBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildDebugBuildTypeStub() },
   releaseBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildReleaseBuildTypeStub() },
   viewBindingOptions: AndroidProjectStubBuilder.() -> ViewBindingOptionsStub = { buildViewBindingOptions() },
-  mainArtifactStub: AndroidProjectStubBuilder.() -> AndroidArtifactStub = { buildMainArtifactStub() },
+  mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub = { variant -> buildMainArtifactStub(variant) },
+  androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
   androidProject: AndroidProjectStubBuilder.() -> AndroidProject = { buildAndroidProjectStub() }
 ): AndroidProjectBuilder {
   return { projectName, basePath ->
     val builder = object : AndroidProjectStubBuilder {
+      override val buildId: String = buildId()
       override val projectName: String = projectName
       override val basePath: File = basePath
       override val buildPath: File get() = basePath.resolve("build")
@@ -139,7 +168,8 @@ fun createAndroidProjectBuilder(
       override val debugBuildType: BuildTypeContainer? = debugBuildType()
       override val releaseBuildType: BuildTypeContainer? = releaseBuildType()
       override val viewBindingOptions: ViewBindingOptions = viewBindingOptions()
-      override val mainArtifact: AndroidArtifact = mainArtifactStub()
+      override fun androidModuleDependencies(variant: String): List<AndroidModuleDependency> = androidModuleDependencyList(variant)
+      override fun mainArtifact(variant: String): AndroidArtifact = mainArtifactStub(variant)
       override val androidProject: AndroidProject = androidProject()
     }
     builder.androidProject
@@ -236,15 +266,44 @@ fun AndroidProjectStubBuilder.buildReleaseBuildTypeStub() = releaseSourceProvide
 
 fun AndroidProjectStubBuilder.buildViewBindingOptions() = ViewBindingOptionsStub()
 
-fun AndroidProjectStubBuilder.buildMainArtifactStub() = AndroidArtifactStub(
+fun AndroidProjectStubBuilder.buildMainArtifactStub(variant: String): AndroidArtifactStub {
+  val androidModuleDependencies = this.androidModuleDependencies(variant).orEmpty()
+  val dependenciesStub = DependenciesStub(
+    androidModuleDependencies.map {
+      AndroidLibraryStub(
+        MavenCoordinatesStub("artifacts", it.moduleGradlePath, "unspecificed", "jar"),
+        this.buildId,
+        it.moduleGradlePath,
+        "artifacts:${it.moduleGradlePath}:unspecified@jar",
+        false,
+        false,
+        File("stub_bundle.jar"),
+        File("stub_folder"),
+        emptyList(),
+        emptyList(),
+        File("stub_AndroidManifest.xml"),
+        File("stub_jarFile.jar"),
+        File("stub_compileJarFile.jar"),
+        File("stub_resFolder"),
+        File("stub_resStaticLibrary"),
+        File("stub_assetsFolder"),
+        it.variant,
+        emptyList(),
+        File("srub_proguard.txt"),
+        File("stub_lintJar.jar"),
+        File("stub_publicResources")
+      )
+    },
+    listOf(), listOf(), listOf(), listOf())
+  return AndroidArtifactStub(
     ARTIFACT_NAME_MAIN,
     "compile",
     "assemble",
     buildPath.resolve("classes"),
     setOf(),
     buildPath.resolve("res"),
-    DependenciesStub(listOf(), listOf(), listOf(), listOf(), listOf()),
-    DependenciesStub(listOf(), listOf(), listOf(), listOf(), listOf()),
+    dependenciesStub,
+    dependenciesStub,
     DependencyGraphsStub(listOf(), listOf(), listOf(), listOf()),
     setOf(),
     setOf(),
@@ -266,6 +325,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub() = AndroidArtifactStub(
     null,
     false
   )
+}
 
 fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
   val debugBuildType = this.debugBuildType
@@ -281,19 +341,21 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     listOf(),
     "buildToolsVersion",
     listOf(),
-    listOf(
-      VariantStub(
-        defaultVariantName,
-        defaultVariantName,
-        mainArtifact,
-        listOf(),
-        listOf(),
-        defaultVariantName,
-        listOf(),
-        defaultConfig.productFlavor,
-        listOf(),
-        false
-      )),
+    listOf("debug", "release")
+      .map { variant ->
+        VariantStub(
+          variant,
+          variant,
+          mainArtifact(variant),
+          listOf(),
+          listOf(),
+          variant,
+          listOf(),
+          defaultConfig.productFlavor,
+          listOf(),
+          false
+        )
+      },
     listOfNotNull(debugBuildType?.sourceProvider?.name, releaseBuildType?.sourceProvider?.name),
     defaultVariantName,
     listOf(),
@@ -323,7 +385,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
 fun setupTestProjectFromAndroidModel(
   project: Project,
   basePath: File,
-  stubBuilder: AndroidProjectBuilder
+  vararg moduleBuilders: ModuleModelBuilder
 ) {
 
   val moduleManager = ModuleManager.getInstance(project)
@@ -360,7 +422,6 @@ fun setupTestProjectFromAndroidModel(
   val task = IdeaSyncPopulateProjectTask(project)
   val buildPath = basePath.resolve("build")
   val projectName = project.name
-  val androidProjectStub = stubBuilder(projectName, basePath)
   val projectDataNode = DataNode<ProjectData>(
     ProjectKeys.PROJECT,
     ProjectData(
@@ -402,27 +463,63 @@ fun setupTestProjectFromAndroidModel(
     )
   )
 
-  val moduleDataNode = DataNode<ModuleData>(
-    ProjectKeys.MODULE,
-    ModuleData(
-      projectName,
-      GRADLE_SYSTEM_ID,
-      JavaModuleType.getModuleType().id,
-      projectName,
-      basePath.path,
-      basePath.path
-    ),
-    null
-  )
+  moduleBuilders.forEach { moduleBuilder ->
+    val gradlePath = moduleBuilder.gradlePath
+    val moduleName = gradlePath.substringAfterLast(':').nullize() ?: projectName;
+    val moduleBasePath = basePath.resolve(gradlePath.substring(1).replace(':', File.separatorChar))
+    FileUtils.mkdirs(moduleBasePath)
+    val moduleDataNode = when (moduleBuilder) {
+      is AndroidModuleModelBuilder -> {
+        createAndroidModuleDataNode(
+          moduleName,
+          gradlePath,
+          moduleBasePath,
+          gradlePlugins,
+          moduleBuilder.projectBuilder(moduleName, moduleBasePath),
+          moduleBuilder.selectedBuildVariant
+        )
+      }
+      is JavaModuleModelBuilder ->
+        createJavaModuleDataNode(
+          moduleName,
+          gradlePath,
+          moduleBasePath
+        )
+    }
+    projectDataNode.addChild(moduleDataNode)
+  }
+
+  IdeSdks.removeJdksOn(project)
+  runWriteAction {
+    task.populateProject(
+      projectDataNode,
+      ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, project),
+      PostSyncProjectSetup.Request(),
+      null
+    )
+    assume().that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
+  }
+}
+
+private fun createAndroidModuleDataNode(
+  moduleName: String,
+  gradlePath: String,
+  moduleBasePath: File,
+  gradlePlugins: List<String>,
+  androidProjectStub: AndroidProject,
+  selectedVariantName: String
+): DataNode<ModuleData> {
+
+  val moduleDataNode = createGradleModuleDataNode(gradlePath, moduleName, moduleBasePath)
 
   moduleDataNode.addChild(
     DataNode<GradleModuleModel>(
       AndroidProjectKeys.GRADLE_MODULE_MODEL,
       GradleModuleModel(
-        projectName,
+        moduleName,
         listOf(),
-        ":",
-        basePath,
+        gradlePath,
+        moduleBasePath,
         gradlePlugins,
         null,
         null,
@@ -437,26 +534,70 @@ fun setupTestProjectFromAndroidModel(
     DataNode<AndroidModuleModel>(
       AndroidProjectKeys.ANDROID_MODEL,
       AndroidModuleModel.create(
-        projectName,
-        basePath,
+        moduleName,
+        moduleBasePath,
         IdeAndroidProjectImpl.create(
           androidProjectStub,
           IdeDependenciesFactory(),
           null,
           null),
-        "debug"
+        selectedVariantName
       ),
       null
     )
   )
-  projectDataNode.addChild(moduleDataNode)
-  IdeSdks.removeJdksOn(project)
-  runWriteAction {
-    task.populateProject(
-      projectDataNode,
-      ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, project),
-      PostSyncProjectSetup.Request(),
+
+  return moduleDataNode
+}
+
+private fun createJavaModuleDataNode(
+  moduleName: String,
+  gradlePath: String,
+  moduleBasePath: File
+): DataNode<ModuleData> {
+
+  val moduleDataNode = createGradleModuleDataNode(gradlePath, moduleName, moduleBasePath)
+
+  moduleDataNode.addChild(
+    DataNode<JavaModuleModel>(
+      AndroidProjectKeys.JAVA_MODULE_MODEL,
+      JavaModuleModel.create(
+        moduleName,
+        emptyList(),
+        emptyList(),
+        emptyList(),
+        emptyMap(),
+        emptyList(),
+        null,
+        null,
+        null,
+        false,
+        false
+      ),
       null
     )
-  }
+  )
+
+  return moduleDataNode
 }
+
+private fun createGradleModuleDataNode(
+  gradlePath: String,
+  moduleName: String,
+  moduleBasePath: File
+): DataNode<ModuleData> {
+  val moduleDataNode = DataNode<ModuleData>(
+    ProjectKeys.MODULE,
+    ModuleData(
+      if (gradlePath == ":") moduleName else gradlePath,
+      GRADLE_SYSTEM_ID,
+      JavaModuleType.getModuleType().id,
+      moduleName,
+      moduleBasePath.path,
+      moduleBasePath.path
+    ),
+    null
+  )
+  return moduleDataNode
+}
+
