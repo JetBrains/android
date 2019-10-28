@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander
 
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Edge
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.HeapGraph
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.ReflectionUtil
 import sun.misc.Unsafe
 import java.lang.reflect.Modifier
@@ -24,7 +23,7 @@ import java.lang.reflect.Modifier
 /** [ClassStaticsExpander] takes a Class object and generates children for all of its static fields,
  * using [FieldLabel]s for the edge labels.
  */
-class ClassStaticsExpander(g: HeapGraph): DefaultObjectExpander(g, { _, _, _ -> false}) {
+class ClassStaticsExpander(): DefaultObjectExpander({ _, _, _ -> false}) {
   override fun canExpand(obj: Any) = obj is Class<*>
   override fun expand(n: Node) {
     if ((n.obj as Class<*>).isInitialized()) {

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander
 
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.HeapGraph
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.ReflectionUtil
 import java.util.ArrayDeque
 import java.util.IdentityHashMap
@@ -26,7 +25,7 @@ import java.util.IdentityHashMap
  * the objects they contain as their children, despite not necessarily having direct references
  * to them).
  */
-class ElidingExpander(g: HeapGraph, val baseTypeName: String, val childFinder: Any.() -> List<Any>): Expander(g) {
+class ElidingExpander(val baseTypeName: String, val childFinder: Any.() -> List<Any>): Expander() {
   override fun canExpand(obj: Any) = obj.javaClass.name == baseTypeName
 
   override fun expand(n: Node) {
@@ -71,6 +70,6 @@ class ElidingExpander(g: HeapGraph, val baseTypeName: String, val childFinder: A
       "java.util.LinkedList" to { ll -> listOf(ll).fields("first").recFields("next").fields("item") }
     )
 
-    fun getExpanders(g: HeapGraph) = childFinders.map { ElidingExpander(g, it.first, it.second) }
+    fun getExpanders() = childFinders.map { ElidingExpander(it.first, it.second) }
   }
 }

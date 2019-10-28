@@ -49,14 +49,14 @@ typealias Node = HeapGraph.Node
 class HeapGraph: DoNotTrace {
 
   private val expanderChooser: ExpanderChooser = ExpanderChooser(listOf(
-    RootExpander(this),
-    ArrayObjectIdentityExpander(this),
-    ClassLoaderExpander(this, jniHelper),
-    ClassStaticsExpander(this),
-    SmartListExpander(this),
-    SmartFMapExpander(this)) +
-    ElidingExpander.getExpanders(this) +
-    listOf(DefaultObjectExpander(this)))
+    RootExpander(),
+    ArrayObjectIdentityExpander(),
+    ClassLoaderExpander(jniHelper),
+    ClassStaticsExpander(),
+    SmartListExpander(),
+    SmartFMapExpander()) +
+    ElidingExpander.getExpanders() +
+    listOf(DefaultObjectExpander()))
 
   private val objToNode: MutableMap<Any, Node> = IdentityHashMap()
   private val rootNodes: List<Node> = mutableListOf(Node(jniHelper, true)) //traversalRoots.map{Node(it, true)}

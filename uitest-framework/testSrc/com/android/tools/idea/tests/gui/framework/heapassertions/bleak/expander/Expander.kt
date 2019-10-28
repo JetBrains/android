@@ -40,7 +40,7 @@ typealias Node = HeapGraph.Node
  * then getChildForLabel(n, e.label) == n1 to avoid inconsistency.
  *
  */
-abstract class Expander(val g: HeapGraph): DoNotTrace {
+abstract class Expander: DoNotTrace {
   abstract inner class Label {
     abstract fun signature(): String
   }
