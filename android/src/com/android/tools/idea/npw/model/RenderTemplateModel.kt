@@ -110,7 +110,6 @@ class RenderTemplateModel private constructor(
       value.parameters
     )
   }
-  var iconGenerator: IconGenerator? = null
   val renderLanguage = ObjectValueProperty(getInitialSourceLanguage(project.valueOrNull)).apply {
     addListener {
       PropertiesComponent.getInstance().setValue(PROPERTIES_RENDER_LANGUAGE_KEY, this.get().toString())
@@ -212,11 +211,7 @@ class RenderTemplateModel private constructor(
       val paths = template.get().paths
 
       try {
-        val success = renderTemplate(false, project.value, paths, createdFiles, filesToReformat)
-        if (success) {
-          iconGenerator?.generateIconsToDisk(paths)
-        }
-        renderSuccess = success
+        renderSuccess = renderTemplate(false, project.value, paths, createdFiles, filesToReformat)
       }
       catch (t: Throwable) {
         log.warn(t)

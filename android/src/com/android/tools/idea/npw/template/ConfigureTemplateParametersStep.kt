@@ -168,19 +168,6 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
    */
   private fun getRecentsKeyForParameter(parameter: Parameter) = "android.template.${parameter.id!!}"
 
-  override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
-    val template = model.templateHandle
-    return if (template != null && template.metadata.iconType == AndroidIconType.NOTIFICATION) {
-      checkNotNull(model.androidFacet) {
-        "Android Facet is null only for a not-yet-created project but it's impossible to create new project with notification activity"
-      }
-      listOf(GenerateIconsStep(model.androidFacet!!, model))
-    }
-    else {
-      super.createDependentSteps()
-    }
-  }
-
   override fun shouldShow(): Boolean = model.templateHandle != null
 
   @Suppress("UNCHECKED_CAST")
