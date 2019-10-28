@@ -153,11 +153,12 @@ class RenderTemplateModel private constructor(
 
       if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get() && isNew) {
         moduleTemplateDataBuilder.apply {
-          // sourceProviderName = template.get().name TODO there is no sourcesProvider (yet?)
+          // sourceProviderName = template.get().name TODO(qumeric) there is no sourcesProvider (yet?)
           projectTemplateDataBuilder.setProjectDefaults(project.value)
           formFactor = newTemplate.formFactor
           moduleTemplateDataBuilder.setModuleRoots(
-            paths, projectLocation.get(), moduleName.get(), this@RenderTemplateModel.packageName.get())
+            paths, projectLocation.get(), moduleName.get(), this@RenderTemplateModel.packageName.get()
+          )
 
           projectTemplateDataBuilder.language = renderLanguage.get()
 
