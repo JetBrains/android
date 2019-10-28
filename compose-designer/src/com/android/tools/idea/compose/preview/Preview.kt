@@ -331,6 +331,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
   val notificationsPanel = JPanel().apply {
     layout = BoxLayout(this, BoxLayout.PAGE_AXIS)
+    name = "NotificationsPanel"
   }
 
   /**
