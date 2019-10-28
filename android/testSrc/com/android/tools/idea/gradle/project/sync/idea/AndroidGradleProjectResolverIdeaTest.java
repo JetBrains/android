@@ -160,8 +160,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
     myResolverCtx.setModels(allModels);
 
     when(androidProject.getModelVersion()).thenReturn("0.0.1");
-    ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectDataNode = new DataNode<>(PROJECT, project, null);
+    DataNode<ProjectData> projectDataNode = createProjectNode();
 
     try {
       myProjectResolver.createModule(myAndroidModuleModel, projectDataNode);
@@ -173,8 +172,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
   }
 
   public void testSyncIssuesPropagatedOnJavaModules() {
-    ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
+    DataNode<ProjectData> projectNode = createProjectNode();
     DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModuleModel, projectNode);
 
     SyncIssue syncIssue = mock(SyncIssue.class);
@@ -201,8 +199,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
   }
 
   public void testPopulateModuleContentRootsWithNativeAndroidProject() {
-    ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
+    DataNode<ProjectData> projectNode = createProjectNode();
     DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myNativeAndroidModuleModel, projectNode);
     myProjectResolver.populateModuleContentRoots(myNativeAndroidModuleModel, moduleDataNode);
 
@@ -228,8 +225,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
   }
 
   public void testPopulateModuleContentRootsWithJavaProject() {
-    ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
+    DataNode<ProjectData> projectNode = createProjectNode();
     DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myJavaModuleModel, projectNode);
 
     myProjectResolver.populateModuleContentRoots(myJavaModuleModel, moduleDataNode);
@@ -262,8 +258,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
   }
 
   public void testPopulateModuleTasks() {
-    ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
+    DataNode<ProjectData> projectNode = createProjectNode();
     DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myJavaModuleModel, projectNode);
 
     IdeaProjectStub includedProject = new IdeaProjectStub("includedProject");
@@ -281,8 +276,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
   }
 
   public void testKaptSourcesAreAddedToAndroidModuleModel() {
-    ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
+    DataNode<ProjectData> projectNode = createProjectNode();
     DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModuleModel, projectNode);
 
     File debugGeneratedSourceFile = new File("/gen/debug");
@@ -330,8 +324,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
   }
 
   public void testKaptTestSourcesAreAddedToAndroidModuleModel() {
-    ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
+    DataNode<ProjectData> projectNode = createProjectNode();
     DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModuleModel, projectNode);
 
     File androidTestGeneratedSourceFile = new File("/gen/debugAndroidTest");
@@ -379,5 +372,13 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
     IdeVariant variant = androidModuleModel.findVariantByName("debug");
     assertThat(variant.getAndroidTestArtifact().getGeneratedSourceFolders()).contains(androidTestGeneratedSourceFile);
     assertThat(variant.getUnitTestArtifact().getGeneratedSourceFolders()).contains(unitTestGeneratedSourceFile);
+  }
+
+  @NotNull
+  private DataNode<ProjectData> createProjectNode() {
+    final String projectDirPath = myResolverCtx.getProjectPath();
+    String projectName = myProjectModel.getName();
+    ProjectData project = new ProjectData(SYSTEM_ID, projectName, projectDirPath, projectDirPath);
+    return new DataNode<>(PROJECT, project, null);
   }
 }
