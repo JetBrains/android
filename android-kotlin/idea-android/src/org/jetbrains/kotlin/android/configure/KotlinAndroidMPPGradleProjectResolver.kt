@@ -38,7 +38,7 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
     }
 
     override fun createModule(gradleModule: IdeaModule, projectDataNode: DataNode<ProjectData>): DataNode<ModuleData> {
-        return super.createModule(gradleModule, projectDataNode).also {
+        return super.createModule(gradleModule, projectDataNode)!!.also {
             initializeModuleData(gradleModule, it, projectDataNode)
         }
     }
