@@ -6,9 +6,9 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library" exported="">
       <library name="layoutlib" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:layoutlib:26.5.0.1" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:layoutlib:26.5.0.2" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/layoutlib/26.5.0.1/layoutlib-26.5.0.1.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/layoutlib/26.5.0.2/layoutlib-26.5.0.2.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
