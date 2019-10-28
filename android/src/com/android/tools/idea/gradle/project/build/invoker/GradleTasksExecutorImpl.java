@@ -326,7 +326,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
             buildState.buildFinished(FAILED);
             BuildEnvironment buildEnvironment =
               GradleExecutionHelper.getBuildEnvironment(connection, id, taskListener, cancellationTokenSource);
-            GradleProjectResolverExtension projectResolverChain = GradleProjectResolver.createProjectResolverChain(executionSettings);
+            GradleProjectResolverExtension projectResolverChain = GradleProjectResolver.createProjectResolverChain();
             ExternalSystemException userFriendlyError =
                 projectResolverChain.getUserFriendlyError(buildEnvironment, buildError, myRequest.getBuildFilePath().getPath(), null);
             taskListener.onFailure(id, userFriendlyError);
