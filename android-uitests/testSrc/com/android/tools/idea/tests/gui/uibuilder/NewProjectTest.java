@@ -30,6 +30,12 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InferNullityDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.intellij.notification.Notification;
+import com.intellij.notification.Notifications;
+import com.intellij.notification.NotificationsAdapter;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.LanguageLevelModuleExtension;
@@ -38,12 +44,15 @@ import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.io.IOException;
+import com.intellij.util.messages.MessageBusConnection;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +62,33 @@ public class NewProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
+
+  private MessageBusConnection notificationsBusConnection;
+  private List<String> balloonsDisplayed = Lists.newArrayList();
+
+  @Before
+  public void setup() {
+    notificationsBusConnection = ApplicationManager.getApplication().getMessageBus().connect();
+    notificationsBusConnection.subscribe(Notifications.TOPIC, new NotificationsAdapter() {
+      @Override
+      public void notify(@NotNull Notification notification) {
+        if (notification.getBalloon() != null) {
+          balloonsDisplayed.add(notification.getContent());
+        }
+      }
+    });
+  }
+
+  @After
+  public void tearDown() {
+    notificationsBusConnection.disconnect();
+    if (!balloonsDisplayed.isEmpty()) {
+      verifyOnlyExpectedWarnings(
+        Joiner.on('\n').join(balloonsDisplayed),
+        "<html>The following components are ready to .*update.*"
+      );
+    }
+  }
 
   @Test
   public void testNoWarningsInNewProjects() {

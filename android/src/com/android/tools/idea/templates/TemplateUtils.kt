@@ -143,7 +143,12 @@ object TemplateUtils {
   @JvmStatic
   fun reformatAndRearrange(project: Project, files: Iterable<File>) {
     WriteCommandAction.runWriteCommandAction(project) {
-      files.filter { it.isFile }.forEach {
+      files.asSequence()
+        .filter { it.isFile }
+        // We skip gradlew files, which IntelliJ recognizes as shell files and offers to install the bash IDE plugin. These files are
+        // created with the right formatting by the templates and we don't want the balloon on startup.
+        .filterNot { it.name.startsWith("gradlew") }
+        .forEach {
         val virtualFile = LocalFileSystem.getInstance().findFileByIoFile(it)!!
         reformatAndRearrange(project, virtualFile)
       }
