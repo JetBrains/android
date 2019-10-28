@@ -710,68 +710,17 @@ public final class StudioFlags {
     "If enabled, a visual preview will be available for Compose.",
     true);
 
-  public static final Flag<Boolean> COMPOSE_COMPLETION_ICONS = Flag.create(
-    COMPOSE, "completion.icons",
-    "Custom icons in completion for Compose",
-    "If enabled, code completion for composable functions uses different icons on the left.",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_HIDE_RETURN_TYPES = Flag.create(
-    COMPOSE, "completion.hide.return.types",
-    "Hide return types in completion for Compose",
-    "If enabled, code completion for composable functions that return Unit doesn't show return types.",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_LAYOUT_ICON = Flag.create(
-    COMPOSE, "completion.hide.layout.icon",
-    "Use a icon for Compose layouts on the right.",
-    "If enabled, code completion for composable functions uses a different icon on the right for layouts.",
-    false
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_BANNER = Flag.create(
-    COMPOSE, "completion.banner",
-    "Custom banner in completion for Compose",
-    "If enabled, code completion for composable functions uses a special banner (below all the suggestions). This seems to " +
-    "work only for explicitly invoked (using ctrl+space) completion for now.",
-    false
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_HIDE_SPECIAL_LOOKUP_ELEMENTS = Flag.create(
-    COMPOSE, "completion.hide.special",
-    "Hide special LookupElements for composable functions",
-    "If enabled, code completion for composable functions doesn't include duplicate suggestions for inserting lambdas.",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_REQUIRED_ONLY = Flag.create(
-    COMPOSE, "completion.required.only",
-    "Show only required parameters in completion",
-    "If enabled, code completion for composable functions shows only required parameters.",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_DOTS_FOR_OPTIONAL = Flag.create(
-    COMPOSE, "completion.dots",
-    "Show three dots when optional parameters are skipped in completion",
-    "If enabled, code completion for composable functions will show three dots after required parameters if there are optional " +
-    "parameters as well.",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_TRAILING_LAMBDA = Flag.create(
-    COMPOSE, "completion.lambda",
-    "Show trailing function parameter as lambda",
-    "If enabled, code completion for composable functions will use lambda syntax for trailing functional parameters.",
+  public static final Flag<Boolean> COMPOSE_COMPLETION_PRESENTATION = Flag.create(
+    COMPOSE, "completion.presentation",
+    "Custom presentation for code completion items for composable functions",
+    "If enabled, code completion items for composable functions use a custom presentation (icon, text).",
     true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_WEIGHER = Flag.create(
     COMPOSE, "completion.weigher",
     "Custom weigher for Compose",
-    "If enabled, code completion puts composable functions above other completion suggestions. For now in every context.",
+    "If enabled, code completion puts composable functions above other completion suggestions.",
     true
   );
 
@@ -779,13 +728,6 @@ public final class StudioFlags {
     COMPOSE, "completion.insert.handler",
     "Custom insert handler for composable functions",
     "If enabled, code completion for composable functions uses a custom InsertHandler that inserts required parameter names.",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_INSERT_HANDLER_STOP_FOR_OPTIONAL = Flag.create(
-    COMPOSE, "completion.insert.handler.optional",
-    "Custom insert handler for composable functions adds a stop for optional parameters",
-    "If enabled, custom InsertHandler adds an extra 'stop' for optional parameters.",
     true
   );
 
@@ -800,13 +742,6 @@ public final class StudioFlags {
     COMPOSE, "completion.auto.documentation",
     "Show quick documentation automatically for Compose",
     "If enabled, during code completion popup with documentation shows automatically",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_GUTTER_ICON_COLOR = Flag.create(
-    COMPOSE, "completion.gutter.icon.color",
-    "Show color icon in the gutter when declaring colors",
-    "If enabled, in the editor, a color icon will be shown matching the color described.",
     true
   );
 

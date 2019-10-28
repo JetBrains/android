@@ -16,6 +16,8 @@
 package org.jetbrains.android
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.project.DefaultModuleSystem
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.impl.AnnotationHolderImpl
@@ -30,8 +32,8 @@ import java.awt.Color
  */
 class ComposeColorAnnotatorTest : AndroidTestCase() {
   override fun setUp() {
-    StudioFlags.COMPOSE_GUTTER_ICON_COLOR.override(true)
     super.setUp()
+    (myModule.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     myFixture.addClass(
       //language=kotlin
       """
@@ -61,14 +63,6 @@ class ComposeColorAnnotatorTest : AndroidTestCase() {
           colorSpace: ColorSpace? = nul
       ): Color? = Color(1)
       """.trimIndent())
-  }
-
-  override fun tearDown() {
-    try {
-      StudioFlags.COMPOSE_GUTTER_ICON_COLOR.clearOverride()
-    } finally {
-      super.tearDown()
-    }
   }
 
   fun testColorLong() {
