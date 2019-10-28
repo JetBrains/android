@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectBuildVariantsConfigurable
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
@@ -110,6 +111,17 @@ class CreateNewFlavorsTest {
 
     assertThat(gradleFileContents).contains(flavor1)
     assertThat(gradleFileContents).contains(flavor2)
+
+    // For b/143102526:
+    // Additional check: Check if able to add new Product Flavor specific Activity.
+    ide.invokeMenuPath("File", "New", "Activity", "Empty Activity")
+    NewActivityWizardFixture.find(ide)
+      .configureActivityStep
+      .selectLauncherActivity()
+      .setTargetSourceSet(FLAVOR1)
+      .wizard()
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish()
   }
 }
 
