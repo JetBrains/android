@@ -121,7 +121,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
   private ConfigurationHolder createConfigurationAndHolder() {
     VirtualFile file = myFixture.copyFileToProject("configurations/layout1.xml", "res/layout/layout1.xml");
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
-    Configuration configuration = manager.create(file);
+    Configuration configuration = manager.getConfiguration(file);
     return new ConfigurationHolder() {
       @NotNull
       @Override
