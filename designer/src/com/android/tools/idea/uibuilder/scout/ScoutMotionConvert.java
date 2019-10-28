@@ -49,6 +49,12 @@ public class ScoutMotionConvert {
       }
       motion_scene_name = layoutFile.getName() + "_" + name + "_scene";
     }
+    for (NlComponent child : layout.getChildren()) {
+      String name = child.getId();
+      if (name == null) {
+        child.assignId(child.getTagName());
+      }
+    }
 
     motion_scene_name = motion_scene_name.replace('.', '_').toLowerCase(Locale.US); // remove . and make lowercase
     motion_scene_name = motion_scene_name.replace(' ', '_'); // remove potential white space

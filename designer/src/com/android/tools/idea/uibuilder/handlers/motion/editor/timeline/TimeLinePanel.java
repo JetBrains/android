@@ -151,6 +151,7 @@ public class TimeLinePanel extends JPanel {
             mSelectedKeyFrame = rowData.mKeyFrames.get(selIndex);
 
             mTimeLine.getTimeLineRow(mTimeLine.getSelectedIndex()).setSelectedKeyFrame(mSelectedKeyFrame);
+            Track.timelineTableSelect();
             mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.KEY_FRAME, new MTag[]{mSelectedKeyFrame}, flags);
             if (mListener != null && mSelectedKeyFrame != null) {
               mListener.select(mSelectedKeyFrame, 0);
@@ -170,7 +171,7 @@ public class TimeLinePanel extends JPanel {
             int selIndex = (indexInRow + 1) % numOfKeyFrames;
             mSelectedKeyFrame = rowData.mKeyFrames.get(selIndex);
             mTimeLine.getTimeLineRow(mTimeLine.getSelectedIndex()).setSelectedKeyFrame(mSelectedKeyFrame);
-
+            Track.timelineTableSelect();
             mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.KEY_FRAME, new MTag[]{mSelectedKeyFrame}, flags);
             if (mListener != null && mSelectedKeyFrame != null) {
               mListener.select(mSelectedKeyFrame, 0);
@@ -225,7 +226,6 @@ public class TimeLinePanel extends JPanel {
     mTimeLine.setBackground(MEUI.ourAvgBackground);
     myTimeLineTopPanel.setRange(TIMELINE_MIN, TIMELINE_MAX);
     mTimeLine.addListSelectionListener(e -> {
-      mTimeLine.requestFocus();
       if (!e.getValueIsAdjusting()) {
         groupSelected();
       }
@@ -351,11 +351,13 @@ public class TimeLinePanel extends JPanel {
         mIsPlaying = true;
         break;
       case SPEED:
+        Track.animationSpeed();
         mCurrentSpeed = (mCurrentSpeed + 1) % ourSpeedsMultipliers.length;
         myProgressPerMillisecond = ourSpeedsMultipliers[mCurrentSpeed]/(float)mDuration;
         mTimeLineTopLeft.mSlow.setToolTipText(mDuration+" x "+ourSpeedsMultipliers[mCurrentSpeed]);
         break;
       case LOOP:
+        Track.animationDirectionToggle();
         myYoyo = mode;
         break;
       case PAUSE:
@@ -365,6 +367,7 @@ public class TimeLinePanel extends JPanel {
         mTimeLineTopLeft.displayPlay();
         break;
       case END:
+        Track.animationEnd();
         mIsPlaying = false;
         destroyTimer();
         mMotionProgress = 1;
@@ -372,6 +375,7 @@ public class TimeLinePanel extends JPanel {
         notifyTimeLineListeners(TimeLineCmd.MOTION_STOP, mMotionProgress);
         break;
       case START:
+        Track.animationStart();
         mIsPlaying = false;
         destroyTimer();
         mMotionProgress = 0;
@@ -695,6 +699,7 @@ public class TimeLinePanel extends JPanel {
           if (row == null) {
             return;
           }
+          Track.timelineTableSelect();
           row.setSelectedKeyFrame(mSelectedKeyFrame);
           if (mSelectedKeyFrame != null && oldSelection != mSelectedKeyFrame) {
 
@@ -936,7 +941,10 @@ public class TimeLinePanel extends JPanel {
         for (int i = n; i < list.size(); i++) {
           TimeLineRow child = new TimeLineRow(mTimelineStructure);
           TimeLineRowData data = list.get(i);
-          boolean showTitle = !(data.mName.equals(lastName));
+          boolean showTitle = true;
+          if (data == null || data.mName == null) {
+              showTitle = !(data.mName.equals(lastName));
+          }
           child.setRowData(model, data, i, false, false, mSelectedKeyFrame, showTitle);
           lastName = data.mName;
 

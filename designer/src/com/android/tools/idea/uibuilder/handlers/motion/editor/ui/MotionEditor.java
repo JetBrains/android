@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.METabbed
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateConstraintSet;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnClick;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnSwipe;
@@ -377,6 +378,7 @@ public class MotionEditor extends JPanel {
     else {
       mLayoutMode = LayoutMode.values()[(mLayoutMode.ordinal() + 1) % LayoutMode.values().length];
     }
+    Track.changeLayout();
     switch (mLayoutMode) {
       case VERTICAL_LAYOUT:
         mCombinedListPanel.setSplitView(true);
@@ -432,6 +434,7 @@ public class MotionEditor extends JPanel {
     mOverviewPanel.setConstraintSetIndex(index);
     mTransitionPanel.stopAnimation();
     if (index >= 0) {
+      Track.showConstraintSetTable();
       MTag[] c_sets = mCombinedListPanel.mMotionScene.getChildTags("ConstraintSet");
       if (0 < index) {
         mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = CONSTRAINTSET_PANEL);
@@ -442,6 +445,7 @@ public class MotionEditor extends JPanel {
         mConstraintSetPanel.setMTag(selectedConstraintSet, mMeModel);
       }
       else {
+        Track.showLayoutTable();
         mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = LAYOUT_PANEL);
         mLayoutPanel.setMTag(mCombinedListPanel.mMotionLayout, mMeModel);
         notifyListeners(MotionEditorSelector.Type.LAYOUT,
@@ -453,6 +457,7 @@ public class MotionEditor extends JPanel {
   }
 
   void transitionSelection() {
+    Track.transitionSelection();
     int index = mCombinedListPanel.getSelectedTransition();
     mOverviewPanel.setTransitionSetIndex(index);
     mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = TRANSITION_PANEL);

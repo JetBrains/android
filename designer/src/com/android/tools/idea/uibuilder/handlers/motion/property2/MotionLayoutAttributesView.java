@@ -20,6 +20,7 @@ import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.MotionConstraintPanel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
@@ -45,12 +46,13 @@ import com.android.tools.property.panel.api.PropertiesView;
 import com.android.tools.property.panel.api.TableLineModel;
 import com.android.tools.property.panel.api.TableUIProvider;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Table;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ui.JBUI;
 import com.intellij.xml.XmlElementDescriptor;
 import java.util.Collections;
 import java.util.List;
@@ -112,16 +114,14 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
       switch (selection.getType()) {
         case CONSTRAINT:
-          MotionConstraintPanel panel = new MotionConstraintPanel(ImmutableList.of(selection.getComponent()));
-          inspector.addComponent(panel,null);
-
           NelePropertyItem targetId = properties.getOrNull(ANDROID_URI, ATTR_ID);
-          addPropertyTable(inspector, selection, MotionSceneAttrs.Tags.CONSTRAINT, myModel, true, false, targetId);
+          boolean showConstraintPanel = !shouldDisplaySection(MotionSceneAttrs.Tags.LAYOUT, selection);
+          addPropertyTable(inspector, selection, MotionSceneAttrs.Tags.CONSTRAINT, myModel, true, false, showConstraintPanel, targetId);
           addSubTagSections(inspector, selection, myModel);
           break;
 
         case TRANSITION:
-          addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false);
+          addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false, false);
           addSubTagSections(inspector, selection, myModel);
           break;
 
@@ -134,14 +134,14 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
             return;
           }
           inspector.addEditor(myEditorProvider.createEditor(position, false), null);
-          addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false, target, position);
+          addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false, false, target, position);
           break;
 
         default:
-          addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false);
+          addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false, false);
           break;
       }
-      addCustomAttributes(inspector, selection, any, myModel);
+      addCustomAttributes(inspector, selection, myModel);
     }
 
     private void addSubTagSections(@NotNull InspectorPanel inspector,
@@ -156,15 +156,15 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       for (XmlElementDescriptor descriptor : subTagDescriptors) {
         String subTagName = descriptor.getName();
         if (!subTagName.equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
+          boolean showConstraintWidget = subTagName.equals(MotionSceneAttrs.Tags.LAYOUT);
           SubTagAttributesModel subModel = new SubTagAttributesModel(model, subTagName);
-          addPropertyTable(inspector, selection, subTagName, subModel, true, true);
+          addPropertyTable(inspector, selection, subTagName, subModel, true, true, showConstraintWidget);
         }
       }
     }
 
     private void addCustomAttributes(@NotNull InspectorPanel inspector,
                                      @NotNull MotionSelection selection,
-                                     @NotNull NelePropertyItem any,
                                      @NotNull MotionLayoutAttributesModel model) {
       if (!shouldDisplaySection(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, selection)) {
         return;
@@ -175,7 +175,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
       FilteredPTableModel<NelePropertyItem> tableModel = PTableModelFactory.create(
         customModel, filter, deleteOp, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), false, true);
-      AddCustomFieldAction addFieldAction = new AddCustomFieldAction(any);
+      AddCustomFieldAction addFieldAction = new AddCustomFieldAction(myModel, selection);
       DeleteCustomFieldAction deleteFieldAction = new DeleteCustomFieldAction();
       List<AnAction> actions = ImmutableList.<AnAction>builder().add(addFieldAction).add(deleteFieldAction).build();
 
@@ -192,6 +192,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
                                   @NotNull PropertiesModel<NelePropertyItem> model,
                                   boolean showDefaultValues,
                                   boolean showSectionControl,
+                                  boolean showConstraintPanel,
                                   @NotNull NelePropertyItem... excluded) {
       if (!shouldDisplaySection(sectionTagName, selection)) {
         return;
@@ -218,6 +219,9 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       List<AnAction> actions = actionsBuilder.build();
 
       InspectorLineModel title = inspector.addExpandableTitle(sectionTagName, true, actions);
+      if (showConstraintPanel) {
+        addConstraintPanel(inspector, selection, title);
+      }
       TableLineModel lineModel = inspector.addTable(tableModel, true, myTableUIProvider, actions, title);
       inspector.addComponent(new EmptyTablePanel(addFieldAction, lineModel), title);
       if (showSectionControl) {
@@ -225,6 +229,16 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       }
       addFieldAction.setLineModel(lineModel);
       deleteFieldAction.setLineModel(lineModel);
+    }
+
+    private static void addConstraintPanel(@NotNull InspectorPanel inspector,
+                                           @NotNull MotionSelection selection,
+                                           @NotNull InspectorLineModel titleLine) {
+      NlComponent component = selection.getComponent();
+      List<NlComponent> components = component == null ? Collections.emptyList() : Collections.singletonList(component);
+      MotionConstraintPanel panel = new MotionConstraintPanel(components);
+      panel.setBorder(JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0));
+      inspector.addComponent(panel, titleLine);
     }
 
     private boolean shouldDisplaySection(@Nullable String section, @NotNull MotionSelection selection) {

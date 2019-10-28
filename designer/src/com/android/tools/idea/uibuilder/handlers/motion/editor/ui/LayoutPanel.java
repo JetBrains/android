@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEJTable
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag.Attribute;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -82,7 +83,7 @@ class LayoutPanel extends JPanel {
 
   private void tableSelection() {
     int index = mConstraintSetTable.getSelectedRow();
-
+    Track.layoutTableSelect();
     MTag[] tag = (index == -1 || mDisplayedRows.size() == 0) ? new MTag[0] : new MTag[]{mDisplayedRows.get(index)};
     if (tag.length != 0) {
       mMeModel.setSelectedViewIDs(Arrays.asList(Utils.stripID(tag[0].getAttributeValue("id"))));

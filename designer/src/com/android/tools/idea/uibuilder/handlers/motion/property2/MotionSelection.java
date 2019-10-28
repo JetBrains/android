@@ -30,7 +30,9 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSe
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,6 +54,17 @@ public class MotionSelection {
     myType = type;
     myTags = tags;
     myComponents = components;
+  }
+
+  public boolean sameSelection(@NotNull MotionSelection other) {
+    return myType == other.myType &&
+           myComponents.equals(other.myComponents) &&
+           myTags.length == other.myTags.length &&
+           myTags[0].isSameTreeIdHierarchy(other.myTags[0]);
+  }
+
+  public void update(@NotNull MotionSelection newSelection) {
+    System.arraycopy(newSelection.myTags, 0, myTags, 0, myTags.length);
   }
 
   @NotNull
@@ -166,13 +179,50 @@ public class MotionSelection {
     }
 
     MotionSceneTag motionTag = getMotionSceneTag();
-    if (motionTag == null || !motionTag.getTagName().equals(MotionSceneAttrs.Tags.CONSTRAINT)) {
+    if (motionTag == null || !Objects.equals(motionTag.getTagName(), MotionSceneAttrs.Tags.CONSTRAINT)) {
       return null;
     }
-    String constraintId = Utils.stripID(motionTag.getAttributeValue(ATTR_ID));
+    return getComponentFromConstraintTag(motionTag);
+  }
+
+  @Nullable
+  public NlComponent getComponentForCustomAttributeCompletions() {
+    NlComponentTag componentTag = getNlComponentTag();
+    if (componentTag != null) {
+      return componentTag.getComponent();
+    }
+
+    MotionSceneTag motionTag = getMotionSceneTag();
+    if (motionTag == null || motionTag.getTagName() == null) {
+      return null;
+    }
+    switch (motionTag.getTagName()) {
+      case MotionSceneAttrs.Tags.CONSTRAINT:
+        return getComponentFromConstraintTag(motionTag);
+
+      case MotionSceneAttrs.Tags.KEY_ATTRIBUTE:
+      case MotionSceneAttrs.Tags.KEY_CYCLE:
+      case MotionSceneAttrs.Tags.KEY_TIME_CYCLE:
+        return getComponentFromKeyWithArbitraryBackup(motionTag);
+
+      default:
+        return null;
+    }
+  }
+
+  private NlComponent getComponentFromConstraintTag(@NotNull MTag constraintTag) {
+    String constraintId = Utils.stripID(constraintTag.getAttributeValue(ATTR_ID));
     if (myComponents.isEmpty()) {
       return null;
     }
+    NlComponent motionLayout = getMotionLayoutComponent();
+    if (motionLayout == null) {
+      return null;
+    }
+    return motionLayout.getChildren().stream().filter(view -> constraintId.equals(view.getId())).findFirst().orElse(null);
+  }
+
+  private NlComponent getMotionLayoutComponent() {
     NlComponent motionLayout = myComponents.get(0);
     if (!MOTION_LAYOUT.isEquals(motionLayout.getTagName())) {
       motionLayout = motionLayout.getParent();
@@ -180,6 +230,45 @@ public class MotionSelection {
     if (motionLayout == null || !MOTION_LAYOUT.isEquals(motionLayout.getTagName())) {
       return null;
     }
-    return motionLayout.getChildren().stream().filter(view -> constraintId.equals(view.getId())).findFirst().orElse(null);
+    return motionLayout;
+  }
+
+  private NlComponent getComponentFromKeyWithArbitraryBackup(@NotNull MotionSceneTag keyTag) {
+    if (myComponents.isEmpty()) {
+      return null;
+    }
+    NlComponent component = getComponentFromKey(keyTag);
+    return component != null ? component : myComponents.get(0);
+  }
+
+  private NlComponent getComponentFromKey(@NotNull MotionSceneTag keyTag) {
+    MTag keyFrameSet = keyTag.getParent();
+    if (keyFrameSet == null) {
+      return null;
+    }
+    MTag transition = keyFrameSet.getParent();
+    if (transition == null) {
+      return null;
+    }
+    String startConstraintSetId = Utils.stripID(transition.getAttributeValue(MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START));
+    if (startConstraintSetId.isEmpty()) {
+      return null;
+    }
+    MTag motionScene = transition.getParent();
+    if (motionScene == null) {
+      return null;
+    }
+    MTag startConstraint = Arrays.stream(motionScene.getChildTags(MotionSceneAttrs.Tags.CONSTRAINTSET))
+      .filter(mtag -> Utils.stripID(mtag.getAttributeValue(ATTR_ID)).equals(startConstraintSetId))
+      .findFirst()
+      .orElse(null);
+    if (startConstraint == null) {
+      return null;
+    }
+    return Arrays.stream(startConstraint.getChildTags(MotionSceneAttrs.Tags.CONSTRAINT))
+      .map(mTag -> getComponentFromConstraintTag(mTag))
+      .filter(Objects::nonNull)
+      .findFirst()
+      .orElse(null);
   }
 }

@@ -38,10 +38,10 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
     @Suppress("LeakingThis")
     super.setEditor(CommonComboBoxEditor(model, this))
     textField = editor.editorComponent as CommonTextField<*>
-    textField?.registerActionKey({ moveNext() }, KeyStrokes.DOWN, "moveNext")
-    textField?.registerActionKey({ movePrevious() }, KeyStrokes.UP, "movePrevious", { isPopupVisible })
-    textField?.registerActionKey({ moveNextPage() }, KeyStrokes.PAGE_DOWN, "moveNextPage", { isPopupVisible })
-    textField?.registerActionKey({ movePreviousPage() }, KeyStrokes.PAGE_UP, "movePreviousPage", { isPopupVisible })
+    textField?.registerActionKey({ moveNext() }, KeyStrokes.DOWN, "moveNext", { consumeKeyNavigation })
+    textField?.registerActionKey({ movePrevious() }, KeyStrokes.UP, "movePrevious", { consumeKeyNavigation })
+    textField?.registerActionKey({ moveNextPage() }, KeyStrokes.PAGE_DOWN, "moveNextPage", { consumeKeyNavigation })
+    textField?.registerActionKey({ movePreviousPage() }, KeyStrokes.PAGE_UP, "movePreviousPage", { consumeKeyNavigation })
     textField?.registerActionKey({ togglePopup() }, KeyStrokes.ALT_DOWN, "toggle")
     registerActionKey({}, KeyStrokes.PAGE_DOWN, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     registerActionKey({}, KeyStrokes.PAGE_UP, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
@@ -64,6 +64,8 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
       super.setEditable(model.editable)
     }
   }
+  private val consumeKeyNavigation: Boolean
+    get() = isPopupVisible || (textField?.lookup?.isVisible == true)
 
   private fun togglePopup() {
     if (textField?.lookup?.isVisible == true) {
