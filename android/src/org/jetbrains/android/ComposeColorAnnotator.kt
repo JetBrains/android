@@ -17,7 +17,7 @@ package org.jetbrains.android
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.adtui.LightCalloutPopup
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListener
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider
@@ -55,7 +55,7 @@ import javax.swing.Icon
 class ComposeColorAnnotator : Annotator {
 
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
-    if (!StudioFlags.COMPOSE_GUTTER_ICON_COLOR.get()) return
+    if (element.getModuleSystem()?.usesCompose != true) return
     if (element is KtCallElement) {
       val uElement = element.toUElement(UCallExpression::class.java) ?: return
       val returnType = uElement.returnType ?: return

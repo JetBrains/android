@@ -16,6 +16,7 @@
 package org.jetbrains.android.compose
 
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_AUTO_DOCUMENTATION
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.CodeInsightSettings
 import com.intellij.codeInsight.completion.CompletionService
 import com.intellij.codeInsight.documentation.DocumentationManager
@@ -25,6 +26,8 @@ import com.intellij.codeInsight.lookup.LookupListener
 import com.intellij.codeInsight.lookup.LookupManager
 import com.intellij.codeInsight.lookup.impl.LookupImpl
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.util.Alarm
 import java.beans.PropertyChangeListener
@@ -40,13 +43,20 @@ class AndroidComposeAutoDocumentation(
   private var documentationOpenedByCompose = false
 
   private val lookupListener = PropertyChangeListener { evt ->
-    if (LookupManager.PROP_ACTIVE_LOOKUP == evt.propertyName && evt.newValue is Lookup && COMPOSE_AUTO_DOCUMENTATION.get()) {
+    if (COMPOSE_AUTO_DOCUMENTATION.get() && LookupManager.PROP_ACTIVE_LOOKUP == evt.propertyName && evt.newValue is Lookup) {
       val lookup = evt.newValue as Lookup
-      lookup.addLookupListener(object : LookupListener {
-        override fun currentItemChanged(event: LookupEvent) {
-          showJavaDoc(lookup)
-        }
-      })
+
+      val moduleSystem = FileDocumentManager.getInstance().getFile(lookup.editor.document)
+        ?.let { ModuleUtilCore.findModuleForFile(it, lookup.project) }
+        ?.getModuleSystem()
+
+      if (moduleSystem?.usesCompose == true) {
+        lookup.addLookupListener(object : LookupListener {
+          override fun currentItemChanged(event: LookupEvent) {
+            showJavaDoc(lookup)
+          }
+        })
+      }
     }
   }
 
