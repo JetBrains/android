@@ -19,7 +19,6 @@
 package com.android.tools.idea.templates
 
 import com.android.SdkConstants
-import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.idea.gradle.project.common.GradleInitScripts
@@ -40,7 +39,6 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_BUILD_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_NAME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_RES_OUT
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.templates.recipe.RenderingContext.Builder
 import com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME
@@ -67,7 +65,6 @@ import junit.framework.TestCase.assertTrue
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
-import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.inspections.lint.ProblemData
 import org.jetbrains.android.sdk.AndroidSdkData
 import org.junit.Assert.assertEquals
@@ -257,19 +254,6 @@ internal fun setUpFixtureForProject(projectName: String): JavaCodeInsightTestFix
   return JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture).apply {
     setUp()
   }
-}
-
-@UiThread
-internal fun addIconsIfNecessary(activityState: TestTemplateWizardState) {
-  if (activityState.template.metadata?.iconName == null) {
-    return
-  }
-  val drawableFolder = File(FileUtil.join(activityState.getString(ATTR_RES_OUT)), FileUtil.join("drawable"))
-  drawableFolder.mkdirs()
-  val fileName = StringEvaluator().evaluate(activityState.template.metadata!!.iconName!!, activityState.templateValues)
-  val sourceFile = File(AndroidTestBase.getTestDataPath(), FileUtil.join("drawables", "progress_horizontal.xml"))
-  val iconFile = File(drawableFolder, fileName + SdkConstants.DOT_XML)
-  FileUtil.copy(sourceFile, iconFile)
 }
 
 internal fun verifyLanguageFiles(projectDir: File, language: Language) {
