@@ -441,14 +441,17 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   MotionSceneTag.Root getMotionScene(NlComponent motionLayout) {
     String ref = motionLayout.getAttribute(SdkConstants.AUTO_URI, "layoutDescription");
     if (ref == null) {
+      System.err.println("getAttribute(layoutDescription ) returned null");
       return null;
     }
     int index = ref.lastIndexOf("@xml/");
     if (index < 0) {
+      System.err.println("layoutDescription  did not have \"@xml/\"");
       return null;
     }
     String fileName = ref.substring(index + 5);
     if (fileName.isEmpty()) {
+      System.err.println("layoutDescription \""+ref+"\"");
       return null;
     }
 
@@ -460,9 +463,15 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     if (resourcesXML.isEmpty()) {
       return null;
     }
-    VirtualFile directory = resourcesXML.get(0);
-    VirtualFile virtualFile = directory.findFileByRelativePath(fileName + ".xml");
+    VirtualFile virtualFile = null;
+    for (VirtualFile dir : resourcesXML) {
+      virtualFile = dir.findFileByRelativePath(fileName + ".xml");
+      if (virtualFile != null) {
+        break;
+      }
+    }
     if (virtualFile == null) {
+      System.err.println("virtualFile == null");
       return null;
     }
 

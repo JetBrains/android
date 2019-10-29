@@ -108,7 +108,17 @@ public class TimeLinePanel extends JPanel {
       @Override
       public void keyPressed(KeyEvent e) {
         int code = e.getExtendedKeyCode();
+
         switch (code) {
+
+          case KeyEvent.VK_COPY:
+          case KeyEvent.VK_C:
+            if (e.isControlDown()) {
+              if (mSelectedKeyFrame != null) {
+                MEUI.copy(mSelectedKeyFrame);
+              }
+            }
+            break;
           case KeyEvent.VK_UP:
             int index = mTimeLine.getSelectedIndex() - 1;
             if (index < 0) {
