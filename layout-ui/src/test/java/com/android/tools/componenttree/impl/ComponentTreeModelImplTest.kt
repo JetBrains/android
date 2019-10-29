@@ -26,6 +26,7 @@ import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style
 import com.android.tools.componenttree.util.StyleNodeType
 import com.android.tools.componenttree.util.StyleRenderer
+import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
@@ -39,6 +40,9 @@ import javax.swing.event.TreeModelEvent
 import javax.swing.event.TreeModelListener
 
 class ComponentTreeModelImplTest {
+
+  @JvmField @Rule
+  val appRule = ApplicationRule()
 
   @JvmField
   @Rule
