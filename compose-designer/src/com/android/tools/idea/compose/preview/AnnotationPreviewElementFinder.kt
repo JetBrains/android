@@ -44,8 +44,8 @@ private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
   val apiLevel = node.findAttributeIntValue("apiLevel")
   val theme = node.findAttributeValue("theme")?.evaluateString()?.nullize()
   // Both width and height have to support old ("width") and new ("widthDp") conventions
-  val width = node.findAttributeIntValue("width") ?: node.findAttributeIntValue("widthDp")
-  val height = node.findAttributeIntValue("height") ?: node.findAttributeIntValue("heightDp")
+  val width = node.findAttributeIntValue("width") ?: node.findAttributeIntValue(WIDTH_PARAMETER)
+  val height = node.findAttributeIntValue("height") ?: node.findAttributeIntValue(HEIGHT_PARAMETER)
   val fontScale = node.findAttributeFloatValue("fontScale")
 
   return PreviewConfiguration.cleanAndGet(apiLevel, theme, width, height, fontScale)

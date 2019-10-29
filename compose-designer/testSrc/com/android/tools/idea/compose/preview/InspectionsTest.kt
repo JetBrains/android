@@ -105,4 +105,90 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
 
     assertEquals("Preview must be a top level declarations.", inspections.single())
   }
+
+  fun testWidthShouldntExceedApiLimit() {
+    myFixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
+
+    @Language("kotlin")
+    val fileContent = """
+      import androidx.ui.tooling.preview.Preview
+      import androidx.compose.Composable
+
+      @Composable
+      @Preview(name = "Preview 1", widthDp = 2001)
+      fun Preview1() {
+      }
+
+      @Composable
+      @Preview(name = "Preview 2", widthDp = 2000)
+      fun Preview2() {
+      }
+    """.trimIndent()
+
+    myFixture.configureByText("Test.kt", fileContent)
+    val inspections = myFixture.doHighlighting(HighlightSeverity.WARNING)
+      .sortedByDescending { -it.startOffset }
+      .map { it.description }
+      .toArray(emptyArray())
+
+    assertEquals("Preview width is limited to 2,000. Setting a higher number will not increase the preview width.", inspections.single())
+  }
+
+  fun testHeightShouldntExceedApiLimit() {
+    myFixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
+
+    @Language("kotlin")
+    val fileContent = """
+      import androidx.ui.tooling.preview.Preview
+      import androidx.compose.Composable
+
+      @Composable
+      @Preview(name = "Preview 1", heightDp = 2001)
+      fun Preview1() {
+      }
+
+      @Composable
+      @Preview(name = "Preview 2", heightDp = 2000)
+      fun Preview2() {
+      }
+    """.trimIndent()
+
+    myFixture.configureByText("Test.kt", fileContent)
+    val inspections = myFixture.doHighlighting(HighlightSeverity.WARNING)
+      .sortedByDescending { -it.startOffset }
+      .map { it.description }
+      .toArray(emptyArray())
+
+    assertEquals("Preview height is limited to 2,000. Setting a higher number will not increase the preview height.", inspections.single())
+  }
+
+  fun testOnlyParametersAndValuesAreHighlighted() {
+    myFixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
+
+    @Language("kotlin")
+    val fileContent = """
+      import androidx.ui.tooling.preview.Preview
+      import androidx.compose.Composable
+
+      @Composable
+      @Preview(name = "Preview 1", heightDp = 2001, widthDp = 2001)
+      fun Preview1() {
+      }
+    """.trimIndent()
+
+    myFixture.configureByText("Test.kt", fileContent)
+    val inspections = myFixture.doHighlighting(HighlightSeverity.WARNING)
+      .sortedByDescending { -it.startOffset }
+      .toArray(emptyArray())
+
+    // Verify the height inspection only highlights the height parameter and value, i.e. "heightDp = 2001"
+    val heightInspection = inspections[0]
+    var highlightLength = heightInspection.actualEndOffset - heightInspection.actualStartOffset
+    assertEquals("heightDp = 2001".length, highlightLength)
+
+    // Verify the width inspection only highlights the width parameter and value, i.e. "widthDp = 2001"
+    val widthInspection = inspections[1]
+    highlightLength = widthInspection.actualEndOffset - widthInspection.actualStartOffset
+    assertEquals("widthDp = 2001".length, highlightLength)
+  }
 }
