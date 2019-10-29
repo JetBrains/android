@@ -194,7 +194,9 @@ class DrawableIconProvider(
               .thenApplyAsync { image -> image ?: throw Exception("Failed to resolve resource") }
               .thenApply { image -> scaleToFitIfNeeded(image, targetSize) }
               .exceptionally { throwable ->
-                LOG.error("Error while rendering $designAsset", throwable); ERROR_ICON
+                // TODO: Selectively log exceptions. Some of this errors are expected and not worth investigating. Would be better if could
+                //  tell those apart so that we can properly Log them as warnings/errors.
+                LOG.warn("Error while rendering $designAsset", throwable); ERROR_ICON
               }.get()
           }
           else {
