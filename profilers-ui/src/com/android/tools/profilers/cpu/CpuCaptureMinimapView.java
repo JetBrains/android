@@ -50,7 +50,7 @@ public class CpuCaptureMinimapView {
     myPanel.add(createOverlayComponent(rangeSelectionComponent), new TabularLayout.Constraint(0, 0));
     myPanel.add(rangeSelectionComponent, new TabularLayout.Constraint(0, 0));
     myPanel.add(createLineChartPanel(model.getCpuUsage()), new TabularLayout.Constraint(0, 0));
-    myPanel.add(createAxisPanel(model.getMaxRange()), new TabularLayout.Constraint(1, 0));
+    myPanel.add(createAxisPanel(model.getCaptureRange()), new TabularLayout.Constraint(1, 0));
 
     myPanel.setBorder(ProfilerLayout.MONITOR_BORDER);
     myPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);

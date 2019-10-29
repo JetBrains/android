@@ -473,10 +473,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     Range viewRange = getTimeline().getViewRange();
     myRangeSelectionComponent = new RangeSelectionComponent(getStage().getRangeSelectionModel(), timeline.getViewRange());
     myRangeSelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
-    RangeTooltipComponent tooltip =
-      new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(),
-                                getTooltipPanel(), getProfilersView().getComponent(),
-                                () -> myRangeSelectionComponent.shouldShowSeekComponent());
+    RangeTooltipComponent tooltip = new RangeTooltipComponent(getTimeline(),
+                                                              getTooltipPanel(),
+                                                              getProfilersView().getComponent(),
+                                                              () -> myRangeSelectionComponent.shouldShowSeekComponent());
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
     panel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);

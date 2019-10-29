@@ -148,10 +148,11 @@ class CpuCaptureStageTest {
   }
 
   @Test
-  fun minimapSetsCaptureRange() {
+  fun timelineSetsCaptureRange() {
     val stage = CpuCaptureStage.create(profilers, "Test", CpuProfilerTestUtils.getTraceFile("basic.trace"))
     profilers.stage = stage
-    assertThat(stage.minimapModel.maxRange.length.toLong()).isEqualTo(303)
+    assertThat(stage.captureTimeline.dataRange.length.toLong()).isEqualTo(303)
+    assertThat(stage.minimapModel.captureRange.length.toLong()).isEqualTo(303)
   }
 
   @Test

@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Model for CPU capture minimap, which provides range selection for navigating track groups in a {@link CpuCaptureStage}.
@@ -27,20 +26,22 @@ import org.jetbrains.annotations.Nullable;
  * Encapsulates a CPU usage model for the duration of a capture and a range selection model.
  */
 public class CpuCaptureMinimapModel {
-  /**
-   * The maximum range that selection can be made between.
-   */
   @NotNull
-  private final Range myMaxRange = new Range();
+  private final Range myCaptureRange;
 
   @NotNull
-  private final RangeSelectionModel myRangeSelectionModel = new RangeSelectionModel(new Range());
+  private final RangeSelectionModel myRangeSelectionModel;
 
   @NotNull
   private final CpuUsage myCpuUsage;
 
-  public CpuCaptureMinimapModel(@NotNull StudioProfilers profilers, @Nullable CpuCapture cpuCapture) {
-    myCpuUsage = new CpuUsage(profilers, myMaxRange, myMaxRange, cpuCapture);
+  public CpuCaptureMinimapModel(@NotNull StudioProfilers profilers, @NotNull CpuCapture cpuCapture) {
+    myCaptureRange = cpuCapture.getRange();
+    myCpuUsage = new CpuUsage(profilers, myCaptureRange, myCaptureRange, cpuCapture);
+
+    // Set initial selection to the entire capture range.
+    myRangeSelectionModel = new RangeSelectionModel(new Range());
+    myRangeSelectionModel.set(myCaptureRange.getMin(), myCaptureRange.getMax());
   }
 
   @NotNull
@@ -53,15 +54,8 @@ public class CpuCaptureMinimapModel {
     return myCpuUsage;
   }
 
-  public void setMaxRange(@NotNull Range maxRange) {
-    myMaxRange.set(maxRange);
-
-    // Set initial selection to the entire capture range.
-    myRangeSelectionModel.set(maxRange.getMin(), maxRange.getMax());
-  }
-
   @NotNull
-  public Range getMaxRange() {
-    return myMaxRange;
+  public Range getCaptureRange() {
+    return myCaptureRange;
   }
 }

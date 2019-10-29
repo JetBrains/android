@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui;
 
-import com.intellij.util.Producer;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
@@ -29,6 +28,7 @@ import java.awt.event.ComponentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
+import java.util.function.Supplier;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import javax.swing.SwingUtilities;
@@ -50,10 +50,10 @@ public final class TooltipComponent extends AnimatedComponent {
   private final JLayeredPane myParent;
 
   @NotNull
-  private final Producer<Boolean> myIsOwnerDisplayable;
+  private final Supplier<Boolean> myIsOwnerDisplayable;
 
   @Nullable
-  private final Producer<Boolean> myDefaultVisibilityOverride;
+  private final Supplier<Boolean> myDefaultVisibilityOverride;
 
   // Minimum size of the tooltip between mouse enter/exit events.
   // This prevents the tooltip component from flapping due to the content size changing constantly.
@@ -96,7 +96,7 @@ public final class TooltipComponent extends AnimatedComponent {
     // We usually handle tooltip removal on mouseExit, but we add this here for possible edge
     // cases.
     myOwner.addHierarchyListener(event -> SwingUtilities.invokeLater(() -> {
-      if (!myIsOwnerDisplayable.produce()) {
+      if (!myIsOwnerDisplayable.get()) {
         removeFromParent();
       }
     }));
@@ -150,7 +150,7 @@ public final class TooltipComponent extends AnimatedComponent {
         resetBounds();
         myParent.add(TooltipComponent.this, JLayeredPane.POPUP_LAYER);
         myLastPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), TooltipComponent.this);
-        setVisible(myDefaultVisibilityOverride == null ? true : myDefaultVisibilityOverride.produce());
+        setVisible(myDefaultVisibilityOverride == null ? true : myDefaultVisibilityOverride.get());
         revalidate();
         myLastSize = myTooltipContent.getPreferredSize(); // Stash this value only after revalidate().
         repaintIfVisible(myLastSize);
@@ -262,8 +262,8 @@ public final class TooltipComponent extends AnimatedComponent {
     @NotNull private final JComponent myTooltipContent;
     @NotNull private final JComponent myOwner;
     @NotNull private final JLayeredPane myParent;
-    @NotNull private Producer<Boolean> myIsOwnerDisplayable;
-    @Nullable private Producer<Boolean> myDefaultVisibilityOverride;
+    @NotNull private Supplier<Boolean> myIsOwnerDisplayable;
+    @Nullable private Supplier<Boolean> myDefaultVisibilityOverride;
 
     /**
      * Construct a tooltip component to show for a particular {@code owner}. After
@@ -288,7 +288,7 @@ public final class TooltipComponent extends AnimatedComponent {
      */
     @TestOnly
     @NotNull
-    public Builder setIsOwnerDisplayable(@NotNull Producer<Boolean> isOwnerDisplayable) {
+    public Builder setIsOwnerDisplayable(@NotNull Supplier<Boolean> isOwnerDisplayable) {
       myIsOwnerDisplayable = isOwnerDisplayable;
       return this;
     }
@@ -298,7 +298,7 @@ public final class TooltipComponent extends AnimatedComponent {
      * and has more context about when it should first appear.
      */
     @NotNull
-    public Builder setDefaultVisibilityOverride(@NotNull Producer<Boolean> defaultVisibilityOverride) {
+    public Builder setDefaultVisibilityOverride(@NotNull Supplier<Boolean> defaultVisibilityOverride) {
       myDefaultVisibilityOverride = defaultVisibilityOverride;
       return this;
     }
