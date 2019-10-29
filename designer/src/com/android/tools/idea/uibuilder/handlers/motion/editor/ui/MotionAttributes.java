@@ -92,6 +92,11 @@ public class MotionAttributes {
       return nameSpace;
     }
 
+    @Nullable
+    public String getSourceId() {
+      return source_id;
+    }
+
     public boolean isLayoutAttribute() {
       return MotionSceneAttrs.layout_tags.contains(name);
     }

@@ -47,6 +47,7 @@ import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.pom.Navigatable
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.Alarm
 import com.intellij.util.ui.UIUtil
@@ -371,6 +372,18 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   private fun createDefaultPropertyValueProvider(): DefaultPropertyValueProvider? {
     val view = activeSceneView ?: return null
     return NeleDefaultPropertyValueProvider(view.sceneManager)
+  }
+
+  open fun browseToValue(property: NelePropertyItem) {
+    val tag = property.firstTag ?: return
+    val attribute = tag.getAttribute(property.name, property.namespace) ?: return
+    val attributeValue = attribute.valueElement ?: return
+    val file = tag.containingFile
+    val ref = file.findReferenceAt(attributeValue.textOffset)
+    val navigable = ref?.resolve() as? Navigatable ?: return
+    if (navigable != attributeValue) {
+      navigable.navigate(true)
+    }
   }
 
   private inner class PropertiesDesignSurfaceListener : DesignSurfaceListener {
