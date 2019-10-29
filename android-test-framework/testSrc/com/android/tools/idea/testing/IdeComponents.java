@@ -28,15 +28,13 @@ import com.intellij.openapi.project.impl.ProjectImpl;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.util.pico.DefaultPicoContainer;
-import java.util.ArrayDeque;
-import java.util.Queue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.picocontainer.ComponentAdapter;
 
-public final class IdeComponents implements Disposable {
+public final class IdeComponents {
   private Project myProject;
-  private final Queue<Runnable> myUndoQueue = new ArrayDeque<>();
+  private final Disposable myDisposable;
 
   public IdeComponents(@NotNull Project project) {
     this(project, project);
@@ -59,52 +57,40 @@ public final class IdeComponents implements Disposable {
       Disposer.register(project, () -> myProject = null);
     }
 
-    Disposer.register(disposable, this);
+    myDisposable = disposable;
   }
 
   @NotNull
   public <T> T mockApplicationService(@NotNull Class<T> serviceType) {
     T mock = mock(serviceType);
-    doReplaceService(ApplicationManager.getApplication(), serviceType, mock, myUndoQueue);
+    doReplaceService(ApplicationManager.getApplication(), serviceType, mock, myDisposable);
     return mock;
   }
 
   public <T> void replaceApplicationService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
-    doReplaceService(ApplicationManager.getApplication(), serviceType, newServiceInstance, myUndoQueue);
+    doReplaceService(ApplicationManager.getApplication(), serviceType, newServiceInstance, myDisposable);
   }
 
   public <T> void replaceProjectService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
-    doReplaceService(myProject, serviceType, newServiceInstance, myUndoQueue);
+    doReplaceService(myProject, serviceType, newServiceInstance, myDisposable);
   }
 
   public <T> void replaceModuleService(@NotNull Module module, @NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
-    doReplaceService(module, serviceType, newServiceInstance, myUndoQueue);
+    doReplaceService(module, serviceType, newServiceInstance, myDisposable);
   }
 
   @NotNull
   public <T> T mockProjectService(@NotNull Class<T> serviceType) {
     T mock = mock(serviceType);
     checkState(myProject != null);
-    doReplaceService(myProject, serviceType, mock, myUndoQueue);
+    doReplaceService(myProject, serviceType, mock, myDisposable);
     return mock;
-  }
-
-  @Override
-  public void dispose() {
-    restore();
-  }
-
-  private void restore() {
-    for (Runnable runnable : myUndoQueue) {
-      runnable.run();
-    }
-    myUndoQueue.clear();
   }
 
   private static <T> void doReplaceService(@NotNull ComponentManager componentManager,
                                            @NotNull Class<T> serviceType,
                                            @NotNull T newServiceInstance,
-                                           @Nullable Queue<Runnable> undoQueue) {
+                                           @Nullable Disposable disposable) {
     DefaultPicoContainer picoContainer = (DefaultPicoContainer)componentManager.getPicoContainer();
 
     String componentKey = serviceType.getName();
@@ -121,8 +107,8 @@ public final class IdeComponents implements Disposable {
     picoContainer.registerComponentInstance(componentKey, newServiceInstance);
     verify(picoContainer.getComponentInstance(componentKey) == newServiceInstance);
 
-    if (undoQueue != null && oldServiceInstance != null) {
-      undoQueue.add(() -> doReplaceService(componentManager, serviceType, oldServiceInstance, null));
+    if (disposable != null && oldServiceInstance != null) {
+      Disposer.register(disposable, () -> doReplaceService(componentManager, serviceType, oldServiceInstance, null));
     }
   }
 }
