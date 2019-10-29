@@ -149,7 +149,7 @@ class ResolutionElementEditor(
     init {
       val showAsLink = location.navigatable != null
       text = location.source
-      font = getMiniFont(showAsLink, isOverridden)
+      font = getSmallFont(showAsLink, isOverridden)
       foreground = when {
         isSelected -> UIUtil.getTableForeground(true, true)
         showAsLink -> JBColor.BLUE
@@ -173,8 +173,8 @@ class ResolutionElementEditor(
       }
     }
 
-    private fun getMiniFont(showAsLink: Boolean, strikeout: Boolean): Font {
-      val font = UIUtil.getLabelFont(UIUtil.FontSize.MINI)
+    private fun getSmallFont(showAsLink: Boolean, strikeout: Boolean): Font {
+      val font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
       @Suppress("UNCHECKED_CAST")
       val attributes = font.attributes as MutableMap<TextAttribute, Any?>
       if (showAsLink) {
