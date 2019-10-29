@@ -332,18 +332,18 @@ class ResourceExplorerListViewModelImpl(
     }
     return resourceExplorerSupplyAsync {
       resourceAssetSet.assets.first().let { asset ->
+        val value = resourceResolver.resolveValue(asset)
+        val resolvedResource = (value as? ResourceItem) ?: asset.resourceItem
         runReadAction {
-          dataManager.findPsiElement(asset.resourceItem)?.let {
-            getResourceDataType(asset, it).takeIf { it.isNotBlank() }?.let { dataTypeName ->
+          dataManager.findPsiElement(resolvedResource)?.let { psiElement ->
+            getResourceDataType(asset, psiElement).takeIf { it.isNotBlank() }?.let { dataTypeName ->
               // The data type of the resource (eg: Type: Animated vector)
               valueMap["Type"] = dataTypeName
             }
           }
         }
         val configuration = asset.resourceItem.getReadableConfigurations()
-
         valueMap["Configuration"] = configuration
-        val value = resourceResolver.resolveValue(asset)
         // The resolved value of the resource (eg: Value: Hello World)
         valueMap["Value"] = value?.getReadableValue() ?: UNRESOLVED_VALUE
       }
@@ -359,9 +359,10 @@ class ResourceExplorerListViewModelImpl(
     return resourceExplorerSupplyAsync {
       return@resourceExplorerSupplyAsync resourceAssetSet.assets.map { asset ->
         val value = resourceResolver.resolveValue(asset)
+        val resolvedResource = (value as? ResourceItem) ?: asset.resourceItem
         var dataTypeName = ""
         runReadAction {
-          dataManager.findPsiElement(asset.resourceItem)?.let { psiElement ->
+          dataManager.findPsiElement(resolvedResource)?.let { psiElement ->
             dataTypeName = getResourceDataType(asset, psiElement).takeIf { it.isNotBlank() }?.let { "${it} - " } ?: ""
           }
         }
