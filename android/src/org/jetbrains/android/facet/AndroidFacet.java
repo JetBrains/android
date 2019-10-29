@@ -21,7 +21,6 @@ import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
 import com.intellij.facet.FacetTypeRegistry;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -38,11 +37,6 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<>("android");
   public static final String NAME = "Android";
-
-  @Nullable
-  public static AndroidFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
-    return modelsProvider.getModifiableFacetModel(module).getFacetByType(ID);
-  }
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull VirtualFile file, @NotNull Project project) {
