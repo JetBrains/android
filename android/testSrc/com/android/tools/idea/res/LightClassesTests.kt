@@ -19,7 +19,8 @@ import com.android.AndroidProjectTypes
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.project.DefaultModuleSystem
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
@@ -47,16 +48,6 @@ import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
-
-private fun withNonTransitiveClasses(code: () -> Unit) {
-  StudioFlags.TRANSITIVE_R_CLASSES.override(false)
-  try {
-    code()
-  }
-  finally {
-    StudioFlags.TRANSITIVE_R_CLASSES.clearOverride()
-  }
-}
 
 /**
  * Tests for the whole setup of light, in-memory R classes.
@@ -537,7 +528,9 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       )
     }
 
-    fun testNonTransitive() = withNonTransitiveClasses {
+    fun testNonTransitive() {
+      (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
+
       val activity = myFixture.addFileToProject(
         "/src/p1/p2/MainActivity.java",
         // language=java
@@ -1107,25 +1100,12 @@ sealed class LightClassesTestBase : AndroidTestCase() {
  *
  * We use the [TestProjectPaths.PROJECT_WITH_APPAND_LIB] project and make `app` have an `androidTestImplementation` dependency on `lib`.
  */
-class TestRClassesTest : AndroidGradleTestCase() {
+sealed class TestRClassesTest : AndroidGradleTestCase() {
   override fun setUp() {
     super.setUp()
 
     val projectRoot = prepareProjectForImport(TestProjectPaths.PROJECT_WITH_APPAND_LIB)
-
-    File(projectRoot, "app/build.gradle").appendText("""
-      dependencies {
-        androidTestImplementation project(':lib')
-        androidTestImplementation 'com.android.support:design:+'
-      }
-    """)
-
-    File(projectRoot, "lib/build.gradle").appendText("""
-      dependencies {
-        androidTestImplementation 'com.android.support:design:+'
-      }
-    """)
-
+    modifyGradleFiles(projectRoot)
     requestSyncAndWait()
 
     createFile(
@@ -1165,6 +1145,23 @@ class TestRClassesTest : AndroidGradleTestCase() {
       """.trimIndent()
     )
   }
+
+  open fun modifyGradleFiles(projectRoot: File) {
+    File(projectRoot, "app/build.gradle").appendText("""
+        dependencies {
+          androidTestImplementation project(':lib')
+          androidTestImplementation 'com.android.support:design:+'
+        }
+      """)
+
+    File(projectRoot, "lib/build.gradle").appendText("""
+        dependencies {
+          androidTestImplementation 'com.android.support:design:+'
+        }
+      """)
+  }
+}
+class TransitiveTestRClassesTest : TestRClassesTest() {
 
   fun testAppTestResources() {
     val androidTest = createFile(
@@ -1208,7 +1205,99 @@ class TestRClassesTest : AndroidGradleTestCase() {
     assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
   }
 
-  fun testAppTestResources_nonTransitive() = withNonTransitiveClasses {
+  fun testLibTestResources() {
+    val androidTest = createFile(
+      project.guessProjectDir()!!,
+      "lib/src/androidTest/java/com/example/projectwithappandlib/lib/RClassAndroidTest.java",
+      // language=java
+      """
+      package com.example.projectwithappandlib.lib;
+
+      public class RClassAndroidTest {
+          void useResources() {
+             int[] id = new int[] {
+              com.example.projectwithappandlib.lib.test.R.string.${caret}libTestResource,
+              com.example.projectwithappandlib.lib.test.R.color.primary_material_dark,
+
+              // Main resources are in the test R class:
+              com.example.projectwithappandlib.lib.test.R.string.libResource,
+
+              R.string.libResource // Main R class is still accessible.
+             };
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(androidTest)
+    myFixture.checkHighlighting()
+
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsAllOf(
+      "libTestResource", // lib test resources
+      "libResource", // lib main resources
+      "password_toggle_content_description" // androidTestImplementation AAR
+    )
+
+    // Private resources are filtered out.
+    assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
+  }
+
+  fun testScoping() {
+    val unitTest = createFile(
+      project.guessProjectDir()!!,
+      "app/src/test/java/com/example/projectwithappandlib/app/RClassUnitTest.java",
+      // language=java
+      """
+      package com.example.projectwithappandlib.app;
+
+      public class RClassUnitTest {
+          void useResources() {
+             // Test R class is not in scope.
+             int id = com.example.projectwithappandlib.app.test.${"R" highlightedAs ERROR}.string.appTestResource;
+             // The test resource does not leak to the main R class.
+             int id2 = com.example.projectwithappandlib.app.test.${"appTestResource" highlightedAs ERROR};
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(unitTest)
+    myFixture.checkHighlighting()
+
+    val normalClass = createFile(
+      project.guessProjectDir()!!,
+      "app/src/main/java/com/example/projectwithappandlib/app/NormalClass.java",
+      // language=java
+      """
+      package com.example.projectwithappandlib.app;
+
+      public class NormalClass {
+          void useResources() {
+             // Test R class is not in scope.
+             int id = com.example.projectwithappandlib.app.test.${"R" highlightedAs ERROR}.string.appTestResource;
+             // The test resource does not leak to the main R class.
+             int id2 = com.example.projectwithappandlib.app.test.${"appTestResource" highlightedAs ERROR};
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(normalClass)
+    myFixture.checkHighlighting()
+  }
+}
+
+class NonTransitiveTestRClassesTest : TestRClassesTest() {
+  override fun modifyGradleFiles(projectRoot: File) {
+    super.modifyGradleFiles(projectRoot)
+    File(projectRoot, "app/gradle.properties").appendText("android.namespacedRClass=true")
+    File(projectRoot, "lib/gradle.properties").appendText("android.namespacedRClass=true")
+  }
+
+  fun testAppTestResources() {
+    // Sanity check.
+    assertThat(myModules.appModule.getModuleSystem().isRClassTransitive).named("transitive flag").isFalse()
 
     val androidTest = createFile(
       project.guessProjectDir()!!,
@@ -1258,44 +1347,6 @@ class TestRClassesTest : AndroidGradleTestCase() {
           void useResources() {
              int[] id = new int[] {
               com.example.projectwithappandlib.lib.test.R.string.${caret}libTestResource,
-              com.example.projectwithappandlib.lib.test.R.color.primary_material_dark,
-
-              // Main resources are in the test R class:
-              com.example.projectwithappandlib.lib.test.R.string.libResource,
-
-              R.string.libResource // Main R class is still accessible.
-             };
-          }
-      }
-      """.trimIndent()
-    )
-
-    myFixture.configureFromExistingVirtualFile(androidTest)
-    myFixture.checkHighlighting()
-
-    myFixture.completeBasic()
-    assertThat(myFixture.lookupElementStrings).containsAllOf(
-      "libTestResource", // lib test resources
-      "libResource", // lib main resources
-      "password_toggle_content_description" // androidTestImplementation AAR
-    )
-
-    // Private resources are filtered out.
-    assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
-  }
-
-  fun testLibTestResources_nonTransitive() = withNonTransitiveClasses {
-    val androidTest = createFile(
-      project.guessProjectDir()!!,
-      "lib/src/androidTest/java/com/example/projectwithappandlib/lib/RClassAndroidTest.java",
-      // language=java
-      """
-      package com.example.projectwithappandlib.lib;
-
-      public class RClassAndroidTest {
-          void useResources() {
-             int[] id = new int[] {
-              com.example.projectwithappandlib.lib.test.R.string.${caret}libTestResource,
 
               // Resources from test deps are not in the non-transitive test R class:
               com.example.projectwithappandlib.lib.test.R.color.${"primary_material_dark" highlightedAs ERROR},
@@ -1317,49 +1368,6 @@ class TestRClassesTest : AndroidGradleTestCase() {
     assertThat(myFixture.lookupElementStrings).containsExactly("libTestResource", "anotherLibTestResource", "class")
   }
 
-  fun testScoping() {
-    val unitTest = createFile(
-      project.guessProjectDir()!!,
-      "app/src/test/java/com/example/projectwithappandlib/app/RClassUnitTest.java",
-      // language=java
-      """
-      package com.example.projectwithappandlib.app;
-
-      public class RClassUnitTest {
-          void useResources() {
-             // Test R class is not in scope.
-             int id = com.example.projectwithappandlib.app.test.${"R" highlightedAs ERROR}.string.appTestResource;
-             // The test resource does not leak to the main R class.
-             int id2 = com.example.projectwithappandlib.app.test.${"appTestResource" highlightedAs ERROR};
-          }
-      }
-      """.trimIndent()
-    )
-
-    myFixture.configureFromExistingVirtualFile(unitTest)
-    myFixture.checkHighlighting()
-
-    val normalClass = createFile(
-      project.guessProjectDir()!!,
-      "app/src/main/java/com/example/projectwithappandlib/app/NormalClass.java",
-      // language=java
-      """
-      package com.example.projectwithappandlib.app;
-
-      public class NormalClass {
-          void useResources() {
-             // Test R class is not in scope.
-             int id = com.example.projectwithappandlib.app.test.${"R" highlightedAs ERROR}.string.appTestResource;
-             // The test resource does not leak to the main R class.
-             int id2 = com.example.projectwithappandlib.app.test.${"appTestResource" highlightedAs ERROR};
-          }
-      }
-      """.trimIndent()
-    )
-
-    myFixture.configureFromExistingVirtualFile(normalClass)
-    myFixture.checkHighlighting()
-  }
 }
 
 
