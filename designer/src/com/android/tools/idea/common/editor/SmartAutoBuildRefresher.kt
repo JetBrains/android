@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
 import com.android.tools.idea.gradle.project.build.GradleBuildState
+import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
@@ -38,6 +39,8 @@ interface SmartBuildable {
  * This is the component that receives updates every time gradle build starts or finishes. On successful build, it calls
  * [SmartBuildable.buildSucceeded] method of the passed [SmartBuildable]. If the build fails, [SmartBuildable.buildFailed] will be called
  * instead.
+ * This class ignores "clean" target builds and will not notify the listener when a clean happens since most listeners will not need to listen
+ * for changes on "clean" target builds. If you need to listen for "clean" target builds, use [GradleBuildState] directly.
  *
  * This is intended to be used by [com.intellij.openapi.fileEditor.FileEditor]'s. The editor should recreate/amend the model to reflect
  * build changes. This component should be created the last, so that all other members are initialized as it could call
@@ -64,13 +67,16 @@ class SmartAutoBuildRefresher(psiFile: PsiFile, private val buildable: SmartBuil
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
       // We do not have to check isDisposed inside the callbacks since they won't get called if parentDisposable is disposed
       override fun buildStarted(context: BuildContext) {
+        if (context.buildMode == BuildMode.CLEAN) return
+
         buildable.buildStarted()
         EditorNotifications.getInstance(project).updateNotifications(virtualFile)
       }
 
       override fun buildFinished(status: BuildStatus, context: BuildContext?) {
         EditorNotifications.getInstance(project).updateNotifications(virtualFile)
-        if (status.isSuccess()) {
+        if (status.isSuccess() && context?.buildMode != BuildMode.CLEAN) {
+          // We do not call refresh if the build was not successful or if it was simply a clean build.
           buildable.buildSucceeded()
         }
         else {
