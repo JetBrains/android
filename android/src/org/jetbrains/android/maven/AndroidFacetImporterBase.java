@@ -164,7 +164,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   @Override
   protected void setupFacet(AndroidFacet facet, MavenProject mavenProject) {
     String mavenProjectDirPath = FileUtil.toSystemIndependentName(mavenProject.getDirectory());
-    facet.getConfiguration().init(facet.getModule(), mavenProjectDirPath);
+    AndroidUtils.setUpAndroidFacetConfiguration(facet, mavenProjectDirPath);
     AndroidMavenProviderImpl.setPathsToDefault(mavenProject, facet.getModule(), facet.getConfiguration());
 
     final boolean hasApkSources = AndroidMavenProviderImpl.hasApkSourcesDependency(mavenProject);

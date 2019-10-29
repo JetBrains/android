@@ -26,8 +26,7 @@ import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.facet.ui.FacetValidatorsManager;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.components.ServiceManager;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -44,26 +43,14 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
 
   @NotNull private AndroidFacetProperties myProperties = new AndroidFacetProperties();
 
-  public void init(@NotNull Module module, @NotNull VirtualFile contentRoot) {
-    init(module, contentRoot.getPath());
-  }
-
-  public void init(@NotNull Module module, @NotNull String baseDirectoryPath) {
-    final String s = AndroidRootUtil.getPathRelativeToModuleDir(module, baseDirectoryPath);
-    if (s == null || s.isEmpty()) {
-      return;
-    }
-    myProperties.GEN_FOLDER_RELATIVE_PATH_APT = '/' + s + myProperties.GEN_FOLDER_RELATIVE_PATH_APT;
-    myProperties.GEN_FOLDER_RELATIVE_PATH_AIDL = '/' + s + myProperties.GEN_FOLDER_RELATIVE_PATH_AIDL;
-    myProperties.MANIFEST_FILE_RELATIVE_PATH = '/' + s + myProperties.MANIFEST_FILE_RELATIVE_PATH;
-    myProperties.RES_FOLDER_RELATIVE_PATH = '/' + s + myProperties.RES_FOLDER_RELATIVE_PATH;
-    myProperties.ASSETS_FOLDER_RELATIVE_PATH = '/' + s + myProperties.ASSETS_FOLDER_RELATIVE_PATH;
-    myProperties.LIBS_FOLDER_RELATIVE_PATH = '/' + s + myProperties.LIBS_FOLDER_RELATIVE_PATH;
-    myProperties.PROGUARD_LOGS_FOLDER_RELATIVE_PATH = '/' + s + myProperties.PROGUARD_LOGS_FOLDER_RELATIVE_PATH;
-
-    for (int i = 0; i < myProperties.RES_OVERLAY_FOLDERS.size(); i++) {
-      myProperties.RES_OVERLAY_FOLDERS.set(i, '/' + s + myProperties.RES_OVERLAY_FOLDERS.get(i));
-    }
+  /**
+   * Application service implemented in JPS code.
+   *
+   * <p>Most projects don't display facet UI and have no need for this. But legacy projects based on JPS have to provide a
+   * {@link FacetEditorTab} and the implementation of it is tied to JPS, which means in cannot live in the common module.
+   */
+  interface EditorTabProvider {
+    FacetEditorTab createFacetEditorTab(@NotNull FacetEditorContext editorContext, @NotNull AndroidFacetConfiguration configuration);
   }
 
   @Override
@@ -71,7 +58,10 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
     AndroidFacetProperties state = getState();
     //noinspection deprecation  This is one of legitimate assignments to this property.
     if (state.ALLOW_USER_CONFIGURATION) {
-      return new FacetEditorTab[]{new AndroidFacetEditorTab(editorContext, this)};
+      EditorTabProvider editorTabProvider = ServiceManager.getService(EditorTabProvider.class);
+      if (editorTabProvider != null) {
+        return new FacetEditorTab[]{editorTabProvider.createFacetEditorTab(editorContext, this)};
+      }
     }
     return NO_EDITOR_TABS;
   }
