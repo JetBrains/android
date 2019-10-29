@@ -22,7 +22,7 @@ open class MockParametersBindingDialogView : ParametersBindingDialogView {
 
   override fun show() { }
 
-  override fun showNamedParameters(parametersNames: List<String>) { }
+  override fun showNamedParameters(parametersNames: Set<String>) { }
 
   override fun addListener(listener: ParametersBindingDialogView.Listener) {
     listeners.add(listener)

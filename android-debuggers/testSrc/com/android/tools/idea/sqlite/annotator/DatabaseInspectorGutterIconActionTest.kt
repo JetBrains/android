@@ -135,7 +135,7 @@ class DatabaseInspectorGutterIconActionTest : LightJavaCodeInsightFixtureTestCas
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(listOf("1"))
+    listener.bindingCompletedInvoked(mapOf(":anId" to "1"))
 
     // Assert
     verify(mockSqliteExplorerProjectService)
@@ -153,7 +153,7 @@ class DatabaseInspectorGutterIconActionTest : LightJavaCodeInsightFixtureTestCas
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(listOf("1", "name"))
+    listener.bindingCompletedInvoked(mapOf(":anId" to "1", ":aName" to "name"))
 
     // Assert
     verify(mockSqliteExplorerProjectService)
@@ -171,7 +171,7 @@ class DatabaseInspectorGutterIconActionTest : LightJavaCodeInsightFixtureTestCas
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(listOf("1"))
+    listener.bindingCompletedInvoked(mapOf("?1" to "1"))
 
     // Assert
     verify(mockSqliteExplorerProjectService)
@@ -189,7 +189,7 @@ class DatabaseInspectorGutterIconActionTest : LightJavaCodeInsightFixtureTestCas
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(listOf("1"))
+    listener.bindingCompletedInvoked(mapOf("?" to "1"))
 
     // Assert
     verify(mockSqliteExplorerProjectService)
@@ -207,7 +207,7 @@ class DatabaseInspectorGutterIconActionTest : LightJavaCodeInsightFixtureTestCas
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(listOf("1"))
+    listener.bindingCompletedInvoked(mapOf("@anId" to "1"))
 
     // Assert
     verify(mockSqliteExplorerProjectService)
@@ -225,7 +225,7 @@ class DatabaseInspectorGutterIconActionTest : LightJavaCodeInsightFixtureTestCas
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(listOf("1"))
+    listener.bindingCompletedInvoked(mapOf("\$anId" to "1"))
 
     // Assert
     verify(mockSqliteExplorerProjectService)

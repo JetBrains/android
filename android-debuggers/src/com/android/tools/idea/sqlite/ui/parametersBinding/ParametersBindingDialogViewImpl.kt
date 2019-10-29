@@ -28,7 +28,6 @@ import javax.swing.JTextField
  * @see ParametersBindingDialogView
  */
 // TODO(b/143340815) this UI doesn't handle well SQLite statements that contain positional templates instead of named templates.
-// TODO(b/143340334) this UI doesn't handle the case in which a named template is reused multiple times in a SQLite statement.
 class ParametersBindingDialogViewImpl(
   project: Project,
   canBeParent: Boolean
@@ -50,7 +49,7 @@ class ParametersBindingDialogViewImpl(
     init()
   }
 
-  override fun showNamedParameters(parametersNames: List<String>) {
+  override fun showNamedParameters(parametersNames: Set<String>) {
     parametersNames.forEach {
       val namedParameterResolutionPanel = NamedParameterResolutionPanel(it)
       namedParameterResolutionPanels.add(namedParameterResolutionPanel)
@@ -69,8 +68,8 @@ class ParametersBindingDialogViewImpl(
   override fun createCenterPanel() = panel
 
   override fun doOKAction() {
-    val parameterValues = namedParameterResolutionPanels.map { it.getVariableValue() }
-    listeners.forEach { it.bindingCompletedInvoked(parameterValues) }
+    val parametersNameValueMap = namedParameterResolutionPanels.map { it.namedParameter to it.getVariableValue() }.toMap()
+    listeners.forEach { it.bindingCompletedInvoked(parametersNameValueMap) }
 
     super.doOKAction()
   }
@@ -79,7 +78,7 @@ class ParametersBindingDialogViewImpl(
     return namedParameterResolutionPanels.firstOrNull()?.namedParameterValueTextField
   }
 
-  private inner class NamedParameterResolutionPanel(namedParameter: String) {
+  private inner class NamedParameterResolutionPanel(val namedParameter: String) {
     private val namedParameterLabel = JLabel(namedParameter)
     val namedParameterValueTextField = JTextField()
     val panel = JPanel(BorderLayout())
