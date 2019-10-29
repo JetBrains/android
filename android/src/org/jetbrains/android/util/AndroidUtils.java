@@ -15,9 +15,9 @@
  */
 package org.jetbrains.android.util;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.SdkConstants.ATTR_CONTEXT;
 import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.intellij.openapi.application.ApplicationManager.getApplication;
 
 import com.android.SdkConstants;
@@ -120,10 +120,11 @@ import javax.swing.JTextArea;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
+import org.jetbrains.android.facet.AndroidFacetProperties;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.android.facet.AndroidFacetProperties;
 
 /**
  * @author yole, coyote
@@ -388,8 +389,7 @@ public class AndroidUtils {
 
     if (facet == null) {
       facet = facetManager.createFacet(AndroidFacet.getFacetType(), "Android", null);
-      AndroidFacetConfiguration configuration = facet.getConfiguration();
-      configuration.init(module, contentRoot);
+      setUpAndroidFacetConfiguration(facet, contentRoot.getPath());
       if (library) {
         facet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
       }
@@ -398,6 +398,31 @@ public class AndroidUtils {
     model.commit();
 
     return facet;
+  }
+
+  public static void setUpAndroidFacetConfiguration(@NotNull AndroidFacet androidFacet, @NotNull String baseDirectoryPath) {
+    setUpAndroidFacetConfiguration(androidFacet.getModule(), androidFacet.getConfiguration(), baseDirectoryPath);
+  }
+
+  public static void setUpAndroidFacetConfiguration(@NotNull Module module,
+                                                    @NotNull AndroidFacetConfiguration androidFacetConfiguration,
+                                                    @NotNull String baseDirectoryPath) {
+    String s = AndroidRootUtil.getPathRelativeToModuleDir(module, baseDirectoryPath);
+    if (s == null || s.isEmpty()) {
+      return;
+    }
+    AndroidFacetProperties properties = androidFacetConfiguration.getState();
+    properties.GEN_FOLDER_RELATIVE_PATH_APT = '/' + s + properties.GEN_FOLDER_RELATIVE_PATH_APT;
+    properties.GEN_FOLDER_RELATIVE_PATH_AIDL = '/' + s + properties.GEN_FOLDER_RELATIVE_PATH_AIDL;
+    properties.MANIFEST_FILE_RELATIVE_PATH = '/' + s + properties.MANIFEST_FILE_RELATIVE_PATH;
+    properties.RES_FOLDER_RELATIVE_PATH = '/' + s + properties.RES_FOLDER_RELATIVE_PATH;
+    properties.ASSETS_FOLDER_RELATIVE_PATH = '/' + s + properties.ASSETS_FOLDER_RELATIVE_PATH;
+    properties.LIBS_FOLDER_RELATIVE_PATH = '/' + s + properties.LIBS_FOLDER_RELATIVE_PATH;
+    properties.PROGUARD_LOGS_FOLDER_RELATIVE_PATH = '/' + s + properties.PROGUARD_LOGS_FOLDER_RELATIVE_PATH;
+
+    for (int i = 0; i < properties.RES_OVERLAY_FOLDERS.size(); i++) {
+      properties.RES_OVERLAY_FOLDERS.set(i, '/' + s + properties.RES_OVERLAY_FOLDERS.get(i));
+    }
   }
 
   @Nullable
