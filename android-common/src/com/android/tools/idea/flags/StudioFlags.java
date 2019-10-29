@@ -449,6 +449,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> L4_DEPENDENCY_MODEL = Flag.create(
     GRADLE_IDE, "level4.dependency.model", "Use L4 DependencyGraph Model",
     "Use level4 DependencyGraph model.", false);
+
+  public static final Flag<Boolean> ALLOW_DIFFERENT_JDK_VERSION = Flag.create(
+    GRADLE_IDE, "jdk.allow.different", "Allow different Gradle JDK", "Allow usage of a different JDK version when running Gradle.", true);
   //endregion
 
   //region SQLite Inspector
