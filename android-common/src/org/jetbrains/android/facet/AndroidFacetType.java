@@ -47,7 +47,7 @@ public class AndroidFacetType extends FacetType<AndroidFacet, AndroidFacetConfig
   public AndroidFacet createFacet(@NotNull Module module,
                                   String name,
                                   @NotNull AndroidFacetConfiguration configuration,
-                                  @Nullable Facet underlyingFacet) {
+                                  @SuppressWarnings("rawtypes") @Nullable Facet underlyingFacet) {
     // DO NOT COMMIT MODULE-ROOT MODELS HERE!
     // modules are not initialized yet, so some data may be lost
 
@@ -55,7 +55,7 @@ public class AndroidFacetType extends FacetType<AndroidFacet, AndroidFacetConfig
   }
 
   @Override
-  public boolean isSuitableModuleType(ModuleType moduleType) {
+  public boolean isSuitableModuleType(@SuppressWarnings("rawtypes") ModuleType moduleType) {
     return moduleType instanceof JavaModuleType;
   }
 
