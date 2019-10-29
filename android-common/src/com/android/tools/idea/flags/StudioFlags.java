@@ -297,11 +297,6 @@ public final class StudioFlags {
     "Use a tab panel to switch to advanced",
     false);
 
-  public static final Flag<Boolean> NELE_NEW_COLOR_PICKER = Flag.create(
-    NELE, "new.color.picker", "New Color Picker",
-    "Enable new Color Picker in Layout Editor",
-    true);
-
   public static final Flag<Boolean> NELE_DRAG_PLACEHOLDER = Flag.create(
     NELE, "drag.placeholder", "Dragging widgets with Placeholders",
     "New architecture for dragging widgets in Layout Editor",
