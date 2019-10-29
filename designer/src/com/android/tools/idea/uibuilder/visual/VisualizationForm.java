@@ -386,7 +386,10 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
 
   // A file editor was closed. If our editor no longer exists, cleanup our state.
   public void fileClosed(@NotNull FileEditorManager editorManager, @NotNull VirtualFile file) {
-    if (myEditor != null && file.equals(myFile)) {
+    if (myEditor == null) {
+      setNoActiveModel();
+    }
+    else if (file.equals(myFile)) {
       if (ArrayUtil.find(editorManager.getAllEditors(file), myEditor) < 0) {
         setNoActiveModel();
       }
