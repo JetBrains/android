@@ -50,6 +50,11 @@
                      enabledByDefault="true"
                      level="ERROR"/>
 
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewDimensionRespectsLimit"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     level="WARNING"/>
+
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
   </extensions>
 

@@ -42,6 +42,9 @@ const val UNDEFINED_DIMENSION = -1
 @VisibleForTesting const val MAX_WIDTH = 2000
 @VisibleForTesting const val MAX_HEIGHT = 2000
 
+const val WIDTH_PARAMETER = "widthDp"
+const val HEIGHT_PARAMETER = "heightDp"
+
 /**
  * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the dimension is [UNDEFINED_DIMENSION], the value
  * is converted to `wrap_content`. Otherwise, the value is returned concatenated with `dp`.
