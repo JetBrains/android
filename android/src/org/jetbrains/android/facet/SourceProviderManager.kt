@@ -38,6 +38,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import java.io.File
 
 interface SourceProviderManager {
@@ -222,6 +223,9 @@ private class LegacyDelegate constructor(private val facet: AndroidFacet) : Idea
       throw IllegalStateException("Content root is required to determine manifestFileUrl")
     }
   }
+
+  override val manifestDirectory: VirtualFile?
+    get() = VfsUtil.getParentDir(manifestFileUrl)?.let { VirtualFileManager.getInstance().findFileByUrl(it) }
 
   override val manifestFile: VirtualFile?
     // Not calling AndroidRootUtil.getMainContentRoot(myFacet) because that method can
