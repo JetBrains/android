@@ -27,7 +27,8 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,11 +44,11 @@ import org.mockito.MockitoAnnotations;
 /**
  * Tests for {@link GoToApkLocationTask}.
  */
-public class GoToApkLocationTaskForSignedApkTest extends IdeaTestCase {
+public class GoToApkLocationTaskForSignedApkTest extends JavaProjectTestCase {
   private static final String NOTIFICATION_TITLE = "Build APK";
   @Mock private AndroidNotification myMockNotification;
   private GoToApkLocationTask myTask;
-  private boolean isShowFilePathActionSupported;
+  private boolean isRevealFileActionSupported;
   private SortedMap<String, File> buildsToPaths;
   private static final String buildVariant1 = "FreeDebug";
   private static final String buildVariant2 = "PaidDebug";
@@ -56,7 +57,7 @@ public class GoToApkLocationTaskForSignedApkTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);
-    isShowFilePathActionSupported = true;
+    isRevealFileActionSupported = true;
     List<Module> modules = Collections.singletonList(getModule());
     List<String> buildVariants = new ArrayList<>();
     buildVariants.add(buildVariant1);
@@ -67,16 +68,15 @@ public class GoToApkLocationTaskForSignedApkTest extends IdeaTestCase {
     buildsToPaths = new TreeMap<>();
     buildsToPaths.put(buildVariant1, myApkPath1);
     buildsToPaths.put(buildVariant2, myApkPath2);
-    IdeComponents ideComponents = new IdeComponents(getProject());
-    BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(BuildsToPathsMapper.class);
+    BuildsToPathsMapper mockGenerator = IdeComponents.mockProjectService(getProject(), BuildsToPathsMapper.class, getTestRootDisposable());
     when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean(), anyString())).thenReturn(buildsToPaths);
     myTask = new GoToApkLocationTask(getProject(), modules, NOTIFICATION_TITLE, buildVariants, "") {
       @Override
-      boolean isShowFilePathActionSupported() {
-        return isShowFilePathActionSupported;  // Inject ability to simulate both behaviors.
+      boolean isRevealFileActionSupported() {
+        return isRevealFileActionSupported;  // Inject ability to simulate both behaviors.
       }
     };
-    ideComponents.replaceProjectService(AndroidNotification.class, myMockNotification);
+    ServiceContainerUtil.replaceService(getProject(), AndroidNotification.class, myMockNotification, getTestRootDisposable());
   }
 
   public void testExecuteWithCancelledBuild() {
@@ -101,10 +101,10 @@ public class GoToApkLocationTaskForSignedApkTest extends IdeaTestCase {
                                            new GoToApkLocationTask.OpenFolderNotificationListener(buildsToPaths, myProject));
   }
 
-  public void testExecuteWithSuccessfulBuildNoShowFilePathAction() {
-    isShowFilePathActionSupported = false;
+  public void testExecuteWithSuccessfulBuildNoRevealFileAction() {
+    isRevealFileActionSupported = false;
     myTask.execute(createBuildResult(null /* build successful - no errors */));
-    String message = getExpectedModuleNotificationMessageNoShowFilePathAction(getModule().getName());
+    String message = getExpectedModuleNotificationMessageNoRevealFileAction(getModule().getName());
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
                                            new GoToApkLocationTask.OpenEventLogHyperlink());
   }
@@ -134,7 +134,7 @@ public class GoToApkLocationTaskForSignedApkTest extends IdeaTestCase {
   }
 
   @NotNull
-  private static String getExpectedModuleNotificationMessageNoShowFilePathAction(@NotNull String moduleName) {
+  private static String getExpectedModuleNotificationMessageNoRevealFileAction(@NotNull String moduleName) {
     return "APK(s) generated successfully for module '" + moduleName + "' with 2 build variants";
   }
 

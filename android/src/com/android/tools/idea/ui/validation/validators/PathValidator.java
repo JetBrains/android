@@ -28,6 +28,8 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
+import java.util.Locale;
 import net.jcip.annotations.Immutable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +37,6 @@ import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -89,7 +90,7 @@ public final class PathValidator implements Validator<File> {
   public static final Rule WHITESPACE = new RecursiveRule() {
     @Override
     public boolean matches(@NotNull FileOp fileOp, @NotNull File file) {
-      return CharMatcher.WHITESPACE.matchesAnyOf(file.getName());
+      return CharMatcher.whitespace().matchesAnyOf(file.getName());
     }
 
     @NotNull
@@ -102,7 +103,7 @@ public final class PathValidator implements Validator<File> {
   public static final Rule NON_ASCII_CHARS = new RecursiveRule() {
     @Override
     public boolean matches(@NotNull FileOp fileOp, @NotNull File file) {
-      return !CharMatcher.ASCII.matchesAllOf(file.getName());
+      return !CharMatcher.ascii().matchesAllOf(file.getName());
     }
 
     @NotNull
@@ -219,7 +220,7 @@ public final class PathValidator implements Validator<File> {
 
     @Override
     public boolean matches(@NotNull FileOp fileOp, @NotNull File file) {
-      return RESERVED_WINDOWS_FILENAMES.contains(file.getName().toLowerCase(Locale.US));
+      return RESERVED_WINDOWS_FILENAMES.contains(StringUtil.toLowerCase(file.getName()));
     }
 
     @NotNull

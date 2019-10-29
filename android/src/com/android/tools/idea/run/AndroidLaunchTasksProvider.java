@@ -16,12 +16,12 @@
 package com.android.tools.idea.run;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.stats.RunStats;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
@@ -30,6 +30,7 @@ import com.android.tools.idea.run.tasks.*;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.stats.RunStats;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -37,14 +38,15 @@ import com.google.common.collect.Sets;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import java.io.File;
-import java.util.stream.Collectors;
+import com.intellij.openapi.util.Computable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
@@ -165,15 +167,16 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       }
 
       // Set the appropriate action based on which deployment we're doing.
+      Computable<String> installPathProvider = () -> EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller();
       if (shouldApplyChanges()) {
 
-        tasks.add(new ApplyChangesTask(myProject, packages.build(), isApplyChangesFallbackToRun()));
+        tasks.add(new ApplyChangesTask(myProject, packages.build(), isApplyChangesFallbackToRun(), installPathProvider));
       }
       else if (shouldApplyCodeChanges()) {
-        tasks.add(new ApplyCodeChangesTask(myProject, packages.build(), isApplyCodeChangesFallbackToRun()));
+        tasks.add(new ApplyCodeChangesTask(myProject, packages.build(), isApplyCodeChangesFallbackToRun(), installPathProvider));
       }
       else {
-        tasks.add(new DeployTask(myProject, packages.build(), myLaunchOptions.getPmInstallOptions()));
+        tasks.add(new DeployTask(myProject, packages.build(), myLaunchOptions.getPmInstallOptions(), installPathProvider));
       }
     }
     return ImmutableList.copyOf(tasks);

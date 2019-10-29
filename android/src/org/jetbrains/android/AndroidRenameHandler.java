@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.android.ide.common.resources.ValueResourceNameValidator;
@@ -100,11 +101,6 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     ArrayList<PsiElement> elementList = new ArrayList<>(elements);
     Collections.sort(elementList, AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
     return elementList.get(0);
-  }
-
-  @Override
-  public boolean isRenaming(@NotNull DataContext dataContext) {
-    return isAvailableOnDataContext(dataContext);
   }
 
   @Override

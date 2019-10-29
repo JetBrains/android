@@ -102,8 +102,6 @@ abstract class GradleSyncProjectComparisonTest(
       ""
   )
 
-  private lateinit var ideComponents: IdeComponents
-
   private fun importSyncAndDumpProject(projectDir: String, patch: ((projectRootPath: File) -> Unit)? = null): String {
     val projectRootPath = prepareProjectForImport(projectDir)
     patch?.invoke(projectRootPath)
@@ -124,7 +122,6 @@ abstract class GradleSyncProjectComparisonTest(
   override fun setUp() {
     super.setUp()
     val project = project
-    ideComponents = IdeComponents(project)
     val projectSettings = GradleProjectSettings()
     projectSettings.distributionType = DEFAULT_WRAPPED
     GradleSettings.getInstance(project).linkedProjectsSettings = listOf(projectSettings)
@@ -384,7 +381,7 @@ abstract class GradleSyncProjectComparisonTest(
       updateSnapshotFile(fullSnapshotName, text)
     }
 
-    if (runningFromBazel()) {
+    if (runningFromBazel() && false) { // FIXME-ank: env variables imply Bazel. This is not correct when runing for IU.
       // Produces diffs readable in logs.
       assertThat(text).isEqualTo(expectedText)
     }

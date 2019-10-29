@@ -36,6 +36,7 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidUtils
 
 const val RESOURCE_EXPLORER_TOOL_WINDOW_ID = "Resources Explorer"
 
@@ -44,7 +45,7 @@ private const val STRIPE_TITLE = "Resource Manager"
 /**
  * Provides the tool explorer panel
  */
-class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware, Condition<Any> {
+class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware, Condition<Project> {
 
   override fun isDoNotActivateOnStart(): Boolean = true
 
@@ -57,12 +58,12 @@ class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware, Condition<Any>
     project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, MyToolWindowManagerListener(project))
   }
 
-  override fun shouldBeAvailable(project: Project) = StudioFlags.RESOURCE_MANAGER_ENABLED.get()
+  override fun shouldBeAvailable(project: Project) = StudioFlags.RESOURCE_MANAGER_ENABLED.get() && AndroidUtils.hasAndroidFacets(project)
 
   /**
    * Implementation of [Condition].
    */
-  override fun value(o: Any) = StudioFlags.RESOURCE_MANAGER_ENABLED.get()
+  override fun value(project: Project) = shouldBeAvailable(project)
 }
 
 private fun connectListeners(toolWindow: ToolWindow,

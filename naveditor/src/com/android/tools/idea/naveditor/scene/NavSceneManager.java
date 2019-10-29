@@ -52,7 +52,7 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.command.undo.BasicUndoableAction;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -72,24 +72,24 @@ import org.jetbrains.annotations.Nullable;
  * {@link SceneManager} for the navigation editor.
  */
 public class NavSceneManager extends SceneManager {
-  @NavCoordinate private static final int SCREEN_LONG = JBUI.scale(256);
+  @NavCoordinate private static final int SCREEN_LONG = JBUIScale.scale(256);
 
-  @NavCoordinate public static final int SUBNAV_WIDTH = JBUI.scale(140);
-  @NavCoordinate public static final int SUBNAV_HEIGHT = JBUI.scale(38);
+  @NavCoordinate public static final int SUBNAV_WIDTH = JBUIScale.scale(140);
+  @NavCoordinate public static final int SUBNAV_HEIGHT = JBUIScale.scale(38);
 
-  @SwingCoordinate private static final int PAN_LIMIT = JBUI.scale(150);
-  @NavCoordinate private static final int BOUNDING_BOX_PADDING = JBUI.scale(100);
+  @SwingCoordinate private static final int PAN_LIMIT = JBUIScale.scale(150);
+  @NavCoordinate private static final int BOUNDING_BOX_PADDING = JBUIScale.scale(100);
 
-  @NavCoordinate public static final float ACTION_ARROW_PARALLEL = JBUI.scale(10f);
-  @NavCoordinate public static final float ACTION_ARROW_PERPENDICULAR = JBUI.scale(12f);
+  @NavCoordinate public static final float ACTION_ARROW_PARALLEL = JBUIScale.scale(10f);
+  @NavCoordinate public static final float ACTION_ARROW_PERPENDICULAR = JBUIScale.scale(12f);
 
   @NavCoordinate private static final float ACTION_HEIGHT = ACTION_ARROW_PERPENDICULAR;
-  @NavCoordinate private static final int ACTION_VERTICAL_PADDING = JBUI.scale(6);
-  @NavCoordinate private static final int POP_ICON_VERTICAL_PADDING = JBUI.scale(10);
+  @NavCoordinate private static final int ACTION_VERTICAL_PADDING = JBUIScale.scale(6);
+  @NavCoordinate private static final int POP_ICON_VERTICAL_PADDING = JBUIScale.scale(10);
 
-  @NavCoordinate private static final int ACTION_LINE_LENGTH = JBUI.scale(14);
+  @NavCoordinate private static final int ACTION_LINE_LENGTH = JBUIScale.scale(14);
   @NavCoordinate private static final float ACTION_WIDTH = ACTION_ARROW_PARALLEL + ACTION_LINE_LENGTH;
-  @NavCoordinate private static final int ACTION_HORIZONTAL_PADDING = JBUI.scale(8);
+  @NavCoordinate private static final int ACTION_HORIZONTAL_PADDING = JBUIScale.scale(8);
 
   private final NavScreenTargetProvider myScreenTargetProvider;
   private final NavigationTargetProvider myNavigationTargetProvider;

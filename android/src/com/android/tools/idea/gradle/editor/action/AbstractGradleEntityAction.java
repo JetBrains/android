@@ -25,7 +25,7 @@ public abstract class AbstractGradleEntityAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    GradleEditorEntity entity = GradleEditorUiConstants.ACTIVE_ENTITY_KEY.getData(e.getDataContext());
+    GradleEditorEntity entity = e.getData(GradleEditorUiConstants.ACTIVE_ENTITY_KEY);
     if (entity != null) {
       doActionPerformed(entity, e);
     }

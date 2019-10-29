@@ -16,14 +16,12 @@
 package com.android.tools.idea.instantapp;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.IdeComponents;
 import org.junit.Before;
 
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
-import static org.mockito.Mockito.when;
 
 public class InstantAppsTest extends AndroidGradleTestCase {
   @Override

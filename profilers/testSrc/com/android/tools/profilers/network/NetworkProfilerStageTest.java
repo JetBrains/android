@@ -49,6 +49,7 @@ import com.google.common.collect.ImmutableList;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
@@ -413,7 +414,7 @@ public class NetworkProfilerStageTest {
   private static ByteString gzip(String input) {
     ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
     try (GZIPOutputStream compressor = new GZIPOutputStream(byteOutputStream)) {
-      compressor.write(input.getBytes());
+      compressor.write(input.getBytes(StandardCharsets.UTF_8));
     }
     catch (IOException ignored) {
     }

@@ -28,7 +28,6 @@ import com.intellij.diagnostic.ReportMessages;
 import com.intellij.errorreport.bean.ErrorBean;
 import com.intellij.ide.DataManager;
 import com.intellij.idea.IdeaLogger;
-import com.intellij.internal.statistic.analytics.StudioCrashDetails;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -127,7 +126,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
       feedbackTask = ((ErrorReportCustomizer) data).makeReportingTask(project, FEEDBACK_TASK_TITLE, true, bean, successCallback, errorCallback);
     } else {
       List<Pair<String, String>> kv = IdeaITNProxy
-        .getKeyValuePairs(null, null, bean, IdeaLogger.getOurCompilationTimestamp(), ApplicationManager.getApplication(),
+        .getKeyValuePairs(null, null, bean, ApplicationManager.getApplication(),
                           (ApplicationInfoEx)ApplicationInfo.getInstance(), ApplicationNamesInfo.getInstance(),
                           UpdateSettings.getInstance());
       feedbackTask = new SubmitCrashReportTask(project, FEEDBACK_TASK_TITLE, true, event.getThrowable(), pair2map(kv), successCallback, errorCallback);
@@ -156,30 +155,8 @@ public class ErrorReporter extends ErrorReportSubmitter {
       return false;
     }
 
-    Map map = (Map)data;
-    String type = (String)map.get("Type");
-    if ("Exception".equals(type)) {
-      ImmutableMap<String, String> productData = ImmutableMap.of("md5", (String)map.get("md5"),
-                                                                 "summary", (String)map.get("summary"));
-      StudioExceptionReport exceptionReport =
-        new StudioExceptionReport.Builder().setThrowable(t, false).addProductData(productData).build();
-      StudioCrashReporter.getInstance().submit(exceptionReport);
-    }
-    else if ("Crashes".equals(type)) {
-      //noinspection unchecked
-      List<StudioCrashDetails> crashDetails = (List<StudioCrashDetails>)map.get("crashDetails");
-      List<String> descriptions = crashDetails.stream().map(details -> details.getDescription()).collect(Collectors.toList());
-      // If at least one report was JVM crash, submit the batch as a JVM crash
-      boolean isJvmCrash = crashDetails.stream().anyMatch(details -> details.isJvmCrash());
-      // As there may be multiple crashes reported together, take the shortest uptime (most of the time there is only
-      // a single crash anyway).
-      long uptimeInMs = crashDetails.stream().mapToLong(details -> details.getUptimeInMs()).min().orElse(-1);
+    // FIXME-ank: do we need to restore this code in a plugin?
 
-      StudioCrashReport report =
-        new StudioCrashReport.Builder().setDescriptions(descriptions).setIsJvmCrash(isJvmCrash).setUptimeInMs(uptimeInMs).build();
-      // Crash reports are not limited by a rate limiter.
-      StudioCrashReporter.getInstance().submit(report, true);
-    }
     return true;
   }
 

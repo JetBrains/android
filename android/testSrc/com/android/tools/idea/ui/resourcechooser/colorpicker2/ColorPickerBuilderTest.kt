@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.JavaProjectTestCase
 import org.mockito.Mockito
 import java.awt.Color
 import java.awt.event.ActionEvent
@@ -24,7 +24,7 @@ import javax.swing.AbstractAction
 import javax.swing.JComponent
 import javax.swing.KeyStroke
 
-class ColorPickerBuilderTest : IdeaTestCase() {
+class ColorPickerBuilderTest : JavaProjectTestCase() {
 
   fun testCreateEmptyPickerShouldThrowTheException() {
     assertThrows<IllegalStateException>(IllegalStateException::class.java) { ColorPickerBuilder().build() }

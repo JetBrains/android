@@ -31,7 +31,8 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,11 +51,11 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for {@link SdksCleanupStep}.
  */
-public class SdksCleanupStepTest extends IdeaTestCase {
+public class SdksCleanupStepTest extends JavaProjectTestCase {
   @Nullable private Sdk myJdk;
   @Nullable private Sdk mySdk;
 
-  public void testCleanUpSdkWithMissingDocumentation() throws Exception {
+  public void testCleanUpSdkWithMissingDocumentation() {
     createSdk();
     try {
       removeRoots(mySdk, JavadocOrderRootType.getInstance());
@@ -78,7 +79,7 @@ public class SdksCleanupStepTest extends IdeaTestCase {
     }
   }
 
-  public void testCleanUpSdkWithSdkWithoutAndroidLibrary() throws Exception {
+  public void testCleanUpSdkWithSdkWithoutAndroidLibrary() {
     createSdk();
     try {
       removeRoots(mySdk, CLASSES);
@@ -86,7 +87,7 @@ public class SdksCleanupStepTest extends IdeaTestCase {
       Module module = getModule();
       setUpModuleAsAndroid(module, mySdk);
 
-      SdksCleanupStep cleanupStep = new SdksCleanupStep(AndroidSdks.getInstance());
+      SdksCleanupStep cleanupStep = new SdksCleanupStep();
       Set<Sdk> fixedSdks = new HashSet<>();
       Set<Sdk> invalidSdks = new HashSet<>();
       cleanupStep.cleanUpSdk(module, fixedSdks, invalidSdks);
@@ -104,7 +105,7 @@ public class SdksCleanupStepTest extends IdeaTestCase {
     }
   }
 
-  public void testCleanUpSdkWithAnAlreadyFixedSdk() throws Exception {
+  public void testCleanUpSdkWithAnAlreadyFixedSdk() {
     AndroidSdks sdks = mock(AndroidSdks.class);
     SdksCleanupStep cleanupStep = new SdksCleanupStep(sdks);
 
@@ -129,7 +130,7 @@ public class SdksCleanupStepTest extends IdeaTestCase {
     assertThat(invalidSdks).isEmpty();
   }
 
-  public void testCleanUpSdkWithAnInvalidSdk() throws Exception {
+  public void testCleanUpSdkWithAnInvalidSdk() {
     AndroidSdks sdks = mock(AndroidSdks.class);
     SdksCleanupStep cleanupStep = new SdksCleanupStep(sdks);
 

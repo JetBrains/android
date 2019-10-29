@@ -16,12 +16,12 @@
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
 
 import static org.mockito.Mockito.*;
@@ -30,7 +30,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ProjectCleanup}.
  */
-public class ProjectCleanupTest extends IdeaTestCase {
+public class ProjectCleanupTest extends JavaProjectTestCase {
   @Mock private GradleSyncState mySyncState;
   @Mock private IdeModifiableModelsProvider myModelsProvider;
   @Mock private ProjectCleanupStep myStep1;
@@ -45,7 +45,8 @@ public class ProjectCleanupTest extends IdeaTestCase {
     initMocks(this);
 
     Project project = getProject();
-    new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
+    ServiceContainerUtil
+      .replaceService(project, GradleSyncState.class, mySyncState, getTestRootDisposable());
 
     myIndicator = new EmptyProgressIndicator();
     myProjectCleanup = new ProjectCleanup(myStep1, myStep2);

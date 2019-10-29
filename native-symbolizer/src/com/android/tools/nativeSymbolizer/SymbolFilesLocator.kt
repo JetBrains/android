@@ -15,6 +15,7 @@
  */
 package com.android.tools.nativeSymbolizer
 
+// FIXME-ank: check the module location project structure!
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -111,7 +112,8 @@ private fun getModuleSymbolsDirs(module: Module, abi: Abi): Collection<File> {
   if (ndkModuleModel != null) {
     for (variant in ndkModuleModel.variants.filter { it.isDebugVariant() == ndkModuleModel.selectedVariant.isDebugVariant() }) {
       val dirs = variant.artifacts
-        .filter { it.abi == abiName }
+        .filter {
+          it.abi == abiName }
         .map { it.outputFile.parentFile }
       symDirs.addAll(dirs)
     }

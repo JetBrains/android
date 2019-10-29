@@ -37,10 +37,11 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import java.io.File;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.model.LegacyIdeaProjectModelAdapter;
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
 import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.ProjectImportAction;
@@ -69,7 +70,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link AndroidGradleProjectResolver}.
  */
-public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
+public class AndroidGradleProjectResolverIdeaTest extends JavaProjectTestCase {
   @Mock private CommandLineArgs myCommandLineArgs;
   @Mock private ProjectImportErrorHandler myErrorHandler;
   @Mock private ProjectFinder myProjectFinder;
@@ -106,14 +107,19 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     myProjectModel.addModule("notReallyAGradleProject");
 
     ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
-    allModels.addExtraProject(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
-    allModels.addExtraProject(myNativeAndroidProject, NativeAndroidProject.class, myNativeAndroidModuleModel);
+    allModels.addModel(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
+    allModels.addModel(myNativeAndroidProject, NativeAndroidProject.class, myNativeAndroidModuleModel);
 
     ExternalSystemTaskId id = ExternalSystemTaskId.create(SYSTEM_ID, RESOLVE_PROJECT, myProjectModel.getName());
     String projectPath = toSystemDependentName(myProjectModel.getBuildFile().getParent());
     ExternalSystemTaskNotificationListener notificationListener = new ExternalSystemTaskNotificationListenerAdapter() {
     };
-    myResolverCtx = new DefaultProjectResolverContext(id, projectPath, null, mock(ProjectConnection.class), notificationListener, true);
+    myResolverCtx = new DefaultProjectResolverContext(id, projectPath, null, mock(ProjectConnection.class), notificationListener, true) {
+      @Override
+      public boolean isResolveModulePerSourceSet() {
+        return false;
+      }
+    };
     myResolverCtx.setModels(allModels);
 
     myProjectResolver = new AndroidGradleProjectResolver(myCommandLineArgs, myErrorHandler, myProjectFinder, myVariantSelector,
@@ -141,7 +147,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
   public void testCreateModuleWithOldModelVersion() {
     AndroidProject androidProject = mock(AndroidProject.class);
     ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
-    allModels.addExtraProject(androidProject, AndroidProject.class, myAndroidModuleModel);
+    allModels.addModel(androidProject, AndroidProject.class, myAndroidModuleModel);
     myResolverCtx.setModels(allModels);
 
     when(androidProject.getModelVersion()).thenReturn("0.0.1");
@@ -166,7 +172,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     myAndroidProjectStub.setSyncIssues(syncIssue);
 
     ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
-    allModels.addExtraProject(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
+    allModels.addModel(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
     myResolverCtx.setModels(allModels);
 
     myProjectResolver.populateModuleContentRoots(myAndroidModuleModel, moduleDataNode);
@@ -248,7 +254,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
 
     IdeaProjectStub includedProject = new IdeaProjectStub("includedProject");
     IdeaModuleStub includedModule = includedProject.addModule("lib", "clean", "jar");
-    myResolverCtx.getModels().getIncludedBuilds().add(includedProject);
+    myResolverCtx.getModels().getIncludedBuilds().add(new LegacyIdeaProjectModelAdapter(includedProject));
 
     // Verify that task data for non-included module.
     Collection<TaskData> taskData = myProjectResolver.populateModuleTasks(includedModule, moduleDataNode, projectNode);
@@ -296,8 +302,8 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     when(myVariantSelector.findVariantToSelect(any())).thenReturn(myAndroidProjectStub.getFirstVariant());
 
     ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
-    allModels.addExtraProject(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
-    allModels.addExtraProject(mockKaptModel, KaptGradleModel.class, myAndroidModuleModel);
+    //allModels.addExtraProject(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel); // FIXME-ank
+    //allModels.addExtraProject(mockKaptModel, KaptGradleModel.class, myAndroidModuleModel); // FIXME-ank
     myResolverCtx.setModels(allModels);
 
     myProjectResolver.populateModuleContentRoots(myAndroidModuleModel, moduleDataNode);

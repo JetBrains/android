@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.actions;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
@@ -29,15 +30,16 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.android.tools.idea.testing.Facets;
-import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestMessagesDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -48,14 +50,13 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Collections.emptyList;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link BuildApkAction}.
  */
-public class BuildBundleActionTest extends IdeaTestCase {
+public class BuildBundleActionTest extends JavaProjectTestCase {
   @Mock private GradleProjectInfo myGradleProjectInfo;
   @Mock private GradleBuildInvoker myBuildInvoker;
   @Mock private ProjectStructure myProjectStructure;
@@ -64,6 +65,7 @@ public class BuildBundleActionTest extends IdeaTestCase {
   @Mock private IdeVariant myIdeVariant;
   @Mock private IdeAndroidArtifact myMainArtifact;
   @Mock private AndroidPluginVersionUpdater myAndroidPluginVersionUpdater;
+  @Mock private IdeInfo myIdeInfo;
   private BuildBundleAction myAction;
   private TestDialog myDefaultTestDialog;
 
@@ -72,10 +74,12 @@ public class BuildBundleActionTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    new IdeComponents(myProject).replaceProjectService(GradleBuildInvoker.class, myBuildInvoker);
-    new IdeComponents(myProject).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
-    new IdeComponents(myProject).replaceProjectService(ProjectStructure.class, myProjectStructure);
-    new IdeComponents(myProject).replaceProjectService(AndroidPluginVersionUpdater.class, myAndroidPluginVersionUpdater);
+    ServiceContainerUtil.replaceService(myProject, GradleBuildInvoker.class, myBuildInvoker, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(myProject, GradleProjectInfo.class, myGradleProjectInfo, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(myProject, ProjectStructure.class, myProjectStructure, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(myProject, AndroidPluginVersionUpdater.class, myAndroidPluginVersionUpdater, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), IdeInfo.class, myIdeInfo, getTestRootDisposable());
+    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
     myAction = new BuildBundleAction();
   }
 
@@ -85,7 +89,11 @@ public class BuildBundleActionTest extends IdeaTestCase {
       if (myDefaultTestDialog != null) {
         Messages.setTestDialog(myDefaultTestDialog);
       }
-    } finally {
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
+    finally {
       super.tearDown();
     }
   }
@@ -133,7 +141,7 @@ public class BuildBundleActionTest extends IdeaTestCase {
     verify(myAndroidPluginVersionUpdater).updatePluginVersion(any(), any());
   }
 
-  public void testUpdateGradlePluginCanceledNotification() throws InterruptedException {
+  public void testUpdateGradlePluginCanceledNotification() {
     Module appModule = createModule("app1");
     setUpModuleAsAndroidModule(appModule, myAndroidModel, myIdeAndroidProject, myIdeVariant, myMainArtifact);
     when(myMainArtifact.getBundleTaskName()).thenReturn(null);

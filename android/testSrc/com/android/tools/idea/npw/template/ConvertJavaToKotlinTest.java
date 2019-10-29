@@ -19,9 +19,9 @@ import static com.google.common.truth.Truth.assertWithMessage;
 
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.npw.model.JavaToKotlinHandler;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 
-public class ConvertJavaToKotlinTest extends PlatformTestCase {
+public class ConvertJavaToKotlinTest extends HeavyPlatformTestCase {
 
   public void testKotlinVersionConsistentWithOtherTests() {
     // Conversion code should get its Kotlin version from the Kotlin IDE plugin, while most tests (including gradle integration tests) read

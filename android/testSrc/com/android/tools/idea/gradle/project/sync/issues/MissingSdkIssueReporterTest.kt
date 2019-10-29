@@ -39,7 +39,7 @@ class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
   override fun setUp() {
     super.setUp()
 
-    syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project)
+    syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, testRootDisposable)
     reporter = MissingSdkIssueReporter()
     usageReporter = TestSyncIssueUsageReporter()
   }

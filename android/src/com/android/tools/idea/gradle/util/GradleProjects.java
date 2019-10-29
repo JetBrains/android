@@ -41,7 +41,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
-import com.intellij.openapi.wm.ex.IdeFrameEx;
+import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -82,11 +82,8 @@ public final class GradleProjects {
     if (WindowManager.getInstance().isFullScreenSupportedInCurrentOS()) {
       IdeFocusManager instance = IdeFocusManager.findInstance();
       IdeFrame lastFocusedFrame = instance.getLastFocusedFrame();
-      if (lastFocusedFrame instanceof IdeFrameEx) {
-        boolean fullScreen = ((IdeFrameEx)lastFocusedFrame).isInFullScreen();
-        if (fullScreen) {
-          project.putUserData(SHOULD_OPEN_IN_FULL_SCREEN, TRUE);
-        }
+      if (lastFocusedFrame != null && lastFocusedFrame.isInFullScreen()) {
+        project.putUserData(IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN, TRUE);
       }
     }
     ProjectManagerEx.getInstanceEx().openProject(project);

@@ -61,6 +61,7 @@ public class SyncProjectModelsSetupTest extends AndroidGradleTestCase {
     try {
       StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
       ApplicationManager.getApplication().runWriteAction(() -> myModelsProvider.dispose());
+      myModelsProvider = null;
     }
     finally {
       super.tearDown();

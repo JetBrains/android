@@ -44,7 +44,7 @@ import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
@@ -230,7 +230,7 @@ public class ViewEditorImpl extends ViewEditor {
                                   @Nullable Predicate<String> filter,
                                   @Nullable String currentValue) {
     Module module = myModel.getModule();
-    String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
+    String[] superTypesArray = ArrayUtilRt.toStringArray(superTypes);
 
     Predicate<PsiClass> psiFilter = ChooseClassDialog.getIsPublicAndUnrestrictedFilter();
     if (filter == null) {

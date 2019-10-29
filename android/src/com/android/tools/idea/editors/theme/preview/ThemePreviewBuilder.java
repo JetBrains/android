@@ -74,6 +74,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.util.text.StringUtil;
 import java.awt.Color;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -109,7 +110,7 @@ public class ThemePreviewBuilder {
     BUILDER_NS_NAME, BUILDER_URI
   );
 
-  private final ArrayList<Predicate<ComponentDefinition>> myComponentFilters = new ArrayList<Predicate<ComponentDefinition>>();
+  private final ArrayList<Predicate<ComponentDefinition>> myComponentFilters = new ArrayList<>();
 
   /**
    * Defines groups for the framework widgets. All the project widgets will go into "Custom".
@@ -157,7 +158,7 @@ public class ThemePreviewBuilder {
 
     private final int id;
     final String description;
-    final HashMap<String, String> attributes = new HashMap<String, String>();
+    final HashMap<String, String> attributes = new HashMap<>();
 
     private final int weight;
     int apiLevel;
@@ -235,7 +236,7 @@ public class ThemePreviewBuilder {
      */
     public ComponentDefinition addAlias(@NotNull String text) {
       if (aliases == null) {
-        aliases = new ArrayList<String>();
+        aliases = new ArrayList<>();
       }
 
       aliases.add(text);
@@ -320,7 +321,7 @@ public class ThemePreviewBuilder {
 
     public SearchFilter(@NotNull String searchTerm, boolean caseSensitive) {
       myCaseSensitive = caseSensitive;
-      mySearchTerm = caseSensitive ? searchTerm : searchTerm.toLowerCase(Locale.ENGLISH);
+      mySearchTerm = caseSensitive ? searchTerm : StringUtil.toLowerCase(searchTerm);
     }
 
     public SearchFilter(@NotNull String searchTerm) {
@@ -344,7 +345,7 @@ public class ThemePreviewBuilder {
 
       return myCaseSensitive
              ? searchString.toString().contains(mySearchTerm)
-             : searchString.toString().toLowerCase(Locale.ENGLISH).contains(mySearchTerm);
+             : StringUtil.toLowerCase(searchString.toString()).contains(mySearchTerm);
     }
   }
 
@@ -414,7 +415,7 @@ public class ThemePreviewBuilder {
   // All the sizes are defined in pixels so they are not rescaled depending on the selected device dpi.
   private static final int GROUP_TITLE_FONT_SIZE = 11;
 
-  private final List<ComponentDefinition> myComponents = new ArrayList<ComponentDefinition>();
+  private final List<ComponentDefinition> myComponents = new ArrayList<>();
   private String myGroupHeaderColor = "@android:color/darker_gray";
   private String myBackgroundColor = "@android:color/darker_gray";
   private PrintStream myDebugPrintStream;

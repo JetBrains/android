@@ -89,7 +89,7 @@ public class LightBindingClass extends AndroidLightClassBase {
             for (PsiDataBindingResourceItem variable : variables.values()) {
               createVariableMethods(variable, methods, true);
             }
-            PsiElementFactory factory = PsiElementFactory.SERVICE.getInstance(myInfo.getProject());
+            PsiElementFactory factory = PsiElementFactory.getInstance(myInfo.getProject());
             createStaticMethods(factory.createType(LightBindingClass.this), methods);
           } else {
             for (PsiDataBindingResourceItem variable : mergedInfo.getItems(DataBindingResourceType.VARIABLE).values()) {
@@ -118,7 +118,7 @@ public class LightBindingClass extends AndroidLightClassBase {
             return PsiField.EMPTY_ARRAY;
           }
           List<DataBindingLayoutInfo.ViewWithId> viewsWithIds = myInfo.getViewsWithIds();
-          PsiElementFactory factory = PsiElementFactory.SERVICE.getInstance(myInfo.getProject());
+          PsiElementFactory factory = PsiElementFactory.getInstance(myInfo.getProject());
           PsiField[] result = new PsiField[viewsWithIds.size()];
           int i = 0;
           int unresolved = 0;
@@ -200,7 +200,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   @Override
   public PsiReferenceList getExtendsList() {
     if (myExtendsList == null) {
-      PsiElementFactory factory = PsiElementFactory.SERVICE.getInstance(myInfo.getProject());
+      PsiElementFactory factory = PsiElementFactory.getInstance(myInfo.getProject());
       PsiJavaCodeReferenceElement referenceElementByType = factory.createReferenceElementByType(getExtendsListTypes()[0]);
       myExtendsList = factory.createReferenceList(new PsiJavaCodeReferenceElement[]{referenceElementByType});
     }

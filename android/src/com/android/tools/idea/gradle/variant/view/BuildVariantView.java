@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -51,6 +52,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.JBUI;
@@ -389,7 +391,7 @@ public class BuildVariantView {
       Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
       setBackground(color == null ? getToolTipBackground() : color);
       setBorder(JBUI.Borders.empty(1, 15)); // Same as EditorNotificationPanel
-      setPreferredSize(new Dimension(-1, scale(24)));
+      setPreferredSize(new Dimension(-1, JBUIScale.scale(24)));
 
       JLabel textLabel = new JLabel("Variant selection conflicts found");
       textLabel.setOpaque(false);
@@ -404,7 +406,7 @@ public class BuildVariantView {
           navigateConflicts(true);
         }
       };
-      nextConflictAction.copyFrom(actionManager.getAction(IdeActions.ACTION_NEXT_OCCURENCE));
+      ActionUtil.copyFrom(nextConflictAction, IdeActions.ACTION_NEXT_OCCURENCE);
       group.add(nextConflictAction);
 
       AnAction prevConflictAction = new AnAction() {
@@ -413,7 +415,7 @@ public class BuildVariantView {
           navigateConflicts(false);
         }
       };
-      prevConflictAction.copyFrom(actionManager.getAction(IdeActions.ACTION_PREVIOUS_OCCURENCE));
+      ActionUtil.copyFrom(prevConflictAction, IdeActions.ACTION_PREVIOUS_OCCURENCE);
       group.add(prevConflictAction);
 
       ActionToolbar toolbar = actionManager.createActionToolbar("AndroidBuildVariantViewNotifications", group, true);

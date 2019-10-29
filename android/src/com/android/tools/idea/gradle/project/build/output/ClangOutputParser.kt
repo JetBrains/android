@@ -197,7 +197,7 @@ class ClangOutputParser : BuildOutputParser {
           fileMessage + inclusionContextMessage
         }
         messageConsumer.accept(
-          FileMessageEventImpl(reader.buildId,
+          FileMessageEventImpl(reader.parentEventId,
                                diagnosticClass.toMessageEventKind(),
                                compilerMessageGroup,
                                diagnosticMessage,
@@ -216,7 +216,7 @@ class ClangOutputParser : BuildOutputParser {
       val diagnosticMessage = message!!
       if (lineNumber != null) {
         messageConsumer.accept(
-          FileMessageEventImpl(reader.buildId,
+          FileMessageEventImpl(reader.parentEventId,
                                diagnosticClass.toMessageEventKind(),
                                compilerMessageGroup,
                                diagnosticMessage,
@@ -225,7 +225,7 @@ class ClangOutputParser : BuildOutputParser {
       }
       else {
         messageConsumer.accept(
-          MessageEventImpl(reader.buildId,
+          MessageEventImpl(reader.parentEventId,
                            diagnosticClass.toMessageEventKind(),
                            compilerMessageGroup,
                            diagnosticMessage,

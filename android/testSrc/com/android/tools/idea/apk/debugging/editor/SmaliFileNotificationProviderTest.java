@@ -28,7 +28,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.ui.EditorNotificationPanel;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -47,7 +48,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link SmaliFileNotificationProvider}.
  */
-public class SmaliFileNotificationProviderTest extends IdeaTestCase {
+public class SmaliFileNotificationProviderTest extends JavaProjectTestCase {
   @Mock private FileEditor myFileEditor;
   private SmaliFileNotificationProvider myNotificationProvider;
 
@@ -81,7 +82,8 @@ public class SmaliFileNotificationProviderTest extends IdeaTestCase {
 
   public void testCreateNotificationPanelWithNonSmaliFile() throws Exception {
     loadProject(APK_SAN_ANGELES);
-    EditorNotificationPanel notificationPanel = myNotificationProvider.createNotificationPanel(getProject().getBaseDir(), myFileEditor);
+    EditorNotificationPanel notificationPanel = myNotificationProvider.createNotificationPanel(
+      PlatformTestUtil.getOrCreateProjectTestBaseDir(getProject()), myFileEditor, myProject);
     assertNull(notificationPanel);
   }
 

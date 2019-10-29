@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -67,6 +67,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.speedSearch.FilteringTableModel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.PlatformIcons;
@@ -116,21 +117,21 @@ public class ChooseResourceDialog extends DialogWrapper {
   private static final String FOLDER_TYPE_KEY = "ResourceFolderType";
   private static final String GRID_MODE_KEY = "ResourceChooserGridMode";
   private static final String APP_NAMESPACE_LABEL = "Project";
-  private static final int GRID_ICON_SIZE = JBUI.scale(50);
-  private static final int GRID_CHECK_SIZE = JBUI.scale(8);
-  private static final int GRID_CELL_SIZE = JBUI.scale(120);
-  private static final int LIST_ICON_SIZE = JBUI.scale(28);
-  private static final int LIST_CHECK_SIZE = JBUI.scale(5);
-  private static final int LIST_CELL_HEIGHT = JBUI.scale(40);
-  static final int TABLE_CELL_HEIGHT = JBUI.scale(30);
+  private static final int GRID_ICON_SIZE = JBUIScale.scale(50);
+  private static final int GRID_CHECK_SIZE = JBUIScale.scale(8);
+  private static final int GRID_CELL_SIZE = JBUIScale.scale(120);
+  private static final int LIST_ICON_SIZE = JBUIScale.scale(28);
+  private static final int LIST_CHECK_SIZE = JBUIScale.scale(5);
+  private static final int LIST_CELL_HEIGHT = JBUIScale.scale(40);
+  static final int TABLE_CELL_HEIGHT = JBUIScale.scale(30);
   private static final JBColor LIST_DIVIDER_COLOR = new JBColor(Gray._245, Gray._80);
-  private static final JBInsets LIST_PADDING = JBUI.insets(7, 6);
+  private static final JBInsets LIST_PADDING = JBInsets.create(7, 6);
   private static final JBDimension PANEL_PREFERRED_SIZE = JBUI.size(850, 620);
   private static final SimpleTextAttributes SEARCH_MATCH_ATTRIBUTES = new SimpleTextAttributes(null, null, null,
                                                                                                SimpleTextAttributes.STYLE_SEARCH_MATCH);
   private static final Action[] EMPTY_ACTIONS = new Action[0];
   private static final ResourceChooserGroup[] EMPTY_RESOURCE_CHOOSER_GROUPS = new ResourceChooserGroup[0];
-  private static final Border GRID_SELECTION_BORDER = BorderFactory.createLineBorder(UIUtil.getListSelectionBackground());
+  private static final Border GRID_SELECTION_BORDER = BorderFactory.createLineBorder(UIUtil.getListSelectionBackground(true));
 
   @NotNull private final Module myModule;
   @NotNull private final AndroidFacet myFacet;
@@ -518,7 +519,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private JComponent createToolbar() {
     JComponent toolbar = Box.createHorizontalBox();
     toolbar.add(mySearchField);
-    toolbar.add(Box.createHorizontalStrut(JBUI.scale(20)));
+    toolbar.add(Box.createHorizontalStrut(JBUIScale.scale(20)));
     toolbar.add(myViewOption);
 
     toolbar.add(Box.createHorizontalGlue());
@@ -544,7 +545,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     DefaultActionGroup group = new DefaultActionGroup(listView, gridView);
     JComponent component = ActionManager.getInstance().createActionToolbar("ResourceViewOptionToolbar", group, true).getComponent();
     component.setBorder(null);
-    component.setMaximumSize(new Dimension(JBUI.scale(100), component.getMaximumSize().height));
+    component.setMaximumSize(new Dimension(JBUIScale.scale(100), component.getMaximumSize().height));
     return component;
   }
 
@@ -757,7 +758,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         }
       }
     });
-    searchField.setMaximumSize(new Dimension(JBUI.scale(300), searchField.getMaximumSize().height));
+    searchField.setMaximumSize(new Dimension(JBUIScale.scale(300), searchField.getMaximumSize().height));
     searchField.addDocumentListener(new DocumentAdapter() {
       @Override
       protected void textChanged(@NotNull DocumentEvent e) {
@@ -1449,13 +1450,13 @@ public class ChooseResourceDialog extends DialogWrapper {
             }
 
             if (isHeader) {
-              setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
+              setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD));
               if (!isSelected) {
                 setBackground(UIUtil.getLabelBackground());
               }
             }
             else {
-              setFont(UIUtil.getLabelFont());
+              setFont(StartupUiUtil.getLabelFont());
               if (!isSelected) {
                 setBackground(table.getBackground());
               }
@@ -1514,7 +1515,7 @@ public class ChooseResourceDialog extends DialogWrapper {
                                                                   ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
       scrollPane.setBorder(BorderFactory.createEmptyBorder());
       scrollPane.setViewportBorder(BorderFactory.createEmptyBorder());
-      scrollPane.getVerticalScrollBar().setUnitIncrement(JBUI.scale(16));
+      scrollPane.getVerticalScrollBar().setUnitIncrement(JBUIScale.scale(16));
       return scrollPane;
     }
 
@@ -1971,7 +1972,7 @@ public class ChooseResourceDialog extends DialogWrapper {
           if (validator.doesResourceExist(enteredName)) {
             ResourceType type = getSelectedPanel().getType();
             overwriteResource = String.format("Saving this %1$s will override existing resource %2$s.",
-                                              type.getDisplayName().toLowerCase(Locale.US), enteredName);
+                                              StringUtil.toLowerCase(type.getDisplayName()), enteredName);
           }
           else {
             String errorText = validator.getErrorText(enteredName);
@@ -2354,7 +2355,6 @@ public class ChooseResourceDialog extends DialogWrapper {
             if (name != null) {
               presentation.setText(name);
             }
-            super.update(e);
           }
         };
 

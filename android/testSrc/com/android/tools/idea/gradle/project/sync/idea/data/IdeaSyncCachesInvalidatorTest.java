@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 import java.io.File;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;

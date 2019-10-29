@@ -77,13 +77,13 @@ public class GradleBuildOutputParser implements BuildOutputParser {
                        @NotNull Consumer<? super BuildEvent> messageConsumer) {
     String currentLine = line.trim();
     if (currentLine.startsWith(STDOUT_ERROR_TAG)) {
-      processMessage(currentLine, reader.getBuildId(), messageConsumer);
+      processMessage(currentLine, reader.getParentEventId(), messageConsumer);
       return true;
     }
 
     // consume the line without producing a message, and remove it from the map
-    if (futureOutputMap.getOrDefault(reader.getBuildId(), Collections.emptySet()).contains(currentLine)) {
-      futureOutputMap.get(reader.getBuildId()).remove(currentLine);
+    if (futureOutputMap.getOrDefault(reader.getParentEventId(), Collections.emptySet()).contains(currentLine)) {
+      futureOutputMap.get(reader.getParentEventId()).remove(currentLine);
       return true;
     }
 

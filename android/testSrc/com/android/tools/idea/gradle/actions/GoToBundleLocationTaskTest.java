@@ -27,7 +27,8 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -41,9 +42,9 @@ import org.mockito.MockitoAnnotations;
 /**
  * Tests for {@link GoToBundleLocationTask}.
  */
-public class GoToBundleLocationTaskTest extends IdeaTestCase {
+public class GoToBundleLocationTaskTest extends JavaProjectTestCase {
   private static final String NOTIFICATION_TITLE = "Build Bundle(s)";
-  boolean isShowFilePathActionSupported;
+  boolean isRevealFileActionSupported;
   @Mock private AndroidNotification myMockNotification;
   private GoToBundleLocationTask myTask;
   private Map<String, File> modulesToPaths;
@@ -53,20 +54,20 @@ public class GoToBundleLocationTaskTest extends IdeaTestCase {
     super.setUp();
     MockitoAnnotations.initMocks(this);
     List<Module> modules = Collections.singletonList(getModule());
-    isShowFilePathActionSupported = true;
+    isRevealFileActionSupported = true;
     // Simulate the path of the bundle file for the project's module.
     File myBundleFilePath = createTempDir("bundleFileLocation");
     modulesToPaths = Collections.singletonMap(getModule().getName(), myBundleFilePath);
-    IdeComponents ideComponents = new IdeComponents(getProject());
-    BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(BuildsToPathsMapper.class);
+    BuildsToPathsMapper mockGenerator = IdeComponents.mockProjectService(myProject, BuildsToPathsMapper.class, getTestRootDisposable());
     when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean(), any())).thenReturn(modulesToPaths);
     myTask = new GoToBundleLocationTask(getProject(), modules, NOTIFICATION_TITLE) {
       @Override
-      boolean isShowFilePathActionSupported() {
-        return isShowFilePathActionSupported;  // Inject ability to simulate both behaviors.
+      boolean isRevealFileActionSupported() {
+        return isRevealFileActionSupported;  // Inject ability to simulate both behaviors.
       }
     };
-    ideComponents.replaceProjectService(AndroidNotification.class, myMockNotification);
+    ServiceContainerUtil
+            .replaceService(myProject, AndroidNotification.class, myMockNotification, getTestRootDisposable());
   }
 
   public void testExecuteWithCancelledBuild() {
@@ -87,13 +88,13 @@ public class GoToBundleLocationTaskTest extends IdeaTestCase {
     String moduleName = getModule().getName();
     String message = getExpectedModuleNotificationMessage(moduleName);
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
-                                           new OpenFolderNotificationListener(myProject, modulesToPaths, null));
+            new OpenFolderNotificationListener(myProject, modulesToPaths, null));
   }
 
-  public void testExecuteWithSuccessfulBuildNoShowFilePathAction() {
-    isShowFilePathActionSupported = false;
+  public void testExecuteWithSuccessfulBuildNoRevealFileAction() {
+    isRevealFileActionSupported = false;
     myTask.execute(createBuildResult(null /* build successful - no errors */));
-    String message = getExpectedModuleNotificationMessageNoShowFilePathAction();
+    String message = getExpectedModuleNotificationMessageNoRevealFileAction();
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION, new GoToBundleLocationTask.OpenEventLogHyperlink());
   }
 
@@ -106,19 +107,19 @@ public class GoToBundleLocationTaskTest extends IdeaTestCase {
   @NotNull
   private static String getExpectedModuleLineNotificationMessage(@NotNull String moduleName) {
     return "<br/>Module '" +
-           moduleName +
-           "': <a href=\"" +
-           GoToBundleLocationTask.LOCATE_URL_PREFIX +
-           moduleName +
-           "\">locate</a> or " +
-           "<a href=\"" +
-           GoToBundleLocationTask.ANALYZE_URL_PREFIX +
-           moduleName +
-           "\">analyze</a> the app bundle.";
+            moduleName +
+            "': <a href=\"" +
+            GoToBundleLocationTask.LOCATE_URL_PREFIX +
+            moduleName +
+            "\">locate</a> or " +
+            "<a href=\"" +
+            GoToBundleLocationTask.ANALYZE_URL_PREFIX +
+            moduleName +
+            "\">analyze</a> the app bundle.";
   }
 
   @NotNull
-  private static String getExpectedModuleNotificationMessageNoShowFilePathAction() {
+  private static String getExpectedModuleNotificationMessageNoRevealFileAction() {
     return "App bundle(s) generated successfully for 1 module";
   }
 

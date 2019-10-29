@@ -29,10 +29,10 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +43,7 @@ import org.mockito.verification.VerificationMode;
 /**
  * Tests for {@link GradleProjectImporter}.
  */
-public class GradleProjectImporterTest extends IdeaTestCase {
+public class GradleProjectImporterTest extends JavaProjectTestCase {
   @Mock private GradleSyncInvoker mySyncInvoker;
   @Mock private NewProjectSetup myProjectSetup;
   @Mock private ProjectFolder myProjectFolder;
@@ -73,10 +73,10 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     when(projectFolderFactory.create(myProjectFolderPath)).thenReturn(myProjectFolder);
 
     // Replace GradleSettings service with a mock.
-    new IdeComponents(project).replaceProjectService(GradleSettings.class, myGradleSettings);
+    ServiceContainerUtil.replaceService(project, GradleSettings.class, myGradleSettings, getTestRootDisposable());
     assertSame(GradleSettings.getInstance(project), myGradleSettings);
 
-    new IdeComponents(project).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
+    ServiceContainerUtil.registerServiceInstance(project, GradleProjectInfo.class, myGradleProjectInfo);
 
     myProjectImporter = new GradleProjectImporter(sdkSync, mySyncInvoker, myProjectSetup, projectFolderFactory);
   }

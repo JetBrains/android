@@ -22,6 +22,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
+import org.jetbrains.android.download.AndroidProfilerDownloader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +34,8 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.intellij.openapi.util.io.FileUtil.*;
+
+//import org.jetbrains.android.download.AndroidProfilerDownloader;  // FIXME-ank
 
 public class EmbeddedDistributionPaths {
   @NotNull
@@ -88,14 +91,34 @@ public class EmbeddedDistributionPaths {
 
   @NotNull
   public File findEmbeddedProfilerTransform(@NotNull AndroidVersion version) {
-    File file = new File(PathManager.getHomePath(), "plugins/android/resources/profilers-transform.jar");
+    String path = "plugins/android/resources/profilers-transform.jar";
+    File file = new File(PathManager.getHomePath(), path);
     if (file.exists()) {
       return file;
     }
-
+    AndroidProfilerDownloader.makeSureProfilerIsInPlace();
+    File dir = AndroidProfilerDownloader.getHostDir(path);
+    if (dir.exists()) {
+      return dir;
+    }
     // Development build
     String relativePath = toSystemDependentName("/../../bazel-genfiles/tools/base/profiler/transform/profilers-transform.jar");
     return new File(PathManager.getHomePath() + relativePath);
+  }
+
+  public String findEmbeddedInstaller() {
+    String path = "plugins/android/resources/installer";
+    File file = new File(PathManager.getHomePath(), path);
+    if (file.exists()) {
+      return file.getAbsolutePath();
+    }
+    AndroidProfilerDownloader.makeSureProfilerIsInPlace();
+    File dir = AndroidProfilerDownloader.getHostDir(path);
+    if (dir.exists()) {
+      return dir.getAbsolutePath();
+    }
+      // Development mode
+    return new File(PathManager.getHomePath(), "../../bazel-genfiles/tools/base/deploy/installer/android-installer").getAbsolutePath();
   }
 
   @Nullable
@@ -198,9 +221,9 @@ public class EmbeddedDistributionPaths {
     if (SystemInfo.isWindows) {
       jdkRootPath = new File(jdkRootPath, "win64");
     }
-    else if (SystemInfo.isLinux) {
-      jdkRootPath = new File(jdkRootPath, "linux");
-    }
+    //else if (SystemInfo.isLinux) {
+    //  jdkRootPath = new File(jdkRootPath, "linux");
+    //} // FIXME-ank (jdk detection does not work well)
     else if (SystemInfo.isMac) {
       jdkRootPath = new File(jdkRootPath, "mac");
     }

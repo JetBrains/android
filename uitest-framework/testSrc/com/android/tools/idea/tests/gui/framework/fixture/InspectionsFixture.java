@@ -25,6 +25,7 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -69,7 +70,7 @@ public class InspectionsFixture extends ToolWindowFixture {
 
     // The exact order of the results sometimes varies so sort the children alphabetically
     // instead to ensure stable test output
-    List<InspectionTreeNode> children = Lists.newArrayListWithExpectedSize(node.getChildCount());
+    List<InspectionTreeNode> children = new ArrayList<>(node.getChildCount());
     for (int i = 0, n = node.getChildCount(); i < n; i++) {
       children.add((InspectionTreeNode)node.getChildAt(i));
     }

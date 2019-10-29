@@ -44,7 +44,6 @@ public final class NavigateToCodeAction extends AnAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    super.update(e);
     CodeLocation codeLocation = myLocationSupplier.get();
     if (codeLocation == null) {
       e.getPresentation().setEnabled(false);

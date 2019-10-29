@@ -15,23 +15,23 @@
  * limitations under the License.
  *
   -->
-<idea-plugin url="https://www.jetbrains.com/idea">
-  <application-components>
-    <component>
-      <implementation-class>com.android.tools.idea.stats.LowMemoryReporter</implementation-class>
-    </component>
-
-    <component>
-      <implementation-class>com.android.tools.idea.memorysettings.AndroidLowMemoryNotifier</implementation-class>
-    </component>
-    <!-- Unregister DefaultJdkConfigurator b/112481251 -->
-    <component>
-      <interface-class>com.intellij.openapi.projectRoots.impl.DefaultJdkConfigurator</interface-class>
-      <option name="overrides" value="true"/>
-      <headless-implementation-class/>
-      <implementation-class/>
-    </component>
-  </application-components>
+<idea-plugin>
+<!-- FIXME-ank:  <application-components>-->
+<!-- FIXME-ank:    <component>-->
+<!-- FIXME-ank:      <implementation-class>com.android.tools.idea.stats.LowMemoryReporter</implementation-class>-->
+<!-- FIXME-ank:    </component>-->
+<!-- FIXME-ank:-->
+<!-- FIXME-ank:    <component>-->
+<!-- FIXME-ank:      <implementation-class>com.android.tools.idea.memorysettings.AndroidLowMemoryNotifier</implementation-class>-->
+<!-- FIXME-ank:    </component>-->
+<!-- FIXME-ank:     Unregister DefaultJdkConfigurator b/112481251 -->
+<!-- FIXME-ank:    <component>-->
+<!-- FIXME-ank:      <interface-class>com.intellij.openapi.projectRoots.impl.DefaultJdkConfigurator</interface-class>-->
+<!-- FIXME-ank:      <option name="overrides" value="true"/>-->
+<!-- FIXME-ank:      <headless-implementation-class/>-->
+<!-- FIXME-ank:      <implementation-class/>-->
+<!-- FIXME-ank:    </component>-->
+<!-- FIXME-ank:  </application-components>-->
 
   <extensions defaultExtensionNs="com.intellij">
     <!--
@@ -47,20 +47,23 @@
     <fileIconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioFileIconProvider" id="androidFileIcons"/>
   </extensions>
 
-  <application-components>
-    <component>
-      <implementation-class>com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor</implementation-class>
-      <headless-implementation-class/>
-    </component>
-  </application-components>
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.stats.UserSentimentProjectComponent</implementation-class>
-    </component>
-  </project-components>
+<!-- FIXME-ank:  <application-components>-->
+<!-- FIXME-ank:    <component>-->
+<!-- FIXME-ank:      <implementation-class>com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor</implementation-class>-->
+<!-- FIXME-ank:      <headless-implementation-class/>-->
+<!-- FIXME-ank:    </component>-->
+<!-- FIXME-ank:  </application-components>-->
+<!-- FIXME-ank:  <project-components>-->
+<!-- FIXME-ank:    <component>-->
+<!-- FIXME-ank:      <implementation-class>com.android.tools.idea.stats.UserSentimentProjectComponent</implementation-class>-->
+<!-- FIXME-ank:    </component>-->
+<!-- FIXME-ank:  </project-components>-->
 
   <actions>
     <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
+    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="AndroidArtworkIcons.Icons.Android" popup="false" keep-content="true" overrides="true">
+      <add-to-group group-id="ToolsMenu" anchor="first"/>
+    </group>
 
     <action class="com.intellij.ide.actions.HelpTopicsAction" id="IntelliJ.HelpTopics" text="IntelliJ IDEA Help">
       <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="HelpTopics" />
@@ -142,12 +145,14 @@
                         overrides="true"/>
     <welcomeFrameProvider implementation="com.android.tools.idea.welcome.wizard.FirstRunWizardFrameProvider" order="FIRST"/>
 
-    <localInspection groupPath="Java" language="JAVA" suppressId="deprecation" shortName="Deprecation" displayName="Deprecated API usage"
-                     groupKey="group.names.code.maturity.issues" groupBundle="messages.InspectionsBundle"
-                     enabledByDefault="true" level="WARNING"
-                     implementationClass="org.jetbrains.android.inspections.AndroidDeprecationInspection"/>
+<!--    <localInspection groupPath="Java" language="JAVA" suppressId="deprecation" shortName="Deprecation" displayName="Deprecated API usage"-->
+<!--                     groupKey="group.names.code.maturity.issues" groupBundle="messages.InspectionsBundle"-->
+<!--                     enabledByDefault="true" level="WARNING"-->
+<!--                     implementationClass="org.jetbrains.android.inspections.AndroidDeprecationInspection"/>-->
+<!--    FIXME-ank: duplicate inspection (android's contains filter) -->
     <langCodeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidXmlLanguageCodeStyleSettingsProvider" order="first"/>
 
+    <applicationInitializedListener implementation="com.android.tools.idea.stats.UserSentimentProjectComponent"/>
   </extensions>
 
 </idea-plugin>

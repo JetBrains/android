@@ -20,7 +20,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -39,7 +40,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link NativeLibrary}.
  */
-public class NativeLibraryTest extends IdeaTestCase {
+public class NativeLibraryTest extends JavaProjectTestCase {
   private NativeLibrary myLibrary;
 
   @Override
@@ -116,7 +117,7 @@ public class NativeLibraryTest extends IdeaTestCase {
 
   @NotNull
   private List<VirtualFile> doCreateSharedObjectFiles(@NotNull Abi... abis) throws IOException {
-    return createSharedObjectFiles(myProject.getBaseDir(), myLibrary.name, abis);
+    return createSharedObjectFiles(PlatformTestUtil.getOrCreateProjectTestBaseDir(myProject), myLibrary.name, abis);
   }
 
   @NotNull
@@ -153,7 +154,7 @@ public class NativeLibraryTest extends IdeaTestCase {
     VirtualFile debuggableFile = ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<VirtualFile, IOException>() {
       @Override
       public VirtualFile compute() throws IOException {
-        return getProject().getBaseDir().createChildData(this, "debuggable.so");
+        return PlatformTestUtil.getOrCreateProjectTestBaseDir(getProject()).createChildData(this, "debuggable.so");
       }
     });
 

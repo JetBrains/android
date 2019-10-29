@@ -27,8 +27,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
@@ -66,7 +64,6 @@ public class IntellijContextMenuInstaller implements ContextMenuInstaller {
     AnAction action = new AnAction() {
       @Override
       public void update(@NotNull AnActionEvent e) {
-        super.update(e);
 
         Presentation presentation = e.getPresentation();
         presentation.setText(contextMenuItem.getText());

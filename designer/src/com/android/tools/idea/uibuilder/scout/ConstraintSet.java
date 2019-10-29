@@ -45,8 +45,8 @@ public class ConstraintSet {
    * @param parent     parent scout widget
    */
   public ConstraintSet(int[] cWidgets, ArrayList<ArrayList<ConstrainedWidget>> validConns, ScoutWidget parent) {
-    myWidgets = new ArrayList<ConstrainedWidget>();
-    myChainConnnections = new ArrayList<Connection>();
+    myWidgets = new ArrayList<>();
+    myChainConnnections = new ArrayList<>();
     myProbability = 0;
     myParentWidget = parent;
     for (int i = 0; i < validConns.size(); i++) {
@@ -151,8 +151,8 @@ public class ConstraintSet {
    */
   boolean hasCycles() {
     boolean hasCycles = false;
-    ArrayList<ConstrainedWidget> remaining = new ArrayList<ConstrainedWidget>(myWidgets);
-    Stack<ConstrainedWidget> visited = new Stack<ConstrainedWidget>();
+    ArrayList<ConstrainedWidget> remaining = new ArrayList<>(myWidgets);
+    Stack<ConstrainedWidget> visited = new Stack<>();
     while (remaining.size() != 0 && !hasCycles) {
       hasCycles |= searchCycles(remaining, visited, remaining.get(0), Direction.ORIENTATION_VERTICAL);
     }

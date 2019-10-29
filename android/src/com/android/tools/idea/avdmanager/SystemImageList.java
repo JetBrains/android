@@ -53,7 +53,7 @@ import static com.android.sdklib.repository.targets.SystemImage.*;
  * Displays a list of system images currently installed and allows selection of one
  */
 public class SystemImageList extends JPanel implements ListSelectionListener {
-  private final TableView<SystemImageDescription> myTable = new TableView<SystemImageDescription>();
+  private final TableView<SystemImageDescription> myTable = new TableView<>();
   private final Set<SystemImageSelectionListener> myListeners = Sets.newHashSet();
   private SystemImageListModel myModel;
   private SystemImageDescription myLastSelectedImage;

@@ -82,7 +82,8 @@ public class AndroidGradleTests {
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
                                    pluginVersion);
 
-      contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", getKotlinVersionForTests());
+      String kotlinVersion = getKotlinVersionForTests().split("-")[0];
+      contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", kotlinVersion);
 
       // App compat version needs to match compile SDK
       String appCompatMainVersion = BuildEnvironment.getInstance().getCompileSdkVersion();
@@ -182,7 +183,7 @@ public class AndroidGradleTests {
     List<File> repositories = new ArrayList<>();
     String prebuiltsRepo = "prebuilts/tools/common/m2/repository";
     String publishLocalRepo = "out/repo";
-    if (TestUtils.runningFromBazel()) {
+    if (TestUtils.runningFromBazel() && false) { // FIXME-ank: env variables imply Bazel. This is not correct when running from IU.
       // Based on EmbeddedDistributionPaths#findAndroidStudioLocalMavenRepoPaths:
       File tmp = new File(PathManager.getHomePath()).getParentFile().getParentFile();
       File file = new File(tmp, prebuiltsRepo);

@@ -34,6 +34,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import com.sun.java.swing.plaf.windows.WindowsComboBoxUI;
 import java.awt.BorderLayout;
@@ -103,7 +104,7 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
                        boolean comboEditable) {
     super(listener);
     myAddedValueIndex = -1; // nothing added
-    myPanel = new AdtSecondaryPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
+    myPanel = new AdtSecondaryPanel(new BorderLayout(JBUIScale.scale(HORIZONTAL_COMPONENT_GAP), 0));
     myPanel.setFocusable(false);
     myBrowsePanel = browsePanel;
 

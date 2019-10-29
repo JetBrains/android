@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
 import com.intellij.openapi.util.io.FileUtil;
@@ -64,10 +65,10 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
     if (extension.isLibrary()) {
       return Collections.emptyList();
     }
-    final Map<String, String> libPackage2ModuleName = new THashMap<String, String>(FileUtil.PATH_HASHING_STRATEGY);
-    final Set<String> appClassesDirs = new THashSet<String>(FileUtil.PATH_HASHING_STRATEGY);
-    final Set<String> javaClassesDirs = new THashSet<String>(FileUtil.PATH_HASHING_STRATEGY);
-    final Set<String> libClassesDirs = new THashSet<String>(FileUtil.PATH_HASHING_STRATEGY);
+    final Map<String, String> libPackage2ModuleName = new THashMap<>(FileUtil.PATH_HASHING_STRATEGY);
+    final Set<String> appClassesDirs = new THashSet<>(FileUtil.PATH_HASHING_STRATEGY);
+    final Set<String> javaClassesDirs = new THashSet<>(FileUtil.PATH_HASHING_STRATEGY);
+    final Set<String> libClassesDirs = new THashSet<>(FileUtil.PATH_HASHING_STRATEGY);
 
     final File moduleClassesDir = new ModuleBuildTarget(
       myModule, JavaModuleBuildTargetType.PRODUCTION).getOutputDir();
@@ -108,7 +109,7 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
         appClassesDirs.add(testModuleClassesDir.getPath());
       }
     }
-    final List<BuildRootDescriptor> result = new ArrayList<BuildRootDescriptor>();
+    final List<BuildRootDescriptor> result = new ArrayList<>();
 
     for (String classesDir : appClassesDirs) {
       result.add(new MyClassesDirBuildRootDescriptor(this, new File(classesDir), ClassesDirType.ANDROID_APP));
@@ -175,7 +176,7 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
 
   @Override
   public Collection<BuildTarget<?>> computeDependencies(BuildTargetRegistry registry, TargetOutputIndex outputIndex) {
-    final List<BuildTarget<?>> result = new ArrayList<BuildTarget<?>>(
+    final List<BuildTarget<?>> result = new ArrayList<>(
       super.computeDependencies(registry, outputIndex));
     result.add(new AndroidAarDepsBuildTarget(myModule));
     result.add(new AndroidPreDexBuildTarget(myModule.getProject()));

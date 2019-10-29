@@ -26,7 +26,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -105,7 +105,7 @@ public class DeviceArtDescriptor {
   }
 
   private static List<File> getDescriptorFiles(@Nullable File[] additionalRoots) {
-    Set<File> roots = new HashSet<File>();
+    Set<File> roots = new HashSet<>();
 
     File base = getBundledDescriptorsFolder();
     if (base != null) {
@@ -116,7 +116,7 @@ public class DeviceArtDescriptor {
       Collections.addAll(roots, additionalRoots);
     }
 
-    List<File> files = new ArrayList<File>(roots.size());
+    List<File> files = new ArrayList<>(roots.size());
     for (File root : roots) {
       File file = getDescriptorFile(root);
       if (file != null) {

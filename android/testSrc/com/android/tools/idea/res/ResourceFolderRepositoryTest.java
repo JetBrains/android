@@ -45,6 +45,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
 import com.google.common.collect.Collections2;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -65,6 +66,7 @@ import com.intellij.psi.impl.file.impl.FileManagerImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.util.concurrency.SequentialTaskExecutor;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
@@ -107,39 +109,22 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String DRAWABLE_ID_SCAN = "resourceRepository/drawable_for_id_scan.xml";
   private static final String COLOR_STATELIST = "resourceRepository/statelist.xml";
 
-  private ResourceFolderRepositoryFileCache myOldFileCacheService;
   private ResourceFolderRegistry myRegistry;
-
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      overrideCacheService(myOldFileCacheService);
-    }
-    finally {
-      super.tearDown();
-    }
-  }
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     // Use a file cache that has per-test root directories instead of sharing the system directory.
-    ResourceFolderRepositoryFileCache cache = new ResourceFolderRepositoryFileCacheImpl(new File(myFixture.getTempDirPath()));
-    myOldFileCacheService = overrideCacheService(cache);
+    overrideCacheService(new ResourceFolderRepositoryFileCacheImpl(new File(myFixture.getTempDirPath())), getTestRootDisposable());
     myRegistry = ResourceFolderRegistry.getInstance(getProject());
   }
 
-  private static ResourceFolderRepositoryFileCache overrideCacheService(ResourceFolderRepositoryFileCache newCache) {
-    MutablePicoContainer applicationContainer = (MutablePicoContainer)
-      ApplicationManager.getApplication().getPicoContainer();
-
-    // Use a file cache that has per-test root directories instead of sharing the system directory.
-    // Swap out cache services. We have to be careful. All tests share the same Application and PicoContainer.
-    ResourceFolderRepositoryFileCache oldCache =
-      (ResourceFolderRepositoryFileCache)applicationContainer.getComponentInstance(ResourceFolderRepositoryFileCache.class.getName());
-    applicationContainer.unregisterComponent(ResourceFolderRepositoryFileCache.class.getName());
-    applicationContainer.registerComponentInstance(ResourceFolderRepositoryFileCache.class.getName(), newCache);
-    return oldCache;
+  /**
+   * package private to be able to re-use from {@link ResourceFolderDataBindingTest}
+   */
+  static void overrideCacheService(ResourceFolderRepositoryFileCache newCache, @NotNull Disposable parentDisposable) {
+    ServiceContainerUtil
+      .replaceService(ApplicationManager.getApplication(), ResourceFolderRepositoryFileCache.class, newCache, parentDisposable);
   }
 
   private static void resetScanCounter() {

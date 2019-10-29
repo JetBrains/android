@@ -18,7 +18,6 @@ package com.android.tools.profilers.energy;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import org.jetbrains.annotations.NotNull;

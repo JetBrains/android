@@ -20,10 +20,13 @@ import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.nodemodel.*
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.Graphics2DDelegate
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.ImageUtil
 import org.junit.Assert.fail
 import org.junit.Test
-import java.awt.*
+import java.awt.Color
+import java.awt.FontMetrics
+import java.awt.Paint
+import java.awt.Shape
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
 
@@ -365,7 +368,7 @@ class CaptureNodeHRendererTest {
     assertThat(color).isEqualTo(flameChartFillHover)
   }
 
-  private class TestGraphics2D : Graphics2DDelegate(UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()) {
+  private class TestGraphics2D : Graphics2DDelegate(ImageUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()) {
     class TextInfo(val text: String, val isBold: Boolean, val paint: Paint)
 
     var lastTextInfo: TextInfo? = null

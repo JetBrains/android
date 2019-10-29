@@ -25,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,8 +33,6 @@ import static com.intellij.util.ui.tree.TreeUtil.collapseAll;
 import static com.intellij.util.ui.tree.TreeUtil.showRowCentered;
 
 public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
-  private static final TreePath[] EMPTY_TREE_PATH = new TreePath[0];
-
   public AbstractBaseTreeBuilder(@NotNull JTree tree,
                                  @NotNull DefaultTreeModel treeModel,
                                  @NotNull AbstractBaseTreeStructure treeStructure) {
@@ -76,14 +73,14 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
     JTree tree = getTree();
     if (tree != null) {
       collapseAll(tree, 1);
-      clearSelection(tree);
+      tree.clearSelection();
     }
   }
 
   public void clearSelection() {
     JTree tree = getTree();
     if (tree != null) {
-      clearSelection(tree);
+      tree.clearSelection();
     }
   }
 
@@ -111,9 +108,5 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
         showRowCentered(tree, firstRow, false, true);
       }
     }
-  }
-
-  private static void clearSelection(@NotNull JTree tree) {
-    tree.setSelectionPaths(EMPTY_TREE_PATH);
   }
 }

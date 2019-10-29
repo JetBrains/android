@@ -45,6 +45,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.serviceContainer.NonInjectable;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashSet;
@@ -70,6 +71,7 @@ public class GradleTaskFinder {
   }
 
   @VisibleForTesting
+  @NonInjectable
   GradleTaskFinder(GradleRootPathFinder rootPathFinder) {
     myRootPathFinder = rootPathFinder;
   }

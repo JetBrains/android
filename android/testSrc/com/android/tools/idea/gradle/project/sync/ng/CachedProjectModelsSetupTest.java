@@ -31,7 +31,7 @@ import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSe
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -42,7 +42,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link CachedProjectModelsSetup}.
  */
-public class CachedProjectModelsSetupTest extends IdeaTestCase {
+public class CachedProjectModelsSetupTest extends JavaProjectTestCase {
   @Mock private IdeModifiableModelsProvider myModelsProvider;
   @Mock private GradleModuleSetup myGradleModuleSetup;
   @Mock private AndroidModuleSetup myAndroidModuleSetup;

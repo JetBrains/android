@@ -18,8 +18,9 @@ package com.android.tools.idea.apk.dex;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -34,7 +35,7 @@ import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
 /**
  * Tests for {@link DexFileDisassembler}.
  */
-public class DexFileDisassemblerTest extends IdeaTestCase {
+public class DexFileDisassemblerTest extends JavaProjectTestCase {
   private DexFileDisassembler myDisassembler;
 
   @Override
@@ -47,7 +48,7 @@ public class DexFileDisassemblerTest extends IdeaTestCase {
     VirtualFile outFolder = ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<VirtualFile, Throwable>() {
       @Override
       public VirtualFile compute() throws Throwable {
-        return getProject().getBaseDir().createChildDirectory(this, "out");
+        return VfsUtil.createDirectoryIfMissing(getProject().getBasePath() + "/out");
       }
     });
 

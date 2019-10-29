@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.theme.qualifiers;
 
 import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.android.ide.common.resources.configuration.ResourceQualifier;
 import com.google.common.collect.ImmutableList;
 import junit.framework.TestCase;
 
@@ -29,46 +28,46 @@ public class RestrictedLocaleTest extends TestCase {
     RestrictedLocale first = new RestrictedLocale();
     RestrictedLocale second = new RestrictedLocale();
     RestrictedLocale expected = new RestrictedLocale();
-    first.setRestrictions(null, ImmutableList.<ResourceQualifier>of(new LocaleQualifier("kz")));
-    second.setRestrictions(null, ImmutableList.<ResourceQualifier>of(new LocaleQualifier("en")));
-    expected.setRestrictions(null, ImmutableList.<ResourceQualifier>of(new LocaleQualifier("en"), new LocaleQualifier("kz")));
+    first.setRestrictions(null, ImmutableList.of(new LocaleQualifier("kz")));
+    second.setRestrictions(null, ImmutableList.of(new LocaleQualifier("en")));
+    expected.setRestrictions(null, ImmutableList.of(new LocaleQualifier("en"), new LocaleQualifier("kz")));
     assertEquals(expected, first.intersect(second));
 
     first = new RestrictedLocale();
     second = new RestrictedLocale();
     expected = new RestrictedLocale();
-    first.setRestrictions(new LocaleQualifier("en"), ImmutableList.<ResourceQualifier>of());
-    second.setRestrictions(null, ImmutableList.<ResourceQualifier>of(new LocaleQualifier("kz"), new LocaleQualifier("ru")));
-    expected.setRestrictions(new LocaleQualifier("en"), ImmutableList.<ResourceQualifier>of());
+    first.setRestrictions(new LocaleQualifier("en"), ImmutableList.of());
+    second.setRestrictions(null, ImmutableList.of(new LocaleQualifier("kz"), new LocaleQualifier("ru")));
+    expected.setRestrictions(new LocaleQualifier("en"), ImmutableList.of());
     assertEquals(expected, first.intersect(second));
 
     first = new RestrictedLocale();
     second = new RestrictedLocale();
     expected = new RestrictedLocale();
-    first.setRestrictions(new LocaleQualifier("en"), ImmutableList.<ResourceQualifier>of());
-    second.setRestrictions(null, ImmutableList.<ResourceQualifier>of(new LocaleQualifier("kz"), new LocaleQualifier("ru")));
-    expected.setRestrictions(new LocaleQualifier("en"), ImmutableList.<ResourceQualifier>of());
+    first.setRestrictions(new LocaleQualifier("en"), ImmutableList.of());
+    second.setRestrictions(null, ImmutableList.of(new LocaleQualifier("kz"), new LocaleQualifier("ru")));
+    expected.setRestrictions(new LocaleQualifier("en"), ImmutableList.of());
     assertEquals(expected, first.intersect(second));
     assertEquals(expected, second.intersect(first));
 
     first = new RestrictedLocale();
     second = new RestrictedLocale();
-    first.setRestrictions(new LocaleQualifier("en"), ImmutableList.<ResourceQualifier>of());
-    second.setRestrictions(null, ImmutableList.<ResourceQualifier>of(new LocaleQualifier("kz"), new LocaleQualifier("en")));
+    first.setRestrictions(new LocaleQualifier("en"), ImmutableList.of());
+    second.setRestrictions(null, ImmutableList.of(new LocaleQualifier("kz"), new LocaleQualifier("en")));
     assertEquals(null, first.intersect(second));
 
     first = new RestrictedLocale();
     second = new RestrictedLocale();
     expected = new RestrictedLocale();
-    first.setRestrictions(new LocaleQualifier("en"), ImmutableList.<ResourceQualifier>of());
-    second.setRestrictions(new LocaleQualifier("en"), ImmutableList.<ResourceQualifier>of());
-    expected.setRestrictions(new LocaleQualifier("en"), ImmutableList.<ResourceQualifier>of());
+    first.setRestrictions(new LocaleQualifier("en"), ImmutableList.of());
+    second.setRestrictions(new LocaleQualifier("en"), ImmutableList.of());
+    expected.setRestrictions(new LocaleQualifier("en"), ImmutableList.of());
     assertEquals(expected, first.intersect(second));
 
     first = new RestrictedLocale();
     second = new RestrictedLocale();
-    first.setRestrictions(new LocaleQualifier("en"), ImmutableList.<ResourceQualifier>of());
-    second.setRestrictions(new LocaleQualifier("kz"), ImmutableList.<ResourceQualifier>of());
+    first.setRestrictions(new LocaleQualifier("en"), ImmutableList.of());
+    second.setRestrictions(new LocaleQualifier("kz"), ImmutableList.of());
     assertEquals(null, first.intersect(second));
   }
 }

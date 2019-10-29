@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +38,7 @@ public abstract class AndroidBuildTargetType<T extends AndroidBuildTarget> exten
     if (!AndroidJpsUtil.isAndroidProjectWithoutGradleFacet(model.getProject())) {
       return Collections.emptyList();
     }
-    final List<T> targets = new ArrayList<T>();
+    final List<T> targets = new ArrayList<>();
 
     for (JpsModule module : model.getProject().getModules()) {
       final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
@@ -59,7 +60,7 @@ public abstract class AndroidBuildTargetType<T extends AndroidBuildTarget> exten
   @NotNull
   @Override
   public BuildTargetLoader<T> createLoader(@NotNull final JpsModel model) {
-    final HashMap<String, T> targetMap = new HashMap<String, T>();
+    final HashMap<String, T> targetMap = new HashMap<>();
 
     for (T target : computeAllTargets(model)) {
       targetMap.put(target.getId(), target);

@@ -77,7 +77,7 @@ public final class TestArtifactSearchScopes {
 
   @Nullable
   public static TestArtifactSearchScopes get(@NotNull VirtualFile file, @NotNull Project project) {
-    if (GradleSyncState.getInstance(project).lastSyncFailed()) {
+    if (project.isDefault() || GradleSyncState.getInstance(project).lastSyncFailed()) {
       return null;
     }
 

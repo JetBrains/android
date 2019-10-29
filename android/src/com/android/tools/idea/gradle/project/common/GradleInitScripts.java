@@ -31,6 +31,7 @@ import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,9 +46,9 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.gradle.AbstractKotlinGradleModelBuilder;
 import org.jetbrains.kotlin.kapt.idea.KaptModelBuilderService;
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService;
-import org.jetbrains.plugins.gradle.tooling.builder.ModelBuildScriptClasspathBuilderImpl;
+import org.jetbrains.plugins.gradle.tooling.builder.ModelBuildScriptClasspathBuilderImpl; // FIXME-ank: dependency on .impl
 
-public class GradleInitScripts {
+public final class GradleInitScripts {
   @NotNull private final EmbeddedDistributionPaths myEmbeddedDistributionPaths;
   @NotNull private final ContentCreator myContentCreator;
 
@@ -56,11 +57,12 @@ public class GradleInitScripts {
     return ServiceManager.getService(GradleInitScripts.class);
   }
 
-  public GradleInitScripts(@NotNull EmbeddedDistributionPaths embeddedDistributionPaths) {
-    this(embeddedDistributionPaths, new ContentCreator());
+  public GradleInitScripts() {
+    this(EmbeddedDistributionPaths.getInstance(), new ContentCreator());
   }
 
   @VisibleForTesting
+  @NonInjectable
   GradleInitScripts(@NotNull EmbeddedDistributionPaths embeddedDistributionPaths, @NotNull ContentCreator contentCreator) {
     myEmbeddedDistributionPaths = embeddedDistributionPaths;
     myContentCreator = contentCreator;
@@ -121,7 +123,7 @@ public class GradleInitScripts {
 
   public void addApplyBuildScriptClasspathModelBuilderInitScript(@NotNull List<String> allArgs) {
     try {
-      Class buildScriptModelBuilderClass = ModelBuildScriptClasspathBuilderImpl.class;
+      Class<?> buildScriptModelBuilderClass = ModelBuildScriptClasspathBuilderImpl.class;
       List<String> paths = new ArrayList<>();
       paths.add(getJarPathForClass(buildScriptModelBuilderClass));
       paths.add(getJarPathForClass(ModelBuilderService.class));
@@ -147,7 +149,7 @@ public class GradleInitScripts {
 
   @NotNull
   private File createKaptModelBuilderInitScriptFile() throws IOException {
-    Class kaptModelBuilderClass = KaptModelBuilderService.class;
+    Class<?> kaptModelBuilderClass = KaptModelBuilderService.class;
     List<String> paths = new ArrayList<>();
     paths.add(getJarPathForClass(kaptModelBuilderClass));
     paths.add(getJarPathForClass(Unit.class));
@@ -243,6 +245,13 @@ public class GradleInitScripts {
       return "import javax.inject.Inject\n" +
              "import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry\n" +
              "import org.gradle.tooling.provider.model.ToolingModelBuilder\n" +
+             "import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext\n" +
+             "import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext.DataProvider\n" +
+             "import java.util.IdentityHashMap;\n" +
+             "import java.util.List;\n" +
+             "import java.util.Map;\n" +
+             "import java.util.ServiceLoader;\n" +
+             "\n" +
              "initscript {\n" +
              "  dependencies {\n" +
              "      " +
@@ -254,7 +263,8 @@ public class GradleInitScripts {
              "  apply plugin: " + modelName + "ModelBuilderPlugin\n" +
              "}\n" +
              "class " + modelName + "ModelBuilder implements ToolingModelBuilder {\n" +
-             "  public " + modelBuilderClassName + " builder;" +
+             "  public MyModelBuilderContext context;\n" +
+             "  public " + modelBuilderClassName + " builder;\n" +
              "\n" +
              "  public " + modelName + "ModelBuilder() {\n" +
              "    builder = new " + modelBuilderClassName + "();\n" +
@@ -263,7 +273,7 @@ public class GradleInitScripts {
              "    return builder.canBuild(modelName);\n" +
              "  }\n" +
              "  public Object buildAll(String modelName, Project project) {\n" +
-             "    return builder.buildAll(modelName, project);\n" +
+             (modelName.equals("Kapt") ? buildAllBodyKapt() : buildAllBodyClasspath()) +
              "  }\n" +
              "}\n" +
              "class " + modelName + "ModelBuilderPlugin implements Plugin<Project>{ \n" +
@@ -276,7 +286,48 @@ public class GradleInitScripts {
              "  void apply(Project project) {\n" +
              "    registry.register(new " + modelName + "ModelBuilder())\n" +
              "  }\n" +
-             "}";
+             "}\n" +
+             "\n" +
+
+
+             "  class MyModelBuilderContext implements ModelBuilderContext {\n" +
+             "    private final Map<DataProvider, Object> myMap = new IdentityHashMap<DataProvider, Object>();\n" +
+             "    private final Gradle myGradle;\n" +
+             "\n" +
+             "    private MyModelBuilderContext(Gradle gradle) {\n" +
+             "      myGradle = gradle;\n" +
+             "    }\n" +
+             "\n" +
+             "    @Override\n" +
+             "    public Gradle getRootGradle() {\n" +
+             "      return myGradle;\n" +
+             "    }\n" +
+             "\n" +
+             "    @Override\n" +
+             "    public <T> T getData(DataProvider<T> provider) {\n" +
+             "      Object data = myMap.get(provider);\n" +
+             "      if (data == null) {\n" +
+             "        T value = provider.create(myGradle);\n" +
+             "        myMap.put(provider, value);\n" +
+             "        return value;\n" +
+             "      }\n" +
+             "      else {\n" +
+             "        return (T)data;\n" +
+             "      }\n" +
+             "    }\n" +
+             "  }\n";
+    }
+
+    private String buildAllBodyClasspath() {
+      return
+        "    if (context == null){\n" +
+        "       context = new MyModelBuilderContext(project.getGradle())\n" +
+        "    }\n" +
+        "    return builder.buildAll(modelName, project, context);\n";
+    }
+
+    private String buildAllBodyKapt() {
+      return "    return builder.buildAll(modelName, project);\n";
     }
 
     @NotNull

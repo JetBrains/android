@@ -19,7 +19,6 @@ import com.android.ddmlib.*;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -27,7 +26,6 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.AndroidAppRunConfigurationBase;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfiguration;
@@ -38,7 +36,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.util.ThreeState;
 import org.apache.commons.io.FileUtils;
 import org.gradle.tooling.model.GradleProject;
@@ -64,7 +62,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class MakeBeforeRunTaskProviderTest extends IdeaTestCase {
+public class MakeBeforeRunTaskProviderTest extends JavaProjectTestCase {
   @Mock private AndroidModuleModel myAndroidModel;
   @Mock private IdeAndroidProject myIdeAndroidProject;
   @Mock private AndroidDevice myDevice;
@@ -262,11 +260,10 @@ public class MakeBeforeRunTaskProviderTest extends IdeaTestCase {
     when(myRunConfiguration.getModules()).thenReturn(new Module[]{app});
     // Simulate the case when post build sync is supported.
     when(myAndroidModel.getFeatures().isPostBuildSyncSupported()).thenReturn(true);
-    GradleSyncInvoker syncInvoker = new IdeComponents(myProject).mockApplicationService(GradleSyncInvoker.class);
-    GradleSyncState syncState = new IdeComponents(myProject).mockProjectService(GradleSyncState.class);
+    GradleSyncInvoker syncInvoker = IdeComponents.mockApplicationService(GradleSyncInvoker.class, getTestRootDisposable());
+    GradleSyncState syncState = IdeComponents.mockProjectService(myProject, GradleSyncState.class, getTestRootDisposable());
     when(syncState.isSyncNeeded()).thenReturn(ThreeState.YES);
-    MakeBeforeRunTaskProvider provider =
-      new MakeBeforeRunTaskProvider(myProject, AndroidProjectInfo.getInstance(myProject), GradleProjectInfo.getInstance(myProject));
+    MakeBeforeRunTaskProvider provider = new MakeBeforeRunTaskProvider(myProject);
 
     // Invoke method to test.
     provider.runGradleSyncIfNeeded(myRunConfiguration, mock(DataContext.class));
@@ -280,12 +277,11 @@ public class MakeBeforeRunTaskProviderTest extends IdeaTestCase {
     when(myRunConfiguration.getModules()).thenReturn(new Module[]{app});
     // Simulate the case when post build sync is NOT supported.
     when(myAndroidModel.getFeatures().isPostBuildSyncSupported()).thenReturn(false);
-    GradleSyncInvoker syncInvoker = new IdeComponents(myProject).mockApplicationService(GradleSyncInvoker.class);
-    GradleSyncState syncState = new IdeComponents(myProject).mockProjectService(GradleSyncState.class);
+    GradleSyncInvoker syncInvoker = IdeComponents.mockApplicationService(GradleSyncInvoker.class, getTestRootDisposable());
+    GradleSyncState syncState = IdeComponents.mockProjectService(myProject, GradleSyncState.class, getTestRootDisposable());
     when(syncState.isSyncNeeded()).thenReturn(ThreeState.YES);
 
-    MakeBeforeRunTaskProvider provider =
-      new MakeBeforeRunTaskProvider(myProject, AndroidProjectInfo.getInstance(myProject), GradleProjectInfo.getInstance(myProject));
+    MakeBeforeRunTaskProvider provider = new MakeBeforeRunTaskProvider(myProject);
 
     // Invoke method to test.
     provider.runGradleSyncIfNeeded(myRunConfiguration, mock(DataContext.class));

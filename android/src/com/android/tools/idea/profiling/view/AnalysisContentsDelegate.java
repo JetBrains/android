@@ -31,8 +31,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -45,10 +44,8 @@ import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Responsible for creating tree nodes and rendering them for the capture analysis results light tool window.
@@ -62,8 +59,8 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
   @NotNull protected Tree myResultsTree;
   @NotNull private JTextPane myResultExplanationArea;
 
-  @NotNull private Set<AnalyzerTask> myEnabledTasks = new HashSet<AnalyzerTask>();
-  @NotNull private Map<String, DefaultMutableTreeNode> myCategoryNodes = new HashMap<String, DefaultMutableTreeNode>();
+  @NotNull private Set<AnalyzerTask> myEnabledTasks = new HashSet<>();
+  @NotNull private Map<String, DefaultMutableTreeNode> myCategoryNodes = new HashMap<>();
   private boolean myCanRunAnalysis = false;
 
   public AnalysisContentsDelegate(@NotNull CapturePanel capturePanel) {
@@ -218,14 +215,14 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
     root.removeAllChildren();
     myCategoryNodes.clear();
 
-    Set<AnalysisReport.Listener> singletonListener = Collections.<AnalysisReport.Listener>singleton(new AnalysisReport.Listener() {
+    Set<AnalysisReport.Listener> singletonListener = Collections.singleton(new AnalysisReport.Listener() {
       @Override
       public void onResultsAdded(@NonNull final List<AnalysisResultEntry<?>> entries) {
         UIUtil.invokeLaterIfNeeded(new Runnable() {
           @Override
           public void run() {
             boolean rootChanged = false;
-            Set<DefaultMutableTreeNode> changedCategories = new HashSet<DefaultMutableTreeNode>();
+            Set<DefaultMutableTreeNode> changedCategories = new HashSet<>();
 
             for (AnalysisResultEntry<?> entry : entries) {
               String category = entry.getCategory();

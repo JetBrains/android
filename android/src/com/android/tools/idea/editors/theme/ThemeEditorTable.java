@@ -30,7 +30,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.Flag;
 import org.jetbrains.annotations.NotNull;
@@ -173,7 +173,7 @@ public class ThemeEditorTable extends CellSpanTable {
                                                      int row,
                                                      int column) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-        Font regularFont = UIUtil.getLabelFont();
+        Font regularFont = StartupUiUtil.getLabelFont();
         int regularFontSize = getFontMetrics(regularFont).getHeight();
         Font headerFont = regularFont.deriveFont(regularFontSize * ThemeEditorConstants.ATTRIBUTES_HEADER_FONT_SCALE);
         this.setFont(headerFont);

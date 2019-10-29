@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.timeline;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import java.awt.Color;
 import java.util.ArrayList;
 import org.jetbrains.annotations.Nullable;
@@ -31,10 +31,10 @@ import org.jetbrains.annotations.Nullable;
 public class Chart {
   public float myPlayBackSpeed = 1;
   Gantt myGantt;
-  int myChartLeftInset = JBUI.scale(40);
-  int myChartRightInset = JBUI.scale(25);
-  public int myBottomInsert = JBUI.scale(20);
-  static final int ourViewListWidth = JBUI.scale(150);
+  int myChartLeftInset = JBUIScale.scale(40);
+  int myChartRightInset = JBUIScale.scale(25);
+  public int myBottomInsert = JBUIScale.scale(20);
+  static final int ourViewListWidth = JBUIScale.scale(150);
 
   int myContainerWidth;
   int myContainerHeight;
@@ -112,7 +112,7 @@ public class Chart {
   static Color ourAvgBackground = new JBColor(0xf8f8f8, 0x2f3133);
   static Color ourBorder = new JBColor(0xc9c9c9, 0x242627);
   static Color ourBorderLight = new JBColor(0xe8e6e6, 0x3c3f41);
-  static int ourGraphHeight = JBUI.scale(60);
+  static int ourGraphHeight = JBUIScale.scale(60);
   static Color ourAddConstraintColor = new JBColor(0xff838383, 0xff666666);
   static Color ourAddConstraintPlus = new JBColor(0xffc9c9c9, 0xff333333);
 

@@ -22,7 +22,10 @@ import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 
-@State(name = "AndroidFoldingSettings", storages = @Storage("editor.codeinsight.xml"))
+@State(name = "AndroidFoldingSettings", storages = {
+  @Storage("editor.xml"),
+  @Storage(value = "editor.codeinsight.xml", deprecated = true),
+})
 public class AndroidFoldingSettings implements PersistentStateComponent<AndroidFoldingSettings> {
   public static AndroidFoldingSettings getInstance() {
     return ServiceManager.getService(AndroidFoldingSettings.class);

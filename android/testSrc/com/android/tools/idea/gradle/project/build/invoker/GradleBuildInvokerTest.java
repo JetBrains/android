@@ -37,7 +37,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.xdebugger.XDebugSession;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,7 +50,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link GradleBuildInvoker}.
  */
-public class GradleBuildInvokerTest extends IdeaTestCase {
+public class GradleBuildInvokerTest extends JavaProjectTestCase {
   @Mock private FileDocumentManager myFileDocumentManager;
   @Mock private GradleTasksExecutor myTasksExecutor;
   @Mock private NativeDebugSessionFinder myDebugSessionFinder;
@@ -69,9 +69,8 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
     myTasksExecutorFactory = new GradleTasksExecutorFactoryStub(myTasksExecutor);
     myModules = new Module[]{getModule()};
 
-    IdeComponents ideComponents = new IdeComponents(myProject);
-    myTaskFinder = ideComponents.mockApplicationService(GradleTaskFinder.class);
-    myBuildSettings = ideComponents.mockProjectService(BuildSettings.class);
+    myTaskFinder = IdeComponents.mockApplicationService(GradleTaskFinder.class, getTestRootDisposable());
+    myBuildSettings = IdeComponents.mockProjectService(myProject, BuildSettings.class, getTestRootDisposable());
 
     myBuildInvoker = new GradleBuildInvoker(myProject, myFileDocumentManager, myTasksExecutorFactory, myDebugSessionFinder);
   }
@@ -80,6 +79,9 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
   protected void tearDown() throws Exception {
     try {
       Messages.setTestDialog(TestDialog.DEFAULT);
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();
@@ -90,7 +92,8 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testCleanUpWithSourceGenerationEnabled() {
     // Simulate the case when source generation is enabled.
-    GradleProjectBuilder builderMock = new IdeComponents(getProject()).mockProjectService(GradleProjectBuilder.class);
+    GradleProjectBuilder builderMock = new IdeComponents(getProject(),getTestRootDisposable())
+            .mockProjectService(getProject(), GradleProjectBuilder.class, getTestRootDisposable());
     when(builderMock.isSourceGenerationEnabled()).thenReturn(true);
 
     // Invoke method to test.
@@ -108,7 +111,8 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
   public void testCleanUpWithSourceGenerationDisabled() {
     // Simulate the case when source generation is disabled.
-    GradleProjectBuilder builderMock = new IdeComponents(getProject()).mockProjectService(GradleProjectBuilder.class);
+    GradleProjectBuilder builderMock = new IdeComponents(getProject(), getTestRootDisposable())
+            .mockProjectService(getProject(), GradleProjectBuilder.class, getTestRootDisposable());
     when(builderMock.isSourceGenerationEnabled()).thenReturn(false);
 
     // Invoke method to test.
@@ -155,7 +159,7 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
 
     Messages.setTestDialog(new TestDialog() {
       @Override
-      public int show(String message) {
+      public int show(@NotNull String message) {
         return Messages.CANCEL;
       }
     });

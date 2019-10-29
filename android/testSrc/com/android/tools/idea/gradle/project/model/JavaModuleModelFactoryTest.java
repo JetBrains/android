@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.google.common.collect.Iterables;
+import com.intellij.util.lang.JavaVersion;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
@@ -82,8 +83,7 @@ public class JavaModuleModelFactoryTest {
     assertFalse(javaModuleModel.isAndroidModuleWithoutVariants());
     assertEquals(myBuildFolderPath, javaModuleModel.getBuildFolderPath());
     assertNotNull(javaModuleModel.getJavaLanguageLevel());
-    //noinspection deprecation
-    assertEquals(myJavaLanguageLevel, javaModuleModel.getJavaLanguageLevel().getCompilerComplianceDefaultOption());
+    assertEquals(JavaVersion.tryParse(myJavaLanguageLevel), javaModuleModel.getJavaLanguageLevel().toJavaVersion());
     assertThat(javaModuleModel.getContentRoots()).hasSize(1);
     // Verify that build directory and .gradle are excluded.
     JavaModuleContentRoot contentRoot = javaModuleModel.getContentRoots().iterator().next();

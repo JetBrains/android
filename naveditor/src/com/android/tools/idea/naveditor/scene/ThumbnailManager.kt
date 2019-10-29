@@ -30,12 +30,13 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.reference.SoftReference
+import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetScopedService
 import java.awt.Dimension
 import java.awt.image.BufferedImage
-import java.util.HashMap
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
@@ -199,7 +200,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
   }
 
   private fun previewScaleImage(image: BufferedImage, dimensions: Dimension): BufferedImage {
-    val scaled = UIUtil.createImage(dimensions.width, dimensions.height, BufferedImage.TYPE_INT_ARGB)
+    val scaled = ImageUtil.createImage(dimensions.width, dimensions.height, BufferedImage.TYPE_INT_ARGB)
     scaled.graphics.drawImage(image, 0, 0, dimensions.width, dimensions.height, null)
     return scaled
   }

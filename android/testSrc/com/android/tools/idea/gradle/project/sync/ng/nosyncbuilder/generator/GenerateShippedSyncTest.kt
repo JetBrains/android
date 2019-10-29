@@ -34,7 +34,6 @@ import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.Template.CATEGORY_PROJECTS
 import com.android.tools.idea.templates.TemplateMetadata.*
 import com.android.tools.idea.templates.recipe.RenderingContext
-import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME
 import com.intellij.idea.IdeaTestApplication
 import com.intellij.openapi.application.ApplicationManager
@@ -44,6 +43,7 @@ import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.testFramework.ThreadTracker
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
+import com.intellij.testFramework.replaceService
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.sdk.AndroidSdkData
 import org.mockito.Mockito.mock
@@ -94,9 +94,7 @@ class GenerateShippedSyncTest : AndroidTestBase() {
     // Replace the default RepositoryUrlManager with one that enables repository checks in tests. (myForceRepositoryChecksInTests)
     // This is necessary to fully resolve dynamic gradle coordinates such as ...:appcompat-v7:+ => appcompat-v7:25.3.1
     // keeping it exactly the same as they are resolved within the NPW flow.
-    IdeComponents(null) {}.replaceApplicationService(
-      RepositoryUrlManager::class.java,
-      RepositoryUrlManager(IdeGoogleMavenRepository, OfflineIdeGoogleMavenRepository, true))
+    ApplicationManager.getApplication().replaceService(RepositoryUrlManager::class.java, RepositoryUrlManager(IdeGoogleMavenRepository, OfflineIdeGoogleMavenRepository, true), testRootDisposable)
 
     StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true)
 
@@ -116,8 +114,7 @@ class GenerateShippedSyncTest : AndroidTestBase() {
     val projectBuilder = factory.createFixtureBuilder(projectName)
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture)
     myFixture!!.setUp()
-    IdeComponents(myFixture.project).replaceProjectService(PostProjectBuildTasksExecutor::class.java,
-                                                           mock(PostProjectBuildTasksExecutor::class.java))
+    myFixture.project.replaceService(PostProjectBuildTasksExecutor::class.java, mock(PostProjectBuildTasksExecutor::class.java), testRootDisposable)
 
     val projectDir: File = Projects.getBaseDirPath(myFixture!!.project)
 

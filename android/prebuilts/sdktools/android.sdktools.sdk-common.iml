@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.builder-model" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.common" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" exported="" />
+    <orderEntry type="library" exported="" name="kxml2" level="project" />
+    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" exported="" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" exported="" name="gson" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.builder-test-api" exported="" />
+    <orderEntry type="library" scope="TEST" name="Mocks" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
+    <orderEntry type="library" name="kotlin-reflect" level="project" />
+    <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.android-annotations" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.ddmlib" exported="" />
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" scope="TEST" name="equalsverifier" level="project" />
+    <orderEntry type="module-library">
+      <library name="aia-manifest-proto" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:aia-manifest-proto:26.5.0.1" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/aia-manifest-proto/26.5.0.1/aia-manifest-proto-26.5.0.1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/aia-manifest-proto/26.5.0.1/aia-manifest-proto-26.5.0.1-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="javax-inject" level="project" />
+    <orderEntry type="library" name="Trove4j" level="project" />
+    <orderEntry type="library" name="aapt-proto" level="project" />
+    <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="library" name="jetbrains-annotations" level="project" />
+    <orderEntry type="library" name="analytics-proto" level="project" />
+    <orderEntry type="module-library" exported="" scope="TEST">
+      <library name="com.android.tools:sdk-common-tests:26.5.0.1" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:sdk-common-tests:26.5.0.1" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdk-common-tests/26.5.0.1/sdk-common-tests-26.5.0.1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdk-common-tests/26.5.0.1/sdk-common-tests-26.5.0.1-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library name="precompiled-sdk-common" type="repository">
+        <properties include-transitive-deps="false" maven-id="com.android.tools:sdk-common:26.5.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/sdk-common/26.5.0/sdk-common-26.5.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/sdk-common/26.5.0/sdk-common-26.5.0-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+  </component>
+</module>

@@ -42,6 +42,10 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.util.ArrayUtilRt;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -124,7 +128,7 @@ public class CommandLineArgs {
     boolean isTestingMode = isInTestingMode();
     if (isTestingMode) {
       // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
-      application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
+      application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, ArrayUtilRt.toStringArray(args));
     }
 
     if (!StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get() && (myIdeSettings.isEmbeddedMavenRepoEnabled() || isTestingMode)) {

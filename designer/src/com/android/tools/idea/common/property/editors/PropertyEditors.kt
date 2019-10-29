@@ -18,23 +18,24 @@ package com.android.tools.idea.common.property.editors
 import com.android.tools.idea.common.property.NlProperty
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.LafManagerListener
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.ProjectComponent
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.util.messages.MessageBus
 
 /**
  * Facility for providing [NlComponentEditor]s for [NlProperty]s.
  */
-abstract class PropertyEditors : ProjectComponent, LafManagerListener, Disposable {
+abstract class PropertyEditors(messageBus: MessageBus) : LafManagerListener {
+  init {
+    val app = ApplicationManager.getApplication()
+    if (!app.isHeadlessEnvironment) {
+      @Suppress("LeakingThis")
+      messageBus.connect().subscribe(LafManagerListener.TOPIC, this)
+    }
+  }
+
   protected abstract fun resetCachedEditors()
 
   abstract fun create(property: NlProperty): NlComponentEditor
 
   final override fun lookAndFeelChanged(source: LafManager) = resetCachedEditors()
-
-  // Implementation of ProjectComponent lifecycle. Mark all of them as final to avoid children injecting behaviour here
-  // that can affect the project startup performance.
-  final override fun projectOpened() {}
-  final override fun projectClosed() {}
-  final override fun initComponent() = LafManager.getInstance().addLafManagerListener(this, this)
-  final override fun dispose() {}
 }

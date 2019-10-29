@@ -43,6 +43,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.serviceContainer.NonInjectable;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,6 +93,7 @@ public class RepositoryUrlManager {
   }
 
   @VisibleForTesting
+  @NonInjectable
   public RepositoryUrlManager(GoogleMavenRepository repository, GoogleMavenRepository localRepository, boolean forceRepositoryChecks) {
     myForceRepositoryChecksInTests = forceRepositoryChecks;
     myGoogleMavenRepository = repository;

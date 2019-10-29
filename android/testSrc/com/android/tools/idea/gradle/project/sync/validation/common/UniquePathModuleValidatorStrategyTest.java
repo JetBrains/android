@@ -110,7 +110,7 @@ public class UniquePathModuleValidatorStrategyTest extends AndroidGradleTestCase
 
   public void testFixAndReportFoundIssues() throws Exception {
     Project project = getProject();
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
 
     Multimap<String, Module> modulesByPath = myStrategy.getModulesByPath();
     modulesByPath.putAll("path", Lists.newArrayList(myModule1, myModule2));
@@ -127,7 +127,7 @@ public class UniquePathModuleValidatorStrategyTest extends AndroidGradleTestCase
 
   public void testFixAndReportFoundIssuesWithUniquePaths() throws Exception {
     Project project = getProject();
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
 
     Multimap<String, Module> modulesByPath = myStrategy.getModulesByPath();
     modulesByPath.putAll("path1", Lists.newArrayList(myModule1));

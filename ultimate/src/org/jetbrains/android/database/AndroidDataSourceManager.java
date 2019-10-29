@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.database;
 
 import com.intellij.database.Dbms;
@@ -18,17 +19,14 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidDataSource> {
   public static final String NOTIFICATION_GROUP_ID = "Android Data Source Manager";
 
   private final AndroidDataSourceStorage myStorage;
 
-  public AndroidDataSourceManager(@NotNull Project project, @NotNull AndroidDataSourceStorage storage) {
-    super(project, storage.getDataSources());
-    myStorage = storage;
+  public AndroidDataSourceManager(@NotNull Project project) {
+    super(project, AndroidDataSourceStorage.getInstance(project).getDataSources());
+    myStorage = AndroidDataSourceStorage.getInstance(project);
   }
 
   @Nullable

@@ -27,7 +27,6 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.ArrayUtil
 import com.intellij.util.Processor
-import com.intellij.util.containers.HashSet
 
 private val BR_CLASS_NAME_LIST = arrayOf(DataBindingUtil.BR)
 
@@ -71,10 +70,6 @@ class BrShortNamesCache(private val component: DataBindingProjectComponent) : Ps
     return BR_CLASS_NAME_LIST
   }
 
-  override fun getAllClassNames(dest: HashSet<String>) {
-    dest.add(DataBindingUtil.BR)
-  }
-
   override fun getMethodsByName(name: String, scope: GlobalSearchScope): Array<PsiMethod> {
     // BR files are only fields, no methods
     return PsiMethod.EMPTY_ARRAY
@@ -97,10 +92,6 @@ class BrShortNamesCache(private val component: DataBindingProjectComponent) : Ps
     return ArrayUtil.EMPTY_STRING_ARRAY
   }
 
-  override fun getAllMethodNames(set: HashSet<String>) {
-    // BR files are only fields, no methods
-  }
-
   override fun getFieldsByName(name: String, scope: GlobalSearchScope): Array<PsiField> {
     if (!isMyScope(scope)) {
       return PsiField.EMPTY_ARRAY
@@ -113,10 +104,6 @@ class BrShortNamesCache(private val component: DataBindingProjectComponent) : Ps
 
   override fun getAllFieldNames(): Array<String> {
     return allFieldNamesCache.value
-  }
-
-  override fun getAllFieldNames(set: HashSet<String>) {
-    set.addAll(allFieldNames)
   }
 
   override fun getFieldsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiField> {

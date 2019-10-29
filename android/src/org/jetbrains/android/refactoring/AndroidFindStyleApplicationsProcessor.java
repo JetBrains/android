@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.refactoring;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -10,6 +11,7 @@ import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.undo.UndoUtil;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -38,8 +40,8 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewBundle;
 import com.intellij.usageView.UsageViewDescriptor;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import java.util.ArrayList;
@@ -134,7 +136,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
 
   @Override
   protected void performRefactoring(@NotNull UsageInfo[] usages) {
-    final Set<Pair<String, String>> attrsInStyle = new HashSet<Pair<String, String>>();
+    final Set<Pair<String, String>> attrsInStyle = new HashSet<>();
 
     for (AndroidAttributeInfo info : myAttrMap.keySet()) {
       attrsInStyle.add(Pair.create(info.getNamespace(), info.getName()));
@@ -146,7 +148,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
                                     ? DomManager.getDomManager(myProject).getDomElement((XmlTag)element)
                                     : null;
       if (domElement instanceof LayoutViewElement) {
-        final List<XmlAttribute> attributesToDelete = new ArrayList<XmlAttribute>();
+        final List<XmlAttribute> attributesToDelete = new ArrayList<>();
 
         for (XmlAttribute attribute : ((XmlTag)element).getAttributes()) {
           if (attrsInStyle.contains(Pair.create(attribute.getNamespace(),
@@ -185,7 +187,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
 
   @NotNull
   static List<Module> getAllModulesToScan(@NotNull Module module) {
-    final List<Module> result = new ArrayList<Module>();
+    final List<Module> result = new ArrayList<>();
 
     for (Module m : ModuleManager.getInstance(module.getProject()).getModules()) {
       if (m.equals(module) || ModuleRootManager.getInstance(m).isDependsOn(module)) {
@@ -197,7 +199,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
 
   public Collection<PsiFile> collectFilesToProcess() {
     final Project project = myModule.getProject();
-    final List<VirtualFile> resDirs = new ArrayList<VirtualFile>();
+    final List<VirtualFile> resDirs = new ArrayList<>();
 
     if (mySearchOnlyInCurrentModule) {
       collectResDir(myModule, myStyleName, resDirs);
@@ -210,11 +212,11 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     final List<VirtualFile> subdirs = AndroidResourceUtil.getResourceSubdirs(
       ResourceFolderType.LAYOUT, resDirs);
 
-    List<VirtualFile> filesToProcess = new ArrayList<VirtualFile>();
+    List<VirtualFile> filesToProcess = new ArrayList<>();
 
     for (VirtualFile subdir : subdirs) {
       for (VirtualFile child : subdir.getChildren()) {
-        if (child.getFileType() == XmlFileType.INSTANCE &&
+        if (FileTypeRegistry.getInstance().isFileOfType(child, XmlFileType.INSTANCE) &&
             (myFileToScan == null || myFileToScan.equals(child))) {
           filesToProcess.add(child);
         }
@@ -224,7 +226,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     if (filesToProcess.isEmpty()) {
       return Collections.emptyList();
     }
-    final Set<PsiFile> psiFilesToProcess = new HashSet<PsiFile>();
+    final Set<PsiFile> psiFilesToProcess = new HashSet<>();
 
     for (VirtualFile file : filesToProcess) {
       final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
@@ -257,7 +259,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     if (indicator != null) {
       indicator.setText("Searching for style applications");
     }
-    final List<UsageInfo> usages = new ArrayList<UsageInfo>();
+    final List<UsageInfo> usages = new ArrayList<>();
 
     for (PsiFile psiFile : psiFilesToProcess) {
       ProgressManager.checkCanceled();
@@ -354,7 +356,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
       return false;
     }
     final LayoutViewElement candidateView = (LayoutViewElement)domCandidate;
-    final Map<Pair<String, String>, String> attrsInCandidateMap = new HashMap<Pair<String, String>, String>();
+    final Map<Pair<String, String>, String> attrsInCandidateMap = new HashMap<>();
     final List<XmlAttribute> attrsInCandidate = AndroidExtractStyleAction.getExtractableAttributes(candidate);
 
     if (attrsInCandidate.size() < myAttrMap.size()) {

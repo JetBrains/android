@@ -33,6 +33,7 @@ import com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -45,7 +46,6 @@ import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.InternalDecorator;
-import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.SearchTextField;
 import java.awt.Component;
 import java.awt.Container;
@@ -687,7 +687,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     fireMouseClicked(button, event1);
 
     ArgumentCaptor<ActionGroup> menuCaptor = ArgumentCaptor.forClass(ActionGroup.class);
-    verify(myActionManager).createActionPopupMenu(eq(ToolWindowContentUi.POPUP_PLACE), menuCaptor.capture());
+    verify(myActionManager).createActionPopupMenu(eq(ActionPlaces.TOOLWINDOW_POPUP), menuCaptor.capture());
     return (DefaultActionGroup)menuCaptor.getValue();
   }
 
@@ -736,7 +736,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     button.click();
 
     ArgumentCaptor<ActionGroup> menuCaptor = ArgumentCaptor.forClass(ActionGroup.class);
-    verify(myActionManager).createActionPopupMenu(eq(ToolWindowContentUi.POPUP_PLACE), menuCaptor.capture());
+    verify(myActionManager).createActionPopupMenu(eq(ActionPlaces.TOOLWINDOW_POPUP), menuCaptor.capture());
     return (DefaultActionGroup)menuCaptor.getValue();
   }
 

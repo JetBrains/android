@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.project.AndroidNotification;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -27,14 +27,13 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link SupportedModuleChecker}.
  */
-public class SupportedModuleCheckerTest extends IdeaTestCase {
+public class SupportedModuleCheckerTest extends JavaProjectTestCase {
   @Mock private GradleProjectInfo myGradleProjectInfo;
   private SupportedModuleChecker myModuleChecker;
 
@@ -44,14 +43,14 @@ public class SupportedModuleCheckerTest extends IdeaTestCase {
     initMocks(this);
 
     Project project = getProject();
-    new IdeComponents(project).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
+    ServiceContainerUtil.replaceService(project, GradleProjectInfo.class, myGradleProjectInfo, getTestRootDisposable());
     myModuleChecker = new SupportedModuleChecker();
   }
 
   public void testCheckForSupportedModulesWithNonGradleProject() {
     Project project = getProject();
     AndroidNotification androidNotification = mock(AndroidNotification.class);
-    new IdeComponents(project).replaceProjectService(AndroidNotification.class, androidNotification);
+    ServiceContainerUtil.replaceService(project, AndroidNotification.class, androidNotification, getTestRootDisposable());
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(false);
 
     myModuleChecker.checkForSupportedModules(project);
@@ -64,7 +63,8 @@ public class SupportedModuleCheckerTest extends IdeaTestCase {
 
     Project project = getProject();
     AndroidNotificationStub androidNotification = new AndroidNotificationStub(project);
-    new IdeComponents(project).replaceProjectService(AndroidNotification.class, androidNotification);
+    ServiceContainerUtil
+      .replaceService(project, AndroidNotification.class, androidNotification, getTestRootDisposable());
 
     // These will be the "unsupported" modules, since they are not marked as "Gradle" modules.
     createModule("lib1");

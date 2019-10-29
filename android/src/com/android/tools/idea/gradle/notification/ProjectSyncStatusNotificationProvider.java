@@ -33,7 +33,7 @@ import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsSer
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ide.actions.ShowFilePathAction;
+import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -287,9 +287,9 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         }
       });
 
-      createActionLabel("Show Log in " + ShowFilePathAction.getFileManagerName(), () -> {
+      createActionLabel("Show Log in " + RevealFileAction.getFileManagerName(), () -> {
         File logFile = new File(PathManager.getLogPath(), "idea.log");
-        openFile(logFile);
+        RevealFileAction.openFile(logFile);
       });
     }
   }

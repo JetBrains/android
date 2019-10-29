@@ -61,7 +61,7 @@ import com.intellij.ui.MutableCollectionComboBoxModel;
 import com.intellij.ui.PopupMenuListenerAdapter;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -77,8 +77,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 public class ThemeEditorComponent extends Splitter implements Disposable {
   private static final Logger LOG = Logger.getInstance(ThemeEditorComponent.class);
@@ -599,8 +599,10 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     }
     RenameDialog renameDialog = new RenameDialog(myThemeEditorContext.getProject(), namePsiElement, null, null) {
       @Override
-      protected RenameProcessor createRenameProcessor(String newName) {
-        return new RenameProcessor(myThemeEditorContext.getProject(), namePsiElement, newName, isSearchInComments(), isSearchInNonJavaFiles()) {
+      protected RenameProcessor createRenameProcessor(@NotNull String newName) {
+        return new RenameProcessor(myThemeEditorContext.getProject(), namePsiElement, newName,
+                                   getRefactoringScope(),
+                                   isSearchInComments(), isSearchInNonJavaFiles()) {
           @NotNull
           @Override
           protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
@@ -913,7 +915,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       }
     });
 
-    myAttributesSorter = new TableRowSorter<AttributesTableModel>(myModel);
+    myAttributesSorter = new TableRowSorter<>(myModel);
     // This is only used when the sort keys are set (only set in simple mode).
     myAttributesSorter.setComparator(0, SIMPLE_MODE_COMPARATOR);
 
@@ -943,7 +945,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
             return;
           }
 
-          HashSet<String> attributeNames = new HashSet<String>(references.size());
+          HashSet<String> attributeNames = new HashSet<>(references.size());
           for (EditedStyleItem item : references) {
             attributeNames.add(item.getQualifiedName());
           }
@@ -1030,7 +1032,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
 
     public SimpleModeFilter() {
       myIsFilterEnabled = true;
-      filterAttributes = new HashSet<String>();
+      filterAttributes = new HashSet<>();
     }
 
     public void configure(final Set<String> availableAttributes, boolean appCompat) {
@@ -1118,7 +1120,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       return;
     }
 
-    Font regularFont = UIUtil.getLabelFont();
+    Font regularFont = StartupUiUtil.getLabelFont();
 
     int regularFontSize = getFontMetrics(regularFont).getHeight();
     Font headerFont = regularFont.deriveFont(regularFontSize * ThemeEditorConstants.ATTRIBUTES_HEADER_FONT_SCALE);

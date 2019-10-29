@@ -41,18 +41,18 @@ public class AndroidGradlePluginOutputParser implements BuildOutputParser {
   private static final String ERROR_PREFIX = "error:"; // Prefix used by the Android Gradle Plugin when reporting error.
 
   @Override
-  public boolean parse(String line, BuildOutputInstantReader reader, Consumer<? super BuildEvent> messageConsumer) {
+  public boolean parse(@NotNull String line, @NotNull BuildOutputInstantReader reader, @NotNull Consumer<? super BuildEvent> messageConsumer) {
     if (WARNING_PREFIX.regionMatches(true, 0, line, 0, WARNING_PREFIX.length())) {
       String message = line.substring(WARNING_PREFIX.length()).trim();
       messageConsumer
         .accept(
-          new MessageEventImpl(reader.getBuildId(), MessageEvent.Kind.WARNING, ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP, message, message));
+          new MessageEventImpl(reader.getParentEventId(), MessageEvent.Kind.WARNING, ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP, message, message));
       return true;
     }
     if (ERROR_PREFIX.regionMatches(true, 0, line, 0, ERROR_PREFIX.length())) {
       String message = line.substring(ERROR_PREFIX.length()).trim();
       messageConsumer
-        .accept(new MessageEventImpl(reader.getBuildId(), MessageEvent.Kind.ERROR, ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP, message, message));
+        .accept(new MessageEventImpl(reader.getParentEventId(), MessageEvent.Kind.ERROR, ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP, message, message));
       return true;
     }
     return false;

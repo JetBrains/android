@@ -26,6 +26,11 @@ import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.serviceContainer.NonInjectable;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -33,9 +38,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AsyncDevicesGetter {
   @NotNull
@@ -62,6 +64,7 @@ public class AsyncDevicesGetter {
   }
 
   @VisibleForTesting
+  @NonInjectable
   AsyncDevicesGetter(@NotNull Project project, @NotNull KeyToConnectionTimeMap map) {
     myProject = project;
     myMap = map;

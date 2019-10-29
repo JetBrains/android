@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.widget
 
 import com.google.common.collect.HashBiMap
 import com.intellij.openapi.ui.VerticalFlowLayout
+import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.ScrollingUtil
 import com.intellij.ui.components.JBList
@@ -102,7 +103,7 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
     })
     sectionList.selectionMode = ListSelectionModel.SINGLE_SELECTION
     sectionList.selectedIndex = 0
-    sectionList.cellRenderer = createSectionCellRenderer()
+    sectionList.cellRenderer = SimpleListCellRenderer.create("") { it.name }
     sectionList.addListSelectionListener {
       val selectedValue = sectionList.selectedValue
       if (selectedValue != null) {
@@ -167,24 +168,6 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
    */
   fun setSectionListCellRenderer(renderer: ListCellRenderer<Section<*>>) {
     sectionList.cellRenderer = renderer
-  }
-
-  /**
-   * Creates the default [ListCellRenderer] for the section list which just displays the name
-   * of the section in a JLabel
-   */
-  private fun createSectionCellRenderer(): ColoredListCellRenderer<Section<*>> {
-    return object : ColoredListCellRenderer<Section<*>>() {
-      override fun customizeCellRenderer(
-        list: JList<out Section<*>>,
-        value: Section<*>?,
-        index: Int,
-        selected: Boolean,
-        hasFocus: Boolean
-      ) {
-        append(value?.name ?: "")
-      }
-    }
   }
 
   private fun createMultiListPanel(

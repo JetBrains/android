@@ -255,7 +255,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
           starts.add(problem.getTextRange().getStartOffset());
         }
       }
-      starts.sort(Collections.<Integer>reverseOrder());
+      starts.sort(Collections.reverseOrder());
       for (Integer offset : starts) {
         if (psiFile.isValid()) {
           XmlAttribute attribute = PsiTreeUtil.findElementOfClassAtOffset(psiFile, offset, XmlAttribute.class, false);

@@ -68,10 +68,10 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   private JTextField myScreenResolutionHeight;
   private SkinChooser myCustomSkinPath;
   private HyperlinkLabel myHardwareSkinHelpLabel;
-  private ComboBox myDeviceTypeComboBox;
+  private ComboBox<IdDisplay> myDeviceTypeComboBox;
   private JTextField myDiagonalScreenSize;
   private StorageField myRamField;
-  private JComboBox myNavigationControlsCombo;
+  private JComboBox<Navigation> myNavigationControlsCombo;
   private TooltipLabel myHelpAndErrorLabel;
   private JCheckBox myIsScreenRound;
   private JBScrollPane myScrollPane;
@@ -97,17 +97,8 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     myDeviceTypeComboBox.setModel(new CollectionComboBoxModel<>(AvdWizardUtils.ALL_DEVICE_TAGS));
 
-    myDeviceTypeComboBox.setRenderer(new ListCellRendererWrapper<IdDisplay>() {
-      @Override
-      public void customize(JList list, IdDisplay value, int index, boolean selected, boolean hasFocus) {
-        if (value == null || SystemImage.DEFAULT_TAG.equals(value)) {
-          setText(DEFAULT_DEVICE_TYPE_LABEL);
-        }
-        else {
-          setText(value.getDisplay());
-        }
-      }
-    });
+    myDeviceTypeComboBox.setRenderer(SimpleListCellRenderer.create(
+      DEFAULT_DEVICE_TYPE_LABEL, value -> SystemImage.DEFAULT_TAG.equals(value) ? DEFAULT_DEVICE_TYPE_LABEL : value.getDisplay()));
 
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
 
@@ -168,7 +159,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     myListeners.listen(selectedDeviceType, idDisplayOptional -> {
       if (idDisplayOptional.isPresent()) {
         IdDisplay selectedType = idDisplayOptional.get();
-        /**
+        /*
          * TODO When the user selects round, the following could be done to make the UI cleaner
          * if(selectedType == WEAR){
          *     disable and hide width textbox
@@ -227,17 +218,8 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   }
 
   private void createUIComponents() {
-    myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<>(Navigation.class)) {
-      @Override
-      public ListCellRenderer getRenderer() {
-        return new ColoredListCellRenderer() {
-          @Override
-          protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
-            append(((Navigation)value).getShortDisplayValue());
-          }
-        };
-      }
-    };
+    myNavigationControlsCombo = new ComboBox<>(new EnumComboBoxModel<>(Navigation.class));
+    myNavigationControlsCombo.setRenderer(SimpleListCellRenderer.create("", Navigation::getShortDisplayValue));
 
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
     myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardUtils.CREATE_SKIN_HELP_LINK);

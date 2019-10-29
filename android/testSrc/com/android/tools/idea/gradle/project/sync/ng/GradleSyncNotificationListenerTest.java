@@ -15,19 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
-import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.build.SyncViewManager;
+import com.intellij.build.BuildEventDispatcher;
 import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.FinishBuildEvent;
-import com.intellij.build.events.OutputBuildEvent;
-import com.intellij.build.output.BuildOutputInstantReaderImpl;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent;
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemProgressEvent;
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemProgressEventUnsupportedImpl;
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemTaskExecutionEvent;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -41,11 +38,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleSyncNotificationListener}.
  */
-public class GradleSyncNotificationListenerTest extends IdeaTestCase {
+public class GradleSyncNotificationListenerTest extends JavaProjectTestCase {
   @Mock private ProgressIndicator myIndicator;
   @Mock private ExternalSystemTaskId myTaskId;
-  @Mock private BuildOutputInstantReaderImpl myOutputReader;
-  @Mock private SyncViewManager mySyncViewManager;
+  @Mock private BuildEventDispatcher myBuildEventDispatcher;
   private SyncExecutor.GradleSyncNotificationListener myListener;
   private ArgumentCaptor<BuildEvent> myEventCaptor;
 
@@ -54,9 +50,7 @@ public class GradleSyncNotificationListenerTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    IdeComponents ideComponents = new IdeComponents(getProject());
-    ideComponents.replaceProjectService(SyncViewManager.class, mySyncViewManager);
-    myListener = new SyncExecutor.GradleSyncNotificationListener(myTaskId, myIndicator, myOutputReader);
+    myListener = new SyncExecutor.GradleSyncNotificationListener(myTaskId, myIndicator, myBuildEventDispatcher);
     myEventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
     when(myTaskId.findProject()).thenReturn(getProject());
   }
@@ -71,24 +65,10 @@ public class GradleSyncNotificationListenerTest extends IdeaTestCase {
     myListener.onTaskOutput(myTaskId, noStdoutText, false);
 
     // Check that the output was passed to reader
-    verify(myOutputReader).append(stdoutText);
-    verify(myOutputReader).append(noStdoutText);
-
-    // Sync view also processed the event
-    verify(mySyncViewManager, times(2)).onEvent(myEventCaptor.capture());
-    List<BuildEvent> capturedEvents = myEventCaptor.getAllValues();
-    assertThat(capturedEvents).hasSize(2);
-    BuildEvent firstEvent = capturedEvents.get(0);
-
-    assertThat(firstEvent).isInstanceOf(OutputBuildEvent.class);
-    OutputBuildEvent stdoutEvent = (OutputBuildEvent)firstEvent;
-    assertThat(stdoutEvent.isStdOut()).isTrue();
-    assertThat(stdoutEvent.getMessage()).isEqualTo(stdoutText);
-
-    BuildEvent secondEvent = capturedEvents.get(1);
-    OutputBuildEvent noStdoutEvent = (OutputBuildEvent)secondEvent;
-    assertThat(noStdoutEvent.isStdOut()).isFalse();
-    assertThat(noStdoutEvent.getMessage()).isEqualTo(noStdoutText);
+    verify(myBuildEventDispatcher).setStdOut(true);
+    verify(myBuildEventDispatcher).append(stdoutText);
+    verify(myBuildEventDispatcher).setStdOut(false);
+    verify(myBuildEventDispatcher).append(noStdoutText);
   }
 
   /**
@@ -107,7 +87,7 @@ public class GradleSyncNotificationListenerTest extends IdeaTestCase {
     verify(myIndicator).setText("Gradle Sync: Execution 2");
 
     // Sync view only shows execution event
-    verify(mySyncViewManager, times(2)).onEvent(myEventCaptor.capture());
+    verify(myBuildEventDispatcher, times(2)).onEvent(eq(myTaskId), myEventCaptor.capture());
     List<BuildEvent> capturedEvents = myEventCaptor.getAllValues();
     assertThat(capturedEvents).hasSize(2);
     assertThat(capturedEvents.get(0).getMessage()).isEqualTo("Execution 1");
@@ -119,7 +99,7 @@ public class GradleSyncNotificationListenerTest extends IdeaTestCase {
    */
   public void testOnEnd() {
     myListener.onEnd(myTaskId);
-    verify(myOutputReader).close();
+    verify(myBuildEventDispatcher).close();
   }
 
   /**
@@ -127,9 +107,9 @@ public class GradleSyncNotificationListenerTest extends IdeaTestCase {
    */
   public void testOnCancel() {
     myListener.onCancel(myTaskId);
-    verify(myOutputReader).close();
+    verify(myBuildEventDispatcher).close();
 
-    verify(mySyncViewManager).onEvent(myEventCaptor.capture());
+    verify(myBuildEventDispatcher).onEvent(eq(myTaskId), myEventCaptor.capture());
     List<BuildEvent> capturedEvents = myEventCaptor.getAllValues();
     assertThat(capturedEvents).hasSize(1);
     assertThat(capturedEvents.get(0)).isInstanceOf(FinishBuildEvent.class);

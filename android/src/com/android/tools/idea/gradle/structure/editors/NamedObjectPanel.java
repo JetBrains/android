@@ -46,8 +46,8 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 public class NamedObjectPanel extends BuildFilePanel implements DocumentListener, ListSelectionListener, KeyValuePane.ModificationListener {
   /**
@@ -196,6 +196,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
       for (NamedObject o : myListModel) {
         if (o.getName().equals(obj.getName())) {
           found = true;
+          break;
         }
       }
       if (!found) {
@@ -517,7 +518,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   }
 
   private static class SortedListModel extends AbstractListModel implements Iterable<NamedObject> {
-    private final SortedList<NamedObject> model = new SortedList<NamedObject>(new Comparator<NamedObject>() {
+    private final SortedList<NamedObject> model = new SortedList<>(new Comparator<NamedObject>() {
       @Override
       public int compare(NamedObject o1, NamedObject o2) {
         assert o1 != null;

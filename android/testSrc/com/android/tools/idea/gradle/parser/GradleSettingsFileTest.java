@@ -32,17 +32,18 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-public class GradleSettingsFileTest extends IdeaTestCase {
+public class GradleSettingsFileTest extends JavaProjectTestCase {
   private Document myDocument;
 
   @Override
@@ -188,7 +189,7 @@ public class GradleSettingsFileTest extends IdeaTestCase {
   public void testAddModuleStringChecksInitialization() {
     GradleSettingsFile file = getBadGradleSettingsFile();
     try {
-      file.addModule("asdf", GradleUtil.getModuleDefaultPath(file.getFile(), ":asdf"));
+      file.addModule("asdf", GradleUtil.getModuleDefaultPath(Paths.get(file.getFile().getPath()), ":asdf").toFile());
       fail("expected IllegalStateException");
     } catch (IllegalStateException expected) {}
   }
@@ -263,7 +264,7 @@ public class GradleSettingsFileTest extends IdeaTestCase {
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
-        file.addModule(name, GradleUtil.getModuleDefaultPath(file.getFile().getParent(), name));
+        file.addModule(name, GradleUtil.getModuleDefaultPath(Paths.get(file.getFile().getParent().getPath()), name).toFile());
       }
     });
   }

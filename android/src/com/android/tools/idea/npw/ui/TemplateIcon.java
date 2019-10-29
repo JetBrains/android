@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.ui;
 import com.android.tools.adtui.ImageUtils;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.ImageUtil;
-import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.JBScalableIcon;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -26,7 +26,7 @@ import java.awt.image.BufferedImage;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 
-public class TemplateIcon extends JBUI.ScalableJBIcon {
+public class TemplateIcon extends JBScalableIcon {
   private Icon myDelegateIcon;
   private float myScale = 1.f;
   private Rectangle myCropRectangle;

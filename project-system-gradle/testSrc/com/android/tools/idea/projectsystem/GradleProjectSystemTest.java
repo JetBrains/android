@@ -20,21 +20,20 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-public class GradleProjectSystemTest extends IdeaTestCase {
-
+public class GradleProjectSystemTest extends JavaProjectTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    IdeComponents ideComponents = new IdeComponents(myProject);
-    ideComponents.mockProjectService(GradleDependencyManager.class);
-    ideComponents.mockProjectService(GradleProjectBuilder.class);
+    IdeComponents.mockProjectService(myProject, GradleDependencyManager.class, getTestRootDisposable());
+    IdeComponents.mockProjectService(myProject, GradleProjectBuilder.class, getTestRootDisposable());
 
-    GradleProjectInfo gradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo.class);
+    GradleProjectInfo gradleProjectInfo = IdeComponents.mockProjectService(myProject, GradleProjectInfo.class, getTestRootDisposable());
     when(gradleProjectInfo.isBuildWithGradle()).thenReturn(true);
   }
 

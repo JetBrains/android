@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Log.LogLevel;
@@ -21,7 +21,7 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.IconUtil;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +36,6 @@ import java.awt.event.ActionListener;
 import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -156,14 +155,8 @@ final class EditLogFilterDialog extends DialogWrapper {
     myPackageNameLabel.setLabelFor(myPackageNameField);
 
     myLogLevelCombo.setModel(new EnumComboBoxModel<>(LogLevel.class));
-    myLogLevelCombo.setRenderer(new ListCellRendererWrapper<LogLevel>() {
-      @Override
-      public void customize(JList list, LogLevel value, int index, boolean selected, boolean hasFocus) {
-        if (value != null) {
-          setText(StringUtil.capitalize(value.getStringValue().toLowerCase(Locale.ROOT)));
-        }
-      }
-    });
+    myLogLevelCombo.setRenderer(SimpleListCellRenderer.create(
+      "", value -> StringUtil.capitalize(StringUtil.toLowerCase(value.getStringValue()))));
     myLogLevelCombo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -464,7 +457,6 @@ final class EditLogFilterDialog extends DialogWrapper {
 
     @Override
     public void update(@NotNull AnActionEvent e) {
-      super.update(e);
       e.getPresentation().setEnabled(getSelectedFilterName() != null);
     }
 

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.cleanup;
 
 import com.google.common.collect.Lists;
 import com.intellij.openapi.extensions.ExtensionPoint;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
@@ -39,7 +38,7 @@ class ProjectPreferencesCleanUpTask extends AndroidStudioCleanUpTask {
 
   @Override
   void doCleanUp(@NotNull Project project) {
-    ExtensionsArea area = Extensions.getArea(project);
+    ExtensionsArea area = project.getExtensionArea();
     ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable = area.getExtensionPoint(PROJECT_CONFIGURABLE);
     cleanUpPreferences(projectConfigurable, PROJECT_PREFERENCES_TO_REMOVE);
   }

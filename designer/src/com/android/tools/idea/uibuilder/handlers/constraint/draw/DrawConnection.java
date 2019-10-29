@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
-import static com.intellij.util.ui.JBUI.scale;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -26,6 +25,7 @@ import com.android.tools.idea.common.scene.draw.FancyStroke;
 import com.android.tools.idea.uibuilder.handlers.constraint.SecondarySelector;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
+import com.intellij.ui.scale.JBUIScale;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -34,6 +34,8 @@ import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.GeneralPath;
+
+import static com.intellij.ui.scale.JBUIScale.scale;
 
 /**
  * This class is the display list entry for drawing a connection

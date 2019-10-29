@@ -35,7 +35,7 @@
     <orderEntry type="module" module-name="intellij.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.gradle.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.groovy.psi" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.layoutlib-loader" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.layoutlibLoader" scope="TEST" />
     <orderEntry type="module" module-name="intellij.properties.psi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.diff.impl" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="dexlib2" level="project" />
@@ -44,9 +44,9 @@
     <orderEntry type="module" module-name="intellij.java.execution.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jsr305" level="project" />
-    <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-shared" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
-    <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="guava-testlib" level="project" />
@@ -81,7 +81,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="analytics-crash" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-crash" scope="TEST" />
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module-library" scope="TEST">
@@ -94,25 +94,16 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="protobuf" level="project" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="module-library" scope="TEST">
-      <library name="nosyncbuilder-jarjar">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../bazel-genfiles/tools/adt/idea/android/src/com/android/tools/idea/gradle/project/sync/ng/nosyncbuilder/proto/nosyncbuilder-jarjar.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="analytics-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="nosyncbuilder" level="project" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.output.parser" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="intellij.android.kotlin.idea" level="project" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
-    <orderEntry type="module" module-name="perf-logger" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.databinding" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.resources-aar" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="kotlin-plugin" level="project" />
+    <orderEntry type="module" module-name="intellij.android.resourcesAar" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="NanoXML" level="project" />
+    <orderEntry type="module" module-name="intellij.android.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.resourcesAar.tests" scope="RUNTIME" />
   </component>
 </module>

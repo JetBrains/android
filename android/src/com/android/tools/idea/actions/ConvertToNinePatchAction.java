@@ -50,10 +50,9 @@ public class ConvertToNinePatchAction extends AnAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    final VirtualFile file = CommonDataKeys.VIRTUAL_FILE.getData(e.getDataContext());
+    final VirtualFile file = e.getData(CommonDataKeys.VIRTUAL_FILE);
     final boolean isPng = isPngFile(file);
-    e.getPresentation().setEnabled(isPng);
-    e.getPresentation().setVisible(isPng);
+    e.getPresentation().setEnabledAndVisible(isPng);
   }
 
   @Contract("null -> false")
@@ -64,7 +63,7 @@ public class ConvertToNinePatchAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    final VirtualFile pngFile = CommonDataKeys.VIRTUAL_FILE.getData(e.getDataContext());
+    final VirtualFile pngFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
     if (!isPngFile(pngFile)) {
       return;
     }

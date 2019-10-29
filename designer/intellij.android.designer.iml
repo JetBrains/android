@@ -20,8 +20,8 @@
     <orderEntry type="module" module-name="intellij.java.psi.impl" />
     <orderEntry type="module" module-name="intellij.java.indexing" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
-    <orderEntry type="module" module-name="analytics-tracker" />
-    <orderEntry type="module" module-name="analytics-shared" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-shared" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
@@ -31,10 +31,10 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="library" name="protobuf" level="project" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="library" name="analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.java.psi" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" />
-    <orderEntry type="module" module-name="intellij.android.resources-aar" />
-    <orderEntry type="module" module-name="intellij.android.property-editor" />
+    <orderEntry type="module" module-name="intellij.android.resourcesAar" />
+    <orderEntry type="module" module-name="intellij.android.propertyEditor" />
   </component>
 </module>

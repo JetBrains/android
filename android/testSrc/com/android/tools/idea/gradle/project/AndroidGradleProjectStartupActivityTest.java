@@ -27,13 +27,14 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.mock.MockModule;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+
 import java.util.Collections;
 
 /**
  * Tests for {@link AndroidGradleProjectStartupActivity}.
  */
-public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
+public class AndroidGradleProjectStartupActivityTest extends JavaProjectTestCase {
   private GradleProjectInfo myGradleProjectInfo;
   private AndroidGradleProjectStartupActivity myStartupActivity;
   private GradleSyncInvoker mySyncInvoker;
@@ -41,9 +42,8 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    IdeComponents ideComponents = new IdeComponents(myProject);
-    mySyncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker.class);
-    myGradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo.class);
+    mySyncInvoker = IdeComponents.mockApplicationService(GradleSyncInvoker.class, getTestRootDisposable());
+    myGradleProjectInfo = IdeComponents.mockProjectService(myProject, GradleProjectInfo.class, getTestRootDisposable());
     myStartupActivity = new AndroidGradleProjectStartupActivity();
   }
 
@@ -51,6 +51,9 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
   protected void tearDown() throws Exception {
     try {
       myGradleProjectInfo = null;
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();
@@ -74,7 +77,7 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
     Project project = getProject();
     myStartupActivity.runActivity(project);
 
-    verify(mySyncInvoker, never()).requestProjectSync(same(project), any());
+    verify(mySyncInvoker, times(1)).requestProjectSync(same(project), any());
   }
 
   public void testRunActivityWithExistingGradleProject() {

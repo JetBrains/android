@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.intellij.CommonBundle;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.ui.UIBundle;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -65,6 +65,6 @@ public class PropertyBasedDoNotAskOption implements DialogWrapper.DoNotAskOption
   @NotNull
   public String getDoNotShowMessage() {
     // This is the text to set in the checkbox.
-    return CommonBundle.message("dialog.options.do.not.show");
+    return UIBundle.message("dialog.options.do.not.show");
   }
 }

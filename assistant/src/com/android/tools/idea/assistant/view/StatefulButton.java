@@ -20,8 +20,6 @@ import com.android.tools.idea.assistant.AssistActionState;
 import com.android.tools.idea.assistant.AssistActionStateManager;
 import com.android.tools.idea.assistant.StatefulButtonNotifier;
 import com.android.tools.idea.assistant.datamodel.ActionData;
-import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonPainter;
-import com.intellij.ide.ui.laf.intellij.MacIntelliJButtonBorder;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBusConnection;
@@ -30,8 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.plaf.ButtonUI;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;

@@ -29,6 +29,7 @@ import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ApkAnalyzerStats;
 import com.intellij.icons.AllIcons;
@@ -41,9 +42,9 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.*;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.concurrency.SameThreadExecutor;
 import com.intellij.util.ui.AnimatedIcon;
 import com.intellij.util.ui.AsyncProcessIcon;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -179,15 +180,15 @@ public class ApkViewPanel implements TreeSelectionListener {
                                 .get(2)).packageId : "unknown";
 
                             UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                                             .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
-                                                             .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
-                                                             .setRawProjectId(applicationId)
-                                                             .setApkAnalyzerStats(
-                                                               ApkAnalyzerStats.newBuilder().setCompressedSize(compressed)
-                                                                 .setUncompressedSize(uncompressed)
-                                                                 .build()));
+                                               .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
+                                               .setProjectId(AnonymizerUtil.anonymizeUtf8(applicationId))
+                                               .setRawProjectId(applicationId)
+                                               .setApkAnalyzerStats(
+                                                 ApkAnalyzerStats.newBuilder().setCompressedSize(compressed)
+                                                   .setUncompressedSize(uncompressed)
+                                                   .build()));
                           }
-                        });
+                        }, SameThreadExecutor.INSTANCE);
   }
 
   private void createUIComponents() {

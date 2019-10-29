@@ -32,7 +32,6 @@ import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.jetbrains.plugins.gradle.service.task.GradleTaskManager.appendInitScriptArgument;
@@ -67,7 +66,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
                               @NotNull final List<String> taskNames,
                               @NotNull String projectPath,
                               @Nullable GradleExecutionSettings settings,
-                              @Nullable final String jvmAgentSetup,
+                              @Nullable final String jvmParametersSetup,
                               @NotNull final ExternalSystemTaskNotificationListener listener) throws ExternalSystemException {
     GradleBuildInvoker gradleBuildInvoker = findGradleInvoker(id, projectPath);
     if (gradleBuildInvoker != null) {
@@ -76,7 +75,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
 
       GradleExecutionSettings effectiveSettings =
         settings == null ? new GradleExecutionSettings(null, null, DistributionType.BUNDLED, false) : settings;
-      appendInitScriptArgument(taskNames, jvmAgentSetup, effectiveSettings);
+      appendInitScriptArgument(taskNames, jvmParametersSetup, effectiveSettings);
       // @formatter:off
       request.setJvmArguments(effectiveSettings.getJvmArguments())
              .setCommandLineArguments(effectiveSettings.getArguments())
@@ -108,7 +107,6 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
     if (project != null && GradleProjectInfo.getInstance(project).isDirectGradleBuildEnabled()) {
       ModuleManager moduleManager = ModuleManager.getInstance(project);
       for (Module module : moduleManager.getModules()) {
-
         if (projectPath.equals(ExternalSystemApiUtil.getExternalProjectPath(module)) && GradleProjects.isIdeaAndroidModule(module)) {
           return GradleBuildInvoker.getInstance(project);
         }
