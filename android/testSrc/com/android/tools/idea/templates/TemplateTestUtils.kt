@@ -205,17 +205,17 @@ internal fun TemplateMetadata.validateTemplate(currentMinSdk: Int, buildApi: Int
 
 private const val specialChars = "!@#$^&()_+=-.`~"
 private const val nonAsciiChars = "你所有的基地都属于我们"
-internal fun getModifiedProjectName(
-  projectName: String, activityState: TestTemplateWizardState?, isNewRenderingContext: Boolean = false
+internal fun getModifiedModuleName(
+  moduleName: String, activityState: TestTemplateWizardState?, isNewRenderingContext: Boolean = false
 ): String =
   when {
     SystemInfo.isWindows -> "app"
     // Bug 142926378
-    isNewRenderingContext -> projectName
+    isNewRenderingContext -> moduleName
     // Bug 137161906
-    usesSafeArgs(projectName) && activityState != null && Language.KOTLIN.toString() == activityState.getString(
-      ATTR_LANGUAGE) -> projectName
-    else -> "$projectName$specialChars,$nonAsciiChars"
+    usesSafeArgs(moduleName) && activityState != null && Language.KOTLIN.toString() == activityState.getString(
+      ATTR_LANGUAGE) -> moduleName
+    else -> "$moduleName$specialChars,$nonAsciiChars"
   }
 
 private fun usesSafeArgs(projectName: String) =
