@@ -48,11 +48,13 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
   fun testTransition() {
     val properties = getProperties(MotionSceneAttrs.Tags.TRANSITION).getValue(MotionSceneAttrs.Tags.TRANSITION)
     assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
+      "autoTransition",
       "duration",
-      "interpolator",
+      "motionInterpolator",
       "constraintSetStart",
       "constraintSetEnd",
-      "staggered")
+      "staggered",
+      "transitionDisable")
     assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
       "id")
     assertThat(properties[SdkConstants.AUTO_URI, "duration"].value).isEqualTo("2000")
@@ -106,12 +108,14 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
     val properties = getProperties(MotionSceneAttrs.Tags.KEY_POSITION).getValue(MotionSceneAttrs.Tags.KEY_POSITION)
     assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "framePosition",
-      "target",
+      "motionTarget",
       "keyPositionType",
       "transitionEasing",
       "pathMotionArc",
       "percentX",
       "percentY",
+      "percentHeight",
+      "percentWidth",
       "curveFit",
       "drawPath",
       "sizePercent")
@@ -125,10 +129,10 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
     val properties = getProperties(MotionSceneAttrs.Tags.KEY_ATTRIBUTE).getValue(MotionSceneAttrs.Tags.KEY_ATTRIBUTE)
     assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "framePosition",
-      "target",
+      "motionTarget",
       "transitionEasing",
       "curveFit",
-      "progress",
+      "motionProgress",
       "transitionPathRotate")
     assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
       "visibility",
@@ -151,10 +155,10 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
     val properties = getProperties(MotionSceneAttrs.Tags.KEY_CYCLE).getValue(MotionSceneAttrs.Tags.KEY_CYCLE)
     assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "framePosition",
-      "target",
+      "motionTarget",
       "transitionEasing",
       "curveFit",
-      "progress",
+      "motionProgress",
       "transitionPathRotate",
       "waveOffset",
       "wavePeriod",
@@ -180,12 +184,13 @@ class MotionLayoutPropertyProviderTest : LayoutTestCase() {
     val properties = getProperties(MotionSceneAttrs.Tags.KEY_TIME_CYCLE).getValue(MotionSceneAttrs.Tags.KEY_TIME_CYCLE)
     assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "framePosition",
-      "target",
+      "motionTarget",
       "transitionEasing",
       "curveFit",
-      "progress",
+      "motionProgress",
       "transitionPathRotate",
       "waveOffset",
+      "waveDecay",
       "wavePeriod",
       "waveShape")
     assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(

@@ -35,7 +35,7 @@ public class NlComponentTag implements MTag {
   NlComponentTag mParent;
   private static final boolean DEBUG = false;
 
-  NlComponentTag(NlComponent component, NlComponentTag parent) {
+  public NlComponentTag(NlComponent component, NlComponentTag parent) {
     mComponent = component;
     mParent = parent;
   }

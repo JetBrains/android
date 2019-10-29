@@ -363,16 +363,20 @@ public class ComponentDescriptor {
     }
     sb.append('<');
     sb.append(myTagName);
+    Set<String> knownNamespaces = Collections.emptySet();
     if (depth == 0) {
-      appendReferencedNamespaces(sb);
+      knownNamespaces = appendReferencedNamespaces(sb);
     }
     for (Pair<String, String> attribute : myAttributes) {
+      String name = attribute.getFirst();
+      String value = attribute.getSecond();
+      if (name.startsWith(XMLNS_PREFIX) && knownNamespaces.contains(value)) {
+        continue;
+      }
       sb.append("\n");
       for (int i = 0; i < depth + 1; i++) {
         sb.append("  ");
       }
-      String name = attribute.getFirst();
-      String value = attribute.getSecond();
       sb.append(name).append("=\"").append(XmlUtils.toXmlAttributeValue(value)).append("\"");
     }
 
@@ -389,14 +393,14 @@ public class ComponentDescriptor {
     }
   }
 
-  private void appendReferencedNamespaces(@NotNull StringBuilder sb) {
+  private Set<String> appendReferencedNamespaces(@NotNull StringBuilder sb) {
     Map<String, String> namespaces = new HashMap<>();
     findUsedNamespaces(namespaces);
     List<String> prefixes = new ArrayList<>(namespaces.keySet());
     prefixes.sort(String::compareTo);
     int indent = 1;
     if (namespaces.isEmpty()) {
-      return;
+      return Collections.emptySet();
     }
     for (String prefix : prefixes) {
       for (int i = 0; i < indent; i++) {
@@ -407,6 +411,7 @@ public class ComponentDescriptor {
     }
     // Remove the last \n
     sb.setLength(sb.length() - 1);
+    return new HashSet<>(namespaces.values());
   }
 
   private void findUsedNamespaces(@NotNull Map<String, String> namespaces) {

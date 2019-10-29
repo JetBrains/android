@@ -202,6 +202,11 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     }
   }
 
+  @Override
+  public void browseToValue(@NotNull NelePropertyItem property) {
+    Navigation.INSTANCE.browseToValue(property);
+  }
+
   public static MTag.TagWriter createSubTag(@NotNull MotionSelection selection,
                                             @NotNull MotionSceneTag constraintTag,
                                             @NotNull String section) {
