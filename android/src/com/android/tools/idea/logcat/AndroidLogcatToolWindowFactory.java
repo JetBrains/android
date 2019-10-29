@@ -180,7 +180,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
     }
 
     final AndroidFacet facet = facets.get(0);
-    AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
+    AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
     if (platform == null) {
       console.clear();
       final Module module = facet.getModule();
@@ -243,7 +243,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
       final List<AndroidFacet> facets = ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID);
       if (!facets.isEmpty()) {
         final AndroidFacet facet = facets.get(0);
-        newPlatform = facet.getConfiguration().getAndroidPlatform();
+        newPlatform = AndroidPlatform.getInstance(facet.getModule());
       }
       return newPlatform;
     }

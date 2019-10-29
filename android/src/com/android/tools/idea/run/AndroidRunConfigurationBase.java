@@ -62,6 +62,7 @@ import java.util.List;
 import org.jdom.Element;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -178,7 +179,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         return errors;
     }
 
-    if (facet.getConfiguration().getAndroidPlatform() == null) {
+    if (AndroidPlatform.getInstance(facet.getModule()) == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("select.platform.error")));
     }
     if (Manifest.getMainManifest(facet) == null && facet.getConfiguration().getProjectType() != PROJECT_TYPE_INSTANTAPP) {

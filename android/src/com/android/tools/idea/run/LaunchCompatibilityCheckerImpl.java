@@ -120,7 +120,7 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
                                                   @Nullable ExecutionEnvironment env,
                                                   @Nullable AndroidRunConfigurationBase androidRunConfigurationBase) {
     AndroidVersion minSdkVersion = getMinSdkVersion(facet);
-    AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
+    AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
     if (platform == null) {
       throw new IllegalStateException("Android platform not set for module: " + facet.getModule().getName());
     }

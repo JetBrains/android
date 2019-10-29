@@ -17,7 +17,6 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.base.Predicate;
 import com.intellij.openapi.diagnostic.Logger;
@@ -56,7 +55,7 @@ public abstract class TargetDeviceFilter implements Predicate<IDevice> {
         return myPreferredAvd.equals(avdName);
       }
 
-      AndroidPlatform androidPlatform = myFacet.getConfiguration().getAndroidPlatform();
+      AndroidPlatform androidPlatform = AndroidPlatform.getInstance(myFacet.getModule());
       if (androidPlatform == null) {
         Logger.getInstance(EmulatorFilter.class).warn("Target Android platform not set for module: " + myFacet.getModule().getName());
         return false;
