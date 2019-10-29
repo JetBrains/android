@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.event.LifecycleEventModel;
@@ -186,6 +187,14 @@ public class CpuCaptureStage extends Stage {
     return myAnalysisModels;
   }
 
+  /**
+   * @return the capture timeline, different from the profiler's session timeline.
+   */
+  @NotNull
+  public Timeline getCaptureTimeline() {
+    return getCapture().getTimeline();
+  }
+
   private void setState(State state) {
     myState = state;
     myAspect.changed(Aspect.STATE);
@@ -231,7 +240,6 @@ public class CpuCaptureStage extends Stage {
 
   private void onCaptureParsed(@NotNull CpuCapture capture) {
     myMinimapModel = new CpuCaptureMinimapModel(getStudioProfilers(), capture);
-    myMinimapModel.setMaxRange(capture.getRange());
     initTrackGroupList(myMinimapModel.getRangeSelectionModel().getSelectionRange(), capture);
     addCpuAnalysisModel(new CpuFullTraceAnalysisModel(capture, myMinimapModel.getRangeSelectionModel().getSelectionRange()));
   }

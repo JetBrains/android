@@ -18,9 +18,12 @@ package com.android.tools.adtui
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.EmptyRunnable
-import com.intellij.util.Producer
 import org.junit.Test
-import javax.swing.*
+import java.util.function.Supplier
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JLayeredPane
+import javax.swing.SwingUtilities
 
 class TooltipComponentTest {
 
@@ -36,8 +39,8 @@ class TooltipComponentTest {
    * Produce fake displayble values, since we can't check [JComponent.isDisplayable] in unit tests.
    * If [explicitRoot] is not set, will return true iff owner has a direct parent.
    */
-  private class DisplayableProducer(val owner: JComponent, val explicitRoot: JComponent? = null) : Producer<Boolean> {
-    override fun produce(): Boolean {
+  private class DisplayableProducer(val owner: JComponent, val explicitRoot: JComponent? = null) : Supplier<Boolean> {
+    override fun get(): Boolean {
       return if (explicitRoot == null) {
         owner.parent != null
       }

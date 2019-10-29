@@ -17,7 +17,8 @@ package com.android.tools.adtui;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.DefaultTimeline;
+import com.android.tools.adtui.model.Timeline;
 import java.awt.Rectangle;
 import javax.swing.JPanel;
 import org.junit.Test;
@@ -25,14 +26,15 @@ import org.junit.Test;
 public class RangeTooltipComponentTest {
   @Test
   public void ensureRangeAndXTransformsAreIdentity() {
-    Range highlightRange = new Range(50, 50);
-    Range viewRange = new Range(23, 79); // Use prime numbers to ensure relative primes.
-    Range dataRange = new Range(0, 100);
+    Timeline timeline = new DefaultTimeline();
+    timeline.getTooltipRange().set(50, 50);
+    timeline.getViewRange().set(23, 79); // Use prime numbers to ensure relative primes.
+    timeline.getDataRange().set(0, 100);
     JPanel backingComponent = new JPanel();
 
     Rectangle componentSize = new Rectangle(0, 0, 100, 100);
     backingComponent.setBounds(componentSize);
-    RangeTooltipComponent rangeTooltipComponent = new RangeTooltipComponent(highlightRange, viewRange, dataRange, backingComponent);
+    RangeTooltipComponent rangeTooltipComponent = new RangeTooltipComponent(timeline, backingComponent);
     rangeTooltipComponent.setBounds(componentSize);
 
     assertThat(rangeTooltipComponent.rangeToX(rangeTooltipComponent.xToRange(41))).isWithin(1e-6f).of(41.0f);
