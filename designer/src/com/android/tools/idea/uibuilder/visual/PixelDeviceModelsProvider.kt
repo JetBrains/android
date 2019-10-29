@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelper
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.ArrayList
@@ -41,7 +42,8 @@ val DEVICES_TO_DISPLAY = listOf("Pixel 3", "Pixel 3 XL", "Pixel 3a", "Pixel 3a X
  */
 object PixelDeviceModelsProvider: VisualizationModelsProvider {
 
-  private val deviceCaches = mutableMapOf<ConfigurationManager, List<Device>>()
+  @VisibleForTesting
+  val deviceCaches = mutableMapOf<ConfigurationManager, List<Device>>()
 
   override fun createNlModels(parentDisposable: Disposable, file: PsiFile, facet: AndroidFacet): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
@@ -57,6 +59,7 @@ object PixelDeviceModelsProvider: VisualizationModelsProvider {
         configurationManager.devices.firstOrNull { device -> name == device.displayName }?.let { deviceList.add(it) }
       }
       deviceCaches[configurationManager] = deviceList
+      Disposer.register(configurationManager, Disposable { deviceCaches.remove(configurationManager) })
       deviceList
     }
 
