@@ -49,7 +49,7 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
     Module module = context.getModule();
     IdeModifiableModelsProvider ideModelsProvider = context.getIdeModelsProvider();
 
-    AndroidFacet facet = AndroidFacet.getInstance(module, ideModelsProvider);
+    AndroidFacet facet = ideModelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID);
     if (facet == null) {
       facet = createAndAddFacet(module, ideModelsProvider);
     }

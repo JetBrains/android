@@ -15,16 +15,16 @@
  */
 package org.jetbrains.android.facet;
 
+import static org.jetbrains.android.facet.AndroidFacet.ID;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.AndroidTestCase;
-
-import static org.jetbrains.android.facet.AndroidFacet.ID;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class AndroidFacetTest extends AndroidTestCase {
 
@@ -56,6 +56,6 @@ public class AndroidFacetTest extends AndroidTestCase {
     when(cachedModule.getComponent(FacetManager.class)).thenReturn(cachedFacetManger);
     when(cachedFacetManger.getFacetByType(ID)).thenReturn(cachedFacet);
 
-    assertNull(AndroidFacet.getInstance(cachedModule, modelsProvider));
+    assertNull(modelsProvider.getModifiableFacetModel(cachedModule).getFacetByType(ID));
   }
 }
