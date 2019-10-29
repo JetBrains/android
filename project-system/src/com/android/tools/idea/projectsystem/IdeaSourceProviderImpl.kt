@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 
@@ -37,6 +38,9 @@ class IdeaSourceProviderImpl(
 ) : IdeaSourceProvider {
   @Volatile
   private var myManifestFile: VirtualFile? = null
+
+  override val manifestDirectory: VirtualFile?
+    get() = VfsUtil.getParentDir(manifestFileUrl)?.let { VirtualFileManager.getInstance().findFileByUrl(it) }
 
   override val manifestFile: VirtualFile?
     get() {
