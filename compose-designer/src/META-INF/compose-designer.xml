@@ -45,6 +45,11 @@
                      enabledByDefault="true"
                      level="ERROR"/>
 
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewMustBeTopLevelFunction"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     level="ERROR"/>
+
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
   </extensions>
 
