@@ -37,7 +37,7 @@ public class AndroidProfilerDownloader {
     DownloadableFileService service = DownloadableFileService.getInstance();
     String fileName = "android-plugin-resources-" + VERSION + ".zip";
     DownloadableFileDescription
-      description = service.createFileDescription("https://repo.labs.intellij.net/intellij-third-party-dependencies/org/jetbrains/intellij/deps/android/tools/android-plugin-resources/" + VERSION + "/" + fileName, fileName);
+      description = service.createFileDescription("https://dl.bintray.com/jetbrains/intellij-third-party-dependencies/org/jetbrains/intellij/deps/android/tools/android-plugin-resources/" + VERSION + "/" + fileName, fileName);
     FileDownloader downloader = service.createDownloader(Collections.singletonList(description), "Download Android Profiler");
     try {
       Path tempDir = Files.createTempDirectory("android-profiler-download");
