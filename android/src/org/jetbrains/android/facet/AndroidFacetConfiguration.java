@@ -21,36 +21,28 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_FEATURE;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 
-import com.android.sdklib.IAndroidTarget;
 import com.intellij.facet.FacetConfiguration;
-import com.intellij.facet.FacetManager;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.facet.ui.FacetValidatorsManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.InvalidDataException;
-import com.intellij.openapi.util.WriteExternalException;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.util.ArrayList;
-import java.util.List;
-import org.jdom.Element;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.util.AndroidNativeLibData;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * @author Eugene.Kudelevsky
+ * Implementation of {@link FacetConfiguration} for {@link AndroidFacet}.
+ *
+ * <p>Stores configuration by serializing {@link AndroidFacetProperties} with {@link PersistentStateComponent}.
+ *
+ * <p>Avoid using instances of this class if at all possible. This information should be provided by
+ * {@link com.android.tools.idea.projectsystem.AndroidProjectSystem} and it is up to the project system used by the project to choose how
+ * this information is obtained and persisted.
  */
 public class AndroidFacetConfiguration implements FacetConfiguration, PersistentStateComponent<AndroidFacetProperties> {
   private static final FacetEditorTab[] NO_EDITOR_TABS = new FacetEditorTab[0];
 
-  private AndroidFacet myFacet = null;
-
-  private AndroidFacetProperties myProperties = new AndroidFacetProperties();
+  @NotNull private AndroidFacetProperties myProperties = new AndroidFacetProperties();
 
   public void init(@NotNull Module module, @NotNull VirtualFile contentRoot) {
     init(module, contentRoot.getPath());
@@ -74,57 +66,14 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
     }
   }
 
-  @Nullable
-  public AndroidPlatform getAndroidPlatform() {
-    return AndroidPlatform.getInstance(myFacet.getModule());
-  }
-
-  @Nullable
-  public AndroidSdkData getAndroidSdk() {
-    AndroidPlatform platform = getAndroidPlatform();
-    return platform != null ? platform.getSdkData() : null;
-  }
-
-  @Nullable
-  public IAndroidTarget getAndroidTarget() {
-    AndroidPlatform platform = getAndroidPlatform();
-    return platform != null ? platform.getTarget() : null;
-  }
-
-  public void setFacet(@NotNull AndroidFacet facet) {
-    myFacet = facet;
-    facet.getModule().getMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(facet);
-  }
-
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext, FacetValidatorsManager validatorsManager) {
     AndroidFacetProperties state = getState();
-    assert state != null;
     //noinspection deprecation  This is one of legitimate assignments to this property.
     if (state.ALLOW_USER_CONFIGURATION) {
       return new FacetEditorTab[]{new AndroidFacetEditorTab(editorContext, this)};
     }
     return NO_EDITOR_TABS;
-  }
-
-  @Override
-  public void readExternal(Element element) throws InvalidDataException {
-  }
-
-  @Override
-  public void writeExternal(Element element) throws WriteExternalException {
-  }
-
-  public void setAdditionalNativeLibraries(@NotNull List<AndroidNativeLibData> additionalNativeLibraries) {
-    myProperties.myNativeLibs = new ArrayList<>(additionalNativeLibraries.size());
-
-    for (AndroidNativeLibData lib : additionalNativeLibraries) {
-      AndroidFacetProperties.AndroidNativeLibDataEntry data = new AndroidFacetProperties.AndroidNativeLibDataEntry();
-      data.myArchitecture = lib.getArchitecture();
-      data.myUrl = VfsUtilCore.pathToUrl(lib.getPath());
-      data.myTargetFileName = lib.getTargetFileName();
-      myProperties.myNativeLibs.add(data);
-    }
   }
 
   public boolean isImportedProperty(@NotNull AndroidImportableProperty property) {
@@ -152,7 +101,7 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
            projectType == PROJECT_TYPE_DYNAMIC_FEATURE;
   }
 
-  @Nullable
+  @NotNull
   @Override
   public AndroidFacetProperties getState() {
     return myProperties;

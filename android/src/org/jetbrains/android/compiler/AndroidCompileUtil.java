@@ -774,7 +774,7 @@ public class AndroidCompileUtil {
       return true;
     }
 
-    final AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
+    final AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
     if (platform == null) {
       return true;
     }

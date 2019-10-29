@@ -425,7 +425,7 @@ public final class AndroidSdkUtils {
   public static AndroidSdkData getFirstAndroidModuleSdkData(Project project) {
     List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
     for (AndroidFacet facet : facets) {
-      AndroidPlatform androidPlatform = facet.getConfiguration().getAndroidPlatform();
+      AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
       if (androidPlatform != null) {
         return androidPlatform.getSdkData();
       }

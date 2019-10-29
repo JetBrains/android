@@ -82,7 +82,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public AndroidFacet(@NotNull Module module, @NotNull String name, @NotNull AndroidFacetConfiguration configuration) {
     super(getFacetType(), module, name, configuration, null);
-    configuration.setFacet(this);
   }
 
   @NotNull
@@ -92,8 +91,6 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @NotNull
   public AndroidFacetProperties getProperties() {
-    AndroidFacetProperties state = getConfiguration().getState();
-    assert state != null;
-    return state;
+    return getConfiguration().getState();
   }
 }
