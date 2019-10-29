@@ -24,12 +24,12 @@ package com.android.tools.idea.sqlite.ui.parametersBinding
  */
 interface ParametersBindingDialogView {
   fun show()
-  fun showNamedParameters(parametersNames: List<String>)
+  fun showNamedParameters(parametersNames: Set<String>)
 
   fun addListener(listener: Listener)
   fun removeListener(listener: Listener)
 
   interface Listener {
-    fun bindingCompletedInvoked(parametersValues: List<String>)
+    fun bindingCompletedInvoked(parameters: Map<String, Any>)
   }
 }

@@ -39,10 +39,10 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     view = spy(factory.parametersBindingDialogView)
     orderVerifier = Mockito.inOrder(view)
 
-    val parametersNames = listOf("param1", "param2")
     ranStatements = mutableListOf()
-    val runStatement: (SqliteStatement) -> Unit = { ranStatements.add(it) }
-    controller = ParametersBindingController(view, "select * from Foo", parametersNames, runStatement)
+    controller = ParametersBindingController(
+      view, "select * from Foo", listOf("param1", "param2")
+    ) { ranStatements.add(it) }
     Disposer.register(project, controller)
   }
 
@@ -54,7 +54,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
 
     // Assert
     orderVerifier.verify(view).addListener(any(ParametersBindingDialogView.Listener::class.java))
-    orderVerifier.verify(view).showNamedParameters(listOf("param1", "param2"))
+    orderVerifier.verify(view).showNamedParameters(setOf("param1", "param2"))
     orderVerifier.verify(view).show()
   }
 
@@ -64,9 +64,24 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Act
     controller.setUp()
     val listener = view.listeners.first()
-    listener.bindingCompletedInvoked(listOf("1", "2"))
+    listener.bindingCompletedInvoked(mapOf("param1" to "1", "param2" to "2"))
 
     // Assert
     assertContainsElements(ranStatements, listOf(SqliteStatement("select * from Foo", listOf("1", "2"))))
+  }
+
+  fun testRunStatementWithRepeatedNamedParameter() {
+    // Prepare
+    controller = ParametersBindingController(
+      view, "select * from Foo", listOf("param1", "param1")
+    ) { ranStatements.add(it) }
+
+    // Act
+    controller.setUp()
+    val listener = view.listeners.first()
+    listener.bindingCompletedInvoked(mapOf("param1" to "1"))
+
+    // Assert
+    assertContainsElements(ranStatements, listOf(SqliteStatement("select * from Foo", listOf("1", "1"))))
   }
 }
