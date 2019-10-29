@@ -103,15 +103,15 @@ data class ProjectChecker(
   /**
    * TODO(qumeric): add documentation
    */
-  fun checkProject(projectName: String) {
+  fun checkProject(moduleName: String) {
     if (activityState[COMPARE_NEW_RENDERING_CONTEXT] != null && activityState.getBoolean(COMPARE_NEW_RENDERING_CONTEXT)) {
-      return compareProject(projectName)
+      return compareProject(moduleName)
     }
-    val modifiedProjectName = getModifiedProjectName(projectName, activityState)
-    val fixture = setUpFixtureForProject(modifiedProjectName)
+    val modifiedModuleName = getModifiedModuleName(moduleName, activityState)
+    val fixture = setUpFixtureForProject(modifiedModuleName)
     val project = fixture.project!!
     try {
-      createProject(fixture, modifiedProjectName)
+      createProject(fixture, modifiedModuleName)
       project.verify(language)
     }
     finally {
@@ -122,15 +122,15 @@ data class ProjectChecker(
     }
   }
 
-  private fun createProject(fixture: JavaCodeInsightTestFixture, projectName: String, isNewRenderingContext: Boolean = false) {
+  private fun createProject(fixture: JavaCodeInsightTestFixture, moduleName: String, isNewRenderingContext: Boolean = false) {
     val project = fixture.project!!
     IdeComponents(project).replaceProjectService(PostProjectBuildTasksExecutor::class.java, mock(PostProjectBuildTasksExecutor::class.java))
     AndroidGradleTests.setUpSdks(fixture, getSdk())
     val projectRoot = project.guessProjectDir()!!.toIoFile()
     moduleState.put(ATTR_TOP_OUT, projectRoot.path)
-    println("Checking project $projectName in $projectRoot")
-    project.create(projectName, isNewRenderingContext)
-    project.updateGradleAndSyncIfNeeded(projectRoot, projectName)
+    println("Checking project $moduleName in $projectRoot")
+    project.create(moduleName, isNewRenderingContext)
+    project.updateGradleAndSyncIfNeeded(projectRoot, moduleName)
   }
 
   private fun Project.verify(language: Language) {
@@ -143,28 +143,28 @@ data class ProjectChecker(
   /**
    * Compare the contents of the generated files between the old and new RenderingContexts
    */
-  private fun compareProject(projectName: String) {
-    val modifiedProjectName = getModifiedProjectName(projectName, activityState, true)
-    val fixtureForOld = setUpFixtureForProject(modifiedProjectName)
+  private fun compareProject(moduleName: String) {
+    val modifiedModuleName = getModifiedModuleName(moduleName, activityState, true)
+    val fixtureForOld = setUpFixtureForProject(modifiedModuleName)
     val oldProject = fixtureForOld.project!!
     val oldTempDirFixture = TempDirTestFixtureImpl().apply {
       setUp()
     }
     try {
-      createProject(fixtureForOld, modifiedProjectName)
+      createProject(fixtureForOld, modifiedModuleName)
       FileUtil.copyFileOrDir(FilePaths.toSystemDependentPath(oldProject.basePath)!!, File(oldTempDirFixture.tempDirPath))
     }
     finally {
       fixtureForOld.tearDown()
     }
-    val fixtureForNew = setUpFixtureForProject(modifiedProjectName)
+    val fixtureForNew = setUpFixtureForProject(modifiedModuleName)
     val newProject = fixtureForNew.project!!
     val newBaseDir = getBaseDirPath(newProject)
     val newTempDirFixture = TempDirTestFixtureImpl().apply {
       setUp()
     }
     try {
-      createProject(fixtureForNew, modifiedProjectName, true)
+      createProject(fixtureForNew, modifiedModuleName, true)
       FileUtil.copyFileOrDir(newBaseDir, File(newTempDirFixture.tempDirPath))
       oldTempDirFixture.tempDirPath compareFilesBetweenNewAndOldRenderingContexts newTempDirFixture.tempDirPath
       // Verify the created project after comparison so that intermediate files are excluded from the comparison
@@ -210,8 +210,8 @@ data class ProjectChecker(
     val packageName = activityState.getString(ATTR_PACKAGE_NAME)
     val generateLayout = activityState["generateLayout"] as Boolean?
     val projectRoot = VfsUtilCore.virtualToIoFile(project.guessProjectDir()!!)
-    val modifiedProjectName = getModifiedProjectName(project.name, activityState, true)
-    val moduleRoot = File(projectRoot, modifiedProjectName)
+    val modifiedModuleName = getModifiedModuleName(project.name, activityState, true)
+    val moduleRoot = File(projectRoot, modifiedModuleName)
     val projectTemplateDataBuilder = ProjectTemplateDataBuilder(!createActivityWithProject).apply {
       minApi = activityState.getString(ATTR_MIN_API)
       minApiLevel = activityState.getInt(ATTR_MIN_API_LEVEL)
@@ -287,17 +287,17 @@ data class ProjectChecker(
   /**
    * Renders project, module and possibly activity template. Also checks if logging was correct after each rendering step.
    */
-  private fun Project.create(projectName: String, isNewRenderingContext: Boolean) = runWriteAction {
+  private fun Project.create(moduleName: String, isNewRenderingContext: Boolean) = runWriteAction {
     val projectPath = moduleState.getString(ATTR_TOP_OUT)
     val projectRoot = File(projectPath)
     if (!FileUtilRt.createDirectory(projectRoot)) {
       throw IOException("Unable to create directory '$projectPath'.")
     }
 
-    moduleState.put(ATTR_MODULE_NAME, projectName)
+    moduleState.put(ATTR_MODULE_NAME, moduleName)
 
     moduleState.populateDirectoryParameters()
-    val moduleRoot = GradleAndroidModuleTemplate.createDefaultTemplateAt(projectPath, projectName).paths.moduleRoot!!
+    val moduleRoot = GradleAndroidModuleTemplate.createDefaultTemplateAt(projectPath, moduleName).paths.moduleRoot!!
 
     projectState.updateParameters()
 
@@ -320,14 +320,14 @@ data class ProjectChecker(
       val template = activityState.template
       activityState.apply {
         put(ATTR_TOP_OUT, projectPath)
-        put(ATTR_MODULE_NAME, projectName)
+        put(ATTR_MODULE_NAME, moduleName)
         put(ATTR_SOURCE_PROVIDER_NAME, "main")
         populateDirectoryParameters()
       }
       if (isNewRenderingContext) {
         val newTemplates = TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
-        val projectNameBase = projectName.split("_").getOrElse(0) { projectName }
-        val newTemplate = newTemplates.find { it.name.replace(" ", "") == projectNameBase }!!
+        val moduleNameBase = moduleName.split("_").getOrElse(0) { moduleName }
+        val newTemplate = newTemplates.find { it.name.replace(" ", "") == moduleNameBase }!!
         createProjectForNewRenderingContext(this, activityState, newTemplate)
       }
       else {
