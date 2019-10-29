@@ -23,6 +23,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.registry.Registry;
@@ -35,6 +36,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Rectangle;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.FocusListener;
 import java.awt.image.BufferedImage;
 import javax.swing.Icon;
@@ -186,6 +188,10 @@ public class MEUI {
          balloon.showInCenterOf(local);
       }
     };
-
   }
+
+  public static void copy(MTag tag) {
+    CopyPasteManager.getInstance().setContents(new StringSelection(MTag.serializeTag(tag)));
+  }
+
 }
