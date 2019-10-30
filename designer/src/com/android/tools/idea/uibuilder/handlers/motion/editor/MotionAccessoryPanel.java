@@ -271,10 +271,10 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             LayoutlibSceneManager manager = surface.getSceneManager();
             manager.updateSceneView();
             manager.requestLayoutAndRender(false);
-            surface.setAnimationMode(true);
+            surface.setRenderSynchronously(true);
           }  break;
           case MOTION_STOP: {
-            surface.setAnimationMode(false);
+            surface.setRenderSynchronously(false);
             surface.setAnimationScrubbing(false);
             LayoutlibSceneManager manager = surface.getSceneManager();
             manager.requestLayoutAndRender(false);

@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintSceneInter
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import java.text.DecimalFormat;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
 
   private static final double SLOPE = 20.0;
+  private final NlDesignSurface mySurface;
   private int startX;
   private int startY;
   private NlComponent mySelectedComponent;
@@ -63,6 +65,7 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
     else {
       mySelectedComponent = sceneView.getSelectionModel().getPrimary();
     }
+    mySurface = (NlDesignSurface)sceneView.getSurface();
   }
 
   /**
@@ -88,6 +91,9 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
     if (keyFrameCount == 0) {
       return;
     }
+
+    mySurface.setRenderSynchronously(true);
+    mySurface.setAnimationScrubbing(true);
 
     for (int i = 0; i < myKeyFrameTypes.length; i++) {
       if (myKeyFrameTypes[i] / 1000 == 2) {
@@ -149,6 +155,8 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
   @Override
   public void end(@SwingCoordinate int x, @SwingCoordinate int y,
                   @JdkConstants.InputEventMask int modifiersEx) {
+    mySurface.setRenderSynchronously(false);
+    mySurface.setAnimationScrubbing(false);
     if (myKeyframe == null || mySelectedComponent == null) {
       return;
     }
