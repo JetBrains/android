@@ -106,7 +106,8 @@ object MavenClassRegistry {
       "BiometricFragment" ->
         "androidx.biometric:biometric"
 
-      "HeifWriter", "HeifEncoder" ->
+      "HeifWriter",
+      "HeifEncoder" ->
         "com.android.support:heifwriter"
 
       "ExifInterface" ->
@@ -116,7 +117,8 @@ object MavenClassRegistry {
       "PagedListBuilder",
       "PagedListAdapter" -> "android.arch.paging:runtime"
 
-      "VectorDrawableCompat", "PathInterpolatorCompat" ->
+      "VectorDrawableCompat",
+      "PathInterpolatorCompat" ->
         "com.android.support:support-vector-drawable"
 
       "AnimatedVectorDrawableCompat" ->
@@ -143,10 +145,11 @@ object MavenClassRegistry {
       "ViewModelProvider" ->
         "android.arch.lifecycle:viewmodel"
 
-      "ProcessLifecycleOwner." ->
+      "ProcessLifecycleOwner" ->
         "androidx.lifecycle:lifecycle-process"
 
-      "ConstraintLayout" -> "com.android.support.constraint:constraint-layout"
+      "ConstraintLayout",
+      "MotionLayout" -> "com.android.support.constraint:constraint-layout"
 
       "LocalBroadcastManager" -> "com.android.support:localbroadcastmanager"
 
@@ -182,7 +185,9 @@ object MavenClassRegistry {
 
       "ContentPager" -> "com.android.support:support-content"
 
-      "CursorAdapter", "SimpleCursorAdapter", "CursorFilter" ->
+      "CursorAdapter",
+      "SimpleCursorAdapter",
+      "CursorFilter" ->
         "com.android.support:cursoradapter"
 
       "DocumentFile",
@@ -253,6 +258,57 @@ object MavenClassRegistry {
         // Most compat classes are here
         "com.android.support:support-compat"
 
+      "AdvertisingIdClient",
+      "AdvertisingIdInfo" ->
+        "androidx.ads:ads-identifier"
+
+      "AsyncLayoutInflater" -> "androidx.asynclayoutinflater:asynclayoutinflater"
+
+      "HintConstants" -> "androidx.autofill:autofill"
+
+      "BenchmarkRule" -> "androidx.benchmark:benchmark-junit4"
+
+      "CameraX",
+      "ImageAnalysis",
+      "ImageAnalysisConfig",
+      "Preview",
+      "PreviewConfig",
+      "ImageCapture",
+      "ImageCaptureConfig" ->
+        "androidx.camera:camera-camera2"
+
+      "AbsSavedState",
+      "ExploreByTouchHelper",
+      "FocusStrategy",
+      "ViewDragHelper" -> "androidx.customview:customview"
+
+      "KeyedAppState",
+      "KeyedAppStatesReporter",
+      "KeyedAppStatesService",
+      "ReceivedKeyedAppState" -> "androidx.enterprise:enterprise-feedback"
+
+      "RemoteCallback",
+      "CallbackReceiver",
+      "BroadcastReceiverWithCallbacks",
+      "AppWidgetProviderWithCallbacks",
+      "ContentProviderWithCallbacks",
+      "ExternalInput" -> "androidx.remotecallback:remotecallback"
+
+      "SavedStateRegistryOwner",
+      "SavedStateRegistry",
+      "SavedStateProvider",
+      "SavedStateRegistryController" -> "androidx.savedstate:savedstate"
+
+      "EncryptedFile",
+      "EncryptedSharedPreferences",
+      "MasterKeys" -> "androidx.security:security-crypto"
+
+      "ListenableFuture" -> "androidx.concurrent:concurrent-listenablefuture"
+
+      "CallbackToFutureAdapter" -> "androidx.concurrent:concurrent-listenablefuture-callback"
+
+      "Composable" -> "androidx.compose:compose-runtime"
+
       // Material Design library
       "Snackbar",
       "FloatingActionButton",
@@ -266,19 +322,23 @@ object MavenClassRegistry {
       // Firebase Libraries
 
       "AppInviteInvitation" -> "com.google.firebase:firebase-invites"
-      "AdView", "AdRequest" -> "com.google.firebase:firebase-ads"
+      "AdView",
+      "AdRequest" -> "com.google.firebase:firebase-ads"
       "FirebaseAnalytics" -> "com.google.firebase:firebase-core"
       "FirebaseMessagingService" -> "com.google.firebase:firebase-messaging"
       "FirebaseAuth" -> "com.google.firebase:firebase-auth"
       "FirebaseDatabase" -> "com.google.firebase:firebase-database"
-      "FirebaseStorage", "StorageReference" -> "com.google.firebase:firebase-storage:16.0.3"
+      "FirebaseStorage",
+      "StorageReference" -> "com.google.firebase:firebase-storage"
       "FirebaseRemoteConfig" -> "com.google.firebase:firebase-config"
       "FirebaseCrash" -> "com.google.firebase:firebase-crash"
       "FirebaseDynamicLinks" -> "com.google.firebase:firebase-invites"
       "FirebaseFirestore" -> "com.google.firebase:firebase-firestore"
-      "FirebaseVisionFaceDetectorOptions" -> "com.google.firebase:firebase-ml-vision-face-model"
-      "FirebaseVisionLabelDetector" -> "com.google.firebase:firebase-ml-vision-image-label-model"
 
+      // ML
+
+      "FirebaseVisionFaceDetectorOptions",
+      "FirebaseVisionLabelDetector",
       "FirebaseVisionImage",
       "FirebaseVisionText",
       "FirebaseVisionBarcode",
@@ -320,9 +380,14 @@ object MavenClassRegistry {
 
       "Games" -> "com.google.android.gms:play-services-games"
 
-      "PaymentsClient", "Wallet" -> "com.google.android.gms:play-services-wallet"
+      "PaymentsClient",
+      "Wallet" -> "com.google.android.gms:play-services-wallet"
 
       "BillingClient" -> "com.android.billingclient:billing"
+
+      "AppUpdateInfo",
+      "AppUpdateManager",
+      "AppUpdateManagerFactory" -> "com.google.android.play:core"
 
       else -> null
     }
@@ -333,6 +398,7 @@ object MavenClassRegistry {
     return when (artifact) {
       "androidx.room:room-runtime",
       "android.arch.persistence.room:runtime" -> "android.arch.persistence.room:compiler"
+      "androidx.remotecallback:remotecallback" -> "androidx.remotecallback:remotecallback-processor"
       else -> null
     }
   }
@@ -360,6 +426,13 @@ object MavenClassRegistry {
       "androidx.lifecycle:lifecycle-livedata" -> "androidx.lifecycle:lifecycle-livedata-ktx"
       "androidx.lifecycle:lifecycle-livedata-core" -> "androidx.lifecycle:lifecycle-livedata-core-ktx"
       "androidx.slice:slice-builders" -> "androidx.slice:slice-builders-ktx"
+      "com.google.android.play:core" -> "com.google.android.play:core-ktx"
+      "com.google.firebase:firebase-common" -> "com.google.firebase:firebase-common-ktx"
+      "com.google.firebase:firebase-config" -> "com.google.firebase:firebase-config-ktx"
+      "com.google.firebase:firebase-database" -> "com.google.firebase:firebase-database-ktx"
+      "com.google.firebase:firebase-firestore" -> "com.google.firebase:firebase-firestore-ktx"
+      "com.google.firebase:firebase-functions" -> "com.google.firebase:firebase-functions-ktx"
+      "com.google.firebase:firebase-storage" -> "com.google.firebase:firebase-storage-ktx"
       else -> null
     }
   }
