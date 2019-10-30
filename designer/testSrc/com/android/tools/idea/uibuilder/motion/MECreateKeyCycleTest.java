@@ -92,7 +92,7 @@ public class MECreateKeyCycleTest extends BaseMotionEditorTest {
                   "1,JLabel,Wave Period\n" +
                   "1,PromptedTextField,1\n" +
                   "1,JLabel,Attribute to cycle\n" +
-                  "1,MEComboBox,alpha,elevation,rotation,rotationX,rotationY,scaleX,scaleY,translationX,translationY,translationZ,transitionPathRotate\n" +
+                  "1,MEComboBox,alpha,elevation,rotation,rotationX,rotationY,scaleX,scaleY,translationX,translationY,translationZ,transitionPathRotate,Custom:letterSpacing\n" +
                   "1,JButton,Add\n";
     assertEquals(info, componentFieldsString(panel, 0));
     panel.fillAttributes();

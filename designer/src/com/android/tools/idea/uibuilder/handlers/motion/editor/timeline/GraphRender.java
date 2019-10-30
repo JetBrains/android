@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.timeline;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.graph.MonotoneSpline;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.graph.Oscillator;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
@@ -66,6 +67,15 @@ public class GraphRender {
     return false;
   }
 
+  public String getValue(MTag kf, String keyProp) {
+    MTag[] tag = kf.getChildTags();
+    if (tag != null && tag.length > 0) {
+      String value = tag[0].getAttributeValue(MotionSceneAttrs.ATTR_CUSTOM_FLOAT_VALUE);
+      return value;
+    }
+    return kf.getAttributeValue(keyProp);
+  }
+
   /**
    * Return false if we do not know how to render it
    *
@@ -98,7 +108,7 @@ public class GraphRender {
       pos[i] = Integer.parseInt(kf.getAttributeValue("framePosition")) / 100.0;
       offset[i] = parse(0, kf.getAttributeValue("waveOffset"));
       period[i] = parse(0, kf.getAttributeValue("wavePeriod"));
-      amp[i] = parse(0, kf.getAttributeValue(row.mKeyProp));
+      amp[i] = parse(0, getValue(kf, row.mKeyProp));
 
       String str = kf.getAttributeValue("waveShape");
       if (str == null) {
