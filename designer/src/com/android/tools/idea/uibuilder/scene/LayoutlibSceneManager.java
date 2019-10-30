@@ -574,7 +574,7 @@ public class LayoutlibSceneManager extends SceneManager {
       return;
     }
 
-    if (getDesignSurface().isInAnimationMode()) {
+    if (getDesignSurface().isRenderingSynchronously()) {
       render(getTriggerFromChangeType(getModel().getLastChangeType()));
       notifyListenersModelLayoutComplete(animate);
     } else {
