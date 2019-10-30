@@ -39,17 +39,19 @@ class IdeaSourceProviderImpl(
   @Volatile
   private var myManifestFile: VirtualFile? = null
 
-  override val manifestDirectory: VirtualFile?
-    get() = VfsUtil.getParentDir(manifestFileUrl)?.let { VirtualFileManager.getInstance().findFileByUrl(it) }
-
   override val manifestFile: VirtualFile?
     get() {
       if (myManifestFile == null || !myManifestFile!!.isValid) {
         myManifestFile = VirtualFileManager.getInstance().findFileByUrl(manifestFileUrl)
       }
-
       return myManifestFile
     }
+
+  override val manifestDirectory: VirtualFile?
+    get() = VirtualFileManager.getInstance().findFileByUrl(manifestDirectoryUrl)
+
+  override val manifestDirectoryUrl: String
+    get() = VfsUtil.getParentDir(manifestFileUrl) ?: error("Invalid manifestFileUrl: $manifestFileUrl")
 
   override val javaDirectories: Collection<VirtualFile> get() = convertUrlSet(javaDirectoryUrls)
 

@@ -31,8 +31,10 @@ interface IdeaSourceProvider {
   val name: String
 
   val manifestFileUrl: String
-  val manifestDirectory: VirtualFile?
   val manifestFile: VirtualFile?
+
+  val manifestDirectoryUrl: String
+  val manifestDirectory: VirtualFile?
 
   val javaDirectoryUrls: Collection<String>
   val javaDirectories: Collection<VirtualFile>
