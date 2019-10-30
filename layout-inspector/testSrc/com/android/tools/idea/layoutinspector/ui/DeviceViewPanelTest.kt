@@ -18,6 +18,10 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.PropertySetterRule
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.common.AdtUiCursorsProvider
+import com.android.tools.adtui.common.AdtUiCursorType
+import com.android.tools.adtui.common.TestAdtUiCursorsProvider
+import com.android.tools.adtui.common.replaceAdtUiCursorWithPredefinedCursor
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeMouse.Button
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
@@ -41,16 +45,19 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspec
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.components.JBScrollPane
 import junit.framework.TestCase
 import org.jetbrains.android.util.AndroidBundle
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Point
 import java.util.concurrent.CountDownLatch
@@ -225,6 +232,13 @@ class DeviceViewPanelTest {
   val clientFactoryRule = PropertySetterRule(
     { _, _ -> listOf(mock<DefaultInspectorClient>()) },
     InspectorClient.Companion::clientFactory)
+
+  @Before
+  fun setup() {
+    ApplicationManager.getApplication().registerServiceInstance(AdtUiCursorsProvider::class.java, TestAdtUiCursorsProvider())
+    replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRAB, Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR))
+    replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRABBING, Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR))
+  }
 
   @Test
   fun testZoomOnConnect() {

@@ -36,8 +36,11 @@ import static com.android.tools.idea.uibuilder.LayoutTestUtilities.releaseKey;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.releaseMouse;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.adtui.common.AdtUiCursorType;
+import com.android.tools.adtui.common.AdtUiCursorsProvider;
+import com.android.tools.adtui.common.AdtUiCursorsTestUtil;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.ui.AdtUiCursors;
+import com.android.tools.adtui.common.TestAdtUiCursorsProvider;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.Coordinates;
@@ -63,7 +66,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
 import java.awt.Cursor;
-import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -83,6 +85,17 @@ import org.mockito.Mockito;
  */
 public class InteractionManagerTest extends LayoutTestCase {
   private final NlTreeDumper myTreeDumper = new NlTreeDumper(true, false);
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+
+    // For testing AdtUiCursors, replace the cursor provider which uses predefined cursors instead of custom cursors.
+    replaceApplicationService(AdtUiCursorsProvider.class, new TestAdtUiCursorsProvider());
+    AdtUiCursorsTestUtil.replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRAB, Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+    AdtUiCursorsTestUtil.replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRABBING, Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+    AdtUiCursorsTestUtil.replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRABBING, Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+  }
 
   public void testDragAndDrop() throws Exception {
     // Drops a fragment (xmlFragment below) into the design surface (via drag & drop events) and verifies that
@@ -415,44 +428,32 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testCursorChangeWhenSetPanningTrue() {
-    if (GraphicsEnvironment.isHeadless()) {
-      // AdtUiCursors.GRAB is not created properly in headless environment. See AdtUiCursors.makeCursor()
-      return;
-    }
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
 
     manager.setPanning(true);
 
-    Mockito.verify(surface).setCursor(AdtUiCursors.GRAB);
+    Mockito.verify(surface).setCursor(AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB));
   }
 
   public void testInterceptPanOnModifiedKeyPressed() {
-    if (GraphicsEnvironment.isHeadless()) {
-      // AdtUiCursors.GRABBING is not created properly in headless environment. See AdtUiCursors.makeCursor()
-      return;
-    }
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     Point moved = new Point(0, 0);
     when(surface.getScrollPosition()).thenReturn(moved);
     int modifierKeyMask = InputEvent.BUTTON2_DOWN_MASK;
 
-    assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_PRESSED, modifierKeyMask)));
-    Mockito.verify(surface).setCursor(AdtUiCursors.GRABBING);
+    assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(0, modifierKeyMask, MouseEvent.NOBUTTON)));
+    Mockito.verify(surface).setCursor(AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRABBING));
   }
 
   public void testInterceptPanModifiedKeyReleased() {
-    if (GraphicsEnvironment.isHeadless()) {
-      // AdtUiCursors.GRAB is not created properly in headless environment. See AdtUiCursors.makeCursor()
-      return;
-    }
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
 
-    assertFalse(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_RELEASED, 0)));
-    Mockito.verify(surface, Mockito.never()).setCursor(AdtUiCursors.GRAB);
+    assertFalse(manager.interceptPanInteraction(setupPanningMouseEvent(0, 0, MouseEvent.NOBUTTON)));
+    Mockito.verify(surface, Mockito.never()).setCursor(AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB));
   }
 
   public void testIsPanningAfterMouseReleased() {
@@ -461,7 +462,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
 
     manager.setPanning(true);
-    assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_RELEASED, 0)));
+    assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_RELEASED, 0, MouseEvent.BUTTON2)));
 
     // Panning will only end on mouse release when releasing the middle/wheel mouse button (BUTTON2).
     releaseMouse(manager, MouseEvent.BUTTON1, 0, 0, 0);
@@ -476,7 +477,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
 
     manager.setPanning(true);
-    assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_RELEASED, 0)));
+    assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_RELEASED, 0, MouseEvent.NOBUTTON)));
 
     releaseKey(manager, DesignSurfaceShortcut.PAN.getKeyCode());
     assertFalse(manager.isPanning());
@@ -526,11 +527,11 @@ public class InteractionManagerTest extends LayoutTestCase {
     assertEquals(button, buttonSceneComponent.getNlComponent());
   }
 
-  private MouseEvent setupPanningMouseEvent(int id, int modifierKeyMask) {
+  private static MouseEvent setupPanningMouseEvent(int id, int modifierKeyMask, int button) {
     Component sourceMock = Mockito.mock(Component.class);
     when(sourceMock.getLocationOnScreen()).thenReturn(new Point(0, 0));
     return new MouseEvent(
-      sourceMock, id, 0, modifierKeyMask, 0, 0, 0, false);
+      sourceMock, id, 0, modifierKeyMask, 0, 0, 0, false, button);
   }
 
   protected InteractionManager setupConstraintLayoutCursorTest() {
