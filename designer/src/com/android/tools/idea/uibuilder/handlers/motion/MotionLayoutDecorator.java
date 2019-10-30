@@ -333,7 +333,7 @@ public class MotionLayoutDecorator extends SceneDecorator {
           int w = component.getDrawWidth();
           int h = component.getDrawHeight();
           int keyFrameCount = helper.getKeyframePos(child.getNlComponent(), keyFrameTypes, keyFramePos);
-          DrawMotionPath.buildDisplayList(list, mPathBuffer, size * 2, keyFrameTypes, keyFramePos, keyFrameCount, x, y, w, h);
+          DrawMotionPath.buildDisplayList(child.isSelected(), list, mPathBuffer, size * 2, keyFrameTypes, keyFramePos, keyFrameCount, x, y, w, h);
         }
       }
     }

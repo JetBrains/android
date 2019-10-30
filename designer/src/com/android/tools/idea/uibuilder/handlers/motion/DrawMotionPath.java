@@ -27,7 +27,8 @@ import java.awt.geom.GeneralPath;
 import java.util.Arrays;
 
 public class DrawMotionPath implements DrawCommand {
-  private final float[] mkeyFramesPos;
+  private final float[] mKeyFramesPos;
+  private final int[] mKeyFramesType;
   private float[] mPath;
   private GeneralPath ourPath = new GeneralPath();
   private AffineTransform at = new AffineTransform();
@@ -39,14 +40,25 @@ public class DrawMotionPath implements DrawCommand {
   private int mViewHeight;
   int[] xpath = new int[4];
   int[] ypath = new int[4];
+  boolean mSelected = false;
 
-  DrawMotionPath(float[] path, int pathSize, int[] keyFramesType, float[] keyFramePos, int keyFramesSize, int vx, int vy, int vw, int vh) {
+  DrawMotionPath(boolean selected,
+                 float[] path,
+                 int pathSize,
+                 int[] keyFramesType,
+                 float[] keyFramePos,
+                 int keyFramesSize,
+                 int vx,
+                 int vy,
+                 int vw,
+                 int vh) {
     mPath = Arrays.copyOf(path, pathSize);
     ourPath.reset();
     mViewX = vx;
     mViewY = vy;
     mViewWidth = vw;
     mViewHeight = vh;
+    mSelected = selected;
 
     for (int i = 0; i < pathSize; i += 2) {
       float x = mPath[i];
@@ -60,10 +72,12 @@ public class DrawMotionPath implements DrawCommand {
     }
 
     if (keyFramesSize > 0) {
-      mkeyFramesPos = Arrays.copyOf(keyFramePos, keyFramesSize * 2);
+      mKeyFramesPos = Arrays.copyOf(keyFramePos, keyFramesSize * 2);
+      mKeyFramesType = Arrays.copyOf(keyFramesType, keyFramesSize);
     }
     else {
-      mkeyFramesPos = null;
+      mKeyFramesPos = null;
+      mKeyFramesType = null;
     }
   }
 
@@ -98,10 +112,16 @@ public class DrawMotionPath implements DrawCommand {
     g2.setStroke(ourBasicStroke);
     g2.setColor(Color.white);
     g2.draw(ourPath);
-    if (mkeyFramesPos != null) {
-      for (int i = 0; i < mkeyFramesPos.length; i += 2) {
-        int posx = (int)mkeyFramesPos[i];
-        int posy = (int)mkeyFramesPos[i + 1];
+    // Only draw keyframes if the component is selected
+    if (mKeyFramesPos != null && mSelected) {
+      for (int i = 0; i < mKeyFramesPos.length; i += 2) {
+        int type = mKeyFramesType[i/2];
+        if (type / 1000 != 2) {
+          // For now, only draw keyframes positions
+          continue;
+        }
+        int posx = (int)mKeyFramesPos[i];
+        int posy = (int)mKeyFramesPos[i + 1];
         xpath[0] = posx;
         xpath[1] = posx + diamond+1;
         xpath[2] = posx;
@@ -129,7 +149,7 @@ public class DrawMotionPath implements DrawCommand {
     return null;
   }
 
-  public static void buildDisplayList(DisplayList list,
+  public static void buildDisplayList(boolean selected, DisplayList list,
                                       float[] path,
                                       int pathSize,
                                       int[] keyFrameType,
@@ -140,6 +160,6 @@ public class DrawMotionPath implements DrawCommand {
                                       int w,
                                       int h) {
 
-    list.add(new DrawMotionPath(path, pathSize, keyFrameType, keyFramePos, keyFrameSize, x, y, w, h));
+    list.add(new DrawMotionPath(selected, path, pathSize, keyFrameType, keyFramePos, keyFrameSize, x, y, w, h));
   }
 }

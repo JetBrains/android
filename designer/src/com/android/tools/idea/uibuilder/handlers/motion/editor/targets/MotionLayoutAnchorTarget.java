@@ -434,7 +434,7 @@ public class MotionLayoutAnchorTarget extends AnchorTarget {
     // If the other side is already connected to the same component, the user is trying to
     // center this component to targetComponent, so we remove the margin.
     String otherSideAttr = ConstraintComponentUtilities.ourOtherSideAttributes.get(attribute);
-    String otherSideAttrValue = otherSideAttr != null ? component.getAttribute(SdkConstants.SHERPA_URI, otherSideAttr) : null;
+    String otherSideAttrValue = otherSideAttr != null ? modification.getAttribute(SdkConstants.SHERPA_URI, otherSideAttr) : null;
     if (isOppositeSideConnectedToSameTarget(targetId, otherSideAttrValue)) {
       removeOppositeSideMargin(modification, otherSideAttr);
     }

@@ -95,7 +95,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   private NlComponent myMotionLayout;
   private MotionEditorSelector.Type mLastSelection = MotionEditorSelector.Type.LAYOUT;
   private MTag[] myLastSelectedTags;
-  private boolean mShowPath = false;
+  private boolean mShowPath = true;
 
   private void applyMotionSceneValue(boolean apply) {
     if (TEMP_HACK_FORCE_APPLY) {
