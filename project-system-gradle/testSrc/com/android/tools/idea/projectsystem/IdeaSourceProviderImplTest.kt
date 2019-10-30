@@ -19,6 +19,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit.assume
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.facet.containsFile
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 
 class IdeaSourceProviderImplTest : AndroidTestCase() {
@@ -44,5 +45,18 @@ class IdeaSourceProviderImplTest : AndroidTestCase() {
 
     val ideaSourceProvider = IdeaSourceProviderBuilder.create("name", manifestFileUrl).build()
     assertThat(ideaSourceProvider.manifestDirectory).isEqualTo(manifestDirectory)
+  }
+
+  fun testContainsFile_manifestDirectory() {
+    val manifestFile = myFixture.addFileToProject("src/main/AndroidManifest.xml", "manifest").virtualFile
+    val manifestDirectory = manifestFile.parent
+    val manifestFileUrl = manifestFile.url
+    assume().that(VirtualFileManager.getInstance().findFileByUrl(manifestFileUrl)).isNotNull()
+
+    runWriteAction { manifestFile.delete(this) }
+    assume().that(VirtualFileManager.getInstance().findFileByUrl(manifestFileUrl)).isNull()
+
+    val ideaSourceProvider = IdeaSourceProviderBuilder.create("name", manifestFileUrl).build()
+    assertThat(containsFile(ideaSourceProvider, manifestDirectory)).isTrue()
   }
 }
