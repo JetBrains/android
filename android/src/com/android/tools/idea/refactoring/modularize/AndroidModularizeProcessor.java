@@ -393,8 +393,7 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
       return manager.findFile(manifestFile);
     }
     else {
-      VirtualFile directory = VirtualFileManager.getInstance().findFileByUrl(
-        PathUtil.getParentPath(SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getManifestFileUrl()));
+      VirtualFile directory = SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getManifestDirectory();
       if (directory != null) {
         PsiDirectory targetDirectory = manager.findDirectory(directory);
         if (targetDirectory != null) {

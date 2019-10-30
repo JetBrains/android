@@ -246,8 +246,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
       VirtualFile manifestFile = sourceProviderManager.getMainManifestFile();
       if (manifestFile == null) {
         String manifestUrl = sourceProviderManager.getMainIdeaSourceProvider().getManifestFileUrl();
-        String manifestDirectoryUrl = VfsUtil.getParentDir(manifestUrl);
-        VirtualFile manifestDirectory = VirtualFileManager.getInstance().findFileByUrl(manifestDirectoryUrl);
+        VirtualFile manifestDirectory = sourceProviderManager.getMainIdeaSourceProvider().getManifestDirectory();
         manifestFile = manifestDirectory.createChildData(this, VfsUtil.extractFileName(manifestUrl));
       }
       assertThat(manifestFile).named("Manifest virtual file").isNotNull();
