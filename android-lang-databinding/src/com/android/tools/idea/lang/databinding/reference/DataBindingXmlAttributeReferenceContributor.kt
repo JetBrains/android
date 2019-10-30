@@ -70,6 +70,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
         if (attributeType != null && DataBindingUtil.isTwoWayBindingExpression(attributeValue)) {
           referenceList.addAll(model.getReferencesFromInverseBindingAdapter())
           referenceList.addAll(model.getReferencesFromInverseBindingMethods(attributeType))
+          referenceList.addAll(model.getReferencesFromViewGetter())
         }
 
         return referenceList.toTypedArray()
@@ -297,6 +298,20 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
           }
         }
       return referenceList
+    }
+
+    /**
+     * Provides references from View's getter.
+     *
+     * Example: `String getText()` for attribute app:text in its containing view.
+     */
+    fun getReferencesFromViewGetter(): List<PsiReference> {
+      val getterName = "get" + attribute.name.substringAfter(":").usLocaleCapitalize()
+      return PsiModelClass(viewType, mode)
+               .findMethods(getterName, false)
+               .firstOrNull { method -> method.psiMethod.parameterList.isEmpty }
+               ?.let { method -> listOf(PsiMethodReference(attribute, method)) }
+             ?: listOf()
     }
   }
 }
