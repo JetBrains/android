@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.android.tools.adtui.ui.AdtUiCursors
+import com.android.tools.adtui.common.AdtUiCursorsProvider
+import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionEvent
@@ -95,5 +96,6 @@ class PanInteraction(private val surface: DesignSurface): Interaction() {
     cancel(event.info.x, event.info.y, event.info.modifiersEx)
   }
 
-  override fun getCursor(): Cursor? = if (isGrabbing) AdtUiCursors.GRABBING else AdtUiCursors.GRAB
+  override fun getCursor(): Cursor? =
+    AdtUiCursorsProvider.getInstance().getCursor(if (isGrabbing) AdtUiCursorType.GRABBING else AdtUiCursorType.GRAB)
 }

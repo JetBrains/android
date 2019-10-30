@@ -15,10 +15,11 @@
  */
 package com.android.tools.adtui;
 
+import com.android.tools.adtui.common.AdtUiCursorType;
+import com.android.tools.adtui.common.AdtUiCursorsProvider;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionModel;
-import com.android.tools.adtui.ui.AdtUiCursors;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.util.Producer;
@@ -366,7 +367,7 @@ public class RangeSelectionComponent extends AnimatedComponent {
         setCursor(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
         break;
       case MOVE:
-        setCursor(myMousePressed == -1 ? AdtUiCursors.GRAB : AdtUiCursors.GRABBING);
+        setCursor(AdtUiCursorsProvider.getInstance().getCursor((myMousePressed == -1) ? AdtUiCursorType.GRAB : AdtUiCursorType.GRABBING));
         break;
       case CREATE:
         double mouseRange = xToRange(newX);
