@@ -621,8 +621,6 @@ private class PreviewEditor(private val psiFile: PsiFile,
   }
 
   override fun getName(): String = "Compose Preview"
-
-  fun isEditorForSurface(surface: DesignSurface) = surface == this.surface
 }
 
 /**
