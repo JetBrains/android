@@ -33,7 +33,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Function
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
 import java.nio.file.Path
 import java.util.concurrent.ExecutorService
@@ -43,12 +42,10 @@ import java.util.concurrent.ExecutorService
  * app-inspection-specific commands.
  */
 internal fun attachAppInspectionPipelineConnection(
-  client: TransportClient,
   stream: Stream,
   process: Process,
-  executorService: ExecutorService
+  transport: AppInspectionTransport
 ): ListenableFuture<AppInspectionPipelineConnection> {
-  val transport = AppInspectionTransport(client, stream, process, executorService)
   val connectionFuture = SettableFuture.create<AppInspectionPipelineConnection>()
 
   // The device daemon takes care of the case if and when the agent is previously attached already.
@@ -64,13 +61,12 @@ internal fun attachAppInspectionPipelineConnection(
 
   transport.registerEventListener(
     eventKind = AGENT,
-    executor = MoreExecutors.directExecutor(),
     filter = { it.agentData.status == ATTACHED }
   ) {
     connectionFuture.set(DefaultAppInspectionPipelineConnection(transport))
     true
   }
-  client.transportStub.execute(ExecuteRequest.newBuilder().setCommand(attachCommand).build())
+  transport.client.transportStub.execute(ExecuteRequest.newBuilder().setCommand(attachCommand).build())
   return connectionFuture
 }
 
@@ -91,7 +87,6 @@ private class DefaultAppInspectionPipelineConnection(val processTransport: AppIn
     val commandId = processTransport.executeCommand(appInspectionCommand)
     processTransport.registerEventListener(
       eventKind = APP_INSPECTION,
-      executor = MoreExecutors.directExecutor(),
       filter = { it.appInspectionEvent.commandId == commandId }
     ) {
       if (it.appInspectionEvent.response.status == SUCCESS) {
@@ -102,7 +97,7 @@ private class DefaultAppInspectionPipelineConnection(val processTransport: AppIn
       }
       true
     }
-    return Futures.transform(connectionFuture, Function { setupEventListener(creator, it!!) }, MoreExecutors.directExecutor())
+    return Futures.transform(connectionFuture, Function { setupEventListener(creator, it!!) }, processTransport.executorService)
   }
 }
 

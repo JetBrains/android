@@ -16,134 +16,104 @@
 package com.android.tools.idea.appinspection.transport
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.app.inspection.AppInspection.AppInspectionEvent
-import com.android.tools.app.inspection.AppInspection.ServiceResponse
-import com.android.tools.app.inspection.AppInspection.ServiceResponse.Status.SUCCESS
+import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
-import com.android.tools.profiler.proto.Commands.Command
-import com.android.tools.profiler.proto.Commands.Command.CommandType.ATTACH_AGENT
-import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Common.AgentData
-import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
+import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common.Event
-import com.android.tools.profiler.proto.Common.Event.Kind.AGENT
-import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.AsyncFunction
 import com.google.common.util.concurrent.Futures
-import org.junit.After
-import org.junit.Before
+import junit.framework.TestCase
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import java.nio.file.Paths
-import java.util.concurrent.Executors
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import com.android.tools.profiler.proto.Commands.Command.CommandType.APP_INSPECTION as APP_INSPECTION_COMMAND
+
+/**
+ * The amount of time tests will wait for async calls and events to trigger. It is used primarily in asserting latches and futures.
+ *
+ * These calls normally take way less than the allotted time below, on the order of tens of milliseconds. The timeout we chose is extremely
+ * generous and was only chosen to fail tests faster if something goes wrong. If you hit this timeout, please don't just increase it but
+ * investigate the root cause.
+ */
+private const val TIMEOUT_MILLISECONDS: Long = 10000
+
 
 class AppInspectionPipelineConnectionTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
-  private val executorService = Executors.newSingleThreadExecutor()
+
+  private val gRpcServerRule = FakeGrpcServer.createFakeGrpcServer("InspectorPipelineConnectionTest", transportService, transportService)!!
+  private val appInspectionRule = AppInspectionServiceRule(timer, transportService, gRpcServerRule)
 
   @get:Rule
-  val gRpcServerRule = FakeGrpcServer.createFakeGrpcServer("InspectorPipelineConnectionTest", transportService, transportService)!!
+  val ruleChain = RuleChain.outerRule(gRpcServerRule).around(appInspectionRule)!!
 
-  @Before
-  fun setUpCommandHandler() {
-    transportService.setCommandHandler(
-      ATTACH_AGENT,
-      object : CommandHandler(timer) {
-        override fun handleCommand(command: Command, events: MutableList<Event>) {
-          events.add(
-            Event.newBuilder()
-              .setKind(AGENT)
-              .setAgentData(AgentData.newBuilder().setStatus(ATTACHED).build())
-              .build()
-          )
-        }
-      })
-    transportService.setCommandHandler(
-      APP_INSPECTION_COMMAND,
-      object : CommandHandler(timer) {
-        override fun handleCommand(command: Command, events: MutableList<Event>) {
-          events.add(createTestEventFromCommand(command))
-        }
-      })
-  }
-
-  @After
-  fun tearDown() {
-    executorService.shutdownNow()
-  }
-
-
-  private fun createTestEventFromCommand(command: Command): Event {
-    return Event.newBuilder()
-      .setKind(APP_INSPECTION)
-      .setPid(command.pid)
-      .setTimestamp(timer.currentTimeNs)
-      .setCommandId(command.commandId)
-      .setIsEnded(true)
-      .setAppInspectionEvent(AppInspectionEvent.newBuilder()
-                               .setCommandId(command.appInspectionCommand.commandId)
-                               .setResponse(ServiceResponse.newBuilder()
-                                              .setStatus(SUCCESS)
-                                              .build())
-                               .build())
+  private fun createEventWithCommandId(commandId: Int): AppInspection.AppInspectionEvent {
+    return AppInspection.AppInspectionEvent.newBuilder()
+      .setCommandId(commandId)
+      .setResponse(AppInspection.ServiceResponse.newBuilder()
+                     .setStatus(AppInspection.ServiceResponse.Status.SUCCESS)
+                     .build())
       .build()
   }
 
   @Test
   fun launchInspector() {
-    val connection = AppInspectionPipelineConnection.attach(
-      Common.Stream.getDefaultInstance(), Common.Process.getDefaultInstance(), gRpcServerRule.name, executorService)
     val clientFuture = Futures.transformAsync(
-      connection,
+      appInspectionRule.launchPipelineConnection(),
       AsyncFunction<AppInspectionPipelineConnection, TestInspectorClient> { pipelineConnection ->
         pipelineConnection!!.launchInspector(
           "test.inspector",
           Paths.get("path", "to", "inspector", "dex")) { commandMessenger ->
           TestInspectorClient(commandMessenger)
         }
-      }, executorService)
-    assertThat(clientFuture.get(1, TimeUnit.SECONDS)).isNotNull()
+      }, appInspectionRule.executorService)
+    assertThat(clientFuture.get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isNotNull()
   }
 
   @Test
   fun launchInspectorReturnsCorrectConnection() {
+    val connection = appInspectionRule.launchPipelineConnection().get()
+
+    val latch = CountDownLatch(1)
+    // Don't let command handler reply to any commands. We'll manually add events.
     transportService.setCommandHandler(
-      APP_INSPECTION_COMMAND,
+      Commands.Command.CommandType.APP_INSPECTION,
       object : CommandHandler(timer) {
-        override fun handleCommand(command: Command, events: MutableList<Event>) {
-          // Don't reply for inspector 1
-          if (command.appInspectionCommand.createInspectorCommand.inspectorId == "filteredInspector") {
-            return
-          }
-          events.add(createTestEventFromCommand(command))
+        override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
+          latch.countDown()
         }
       })
 
-    // Rely on implementation detail: poller will always call back inspectorConnection1 before inspectorConnection2 due to direct executor.
-    // Therefore, if inspectorConnection2's future completes, then inspectorConnection1's callback correctly filtered the event callback.
-    // TODO(b/143627575)
-    val connection = AppInspectionPipelineConnection.attach(
-      Common.Stream.getDefaultInstance(), Common.Process.getDefaultInstance(), gRpcServerRule.name, executorService).get()
-    val filteredConnection =
-      connection.launchInspector("filteredInspector", Paths.get("path", "to", "inspector", "dex")) {
-        commandMessenger -> TestInspectorClient(commandMessenger)
+    val inspectorConnection =
+      connection.launchInspector("test.inspector", Paths.get("path", "to", "inspector", "dex")) { commandMessenger ->
+        TestInspectorClient(commandMessenger)
       }
 
-    val processedConnection =
-      connection.launchInspector("processedInspector", Paths.get("path", "to", "inspector", "dex")) {
-        commandMessenger -> TestInspectorClient(commandMessenger)
-      }
+    try {
+      assertThat(latch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
+    }
+    catch (e: InterruptedException) {
+      e.printStackTrace()
+      TestCase.fail("Test interrupted")
+    }
 
-    assertThat(processedConnection.get(1, TimeUnit.SECONDS)).isNotNull()
-    assertThat(filteredConnection.isDone).isFalse()
+    val incorrectEvent = createEventWithCommandId(12345)
+    appInspectionRule.addAppInspectionEvent(incorrectEvent)
 
-    filteredConnection.cancel(false)
+    appInspectionRule.poller.poll()
+
+    assertThat(appInspectionRule.executorService.activeCount).isEqualTo(0)
+    assertThat(inspectorConnection.isDone).isFalse()
+
+    appInspectionRule.addAppInspectionEvent(createEventWithCommandId(AppInspectionTransport.lastGeneratedCommandId()))
+
+    assertThat(inspectorConnection.get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isNotNull()
   }
 }
 
