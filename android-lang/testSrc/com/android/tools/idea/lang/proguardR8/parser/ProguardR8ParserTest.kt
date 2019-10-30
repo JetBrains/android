@@ -1212,4 +1212,70 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       )
     )
   }
+
+  fun testMultipleDimension() {
+    assertEquals(
+      """
+  FILE
+    ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
+      PsiElement(FLAG)('-keep')
+      ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
+        ProguardR8ClassTypeImpl(CLASS_TYPE)
+          PsiElement(class)('class')
+        ProguardR8ClassNameImpl(CLASS_NAME)
+          ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+            PsiElement(JAVA_IDENTIFIER)('MyClass')
+      ProguardR8ClassSpecificationBodyImpl(CLASS_SPECIFICATION_BODY)
+        PsiElement(opening brace)('{')
+        ProguardR8JavaRuleImpl(JAVA_RULE)
+          ProguardR8MethodSpecificationImpl(METHOD_SPECIFICATION)
+            ProguardR8MethodImpl(METHOD)
+              ProguardR8TypeImpl(TYPE)
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(JAVA_IDENTIFIER)('java')
+                  PsiElement(dot)('.')
+                  PsiElement(JAVA_IDENTIFIER)('lang')
+                  PsiElement(dot)('.')
+                  PsiElement(JAVA_IDENTIFIER)('Object')
+                ProguardR8ArrayTypeImpl(ARRAY_TYPE)
+                  PsiElement([])('[]')
+                  PsiElement([])('[]')
+              ProguardR8ClassMemberNameImpl(CLASS_MEMBER_NAME)
+                PsiElement(JAVA_IDENTIFIER)('myFunction1')
+              ProguardR8ParametersImpl(PARAMETERS)
+                PsiElement(left parenthesis)('(')
+                ProguardR8TypeListImpl(TYPE_LIST)
+                  <empty list>
+                PsiElement(right parenthesis)(')')
+        PsiElement(semicolon)(';')
+        ProguardR8JavaRuleImpl(JAVA_RULE)
+          ProguardR8MethodSpecificationImpl(METHOD_SPECIFICATION)
+            ProguardR8MethodImpl(METHOD)
+              ProguardR8TypeImpl(TYPE)
+                ProguardR8JavaPrimitiveImpl(JAVA_PRIMITIVE)
+                  PsiElement(int)('int')
+                ProguardR8ArrayTypeImpl(ARRAY_TYPE)
+                  PsiElement([])('[]')
+                  PsiElement([])('[]')
+                  PsiElement([])('[]')
+              ProguardR8ClassMemberNameImpl(CLASS_MEMBER_NAME)
+                PsiElement(JAVA_IDENTIFIER)('myFunction2')
+              ProguardR8ParametersImpl(PARAMETERS)
+                PsiElement(left parenthesis)('(')
+                ProguardR8TypeListImpl(TYPE_LIST)
+                  <empty list>
+                PsiElement(right parenthesis)(')')
+        PsiElement(semicolon)(';')
+        PsiElement(closing brace)('}')
+      """.trimIndent(),
+      toParseTreeText(
+        """
+        -keep class MyClass {
+          java.lang.Object[][] myFunction1();
+          int[][][] myFunction2();
+        }
+        """.trimIndent()
+      )
+    )
+  }
 }

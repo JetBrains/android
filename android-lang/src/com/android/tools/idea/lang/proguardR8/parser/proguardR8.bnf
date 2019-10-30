@@ -100,9 +100,10 @@ java_primitive ::= boolean|byte|char|short|int|long|float|double|void {
 }
 any_type ::= ANY_TYPE_
 any_primitive_type ::=ANY_PRIMITIVE_TYPE_
-type ::= any_type|any_primitive_type|((java_primitive|qualifiedName) "[]"?) {
-  methods=[matchesPsiType isArray]
+type ::= any_type|any_primitive_type|(java_primitive|qualifiedName)array_type? {
+  methods=[matchesPsiType]
 }
+array_type ::= "[]"+ {methods=[getNumberOfDimensions]}
 
 type_list ::= (type ("," type)* ("," ANY_TYPE_AND_NUM_OF_ARGS)?)? {pin(".*")=not_close_brace recoverWhile=not_right_paren}
 

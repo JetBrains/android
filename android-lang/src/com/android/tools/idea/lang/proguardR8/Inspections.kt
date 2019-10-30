@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8ArrayType
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMember
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMemberName
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Visitor
@@ -39,6 +40,13 @@ class ProguardR8ClassMemberInspection : LocalInspectionTool() {
           // We can't resolve reference and we highlight it with "unused" (gray colour)
           // because it's not an error in Proguard/R8 to specify class member that doesn't exist
           holder.registerProblem(name.reference!!, "The rule matches no class members", ProblemHighlightType.LIKE_UNUSED_SYMBOL)
+        }
+      }
+
+      override fun visitArrayType(o: ProguardR8ArrayType) {
+        super.visitArrayType(o)
+        if (o.textContains(' ')) {
+          holder.registerProblem(o, "White space is not allowed")
         }
       }
     }

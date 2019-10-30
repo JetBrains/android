@@ -29,6 +29,7 @@ public interface ProguardR8PsiTypes {
   IElementType ANY_FIELD_OR_METHOD = new ProguardR8AstNodeType("ANY_FIELD_OR_METHOD");
   IElementType ANY_PRIMITIVE_TYPE = new ProguardR8AstNodeType("ANY_PRIMITIVE_TYPE");
   IElementType ANY_TYPE = new ProguardR8AstNodeType("ANY_TYPE");
+  IElementType ARRAY_TYPE = new ProguardR8AstNodeType("ARRAY_TYPE");
   IElementType CLASS_MEMBER_NAME = new ProguardR8AstNodeType("CLASS_MEMBER_NAME");
   IElementType CLASS_MODIFIER = new ProguardR8AstNodeType("CLASS_MODIFIER");
   IElementType CLASS_NAME = new ProguardR8AstNodeType("CLASS_NAME");
@@ -131,6 +132,9 @@ public interface ProguardR8PsiTypes {
       }
       else if (type == ANY_TYPE) {
         return new ProguardR8AnyTypeImpl(node);
+      }
+      else if (type == ARRAY_TYPE) {
+        return new ProguardR8ArrayTypeImpl(node);
       }
       else if (type == CLASS_MEMBER_NAME) {
         return new ProguardR8ClassMemberNameImpl(node);

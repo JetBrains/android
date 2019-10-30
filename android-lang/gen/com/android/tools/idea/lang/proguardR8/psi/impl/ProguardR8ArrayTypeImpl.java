@@ -27,16 +27,15 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguardR8.psi.*;
-import com.intellij.psi.PsiType;
 
-public class ProguardR8TypeImpl extends ASTWrapperPsiElement implements ProguardR8Type {
+public class ProguardR8ArrayTypeImpl extends ASTWrapperPsiElement implements ProguardR8ArrayType {
 
-  public ProguardR8TypeImpl(@NotNull ASTNode node) {
+  public ProguardR8ArrayTypeImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull ProguardR8Visitor visitor) {
-    visitor.visitType(this);
+    visitor.visitArrayType(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -45,38 +44,8 @@ public class ProguardR8TypeImpl extends ASTWrapperPsiElement implements Proguard
   }
 
   @Override
-  @Nullable
-  public ProguardR8AnyPrimitiveType getAnyPrimitiveType() {
-    return findChildByClass(ProguardR8AnyPrimitiveType.class);
-  }
-
-  @Override
-  @Nullable
-  public ProguardR8AnyType getAnyType() {
-    return findChildByClass(ProguardR8AnyType.class);
-  }
-
-  @Override
-  @Nullable
-  public ProguardR8ArrayType getArrayType() {
-    return findChildByClass(ProguardR8ArrayType.class);
-  }
-
-  @Override
-  @Nullable
-  public ProguardR8JavaPrimitive getJavaPrimitive() {
-    return findChildByClass(ProguardR8JavaPrimitive.class);
-  }
-
-  @Override
-  @Nullable
-  public ProguardR8QualifiedName getQualifiedName() {
-    return findChildByClass(ProguardR8QualifiedName.class);
-  }
-
-  @Override
-  public boolean matchesPsiType(@NotNull PsiType other) {
-    return ProguardR8PsiImplUtil.matchesPsiType(this, other);
+  public int getNumberOfDimensions() {
+    return ProguardR8PsiImplUtil.getNumberOfDimensions(this);
   }
 
 }
