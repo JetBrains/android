@@ -16,10 +16,10 @@
 package com.android.tools.idea.model
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.indexing.FileContent
 import org.intellij.lang.annotations.Language
 import org.junit.Test
@@ -89,13 +89,15 @@ class AndroidManifestIndexTest {
   }
 }
 
-private class FakeXmlFileContent(val content: String) : FileContent {
+private class FakeXmlFileContent(private val content: String) : FileContent {
+  private val file = MockVirtualFile("", content)
+
   override fun getContentAsText() = content
   override fun getContent() = content.toByteArray()
   override fun <T : Any?> getUserData(key: Key<T>): T? = throw UnsupportedOperationException()
   override fun getFileType(): FileType = StdFileTypes.XML
-  override fun getFile(): VirtualFile = throw UnsupportedOperationException()
-  override fun getFileName(): String = ""
+  override fun getFile() = file
+  override fun getFileName() = ""
   override fun <T : Any?> putUserData(key: Key<T>, value: T?) = throw UnsupportedOperationException()
   override fun getProject() = throw UnsupportedOperationException()
   override fun getPsiFile() = throw UnsupportedOperationException()
