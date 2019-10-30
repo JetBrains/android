@@ -157,10 +157,13 @@ public class IdeaTestSuiteBase {
 
         // Ensure we have access to the link target, as a way to check we don't run into the issue
         // mentioned above.
-        // For reference, the statement below throws an IOException with the message "The create operation
-        // failed because the name contained at least one mount point which resolves to a volume to which
-        // the specified device object is not attached." if there is a problem with the symlink target.
-        linkPath.getFileSystem().provider().checkAccess(linkPath);
+        // Note: File may not exist if "ignoreMissing" is true
+        if (file.exists()) {
+          // For reference, the statement below throws an IOException with the message "The create operation
+          // failed because the name contained at least one mount point which resolves to a volume to which
+          // the specified device object is not attached." if there is a problem with the symlink target.
+          linkPath.getFileSystem().provider().checkAccess(linkPath);
+        }
       }
     }
     catch (IOException e) {
