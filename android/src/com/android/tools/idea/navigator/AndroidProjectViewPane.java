@@ -80,6 +80,7 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
+import org.jetbrains.android.facet.SourceProviders;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -162,7 +163,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
   @NotNull
   public static Iterable<IdeaSourceProvider> getSourceProviders(@NotNull AndroidFacet facet) {
-    SourceProviderManager sourceProviderManager = SourceProviderManager.getInstance(facet);
+    SourceProviders sourceProviderManager = SourceProviderManager.getInstance(facet);
     return Iterables.concat(
       sourceProviderManager.getCurrentSourceProviders(),
       sourceProviderManager.getCurrentTestSourceProviders());

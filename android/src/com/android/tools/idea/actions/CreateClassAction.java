@@ -39,6 +39,7 @@ import com.intellij.util.IncorrectOperationException;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
+import org.jetbrains.android.facet.SourceProviders;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
@@ -131,7 +132,7 @@ public final class CreateClassAction extends AnAction {
       return ide.getOrChooseDirectory();
     }
 
-    SourceProviderManager sourceProviderManager = SourceProviderManager.getInstance(facet);
+    SourceProviders sourceProviderManager = SourceProviderManager.getInstance(facet);
     Collection<VirtualFile> files =
       Streams.concat(
         sourceProviderManager.getCurrentSourceProviders().stream(),

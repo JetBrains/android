@@ -41,7 +41,7 @@ public interface Manifest extends ManifestElement {
    * or specialized methods in {@link AndroidManifestUtils}.
    *
    * <p>Calling this method may come with significant overhead, as the DOM layer needs to be initialized. In performance-critical
-   * situations, callers may want to consider getting the manifest as a {@link VirtualFile} from {@link SourceProviderManager}.
+   * situations, callers may want to consider getting the manifest as a {@link VirtualFile} from {@link SourceProviders}.
    */
   @Nullable
   static Manifest getMainManifest(AndroidFacet facet) {

@@ -52,7 +52,7 @@ interface SourceProviderManager {
      */
     @JvmStatic
     fun replaceForTest(facet: AndroidFacet, disposable: Disposable, sourceSet: IdeaSourceProvider) {
-      facet.putUserData(KEY, object: SourceProviderManager{
+      facet.putUserData(KEY, object: SourceProviders{
         override val currentSourceProviders: List<IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val currentTestSourceProviders: List<IdeaSourceProvider>
@@ -77,7 +77,7 @@ interface SourceProviderManager {
      */
     @JvmStatic
     fun replaceForTest(facet: AndroidFacet, disposable: Disposable, manifestFile: VirtualFile?) {
-      facet.putUserData(KEY, object: SourceProviderManager{
+      facet.putUserData(KEY, object: SourceProviders{
         override val currentSourceProviders: List<IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val currentTestSourceProviders: List<IdeaSourceProvider>
@@ -95,6 +95,9 @@ interface SourceProviderManager {
       Disposer.register(disposable, Disposable { facet.putUserData(KEY, null) })
     }
   }
+}
+
+interface SourceProviders {
 
   val mainIdeaSourceProvider: IdeaSourceProvider
 
@@ -142,12 +145,12 @@ interface SourceProviderManager {
   val mainAndFlavorSourceProviders: List<IdeaSourceProvider>
 }
 
-val AndroidFacet.sourceProviderManager: SourceProviderManager get() = getUserData(KEY) ?: createSourceProviderFor(this)
+val AndroidFacet.sourceProviderManager: SourceProviders get() = getUserData(KEY) ?: createSourceProviderFor(this)
 
 /**
  * A base class to implement SourceProviderManager which provides default implementations for manifest related helper methods.
  */
-private abstract class SourceProviderManagerBase(val facet: AndroidFacet) : SourceProviderManager {
+private abstract class SourceProviderManagerBase(val facet: AndroidFacet) : SourceProviders {
 
   override val mainManifestFile: VirtualFile? get() {
     // When opening a project, many parts of the IDE will try to read information from the manifest. If we close the project before
@@ -328,9 +331,9 @@ private class LegacyDelegate constructor(private val facet: AndroidFacet) : Idea
   override fun hashCode(): Int = facet.hashCode()
 }
 
-private val KEY: Key<SourceProviderManager> = Key.create(::KEY.qualifiedName)
+private val KEY: Key<SourceProviders> = Key.create(::KEY.qualifiedName)
 
-private fun createSourceProviderFor(facet: AndroidFacet): SourceProviderManager {
+private fun createSourceProviderFor(facet: AndroidFacet): SourceProviders {
   val model = if (AndroidModel.isRequired(facet)) AndroidModel.get(facet) else null
   return if (model != null) SourceProviderManagerImpl(facet, model) else LegacySourceProviderManagerImpl(facet)
 }
