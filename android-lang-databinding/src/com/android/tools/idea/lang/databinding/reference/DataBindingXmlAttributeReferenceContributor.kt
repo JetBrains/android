@@ -153,8 +153,11 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
             if (index != -1) {
               referenceList.add(PsiParameterReference(attribute, parameters[index + 1]))
               val adapterContainingClass = annotatedMethod.containingClass ?: return@forEach
-              referenceList.add(PsiMethodReference(attribute, PsiModelMethod(
-                PsiModelClass(PsiTypesUtil.getClassType(adapterContainingClass), mode), annotatedMethod)))
+              referenceList.add(PsiMethodReference(
+                attribute,
+                PsiModelMethod(PsiModelClass(PsiTypesUtil.getClassType(adapterContainingClass), mode), annotatedMethod),
+                PsiMethodReference.Kind.METHOD_REFERENCE
+              ))
             }
           }
         }
@@ -194,7 +197,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
                 val parameters = method.psiMethod.parameterList.parameters
                 if (parameters.size == 1) {
                   referenceList.add(PsiParameterReference(attribute, parameters[0]))
-                  referenceList.add(PsiMethodReference(attribute, method))
+                  referenceList.add(PsiMethodReference(attribute, method, PsiMethodReference.Kind.METHOD_REFERENCE))
                 }
               }
             }
@@ -215,7 +218,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
         val parameters = method.psiMethod.parameterList.parameters
         if (parameters.size == 1) {
           referenceList.add(PsiParameterReference(attribute, parameters[0]))
-          referenceList.add(PsiMethodReference(attribute, method))
+          referenceList.add(PsiMethodReference(attribute, method, PsiMethodReference.Kind.METHOD_REFERENCE))
         }
       }
       return referenceList
@@ -245,8 +248,11 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
               return@forEach
             }
             val annotationContainingClass = annotatedMethod.containingClass ?: return@forEach
-            referenceList.add(PsiMethodReference(attribute, PsiModelMethod(
-              PsiModelClass(PsiTypesUtil.getClassType(annotationContainingClass), mode), annotatedMethod)))
+            referenceList.add(PsiMethodReference(
+              attribute,
+              PsiModelMethod(PsiModelClass(PsiTypesUtil.getClassType(annotationContainingClass), mode), annotatedMethod),
+              PsiMethodReference.Kind.METHOD_CALL
+            ))
           }
         }
       return referenceList
@@ -290,7 +296,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
               }
               for (method in PsiModelClass(type, mode).findMethods(methodName, false)) {
                 if (method.parameterTypes.isEmpty()) {
-                  referenceList.add(PsiMethodReference(attribute, method))
+                  referenceList.add(PsiMethodReference(attribute, method, PsiMethodReference.Kind.METHOD_CALL))
                   break
                 }
               }
@@ -310,8 +316,26 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
       return PsiModelClass(viewType, mode)
                .findMethods(getterName, false)
                .firstOrNull { method -> method.psiMethod.parameterList.isEmpty }
-               ?.let { method -> listOf(PsiMethodReference(attribute, method)) }
+               ?.let { method -> listOf(PsiMethodReference(attribute, method, PsiMethodReference.Kind.METHOD_CALL)) }
              ?: listOf()
     }
   }
+}
+
+/**
+ * Return all possible types that can be set to the attribute.
+ *
+ * The implementation of this method assumes that each valid setter has a correspondent [PsiParameterReference].
+ */
+fun XmlAttribute.getAllSetterTypes(): List<PsiModelClass> {
+  return references.filterIsInstance<PsiParameterReference>().map { it.resolvedType }
+}
+
+/**
+ * Return all possible types that can be get from the attribute.
+ *
+ * The implementation of this method assumes that each valid getter has a [PsiMethodReference] with non-void return type.
+ */
+fun XmlAttribute.getAllGetterTypes(): List<PsiModelClass> {
+  return references.filterIsInstance<PsiMethodReference>().mapNotNull { it.resolvedType }
 }
