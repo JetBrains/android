@@ -104,6 +104,10 @@ open class NelePropertyItem(
   val optionalValue2: Any? = null
 ) : PropertyItem {
 
+  override fun toString(): String {
+    return "$namespace:$name=\"$value\""
+  }
+
   override var value: String?
     get() {
       val rawValue = rawValue
