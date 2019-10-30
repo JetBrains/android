@@ -943,13 +943,6 @@
     <androidDebugger implementation="com.android.tools.idea.run.editor.AndroidJavaDebugger"/>
   </extensions>
 
-  <extensions defaultExtensionNs="com.intellij">
-    <applicationConfigurable parentId="preferences.general"
-                             displayName="Memory Settings"
-                             provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
-                             id="memory.settings"/>
-  </extensions>
-
   <module-components>
     <component>
       <implementation-class>com.android.tools.idea.databinding.DataBindingModuleComponent</implementation-class>
