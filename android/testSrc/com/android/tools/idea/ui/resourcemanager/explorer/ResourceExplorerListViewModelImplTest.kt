@@ -61,17 +61,23 @@ class ResourceExplorerListViewModelImplTest {
   @Rule
   fun getChain() = chain
 
+  private lateinit var largeImageCache: ImageCache
+  private lateinit var smallImageCache: ImageCache
   private lateinit var resourceResolver: ResourceResolver
   private val disposable = Disposer.newDisposable("ResourceExplorerListViewModelImplTest")
 
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath = getTestDataDirectory()
+    largeImageCache = ImageCache.createLargeImageCache(disposable)
+    smallImageCache = ImageCache.createSmallImageCache(disposable)
     resourceResolver = Mockito.mock(ResourceResolver::class.java)
   }
 
   @After
   fun tearDown() {
+    largeImageCache.clear()
+    smallImageCache.clear()
     Disposer.dispose(disposable)
   }
 
@@ -93,6 +99,31 @@ class ResourceExplorerListViewModelImplTest {
       .getIcon(asset, iconSize, iconSize, { println("CALLBACK") }) as ImageIcon
     val image = icon.image as BufferedImage
     ImageDiffUtil.assertImageSimilar(getPNGFile(), image, 0.05)
+  }
+
+  @Test
+  fun getSampleDataPreview() {
+    val latch = CountDownLatch(1)
+    val sampleDataResource = ResourceRepositoryManager.getAppResources(projectRule.module)!!.getResources(
+      // These are bitmap images, preferred for tests.
+      ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA).values().first { it.name == "backgrounds/scenic" }
+    Truth.assertThat(sampleDataResource).isNotNull()
+    val asset = Asset.fromResourceItem(sampleDataResource!!) as DesignAsset
+    val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
+
+    val iconSize = 32 // To compensate the 10% margin around the icon
+    val emptyIcon = viewModel.assetPreviewManager
+      .getPreviewProvider(ResourceType.DRAWABLE)
+      .getIcon(asset, iconSize, iconSize, { latch.countDown() }) as ImageIcon
+    Truth.assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue()
+    val emptyImage = emptyIcon.image as BufferedImage
+    Truth.assertThat(emptyImage.getRGB(0, 0)).isEqualTo(0) // No value in empty icon
+
+    val icon = viewModel.assetPreviewManager
+      .getPreviewProvider(ResourceType.DRAWABLE)
+      .getIcon(asset, iconSize, iconSize, { /* Do nothing */ }) as ImageIcon
+    val image = icon.image as BufferedImage
+    Truth.assertThat(image.getRGB(0, 0)).isNotEqualTo(0)
   }
 
   @Test
@@ -248,8 +279,8 @@ class ResourceExplorerListViewModelImplTest {
       resourceResolver,
       FilterOptions.createDefault(),
       resourceType,
-      ImageCache.createLargeImageCache(disposable),
-      ImageCache.createSmallImageCache(disposable)
+      largeImageCache,
+      smallImageCache
     )
   }
 }
