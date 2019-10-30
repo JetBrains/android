@@ -68,10 +68,7 @@ public class SceneLayer extends Layer {
         return;
       }
     }
-    sceneContext.setShowOnlySelection(!myTemporaryShow &&
-                                      !myShowOnHover &&
-                                      myAlwaysShowSelection &&
-                                      StudioFlags.NELE_SHOW_ONLY_SELECTION.get());
+    sceneContext.setShowOnlySelection(!myTemporaryShow && !myShowOnHover && myAlwaysShowSelection);
     Graphics2D g = (Graphics2D)g2.create();
     try {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
