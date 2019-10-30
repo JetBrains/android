@@ -19,21 +19,17 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.AndroidGradleTests;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestUtil;
-import java.io.File;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 public class AndroidRunConfigurationGradleTest extends AndroidGradleTestCase {
   private AndroidRunConfiguration myRunConfiguration;
