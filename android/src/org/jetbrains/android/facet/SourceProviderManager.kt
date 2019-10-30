@@ -52,7 +52,7 @@ interface SourceProviderManager {
      */
     @JvmStatic
     fun replaceForTest(facet: AndroidFacet, disposable: Disposable, sourceSet: IdeaSourceProvider) {
-      facet.putUserData(KEY, object: SourceProviders{
+      facet.putUserData(KEY, object: SourceProviders {
         override val currentSourceProviders: List<IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val currentTestSourceProviders: List<IdeaSourceProvider>
@@ -77,7 +77,7 @@ interface SourceProviderManager {
      */
     @JvmStatic
     fun replaceForTest(facet: AndroidFacet, disposable: Disposable, manifestFile: VirtualFile?) {
-      facet.putUserData(KEY, object: SourceProviders{
+      facet.putUserData(KEY, object: SourceProviders {
         override val currentSourceProviders: List<IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val currentTestSourceProviders: List<IdeaSourceProvider>
@@ -95,54 +95,6 @@ interface SourceProviderManager {
       Disposer.register(disposable, Disposable { facet.putUserData(KEY, null) })
     }
   }
-}
-
-interface SourceProviders {
-
-  val mainIdeaSourceProvider: IdeaSourceProvider
-
-  val mainManifestFile: VirtualFile?
-
-  /**
-   * Returns a list of source providers, in the overlay order (meaning that later providers
-   * override earlier providers when they redefine resources) for the currently selected variant.
-   *
-   * The overlay source order is defined by the underlying build system.
-   */
-  val currentSourceProviders: List<IdeaSourceProvider>
-
-  /**
-   * Returns a list of source providers for all test artifacts (e.g. both `test/` and `androidTest/` source sets), in increasing
-   * precedence order.
-   *
-   * @see currentSourceProviders
-   */
-  val currentTestSourceProviders: List<IdeaSourceProvider>
-
-  /**
-   * Returns a list of all IDEA source providers, for the given facet, in the overlay order
-   * (meaning that later providers override earlier providers when they redefine resources.)
-   *
-   *
-   * Note that the list will never be empty; there is always at least one source provider.
-   *
-   *
-   * The overlay source order is defined by the underlying build system.
-   *
-   * This method should be used when only on-disk source sets are required. It will return
-   * empty source sets for all other source providers (since VirtualFiles MUST exist on disk).
-   */
-  val allSourceProviders: List<IdeaSourceProvider>
-
-  /**
-   * Returns a list of source providers which includes the main source provider and
-   * product flavor specific source providers.
-   *
-   * DEPRECATED: This is method is added here to support android-kotlin-extensions which
-   * for compatibility reasons require this particular subset of source providers.
-   */
-  @Deprecated("Do not use. This is unlikely to be what anybody needs.")
-  val mainAndFlavorSourceProviders: List<IdeaSourceProvider>
 }
 
 val AndroidFacet.sourceProviderManager: SourceProviders get() = getUserData(KEY) ?: createSourceProviderFor(this)
