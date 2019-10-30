@@ -439,6 +439,9 @@ public class StudioIcons {
     public static final Icon CLEAR_OVERLAY = load("/studio/icons/layout-inspector/clear-overlay.svg"); // 16x16
     public static final Icon COLOR_PICKER = load("/studio/icons/layout-inspector/color-picker.svg"); // 16x16
     public static final Icon LOAD_OVERLAY = load("/studio/icons/layout-inspector/load-overlay.svg"); // 16x16
+    public static final Icon MODE_2D = load("/studio/icons/layout-inspector/mode-2d.svg"); // 16x16
+    public static final Icon MODE_3D = load("/studio/icons/layout-inspector/mode-3d.svg"); // 16x16
+    public static final Icon RESET_VIEW = load("/studio/icons/layout-inspector/reset-view.svg"); // 16x16
   }
 
   public static class Logcat {
