@@ -16,34 +16,23 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
 import com.android.tools.adtui.stdui.menu.CommonPopupMenuUI;
-import com.intellij.openapi.actionSystem.ActionButtonComponent;
-import com.intellij.openapi.actionSystem.ex.ActionButtonLook;
-import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.editor.colors.EditorColors;
-import com.intellij.openapi.editor.colors.EditorColorsManager;
-import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.Insets;
-import java.awt.Rectangle;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.FocusListener;
 import java.awt.image.BufferedImage;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
-import javax.swing.plaf.basic.BasicButtonUI;
 
 /**
  * The access to platform independent UI features allow us to run using the JB components as well as the stand alone.
@@ -106,7 +95,7 @@ public class MEUI {
   public static final Color ourAddConstraintPlus = makeColor("UIDesigner.motion.AddConstraintPlus", 0xffc9c9c9, 0xff333333);
 
   public static BufferedImage createImage(int w, int h, int type) {
-    return UIUtil.createImage(w,h,type);
+    return UIUtil.createImage(w, h, type);
   }
 
   public static class Overview {
@@ -116,11 +105,12 @@ public class MEUI {
     public static final Color ourCS_HoverBorder = makeColor("UIDesigner.motion.HoverColor", 0x7A7A7A, 0xA1A1A1);
     public static final Color ourCS_SelectedFocusBorder = makeColor("UIDesigner.motion.ourCS_SelectedFocusBorder", 0x1886F7, 0x9CCDFF);
     public static final Color ourCS_SelectedBorder = makeColor("UIDesigner.motion.ourCS_SelectedBorder", 0x7A7A7A, 0xA1A1A1);
-    public static final Color ourCS_SelectedFocusBackground = makeColor("UIDesigner.motion.ourCS_SelectedFocusBackground", 0xD1E7FD, 0x7691AB);
+    public static final Color ourCS_SelectedFocusBackground =
+      makeColor("UIDesigner.motion.ourCS_SelectedFocusBackground", 0xD1E7FD, 0x7691AB);
     public static final Color ourCS_SelectedBackground = makeColor("UIDesigner.motion.ourCS_SelectedBackground", 0xD3D3D3, 0x797B7C);
     public static final Color ourCS_Border = makeColor("UIDesigner.motion.ourCS_Border", 0xBEBEBE, 0x6D6D6E);
     public static final Color ourCS_Background = makeColor("UIDesigner.motion.ourCS_Background", 0xFFFFFF, 0x515658);
-    public static final Color ourCS_TextColor= makeColor("UIDesigner.motion.ourCS_TextColor", 0x686868, 0xc7c7c7);
+    public static final Color ourCS_TextColor = makeColor("UIDesigner.motion.ourCS_TextColor", 0x686868, 0xc7c7c7);
     public static final Color ourML_BarColor = makeColor("UIDesigner.motion.ourML_BarColor", 0xd8d8d8, 0x808385);
     public static final Color ourPositionColor = makeColor("UIDesigner.motion.PositionMarkColor", 0XF0A732, 0XF0A732);
   }
@@ -129,6 +119,7 @@ public class MEUI {
     public static final Color ourG_Background = makeColor("UIDesigner.motion.motionGraphBackground", 0xd8d8d8, 0x4f5658);
     public static final Color ourG_line = makeColor("UIDesigner.motion.graphLine", 0xE66F9A, 0x97b1c0);
   }
+
   public static final Color ourSelectedSetColor = new JBColor(0xE1E2E1, 0xF0F1F0);
   public static final Color ourConstraintSet = new JBColor(0xF0F1F0, 0xF0F1F0);
 
@@ -153,7 +144,9 @@ public class MEUI {
 
   public interface Popup {
     void dismiss();
+
     void hide();
+
     void show();
   }
 
@@ -185,7 +178,7 @@ public class MEUI {
 
       @Override
       public void show() {
-         balloon.showInCenterOf(local);
+        balloon.showInCenterOf(local);
       }
     };
   }
@@ -194,4 +187,8 @@ public class MEUI {
     CopyPasteManager.getInstance().setContents(new StringSelection(MTag.serializeTag(tag)));
   }
 
+  public static void cut(MTag tag) {
+    CopyPasteManager.getInstance().setContents(new StringSelection(MTag.serializeTag(tag)));
+    tag.getTagWriter().deleteTag().commit("cut");
+  }
 }

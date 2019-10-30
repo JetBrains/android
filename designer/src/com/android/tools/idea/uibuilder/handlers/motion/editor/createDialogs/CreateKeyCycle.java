@@ -24,6 +24,8 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -49,7 +51,7 @@ public class CreateKeyCycle extends BaseCreateKey {
   static String TITLE = "Create KeyCycle";
   String[] attributeOptions = MotionSceneAttrs.KeyAttributeOptions;
   String[] optionsNameSpace = MotionSceneAttrs.KeyAttributeOptionsNameSpace;
-
+  HashMap<String,MTag> myCustomTypes = new HashMap<>();
   JComboBox<String> attribute = MEUI.makeComboBox(attributeOptions);
   String[] waveShapeOptions = {
     "sin",
@@ -132,6 +134,38 @@ public class CreateKeyCycle extends BaseCreateKey {
     MotionEditorSelector.Type selectionType = model.getSelectedType();
     if (selectionType == null) return false;
     MTag[] selected = model.getSelected();
+
+    // ============ Add custom attributes defined in start or end constraintset
+    MTag start = model.findStartConstraintSet(selected[0]);
+    MTag end = model.findEndConstraintSet(selected[0]);
+    ArrayList<MTag> csets  = new ArrayList<>();
+
+    for (MTag tag : start.getChildTags()) {
+      csets.addAll(Arrays.asList(tag.getChildTags(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)));
+    }
+    for (MTag tag : end.getChildTags()) {
+      csets.addAll(Arrays.asList(tag.getChildTags(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)));
+    }
+    myCustomTypes.clear();
+
+    for (MTag cset : csets) {
+      String str = cset.getAttributeValue(MotionSceneAttrs.ATTR_CUSTOM_ATTRIBUTE_NAME);
+      String value = cset.getAttributeValue(MotionSceneAttrs.ATTR_CUSTOM_FLOAT_VALUE);
+      if (value != null) {
+        myCustomTypes.put(str, cset);
+      }
+    }
+    if (!myCustomTypes.isEmpty()) {
+      attribute.removeAllItems();
+      for (String option : attributeOptions) {
+        attribute.addItem(option);
+      }
+      for (String s : myCustomTypes.keySet()) {
+        attribute.addItem(CreateKeyAttribute.CUSTOM + s);
+      }
+    }
+    // ==================================================
+
     switch (selectionType) {
       case KEY_FRAME:
       case KEY_FRAME_GROUP:
@@ -204,11 +238,23 @@ public class CreateKeyCycle extends BaseCreateKey {
       keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.KeyCycle.WAVE_SHAPE, (String) waveShape.getSelectedItem());
     }
     int index = attribute.getSelectedIndex();
+    if (index < MotionSceneAttrs.KeyCycleOptionsDefaultValue.length) {
     String value =  MotionSceneAttrs.KeyCycleOptionsDefaultValue[index];
     keyPosition.setAttribute(optionsNameSpace[index], (String) attribute.getSelectedItem(), value);
     String offset =  MotionSceneAttrs.KeyCycleOptionsDefaultOffset[index];
     keyPosition.setAttribute(MotionSceneAttrs.MOTION, MotionSceneAttrs.KeyCycle.WAVE_OFFSET , offset);
 
+    } else {
+      String item = (String) attribute.getSelectedItem();
+      if (item.startsWith(CreateKeyAttribute.CUSTOM)) {
+        String name = item.substring(CreateKeyAttribute.CUSTOM.length());
+        MTag copyFromTag = myCustomTypes.get(name);
+        MTag.TagWriter customTag = toCommit.getChildTagWriter(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
+        for (MTag.Attribute value :  copyFromTag.getAttrList().values()) {
+          customTag.setAttribute(value.mNamespace,value.mAttribute,value.mValue);
+        }
+      }
+    }
     MTag ret = toCommit.commit("Create KeyCycle");
     if (KEY_TAG.equals( MotionSceneAttrs.Tags.KEY_TIME_CYCLE)) {
       Track.createKeyTimeCycle();

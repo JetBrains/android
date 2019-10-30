@@ -74,18 +74,18 @@ public class MECreateKeyAttributeTest extends BaseMotionEditorTest {
     panel.access_populateDialog();
 
     String info = "0,CreatorAccess,\n" +
-      "1,JLabel,CREATE KEY ATTRIBUTE\n" +
-      "1,JSeparator,\n" +
-      "1,JRadioButton,\n" +
-      "1,JRadioButton,\n" +
-      "1,JPanel,\n" +
-      "2,PromptedTextField,tag or regex\n" +
-      "2,MEComboBox,number,dial_pad,dialtitle,button1,button2,button3,button4,button5,button6,button7,button8,button9,button10,button11,button12,people_pad,people_title,people1,people2,people3,people4,people5,people6,people7,people8\n" +
-      "1,JLabel,Position\n" +
-      "1,PromptedTextField,0-100\n" +
-      "1,JLabel,Attribute\n" +
-      "1,MEComboBox,alpha,elevation,rotation,rotationX,rotationY,scaleX,scaleY,translationX,translationY,translationZ,transitionPathRotate\n" +
-      "1,JButton,Add\n";
+                  "1,JLabel,CREATE KEY ATTRIBUTE\n" +
+                  "1,JSeparator,\n" +
+                  "1,JRadioButton,\n" +
+                  "1,JRadioButton,\n" +
+                  "1,JPanel,\n" +
+                  "2,PromptedTextField,tag or regex\n" +
+                  "2,MEComboBox,number,dial_pad,dialtitle,button1,button2,button3,button4,button5,button6,button7,button8,button9,button10,button11,button12,people_pad,people_title,people1,people2,people3,people4,people5,people6,people7,people8\n" +
+                  "1,JLabel,Position\n" +
+                  "1,PromptedTextField,0-100\n" +
+                  "1,JLabel,Attribute\n" +
+                  "1,MEComboBox,alpha,elevation,rotation,rotationX,rotationY,scaleX,scaleY,translationX,translationY,translationZ,transitionPathRotate,Custom:letterSpacing\n" +
+                  "1,JButton,Add\n";
     assertEquals(info, componentFieldsString(panel, 0));
     panel.fillAttributes();
     MTag tag = panel.create();

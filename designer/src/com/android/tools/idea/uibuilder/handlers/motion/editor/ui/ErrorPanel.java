@@ -125,6 +125,16 @@ public class ErrorPanel extends JPanel {
     String parent = tag.getTagName();
     for (int i = 0; i < child.length; i++) {
       String childName = child[i].getTagName();
+      // Special case custom attribute which can be in CONSTRAINT,KEY_CYCLE, KEY_ATTRIBUTE, or KEY_TIME_CYCLE
+      if (MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE.equals(childName) &&
+          (parent.equals(MotionSceneAttrs.Tags.CONSTRAINT)
+            || parent.equals(MotionSceneAttrs.Tags.KEY_CYCLE)
+            || parent.equals(MotionSceneAttrs.Tags.KEY_ATTRIBUTE)
+            || parent.equals(MotionSceneAttrs.Tags.KEY_TIME_CYCLE)
+        )) {
+          continue;
+        }
+
       String shouldBeIn = containedIn.get(childName);
       if (shouldBeIn == null) {
         ret = ((ret != null)?ret+"\n":"" ) + "<li> &lt;" + childName +"&gt; of parent &lt;"+parent+"&gt; unknown</li>";
