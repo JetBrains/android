@@ -31,7 +31,6 @@ import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
 import static com.android.SdkConstants.TOOLS_SAMPLE_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-import static com.android.tools.idea.flags.StudioFlags.NELE_SAMPLE_DATA_UI;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
@@ -219,9 +218,6 @@ public class ImageViewHandler extends ViewHandler {
 
   @Nullable
   private ComponentAssistantFactory getComponentAssistant(@NotNull NlComponent component) {
-    if (!NELE_SAMPLE_DATA_UI.get()) {
-      return null;
-    }
     return (context) -> new ImageViewAssistant(context, this).getComponent();
   }
 
