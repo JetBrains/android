@@ -241,11 +241,6 @@ public final class StudioFlags {
     "Enable the continuous rendering of the surface when moving/resizing components unless the user disables it.",
     true);
 
-  public static final Flag<Boolean> NELE_SAMPLE_DATA_UI = Flag.create(
-    NELE, "widget.assistant", "Enable the new Sample Data UI components",
-    "Enable the Sample Data UI to setup tools attributes.",
-    true);
-
   public static final Flag<Boolean> NELE_CONVERT_VIEW = Flag.create(
     NELE, "convert.view", "Enable the Convert View action",
     "Enable the Convert View Action when right clicking on a component",

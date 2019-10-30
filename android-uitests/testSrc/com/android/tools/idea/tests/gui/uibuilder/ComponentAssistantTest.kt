@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture
@@ -37,16 +36,6 @@ class ComponentAssistantTest {
   @JvmField
   @Rule
   val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
-
-  @Before
-  fun setUp() {
-    StudioFlags.NELE_SAMPLE_DATA_UI.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NELE_SAMPLE_DATA_UI.clearOverride()
-  }
 
   @Test
   fun testRecyclerViewAssistantAvailable() {

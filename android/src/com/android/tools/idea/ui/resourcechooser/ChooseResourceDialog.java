@@ -28,7 +28,6 @@ import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.RenderTask;
@@ -1377,7 +1376,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       myComponent.setSplitterProportionKey("android.resource_dialog_splitter");
       CompletableFuture.runAsync(() -> {
         List<ResourceChooserGroup> groups = Lists.newArrayListWithCapacity(4);
-        if (showSampleDataPicker && StudioFlags.NELE_SAMPLE_DATA_UI.get()) {
+        if (showSampleDataPicker) {
           ResourceChooserGroup sampleDataItems = ResourceChooserGroups.createSampleDataGroup(type, myFacet);
           if (!sampleDataItems.isEmpty()) {
             groups.add(sampleDataItems);
