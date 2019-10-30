@@ -41,8 +41,8 @@ import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.text.trimMiddle
 import org.jetbrains.ide.PooledThreadExecutor
-import java.nio.file.Path
 import java.util.concurrent.Executor
 import java.util.function.Consumer
 
@@ -302,15 +302,15 @@ class SqliteController(
           get() = false
 
         override fun onStarting(entryFullPath: String) {
-          sqliteView.reportSyncProgress("${entryFullPath}: start sync")
+          sqliteView.reportSyncProgress("${entryFullPath.trimMiddle(20, true)}: start sync")
         }
 
         override fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long) {
-          sqliteView.reportSyncProgress("${entryFullPath}: sync progress $currentBytes/$totalBytes")
+          sqliteView.reportSyncProgress("${entryFullPath.trimMiddle(20, true)}: sync progress $currentBytes/$totalBytes")
         }
 
         override fun onCompleted(entryFullPath: String) {
-          sqliteView.reportSyncProgress("${entryFullPath}: sync completed")
+          sqliteView.reportSyncProgress("${entryFullPath.trimMiddle(20, true)}: sync completed")
         }
       })
 
