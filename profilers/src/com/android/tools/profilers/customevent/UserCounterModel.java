@@ -79,8 +79,7 @@ public class UserCounterModel extends LineChartModel {
   }
 
   @NotNull
-  @VisibleForTesting
-  String getEventName() {
+  public String getEventName() {
     return myEventName;
   }
 }

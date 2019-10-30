@@ -93,7 +93,8 @@ public class CustomEventProfilerStage extends Stage {
     myUserCounterModels.add(dataModel);
 
     // Create a track model with that has the data model for this event.
-    return new CustomEventTrackModel(dataModel);
+    Range dataRange = getStudioProfilers().getTimeline().getDataRange();
+    return new CustomEventTrackModel(dataModel, dataRange);
   }
 
 
