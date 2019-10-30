@@ -18,10 +18,11 @@ package com.android.tools.idea.templates
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VfsUtilCore.isEqualOrAncestor
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
-import org.jetbrains.android.facet.allSourceFolders
+import org.jetbrains.android.facet.allSourceFolderUrls
 import org.jetbrains.android.facet.containsFile
 
 /**
@@ -63,6 +64,5 @@ fun getSourceProvidersForFile(
 
 @VisibleForTesting
 fun IdeaSourceProvider.isContainedBy(targetFolder: VirtualFile): Boolean {
-  return allSourceFolders.any { VfsUtilCore.isAncestor(targetFolder, it, false) }
+  return isEqualOrAncestor(targetFolder.url, manifestFileUrl) || allSourceFolderUrls.any { isEqualOrAncestor(targetFolder.url, it) }
 }
-

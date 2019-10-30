@@ -19,25 +19,17 @@ package org.jetbrains.android.facet
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.intellij.openapi.vfs.VfsUtilCore.isAncestor
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.containers.ContainerUtil.flatten
 
 /**
  * Returns true if this SourceProvider has one or more source folders contained by (or equal to)
  * the given folder.
  */
 fun containsFile(provider: IdeaSourceProvider, file: VirtualFile): Boolean {
-  val srcDirectories = provider.allSourceFolders
-  if (provider.manifestFile == file) {
+  if (provider.manifestFile == file || provider.manifestDirectory == file) {
     return true
   }
 
-  for (container in srcDirectories) {
-    // Check the flavor root directories
-    val parent = container.parent
-    if (parent != null && parent.isDirectory && parent == file) {
-      return true
-    }
-
+  for (container in provider.allSourceFolders) {
     // Don't do ancestry checking if this file doesn't exist
     if (!container.exists()) {
       continue
@@ -64,8 +56,33 @@ fun getManifestFiles(facet: AndroidFacet): List<VirtualFile> {
   return SourceProviderManager.getInstance(facet).currentSourceProviders.mapNotNull { it.manifestFile }
 }
 
-val IdeaSourceProvider.allSourceFolders: Collection<VirtualFile>
+val IdeaSourceProvider.allSourceFolders: Sequence<VirtualFile>
   get() =
-    flatten(arrayOf(javaDirectories, resDirectories, aidlDirectories, renderscriptDirectories, assetsDirectories, jniDirectories,
-                    jniLibsDirectories))
+    arrayOf(
+      javaDirectories,
+      resDirectories,
+      aidlDirectories,
+      renderscriptDirectories,
+      assetsDirectories,
+      jniDirectories,
+      jniLibsDirectories
+    )
+      .asSequence()
+      .flatten()
+
+
+val IdeaSourceProvider.allSourceFolderUrls: Sequence<String>
+  get() =
+    arrayOf(
+      javaDirectoryUrls,
+      resDirectoryUrls,
+      aidlDirectoryUrls,
+      renderscriptDirectoryUrls,
+      assetsDirectoryUrls,
+      jniDirectoryUrls,
+      jniLibsDirectoryUrls
+    )
+      .asSequence()
+      .flatten()
+
 
