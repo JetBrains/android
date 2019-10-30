@@ -16,13 +16,16 @@
 package com.android.tools.idea.rendering;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.rendering.api.Result;
@@ -31,9 +34,16 @@ import com.android.resources.ResourceType;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.CrashReporter;
+import com.android.tools.idea.Projects;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.gradle.TestProjects;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.model.AndroidModel;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.CompilerProjectExtension;
@@ -49,6 +59,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -56,16 +67,13 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.imageio.ImageIO;
+import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 public class RenderTaskTest extends AndroidTestCase {
-  // Using native rendering should have less variation between machines than Java rendering
-  // so the threshold for image diff can be lower than the default.
-  private static final double IMAGE_DIFF_THRESHOLD_PERCENT = 0.1;
-
   @Language("XML")
   private static final String SIMPLE_LAYOUT = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                                               "    android:layout_height=\"match_parent\"\n" +
@@ -146,7 +154,7 @@ public class RenderTaskTest extends AndroidTestCase {
       g.dispose();
     }
 
-    ImageDiffUtil.assertImageSimilar("drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+    ImageDiffUtil.assertImageSimilar("drawable", goldenImage, result, 0.1);
 
     task.dispose().get(5, TimeUnit.SECONDS);
   }
@@ -184,7 +192,7 @@ public class RenderTaskTest extends AndroidTestCase {
     assertNotNull(result);
 
     File goldenImage = new File(getTestDataPath() + "/drawables/custom-golden.png");
-    ImageDiffUtil.assertImageSimilar(goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+    ImageDiffUtil.assertImageSimilar(goldenImage, result, 0.1);
 
     task.dispose().get(5, TimeUnit.SECONDS);
   }
@@ -243,7 +251,8 @@ public class RenderTaskTest extends AndroidTestCase {
     task.dispose().get(5, TimeUnit.SECONDS);
   }
 
-  public void testAsyncCallAndDispose() throws ExecutionException, InterruptedException, TimeoutException {
+  public void testAsyncCallAndDispose()
+    throws IOException, ExecutionException, InterruptedException, BrokenBarrierException, TimeoutException {
     VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, layoutFile);
     RenderLogger logger = mock(RenderLogger.class);
@@ -335,7 +344,7 @@ public class RenderTaskTest extends AndroidTestCase {
     assertNotNull(result);
 
     BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/drawables/gradient-golden.png"));
-    ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+    ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, 0.1);
 
     task.dispose().get(5, TimeUnit.SECONDS);
   }
@@ -377,12 +386,13 @@ public class RenderTaskTest extends AndroidTestCase {
     assertNotNull(result);
 
     BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/drawables/animated-vector-golden.png"));
-    ImageDiffUtil.assertImageSimilar("animated_vector_drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+    ImageDiffUtil.assertImageSimilar("animated_vector_drawable", goldenImage, result, 0.1);
 
     task.dispose().get(5, TimeUnit.SECONDS);
   }
 
-  public void testCjkFontSupport() throws InterruptedException, ExecutionException, TimeoutException, IOException {
+  // b/117489965
+  public void ignore_testCjkFontSupport() throws InterruptedException, ExecutionException, TimeoutException, IOException {
     @Language("XML")
     final String content= "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                           "    android:layout_height=\"match_parent\"\n" +
@@ -436,14 +446,16 @@ public class RenderTaskTest extends AndroidTestCase {
 
     VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", content).getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
+    configuration.setTheme("android:Theme.NoTitleBar.Fullscree");
     RenderLogger logger = mock(RenderLogger.class);
 
     RenderTask task = RenderTestUtil.createRenderTask(myFacet, file, configuration, logger);
-    task.setDecorations(false);
     BufferedImage result = task.render().get().getRenderedImage().getCopy();
 
     BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/cjk-golden.png"));
-    ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+    // Fonts on OpenJDK look slightly different than on the IntelliJ version. Increase the diff tolerance to
+    // 0.5 to account for that. We mostly care about characters not being displayed at all.
+    ImageDiffUtil.assertImageSimilar("gradient_drawable", goldenImage, result, DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT);
     task.dispose().get(5, TimeUnit.SECONDS);
   }
 
@@ -538,37 +550,8 @@ public class RenderTaskTest extends AndroidTestCase {
 
     //ImageIO.write(result, "png", new File(getTestDataPath() + "/drawables/animated-vector-aapt-golden.png"));
     BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/drawables/animated-vector-aapt-golden.png"));
-    ImageDiffUtil.assertImageSimilar("animated_vector_drawable", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+    ImageDiffUtil.assertImageSimilar("animated_vector_drawable", goldenImage, result, 0.1);
 
-    task.dispose().get(5, TimeUnit.SECONDS);
-  }
-
-  public void testEmojiSupport() throws InterruptedException, ExecutionException, TimeoutException, IOException {
-    @Language("XML") final String content = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                            "    android:layout_height=\"match_parent\"\n" +
-                                            "    android:layout_width=\"match_parent\"\n" +
-                                            "    android:orientation=\"vertical\"\n" +
-                                            "    android:background=\"#FFF\">\n" +
-                                            "\n" +
-                                            "    <TextView\n" +
-                                            "        android:layout_width=\"wrap_content\"\n" +
-                                            "        android:layout_height=\"wrap_content\"\n" +
-                                            "        android:textSize=\"50sp\"\n" +
-                                            "        android:text=\"\uD83D\uDE00  \uD83D\uDC22  \uD83E\uDD51\"/>\n" +
-                                            "    \n" +
-                                            "\n" +
-                                            "</LinearLayout>";
-
-    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", content).getVirtualFile();
-    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
-    RenderLogger logger = mock(RenderLogger.class);
-
-    RenderTask task = RenderTestUtil.createRenderTask(myFacet, file, configuration, logger);
-    task.setDecorations(false);
-    BufferedImage result = task.render().get().getRenderedImage().getCopy();
-
-    BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/emoji.png"));
-    ImageDiffUtil.assertImageSimilar("emojis", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
     task.dispose().get(5, TimeUnit.SECONDS);
   }
 }
