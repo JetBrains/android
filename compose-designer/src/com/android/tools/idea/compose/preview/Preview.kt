@@ -660,9 +660,9 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
 }
 
 private class ComposeTextEditorWithPreview constructor(
-  val composeTextEditor: TextEditor,
+  composeTextEditor: TextEditor,
   val preview: PreviewEditor) :
-  SeamlessTextEditorWithPreview(composeTextEditor, preview, "Compose Editor"), TextEditor {
+  SeamlessTextEditorWithPreview(composeTextEditor, preview, "Compose Editor") {
   init {
     ForceCompileAndRefreshAction().registerCustomShortcutSet(getBuildAndRefreshShortcut(), component, this)
   }
