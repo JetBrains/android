@@ -20,6 +20,7 @@ import static com.android.tools.profilers.ProfilerLayout.MARKER_LENGTH;
 import static com.android.tools.profilers.ProfilerLayout.Y_AXIS_TOP_MARGIN;
 
 import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.LineChart;
@@ -36,6 +37,7 @@ import java.awt.BorderLayout;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -85,8 +87,17 @@ public class CustomEventTrackRenderer implements TrackRenderer<CustomEventTrackM
     leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(leftAxis, BorderLayout.WEST);
 
-    // TODO (b/141710789) Add in legend for the track
+    // Legend Panel
+    JLabel titleLabel = new JLabel(" " + trackModel.getDataModel().getName());
+    CustomEventTrackModel.Legends legends = trackModel.getDataModel().getLegends();
+    LegendComponent legend = new CustomEventTrackLegendComponent(legends);
+    legend.configure(legends.getTrackLegend(),new LegendConfig(LegendConfig.IconType.NONE, ProfilerColors.USER_COUNTER_EVENT_NONE));
+    final JPanel legendPanel = new JBPanel(new TabularLayout("*,*", "*,*"));
+    legendPanel.setOpaque(false);
+    legendPanel.add(titleLabel, new TabularLayout.Constraint(0, 0, 1, 2));
+    legendPanel.add(legend, new TabularLayout.Constraint(1, 0));
 
+    container.add(legendPanel, new TabularLayout.Constraint(0, 0));
     container.add(leftAxis, new TabularLayout.Constraint(0, 1));
     container.add(lineChartPanel, new TabularLayout.Constraint(0, 1));
     // Add a line to separate each track at the bottom.
