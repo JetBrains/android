@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.CLASS_COMPOSE;
+import static com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 import com.android.SdkConstants;
@@ -79,6 +81,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -306,6 +309,40 @@ public class RenderTask {
     }
   }
 
+  // Workaround for http://b/143378087
+  private void clearCompose() {
+    if (!myLayoutlibCallback.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
+      // If Compose has not been loaded, we do not need to care about disposing it
+      return;
+    }
+
+    try {
+      Class<?> composeClass = myLayoutlibCallback.findClass(CLASS_COMPOSE);
+      Field emittableRootField = composeClass.getDeclaredField("EMITTABLE_ROOT_COMPONENT");
+      Field viewGroupRootField = composeClass.getDeclaredField("VIEWGROUP_ROOT_COMPONENT");
+
+      emittableRootField.setAccessible(true);
+      viewGroupRootField.setAccessible(true);
+
+      // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
+      RenderService.runAsyncRenderAction(() -> {
+        try {
+          WeakHashMap emittable = (WeakHashMap)emittableRootField.get(null);
+          emittable.clear();
+
+          WeakHashMap viewGroup = (WeakHashMap)viewGroupRootField.get(null);
+          viewGroup.clear();
+        }
+        catch (IllegalAccessException e) {
+          LOG.debug(e);
+        }
+      });
+    }
+    catch (Throwable t) {
+      LOG.debug(t);
+    }
+  }
+
   /**
    * Disposes the RenderTask and releases the allocated resources. The execution of the dispose operation will run asynchronously.
    * The returned {@link Future} can be used to wait for the dispose operation to complete.
@@ -343,6 +380,11 @@ public class RenderTask {
       myAssetRepository = null;
 
       clearGapWorkerCache();
+      clearCompose();
+
+      RenderService.runAsyncRenderAction(() -> {
+        android.view.Choreographer.releaseInstance();
+      });
 
       return null;
     });
