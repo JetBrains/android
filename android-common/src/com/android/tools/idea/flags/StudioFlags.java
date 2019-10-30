@@ -246,11 +246,6 @@ public final class StudioFlags {
     "Enable the Convert View Action when right clicking on a component",
     true);
 
-  public static final Flag<Boolean> ENABLE_NEW_SCOUT = Flag.create(
-    NELE, "exp.scout.engine", "Experimental version of the Scout inference system",
-    "Enable experimental version of the Scout inference system",
-    false);
-
   public static final Flag<Boolean> NELE_RENDER_DIAGNOSTICS = Flag.create(
     NELE, "diagnostics", "Enable rendering on-screen stats",
     "If enabled, the surface displays some debug information to diagnose performance",
