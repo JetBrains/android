@@ -21,6 +21,7 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaParameters
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
+import com.android.utils.usLocaleCapitalize
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
@@ -62,8 +63,8 @@ internal class PsiMethodReference private constructor(element: PsiElement,
   constructor(expr: PsiDbFunctionRefExpr, method: PsiModelMethod)
     : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset), Kind.METHOD_REFERENCE)
 
-  constructor(attr: XmlAttribute, method: PsiModelMethod)
-    : this(attr, method, attr.textRange.shiftLeft(attr.textOffset), Kind.METHOD_REFERENCE)
+  constructor(attr: XmlAttribute, method: PsiModelMethod, kind: Kind)
+    : this(attr, method, attr.textRange.shiftLeft(attr.textOffset), kind)
 
   constructor(parameters: PsiDbLambdaParameters, method: PsiModelMethod)
     : this(parameters, method, parameters.textRange.shiftLeft(parameters.textOffset), Kind.METHOD_REFERENCE)
@@ -91,5 +92,13 @@ internal class PsiMethodReference private constructor(element: PsiElement,
 
     identifier.rawReplaceWithText(stripped)
     return identifier
+  }
+
+  /**
+   * Returns true if the reference can refer a field with [fieldName] to its setter method.
+   * e.g. `user.getName().toUpperCase()` is valid while `user::getName.toUpperCase()` is not
+   */
+  fun isSetterReferenceFrom(fieldName: String): Boolean {
+    return kind == Kind.METHOD_REFERENCE && (resolve() as PsiMethod).name == "set${fieldName.usLocaleCapitalize()}"
   }
 }

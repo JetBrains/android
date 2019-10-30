@@ -148,7 +148,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    * Returns true if this is an ObservableField, or any of the primitive versions
    * such as ObservableBoolean and ObservableInt
    */
-  private val isObservableField
+  val isObservableField
     get() =
       psiClass?.let { resolvedClass ->
         mode.observableFields.any { className ->
@@ -160,7 +160,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
   /**
    * Returns true if this is a LiveData
    */
-  private val isLiveData
+  val isLiveData
     get() = psiClass?.let { resolvedClass ->
       val liveDataClass = PsiModelClass(LayoutBindingTypeUtil.parsePsiType(mode.liveData, resolvedClass)!!, mode)
       liveDataClass.isAssignableFrom(erasure())
