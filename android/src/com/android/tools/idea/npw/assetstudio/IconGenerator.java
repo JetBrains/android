@@ -352,16 +352,20 @@ public abstract class IconGenerator implements Disposable {
     List<GeneratedIcon> icons = new ArrayList<>(futures.size());
 
     Disposable taskCanceler = () -> {
-      for (Future<GeneratedIcon> f : futures) {
-        f.cancel(true);
+      synchronized (futures) {
+        for (Future<GeneratedIcon> f : futures) {
+          f.cancel(true);
+        }
       }
     };
 
     Disposer.register(this, taskCanceler);
 
     // Execute tasks in parallel and wait for results.
-    for (Callable<GeneratedIcon> task: tasks) {
-      futures.add(ApplicationManager.getApplication().executeOnPooledThread(task));
+    synchronized (futures) {
+      for (Callable<GeneratedIcon> task : tasks) {
+        futures.add(ApplicationManager.getApplication().executeOnPooledThread(task));
+      }
     }
 
     for(Future<GeneratedIcon> future: futures) {
