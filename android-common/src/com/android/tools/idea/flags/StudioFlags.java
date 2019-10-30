@@ -261,11 +261,6 @@ public final class StudioFlags {
     "If enabled, the surface displays some debug information to diagnose performance",
     false);
 
-  public static final Flag<Boolean> NELE_SHOW_ONLY_SELECTION = Flag.create(
-    NELE, "show.only.selection", "Show only selection boundaries when mouse is not hovered in layout",
-    "Enable this flag to show selection boundaries without other decoration when mouse is not hovered in layout",
-    true);
-
   public static final Flag<Boolean> NELE_SPLIT_EDITOR = Flag.create(
     NELE, "split.layout.editor", "Enable design editors and XML side-by-side view.",
     "Enable this flag to display the design editors side-by-side with their text representation.",
