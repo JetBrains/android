@@ -21,6 +21,7 @@ import com.android.resources.ResourceType
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.res.SampleDataResourceItem
 import com.android.tools.idea.res.resolveDrawable
 import com.android.tools.idea.res.toFileResourcePathString
 import com.android.tools.idea.ui.resourcemanager.ImageCache
@@ -82,6 +83,11 @@ class DrawableIconProvider(
   val project = facet.module.project
 
   private fun getDrawableImage(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out BufferedImage?>? {
+    if (designAsset.resourceItem is SampleDataResourceItem) {
+      // Do not try to resolve SampleData, it will return an iterable resourceValue that will generate different previews.
+      val file = designAsset.file
+      return DesignAssetRendererManager.getInstance().getViewer(file).getImage(file, facet.module, dimension)
+    }
     val resolveValue = resourceResolver.resolveValue(designAsset) ?: return null
     if (resolveValue.isFramework) {
       // Delegate framework resources to FrameworkDrawableRenderer. DesignAssetRendererManager fails to provide an image for framework xml
