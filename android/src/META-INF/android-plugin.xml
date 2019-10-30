@@ -1022,13 +1022,6 @@
     <androidDebugger implementation="com.android.tools.idea.run.editor.AndroidJavaDebugger"/>
   </extensions>
 
-  <extensions defaultExtensionNs="com.intellij">
-    <applicationConfigurable parentId="preferences.general"
-                             displayName="Memory Settings"
-                             provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
-                             id="memory.settings"/>
-  </extensions>
-
   <extensions defaultExtensionNs="com.android.tools.idea.wizard.template">
     <wizardTemplateProvider implementation="com.android.tools.idea.wizard.template.impl.WizardTemplateProviderImpl" />
   </extensions>
