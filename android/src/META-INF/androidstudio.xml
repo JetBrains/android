@@ -155,6 +155,10 @@
                      implementationClass="org.jetbrains.android.inspections.AndroidDeprecationInspection"/>
     <langCodeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidXmlLanguageCodeStyleSettingsProvider" order="first"/>
 
+    <applicationConfigurable parentId="preferences.general"
+                             displayName="Memory Settings"
+                             provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
+                             id="memory.settings"/>
   </extensions>
 
 </idea-plugin>
