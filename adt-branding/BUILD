@@ -7,6 +7,9 @@ iml_module(
     bundle_data = glob(["**"]),
     iml_files = ["intellij.android.adt.branding.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    test_data = [
+        "//tools/idea/native/WinLauncher/WinLauncher:embedded_image_files",
+    ],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
@@ -32,6 +35,7 @@ iml_module(
         "//tools/idea/java/plugin:intellij.java.plugin",
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
     ],
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
@@ -50,5 +54,9 @@ iml_module(
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
         "//tools/idea:intellij.platform.jps.build_and_others[module]",
         "//tools/idea/xml/impl:intellij.xml.impl[module]",
+        "//tools/idea/.idea/libraries:JUnit4[test]",
+        "//tools/idea/.idea/libraries:commons-imaging[test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/idea/.idea/libraries:truth[test]",
     ],
 )
