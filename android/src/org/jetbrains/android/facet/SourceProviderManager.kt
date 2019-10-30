@@ -225,7 +225,10 @@ private class LegacyDelegate constructor(private val facet: AndroidFacet) : Idea
   }
 
   override val manifestDirectory: VirtualFile?
-    get() = VfsUtil.getParentDir(manifestFileUrl)?.let { VirtualFileManager.getInstance().findFileByUrl(it) }
+    get() = VirtualFileManager.getInstance().findFileByUrl(manifestDirectoryUrl)
+
+  override val manifestDirectoryUrl: String
+    get() = VfsUtil.getParentDir(manifestFileUrl) ?: error("Invalid manifestFileUrl: $manifestFileUrl")
 
   override val manifestFile: VirtualFile?
     // Not calling AndroidRootUtil.getMainContentRoot(myFacet) because that method can
