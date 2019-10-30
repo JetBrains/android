@@ -43,7 +43,7 @@ class DeviceViewPanelActionsToolbar(
   override fun getActionGroups() = LayoutInspectorToolbarGroups
 }
 
-object RecenterAction : AnAction(StudioIcons.LayoutEditor.Motion.BASE_LAYOUT) { // TODO: replace icon
+object RecenterAction : AnAction(StudioIcons.LayoutInspector.RESET_VIEW) {
   override fun actionPerformed(event: AnActionEvent) {
     event.getData(DEVICE_VIEW_MODEL_KEY)?.resetRotation()
   }
