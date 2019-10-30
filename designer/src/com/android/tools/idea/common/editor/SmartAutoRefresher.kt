@@ -31,33 +31,24 @@ import java.util.function.Consumer
 interface SmartRefreshable : Disposable {
   fun refresh()
   fun buildFailed() {}
+  fun buildStarted() {}
 }
 
 /**
- * This is the component that receives updates every time gradle build finishes. On successful build, it calls [SmartRefreshable#refresh]
- * method of the passed [SmartRefreshable]. If the build fails, [SmartRefreshable#buildFailed] will be called instead.
+ * This is the component that receives updates every time gradle build starts or finishes. On successful build, it calls
+ * [SmartRefreshable.refresh] method of the passed [SmartRefreshable]. If the build fails, [SmartRefreshable.buildFailed] will be called
+ * instead.
  *
  * This is intended to be used by [com.intellij.openapi.fileEditor.FileEditor]'s. The editor should recreate/amend the model to reflect
  * build changes. This component should be created the last, so that all other members are initialized as it could call [refresh] method
  * straight away.
  */
-class SmartAutoRefresher(psiFile: PsiFile,
-                         private val refreshable: SmartRefreshable,
-                         private val onBuildStarted: (() -> Unit)? = null) {
+class SmartAutoRefresher(psiFile: PsiFile, private val refreshable: SmartRefreshable) {
   private val project = psiFile.project
   private val virtualFile = psiFile.virtualFile!!
 
   private fun BuildStatus?.isSuccess(): Boolean =
     this == BuildStatus.SKIPPED || this == BuildStatus.SUCCESS
-
-  /**
-   * Method triggered on successful gradle build.
-   */
-  private fun refresh() {
-    if (!Disposer.isDisposed(refreshable)) {
-      refreshable.refresh()
-    }
-  }
 
   /**
    * Initializes the preview editor and triggers a refresh. This method can only be called once
@@ -66,24 +57,24 @@ class SmartAutoRefresher(psiFile: PsiFile,
   private fun initPreviewWhenSmartAndSynced() {
     val status = GradleBuildState.getInstance(project)?.summary?.status
     if (status.isSuccess()) {
-      refresh()
+      // This is called from runWhenSmartAndSyncedOnEdt callback which should not be called if refreshable is disposed
+      refreshable.refresh()
     }
 
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
+      // We do not have to check isDisposed inside the callbacks since they won't get called if refreshable is disposed
       override fun buildStarted(context: BuildContext) {
-        onBuildStarted?.invoke()
+        refreshable.buildStarted()
         EditorNotifications.getInstance(project).updateNotifications(virtualFile)
       }
 
       override fun buildFinished(status: BuildStatus, context: BuildContext?) {
         EditorNotifications.getInstance(project).updateNotifications(virtualFile)
         if (status.isSuccess()) {
-          refresh()
+          refreshable.refresh()
         }
         else {
-          if (!Disposer.isDisposed(refreshable)) {
-            refreshable.buildFailed()
-          }
+          refreshable.buildFailed()
         }
       }
     }, refreshable)
@@ -93,6 +84,7 @@ class SmartAutoRefresher(psiFile: PsiFile,
    * Initialize the preview. This method does not make assumptions about the project sync and smart status.
    */
   private fun initPreview() {
+    if (Disposer.isDisposed(refreshable)) return
     // We are not registering before the constructor finishes, so we should be safe here
     project.runWhenSmartAndSyncedOnEdt(refreshable, Consumer { result ->
       if (result.isSuccessful) {
