@@ -97,14 +97,14 @@ class ResourceFolderManager(
   /**
    * Returns main (production) resource directories, in increasing precedence order.
    *
-   * @see SourceProviderManager.currentSourceProviders
+   * @see SourceProviders.currentSourceProviders
    */
   val folders get() = mainAndTestFolders.main
 
   /**
    * Returns test resource directories, in the overlay order.
    *
-   * @see SourceProviderManager.currentTestSourceProviders
+   * @see SourceProviders.currentTestSourceProviders
    */
   val testFolders get() = mainAndTestFolders.test
 

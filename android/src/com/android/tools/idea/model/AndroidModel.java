@@ -73,7 +73,7 @@ public interface AndroidModel {
 
   /**
    * @return the default source provider.
-   * @see org.jetbrains.android.facet.SourceProviderManager
+   * @see org.jetbrains.android.facet.SourceProviders
    */
   @Deprecated
   @NotNull
@@ -82,7 +82,7 @@ public interface AndroidModel {
   /**
    * @return the currently active (non-test) source providers for this Android module in overlay order (meaning that later providers
    * override earlier providers when they redefine resources).
-   * {@link org.jetbrains.android.facet.SourceProviderManager#getCurrentSourceProviders}
+   * {@link org.jetbrains.android.facet.SourceProviders#getCurrentSourceProviders}
    */
   @Deprecated
   @NotNull
@@ -90,7 +90,7 @@ public interface AndroidModel {
 
   /**
    * @return the currently active test source providers for this Android module in overlay order.
-   * {@link org.jetbrains.android.facet.SourceProviderManager#getCurrentTestSourceProviders}
+   * {@link org.jetbrains.android.facet.SourceProviders#getCurrentTestSourceProviders}
    */
   @Deprecated
   @NotNull

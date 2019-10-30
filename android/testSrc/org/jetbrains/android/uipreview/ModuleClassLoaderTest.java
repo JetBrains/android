@@ -59,6 +59,7 @@ import javax.tools.ToolProvider;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.SourceProviderManager;
+import org.jetbrains.android.facet.SourceProviders;
 import org.jetbrains.annotations.NotNull;
 
 public class ModuleClassLoaderTest extends AndroidTestCase {
@@ -227,7 +228,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   }
 
   public void testLibRClass() throws Exception {
-    SourceProviderManager sourceProviderManager = SourceProviderManager.getInstance(myFacet);
+    SourceProviders sourceProviderManager = SourceProviderManager.getInstance(myFacet);
     VirtualFile defaultManifest = sourceProviderManager.getMainManifestFile();
 
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
