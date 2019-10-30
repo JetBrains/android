@@ -358,17 +358,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
     /**
      * Calls refresh method on the successful gradle build
      */
-    SmartAutoRefresher(psiFile, this) { isRefreshingPreview = true }
-
-    GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
-      override fun buildStarted(context: BuildContext) {
-        //  Show a loading message only if the content is not already displaying to avoid hiding it.
-        if (workbench.isMessageVisible) {
-          workbench.showLoading(message("panel.building"))
-          workbench.hideContent()
-        }
-      }
-    }, this)
+    SmartAutoRefresher(psiFile, this)
   }
 
   private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce || surface.models.asSequence()
@@ -459,6 +449,14 @@ private class PreviewEditor(private val psiFile: PsiFile,
     LOG.debug("buildFailed")
     isRefreshingPreview = false
     updateSurfaceVisibilityAndNotifications()
+  }
+
+  override fun buildStarted() {
+    isRefreshingPreview = true
+    if (workbench.isMessageVisible) {
+      workbench.showLoading(message("panel.building"))
+      workbench.hideContent()
+    }
   }
 
   /**
