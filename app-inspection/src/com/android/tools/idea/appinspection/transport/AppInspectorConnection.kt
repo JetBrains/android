@@ -29,6 +29,17 @@ import com.google.common.util.concurrent.SettableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
+private val STUB_CLIENT_EVENT_LISTENER = object : AppInspectorClient.EventListener {
+  override fun onRawEvent(eventData: ByteArray) {
+  }
+
+  override fun onCrashEvent(message: String) {
+  }
+
+  override fun onDispose() {
+  }
+}
+
 /**
  * Two-way connection for the [AppInspectorClient] which implements [AppInspectorClient.CommandMessenger] and dispatches events for the
  * [AppInspectorClient.EventListener].
@@ -43,14 +54,18 @@ internal class AppInspectorConnection(
   private var isDisposed = AtomicBoolean(false)
   private val disposeFuture = SettableFuture.create<ServiceResponse>()
 
-  var clientEventListener: AppInspectorClient.EventListener? = null
+  /**
+   * The active [AppInspectorClient.EventListener] for this connection.
+   *
+   * Initialized to a stub, with the expectation that a caller will set its own listener later.
+   */
+  var clientEventListener = STUB_CLIENT_EVENT_LISTENER
     set(value) {
       field = value
       transport.poller.registerListener(inspectorEventListener)
     }
 
   private val inspectorEventListener = transport.createEventListener(
-    executor = MoreExecutors.directExecutor(),
     filter = { event: Event ->
       (event.appInspectionEvent.commandId == 0
        && event.appInspectionEvent.hasRawEvent()
@@ -62,28 +77,25 @@ internal class AppInspectorConnection(
     when {
       appInspectionEvent.hasRawEvent() -> {
         val content = appInspectionEvent.rawEvent.content.toByteArray()
-        clientEventListener!!.onRawEvent(content)
+        clientEventListener.onRawEvent(content)
       }
       appInspectionEvent.hasCrashEvent() -> {
         // Remove inspector's listener if it crashes
         cleanup("Inspector $inspectorId has crashed.")
-        clientEventListener!!.onCrashEvent(appInspectionEvent.crashEvent.errorMessage)
+        clientEventListener.onCrashEvent(appInspectionEvent.crashEvent.errorMessage)
       }
     }
     false
   }
 
   private val responsesListener = transport.createEventListener(
-    executor = MoreExecutors.directExecutor(),
     filter = { it.appInspectionEvent.commandId != 0 && it.appInspectionEvent.hasRawEvent() }
   ) { event ->
     pendingCommands.remove(event.appInspectionEvent.commandId)?.set(event.appInspectionEvent.rawEvent.content.toByteArray())
     false
   }
 
-  private val processEndListener = transport.createEventListener(
-    eventKind = PROCESS,
-    executor = MoreExecutors.directExecutor()) {
+  private val processEndListener = transport.createEventListener(eventKind = PROCESS) {
     if (it.isEnded) {
       cleanup("Inspector $inspectorId was disposed, because app process terminated.")
     }
@@ -101,7 +113,7 @@ internal class AppInspectorConnection(
         val disposeInspectorCommand = DisposeInspectorCommand.newBuilder().setInspectorId(inspectorId).build()
         val appInspectionCommand = AppInspectionCommand.newBuilder().setDisposeInspectorCommand(disposeInspectorCommand).build()
         val commandId = transport.executeCommand(appInspectionCommand)
-        val listener = transport.registerEventListener(MoreExecutors.directExecutor(), { it.appInspectionEvent.commandId == commandId }) {
+        val listener = transport.registerEventListener({ it.appInspectionEvent.commandId == commandId }) {
           cleanup("Inspector $inspectorId was disposed.", it.appInspectionEvent.response)
           // we manually call unregister, because future can be completed from other places, so we clean up the listeners there
           false
@@ -150,7 +162,8 @@ internal class AppInspectorConnection(
       pendingCommands.clear()
       if (disposeResponse == null) {
         disposeFuture.setException(RuntimeException(futureExceptionMessage))
-      } else {
+      }
+      else {
         disposeFuture.set(disposeResponse)
       }
       clientEventListener!!.onDispose()

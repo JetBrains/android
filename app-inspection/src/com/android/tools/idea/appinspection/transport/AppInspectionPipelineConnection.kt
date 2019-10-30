@@ -54,8 +54,8 @@ interface AppInspectionPipelineConnection {
       stream: Stream,
       process: Process,
       channelName: String,
-      executorService: ExecutorService
-    ): ListenableFuture<AppInspectionPipelineConnection> = attachAppInspectionPipelineConnection(TransportClient(channelName), stream,
-                                                                                                 process, executorService)
+      executorService: ExecutorService,
+      transport: AppInspectionTransport = AppInspectionTransport(TransportClient(channelName), stream, process, executorService)
+    ): ListenableFuture<AppInspectionPipelineConnection> = attachAppInspectionPipelineConnection(stream, process, transport)
   }
 }
