@@ -21,6 +21,7 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.SourceProviders
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.utils.reflection.qualifiedName
 import com.intellij.ProjectTopics
@@ -96,35 +97,6 @@ interface SourceProviderManager {
 }
 
 val AndroidFacet.sourceProviderManager: SourceProviders get() = getUserData(KEY) ?: createSourceProviderFor(this)
-
-fun createSourceProvidersFromModel(model: AndroidModel): SourceProviders {
-  val all =
-    @Suppress("DEPRECATION")
-    (
-      model.allSourceProviders.asSequence() +
-      model.activeSourceProviders.asSequence() +
-      model.testSourceProviders.asSequence() +
-      model.defaultSourceProvider +
-      (model as? AndroidModuleModel)?.flavorSourceProviders?.asSequence().orEmpty()
-    )
-      .toSet()
-      .associateWith { createIdeaSourceProviderFromModelSourceProvider(it) }
-
-  fun SourceProvider.toIdeaSourceProvider() = all.getValue(this)
-
-  return SourceProvidersImpl(
-    mainIdeaSourceProvider = model.defaultSourceProvider.toIdeaSourceProvider(),
-    currentSourceProviders = @Suppress("DEPRECATION") model.activeSourceProviders.map { it.toIdeaSourceProvider() },
-    currentTestSourceProviders = @Suppress("DEPRECATION") model.testSourceProviders.map { it.toIdeaSourceProvider() },
-    allSourceProviders = @Suppress("DEPRECATION") model.allSourceProviders.map { it.toIdeaSourceProvider() },
-    mainAndFlavorSourceProviders =
-    (model as? AndroidModuleModel)?.let { androidModuleModel ->
-      listOf(model.defaultSourceProvider.toIdeaSourceProvider()) +
-      @Suppress("DEPRECATION") androidModuleModel.flavorSourceProviders.map { it.toIdeaSourceProvider() }
-    }
-    ?: emptyList()
-  )
-}
 
 class SourceProvidersImpl(
   override val mainIdeaSourceProvider: IdeaSourceProvider,

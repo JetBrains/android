@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
+import com.android.builder.model.SourceProvider
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
@@ -40,8 +41,9 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.SourceProvidersImpl
+import org.jetbrains.android.facet.createIdeaSourceProviderFromModelSourceProvider
 import org.jetbrains.android.facet.createSourceProvidersForLegacyModule
-import org.jetbrains.android.facet.createSourceProvidersFromModel
 import java.nio.file.Path
 
 class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
@@ -101,3 +103,33 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     }
   }
 }
+
+fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
+  val all =
+    @Suppress("DEPRECATION")
+    (
+      model.allSourceProviders.asSequence() +
+      model.activeSourceProviders.asSequence() +
+      model.testSourceProviders.asSequence() +
+      model.defaultSourceProvider +
+      (model as? AndroidModuleModel)?.flavorSourceProviders?.asSequence().orEmpty()
+    )
+      .toSet()
+      .associateWith { createIdeaSourceProviderFromModelSourceProvider(it) }
+
+  fun SourceProvider.toIdeaSourceProvider() = all.getValue(this)
+
+  return SourceProvidersImpl(
+    mainIdeaSourceProvider = model.defaultSourceProvider.toIdeaSourceProvider(),
+    currentSourceProviders = @Suppress("DEPRECATION") model.activeSourceProviders.map { it.toIdeaSourceProvider() },
+    currentTestSourceProviders = @Suppress("DEPRECATION") model.testSourceProviders.map { it.toIdeaSourceProvider() },
+    allSourceProviders = @Suppress("DEPRECATION") model.allSourceProviders.map { it.toIdeaSourceProvider() },
+    mainAndFlavorSourceProviders =
+    (model as? AndroidModuleModel)?.let { androidModuleModel ->
+      listOf(model.defaultSourceProvider.toIdeaSourceProvider()) +
+      @Suppress("DEPRECATION") androidModuleModel.flavorSourceProviders.map { it.toIdeaSourceProvider() }
+    }
+    ?: emptyList()
+  )
+}
+

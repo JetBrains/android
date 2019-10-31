@@ -16,7 +16,6 @@
 package com.android.tools.idea.model
 
 import com.android.builder.model.AaptOptions
-import com.android.builder.model.SourceProvider
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.lint.detector.api.Desugaring
@@ -30,10 +29,6 @@ open class TestAndroidModel @JvmOverloads constructor(
   private val targetSdkVersion: AndroidVersion? = null,
   private val runtimeMinSdkVersion: AndroidVersion? = null,
   private val allApplicationIds: Set<String> = setOf(applicationId),
-  private val defaultSourceProvider: SourceProvider? = null,
-  private val activeSourceProviders: List<SourceProvider> = emptyList(),
-  private val testSourceProviders: List<SourceProvider> = emptyList(),
-  private val allSourceProviders: List<SourceProvider> = emptyList(),
   private val classJarProvider: ClassJarProvider? = null,
   private val overridesManifestPackage: Boolean = false,
   private val debuggable: Boolean = false,
@@ -49,10 +44,6 @@ open class TestAndroidModel @JvmOverloads constructor(
     )
   }
 
-  override fun getDefaultSourceProvider(): SourceProvider = defaultSourceProvider ?: error("defaultSourceProvider not set")
-  override fun getActiveSourceProviders(): List<SourceProvider> = activeSourceProviders
-  override fun getTestSourceProviders(): List<SourceProvider> = testSourceProviders
-  override fun getAllSourceProviders(): List<SourceProvider> = allSourceProviders
   override fun getApplicationId(): String = applicationId
   override fun getAllApplicationIds(): Set<String> = allApplicationIds
   override fun overridesManifestPackage(): Boolean = overridesManifestPackage
