@@ -24,13 +24,11 @@ import org.junit.Assert.assertEquals
 /**
  * Helper class do test change tracking and asserting on specific types of changes.
  */
-private class ChangeTracker() {
+private class ChangeTracker {
   private var refreshCounter = 0
-  private var sourceCodeChanges = 0
 
   private fun reset() {
     refreshCounter = 0
-    sourceCodeChanges = 0
   }
 
   /**
@@ -40,36 +38,18 @@ private class ChangeTracker() {
     refreshCounter++
   }
 
-  /**
-   * Called for a source code change that would require the user to rebuild.
-   */
-  fun onSourceCodeChange() {
-    sourceCodeChanges++
-  }
-
-  private fun assertWithCounters(refresh: Int, sourceCodeChanges: Int, runnable: () -> Unit) {
+  private fun assertWithCounters(refresh: Int, runnable: () -> Unit) {
     reset()
     runnable()
     // Dispatch any invokeLater actions that the runnable might have generated
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     assertEquals(refresh, refreshCounter)
-    assertEquals(sourceCodeChanges, this.sourceCodeChanges)
   }
 
   /**
-   * Asserts that the given [runnable] triggers only a code change notification.
+   * Asserts that the given [runnable] triggers refresh notification.
    */
-  fun assertCodeChange(runnable: () -> Unit) = assertWithCounters(refresh = 0, sourceCodeChanges = 1, runnable = runnable)
-
-  /**
-   * Asserts that the given [runnable] triggers only a non-code change notification.
-   */
-  fun assertNoCodeChange(runnable: () -> Unit) = assertWithCounters(refresh = 1, sourceCodeChanges = 0, runnable = runnable)
-
-  /**
-   * Asserts that the given [runnable] has triggered both a refresh and a source change notification.
-   */
-  fun assertCodeChangeAndRefresh(runnable: () -> Unit) = assertWithCounters(refresh = 1, sourceCodeChanges = 1, runnable = runnable)
+  fun assertRefreshed(runnable: () -> Unit) = assertWithCounters(refresh = 1, runnable = runnable)
 }
 
 class ChangeManagerTest : ComposeLightJavaCodeInsightFixtureTestCase() {
@@ -120,31 +100,27 @@ class ChangeManagerTest : ComposeLightJavaCodeInsightFixtureTestCase() {
     }
     setupChangeListener(project,
                         composeTest,
-                        { AnnotationPreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile) },
                         tracker::onRefresh,
-                        tracker::onSourceCodeChange,
                         project,
                         mergeQueue = testMergeQueue)
 
-    // No code changes
-    tracker.assertNoCodeChange {
+    tracker.assertRefreshed {
       composeTest.replaceStringOnce("name = \"preview2\"", "name = \"preview2B\"")
     }
-    tracker.assertNoCodeChange {
+    tracker.assertRefreshed {
       composeTest.replaceStringOnce("heightDp = 2", "heightDp = 50")
     }
-    tracker.assertNoCodeChange {
+    tracker.assertRefreshed {
       composeTest.replaceStringOnce("@Preview", "//@Preview")
     }
 
-    // Code changes
-    tracker.assertCodeChange {
+    tracker.assertRefreshed {
       composeTest.replaceStringOnce("NoComposablePreview(\"hello\")", "NoComposablePreview(\"bye\")")
     }
-    tracker.assertCodeChange {
+    tracker.assertRefreshed {
       composeTest.replaceStringOnce("NoComposablePreview(\"bye\")", "NoPreviewComposable()")
     }
-    tracker.assertCodeChange {
+    tracker.assertRefreshed {
       // This currently triggers a code change although we should be able to ignore it
       composeTest.runOnDocument { _, document ->
         document.insertString(0, "// Just a comment\n")

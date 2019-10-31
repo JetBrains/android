@@ -745,11 +745,7 @@ class ComposeFileEditorProvider @JvmOverloads constructor(
     setupChangeListener(
       project,
       psiFile,
-      previewProvider,
       { previewEditor.refresh() },
-      { if (composeEditorWithPreview.textEditor.isModified) {
-        EditorNotifications.getInstance(project).updateNotifications(file)
-      } },
       composeEditorWithPreview)
 
     return composeEditorWithPreview
