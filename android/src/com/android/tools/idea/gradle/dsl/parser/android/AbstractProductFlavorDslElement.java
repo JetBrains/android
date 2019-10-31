@@ -154,6 +154,9 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
 
     // testInstrumentationRunnerArgument has the same name in Groovy and Kotlin
     if (property.equals("testInstrumentationRunnerArgument")) {
+      if (element instanceof GradleDslMethodCall) {
+        element = ((GradleDslMethodCall)element).getArgumentsElement();
+      }
       if (!(element instanceof GradleDslExpressionList)) {
         return;
       }
@@ -176,6 +179,7 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
       if (testInstrumentationRunnerArgumentsElement == null) {
         testInstrumentationRunnerArgumentsElement =
           new GradleDslExpressionMap(this, GradleNameElement.create(ProductFlavorModelImpl.TEST_INSTRUMENTATION_RUNNER_ARGUMENTS));
+        setParsedElement(testInstrumentationRunnerArgumentsElement);
       }
       testInstrumentationRunnerArgumentsElement.setParsedElement(value);
       return;
