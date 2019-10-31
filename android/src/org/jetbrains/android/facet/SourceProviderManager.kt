@@ -100,59 +100,60 @@ interface SourceProviderManager {
 
 val AndroidFacet.sourceProviderManager: SourceProviders get() = getUserData(KEY) ?: createSourceProviderFor(this)
 
-private class SourceProviderManagerImpl(model: AndroidModel) : SourceProviders {
+fun createSourceProvidersFromModel(model: AndroidModel): SourceProviders {
+  val all =
+    @Suppress("DEPRECATION")
+    (
+      model.allSourceProviders.asSequence() +
+      model.activeSourceProviders.asSequence() +
+      model.testSourceProviders.asSequence() +
+      model.defaultSourceProvider +
+      (model as? AndroidModuleModel)?.flavorSourceProviders?.asSequence().orEmpty()
+    )
+      .toSet()
+      .associateWith {
+        IdeaSourceProviderImpl(
+          it.name,
+          VfsUtil.fileToUrl(it.manifestFile),
+          javaDirectoryUrls = convertToUrlSet(it.javaDirectories),
+          resourcesDirectoryUrls = convertToUrlSet(it.resourcesDirectories),
+          aidlDirectoryUrls = convertToUrlSet(it.aidlDirectories),
+          renderscriptDirectoryUrls = convertToUrlSet(it.renderscriptDirectories),
+          // Even though the model has separate methods to get the C and Cpp directories,
+          // they both return the same set of folders. So we combine them here.
+          jniDirectoryUrls = convertToUrlSet(it.cDirectories + it.cppDirectories).toSet(),
+          jniLibsDirectoryUrls = convertToUrlSet(it.jniLibsDirectories),
+          resDirectoryUrls = convertToUrlSet(it.resDirectories),
+          assetsDirectoryUrls = convertToUrlSet(it.assetsDirectories),
+          shadersDirectoryUrls = convertToUrlSet(it.shadersDirectories)
+        )
+      }
 
-  override val mainIdeaSourceProvider: IdeaSourceProvider
-  override val currentSourceProviders: List<IdeaSourceProvider>
-  override val currentTestSourceProviders: List<IdeaSourceProvider>
-  override val allSourceProviders: List<IdeaSourceProvider>
+  fun SourceProvider.toIdeaSourceProvider() = all.getValue(this)
+
+  return SourceProvidersImpl(
+    mainIdeaSourceProvider = model.defaultSourceProvider.toIdeaSourceProvider(),
+    currentSourceProviders = @Suppress("DEPRECATION") model.activeSourceProviders.map { it.toIdeaSourceProvider() },
+    currentTestSourceProviders = @Suppress("DEPRECATION") model.testSourceProviders.map { it.toIdeaSourceProvider() },
+    allSourceProviders = @Suppress("DEPRECATION") model.allSourceProviders.map { it.toIdeaSourceProvider() },
+    mainAndFlavorSourceProviders =
+    (model as? AndroidModuleModel)?.let { androidModuleModel ->
+      listOf(model.defaultSourceProvider.toIdeaSourceProvider()) +
+      @Suppress("DEPRECATION") androidModuleModel.flavorSourceProviders.map { it.toIdeaSourceProvider() }
+    }
+    ?: emptyList()
+  )
+}
+
+class SourceProvidersImpl(
+  override val mainIdeaSourceProvider: IdeaSourceProvider,
+  override val currentSourceProviders: List<IdeaSourceProvider>,
+  override val currentTestSourceProviders: List<IdeaSourceProvider>,
+  override val allSourceProviders: List<IdeaSourceProvider>,
 
   @Suppress("OverridingDeprecatedMember")
   override val mainAndFlavorSourceProviders: List<IdeaSourceProvider>
-
-  init {
-    val all =
-      @Suppress("DEPRECATION")
-      (
-        model.allSourceProviders.asSequence() +
-        model.activeSourceProviders.asSequence() +
-        model.testSourceProviders.asSequence() +
-        model.defaultSourceProvider +
-        (model as? AndroidModuleModel)?.flavorSourceProviders?.asSequence().orEmpty()
-      )
-        .toSet()
-        .associateWith {
-          IdeaSourceProviderImpl(
-            it.name,
-            VfsUtil.fileToUrl(it.manifestFile),
-            javaDirectoryUrls = convertToUrlSet(it.javaDirectories),
-            resourcesDirectoryUrls = convertToUrlSet(it.resourcesDirectories),
-            aidlDirectoryUrls = convertToUrlSet(it.aidlDirectories),
-            renderscriptDirectoryUrls = convertToUrlSet(it.renderscriptDirectories),
-            // Even though the model has separate methods to get the C and Cpp directories,
-            // they both return the same set of folders. So we combine them here.
-            jniDirectoryUrls = convertToUrlSet(it.cDirectories + it.cppDirectories).toSet(),
-            jniLibsDirectoryUrls = convertToUrlSet(it.jniLibsDirectories),
-            resDirectoryUrls = convertToUrlSet(it.resDirectories),
-            assetsDirectoryUrls = convertToUrlSet(it.assetsDirectories),
-            shadersDirectoryUrls = convertToUrlSet(it.shadersDirectories)
-          )
-        }
-
-    fun SourceProvider.toIdeaSourceProvider() = all.getValue(this)
-
-    mainIdeaSourceProvider = @Suppress("DEPRECATION") model.defaultSourceProvider.toIdeaSourceProvider()
-    currentSourceProviders = @Suppress("DEPRECATION") model.activeSourceProviders.map { it.toIdeaSourceProvider() }
-    currentTestSourceProviders = @Suppress("DEPRECATION") model.testSourceProviders.map { it.toIdeaSourceProvider() }
-    allSourceProviders = @Suppress("DEPRECATION") model.allSourceProviders.map { it.toIdeaSourceProvider() }
-
-    @Suppress("DEPRECATION")
-    mainAndFlavorSourceProviders =
-      (model as? AndroidModuleModel)
-        ?.let { listOf(mainIdeaSourceProvider) + @Suppress("DEPRECATION") it.flavorSourceProviders.map { it.toIdeaSourceProvider() } }
-      ?: emptyList()
-  }
-}
+) : SourceProviders
 
 private class LegacySourceProviderManagerImpl(private val facet: AndroidFacet) : SourceProviders {
 
@@ -275,7 +276,7 @@ private val KEY: Key<SourceProviders> = Key.create(::KEY.qualifiedName)
 
 private fun createSourceProviderFor(facet: AndroidFacet): SourceProviders {
   val model = if (AndroidModel.isRequired(facet)) AndroidModel.get(facet) else null
-  return if (model != null) SourceProviderManagerImpl(model) else LegacySourceProviderManagerImpl(facet)
+  return if (model != null) createSourceProvidersFromModel(model) else LegacySourceProviderManagerImpl(facet)
 }
 
 private fun String.convertToUrl() = VfsUtil.pathToUrl(this)
