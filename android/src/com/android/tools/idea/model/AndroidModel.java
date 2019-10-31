@@ -20,6 +20,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.databinding.DataBindingMode;
+import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.module.Module;
@@ -73,7 +74,7 @@ public interface AndroidModel {
 
   /**
    * @return the default source provider.
-   * @see org.jetbrains.android.facet.SourceProviders
+   * @see SourceProviders
    */
   @Deprecated
   @NotNull
@@ -82,7 +83,7 @@ public interface AndroidModel {
   /**
    * @return the currently active (non-test) source providers for this Android module in overlay order (meaning that later providers
    * override earlier providers when they redefine resources).
-   * {@link org.jetbrains.android.facet.SourceProviders#getCurrentSourceProviders}
+   * {@link SourceProviders#getCurrentSourceProviders}
    */
   @Deprecated
   @NotNull
@@ -90,7 +91,7 @@ public interface AndroidModel {
 
   /**
    * @return the currently active test source providers for this Android module in overlay order.
-   * {@link org.jetbrains.android.facet.SourceProviders#getCurrentTestSourceProviders}
+   * {@link SourceProviders#getCurrentTestSourceProviders}
    */
   @Deprecated
   @NotNull
