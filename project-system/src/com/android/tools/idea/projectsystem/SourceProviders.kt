@@ -26,7 +26,7 @@ interface SourceProviders {
 
   val mainIdeaSourceProvider: IdeaSourceProvider
 
-  val mainManifestFile: VirtualFile?
+  val mainManifestFile: VirtualFile? get() = mainIdeaSourceProvider.manifestFile
 
   /**
    * Returns a list of source providers, in the overlay order (meaning that later providers

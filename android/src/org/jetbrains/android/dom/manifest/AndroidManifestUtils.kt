@@ -129,6 +129,7 @@ fun <T> AndroidFacet.cachedValueFromPrimaryManifest(valueSelector: AndroidManife
  * Returns the PSI representation of the facet's primary manifest, if available.
  */
 fun AndroidFacet.getPrimaryManifestXml(): AndroidManifestXmlFile? {
+  if (isDisposed) return null
   val psiFile = SourceProviderManager.getInstance(this).mainManifestFile?.let { AndroidPsiUtils.getPsiFileSafely(module.project, it) }
   return (psiFile as? XmlFile)?.let(::AndroidManifestXmlFile)
 }

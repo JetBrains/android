@@ -80,6 +80,7 @@ private fun AndroidFacet.getFlavorAndBuildTypeManifestsOfLibs(dependencies: List
 }
 
 private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): List<VirtualFile> {
+  if (isDisposed) return emptyList()
   val localLibManifests = dependencies.mapNotNull { SourceProviderManager.getInstance(it).mainManifestFile }
 
   val aarManifests = hashSetOf<File>()

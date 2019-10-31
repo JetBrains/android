@@ -45,6 +45,7 @@ public interface Manifest extends ManifestElement {
    */
   @Nullable
   static Manifest getMainManifest(AndroidFacet facet) {
+    if (facet.isDisposed()) return null;
     VirtualFile manifestFile = SourceProviderManager.getInstance(facet).getMainManifestFile();
     return manifestFile != null ? loadDomElement(facet.getModule(), manifestFile, Manifest.class) : null;
   }

@@ -100,20 +100,7 @@ interface SourceProviderManager {
 
 val AndroidFacet.sourceProviderManager: SourceProviders get() = getUserData(KEY) ?: createSourceProviderFor(this)
 
-/**
- * A base class to implement SourceProviderManager which provides default implementations for manifest related helper methods.
- */
-private abstract class SourceProviderManagerBase(val facet: AndroidFacet) : SourceProviders {
-
-  override val mainManifestFile: VirtualFile? get() {
-    // When opening a project, many parts of the IDE will try to read information from the manifest. If we close the project before
-    // all of this finishes, we may end up creating disposable children of an already disposed facet. This is a rather hard problem in
-    // general, but pretending there was no manifest terminates many code paths early.
-    return if (facet.isDisposed) null else return mainIdeaSourceProvider.manifestFile
-  }
-}
-
-private class SourceProviderManagerImpl(facet: AndroidFacet, model: AndroidModel) : SourceProviderManagerBase(facet) {
+private class SourceProviderManagerImpl(model: AndroidModel) : SourceProviders {
 
   override val mainIdeaSourceProvider: IdeaSourceProvider
   override val currentSourceProviders: List<IdeaSourceProvider>
@@ -167,7 +154,7 @@ private class SourceProviderManagerImpl(facet: AndroidFacet, model: AndroidModel
   }
 }
 
-private class LegacySourceProviderManagerImpl(facet: AndroidFacet) : SourceProviderManagerBase(facet) {
+private class LegacySourceProviderManagerImpl(private val facet: AndroidFacet) : SourceProviders {
 
   @Volatile
   private var mainIdeaSourceSet: IdeaSourceProvider? = null
@@ -288,7 +275,7 @@ private val KEY: Key<SourceProviders> = Key.create(::KEY.qualifiedName)
 
 private fun createSourceProviderFor(facet: AndroidFacet): SourceProviders {
   val model = if (AndroidModel.isRequired(facet)) AndroidModel.get(facet) else null
-  return if (model != null) SourceProviderManagerImpl(facet, model) else LegacySourceProviderManagerImpl(facet)
+  return if (model != null) SourceProviderManagerImpl(model) else LegacySourceProviderManagerImpl(facet)
 }
 
 private fun String.convertToUrl() = VfsUtil.pathToUrl(this)
