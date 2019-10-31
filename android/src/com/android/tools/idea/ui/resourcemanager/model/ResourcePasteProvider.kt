@@ -39,7 +39,9 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlElement
+import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
+import org.jetbrains.android.util.AndroidResourceUtil
 
 /**
  * Extension [PasteProvider] to handle paste of [java.awt.datatransfer.Transferable] providing [RESOURCE_URL_FLAVOR] in
@@ -74,9 +76,14 @@ class ResourcePasteProvider : PasteProvider {
 
     if (psiElement is PsiWhiteSpace) {
       if (getFolderType(psiElement.containingFile) == ResourceFolderType.LAYOUT) {
+        // TODO: Should figure out a way to have a more consistent behavior with the Drag Target in Layout Editor.
         ResourceManagerTracking.logPasteOnBlank(resourceUrl.type)
         if (IMAGE_LIKE_TYPES.contains(resourceUrl.type)) {
           insertImageView(resourceReference, psiElement, caret, isFixedDimension = resourceUrl.type == ResourceType.COLOR)
+          return
+        }
+        else if (resourceUrl.type == ResourceType.LAYOUT) {
+          insertIncludeTag(resourceReference, psiElement, caret)
           return
         }
       }
@@ -108,8 +115,23 @@ class ResourcePasteProvider : PasteProvider {
     pasteAtCaret(caret, resourceReference, resourceUrl.type)
   }
 
+  private fun insertIncludeTag(resourceReference: String, psiElement: PsiElement, caret: Caret) {
+    val parent = psiElement.parentOfType<XmlTag>() ?: return
+    val before = parent.children.last { it.textRange.startOffset < caret.offset }
+
+    runWriteAction {
+      val childTag = parent.addAfter(parent.createChildTag(SdkConstants.TAG_INCLUDE, parent.namespace, null, false), before) as XmlTag
+      with(childTag) {
+        setAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.ANDROID_URI, SdkConstants.VALUE_WRAP_CONTENT)
+        setAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.ANDROID_URI, SdkConstants.VALUE_WRAP_CONTENT)
+        setAttribute(SdkConstants.ATTR_LAYOUT, resourceReference)
+        collapseIfEmpty()
+        TemplateUtils.reformatAndRearrange(parent.project, this)
+      }
+    }
+  }
+
   private fun insertImageView(resourceReference: String, psiElement: PsiElement, caret: Caret, isFixedDimension: Boolean) {
-    // TODO: Should figure out a way to have a more consistent behavior with the Drag Target in Layout Editor.
     val parent = psiElement.parentOfType<XmlTag>() ?: return
     val dependsOnAppCompat = dependsOnAppCompat(parent)
 
@@ -118,7 +140,7 @@ class ResourcePasteProvider : PasteProvider {
     val dimensionValue = if (isFixedDimension) "50${SdkConstants.UNIT_DP}" else SdkConstants.VALUE_WRAP_CONTENT
 
     runWriteAction {
-      val childTag = parent.addAfter(parent.createChildTag("ImageView", parent.namespace, null, false), before) as XmlTag
+      val childTag = parent.addAfter(parent.createChildTag(SdkConstants.IMAGE_VIEW, parent.namespace, null, false), before) as XmlTag
       with(childTag) {
         setAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.ANDROID_URI, dimensionValue)
         setAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.ANDROID_URI, dimensionValue)
@@ -196,6 +218,9 @@ class ResourcePasteProvider : PasteProvider {
 
   private fun setSrcAttribute(dependsOnAppCompat: Boolean, xmlTag: XmlTag, resourceReference: String) {
     if (dependsOnAppCompat) {
+      (xmlTag.containingFile as? XmlFile)?.let {
+        AndroidResourceUtil.ensureNamespaceImported(it, SdkConstants.AUTO_URI, null)
+      }
       xmlTag.setAttribute(SdkConstants.ATTR_SRC_COMPAT, SdkConstants.AUTO_URI, resourceReference)
       xmlTag.setAttribute(SdkConstants.ATTR_SRC, SdkConstants.ANDROID_URI, null)
     }
