@@ -81,6 +81,8 @@ import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_P
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_WITH_REFERENCE
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_WITH_REFERENCE_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_TEST_INSTRUMENTATION_RUNNER_ARGUMENT_PLURAL_THEN_SINGULAR
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_TEST_INSTRUMENTATION_RUNNER_ARGUMENT_SINGULAR_THEN_PLURAL
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_WRITE_MATCHING_FALLBACKS_EXPECTED
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.MAP_TYPE
@@ -2225,5 +2227,23 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val consumerProguardFiles = buildModel.android().defaultConfig().consumerProguardFiles()
     verifyListProperty(proguardFiles, listOf("val1", "val2"))
     verifyListProperty(consumerProguardFiles, listOf("val3", "val4"))
+  }
+
+  @Test
+  fun testTestInstrumentationRunnerArgumentSingularThenPlural() {
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_TEST_INSTRUMENTATION_RUNNER_ARGUMENT_SINGULAR_THEN_PLURAL)
+
+    val buildModel = gradleBuildModel
+    val testInstrumentationRunnerArguments = buildModel.android().defaultConfig().testInstrumentationRunnerArguments()
+    verifyMapProperty(testInstrumentationRunnerArguments, mapOf("key1" to "value1", "key2" to "value2", "key3" to "value3"))
+  }
+
+  @Test
+  fun testTestInstrumentationRunnerArgumentPluralThenSingular() {
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_TEST_INSTRUMENTATION_RUNNER_ARGUMENT_PLURAL_THEN_SINGULAR)
+
+    val buildModel = gradleBuildModel
+    val testInstrumentationRunnerArguments = buildModel.android().defaultConfig().testInstrumentationRunnerArguments()
+    verifyMapProperty(testInstrumentationRunnerArguments, mapOf("key1" to "value1", "key2" to "value2", "key3" to "value3"))
   }
 }
