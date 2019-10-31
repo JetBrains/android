@@ -258,12 +258,6 @@ public class GradleSyncStateTest extends PlatformTestCase {
     assertNull(mySyncState.getExternalSystemTaskId());
   }
 
-  public void testSourceGenerationFinished() {
-    mySyncState.sourceGenerationFinished();
-
-    verify(myGradleSyncListener, times(1)).sourceGenerationFinished(myProject);
-  }
-
   public void testSyncStateFailedWithMessage() {
     mySyncState.setSyncStartedTimeStamp(1, TRIGGER_TEST_REQUESTED);
     mySyncState.syncFailed("Some Message", new RuntimeException("Runtime Message"), null);

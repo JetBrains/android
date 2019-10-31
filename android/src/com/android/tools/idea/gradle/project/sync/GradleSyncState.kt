@@ -379,18 +379,6 @@ open class GradleSyncState(
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_SKIPPED)
   }
 
-  /**
-   * Triggered when source generation has been completed. This may be before OR after the sync has finished.
-   */
-  open fun sourceGenerationFinished() {
-    val sourceGenerationEndTimeStamp = System.currentTimeMillis()
-    sourceGenerationEndedTimeStamp = sourceGenerationEndTimeStamp
-
-    LOG.info("Finished source generation of project '${project.name}'.")
-    syncPublisher { sourceGenerationFinished(project) }
-    // TODO: add metric to UsageTracker
-  }
-
   /*
    * END GradleSyncListener methods
    */
