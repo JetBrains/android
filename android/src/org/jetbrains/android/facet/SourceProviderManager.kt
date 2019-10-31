@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.IdeaSourceProviderImpl
+import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.utils.reflection.qualifiedName
 import com.intellij.ProjectTopics
 import com.intellij.facet.Facet

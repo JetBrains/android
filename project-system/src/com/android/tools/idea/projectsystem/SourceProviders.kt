@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.facet
+package com.android.tools.idea.projectsystem
 
-import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
