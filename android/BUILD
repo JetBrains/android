@@ -222,7 +222,7 @@ iml_module(
         "//tools/idea/java/plugin:intellij.java.plugin",
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
     ],
-    test_shard_count = 50,
+    test_shard_count = 40,
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
