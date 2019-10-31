@@ -60,6 +60,9 @@ public final class MemoryProfilerTest {
     return Arrays.asList(false, true);
   }
 
+  public static final Memory.MemoryAllocSamplingData DEFAULT_MEMORY_ALLOCATION_SAMPLING_DATA =
+    Memory.MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(10).build();
+
   private static final int FAKE_PID = 111;
   private static final Common.Session TEST_SESSION = Common.Session.newBuilder().setSessionId(1).setPid(FAKE_PID).build();
   private static final long DEVICE_STARTTIME_NS = 0;
@@ -74,6 +77,8 @@ public final class MemoryProfilerTest {
 
   private StudioProfilers myStudioProfiler;
   private FakeIdeProfilerServices myIdeProfilerServices;
+  private Common.Device myDevice;
+  private Common.Process myProcess;
 
   private final boolean myUnifiedPipeline;
 
@@ -145,13 +150,28 @@ public final class MemoryProfilerTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
     // We first call stop tracking before starting.
+    Memory.AllocationsInfo lastInfo = null;
     if (myUnifiedPipeline) {
-      Memory.AllocationsInfo lastInfo = allocTrackingHandler.getLastInfo();
+      verifyIsUsingLiveAllocation();
+      lastInfo = allocTrackingHandler.getLastInfo();
       Truth.assertThat(lastInfo.getEndTime()).isEqualTo(Long.MAX_VALUE);
       Truth.assertThat(lastInfo.getSuccess()).isFalse();
     }
     else {
       Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(2);
+    }
+
+    // For unified pipeline, we further verify that if we end the session and start a new one
+    // on the process, a new START_ALLOC_TRACKING command will be issued.
+    if (myUnifiedPipeline) {
+      myStudioProfiler.getSessionsManager().endCurrentSession();
+      Truth.assertThat(allocTrackingHandler.getLastCommand().getType()).isEqualTo(Commands.Command.CommandType.STOP_ALLOC_TRACKING);
+      myStudioProfiler.getSessionsManager().beginSession(myDevice.getDeviceId(), myDevice, myProcess);
+      myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
+      myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+      Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
+      verifyIsUsingLiveAllocation();
+      Truth.assertThat(allocTrackingHandler.getLastCommand().getType()).isEqualTo(Commands.Command.CommandType.START_ALLOC_TRACKING);
     }
   }
 
@@ -259,22 +279,33 @@ public final class MemoryProfilerTest {
   }
 
   private void setupODeviceAndProcess() {
-    Common.Device device = Common.Device.newBuilder()
+    myDevice = Common.Device.newBuilder()
       .setDeviceId(FAKE_DEVICE_ID)
       .setSerial("FakeDevice")
       .setState(Common.Device.State.ONLINE)
       .setFeatureLevel(AndroidVersion.VersionCodes.O)
       .build();
-    Common.Process process = Common.Process.newBuilder()
+    myProcess = Common.Process.newBuilder()
       .setPid(20)
       .setDeviceId(FAKE_DEVICE_ID)
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .setStartTimestampNs(DEVICE_STARTTIME_NS)
       .build();
-    myTransportService.addDevice(device);
-    myTransportService.addProcess(device, process);
+    myTransportService.addDevice(myDevice);
+    myTransportService.addProcess(myDevice, myProcess);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myStudioProfiler.setProcess(device, process);
+    myStudioProfiler.setProcess(myDevice, myProcess);
+  }
+
+  private void verifyIsUsingLiveAllocation() {
+    Common.Session session = myStudioProfiler.getSessionsManager().getSelectedSession();
+    myTransportService.addEventToStream(myStudioProfiler.getSession().getStreamId(), Common.Event.newBuilder()
+      .setPid(myStudioProfiler.getSession().getPid())
+      .setKind(Common.Event.Kind.MEMORY_ALLOC_SAMPLING)
+      .setMemoryAllocSampling(DEFAULT_MEMORY_ALLOCATION_SAMPLING_DATA)
+      .build());
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    Truth.assertThat(MemoryProfiler.isUsingLiveAllocation(myStudioProfiler, session)).isTrue();
   }
 }
