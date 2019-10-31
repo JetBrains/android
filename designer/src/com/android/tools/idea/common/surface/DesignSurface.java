@@ -203,6 +203,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Nullable
   private StateChangeListener myStateChangeListener;
 
+  private float myMaxFitIntoScale = Float.MAX_VALUE;
+
   private final Timer myRepaintTimer = new Timer(15, (actionEvent) -> {
     repaint();
   });
@@ -272,7 +274,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       public void componentResized(ComponentEvent componentEvent) {
         boolean scaled = false;
         if (isShowing() && getWidth() > 0 && getHeight() > 0
-            && (!contentResizeSkipped() || getFitScale(false) > myScale)) {
+            && !contentResizeSkipped()) {
           // We skip the resize only if the flag is set to true
           // and the content size will be increased.
           // Like this, when the issue panel is opened, the content size stays the
@@ -822,6 +824,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       double min = 1d / getScreenScalingFactor();
       scale = Math.min(min, scale);
     }
+    scale = Math.min(scale, myMaxFitIntoScale);
     return scale;
   }
 
@@ -1733,4 +1736,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @NotNull
   abstract public List<NlComponent> getSelectableComponents();
+
+  /**
+   * Sets the maximum value allowed for {@link ZoomType#FIT} or {@link ZoomType#FIT_INTO}. By default there is no maximum value.
+   */
+  public void setMaxFitIntoScale(float maxFitIntoScale) {
+    myMaxFitIntoScale = maxFitIntoScale;
+  }
 }
