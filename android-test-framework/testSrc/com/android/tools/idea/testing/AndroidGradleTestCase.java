@@ -216,7 +216,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   protected File findSdkPath() {
-    return getSdk();
+    try {
+      return getSdk().getCanonicalFile();
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
