@@ -504,10 +504,8 @@ public class BuildVariantUpdater {
         variantName = ndkModuleModel.getVariantName(buildVariantName);
         abiName = ndkModuleModel.getAbiName(buildVariantName);
       }
-      boolean isCompoundSyncEnabled = GradleSyncState.isCompoundSync();
       request.variantOnlySyncOptions =
-        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName, abiName,
-                                   isCompoundSyncEnabled);
+        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName, abiName);
       GradleSyncInvoker.getInstance().requestProjectSync(project, request, getSyncListener(variantSelectionChangeListeners));
     }
   }

@@ -127,17 +127,15 @@ public class GradleSyncExecutor {
 
     // Setup the settings for setup.
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = shouldBuildAfterSync && !GradleSyncState.isCompoundSync();
+    setupRequest.generateSourcesAfterSync = shouldBuildAfterSync;
     setupRequest.cleanProjectAfterSync = request.cleanProject;
     setupRequest.usingCachedGradleModels = false;
 
     // Setup the settings for the resolver.
-    // We enable compound sync if we have been requested to generate sources and compound sync is enabled.
-    boolean shouldUseCompoundSync = shouldBuildAfterSync && GradleSyncState.isCompoundSync();
     // We also pass through whether single variant sync should be enabled on the resolver, this allows fetchGradleModels to turn this off
     boolean shouldUseSingleVariantSync = !request.forceFullVariantsSync && GradleSyncState.isSingleVariantSync();
     // We also need to pass the listener so that the callbacks can be used
-    setProjectUserDataForAndroidGradleProjectResolver(shouldUseCompoundSync, shouldUseSingleVariantSync, listener);
+    setProjectUserDataForAndroidGradleProjectResolver(shouldBuildAfterSync, shouldUseSingleVariantSync, listener);
 
     setSkipAndroidPluginUpgrade(request, setupRequest);
 

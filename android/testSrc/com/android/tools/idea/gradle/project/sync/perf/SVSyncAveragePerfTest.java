@@ -39,9 +39,4 @@ public class SVSyncAveragePerfTest extends GradleSyncPerformanceTestCase {
   protected boolean useSingleVariantSyncInfrastructure() {
     return true;
   }
-
-  @Override
-  protected boolean useCompoundSyncInfrastructure() {
-    return false;
-  }
 }
