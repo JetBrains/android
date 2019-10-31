@@ -242,7 +242,6 @@ public class PostSyncProjectSetup {
       myProjectStructure.analyzeProjectStructure();
       boolean cleanProjectAfterSync = myProjectStructure.getAndroidPluginVersions().haveVersionsChanged(agpVersions);
 
-      attemptToGenerateSources(request, cleanProjectAfterSync);
       updateJavaLanguageLevel();
       notifySyncFinished(request);
 
@@ -463,17 +462,6 @@ public class PostSyncProjectSetup {
     runManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks);
   }
 
-  private void attemptToGenerateSources(@NotNull Request request, boolean cleanProjectAfterSync) {
-    if (!request.generateSourcesAfterSync) {
-      return;
-    }
-    if (cleanProjectAfterSync) {
-      myProjectBuilder.cleanAndGenerateSources();
-      return;
-    }
-    myProjectBuilder.generateSources();
-  }
-
   /**
    * Create a new {@link ExternalSystemTaskId} to be used while doing project setup from cache and adds a StartBuildEvent to build view.
    *
@@ -496,7 +484,6 @@ public class PostSyncProjectSetup {
   public static class Request {
     public boolean usingCachedGradleModels;
     public boolean cleanProjectAfterSync;
-    public boolean generateSourcesAfterSync = true;
     public boolean skipAndroidPluginUpgrade;
     public long lastSyncTimestamp = -1L;
 
@@ -511,13 +498,12 @@ public class PostSyncProjectSetup {
       Request request = (Request)o;
       return usingCachedGradleModels == request.usingCachedGradleModels &&
              cleanProjectAfterSync == request.cleanProjectAfterSync &&
-             generateSourcesAfterSync == request.generateSourcesAfterSync &&
              lastSyncTimestamp == request.lastSyncTimestamp;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(usingCachedGradleModels, cleanProjectAfterSync, generateSourcesAfterSync, lastSyncTimestamp);
+      return Objects.hash(usingCachedGradleModels, cleanProjectAfterSync, lastSyncTimestamp);
     }
   }
 }

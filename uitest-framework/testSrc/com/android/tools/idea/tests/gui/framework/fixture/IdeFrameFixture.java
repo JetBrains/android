@@ -486,10 +486,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       throw syncError;
     }
 
-    if (!myGradleProjectEventListener.isSyncSkipped() && StudioFlags.BUILD_AFTER_SYNC_ENABLED.get()) {
-      waitForBuildToFinish(SOURCE_GEN);
-    }
-
     GuiTests.waitForBackgroundTasks(robot());
     com.android.tools.idea.tests.gui.framework.fixture.newpsd.UiTestUtilsKt.waitForIdle();
   }

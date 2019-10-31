@@ -33,7 +33,6 @@ import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
-import com.android.tools.idea.gradle.project.ProjectStructure.AndroidPluginVersionsInProject;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -54,9 +53,7 @@ import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
-import com.intellij.mock.MockProgressIndicator;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
@@ -87,15 +84,12 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
   @Mock private SyncViewManager myViewManager;
 
   private ProjectStructureStub myProjectStructure;
-  private ProgressIndicator myProgressIndicator;
   private PostSyncProjectSetup mySetup;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-
-    myProgressIndicator = new MockProgressIndicator();
 
     Project project = getProject();
     myRunManager = RunManagerImpl.getInstanceImpl(project);
@@ -199,7 +193,6 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
     when(mySyncState.lastSyncFailed()).thenReturn(true);
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-    request.generateSourcesAfterSync = true;
     request.cleanProjectAfterSync = true;
 
     mySetup.setUpProject(request, myTaskId, null);
@@ -216,27 +209,6 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
     verify(myProjectBuilder, never()).cleanAndGenerateSources();
     verify(myGradleProjectInfo, times(1)).setNewProject(false);
     verify(myGradleProjectInfo, times(1)).setImportedProject(false);
-  }
-
-  public void testCleanIsInvokedWhenGeneratingSourcesAndPluginVersionsChanged() {
-    when(mySyncState.lastSyncFailed()).thenReturn(false);
-
-    PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-    request.generateSourcesAfterSync = true;
-
-    myProjectStructure.currentAgpVersions = new AndroidPluginVersionsInProject() {
-      @Override
-      public boolean haveVersionsChanged(@NotNull AndroidPluginVersionsInProject other) {
-        return true; // Simulate AGP versions have changed between Sync executions.
-      }
-    };
-
-    mySetup.setUpProject(request, myTaskId, null);
-
-    // verify "clean" was invoked.
-    verify(myProjectBuilder).cleanAndGenerateSources();
-
-    assertTrue(myProjectStructure.analyzed);
   }
 
   public void testJavaLanguageLevelIsUpdated() {

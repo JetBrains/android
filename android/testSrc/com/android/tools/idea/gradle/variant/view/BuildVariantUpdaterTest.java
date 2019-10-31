@@ -147,7 +147,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
@@ -196,7 +195,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
@@ -246,7 +244,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
@@ -266,7 +263,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup, never()).setUpProject(eq(setupRequest), any(), any());
   }
@@ -302,7 +298,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     verify(mySetupStepToInvoke, never()).setUpModule(myModuleSetupContext, myAndroidModel);
     verify(mySetupStepToIgnore, never()).setUpModule(myModuleSetupContext, myAndroidModel);
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup, never()).setUpProject(eq(setupRequest), any(), any());
   }
@@ -381,7 +376,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
@@ -475,7 +469,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
@@ -580,7 +573,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
@@ -701,7 +693,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }
@@ -825,7 +816,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // If PostSyncProjectSetup#setUpProject is invoked, the "Build Variants" view will show any selection variants issues.
     // See http://b/64069792
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = false;
     setupRequest.cleanProjectAfterSync = false;
     verify(myPostSyncProjectSetup).setUpProject(eq(setupRequest), any(), any());
   }

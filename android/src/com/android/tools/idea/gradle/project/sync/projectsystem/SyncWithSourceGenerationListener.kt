@@ -48,7 +48,7 @@ abstract class SyncWithSourceGenerationListener : GradleSyncListener, GradleBuil
   }
 
   override fun syncStarted(project: Project) {
-    sourceGenerationFuture = if (StudioFlags.BUILD_AFTER_SYNC_ENABLED.get()) CompletableFuture() else null
+    sourceGenerationFuture = null
   }
 
   override fun setupStarted(project: Project) {}
