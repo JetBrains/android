@@ -90,9 +90,10 @@ import org.jetbrains.kotlin.psi.KtImportDirective
 import java.awt.BorderLayout
 import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
-import javax.swing.BoxLayout
+import javax.swing.Box
 import javax.swing.JPanel
 import kotlin.properties.Delegates
+import javax.swing.OverlayLayout
 import kotlin.streams.asSequence
 
 /** Preview element name */
@@ -355,9 +356,16 @@ private class PreviewEditor(private val psiFile: PsiFile,
    */
   var onRefresh: (() -> Unit)? = null
 
-  val notificationsPanel = JPanel().apply {
-    layout = BoxLayout(this, BoxLayout.PAGE_AXIS)
+  private val notificationsPanel: Box = Box.createVerticalBox().apply {
     name = "NotificationsPanel"
+  }
+
+  // The notificationsWrapper helps pushing the notifications to the top of the layout. This whole panel will be hidden if no notifications
+  // are available.
+  private val notificationsWrapper = JPanel(BorderLayout()).apply {
+    isOpaque = false
+    isDoubleBuffered = false
+    add(notificationsPanel, BorderLayout.NORTH)
   }
 
   /**
@@ -366,15 +374,27 @@ private class PreviewEditor(private val psiFile: PsiFile,
   val workbench = WorkBench<DesignSurface>(project, "Compose Preview", this, this).apply {
 
     val actionsToolbar = ActionsToolbar(this@PreviewEditor, surface)
-    val surfacePanel = JPanel(BorderLayout()).apply {
-      val northPanel = JPanel()
-      northPanel.layout =  BoxLayout(northPanel, BoxLayout.PAGE_AXIS)
-      northPanel.add(actionsToolbar.toolbarComponent)
-      northPanel.add(notificationsPanel)
-      add(northPanel, BorderLayout.NORTH)
-      add(surface, BorderLayout.CENTER)
+    val contentPanel = JPanel(BorderLayout()).apply {
+      add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
+
+      val overlayPanel = object : JPanel() {
+        // Since the overlay panel is transparent, we can not use optimized drawing or it will produce rendering artifacts.
+        override fun isOptimizedDrawingEnabled(): Boolean = false
+      }
+
+      overlayPanel.apply {
+        layout = OverlayLayout(this)
+
+        add(notificationsWrapper)
+        add(surface)
+      }
+
+      add(overlayPanel, BorderLayout.CENTER)
     }
-    val issueErrorSplitter = IssuePanelSplitter(surface, surfacePanel)
+
+
+
+    val issueErrorSplitter = IssuePanelSplitter(surface, contentPanel)
 
     init(issueErrorSplitter, surface, listOf(), false)
     showLoading(message("panel.building"))
@@ -467,7 +487,15 @@ private class PreviewEditor(private val psiFile: PsiFile,
       .forEach {
         notificationsPanel.add(it)
       }
-    notificationsPanel.revalidate()
+
+    // If no notification panels were added, we will hide the notifications panel
+    if (notificationsPanel.componentCount > 0) {
+      notificationsWrapper.isVisible = true
+      notificationsPanel.revalidate()
+    }
+    else {
+      notificationsWrapper.isVisible = false
+    }
   }
 
   /**
