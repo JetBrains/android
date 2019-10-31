@@ -20,6 +20,7 @@ import static com.android.testutils.TestUtils.getWorkspaceRoot;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
+import com.android.testutils.BazelRunfilesManifestProcessor;
 import com.android.testutils.TestUtils;
 import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
@@ -28,6 +29,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -35,9 +37,17 @@ public class IdeaTestSuiteBase {
   protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
   static {
-    VfsRootAccess.allowRootAccess("/", "C:\\");  // Bazel tests are sandboxed so we disable VfsRoot checks.
-    setProperties();
-    setupKotlinPlugin();
+    try {
+      String[] roots = Arrays.stream(File.listRoots()).map(file -> file.getPath()).toArray(String[]::new);
+      VfsRootAccess.allowRootAccess(roots);  // Bazel tests are sandboxed so we disable VfsRoot checks.
+      BazelRunfilesManifestProcessor.setUpRunfiles();
+      setProperties();
+      setupKotlinPlugin();
+    } catch(Throwable e) {
+      // See b/143359533 for why we are handling errors here
+      System.err.println("ERROR: Error initializing test suite, tests will likely fail following this error");
+      e.printStackTrace();
+    }
   }
 
   private static void setProperties() {
@@ -135,9 +145,22 @@ public class IdeaTestSuiteBase {
           }
         }
         Path targetPath = file.toPath();
-        Path linkName = Paths.get(TMP_DIR, target);
-        Files.createDirectories(linkName.getParent());
-        Files.createSymbolicLink(linkName, targetPath);
+        Path linkPath = Paths.get(TMP_DIR, target);
+
+        // Note: On Windows, due to a known limitation with symbolic link in Docker environments,
+        //       we need to create a symbolic links with the target as a relative path. This works
+        //       on Linux too, so we apply the same logic to both platforms to avoid diverging
+        //       behavior between platforms.
+        Path targetRelativePath = linkPath.getParent().relativize(targetPath);
+        Files.createDirectories(linkPath.getParent());
+        Files.createSymbolicLink(linkPath, targetRelativePath);
+
+        // Ensure we have access to the link target, as a way to check we don't run into the issue
+        // mentioned above.
+        // For reference, the statement below throws an IOException with the message "The create operation
+        // failed because the name contained at least one mount point which resolves to a volume to which
+        // the specified device object is not attached." if there is a problem with the symlink target.
+        linkPath.getFileSystem().provider().checkAccess(linkPath);
       }
     }
     catch (IOException e) {

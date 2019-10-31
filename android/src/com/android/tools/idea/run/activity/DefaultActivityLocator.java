@@ -120,7 +120,7 @@ public class DefaultActivityLocator extends ActivityLocator {
     List<ActivityWrapper> activities = mergedManifest == null ?
                                        Collections.emptyList() :
                                        ActivityWrapper.get(mergedManifest.getActivities(), mergedManifest.getActivityAliases());
-    logManifestLatency(onEdt, usePotentiallyStaleManifest, timer.elapsed(TimeUnit.MILLISECONDS));
+    logManifestLatency(onEdt, false, usePotentiallyStaleManifest, timer.elapsed(TimeUnit.MILLISECONDS));
     return activities;
   }
 
@@ -150,17 +150,22 @@ public class DefaultActivityLocator extends ActivityLocator {
         activityAliasWrappers.addAll(IndexedActivityWrapper.getActivityAliases(manifest, overrides));
       });
     activityWrappers.addAll(activityAliasWrappers);
-    logManifestLatency(onEdt, false, timer.elapsed(TimeUnit.MILLISECONDS));
+    logManifestLatency(onEdt, true, false, timer.elapsed(TimeUnit.MILLISECONDS));
     return activityWrappers;
   }
 
-  private static void logManifestLatency(boolean blocksUiThread, boolean usedPotentiallyStaleManifest, long latencyMs) {
+  private static void logManifestLatency(
+    boolean blocksUiThread,
+    boolean indexBased,
+    boolean usedPotentiallyStaleManifest,
+    long latencyMs
+  ) {
     AndroidStudioEvent.Builder proto = AndroidStudioEvent.newBuilder()
       .setKind(AndroidStudioEvent.EventKind.DEFAULT_ACTIVITY_LOCATOR_STATS)
       .setDefaultActivityLocatorStats(
         DefaultActivityLocatorStats.newBuilder()
           .setBlocksUiThread(blocksUiThread)
-          .setIndexBased(false)
+          .setIndexBased(indexBased)
           .setUsedPotentiallyStaleManifest(usedPotentiallyStaleManifest)
           .setLatencyMs(latencyMs)
       );

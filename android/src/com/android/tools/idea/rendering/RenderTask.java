@@ -917,6 +917,11 @@ public class RenderTask {
             return CompletableFuture.completedFuture((BufferedImage)data);
           }
           else {
+            if (result.getStatus() == Result.Status.ERROR_NOT_A_DRAWABLE) {
+              LOG.debug("renderDrawable called with a non-drawable resource" + drawableResourceValue);
+              return CompletableFuture.completedFuture(null);
+            }
+
             Throwable exception = result == null ? new RuntimeException("Rendering failed - null result") : result.getException();
             if (exception == null) {
               String message = result.getErrorMessage();

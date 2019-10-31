@@ -54,6 +54,10 @@ class TestNewProjectWizardState(moduleTemplate: Template) {
     put(ATTR_TOP_OUT, WizardUtils.getProjectLocationParent().path)
     put(ATTR_MIN_API_LEVEL, defaultMinApi)
     put(ATTR_MIN_API, defaultMinApi.toString())
+
+    put(TemplateAttributes.ATTR_TARGET_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API)
+    put(TemplateAttributes.ATTR_TARGET_API_STRING, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())
+
     setParameterDefaults()
   }
   val activityTemplateState = TestTemplateWizardState()

@@ -17,27 +17,26 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.timeline;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
-
-import javax.swing.BorderFactory;
-import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JPanel;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JPanel;
 
 /**
  * This show the main control buttons in the top left hand corner of the timeline panel.
  */
 public class TimeLineTopLeft extends JPanel {
 
-  JButton mForward = new JButton(MEIcons.FORWARD);
-  JButton mBackward = new JButton(MEIcons.BACKWARD);
-  JButton mPlay = new JButton(MEIcons.PLAY);
-  JButton mSlow = new JButton(MEIcons.SLOW_MOTION);
-  JButton mLoop = new JButton(MEIcons.LOOP_FORWARD);
+  JButton mForward = MEUI.createToolBarButton(MEIcons.FORWARD,"Jump to the end of the Transition");
+  JButton mBackward =  MEUI.createToolBarButton(MEIcons.BACKWARD, "Jump to the start of the Transition");
+  JButton mPlay =  MEUI.createToolBarButton(MEIcons.PLAY,"Play the transition");
+  JButton mSlow =  MEUI.createToolBarButton(MEIcons.SLOW_MOTION, "x1");
+  JButton mLoop = MEUI.createToolBarButton(MEIcons.LOOP_FORWARD,"Cycle between forward, backward, and yoyo");
   JButton[] buttons = {mLoop, mBackward, mPlay, mForward, mSlow};
   Icon[]loop_cycle = {MEIcons.LOOP_FORWARD, MEIcons.LOOP_BACKWARD, MEIcons.LOOP_YOYO };
   int loopMode = 0;
@@ -62,13 +61,12 @@ public class TimeLineTopLeft extends JPanel {
     gbc.gridy = 0;
     gbc.weightx = 1;
     gbc.insets = new Insets(MEUI.scale(4), MEUI.scale(4), MEUI.scale(4), MEUI.scale(4));
-
+    
     for (int i = 0; i < buttons.length; i++) {
       JButton button = buttons[i];
-      button.setBorderPainted(false);
+      button.setBackground(this.getBackground());
       TimelineCommands cmd = TimelineCommands.values()[i];
       button.setPreferredSize(size);
-      button.setContentAreaFilled(false);
       add(button, gbc);
       gbc.gridx++;
       gbc.insets.left = 0;

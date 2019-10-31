@@ -36,12 +36,12 @@ import com.intellij.psi.JavaPsiFacade
 const val CUSTOM_DENSITY_ID: String = "Custom Density"
 
 // TODO: When appropriate move this static methods to appropriate file.
-fun updateConfigurationScreenSize(configuration: Configuration, @AndroidCoordinate xDimension: Int, @AndroidCoordinate yDimension: Int) {
-  val original = configuration.cachedDevice
-  val deviceBuilder = Device.Builder(original) // doesn't copy tag id
-  if (original != null) {
-    deviceBuilder.setTagId(original.tagId)
-  }
+@JvmOverloads
+fun updateConfigurationScreenSize(configuration: Configuration, @AndroidCoordinate xDimension: Int, @AndroidCoordinate yDimension: Int,
+                                  original: Device? = configuration.cachedDevice) {
+  val deviceBuilder = if (original != null) Device.Builder(original) else return // doesn't copy tag id
+  deviceBuilder.setTagId(original.tagId)
+
   deviceBuilder.setName("Custom")
   deviceBuilder.setId(Configuration.CUSTOM_DEVICE_ID)
   val device = deviceBuilder.build()
@@ -72,14 +72,13 @@ fun updateConfigurationScreenSize(configuration: Configuration, @AndroidCoordina
 }
 
 /**
- * Changes the configuration to use a custom device with the provided density.
+ * Changes the configuration to use a custom device with the provided density. This is done only if the configuration's cached device is not
+ * null, since the custom device is created from it.
  */
 fun NlModel.overrideConfigurationDensity(density: Density) {
-  val original = configuration.cachedDevice
+  val original = configuration.cachedDevice ?: return
   val deviceBuilder = Device.Builder(original) // doesn't copy tag id
-  if (original != null) {
-    deviceBuilder.setTagId(original.tagId)
-  }
+  deviceBuilder.setTagId(original.tagId)
   deviceBuilder.setName("Custom")
   deviceBuilder.setId(CUSTOM_DENSITY_ID)
   val device = deviceBuilder.build()
@@ -93,22 +92,21 @@ fun NlModel.overrideConfigurationDensity(density: Density) {
 @Deprecated(message = "Use NlModel.module.dependsOnAppCompat()",
             replaceWith = ReplaceWith("com.android.tools.idea.util.dependsOnAppCompat()") )
 fun NlModel.moduleDependsOnAppCompat(): Boolean {
-  return this.module.dependsOnAppCompat()
+  return module.dependsOnAppCompat()
 }
 
 fun NlModel.currentActivityIsDerivedFromAppCompatActivity(): Boolean {
-  val configuration = this.configuration
   var activityClassName: String? = configuration.activity ?: // The activity is not specified in the XML file.
       // We cannot know if the activity is derived from AppCompatActivity.
       // Assume we are since this is how the default activities are created.
       return true
   if (activityClassName!!.startsWith(".")) {
-    val manifest = MergedManifestManager.getSnapshot(this.module)
+    val manifest = MergedManifestManager.getSnapshot(module)
     val pkg = StringUtil.notNullize(manifest.`package`)
     activityClassName = pkg + activityClassName
   }
-  val facade = JavaPsiFacade.getInstance(this.project)
-  var activityClass = facade.findClass(activityClassName, this.module.moduleScope)
+  val facade = JavaPsiFacade.getInstance(project)
+  var activityClass = facade.findClass(activityClassName, module.moduleScope)
   while (activityClass != null && !CLASS_APP_COMPAT_ACTIVITY.isEquals(activityClass.qualifiedName)) {
     activityClass = activityClass.superClass
   }

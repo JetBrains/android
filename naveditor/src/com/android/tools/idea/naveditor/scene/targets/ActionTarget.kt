@@ -21,6 +21,7 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.common.scene.target.BaseTarget
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.naveditor.model.ActionType
@@ -64,19 +65,19 @@ class ActionTarget(component: SceneComponent,
     val source = Coordinates.getSwingRectDip(transform, sourceComponent.fillDrawRect2D(0, SOURCE_RECT))
     val isPopAction = myComponent.nlComponent.popUpTo != null
     var iconRect: Rectangle2D.Float? = null
+    val scale = transform.inlineScale
 
     if (actionType === ActionType.SELF) {
-      @SwingCoordinate val points = selfActionPoints(source, transform.scale.toFloat())
+      @SwingCoordinate val points = selfActionPoints(source, scale)
       for (i in 1 until points.size) {
         picker.addLine(this, 0, points[i - 1].x.toInt(), points[i - 1].y.toInt(), points[i].x.toInt(), points[i].y.toInt(), 5)
       }
 
       if (isPopAction) {
-        iconRect = getSelfActionIconRect(points[0], transform.scale.toFloat())
+        iconRect = getSelfActionIconRect(points[0], scale)
       }
     }
     else {
-      val scale = transform.scale.toFloat()
       val dest = Coordinates.getSwingRectDip(transform, destComponent.fillDrawRect2D(0, DEST_RECT))
       val (p1, p2, p3, p4) = getCurvePoints(source, dest, scale)
       picker.addCurveTo(this, 0, p1.x.toInt(), p1.y.toInt(), p2.x.toInt(), p2.y.toInt(), p3.x.toInt(), p3.y.toInt(),

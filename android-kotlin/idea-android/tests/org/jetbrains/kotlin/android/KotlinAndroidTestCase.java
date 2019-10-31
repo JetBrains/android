@@ -136,9 +136,9 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
       // Finish dispatching any remaining events before shutting down everything
       UIUtil.dispatchAllInvocationEvents();
 
-      myApplicationComponentStack.restoreComponents();
+      myApplicationComponentStack.restore();
       myApplicationComponentStack = null;
-      myProjectComponentStack.restoreComponents();
+      myProjectComponentStack.restore();
       myProjectComponentStack = null;
       CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
       myModule = null;

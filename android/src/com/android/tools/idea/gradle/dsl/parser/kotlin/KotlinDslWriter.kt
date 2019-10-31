@@ -25,10 +25,13 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.lexer.KtTokens.*
@@ -114,15 +117,23 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     // The text should be quoted if not followed by anything else,  otherwise it will create a reference expression.
     var statementText = maybeTrimForParent(element.nameElement, element.parent, this)
 
-    statementText = when (element) {
-      is BuildTypeDslElement -> when (statementText) {
-        // debug and release build types are automatically created by Gradle: never try to create them
-        "debug", "release" -> "${element.methodName ?: "getByName"}(\"$statementText\")"
-        else -> "${element.methodName ?: "create"}(\"$statementText\")"
+    if (element is GradleDslNamedDomainElement) {
+      val parent = element.parent
+      statementText = when {
+        // use an existing methodName if we have one
+        element.methodName != null -> "${element.methodName}(\"$statementText\")"
+        // use getByName() if the element is implicitly provided, otherwise create()
+        parent is GradleDslNamedDomainContainer -> when {
+          parent.implicitlyExists(statementText) -> "getByName(\"$statementText\")"
+          else -> "create(\"$statementText\")"
+        }
+        // should never happen (named domain element added to something that isn't a named domain container)
+        else -> {
+          val log = logger<KotlinDslWriter>()
+          log.warn("NamedDomainElement $element added to non-NamedDomainContainer $parent", Throwable())
+          "getByName(\"$statementText\")"
+        }
       }
-      is AbstractFlavorTypeDslElement -> "${element.methodName ?: "create"}(\"$statementText\")"
-      is SigningConfigDslElement -> "${element.methodName ?: "create"}(\"$statementText\")"
-      else -> statementText
     }
 
     if (element.isBlockElement) {

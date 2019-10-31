@@ -91,4 +91,11 @@ public class ConfigureBasicActivityStepFixture<W extends AbstractWizardFixture> 
       .selectItem(sourceLanguage);
     return this;
   }
+
+  @NotNull
+  public ConfigureBasicActivityStepFixture<W> setTargetSourceSet(@NotNull String targetSource) {
+    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Target Source Set", JComboBox.class, true))
+      .selectItem(targetSource);
+    return this;
+  }
 }

@@ -21,17 +21,13 @@ import static com.android.SdkConstants.ATTR_SRC;
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.SdkConstants.FD_RES_LAYOUT;
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceRepository;
-import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
-import com.android.resources.ResourceType;
 import com.android.tools.adtui.LightCalloutPopup;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -40,7 +36,6 @@ import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import com.android.tools.idea.ui.resourcechooser.HorizontalTabbedPanelBuilder;
 import com.android.tools.idea.ui.resourcechooser.ColorResourcePicker;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder;
@@ -58,7 +53,6 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.UnknownFileType;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -352,21 +346,13 @@ public class AndroidAnnotatorUtil {
         public void actionPerformed(@NotNull AnActionEvent e) {
           Editor editor = e.getData(CommonDataKeys.EDITOR);
           if (editor != null) {
-            if (StudioFlags.NELE_NEW_COLOR_PICKER.get()) {
-              openNewColorPicker(getCurrentColor());
-            }
-            else {
-              Color color = ColorPicker.showDialog(editor.getComponent(), "Choose Color", getCurrentColor(), true, null, false);
-              if (color != null) {
-                setColorToAttribute(color);
-              }
-            }
+            openColorPicker(getCurrentColor());
           }
         }
       };
     }
 
-    private void openNewColorPicker(@Nullable Color currentColor) {
+    private void openColorPicker(@Nullable Color currentColor) {
       LightCalloutPopup dialog = new LightCalloutPopup();
       JComponent colorPicker = new ColorPickerBuilder()
           .setOriginalColor(currentColor)

@@ -15,12 +15,15 @@
  */
 package com.android.tools.profilers.customevent;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.event.LifecycleEventModel;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
@@ -34,20 +37,24 @@ import org.jetbrains.annotations.NotNull;
 
 public class CustomEventProfilerStage extends Stage {
 
-  private final EventMonitor myEventMonitor;
   private final List<TrackGroupModel> myTrackGroupModels = new ArrayList<>();
-  //TODO (b/139200794) Get a list of the registered events from the user
-  @NotNull private final List<String> myEventNames = new ArrayList<>();
   @NotNull private final List<UserCounterModel> myUserCounterModels = new ArrayList<>();
+  @NotNull private final AspectObserver myAspectObserver = new AspectObserver();
+  @NotNull private final UserCounterAspectModel myUserCounterAspectModel = new UserCounterAspectModel();
+  @NotNull private final TrackGroupModel myEventTrackGroupModel;
+
 
   public CustomEventProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
-    myEventMonitor = new EventMonitor(profilers);
+    myEventTrackGroupModel = TrackGroupModel.newBuilder().setTitle("Custom Events").build();
+
+    // Checks to see if a new event has been added
+    getStudioProfilers().getTimeline().getViewRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::updateEventNames);
+    updateEventNames();
   }
 
   @Override
   public void enter() {
-    myEventMonitor.enter();
     initTrackGroupList();
   }
 
@@ -57,8 +64,6 @@ public class CustomEventProfilerStage extends Stage {
     for (UserCounterModel model : myUserCounterModels) {
       getStudioProfilers().getUpdater().unregister(model);
     }
-
-    myEventMonitor.exit();
   }
 
   /**
@@ -67,24 +72,28 @@ public class CustomEventProfilerStage extends Stage {
   private void initTrackGroupList() {
     myTrackGroupModels.clear();
     myTrackGroupModels.add(createInteractionTrackGroup());
+    myTrackGroupModels.add(myEventTrackGroupModel);
 
-    TrackGroupModel eventTrackGroupModel = TrackGroupModel.newBuilder().setTitle("Custom Events").build();
-    myTrackGroupModels.add(eventTrackGroupModel);
-
-    for (String eventName : myEventNames) {
-      // Create a data model for the specific event name and register it.
-      UserCounterModel dataModel = new UserCounterModel(getStudioProfilers(), eventName);
-      getStudioProfilers().getUpdater().register(dataModel);
-      myUserCounterModels.add(dataModel);
-
-      // Create a track model with that has the data model for this event.
-      CustomEventTrackModel customEventTrackModel = new CustomEventTrackModel(dataModel);
-
-      eventTrackGroupModel.addTrackModel(
-        TrackModel.newBuilder(customEventTrackModel,
-                         ProfilerTrackRendererType.CUSTOM_EVENTS,
-                         eventName).setHideHeader(true));
+    for (String eventName : myUserCounterAspectModel.getEventNames()) {
+      // Add events to the Custom Events Track Group
+      myEventTrackGroupModel.addTrackModel(
+        TrackModel.newBuilder(createTrackModel(eventName),
+                              ProfilerTrackRendererType.CUSTOM_EVENTS,
+                              eventName).setHideHeader(true));
     }
+  }
+
+  /**
+   * Returns a track model containing a UserCounterModel for the given event name.
+   */
+  private CustomEventTrackModel createTrackModel(String eventName) {
+    // Create a data model for the specific event name and register it.
+    UserCounterModel dataModel = new UserCounterModel(getStudioProfilers(), eventName);
+    getStudioProfilers().getUpdater().register(dataModel);
+    myUserCounterModels.add(dataModel);
+
+    // Create a track model with that has the data model for this event.
+    return new CustomEventTrackModel(dataModel);
   }
 
 
@@ -111,9 +120,47 @@ public class CustomEventProfilerStage extends Stage {
     return myTrackGroupModels;
   }
 
-  @NotNull
+  /**
+   * Checks to see if a new event has been added that has not been seen before. Adds a track for any new events found.
+   */
   @VisibleForTesting
-  List<String> getEventNames() {
-    return myEventNames;
+  void updateEventNames() {
+    Transport.GetEventGroupsRequest request = Transport.GetEventGroupsRequest.newBuilder()
+      .setStreamId(getStudioProfilers().getSession().getStreamId())
+      .setPid(getStudioProfilers().getSession().getPid())
+      .setKind(Common.Event.Kind.USER_COUNTERS)
+      .build();
+
+    Transport.GetEventGroupsResponse response = getStudioProfilers().getClient().getTransportClient().getEventGroups(request);
+
+    if (myTrackGroupModels.isEmpty()) {
+      // If the track group model has been cleared, need to reload tracks first.
+      initTrackGroupList();
+    }
+
+    // Check to see if another event has been added that has not already been seen
+    if (response.getGroupsCount() > myUserCounterAspectModel.getSize()) {
+      for (Transport.EventGroup eventGroup : response.getGroupsList()) {
+        if (eventGroup.getEventsCount() > 0) {
+
+          // Event names are used as the identifier for unique events
+          String eventName = eventGroup.getEventsList().get(0).getUserCounters().getName();
+
+          // Take the event that has not been seen and add it to the User Counters set
+          // add() method will return true if the event name has not been seen before
+          if (myUserCounterAspectModel.add(eventName)) {
+            myEventTrackGroupModel.addTrackModel(
+              TrackModel.newBuilder(createTrackModel(eventName),
+                                    ProfilerTrackRendererType.CUSTOM_EVENTS,
+                                    eventName).setHideHeader(true));
+          }
+        }
+      }
+    }
+  }
+
+  @NotNull
+  public UserCounterAspectModel getUserCounterAspectModel() {
+    return myUserCounterAspectModel;
   }
 }

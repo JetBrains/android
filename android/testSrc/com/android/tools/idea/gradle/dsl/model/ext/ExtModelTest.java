@@ -76,6 +76,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
@@ -123,7 +124,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     AndroidModel androidModel = getGradleBuildModel().android();
     assertNotNull(androidModel);
-    verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1, "compileSdkVersion");
+    verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1, AndroidModelImpl.COMPILE_SDK_VERSION);
   }
 
   @Test
@@ -136,7 +137,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     AndroidModel androidModel = getGradleBuildModel().android();
     assertNotNull(androidModel);
-    verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1, "compileSdkVersion");
+    verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1, AndroidModelImpl.COMPILE_SDK_VERSION);
   }
 
   @Test

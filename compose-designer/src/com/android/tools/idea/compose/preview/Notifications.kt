@@ -58,6 +58,7 @@ private fun createBuildNotificationPanel(project: Project,
   val module = ModuleUtil.findModuleForFile(file, project) ?: return null
   return EditorNotificationPanel(color).apply {
     setText(text)
+    isFocusable = false
 
     createActionLabel(buildActionLabel) {
       requestBuild(project, module)

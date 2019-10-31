@@ -27,10 +27,10 @@ import java.io.File
  * Returns a human readable environment independent stable representation of the current structure of the project that can be used in tests
  * to ensure that no unintended changes are accidentally introduced to projects set up by sync/import/etc.
  */
-fun Project.saveAndDump(): String {
+fun Project.saveAndDump(additionalRoots: Map<String, File> = emptyMap()): String {
   save()
   ApplicationManager.getApplication().saveAll()
-  val dumper = ProjectDumper(androidSdk = TestUtils.getSdk(), offlineRepos = getOfflineM2Repositories())
+  val dumper = ProjectDumper(androidSdk = TestUtils.getSdk(), offlineRepos = getOfflineM2Repositories(), additionalRoots = additionalRoots)
   dumper.dump(this)
   return dumper.toString()
 }

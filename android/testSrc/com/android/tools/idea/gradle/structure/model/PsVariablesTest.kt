@@ -240,7 +240,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val scopes = psAppModule.variables.getVariableScopes()
     assertThat(
       scopes.map { it.name },
-      equalTo(listOf("testGetVariableScopes (build script)", "testGetVariableScopes (project)", "app"))
+      equalTo(listOf("testGetVariableScopes (build script)", "testGetVariableScopes (project)", ":app"))
     )
     assertThat(
       scopes.map { it.title },

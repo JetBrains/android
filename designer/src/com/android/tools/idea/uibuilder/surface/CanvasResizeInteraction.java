@@ -29,6 +29,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.diagnostics.PerfDebugHelper;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
@@ -48,10 +49,12 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Collections;
+import java.util.EventObject;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -167,6 +170,14 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
+  public void begin(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    if (event instanceof MouseEvent) {
+      MouseEvent mouseEvent = (MouseEvent) event;
+      begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
+    }
+  }
+
+  @Override
   public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     myPerfDebugHelper.start("[Simple Resize] - begin");
     super.begin(x, y, modifiersEx);
@@ -196,6 +207,14 @@ public class CanvasResizeInteraction extends Interaction {
     else {
       polygon.addPoint(x2, y2);
       polygon.addPoint(dim, dim);
+    }
+  }
+
+  @Override
+  public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
+    if (event instanceof MouseEvent) {
+      MouseEvent mouseEvent = (MouseEvent) event;
+      update(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
     }
   }
 
@@ -247,6 +266,12 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
+  public void commit(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+    end(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+  }
+
+  @Override
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     myPerfDebugHelper.start("[Simple Resize] - end");
 
@@ -274,11 +299,18 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
+  public void cancel(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+    cancel(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+  }
+
+  @Override
   public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     myPerfDebugHelper.start("[Simple Resize] - end");
     myConfiguration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);
   }
 
+  @NotNull
   @Override
   public synchronized List<Layer> createOverlays() {
     ImmutableList.Builder<Layer> layers = ImmutableList.builder();

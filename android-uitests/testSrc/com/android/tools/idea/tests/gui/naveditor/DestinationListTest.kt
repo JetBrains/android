@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.naveditor
 
-import com.android.tools.idea.naveditor.scene.NavSceneManager
+import com.android.tools.idea.naveditor.scene.getBoundingBox
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture
@@ -100,7 +100,7 @@ class DestinationListTest {
     val distance = Point(surfaceSize.width / 2, surfaceSize.height / 2).distance(destination.midPoint)
     assertThat(distance).isLessThan(2.0)
 
-    val destinationBounds = NavSceneManager.getBoundingBox(listOf(destination.sceneComponent))
+    val destinationBounds = getBoundingBox(listOf(destination.sceneComponent))
     // We try to scale the destination to 100% (1.0), but in lower resolutions the destination might not fit the screen. We handle this case
     // by using the fit scale of the destination.
     val expectedScale = minOf(surface.target().getFitScale(destinationBounds.size, false), 1.0)

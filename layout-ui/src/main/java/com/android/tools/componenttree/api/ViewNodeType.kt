@@ -46,6 +46,8 @@ abstract class ViewNodeType<T> : NodeType<T> {
    */
   abstract fun iconOf(node: T): Icon?
 
+  abstract fun isEnabled(node: T): Boolean
+
   override fun createRenderer(): TreeCellRenderer = ViewTreeCellRenderer(this)
 
   override fun toSearchString(node: T): String =

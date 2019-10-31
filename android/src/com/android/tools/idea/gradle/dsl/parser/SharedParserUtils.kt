@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser
 
 import com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS_BLOCK_NAME
+import com.android.tools.idea.gradle.dsl.parser.android.AbstractProductFlavorDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
@@ -27,6 +28,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUI
 import com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement.DATA_BINDING_BLOCK_NAME
+import com.android.tools.idea.gradle.dsl.parser.android.DefaultConfigDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement.DEX_OPTIONS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement
@@ -174,7 +176,7 @@ fun GradleDslFile.getBlockElement(
         else -> return null
       }
       is AndroidDslElement -> when (nestedElementName) {
-        "defaultConfig" -> ProductFlavorDslElement(resultElement, elementName)
+        "defaultConfig" -> DefaultConfigDslElement(resultElement, elementName)
         PRODUCT_FLAVORS_BLOCK_NAME -> ProductFlavorsDslElement(resultElement)
         BUILD_TYPES_BLOCK_NAME -> BuildTypesDslElement(resultElement)
         COMPILE_OPTIONS_BLOCK_NAME -> CompileOptionsDslElement(resultElement)
@@ -198,7 +200,7 @@ fun GradleDslFile.getBlockElement(
         else -> return null
       }
       is ProductFlavorsDslElement -> ProductFlavorDslElement(resultElement, elementName)
-      is ProductFlavorDslElement -> when (nestedElementName) {
+      is AbstractProductFlavorDslElement -> when (nestedElementName) {
         "manifestPlaceholders" -> GradleDslExpressionMap(resultElement, elementName)
         "testInstrumentationRunnerArguments" -> GradleDslExpressionMap(resultElement, elementName)
         EXTERNAL_NATIVE_BUILD_BLOCK_NAME -> ExternalNativeBuildOptionsDslElement(resultElement)

@@ -18,8 +18,8 @@ package org.jetbrains.android.dom;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
-import com.android.builder.model.AndroidProject;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.Joiner;
@@ -86,7 +86,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   @Override
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                             @NotNull List<MyAdditionalModuleData> modules) {
-    addModuleWithAndroidFacet(projectBuilder, modules, "lib", AndroidProject.PROJECT_TYPE_LIBRARY);
+    addModuleWithAndroidFacet(projectBuilder, modules, "lib", AndroidProjectTypes.PROJECT_TYPE_LIBRARY);
   }
 
   @Override

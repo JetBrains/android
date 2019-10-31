@@ -17,20 +17,17 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.FlavorTypeModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
 import com.google.common.collect.ImmutableMap;
-import java.util.Map;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * Common base class for {@link BuildTypeDslElement} and {@link ProductFlavorDslElement}.
+ * Common base class for {@link BuildTypeDslElement} and {@link AbstractProductFlavorDslElement}.
  */
 public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement {
   @NotNull
@@ -83,38 +80,9 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     }
   }
 
-  // Stores the method name of the block used in the KTS file. Ex: for the block with the name getByName("release"), methodName will be
-  // getByName.
-  @Nullable
-  private String methodName;
 
   protected AbstractFlavorTypeDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  protected AbstractFlavorTypeDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name, @NotNull String methodName) {
-    super(parent, name);
-    this.methodName = methodName;
-  }
-
-  public void setMethodName(String methodName) {
-    this.methodName = methodName;
-  }
-
-  @Nullable
-  public String getMethodName() {
-    return  methodName;
-  }
-
-  protected void maybeRenameElement(@NotNull GradleDslElement element) {
-    String name = element.getName();
-    Map<String,String> nameMapper = getExternalToModelMap(element.getDslFile().getParser());
-    if (nameMapper.containsKey(name)) {
-      String newName = nameMapper.get(name);
-      // we rename the GradleNameElement, and not the element directly, because this renaming is not about renaming the property
-      // but about providing a canonical model name for a thing.
-      element.getNameElement().canonize(newName); // NOTYPO
-    }
   }
 
   @Override

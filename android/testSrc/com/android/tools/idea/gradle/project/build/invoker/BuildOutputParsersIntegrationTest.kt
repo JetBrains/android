@@ -31,7 +31,7 @@ import org.mockito.MockitoAnnotations
 import java.io.File
 
 class BuildOutputParsersIntegrationTest: PlatformTestCase() {
-  private val myTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, "testId")
+  private lateinit var myTaskId: ExternalSystemTaskId
 
   private lateinit var myBuildInvoker: GradleBuildInvoker
   private lateinit var scheduler: VirtualTimeScheduler
@@ -51,6 +51,8 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
     scheduler = VirtualTimeScheduler()
     myTracker = TestUsageTracker(scheduler)
     UsageTracker.setWriterForTest(myTracker)
+
+    myTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, myProject)
 
     myBuildInvoker = GradleBuildInvoker(myProject, myFileDocumentManager,
                                         GradleBuildInvokerTest.GradleTasksExecutorFactoryStub(myTasksExecutor), myDebugSessionFinder)

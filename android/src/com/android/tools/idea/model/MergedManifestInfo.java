@@ -54,12 +54,10 @@ import java.util.Collection;
 import java.util.List;
 import org.apache.commons.io.input.CharSequenceInputStream;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
-import org.xml.sax.SAXParseException;
 
 /**
  * Immutable data object encapsulating the result of merging all of the manifest files related to a particular

@@ -56,6 +56,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.DefaultConfigDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement;
@@ -76,18 +77,19 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public final class AndroidModelImpl extends GradleDslBlockModel implements AndroidModel {
-  @NonNls private static final String NDK_VERSION = "ndkVersion";
-  @NonNls private static final String BUILD_TOOLS_VERSION = "buildToolsVersion";
-  @NonNls private static final String COMPILE_SDK_VERSION = "compileSdkVersion";
-  @NonNls public static final String DEFAULT_CONFIG = "defaultConfig";
-  @NonNls private static final String DEFAULT_PUBLISH_CONFIG = "defaultPublishConfig";
-  @NonNls private static final String DYNAMIC_FEATURES = "dynamicFeatures";
-  @NonNls private static final String FLAVOR_DIMENSIONS = "flavorDimensions";
-  @NonNls private static final String GENERATE_PURE_SPLITS = "generatePureSplits";
-  @NonNls private static final String PUBLISH_NON_DEFAULT = "publishNonDefault";
-  @NonNls private static final String RESOURCE_PREFIX = "resourcePrefix";
+  @NonNls public static final String BUILD_TOOLS_VERSION = "mBuildToolsVersion";
+  @NonNls public static final String COMPILE_SDK_VERSION = "mCompileSdkVersion";
+  @NonNls public static final String DEFAULT_PUBLISH_CONFIG = "mDefaultPublishConfig";
+  @NonNls public static final String DYNAMIC_FEATURES = "mDynamicFeatures";
+  @NonNls public static final String FLAVOR_DIMENSIONS = "mFlavorDimensions";
+  @NonNls public static final String GENERATE_PURE_SPLITS = "mGeneratePureSplits";
+  @NonNls public static final String NDK_VERSION = "mNdkVersion";
+  @NonNls public static final String PUBLISH_NON_DEFAULT = "mPublishNonDefault";
+  @NonNls public static final String RESOURCE_PREFIX = "mResourcePrefix";
+  // TODO(xof): Add support for useLibrary
 
-  // TODO: Add support for useLibrary
+  // defaultConfig names a block rather than a property
+  @NonNls public static final String DEFAULT_CONFIG = "defaultConfig";
 
   public AndroidModelImpl(@NotNull AndroidDslElement dslElement) {
     super(dslElement);
@@ -190,9 +192,9 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public ProductFlavorModel defaultConfig() {
-    ProductFlavorDslElement defaultConfigElement = myDslElement.getPropertyElement(DEFAULT_CONFIG, ProductFlavorDslElement.class);
+    DefaultConfigDslElement defaultConfigElement = myDslElement.getPropertyElement(DEFAULT_CONFIG, DefaultConfigDslElement.class);
     if (defaultConfigElement == null) {
-      defaultConfigElement = new ProductFlavorDslElement(myDslElement, GradleNameElement.create(DEFAULT_CONFIG));
+      defaultConfigElement = new DefaultConfigDslElement(myDslElement, GradleNameElement.create(DEFAULT_CONFIG));
       myDslElement.setNewElement(defaultConfigElement);
     }
     return new ProductFlavorModelImpl(defaultConfigElement);
@@ -392,13 +394,13 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public ResolvedPropertyModel publishNonDefault() {
-    return getModelForProperty(PUBLISH_NON_DEFAULT);
+    return getModelForProperty(PUBLISH_NON_DEFAULT, true);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel resourcePrefix() {
-    return getModelForProperty(RESOURCE_PREFIX);
+    return getModelForProperty(RESOURCE_PREFIX, true);
   }
 
   @Override

@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.databinding.viewbinding
 
-import com.android.flags.junit.RestoreFlagRule
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
 import com.android.tools.idea.databinding.finders.BindingKotlinScopeEnlarger
 import com.android.tools.idea.databinding.finders.BindingScopeEnlarger
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilder
 import com.google.common.truth.Truth.assertThat
@@ -43,9 +41,6 @@ class ViewBindingCompletionTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  @get:Rule
-  val viewBindingFlagRule = RestoreFlagRule(StudioFlags.VIEW_BINDING_ENABLED)
-
   /**
    * Expose the underlying project rule fixture directly.
    *
@@ -60,7 +55,6 @@ class ViewBindingCompletionTest {
 
   @Before
   fun setUp() {
-    StudioFlags.VIEW_BINDING_ENABLED.override(true)
     assertThat(facet.isViewBindingEnabled()).isTrue()
     fixture.addFileToProject("src/main/AndroidManifest.xml", """
       <?xml version="1.0" encoding="utf-8"?>

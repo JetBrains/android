@@ -243,13 +243,7 @@ class ConstraintSetPanel extends JPanel {
   }
 
   private void copy() {
-    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-    clipboard.setContents(new StringSelection(MTag.serializeTag(mSelectedTag)), new ClipboardOwner() {
-      @Override
-      public void lostOwnership(Clipboard clipboard, Transferable contents) {
-
-      }
-    });
+    MEUI.copy(mSelectedTag);
   }
 
   private void paste() {

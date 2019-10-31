@@ -6,7 +6,9 @@ iml_module(
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.layout-ui.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    test_class = "com.android.tools.LayoutUiTestSuite",
     test_coverage = True,
+    test_data = ["//tools/idea:platform-build-info"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/dom-openapi:intellij.xml.dom",
@@ -39,6 +41,7 @@ iml_module(
     test_srcs = ["src/test/java"],
     test_tags = [
         "no_test_mac",  # b/127340859
+        "no_test_windows",
     ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -75,5 +78,7 @@ iml_module(
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
     ],
 )

@@ -59,7 +59,7 @@ class ChooseActivityTypeStep(
         yieldAll(TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }.map(::NewTemplateRenderer)) // TODO filter by formfactor
       }
     }
-    templateRenders = if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get()) {
+    templateRenders = if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get() && !isNewModule) {
       val newTemplateNames = newTemplateRenderers.map { it.template.name }
       val unsortedRenderers = (oldTemplateRenderers.filter { it.template?.metadata?.title !in newTemplateNames } + newTemplateRenderers).toList()
       unsortedRenderers.sortedBy { r -> r.label.takeUnless { it == "No Activity" } ?: "0" } // No Activity should always be first

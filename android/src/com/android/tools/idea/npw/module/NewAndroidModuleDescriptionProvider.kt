@@ -31,7 +31,7 @@ import java.io.File
 import javax.swing.Icon
 
 class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
-  override fun getDescriptions(project: Project?): Collection<ModuleTemplateGalleryEntry>? {
+  override fun getDescriptions(project: Project): Collection<ModuleTemplateGalleryEntry> {
     val manager = TemplateManager.getInstance()!!
     return manager.getTemplatesInCategory(CATEGORY_APPLICATION)
       .filter { manager.getTemplateMetadata(it)?.formFactor != null }

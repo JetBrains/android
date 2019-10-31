@@ -19,23 +19,17 @@ import com.android.builder.model.AndroidProject.FD_GENERATED
 import com.android.builder.model.AndroidProject.FD_INTERMEDIATES
 import com.android.ide.common.blame.parser.aapt.AbstractAaptOutputParser.AAPT_TOOL_NAME
 import com.android.ide.common.resources.MergingException.RESOURCE_ASSET_MERGER_TOOL_NAME
-import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser.ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP
 import com.android.tools.idea.gradle.project.build.output.CmakeOutputParser.CMAKE
 import com.android.tools.idea.gradle.project.build.output.XmlErrorOutputParser.Companion.XML_PARSING_GROUP
 import com.android.tools.idea.projectsystem.FilenameConstants
-import com.android.tools.idea.stats.withProjectId
 import com.android.utils.FileUtils
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
-import com.google.wireless.android.sdk.stats.BuildOutputWindowStats
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.FileMessageEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 import java.io.File
 import java.util.function.Consumer
 
@@ -54,23 +48,6 @@ private val toolNameToEnumMap = mapOf("Java compiler" to BuildErrorMessage.Error
 private fun findErrorType(messageGroup: String): BuildErrorMessage.ErrorType? = toolNameToEnumMap.filterKeys {
   messageGroup.startsWith(it)
 }.values.firstOrNull()
-
-fun sendBuildFailureMetrics(buildOutputParsers: List<BuildOutputParserWrapper>, project: Project) {
-  try {
-    val buildErrorMessages = mutableListOf<BuildErrorMessage>()
-    buildOutputParsers.forEach {
-      buildErrorMessages.addAll(it.buildErrorMessages)
-    }
-
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder().withProjectId(project).setKind(
-        AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS).setBuildOutputWindowStats(
-        BuildOutputWindowStats.newBuilder().addAllBuildErrorMessages(buildErrorMessages).build()))
-  }
-  catch (e: Exception) {
-    Logger.getInstance("BuildFailureMetricsReporting").error("Failed to send metrics", e)
-  }
-}
 
 /**
  * A wrapper class for all the build output parsers so we can collect metrics on error output parsing.

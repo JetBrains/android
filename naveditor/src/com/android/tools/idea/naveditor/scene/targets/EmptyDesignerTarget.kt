@@ -22,10 +22,10 @@ import com.android.tools.idea.common.scene.ScenePicker
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.target.BaseTarget
 import com.android.tools.idea.common.scene.target.Target
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.editor.NavActionManager
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.draw.DrawEmptyDesigner
-import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import icons.StudioIcons.NavEditor.Toolbar.ADD_DESTINATION
 import org.intellij.lang.annotations.JdkConstants
 import java.awt.Point
@@ -33,7 +33,7 @@ import java.awt.Point
 @SwingCoordinate
 val WIDTH = 240
 
-class EmptyDesignerTarget(private val surface: NavDesignSurface) : BaseTarget() {
+class EmptyDesignerTarget(private val surface: DesignSurface) : BaseTarget() {
   override fun getPreferenceLevel() = ACTION_LEVEL
 
   override fun layout(

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.svs
 
-import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
+import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
 import com.android.builder.model.ModelBuilderParameter
 import com.android.builder.model.NativeVariantAbi
 import com.android.builder.model.Variant

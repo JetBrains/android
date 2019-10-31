@@ -19,8 +19,11 @@ import com.android.tools.adtui.chart.statechart.DefaultStateChartReducer;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
 import com.android.tools.adtui.chart.statechart.StateChartConfig;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StateChartModel;
+import com.android.tools.adtui.model.formatter.UserCounterAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
+import com.google.common.annotations.VisibleForTesting;
 import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,16 +37,29 @@ public class UserCounterStateChartFactory {
     @NotNull
     @Override
     public Color getColor(boolean isMouseOver, @NotNull Long value) {
-      //TODO (b/141756319) Finalize state chart colors.
-      return ProfilerColors.DEFAULT_BACKGROUND;
+      // Consistency across the legend and state chart colors for the value's conversion into none, light, med, or dark
+      String weight = UserCounterAxisFormatter.DEFAULT.getFormattedString(0, value, false);
+
+      switch (weight) {
+        case "None":
+          return ProfilerColors.USER_COUNTER_EVENT_NONE;
+        case "Light":
+          return ProfilerColors.USER_COUNTER_EVENT_LIGHT;
+        case "Medium":
+          return ProfilerColors.USER_COUNTER_EVENT_MED;
+        default:
+          return ProfilerColors.USER_COUNTER_EVENT_DARK;
+      }
     }
   };
 
-
   @NotNull
   public static StateChart<Long> create(@NotNull StateChartModel<Long> model) {
-    StateChart<Long> stateChart =
-      new StateChart<>(model, new StateChartConfig<>(new DefaultStateChartReducer<>(), 0.33, 1, 0.33f), DURATION_STATE_COLOR_PROVIDER);
-    return stateChart;
+    return new StateChart<>(model, new StateChartConfig<>(new DefaultStateChartReducer<>(), 0.33, 1, 0.33f), DURATION_STATE_COLOR_PROVIDER);
+  }
+
+  @VisibleForTesting
+  static StateChartColorProvider<Long> getDurationStateColorProvider() {
+    return DURATION_STATE_COLOR_PROVIDER;
   }
 }

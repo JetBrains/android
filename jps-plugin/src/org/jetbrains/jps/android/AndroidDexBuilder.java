@@ -27,9 +27,18 @@ import com.intellij.util.Processor;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.execution.ParametersListUtil;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.compiler.tools.AndroidDxRunner;
-import org.jetbrains.android.util.AndroidBuildTestingManager;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
+import org.jetbrains.android.util.AndroidBuildTestingManager;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -57,10 +66,6 @@ import org.jetbrains.jps.model.java.JpsJavaSdkType;
 import org.jetbrains.jps.model.library.JpsLibrary;
 import org.jetbrains.jps.model.library.sdk.JpsSdk;
 import org.jetbrains.jps.model.module.JpsModule;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -444,7 +449,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
       logsDir = proguardLogsDir;
     }
     else {
-      logsDir = new File(mainContentRoot.getPath() + '/' + AndroidBuildCommonUtils.DIRECTORY_FOR_LOGS_NAME);
+      logsDir = new File(mainContentRoot.getPath() + '/' + AndroidFacetProperties.DIRECTORY_FOR_LOGS_NAME);
     }
     final AndroidProGuardStateStorage.MyState newState = new AndroidProGuardStateStorage.MyState(
       proguardCfgFiles);

@@ -31,6 +31,7 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
   private final String myTitle;
   private final boolean myCollapsedInitially;
   private final boolean myHideHeader;
+  private final boolean myTrackSelectable;
   private final int myTrackLimit;
 
   /**
@@ -40,6 +41,7 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
     myTitle = builder.myTitle;
     myCollapsedInitially = builder.myCollapsedInitially;
     myHideHeader = builder.myHideHeader;
+    myTrackSelectable = builder.myTrackSelectable;
     myTrackLimit = builder.myTrackLimit;
   }
 
@@ -74,6 +76,13 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
   }
 
   /**
+   * @return whether the tracks inside this track group are selectable.
+   */
+  public boolean isTrackSelectable() {
+    return myTrackSelectable;
+  }
+
+  /**
    * @return the number limit of tracks to display.
    */
   public int getTrackLimit() {
@@ -88,12 +97,14 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
     private String myTitle;
     private boolean myCollapsedInitially;
     private boolean myHideHeader;
+    private boolean myTrackSelectable;
     private int myTrackLimit;
 
     private Builder() {
       myTitle = "";
       myCollapsedInitially = false;
       myHideHeader = false;
+      myTrackSelectable = false;
       myTrackLimit = Integer.MAX_VALUE;
     }
 
@@ -112,6 +123,11 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
 
     public Builder setHideHeader(boolean hideHeader) {
       myHideHeader = hideHeader;
+      return this;
+    }
+
+    public Builder setTrackSelectable(boolean trackSelectable) {
+      myTrackSelectable = trackSelectable;
       return this;
     }
 

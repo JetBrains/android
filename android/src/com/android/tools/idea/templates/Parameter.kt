@@ -39,7 +39,6 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
-import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.SystemIndependent
 import org.w3c.dom.Element
@@ -47,6 +46,7 @@ import java.io.File
 import java.util.EnumSet
 import java.util.Locale
 import com.android.tools.idea.wizard.template.Constraint
+import org.jetbrains.kotlin.idea.stubindex.KotlinTopLevelFunctionFqnNameIndex
 
 /**
  * Parameter represents an external input to a template. It consists of an ID used to refer to it within the template, human-readable
@@ -135,6 +135,7 @@ class Parameter(
     Constraint.CLASS -> name!! + " is not set to a valid class name"
     Constraint.PACKAGE -> name!! + " is not set to a valid package name"
     Constraint.MODULE -> name!! + " is not set to a valid module name"
+    Constraint.KOTLIN_FUNCTION -> name!! + " is not set to a valid function name"
     Constraint.ID -> name!! + " is not set to a valid id."
     Constraint.DRAWABLE, Constraint.STRING, Constraint.LAYOUT, Constraint.NAVIGATION -> {
       val rft = c.toResourceFolderType()
@@ -161,12 +162,9 @@ class Parameter(
    * @return All constraints of this parameter that are violated by the proposed value.
    */
   @VisibleForTesting
-  fun validateStringType(project: Project?,
-                         module: Module?,
-                         provider: SourceProvider?,
-                         packageName: String?,
-                         value: String?,
-                         relatedValues: Set<Any> = setOf()): Collection<Constraint> {
+  fun validateStringType(
+    project: Project?, module: Module?, provider: SourceProvider?, packageName: String?, value: String?, relatedValues: Set<Any> = setOf()
+  ): Collection<Constraint> {
     if (value == null || value.isEmpty()) {
       return if (Constraint.NONEMPTY in constraints) listOf(Constraint.NONEMPTY) else listOf()
     }
@@ -180,7 +178,7 @@ class Parameter(
     fun validateConstraint(c: Constraint): Boolean = when (c) {
       Constraint.NONEMPTY -> value.isEmpty()
       Constraint.URI_AUTHORITY -> !value.matches("$URI_AUTHORITY_REGEX(;$URI_AUTHORITY_REGEX)*".toRegex())
-      Constraint.ACTIVITY, Constraint.CLASS, Constraint.PACKAGE -> !isValidFullyQualifiedJavaIdentifier(fqName)
+      Constraint.ACTIVITY, Constraint.CLASS, Constraint.PACKAGE, Constraint.KOTLIN_FUNCTION -> !isValidFullyQualifiedJavaIdentifier(fqName)
       Constraint.APP_PACKAGE -> AndroidUtils.validateAndroidPackageName(value) != null
       Constraint.DRAWABLE, Constraint.STRING, Constraint.LAYOUT, Constraint.VALUES, Constraint.NAVIGATION -> {
         val rft = c.toResourceFolderType()
@@ -198,6 +196,10 @@ class Parameter(
           val aClass = JavaPsiFacade.getInstance(project).findClass(fqName, searchScope)
           val activityClass = JavaPsiFacade.getInstance(project).findClass(SdkConstants.CLASS_ACTIVITY, GlobalSearchScope.allScope(project))
           aClass != null && activityClass != null && aClass.isInheritor(activityClass, true)
+        }
+        Constraint.KOTLIN_FUNCTION -> {
+          project ?: return false
+          KotlinTopLevelFunctionFqnNameIndex.getInstance().get(fqName, project, searchScope).isNotEmpty()
         }
         Constraint.CLASS -> project != null && existsClassFile(project, searchScope, provider, fqName)
         Constraint.PACKAGE, Constraint.APP_PACKAGE -> project != null && existsPackage(project, provider, value)
@@ -249,9 +251,9 @@ class Parameter(
   /**
    * Returns true if the given stringType is non-unique when it should be.
    */
-  fun uniquenessSatisfied(project: Project?, module: Module?, provider: SourceProvider?,
-                          packageName: String?, value: String?, relatedValues: Set<Any>): Boolean =
-    !validateStringType(project, module, provider, packageName, value, relatedValues).contains(Constraint.UNIQUE)
+  fun uniquenessSatisfied(
+    project: Project?, module: Module?, provider: SourceProvider?, packageName: String?, value: String?, relatedValues: Set<Any>
+  ): Boolean = !validateStringType(project, module, provider, packageName, value, relatedValues).contains(Constraint.UNIQUE)
 
   fun isRelated(p: Parameter): Boolean = TYPE_CONSTRAINTS.intersect(constraints).intersect(p.constraints).isNotEmpty()
 

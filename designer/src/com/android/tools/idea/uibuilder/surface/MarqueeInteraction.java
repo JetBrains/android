@@ -23,15 +23,19 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.scene.draw.DrawLassoUtil;
 import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import java.awt.Graphics2D;
+import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EventObject;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@link MarqueeInteraction} is an interaction for swiping out a selection rectangle.
@@ -52,6 +56,21 @@ public class MarqueeInteraction extends Interaction {
    */
   public MarqueeInteraction(@NotNull SceneView surface) {
     mySceneView = surface;
+  }
+
+  @Override
+  public void begin(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    assert event instanceof MouseEvent;
+    MouseEvent mouseEvent = (MouseEvent) event;
+    begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
+  }
+
+  @Override
+  public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
+    if (event instanceof MouseEvent) {
+      MouseEvent mouseEvent = (MouseEvent) event;
+      update(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
+    }
   }
 
   @Override
@@ -80,10 +99,22 @@ public class MarqueeInteraction extends Interaction {
   }
 
   @Override
+  public void commit(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    // Do nothing
+  }
+
+  @Override
+  public void cancel(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+    //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+    cancel(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+  }
+
+  @Override
   public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
     mySceneView.getSelectionModel().clear();
   }
 
+  @NotNull
   @Override
   public List<Layer> createOverlays() {
     ColorSet colorSet = mySceneView.getColorSet();

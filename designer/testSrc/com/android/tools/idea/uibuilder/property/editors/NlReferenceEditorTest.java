@@ -46,7 +46,7 @@ public class NlReferenceEditorTest extends PropertyTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myUndoManager = mock(UndoManagerImpl.class);
-    registerProjectComponentImplementation(UndoManager.class, myUndoManager);
+    registerProjectComponent(UndoManager.class, myUndoManager);
     myFixture = NlReferenceEditorFixture.createForInspector(getProject());
   }
 

@@ -173,18 +173,4 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
     assertTrue(argumentElement.nameElement.isEmpty)
     assertThat(argumentElement.parent?.parent as GradleDslMethodCall, equalTo(resultElement))
   }
-
-  @Test
-  fun testObjectConstructor() {
-    writeToBuildFile("")
-    val buildModel = gradleBuildModel
-    val defaultConfigBlock = (buildModel.android().defaultConfig() as ProductFlavorModelImpl).dslElement()
-    val transform = SingleArgumentMethodTransform(methodName, defaultConfigBlock)
-    val inputElement = createMethodCall(methodName, "statement")
-    defaultConfigBlock.setNewElement(inputElement)
-    val literal = createLiteral("")
-    literal.setValue(78)
-    inputElement.addParsedExpression(literal)
-    assertTrue(transform.test(inputElement))
-  }
 }

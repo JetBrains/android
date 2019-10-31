@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -67,9 +70,7 @@ final class RunOnMultipleDevicesAction extends AnAction {
       return;
     }
 
-    Object configuration = settings.getConfiguration();
-
-    if (!(configuration instanceof AndroidRunConfiguration)) {
+    if (!isSupportedRunConfigurationType(settings.getType())) {
       presentation.setEnabled(false);
       return;
     }
@@ -133,5 +134,15 @@ final class RunOnMultipleDevicesAction extends AnAction {
 
     builder.dataContext(context);
     return builder;
+  }
+
+  private static boolean isSupportedRunConfigurationType(@NotNull ConfigurationType type) {
+    if (type instanceof AndroidRunConfigurationType) {
+      return true;
+    }
+    if (StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get() && type instanceof AndroidTestRunConfigurationType) {
+      return true;
+    }
+    return false;
   }
 }

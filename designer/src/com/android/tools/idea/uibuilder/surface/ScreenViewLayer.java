@@ -156,7 +156,7 @@ public class ScreenViewLayer extends Layer {
     RenderResult renderResult = myScreenView.getResult();
     boolean drawNewImg = false;
     if (newRenderImageAvailable(renderResult)) {
-      myLastRenderResult = renderResult;
+      setLastRenderResult(renderResult);
       myScreenView.getScene().needsRebuildList();
       drawNewImg = true;
     }
@@ -201,6 +201,10 @@ public class ScreenViewLayer extends Layer {
       UIUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleRect.x, myScreenViewVisibleRect.y, null);
     }
     g.dispose();
+  }
+
+  protected void setLastRenderResult(@Nullable RenderResult result) {
+    myLastRenderResult = result;
   }
 
   /**
@@ -283,7 +287,7 @@ public class ScreenViewLayer extends Layer {
   @Override
   public void dispose() {
     super.dispose();
-    myLastRenderResult = null;
+    setLastRenderResult(null);
     myScheduledExecutorService.shutdown();
   }
 

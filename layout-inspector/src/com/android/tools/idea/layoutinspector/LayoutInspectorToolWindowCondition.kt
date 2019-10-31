@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.ui.enableLiveLayoutInspector
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Condition
 
 class LayoutInspectorToolWindowCondition : Condition<Project> {
-  override fun value(project: Project) = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get()
+  override fun value(project: Project) = enableLiveLayoutInspector
 }

@@ -95,7 +95,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   private NlComponent myMotionLayout;
   private MotionEditorSelector.Type mLastSelection = MotionEditorSelector.Type.LAYOUT;
   private MTag[] myLastSelectedTags;
-  private boolean mShowPath = false;
+  private boolean mShowPath = true;
 
   private void applyMotionSceneValue(boolean apply) {
     if (TEMP_HACK_FORCE_APPLY) {
@@ -271,10 +271,10 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             LayoutlibSceneManager manager = surface.getSceneManager();
             manager.updateSceneView();
             manager.requestLayoutAndRender(false);
-            surface.setAnimationMode(true);
+            surface.setRenderSynchronously(true);
           }  break;
           case MOTION_STOP: {
-            surface.setAnimationMode(false);
+            surface.setRenderSynchronously(false);
             surface.setAnimationScrubbing(false);
             LayoutlibSceneManager manager = surface.getSceneManager();
             manager.requestLayoutAndRender(false);
@@ -441,14 +441,17 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   MotionSceneTag.Root getMotionScene(NlComponent motionLayout) {
     String ref = motionLayout.getAttribute(SdkConstants.AUTO_URI, "layoutDescription");
     if (ref == null) {
+      System.err.println("getAttribute(layoutDescription ) returned null");
       return null;
     }
     int index = ref.lastIndexOf("@xml/");
     if (index < 0) {
+      System.err.println("layoutDescription  did not have \"@xml/\"");
       return null;
     }
     String fileName = ref.substring(index + 5);
     if (fileName.isEmpty()) {
+      System.err.println("layoutDescription \""+ref+"\"");
       return null;
     }
 
@@ -460,9 +463,15 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     if (resourcesXML.isEmpty()) {
       return null;
     }
-    VirtualFile directory = resourcesXML.get(0);
-    VirtualFile virtualFile = directory.findFileByRelativePath(fileName + ".xml");
+    VirtualFile virtualFile = null;
+    for (VirtualFile dir : resourcesXML) {
+      virtualFile = dir.findFileByRelativePath(fileName + ".xml");
+      if (virtualFile != null) {
+        break;
+      }
+    }
     if (virtualFile == null) {
+      System.err.println("virtualFile == null");
       return null;
     }
 

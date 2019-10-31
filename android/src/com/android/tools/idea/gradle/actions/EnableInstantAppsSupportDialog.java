@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;

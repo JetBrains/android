@@ -24,7 +24,7 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
 import com.android.tools.idea.naveditor.model.popUpTo
 
-class NavHorizontalActionHitProvider : DefaultHitProvider() {
+object NavHorizontalActionHitProvider : DefaultHitProvider() {
   override fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker) {
     super.addHit(component, sceneTransform, picker)
 

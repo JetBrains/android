@@ -52,7 +52,7 @@ class ComponentTreeSelectionModelImpl(private val model: ComponentTreeModelImpl)
 
   private class ComponentTreeSelectionListener(val callback: (List<Any>) -> Unit): TreeSelectionListener {
     override fun valueChanged(event: TreeSelectionEvent) {
-      callback(event.paths.map { it.lastPathComponent })
+      callback(event.paths.filter { event.isAddedPath(it) }.map { it.lastPathComponent })
     }
   }
 }

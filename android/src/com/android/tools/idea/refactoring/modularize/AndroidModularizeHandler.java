@@ -17,6 +17,7 @@ package com.android.tools.idea.refactoring.modularize;
 
 import static com.intellij.openapi.actionSystem.LangDataKeys.TARGET_MODULE;
 
+import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -68,7 +69,6 @@ import java.util.Locale;
 import java.util.Queue;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.facet.SourceProviderManager;

@@ -88,8 +88,8 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     initMocks(this);
     SearchTextField.FindAction globalFindAction = new SearchTextField.FindAction();
     globalFindAction.registerCustomShortcutSet(new CustomShortcutSet(myCommandF), null);
-    registerApplicationComponentImplementation(ActionManager.class, myActionManager);
-    registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
+    registerApplicationComponent(ActionManager.class, myActionManager);
+    registerApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
     when(myActionManager.getAction(InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID)).thenReturn(new SomeAction("Docked"));
     when(myActionManager.getAction(InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)).thenReturn(new SomeAction("Floating"));
     when(myActionManager.getAction(InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID)).thenReturn(new SomeAction("Split"));

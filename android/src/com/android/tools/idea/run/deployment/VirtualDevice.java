@@ -40,19 +40,20 @@ final class VirtualDevice extends Device {
   private final Snapshot mySnapshot;
 
   @NotNull
-  static VirtualDevice newConnectedDevice(@NotNull VirtualDevice virtualDevice,
-                                          @NotNull ConnectedDevice connectedDevice,
-                                          @NotNull KeyToConnectionTimeMap map) {
-    Key key = virtualDevice.getKey();
+  static VirtualDevice newConnectedDevice(@NotNull ConnectedDevice connectedDevice,
+                                          @NotNull KeyToConnectionTimeMap map,
+                                          @Nullable VirtualDevice virtualDevice) {
+    Device device = virtualDevice == null ? connectedDevice : virtualDevice;
+    Key key = device.getKey();
 
     return new Builder()
-      .setName(virtualDevice.getName())
+      .setName(device.getName())
       .setValid(connectedDevice.isValid())
       .setValidityReason(connectedDevice.getValidityReason())
       .setKey(key)
       .setConnectionTime(map.get(key))
       .setAndroidDevice(connectedDevice.getAndroidDevice())
-      .setSnapshot(virtualDevice.mySnapshot)
+      .setSnapshot(device.getSnapshot())
       .build();
   }
 

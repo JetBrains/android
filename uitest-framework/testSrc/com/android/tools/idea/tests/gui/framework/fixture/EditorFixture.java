@@ -28,8 +28,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import com.android.tools.idea.common.editor.DesignToolsSplitEditor;
 import com.android.tools.idea.common.editor.DesignerEditor;
-import com.android.tools.idea.common.editor.SplitEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.flags.StudioFlags;
@@ -211,8 +211,8 @@ public class EditorFixture {
     if (StudioFlags.NELE_SPLIT_EDITOR.get() && editor == null) {
       // When using the split editor, we need to retrieve its text editor.
       FileEditor selectedEditor = manager.getSelectedEditor();
-      if (selectedEditor instanceof SplitEditor) {
-        editor = ((SplitEditor)selectedEditor).getTextEditor().getEditor();
+      if (selectedEditor instanceof DesignToolsSplitEditor) {
+        editor = ((DesignToolsSplitEditor)selectedEditor).getTextEditor().getEditor();
       }
     }
     checkState(editor != null, "no currently selected text editor");
@@ -391,8 +391,8 @@ public class EditorFixture {
         assertNotNull("Can't switch to tab " + tabName + " when no file is open in the editor", currentFile);
         FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
         for (FileEditor editor : manager.getAllEditors(currentFile)) {
-          if (StudioFlags.NELE_SPLIT_EDITOR.get() && editor instanceof SplitEditor) {
-            boolean consumedBySplitEditor = selectSplitEditorTab(tab, (SplitEditor)editor);
+          if (StudioFlags.NELE_SPLIT_EDITOR.get() && editor instanceof DesignToolsSplitEditor) {
+            boolean consumedBySplitEditor = selectSplitEditorTab(tab, (DesignToolsSplitEditor)editor);
             if (consumedBySplitEditor) {
               return true;
             }
@@ -411,11 +411,11 @@ public class EditorFixture {
   }
 
   /**
-   * Given a {@link Tab}, selects the corresponding mode in the {@link SplitEditor}, i.e. "Text only" when tab is {@link Tab#EDITOR} and
+   * Given a {@link Tab}, selects the corresponding mode in the {@link DesignToolsSplitEditor}, i.e. "Text only" when tab is {@link Tab#EDITOR} and
    * "Design only" when tab is {@link Tab#DESIGN}.
    * @return Whether this method effectively changed tabs. This only returns false if tab is not {@link Tab#EDITOR} or {@link Tab#DESIGN}.
    */
-  private boolean selectSplitEditorTab(@NotNull Tab tab, @NotNull SplitEditor editor) {
+  private boolean selectSplitEditorTab(@NotNull Tab tab, @NotNull DesignToolsSplitEditor editor) {
     if (!(tab == Tab.EDITOR || tab == Tab.DESIGN)) {
       // Only text and design are supported by split editor at the moment.
       return false;
@@ -515,8 +515,8 @@ public class EditorFixture {
       FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
       if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
         FileEditor selectedEditor = manager.getSelectedEditor();
-        if (selectedEditor instanceof SplitEditor) {
-          SplitEditor splitEditor = (SplitEditor)selectedEditor;
+        if (selectedEditor instanceof DesignToolsSplitEditor) {
+          DesignToolsSplitEditor splitEditor = (DesignToolsSplitEditor)selectedEditor;
           if (splitEditor.isTextMode()) {
             return splitEditor.getEditor();
           }
@@ -751,8 +751,8 @@ public class EditorFixture {
         FileEditor selected = editors[0];
         if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
           // When using split editor, we need to get the DesignerEditor since it's a TextEditorWithPreview containing a TextEditor as well.
-          checkState(selected instanceof SplitEditor, "invalid editor selected");
-          selected = ((SplitEditor)selected).getDesignerEditor();
+          checkState(selected instanceof DesignToolsSplitEditor, "invalid editor selected");
+          selected = ((DesignToolsSplitEditor)selected).getDesignerEditor();
         }
         checkState(selected instanceof DesignerEditor, "not a %s: %s", DesignerEditor.class.getSimpleName(), selected);
         return new NlEditorFixture(myFrame.robot(), (DesignerEditor)selected);
@@ -884,8 +884,8 @@ public class EditorFixture {
   public String getSelectedTab() {
     if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
       FileEditor[] selectedEditors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
-      if (selectedEditors.length > 0 && selectedEditors[0] instanceof SplitEditor) {
-        SplitEditor editor = (SplitEditor)selectedEditors[0];
+      if (selectedEditors.length > 0 && selectedEditors[0] instanceof DesignToolsSplitEditor) {
+        DesignToolsSplitEditor editor = (DesignToolsSplitEditor)selectedEditors[0];
         if (editor.getPreferredFocusedComponent() == editor.getTextEditor().getPreferredFocusedComponent()) {
           // The equivalent to the "Text" tab in the split editor is when we're in text-only mode.
           return "Text";
@@ -923,10 +923,10 @@ public class EditorFixture {
       FileEditor[] selectedEditors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
       checkState(selectedEditors.length > 0, "no selected editors");
       FileEditor selected = selectedEditors[0];
-      checkState(selected instanceof SplitEditor, "invalid editor selected");
+      checkState(selected instanceof DesignToolsSplitEditor, "invalid editor selected");
       Tab tab = Tab.fromName(tabName);
       assertNotNull(String.format("Can't find tab named \"%s\".", tabName), tab);
-      GuiTask.execute(() -> selectSplitEditorTab(tab, (SplitEditor)selected));
+      GuiTask.execute(() -> selectSplitEditorTab(tab, (DesignToolsSplitEditor)selected));
     }
     else {
       TabLabel tab = waitUntilShowing(robot, new GenericTypeMatcher<TabLabel>(TabLabel.class) {

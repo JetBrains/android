@@ -16,9 +16,12 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.type.ZoomableDrawableFileType
+import com.intellij.openapi.util.Disposer
+import junit.framework.TestCase
 
 class PixelDeviceModelsProviderTest : LayoutTestCase() {
 
@@ -51,6 +54,16 @@ class PixelDeviceModelsProviderTest : LayoutTestCase() {
     val modelsProvider = PixelDeviceModelsProvider
     val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
     assertEmpty(nlModels)
+  }
+
+  fun testDisposedConfigurationManagerShouldCleanTheCached() {
+    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
+    val modelsProvider = PixelDeviceModelsProvider
+    val manager = ConfigurationManager.getOrCreateInstance(myFacet)
+    modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    TestCase.assertTrue(modelsProvider.deviceCaches.containsKey(manager))
+    Disposer.dispose(manager)
+    TestCase.assertFalse(modelsProvider.deviceCaches.containsKey(manager))
   }
 }
 

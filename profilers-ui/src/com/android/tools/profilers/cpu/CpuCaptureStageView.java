@@ -15,13 +15,16 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.trackgroup.TrackGroupListPanel;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerTrackRendererFactory;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel;
+import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
@@ -40,12 +43,14 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
 
   private final TrackGroupListPanel myTrackGroupList;
   private final CpuAnalysisPanel myAnalysisPanel;
+  private final MultiSelectionModel<CpuAnalyzable> myMultiSelectionModel = new MultiSelectionModel<>();
 
   public CpuCaptureStageView(@NotNull StudioProfilersView view, @NotNull CpuCaptureStage stage) {
     super(view, stage);
     myTrackGroupList = new TrackGroupListPanel(TRACK_RENDERER_FACTORY);
     myAnalysisPanel = new CpuAnalysisPanel(view, stage);
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
+    myMultiSelectionModel.addDependency(this).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, this::onTrackGroupSelectionChange);
     updateComponents();
   }
 
@@ -86,7 +91,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   }
 
   private JComponent createAnalyzingComponents() {
-    myTrackGroupList.loadTrackGroups(getStage().getTrackGroupModels(), true);
+    loadTrackGroupModels();
     JPanel container = new JPanel(new BorderLayout());
     container.add(new CpuCaptureMinimapView(getStage().getMinimapModel()).getComponent(), BorderLayout.NORTH);
     container.add(
@@ -104,6 +109,24 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private void updateTrackGroupList() {
     // Force track group list to validate its children.
     myTrackGroupList.getComponent().updateUI();
+  }
+
+  private void loadTrackGroupModels() {
+    myTrackGroupList.loadTrackGroups(getStage().getTrackGroupModels(), true);
+    myTrackGroupList.registerMultiSelectionModel(myMultiSelectionModel);
+  }
+
+  private void onTrackGroupSelectionChange() {
+    // Remove the last selection if any.
+    if (getStage().getAnalysisModels().size() > 1) {
+      getStage().getAnalysisModels().remove(getStage().getAnalysisModels().size() - 1);
+    }
+
+    // Merge all selected items' analysis models and provide one combined model to the analysis panel.
+    myMultiSelectionModel.getSelection().stream()
+      .map(CpuAnalyzable::getAnalysisModel)
+      .reduce(CpuAnalysisModel::mergeWith)
+      .ifPresent(getStage()::addCpuAnalysisModel);
   }
 
   @VisibleForTesting

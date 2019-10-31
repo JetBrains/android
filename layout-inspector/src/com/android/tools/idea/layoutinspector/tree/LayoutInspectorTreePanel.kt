@@ -21,6 +21,7 @@ import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
 import com.android.tools.componenttree.api.ViewNodeType
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.google.common.annotations.VisibleForTesting
@@ -48,6 +49,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   init {
     val builder = ComponentTreeBuilder()
       .withNodeType(InspectorViewNodeType())
+      .withContextMenu(::showPopup)
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
 
     ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.shortcutSet?.shortcuts
@@ -59,6 +61,14 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     componentTreeModel = model
     componentTreeSelectionModel = selectionModel
     selectionModel.addSelectionListener { layoutInspector?.layoutInspectorModel?.selection = it.firstOrNull() as? ViewNode }
+    layoutInspector?.layoutInspectorModel?.modificationListeners?.add { _, _, _ -> componentTree.repaint() }
+  }
+
+  private fun showPopup(component: JComponent, x: Int, y: Int) {
+    val node = componentTreeSelectionModel.selection.singleOrNull() as ViewNode?
+    if (node != null) {
+      layoutInspector?.let { showViewContextMenu(node, it, component, x, y) }
+    }
   }
 
   // TODO: There probably can only be 1 layout inspector per project. Do we need to handle changes?
@@ -114,5 +124,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     override fun parentOf(node: ViewNode) = node.parent
 
     override fun childrenOf(node: ViewNode) = node.children
+
+    override fun isEnabled(node: ViewNode) = node.visible
   }
 }

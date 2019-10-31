@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -27,7 +28,9 @@ import icons.StudioIcons
 @Suppress("unused") // Entries are indirectly used by for-loop.
 enum class ConfigurationSet(val title: String, val modelsProvider: VisualizationModelsProvider, val visible: Boolean = true) {
   PIXEL_DEVICES("Pixel Devices", PixelDeviceModelsProvider),
-  PROJECT_LOCALES("Project Locales", LocaleModelsProvider)
+  PROJECT_LOCALES("Project Locales", LocaleModelsProvider),
+  // For more information on math && impl, see go/cbm_simulator
+  COLOR_BLIND_MODE("Color Blind Mode", ColorBlindModeModelsProvider, StudioFlags.NELE_COLOR_BLIND_MODE.get())
 }
 
 interface ConfigurationSetListener {

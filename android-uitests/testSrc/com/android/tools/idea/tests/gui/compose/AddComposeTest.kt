@@ -136,19 +136,41 @@ class AddComposeTest {
       assertThat(this).doesNotContain("implementation 'androidx.ui:ui-tooling:")
     }
 
-    NewActivityWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "Compose", "Empty Compose Activity"))
-      .configureActivityStep
-      .enterTextFieldValue(NAME, "ComposeActivity")
-      .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+    fun addComposeActivity(name: String) {
+      NewActivityWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "Compose", "Empty Compose Activity"))
+        .configureActivityStep
+        .enterTextFieldValue(NAME, name)
+        .wizard()
+        .clickFinish()
+        .waitForGradleProjectSyncToFinish()
+        .projectView
+        .selectAndroidPane()
+        .clickPath("app");
+    }
+
+    val activityTitle = "ComposeActivity"
+    addComposeActivity(activityTitle)
 
     guiTest.getProjectFileText("app/build.gradle").run {
       assertThat(this).contains("implementation 'androidx.ui:ui-layout:")
       assertThat(this).contains("implementation 'androidx.ui:ui-material:")
       assertThat(this).contains("implementation 'androidx.ui:ui-tooling:")
     }
-    guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/ComposeActivity.kt").run {
+    guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/$activityTitle.kt").run {
+      assertThat(this).contains("Greeting")
+      assertThat(this).contains("DefaultPreview")
+      assertThat(this).contains("@Composable")
+      assertThat(this).contains("@Preview")
+    }
+
+    val activityTitle2 = "ComposeActivity2"
+    addComposeActivity(activityTitle2)
+
+    guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/$activityTitle2.kt").run {
+      assertThat(this).doesNotContain("Greeting(")
+      assertThat(this).doesNotContain("DefaultPreview(")
+      assertThat(this).contains("Greeting2")
+      assertThat(this).contains("DefaultPreview2")
       assertThat(this).contains("@Composable")
       assertThat(this).contains("@Preview")
     }

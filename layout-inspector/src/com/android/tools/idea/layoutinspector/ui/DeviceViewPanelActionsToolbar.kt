@@ -15,35 +15,20 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.adtui.actions.PanSurfaceAction
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomLabelAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomResetAction
 import com.android.tools.adtui.actions.ZoomToFitAction
-import com.android.tools.adtui.ui.DesignSurfaceToolbarUI
 import com.android.tools.editor.EditorActionsFloatingToolbar
 import com.android.tools.editor.EditorActionsToolbarActionGroups
-import com.intellij.ide.plugins.newui.TabHeaderComponent.createToolbar
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.util.ui.JBDimension
-import com.intellij.util.ui.JBUI
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
-import java.awt.event.ActionListener
-import java.awt.event.ContainerAdapter
-import java.awt.event.ContainerEvent
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
-import javax.swing.Box
-import javax.swing.BoxLayout
-import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.Timer
+import icons.StudioIcons
 
 /** Creates the actions toolbar used on the [DeviceViewPanel] */
 class DeviceViewPanelActionsToolbar(
@@ -58,13 +43,25 @@ class DeviceViewPanelActionsToolbar(
   override fun getActionGroups() = LayoutInspectorToolbarGroups
 }
 
+object RecenterAction : AnAction(StudioIcons.LayoutInspector.RESET_VIEW) {
+  override fun actionPerformed(event: AnActionEvent) {
+    event.getData(DEVICE_VIEW_MODEL_KEY)?.resetRotation()
+  }
+
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    event.presentation.isEnabled = event.getData(DEVICE_VIEW_MODEL_KEY)?.isRotated ?: false
+  }
+}
+
 object LayoutInspectorToolbarGroups : EditorActionsToolbarActionGroups {
   override val zoomLabelGroup = DefaultActionGroup().apply {
     add(ZoomLabelAction)
     add(ZoomResetAction)
   }
 
-  override val panControlsGroup: ActionGroup? = null
+  override val otherGroups: List<ActionGroup> = listOf(DefaultActionGroup().apply { add(PanSurfaceAction) },
+                                                       DefaultActionGroup().apply { add(RecenterAction) })
 
   override val zoomControlsGroup = DefaultActionGroup().apply {
     add(ZoomOutAction)

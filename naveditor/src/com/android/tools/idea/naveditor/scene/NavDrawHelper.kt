@@ -16,12 +16,13 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.idea.common.model.scaledAndroidLength
+import com.android.tools.idea.common.model.times
 import com.android.tools.idea.common.scene.LerpEllipse
+import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.FillShape
-import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.naveditor.model.NavCoordinate
+import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
 import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import com.google.common.annotations.VisibleForTesting
@@ -39,33 +40,22 @@ import java.awt.geom.RoundRectangle2D
 const val DEFAULT_FONT_NAME = "Default"
 private val DEFAULT_FONT_SIZE = JBUI.scale(12)
 
-@NavCoordinate
-val INNER_RADIUS_SMALL = JBUI.scale(5f)
-@NavCoordinate
-val INNER_RADIUS_LARGE = JBUI.scale(8f)
-@NavCoordinate
-val OUTER_RADIUS_SMALL = JBUI.scale(7f)
-@NavCoordinate
-val OUTER_RADIUS_LARGE = JBUI.scale(11f)
+val INNER_RADIUS_SMALL = scaledAndroidLength(5f)
+val INNER_RADIUS_LARGE = scaledAndroidLength(8f)
+val OUTER_RADIUS_SMALL = scaledAndroidLength(7f)
+val OUTER_RADIUS_LARGE = scaledAndroidLength(11f)
 
 @SwingCoordinate
 val HANDLE_STROKE = BasicStroke(JBUI.scale(2).toFloat())
 
-@NavCoordinate
-val FRAGMENT_BORDER_SPACING = JBUI.scale(2f)
-@NavCoordinate
-val ACTION_HANDLE_OFFSET = FRAGMENT_BORDER_SPACING.toInt() + JBUI.scale(2)
+val FRAGMENT_BORDER_SPACING = scaledAndroidLength(2f)
+val ACTION_HANDLE_OFFSET = FRAGMENT_BORDER_SPACING + scaledAndroidLength(2f)
 
-@NavCoordinate
-val HEADER_ICON_SIZE = JBUI.scale(14f)
-@NavCoordinate
-val HEADER_TEXT_PADDING = JBUI.scale(2f)
-@NavCoordinate
-val HEADER_PADDING = JBUI.scale(8f)
+val HEADER_ICON_SIZE = scaledAndroidLength(14f)
+val HEADER_TEXT_PADDING = scaledAndroidLength(2f)
+val HEADER_PADDING = scaledAndroidLength(8f)
 
-@NavCoordinate
 val HEADER_HEIGHT = HEADER_ICON_SIZE + HEADER_PADDING
-@NavCoordinate
 val HEADER_TEXT_HEIGHT = HEADER_ICON_SIZE - 2 * HEADER_TEXT_PADDING
 
 fun regularFont(scale: Float, style: Int): Font {
@@ -114,8 +104,8 @@ fun makeCircleLerp(center: Point2D.Float, initialRadius: Float, finalRadius: Flo
 }
 
 @SwingCoordinate
-fun getHeaderRect(view: SceneView, rectangle: Rectangle2D.Float): Rectangle2D.Float {
-  @SwingCoordinate val height = Coordinates.getSwingDimensionDip(view, HEADER_HEIGHT)
+fun getHeaderRect(context: SceneContext, @SwingCoordinate rectangle: Rectangle2D.Float): Rectangle2D.Float {
+  val height = (context.inlineScale * HEADER_HEIGHT).value
   return Rectangle2D.Float(rectangle.x, rectangle.y - height, rectangle.width, height)
 }
 
@@ -155,3 +145,4 @@ fun makeDrawArrowCommand(@SwingCoordinate rectangle: Rectangle2D.Float, directio
 
   return FillShape(path, color)
 }
+

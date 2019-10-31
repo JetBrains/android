@@ -34,6 +34,7 @@ import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -143,8 +144,8 @@ public class AtraceParser implements TraceParser {
     buildCaptureTreeNodes();
     buildThreadStateData();
     buildCpuStateData();
-    myFrameInfo = new AtraceFrameManager(myProcessModel, this::convertToUserTimeUs, findRenderThreadId(myProcessModel));
-    return new AtraceCpuCapture(this, traceId);
+    myFrameInfo = new AtraceFrameManager(myProcessModel, convertToUserTimeUsFunction(), findRenderThreadId(myProcessModel));
+    return new AtraceCpuCapture(this, myFrameInfo, traceId);
   }
 
   /**
@@ -296,39 +297,6 @@ public class AtraceParser implements TraceParser {
 
   public int getRenderThreadId() {
     return findRenderThreadId(myProcessModel);
-  }
-
-  /**
-   * Returns a series of frames where gaps between frames are filled with empty frames. This allows the caller to determine the
-   * frame length by looking at the delta between a valid frames series and the empty frame series that follows it. The delta between
-   * an empty frame series and the following frame is idle time between frames.
-   */
-  @NotNull
-  public List<SeriesData<AtraceFrame>> getFrames(AtraceFrameFilterConfig filter) {
-    List<SeriesData<AtraceFrame>> framesSeries = new ArrayList<>();
-    List<AtraceFrame> framesList = myFrameInfo.buildFramesList(filter);
-    // Look at each frame converting them to series data.
-    // The last frame is handled outside the for loop as we need to add an entry for the frame as well as an entry for the frame ending.
-    // Single frames are handled in the last frame case.
-    for (int i = 1; i < framesList.size(); i++) {
-      AtraceFrame current = framesList.get(i);
-      AtraceFrame past = framesList.get(i - 1);
-      framesSeries.add(new SeriesData<>(convertToUserTimeUs(past.getTotalRangeSeconds().getMin()), past));
-
-      // Need to get the time delta between two frames.
-      // If we have a gap then we add an empty frame to signify to the UI that nothing should be rendered.
-      if (past.getTotalRangeSeconds().getMax() < current.getTotalRangeSeconds().getMin()) {
-        framesSeries.add(new SeriesData<>(convertToUserTimeUs(past.getTotalRangeSeconds().getMax()), AtraceFrame.EMPTY));
-      }
-    }
-
-    // Always add the last frame, and a null frame following to properly setup the series for the UI.
-    if (!framesList.isEmpty()) {
-      AtraceFrame lastFrame = framesList.get(framesList.size() - 1);
-      framesSeries.add(new SeriesData<>(convertToUserTimeUs(lastFrame.getTotalRangeSeconds().getMin()), lastFrame));
-      framesSeries.add(new SeriesData<>(convertToUserTimeUs(lastFrame.getTotalRangeSeconds().getMax()), AtraceFrame.EMPTY));
-    }
-    return framesSeries;
   }
 
   /**
@@ -538,6 +506,13 @@ public class AtraceParser implements TraceParser {
 
   private long convertToUserTimeUs(double timestampInSeconds) {
     return (long)secondsToUs((timestampInSeconds - myModel.getBeginTimestamp()) + myMonoTimeAtBeginningSeconds);
+  }
+
+  // This provides a function that implements convertToUserTimeUs, without holding into the myModel object for the begin timestamp reference.
+  private Function<Double, Long> convertToUserTimeUsFunction() {
+    double beginTimestamp = myModel.getBeginTimestamp();
+    double monoTimeAtBeginningSeconds = myMonoTimeAtBeginningSeconds;
+    return timestampInSeconds -> (long)secondsToUs((timestampInSeconds - beginTimestamp) + monoTimeAtBeginningSeconds);
   }
 
   /**
