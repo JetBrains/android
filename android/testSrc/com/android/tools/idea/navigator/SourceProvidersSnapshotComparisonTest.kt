@@ -17,6 +17,7 @@ package com.android.tools.idea.navigator
 
 import com.android.builder.model.SourceProvider
 import com.android.testutils.TestUtils
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -216,7 +217,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
                 val sourceProviderManager = SourceProviderManager.getInstance(androidFacet)
                 sourceProviderManager.mainIdeaSourceProvider.dump()
               }
-              val model = AndroidModel.get(module)
+              val model = AndroidModuleModel.get(module)
               if (model != null) {
                 nest("by AndroidModel:") {
                   model.defaultSourceProvider.dump()
