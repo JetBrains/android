@@ -145,6 +145,17 @@ fun createSourceProvidersFromModel(model: AndroidModel): SourceProviders {
   )
 }
 
+fun createSourceProvidersForLegacyModule(facet: AndroidFacet) : SourceProviders {
+  val mainSourceProvider = LegacyDelegate(facet)
+  return SourceProvidersImpl(
+    mainIdeaSourceProvider = mainSourceProvider,
+    currentSourceProviders = listOf(mainSourceProvider),
+    currentTestSourceProviders = emptyList(),
+    allSourceProviders = listOf(mainSourceProvider),
+    mainAndFlavorSourceProviders = listOf(mainSourceProvider)
+  )
+}
+
 class SourceProvidersImpl(
   override val mainIdeaSourceProvider: IdeaSourceProvider,
   override val currentSourceProviders: List<IdeaSourceProvider>,
@@ -154,32 +165,6 @@ class SourceProvidersImpl(
   @Suppress("OverridingDeprecatedMember")
   override val mainAndFlavorSourceProviders: List<IdeaSourceProvider>
 ) : SourceProviders
-
-private class LegacySourceProviderManagerImpl(private val facet: AndroidFacet) : SourceProviders {
-
-  @Volatile
-  private var mainIdeaSourceSet: IdeaSourceProvider? = null
-
-  override val mainIdeaSourceProvider: IdeaSourceProvider
-    get() {
-      if (mainIdeaSourceSet == null) {
-        mainIdeaSourceSet = LegacyDelegate(facet)
-      }
-      return mainIdeaSourceSet!!
-    }
-
-  override val currentSourceProviders: List<IdeaSourceProvider>
-    get() = listOf(mainIdeaSourceProvider)
-
-  override val currentTestSourceProviders: List<IdeaSourceProvider> = emptyList()
-
-  override val allSourceProviders: List<IdeaSourceProvider>
-    get() = listOf(mainIdeaSourceProvider)
-
-  @Suppress("OverridingDeprecatedMember")
-  override val mainAndFlavorSourceProviders: List<IdeaSourceProvider>
-    get() = listOf(mainIdeaSourceProvider)
-}
 
 /** [IdeaSourceProvider] for legacy Android projects without [SourceProvider].  */
 @Suppress("DEPRECATION")
@@ -276,7 +261,7 @@ private val KEY: Key<SourceProviders> = Key.create(::KEY.qualifiedName)
 
 private fun createSourceProviderFor(facet: AndroidFacet): SourceProviders {
   val model = if (AndroidModel.isRequired(facet)) AndroidModel.get(facet) else null
-  return if (model != null) createSourceProvidersFromModel(model) else LegacySourceProviderManagerImpl(facet)
+  return if (model != null) createSourceProvidersFromModel(model) else createSourceProvidersForLegacyModule(facet)
 }
 
 private fun String.convertToUrl() = VfsUtil.pathToUrl(this)
