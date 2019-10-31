@@ -67,6 +67,8 @@ class ViewNode(val drawId: Long,
   val unqualifiedName: String
     get() = qualifiedName.substringAfterLast('.')
 
+  var visible = true
+
   fun flatten(): Collection<ViewNode> {
     return children.flatMap { it.flatten() }.plus(this)
   }

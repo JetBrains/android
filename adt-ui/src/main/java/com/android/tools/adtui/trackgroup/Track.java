@@ -16,6 +16,7 @@
 package com.android.tools.adtui.trackgroup;
 
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.intellij.util.ui.JBEmptyBorder;
 import javax.swing.JComponent;
@@ -40,7 +41,8 @@ public class Track {
     myComponent = new JPanel(new TabularLayout("150px,*", "Fit"));
     if (trackModel.getHideHeader()) {
       myComponent.add(trackComponent, new TabularLayout.Constraint(0, 0, 2));
-    } else {
+    }
+    else {
       myComponent.add(titleLabel, new TabularLayout.Constraint(0, 0));
       myComponent.add(trackComponent, new TabularLayout.Constraint(0, 1));
     }
@@ -58,6 +60,17 @@ public class Track {
   @NotNull
   public static <M, R extends Enum> Track create(@NotNull TrackModel<M, R> trackModel, @NotNull TrackRenderer<M, R> trackRenderer) {
     return new Track(trackModel, trackRenderer.render(trackModel));
+  }
+
+  /**
+   * Update UI to reflect selection state.
+   *
+   * @return current instance
+   */
+  @NotNull
+  public Track updateSelected(boolean selected) {
+    myComponent.setBackground(selected ? StudioColorsKt.getActiveSelection() : null);
+    return this;
   }
 
   /**

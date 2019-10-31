@@ -53,6 +53,7 @@ class GradleModuleHierarchyProviderTest : AndroidGradleTestCase() {
     requestSyncAndGetExpectedFailure()
     TruthJUnit.assume().that(ModuleManager.getInstance(project).modules).asList().hasSize(1)
     val provider = GradleModuleHierarchyProvider(project)
-    assertThat(provider.forProject.submodules).containsExactly(myModules.getModule(::testFirstSyncFailedStructure.name))
+    // This case is handled by the AndroidViewProjectNode directly.
+    assertThat(provider.forProject.submodules).isEmpty()
   }
 }

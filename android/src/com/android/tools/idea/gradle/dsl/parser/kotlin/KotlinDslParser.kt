@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslUnknownElement
@@ -243,11 +244,8 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     name: GradleNameElement? = null): GradlePropertiesDslElement? {
     val blockName = methodCallBlockName(expression) ?: return null
     val blockElement = getBlockElement(listOf(blockName), parent, name) ?: return null
-    if (blockElement is AbstractFlavorTypeDslElement) {
+    if (blockElement is GradleDslNamedDomainElement) {
       // TODO(xof): this way of keeping track of how we got hold of the block (which method name) only works once
-      blockElement.methodName = blockElement.methodName ?: expression.name()
-    }
-    if (blockElement is SigningConfigDslElement) {
       blockElement.methodName = blockElement.methodName ?: expression.name()
     }
     return blockElement
@@ -283,7 +281,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       val blockElement = methodCallBlock(expression, parent, name) ?: getBlockElement(listOf(referenceName), parent, name) ?: return
       val argumentsBlock = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
 
-      blockElement.setPsiElement(argumentsBlock)
+      blockElement.setPsiElement(argumentsBlock ?: expression)
       blockElements.add(blockElement)
       blockElements.forEach { block ->
         // Visit the children of this element, with the current block set as parent.

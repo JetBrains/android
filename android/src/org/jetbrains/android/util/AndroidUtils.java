@@ -17,7 +17,7 @@ package org.jetbrains.android.util;
 
 import static com.android.SdkConstants.ATTR_CONTEXT;
 import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.intellij.openapi.application.ApplicationManager.getApplication;
 
 import com.android.SdkConstants;
@@ -123,6 +123,7 @@ import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 
 /**
  * @author yole, coyote
@@ -780,7 +781,7 @@ public class AndroidUtils {
 
     for (String url : urls) {
       if (sdkHomeCanonicalPath != null) {
-        url = StringUtil.replace(url, AndroidBuildCommonUtils.SDK_HOME_MACRO, sdkHomeCanonicalPath);
+        url = StringUtil.replace(url, AndroidFacetProperties.SDK_HOME_MACRO, sdkHomeCanonicalPath);
       }
       result.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(url)));
     }

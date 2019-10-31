@@ -18,7 +18,6 @@ package com.android.tools.idea.res;
 import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
 import static com.android.SdkConstants.ATTR_FORMAT;
 import static com.android.SdkConstants.ATTR_NAME;
-import static com.android.SdkConstants.EXT_PNG;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
 import static com.android.SdkConstants.TAG_ITEM;
 import static com.android.SdkConstants.TAG_RESOURCES;
@@ -34,6 +33,7 @@ import static com.android.tools.idea.resources.base.ResourceSerializationUtil.wr
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.jetbrains.android.util.AndroidResourceUtil.getResourceTypeForResourceTag;
 
+import com.android.SdkConstants;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.DensityBasedResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -77,7 +77,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -208,8 +207,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   @NotNull private final Object SCAN_LOCK = new Object();
   @Nullable private Set<PsiFile> myPendingScans;
 
-  @VisibleForTesting
-  static int ourFullRescans;
+  @VisibleForTesting static int ourFullRescans;
+  @VisibleForTesting static int ourLayoutlibCacheFlushes;
 
   /**
    * Creates a ResourceFolderRepository and loads its contents.
@@ -718,12 +717,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
     } else {
       ResourceItemSource<? extends ResourceItem> source = mySources.get(file.getVirtualFile());
-      // If the old file was a PsiResourceFile, we could try to update ID ResourceItems in place.
-      if (source instanceof PsiResourceFile) {
+      if (source instanceof PsiResourceFile && file.getFileType() == StdFileTypes.XML) {
+        // If the old file was a PsiResourceFile for an XML file, we can update ID ResourceItems in place.
         PsiResourceFile psiResourceFile = (PsiResourceFile)source;
         // Already seen this file; no need to do anything unless it's an XML file with generated ids;
         // in that case we may need to update the id's.
-        if (FolderTypeRelationship.isIdGeneratingFolderType(folderType) && file.getFileType() == StdFileTypes.XML) {
+        if (FolderTypeRelationship.isIdGeneratingFolderType(folderType)) {
           // For unit test tracking purposes only.
           //noinspection AssignmentToStaticFieldFromInstanceMethod
           ourFullRescans++;
@@ -782,9 +781,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           invalidateParentCaches(myNamespace, ResourceType.ID);
         }
       } else {
-        // Remove old items first, if switching to PSI. Rescan below to add back, but with a possibly different multimap list order.
-        boolean switchingToPsi = source != null;
-        if (switchingToPsi) {
+        // Either we're switching to PSI or the file is not XML (image or font), which is not incremental. Remove old items first, rescan
+        // below to add back, but with a possibly different multimap list order.
+        if (source != null) {
           removeItemsFromSource(source);
         }
         // For unit test tracking purposes only
@@ -794,11 +793,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         PsiDirectory parent = file.getParent();
         assert parent != null; // since we have a folder type
 
-        List<ResourceType> resourceTypes = FolderTypeRelationship.getRelatedResourceTypes(folderType);
-        assert resourceTypes.size() >= 1 : folderType;
-        ResourceType type = resourceTypes.get(0);
-
+        ResourceType type = FolderTypeRelationship.getNonIdRelatedResourceType(folderType);
         boolean idGeneratingFolder = FolderTypeRelationship.isIdGeneratingFolderType(folderType);
+
+        clearLayoutlibCaches(file.getVirtualFile(), folderType);
 
         file = ensureValid(file);
         if (file != null) {
@@ -943,7 +941,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    * Called when a font file has been changed/deleted. This removes the corresponding file from the
    * Typeface cache inside layoutlib.
    */
-  private void clearFontCache(@NotNull VirtualFile virtualFile) {
+  void clearFontCache(@NotNull VirtualFile virtualFile) {
     getAndroidTargetDataThenRun(virtualFile, (targetData) -> targetData.clearFontCache(virtualFile.getPath()));
   }
 
@@ -1693,13 +1691,23 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
 
     ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+    if (folderType != null) {
+      clearLayoutlibCaches(file, folderType);
+    }
+  }
+
+  private void clearLayoutlibCaches(@NotNull VirtualFile file, @NotNull ResourceFolderType folderType) {
+    if (SdkConstants.EXT_XML.equals(file.getExtension())) {
+      return;
+    }
     if (folderType == DRAWABLE) {
-      FileType fileType = file.getFileType();
-      if (fileType.isBinary() && fileType == FileTypeManager.getInstance().getFileTypeByExtension(EXT_PNG)) {
-        bitmapUpdated(file);
-      }
+      //noinspection AssignmentToStaticFieldFromInstanceMethod: for testing
+      ourLayoutlibCacheFlushes++;
+      bitmapUpdated(file);
     }
     else if (folderType == FONT) {
+      //noinspection AssignmentToStaticFieldFromInstanceMethod: for testing
+      ourLayoutlibCacheFlushes++;
       clearFontCache(file);
     }
   }

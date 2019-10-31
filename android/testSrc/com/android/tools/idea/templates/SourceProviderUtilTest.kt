@@ -21,7 +21,6 @@ import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import org.jetbrains.android.facet.SourceProviderManager
 
 class SourceProviderUtilTest : AndroidGradleTestCase() {
-  @Throws(Exception::class)
   fun testSourceProviderIsContainedByFolder() {
     loadProject(PROJECT_WITH_APPAND_LIB, "app")
 
@@ -43,6 +42,22 @@ class SourceProviderUtilTest : AndroidGradleTestCase() {
     assertTrue(paidFlavorSourceProvider.isContainedBy(flavorRoot))
 
     val srcFile = moduleFile.findChild("src")!!
+    assertNotNull(srcFile)
+
+    assertTrue(paidFlavorSourceProvider.isContainedBy(srcFile))
+  }
+
+  fun testSourceProviderIsContainedByFolder_noSources() {
+    loadProject(PROJECT_WITH_APPAND_LIB, "app")
+
+    val paidFlavorSourceProvider = SourceProviderManager.getInstance(myAndroidFacet)
+      .allSourceProviders.single { it.name.equals("basicDebug", ignoreCase = true) }
+
+    val moduleFile = findFileByIoFile(projectFolderPath, true)!!.findFileByRelativePath("app")
+    assertNotNull(moduleFile)
+
+
+    val srcFile = moduleFile!!.findChild("src")!!
     assertNotNull(srcFile)
 
     assertTrue(paidFlavorSourceProvider.isContainedBy(srcFile))

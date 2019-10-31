@@ -19,13 +19,14 @@ import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
 import com.android.tools.idea.gradle.dsl.model.android.SourceSetModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class SourceSetsDslElement extends GradleDslElementMap {
+public final class SourceSetsDslElement extends GradleDslElementMap implements GradleDslNamedDomainContainer {
   @NonNls public static final String SOURCE_SETS_BLOCK_NAME = "sourceSets";
 
   public SourceSetsDslElement(@NotNull GradleDslElement parent) {
@@ -44,5 +45,10 @@ public final class SourceSetsDslElement extends GradleDslElementMap {
       result.add(new SourceSetModelImpl(dslElement));
     }
     return result;
+  }
+
+  @Override
+  public boolean implicitlyExists(@NotNull String name) {
+    return true;
   }
 }

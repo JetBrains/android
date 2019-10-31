@@ -60,11 +60,10 @@ private val EMPTY_SELECTION_ARRAY = IntArray(0)
 class SectionList(private val model: SectionListModel) : JBScrollPane() {
 
   private var sectionList = JBList<Section<*>>(model)
-  private val sectionToComponentMap = HashBiMap.create<Section<*>, JComponent>()
   private val allInnerLists = mutableListOf<JList<*>>()
   private var listSelectionChanging = false
   private val innerListSelectionListener = createListSelectionListener()
-  private var content: JComponent = createMultiListPanel(sectionToComponentMap, allInnerLists, innerListSelectionListener)
+  private var content: JComponent = createMultiListPanel(allInnerLists, innerListSelectionListener)
 
   /**
    * Gap between lists
@@ -92,10 +91,9 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
   init {
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {
-        sectionToComponentMap.clear()
         allInnerLists.clear()
         sectionList.selectionModel.clearSelection()
-        content = createMultiListPanel(sectionToComponentMap, allInnerLists, innerListSelectionListener)
+        content = createMultiListPanel(allInnerLists, innerListSelectionListener)
         setViewportView(content)
       }
 
@@ -114,7 +112,6 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
     }
 
     verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
-    verticalScrollBar.addAdjustmentListener(createAdjustmentListener())
     addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(p0: MouseEvent?) {
         focusInnerList()
@@ -127,21 +124,6 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
    */
   private fun focusInnerList() {
     (allInnerLists.firstOrNull { it.selectedIndex != -1 } ?: allInnerLists.firstOrNull())?.requestFocusInWindow()
-  }
-
-  /**
-   * Creates and returns an [java.awt.event.AdjustmentListener] which selects the section
-   * in the section list corresponding to the first section showing in the scroll view
-   */
-  private fun createAdjustmentListener(): (AdjustmentEvent) -> Unit {
-    return {
-      val rectangle = Rectangle()
-      val bounds = viewport.viewRect
-      val first = content.components.firstOrNull {
-        sectionToComponentMap.containsValue(it) && it.getBounds(rectangle).intersects(bounds)
-      }
-      sectionList.setSelectedValue(sectionToComponentMap.inverse()[first], true)
-    }
   }
 
   /**
@@ -188,14 +170,12 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
   }
 
   private fun createMultiListPanel(
-    sectionToComponent: HashBiMap<Section<*>, JComponent>,
     allInnerLists: MutableList<JList<*>>,
     selectionListener: ListSelectionListener
   ): JComponent {
     return JPanel(multiLisLayoutManager).apply{
       background = this@SectionList.background
       for (section in model.sections) {
-        sectionToComponent[section] = section.header
         allInnerLists += section.list
         section.list.addListSelectionListener(selectionListener)
         section.list.addFocusListener(focusListener)

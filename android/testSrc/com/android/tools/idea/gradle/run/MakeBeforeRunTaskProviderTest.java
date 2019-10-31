@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.run;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
@@ -69,7 +69,7 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.mockito.Mock;
 
 public class MakeBeforeRunTaskProviderTest extends PlatformTestCase {
@@ -233,7 +233,7 @@ public class MakeBeforeRunTaskProviderTest extends PlatformTestCase {
     when(androidModel.getFeatures()).thenReturn(androidModelFeatures);
 
     AndroidFacet androidFacet = createAndAddAndroidFacet(module);
-    JpsAndroidModuleProperties state = androidFacet.getConfiguration().getState();
+    AndroidFacetProperties state = androidFacet.getConfiguration().getState();
     assertNotNull(state);
     state.ASSEMBLE_TASK_NAME = "assembleTask2";
     state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet("afterSyncTask1", "afterSyncTask2");

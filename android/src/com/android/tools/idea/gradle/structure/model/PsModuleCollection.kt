@@ -93,8 +93,9 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
 
   override fun update(key: ModuleKey, model: PsModule) {
     val projectParsedModel = parent.parsedModel
-    val moduleName =
-        parent.ideProject.getModuleByGradlePath(key.gradlePath)?.name ?: key.gradlePath.substringAfterLast(':')
+    val gradlePathName = key.gradlePath.substringAfterLast(':')
+    val moduleName = if (gradlePathName.isNotEmpty()) gradlePathName
+                     else parent.ideProject.getModuleByGradlePath(key.gradlePath)?.name ?: "Unknown"
 
     val moduleResolvedModel =
         parent.getResolvedModuleModelsByGradlePath()[key.gradlePath]

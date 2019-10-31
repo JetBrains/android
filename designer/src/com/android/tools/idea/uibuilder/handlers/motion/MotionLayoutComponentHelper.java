@@ -29,6 +29,7 @@ import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.utils.Pair;
+import com.intellij.util.ArrayUtil;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -38,6 +39,9 @@ import org.jetbrains.annotations.NotNull;
 public class MotionLayoutComponentHelper {
 
   private static final boolean USE_MOTIONLAYOUT_HELPER_CACHE = true;
+
+  private InvokeMethod myGetKeyframeAtLocation = new InvokeMethod<>("getKeyframeAtLocation", Object.class, float.class, float.class);
+  private InvokeMethod myGetKeyframe = new InvokeMethod<>("getKeyframe", Object.class, int.class, int.class);
 
   private Method myCallSetTransitionPosition;
   private Method myCallSetState;
@@ -81,7 +85,7 @@ public class MotionLayoutComponentHelper {
   public static MotionLayoutComponentHelper create(@NotNull NlComponent component) {
     if (USE_MOTIONLAYOUT_HELPER_CACHE) {
       MotionLayoutComponentHelper helper = sCache.get(component);
-      if (helper == null) {
+      if (helper == null || helper.myDesignTool == null) {
         helper = new MotionLayoutComponentHelper(component);
         sCache.put(component, helper);
       }
@@ -92,6 +96,7 @@ public class MotionLayoutComponentHelper {
   }
 
   private MotionLayoutComponentHelper(@NotNull NlComponent component) {
+    component = MotionUtils.getMotionLayoutAncestor(component);
     ViewInfo info = NlComponentHelperKt.getViewInfo(component);
     if (info == null) {
       myDesignTool = null;
@@ -125,6 +130,8 @@ public class MotionLayoutComponentHelper {
     }
     myMotionLayoutComponent = component;
     myDesignTool = designInstance;
+    myGetKeyframeAtLocation.update(myDesignTool);
+    myGetKeyframe.update(myDesignTool);
   }
 
   public int getPath(NlComponent nlComponent, final float[] path, int size) {
@@ -172,6 +179,14 @@ public class MotionLayoutComponentHelper {
   }
 
   public Object getKeyframeAtLocation(Object view, float x, float y) {
+    return myGetKeyframeAtLocation.invoke(view, x, y);
+  }
+
+  public Object getKeyframe(Object view, int type, int position) {
+    return myGetKeyframe.invoke(view, type, position);
+  }
+
+  public Object __getKeyframeAtLocation(Object view, float x, float y) {
     if (myDesignTool == null) {
       return null;
     }
@@ -210,6 +225,61 @@ public class MotionLayoutComponentHelper {
     }
 
     return null;
+  }
+
+  /**
+   * Utility class for invoking methods
+   * @param <T>
+   */
+  private class InvokeMethod<T> {
+    String myMethodName;
+    Method myMethod = null;
+    Object myDesignTool = null;
+    Class[] myParameters = null;
+
+    public InvokeMethod(String methodName, Class... parameters) {
+      myMethodName = methodName;
+      myParameters = ArrayUtil.copyOf(parameters);
+    }
+
+    public void update(Object designTool) {
+      if (designTool == null) {
+        return;
+      }
+      myDesignTool = designTool;
+      try {
+        myMethod = designTool.getClass().getMethod(myMethodName, myParameters);
+      }
+      catch (NoSuchMethodException e) {
+        if (DEBUG) {
+          e.printStackTrace();
+        }
+      }
+    }
+
+    public T invoke(Object... parameters) {
+      if (myMethod != null) {
+        try {
+          return RenderService.runRenderAction(() -> {
+            try {
+              T result = (T) myMethod.invoke(myDesignTool, parameters);
+              return result;
+            } catch (Exception e) {
+              if (true || DEBUG) {
+                e.printStackTrace();
+              }
+            }
+            return null;
+          });
+        }
+        catch (Exception e) {
+          if (DEBUG) {
+            e.printStackTrace();
+          }
+        }
+      }
+      return null;
+    }
   }
 
   public boolean getPositionKeyframe(Object keyframe, Object view, float x, float y, String[] attributes, float[] values) {

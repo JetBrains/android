@@ -17,11 +17,16 @@ package com.android.tools.idea.flags;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.rendering.RenderSettings;
+import com.android.tools.idea.ui.LayoutInspectorSettingsKt;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.IdeBundle;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.TitledSeparator;
 import java.util.Hashtable;
 import javax.swing.JCheckBox;
@@ -44,6 +49,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JSlider myLayoutEditorQualitySlider;
   private JCheckBox myNewPsdCheckbox;
   private TitledSeparator myNewPsdSeparator;
+  private JCheckBox myLayoutInspectorCheckbox;
+  private TitledSeparator myLayoutInspectorSeparator;
 
   @SuppressWarnings("unused") // called by IDE
   public ExperimentalSettingsConfigurable(@NotNull Project project) {
@@ -68,6 +75,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myLayoutEditorQualitySlider.setMajorTickSpacing(25);
     myNewPsdSeparator.setVisible(StudioFlags.NEW_PSD_ENABLED.get());
     myNewPsdCheckbox.setVisible(StudioFlags.NEW_PSD_ENABLED.get());
+    myLayoutInspectorSeparator.setVisible(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get());
+    myLayoutInspectorCheckbox.setVisible(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get());
 
     reset();
   }
@@ -104,10 +113,11 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
   @Override
   public boolean isModified() {
-    return (mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
-            mySettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
-            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
-            mySettings.USE_NEW_PSD != isUseNewPsd());
+    return mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
+           mySettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
+           (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
+           mySettings.USE_NEW_PSD != isUseNewPsd() ||
+           myLayoutInspectorCheckbox.isSelected() != LayoutInspectorSettingsKt.getEnableLiveLayoutInspector();
   }
 
   private int getQualitySetting() {
@@ -121,6 +131,16 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
     mySettings.USE_NEW_PSD = isUseNewPsd();
+    if (myLayoutInspectorCheckbox.isSelected() != LayoutInspectorSettingsKt.getEnableLiveLayoutInspector()) {
+      LayoutInspectorSettingsKt.setEnableLiveLayoutInspector(myLayoutInspectorCheckbox.isSelected());
+      if (Messages.showOkCancelDialog(String.format("Restart to %s Live Layout Inspector?",
+                                                    myLayoutInspectorCheckbox.isSelected() ? "enable" : "disable"),
+                                      IdeBundle.message("title.restart.needed"),
+                                      "Restart Now", "Restart Later",
+                                      Messages.getQuestionIcon()) == Messages.OK) {
+        ((ApplicationEx)ApplicationManager.getApplication()).restart(true);
+      }
+    }
   }
 
   @VisibleForTesting
@@ -157,5 +177,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myUseSingleVariantSyncCheckbox.setSelected(mySettings.USE_SINGLE_VARIANT_SYNC);
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
     myNewPsdCheckbox.setSelected(mySettings.USE_NEW_PSD);
+    myLayoutInspectorCheckbox.setSelected(LayoutInspectorSettingsKt.getEnableLiveLayoutInspector());
   }
 }

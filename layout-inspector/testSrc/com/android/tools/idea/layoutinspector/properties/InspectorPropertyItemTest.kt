@@ -55,13 +55,13 @@ class InspectorPropertyItemTest {
   fun setUp() {
     InspectorBuilder.setUpDemo(projectRule)
     componentStack = ComponentStack(projectRule.project)
-    componentStack!!.registerComponentImplementation(FileEditorManager::class.java, Mockito.mock(FileEditorManager::class.java))
+    componentStack!!.registerComponentInstance(FileEditorManager::class.java, Mockito.mock(FileEditorManager::class.java))
   }
 
   @After
   fun tearDown() {
     InspectorBuilder.tearDownDemo()
-    componentStack!!.restoreComponents()
+    componentStack!!.restore()
     componentStack = null
   }
 

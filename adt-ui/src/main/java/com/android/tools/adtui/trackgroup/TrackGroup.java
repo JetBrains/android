@@ -77,6 +77,7 @@ public class TrackGroup {
                                                     boolean cellHasFocus) {
         return trackModelToComponentMap
           .computeIfAbsent(value.getId(), id -> Track.create(value, rendererFactory.createRenderer(value.getRendererType())))
+          .updateSelected(groupModel.isTrackSelectable() && isSelected)
           .getComponent();
       }
     });
@@ -142,6 +143,11 @@ public class TrackGroup {
     return this;
   }
 
+  @NotNull
+  public DragAndDropList<TrackModel> getTrackList() {
+    return myTrackList;
+  }
+
   private void initShowMoreDropdown() {
     myActionsDropdown.getAction().clear();
 
@@ -151,11 +157,6 @@ public class TrackGroup {
   @VisibleForTesting
   protected JLabel getTitleLabel() {
     return myTitleLabel;
-  }
-
-  @VisibleForTesting
-  protected DragAndDropList<TrackModel> getTrackList() {
-    return myTrackList;
   }
 
   @VisibleForTesting

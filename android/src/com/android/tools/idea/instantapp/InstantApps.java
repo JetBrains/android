@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.instantapp;
 
+import com.android.AndroidProjectTypes;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -27,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class InstantApps {
@@ -40,7 +40,8 @@ public class InstantApps {
    */
   @NotNull
   public static List<Module> findFeatureModules(@NotNull AndroidFacet facet) {
-    return AndroidProjectInfo.getInstance(facet.getModule().getProject()).getAllModulesOfProjectType(PROJECT_TYPE_FEATURE);
+    return AndroidProjectInfo.getInstance(facet.getModule().getProject()).getAllModulesOfProjectType(
+      AndroidProjectTypes.PROJECT_TYPE_FEATURE);
   }
 
   /**
@@ -62,7 +63,7 @@ public class InstantApps {
    */
   @Nullable
   public static Module findBaseFeature(@NotNull Project project) {
-    return findBaseFeature(AndroidProjectInfo.getInstance(project).getAllModulesOfProjectType(PROJECT_TYPE_FEATURE));
+    return findBaseFeature(AndroidProjectInfo.getInstance(project).getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_FEATURE));
   }
 
   @Nullable
@@ -101,7 +102,7 @@ public class InstantApps {
 
   public static boolean isInstantAppApplicationModule(@NotNull Module module) {
     AndroidModuleModel model = AndroidModuleModel.get(module);
-    return model != null && model.getAndroidProject().getProjectType() == PROJECT_TYPE_INSTANTAPP;
+    return model != null && model.getAndroidProject().getProjectType() == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
   }
 
   public static boolean isPostO(IDevice device) {

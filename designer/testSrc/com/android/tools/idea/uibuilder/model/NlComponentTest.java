@@ -44,6 +44,7 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlInteractionProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.SmartPsiElementPointer;
@@ -330,7 +331,7 @@ public final class NlComponentTest extends LayoutTestCase {
 
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
 
-    DesignSurface surface = ModelBuilder.createSurface(getProject(), NlDesignSurface.class);
+    DesignSurface surface = ModelBuilder.createSurface(getProject(), NlDesignSurface.class, NlInteractionProvider::new);
     Consumer<NlComponent> componentRegistrar = (@NotNull NlComponent component) -> NlComponentHelper.INSTANCE.registerComponent(component);
     when(surface.getComponentRegistrar()).thenReturn(componentRegistrar);
     myModel = SyncNlModel.create(surface, getTestRootDisposable(), myFacet, xmlFile.getVirtualFile());
@@ -402,7 +403,7 @@ public final class NlComponentTest extends LayoutTestCase {
                       "</RelativeLayout>\n" +
                       "</layout>\n";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
-    DesignSurface surface = ModelBuilder.createSurface(getProject(), NlDesignSurface.class);
+    DesignSurface surface = ModelBuilder.createSurface(getProject(), NlDesignSurface.class, NlInteractionProvider::new);
     Consumer<NlComponent> componentRegistrar = (@NotNull NlComponent component) -> NlComponentHelper.INSTANCE.registerComponent(component);
     when(surface.getComponentRegistrar()).thenReturn(componentRegistrar);
     myModel = SyncNlModel.create(surface, getTestRootDisposable(), myFacet, xmlFile.getVirtualFile());
@@ -465,7 +466,7 @@ public final class NlComponentTest extends LayoutTestCase {
                       "         tools123:layout_editor_absoluteY=\"43dp\"\n/>" +
                       "</RelativeLayout>\n";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
-    DesignSurface surface = ModelBuilder.createSurface(getProject(), NlDesignSurface.class);
+    DesignSurface surface = ModelBuilder.createSurface(getProject(), NlDesignSurface.class, NlInteractionProvider::new);
     Consumer<NlComponent> componentRegistrar = (@NotNull NlComponent component) -> NlComponentHelper.INSTANCE.registerComponent(component);
     when(surface.getComponentRegistrar()).thenReturn(componentRegistrar);
     myModel = SyncNlModel.create(surface, getTestRootDisposable(), myFacet, xmlFile.getVirtualFile());

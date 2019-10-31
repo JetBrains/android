@@ -18,8 +18,6 @@ package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.base.Strings;
 import com.intellij.ide.highlighter.ArchiveFileType;

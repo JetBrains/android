@@ -20,6 +20,7 @@ import static com.android.SdkConstants.TAG_APPLICATION;
 import static com.android.SdkConstants.TAG_MANIFEST;
 import static com.android.SdkConstants.TAG_RESOURCES;
 
+import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.util.PathString;
@@ -38,7 +39,6 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiBinaryFile;
@@ -74,7 +74,6 @@ import java.util.Set;
 import javax.swing.JComponent;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -394,8 +393,7 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
       return manager.findFile(manifestFile);
     }
     else {
-      VirtualFile directory = VirtualFileManager.getInstance().findFileByUrl(
-        PathUtil.getParentPath(SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getManifestFileUrl()));
+      VirtualFile directory = SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getManifestDirectory();
       if (directory != null) {
         PsiDirectory targetDirectory = manager.findDirectory(directory);
         if (targetDirectory != null) {

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.idea.common.model.Scale
+import com.android.tools.idea.common.model.toScale
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
@@ -33,14 +35,14 @@ import java.awt.Font
 import java.awt.geom.Rectangle2D
 
 class DrawHeader(@VisibleForTesting val rectangle: Rectangle2D.Float,
-                 @VisibleForTesting val scale: Float,
+                 @VisibleForTesting val scale: Scale,
                  @VisibleForTesting val text: String,
                  @VisibleForTesting val isStart: Boolean,
                  @VisibleForTesting val hasDeepLink: Boolean) : CompositeDrawCommand(COMPONENT_LEVEL) {
 
   constructor(serialized: String) : this(parse(serialized, 5))
 
-  private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), tokens[1].toFloat(), tokens[2],
+  private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), tokens[1].toScale(), tokens[2],
                                                     tokens[3].toBoolean(), tokens[4].toBoolean())
 
   override fun serialize() = buildString(javaClass.simpleName, rect2DToString(rectangle), scale, text, isStart, hasDeepLink)
@@ -51,8 +53,8 @@ class DrawHeader(@VisibleForTesting val rectangle: Rectangle2D.Float,
     val textRectangle = Rectangle2D.Float()
     textRectangle.setRect(rectangle)
 
-    val textPadding = scale * HEADER_TEXT_PADDING
-    val iconSize = scale * HEADER_ICON_SIZE
+    val textPadding = (scale * HEADER_TEXT_PADDING).value
+    val iconSize = (scale * HEADER_ICON_SIZE).value
 
     if (isStart) {
       val startRect = Rectangle2D.Float(rectangle.x, rectangle.y, iconSize, iconSize)
@@ -67,9 +69,9 @@ class DrawHeader(@VisibleForTesting val rectangle: Rectangle2D.Float,
     }
 
     textRectangle.y += textPadding
-    textRectangle.height = scale * HEADER_TEXT_HEIGHT
+    textRectangle.height = (scale * HEADER_TEXT_HEIGHT).value
 
-    list.add(DrawTruncatedText(0, text, textRectangle, SUBDUED_TEXT, scaledFont(scale, Font.PLAIN), false))
+    list.add(DrawTruncatedText(0, text, textRectangle, SUBDUED_TEXT, scaledFont(scale.value.toFloat(), Font.PLAIN), false))
 
     return list
   }

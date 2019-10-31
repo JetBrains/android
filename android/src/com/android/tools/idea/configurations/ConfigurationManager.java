@@ -34,7 +34,6 @@ import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
@@ -152,8 +151,7 @@ public class ConfigurationManager implements Disposable {
    */
   @Slow
   @NotNull
-  @VisibleForTesting
-  Configuration create(@NotNull VirtualFile file) {
+  private Configuration create(@NotNull VirtualFile file) {
     ConfigurationStateManager stateManager = getStateManager();
     ConfigurationFileState fileState = stateManager.getConfigurationState(file);
     assert file.getParent() != null : file;

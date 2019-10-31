@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.com.android.tools.idea.lang.proguardR8
+package com.android.tools.idea.lang.proguardR8
 
-import com.android.tools.idea.lang.proguardR8.ProguardR8Annotator
-import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
-import com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
-import com.android.tools.idea.lang.proguardR8.ProguardR8TextAttributes
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.impl.AnnotationHolderImpl
@@ -43,7 +39,7 @@ class ProguardR8AnnotatorTest : ProguardR8TestCase() {
     element = myFixture.moveCaret("in|t foo")
     ProguardR8Annotator().annotate(element, annotationHolder)
     assertThat(annotationHolder).hasSize(1)
-    val attr = annotationHolder[0];
+    val attr = annotationHolder[0]
     assertThat(annotationHolder[0].enforcedTextAttributes).isEqualTo(ProguardR8TextAttributes.KEYWORD.key.defaultAttributes)
 
     element = myFixture.moveCaret("int vo|id")

@@ -24,13 +24,13 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.mockito.Mockito;
 
 import java.util.*;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 
 /**
  * Additional tests for {@link NonGradleApkProvider} that require a project setup with
@@ -48,7 +48,7 @@ public class NonGradleApkProviderDependenciesTest extends AndroidTestCase {
 
   /** For testing convenience, quickly specify a facet's package and APK. */
   private static void setIdAndApk(AndroidFacet facet, String appId, String apk) {
-    JpsAndroidModuleProperties properties = facet.getProperties();
+    AndroidFacetProperties properties = facet.getProperties();
     properties.APK_PATH = "/" + apk;
     properties.USE_CUSTOM_MANIFEST_PACKAGE = true;
     properties.CUSTOM_MANIFEST_PACKAGE = appId;

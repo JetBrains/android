@@ -26,6 +26,7 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.editor.Destination
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
+import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
@@ -164,7 +165,7 @@ class NavSceneManagerTest : NavTestCase() {
     sceneManager.save(listOf(scene.getSceneComponent("f1")!!, scene.getSceneComponent("f2")!!))
     sceneManager.update()
 
-    val designSurface = sceneManager.designSurface
+    val designSurface = model.surface as NavDesignSurface
     Mockito.`when`(designSurface.scrollPosition).thenAnswer { Point(scrollPosition) }
 
     val currentNavigation = designSurface.currentNavigation

@@ -57,7 +57,7 @@ fun Signature.isWhitelisted(): Boolean =
   entry(-4) == "com.android.tools.idea.configurations.ConfigurationManager#myCache" ||
   entry(-4) == "com.maddyhome.idea.copyright.util.NewFileTracker#newFiles" || // b/126417715
   entry(-3) == "com.intellij.openapi.vfs.newvfs.impl.VfsData\$Segment#myObjectArray" ||
-  entry(-4) == "com.intellij.openapi.vcs.impl.FileStatusManagerImpl#myCachedStatuses" ||
+  entry(-3) == "com.intellij.openapi.vcs.impl.FileStatusManagerImpl#myCachedStatuses" ||
   entry(-4) == "com.intellij.util.indexing.VfsAwareMapIndexStorage#myCache" ||
   entry(-3) == "com.intellij.util.indexing.IndexingStamp#myTimestampsCache" ||
   entry(-3) == "com.intellij.util.indexing.IndexingStamp#ourFinishedFiles" ||
@@ -69,7 +69,8 @@ fun Signature.isWhitelisted(): Boolean =
   entry(-3) == "sun.font.XRGlyphCache#cacheMap" ||
   lastLabel() in listOf("_set", "_values") && entry(-4) == "com.intellij.openapi.util.Disposer#ourTree" ||  // this accounts for both myObject2NodeMap and myRootObjects
   entry(-3) == "com.intellij.openapi.application.impl.ReadMostlyRWLock#readers" ||
-
+  entry(-3) == "org.jdom.JDOMInterner#myElements" ||
+  entry(-4) == "org.jdom.JDOMInterner#myStrings" ||
   // coroutine scheduler thread pool: b/140457368
   entry(-2) == "kotlinx.coroutines.scheduling.CoroutineScheduler#workers" ||
   entry(-2) == "com.intellij.ide.plugins.MainRunner$1#threads"

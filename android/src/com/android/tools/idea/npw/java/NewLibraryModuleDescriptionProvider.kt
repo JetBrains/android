@@ -28,7 +28,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.Icon
 
 class NewLibraryModuleDescriptionProvider : ModuleDescriptionProvider {
-  override fun getDescriptions(project: Project?): Collection<ModuleGalleryEntry> = listOf(JavaModuleTemplateGalleryEntry())
+  override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(JavaModuleTemplateGalleryEntry())
 
   private class JavaModuleTemplateGalleryEntry : ModuleGalleryEntry {
     private val templateHandle = TemplateHandle(TemplateManager.getInstance().getTemplateFile(
@@ -37,7 +37,7 @@ class NewLibraryModuleDescriptionProvider : ModuleDescriptionProvider {
     override val icon: Icon? = getTemplateIcon(templateHandle)
     override val name: String = templateHandle.metadata.title!!
     override val description: String? = templateHandle.metadata.description
-    override fun toString(): String = name
+    override fun toString() = name
     override fun createStep(model: NewModuleModel): SkippableWizardStep<*> =
       ConfigureLibraryModuleStep(NewLibraryModuleModel(model.project.value, templateHandle, model.projectSyncInvoker), name)
   }

@@ -67,7 +67,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);
-    registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
+    registerApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
     myTableModel = new PTableModel();
     myTable = new MyTable(myTableModel);
     myInspector = spy(new NlInspectorPanel(getTestRootDisposable(), new JPanel()));

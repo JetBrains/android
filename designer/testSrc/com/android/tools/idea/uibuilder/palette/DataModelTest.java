@@ -80,7 +80,7 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel = new DataModel(getTestRootDisposable(), myDependencyManager);
     myCategoryListModel = myDataModel.getCategoryListModel();
     myItemListModel = myDataModel.getItemListModel();
-    registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
+    registerApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
   }
 
   @Override

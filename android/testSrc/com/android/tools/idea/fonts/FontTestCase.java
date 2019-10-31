@@ -29,7 +29,7 @@ public abstract class FontTestCase extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     DownloadableFontCacheServiceImpl service = new FontCache();
-    registerApplicationComponent(DownloadableFontCacheService.class, service);
+    registerApplicationService(DownloadableFontCacheService.class, service);
     myFontPath = service.getFontPath();
   }
 

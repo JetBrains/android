@@ -44,6 +44,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.psi.TagToClassMapper;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
@@ -109,6 +110,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.swing.JEditorPane;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
@@ -206,31 +208,6 @@ public class RenderErrorContributor {
   }
 
   @NotNull
-  private static Collection<PsiClass> findInheritors(@NotNull final Module module, @NotNull final String name) {
-    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return ApplicationManager.getApplication().runReadAction(new Computable<Collection<PsiClass>>() {
-        @NotNull
-        @Override
-        public Collection<PsiClass> compute() {
-          return findInheritors(module, name);
-        }
-      });
-    }
-
-    Project project = module.getProject();
-    try {
-      PsiClass base = JavaPsiFacade.getInstance(project).findClass(name, GlobalSearchScope.allScope(project));
-      if (base != null) {
-        GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false);
-        return ClassInheritorsSearch.search(base, scope, true).findAll();
-      }
-    }
-    catch (IndexNotReadyException ignored) {
-    }
-    return Collections.emptyList();
-  }
-
-  @NotNull
   private static Collection<String> getAllViews(@Nullable final Module module) {
     if (module == null) {
       return Collections.emptyList();
@@ -239,17 +216,9 @@ public class RenderErrorContributor {
       return ApplicationManager.getApplication().runReadAction((Computable<Collection<String>>)() -> getAllViews(module));
     }
 
-    // Optimization: we cache the set of views per module, using a modification tracker which ignores XML keystrokes.
-    return CachedValuesManager.getManager(module.getProject()).getCachedValue(module, VIEWS_CACHE_KEY, () -> {
-      Set<String> names = new HashSet<>();
-      for (PsiClass psiClass : findInheritors(module, CLASS_VIEW)) {
-        String name = psiClass.getQualifiedName();
-        if (name != null) {
-          names.add(name);
-        }
-      }
-      return CachedValueProvider.Result.create(names, AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(module.getProject()));
-    }, false);
+    return TagToClassMapper.getInstance(module).getClassMap(CLASS_VIEW).values().stream()
+      .map(PsiClass::getQualifiedName)
+      .collect(Collectors.toSet());
   }
 
   static boolean isBuiltByJdk7OrHigher(@NotNull Module module) {

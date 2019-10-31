@@ -43,7 +43,7 @@ public class ComponentHelpActionTest extends AndroidTestCase {
     MockitoAnnotations.initMocks(this);
     when(myEvent.getDataContext()).thenReturn(myDataContext);
     myAction = new ComponentHelpAction(getProject(), () -> myTagName);
-    registerApplicationComponent(BrowserLauncher.class, myBrowserLauncher);
+    registerApplicationService(BrowserLauncher.class, myBrowserLauncher);
   }
 
   @Override

@@ -83,7 +83,6 @@ import org.jetbrains.android.dom.converters.ResourceReferenceConverter
 import org.jetbrains.android.dom.converters.AttrNameConverter
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.android.util.AndroidUtils

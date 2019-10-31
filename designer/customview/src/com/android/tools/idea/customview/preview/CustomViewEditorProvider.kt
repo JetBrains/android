@@ -389,7 +389,7 @@ private class CustomViewPreview(private val psiFile: PsiFile) : SmartRefreshable
 
       // Load and set preview size if exists for this custom view
       PropertiesComponent.getInstance(project).getValues(dimensionsPropertyNameForClass(className))?.let { previewDimensions ->
-        updateConfigurationScreenSize(configuration, previewDimensions[0].toInt(), previewDimensions[1].toInt())
+        updateConfigurationScreenSize(configuration, previewDimensions[0].toInt(), previewDimensions[1].toInt(), configuration.device)
       }
 
       val model = NlModel.create(this@CustomViewPreview,

@@ -19,23 +19,19 @@ import static com.android.tools.idea.templates.Template.ATTR_CONSTRAINTS;
 import static com.android.tools.idea.templates.Template.ATTR_DESCRIPTION;
 import static com.android.tools.idea.templates.Template.ATTR_FORMAT;
 import static com.android.tools.idea.templates.Template.ATTR_NAME;
-import static com.android.tools.idea.templates.Template.ATTR_TYPE;
 import static com.android.tools.idea.templates.Template.ATTR_VALUE;
 import static com.android.tools.idea.templates.Template.CURRENT_FORMAT;
 import static com.android.tools.idea.templates.Template.RELATIVE_FILES_FORMAT;
-import static com.android.tools.idea.templates.Template.TAG_ICONS;
 import static com.android.tools.idea.templates.Template.TAG_PARAMETER;
 import static com.android.tools.idea.templates.Template.TAG_THUMB;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import com.intellij.openapi.util.text.StringUtil;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -78,8 +74,6 @@ public class TemplateMetadata {
   private final Document myDocument;
   private final Map<String, Parameter> myParameterMap;
 
-  private final AndroidIconType myIconType;
-  private final String myIconName;
   private String myFormFactor;
   private String myCategory;
   private final Multimap<Parameter, Parameter> myRelatedParameters;
@@ -95,23 +89,6 @@ public class TemplateMetadata {
       if (parameter.id != null) {
         myParameterMap.put(parameter.id, parameter);
       }
-    }
-
-    NodeList icons = myDocument.getElementsByTagName(TAG_ICONS);
-    if (icons.getLength() > 0) {
-      Element element = (Element)icons.item(0);
-      if (element.hasAttribute(ATTR_TYPE)) {
-        String iconTypeName = StringUtil.toUpperCase(element.getAttribute(ATTR_TYPE));
-        myIconType = AndroidIconType.valueOf(iconTypeName);
-      }
-      else {
-        myIconType = null;
-      }
-      myIconName = element.getAttribute(ATTR_NAME);
-    }
-    else {
-      myIconType = null;
-      myIconName = null;
     }
 
     NodeList categories = myDocument.getElementsByTagName(TAG_CATEGORY);
@@ -191,16 +168,6 @@ public class TemplateMetadata {
   @Nullable
   public String getFormFactor() {
     return myFormFactor;
-  }
-
-  @Nullable
-  public AndroidIconType getIconType() {
-    return myIconType;
-  }
-
-  @Nullable
-  public String getIconName() {
-    return myIconName;
   }
 
   /**

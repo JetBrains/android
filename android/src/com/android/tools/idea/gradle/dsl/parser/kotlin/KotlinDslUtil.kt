@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
@@ -74,7 +75,7 @@ internal val ESCAPE_CHILD = Regex("[\\t ]+")
 internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$this\"" else "'$this'"
 
 internal fun KtCallExpression.isBlockElement() : Boolean {
-  return lambdaArguments.size == 1 && (valueArgumentList == null || (valueArgumentList as KtValueArgumentList).arguments.size < 2 &&
+  return lambdaArguments.size < 2 && (valueArgumentList == null || (valueArgumentList as KtValueArgumentList).arguments.size < 2 &&
                                       isValidBlockName(this.name()))
 }
 
@@ -392,11 +393,18 @@ internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: Gradle
         val argumentsList = psiElement.valueArgumentList
         val blockArguments = psiElement.lambdaArguments
         // Handle cases where the element is a block with callExpression as name (ex: getByName("debug")) => arguments are never empty
-        // but if the block {} expression is empty, then we should delete he psiElement.
-        if ((argumentsList == null || argumentsList.arguments.isEmpty()) && blockArguments.isEmpty() ||
-            (argumentsList?.arguments?.size == 1 && dslParent != null && containingDslElement.isBlockElement
-             && containingDslElement is AbstractFlavorTypeDslElement && containingDslElement.methodName == psiElement.name())) {
+        // but if the block {} expression is empty, then we should delete the psiElement.
+
+        // e.g. foo (block reference without configuration) or "foo" (implicit getByName without configuration)
+        if (((argumentsList == null) || argumentsList.arguments.isEmpty()) && blockArguments.isEmpty()) {
           psiElement.delete()
+        }
+        // e.g. getByName("foo") or getByName("foo") { }
+        else if (argumentsList?.arguments?.size == 1) {
+          if (blockArguments.size <= 1 && containingDslElement.isBlockElement && dslParent != null
+              && containingDslElement is GradleDslNamedDomainElement && containingDslElement.methodName == psiElement.name()) {
+            psiElement.delete()
+          }
         }
       }
       is KtValueArgument -> {

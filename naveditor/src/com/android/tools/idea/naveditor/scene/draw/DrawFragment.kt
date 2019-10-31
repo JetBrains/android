@@ -16,6 +16,10 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.times
+import com.android.tools.idea.common.model.Scale
+import com.android.tools.idea.common.model.times
+import com.android.tools.idea.common.model.toScale
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
@@ -39,13 +43,13 @@ import java.awt.geom.Rectangle2D
 import java.awt.geom.RoundRectangle2D
 
 class DrawFragment(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2D.Float,
-                   @VisibleForTesting val scale: Float,
+                   @VisibleForTesting val scale: Scale,
                    @VisibleForTesting val highlightColor: Color?,
                    @VisibleForTesting val image: RefinableImage? = null) : CompositeDrawCommand(COMPONENT_LEVEL) {
 
   constructor(serialized: String) : this(parse(serialized, 3))
 
-  private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), tokens[1].toFloat(), stringToColorOrNull(tokens[2]))
+  private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), tokens[1].toScale(), stringToColorOrNull(tokens[2]))
 
   override fun serialize() = buildString(javaClass.simpleName, rect2DToString(rectangle), scale, colorOrNullToString(highlightColor))
 
@@ -62,9 +66,9 @@ class DrawFragment(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2
     if (highlightColor != null) {
       @SwingCoordinate val spacing = FRAGMENT_BORDER_SPACING * scale
       @SwingCoordinate val roundRectangle = RoundRectangle2D.Float(
-        rectangle.x, rectangle.y, rectangle.width, rectangle.height, 2 * spacing, 2 * spacing)
+        rectangle.x, rectangle.y, rectangle.width, rectangle.height, (2 * spacing).value, ( 2 * spacing).value)
 
-      growRectangle(roundRectangle, 2 * spacing, 2 * spacing)
+      growRectangle(roundRectangle, (2 * spacing).value, (2 * spacing).value)
 
       list.add(DrawShape(roundRectangle, highlightColor, HIGHLIGHTED_FRAME_STROKE))
     }

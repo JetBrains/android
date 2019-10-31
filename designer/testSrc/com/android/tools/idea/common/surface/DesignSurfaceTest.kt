@@ -130,7 +130,7 @@ class DesignSurfaceTest : LayoutTestCase() {
   }
 }
 
-private class TestActionManager(surface: DesignSurface) : ActionManager<DesignSurface>(surface) {
+class TestActionManager(surface: DesignSurface) : ActionManager<DesignSurface>(surface) {
   override fun registerActionsShortcuts(component: JComponent) = Unit
 
   override fun getPopupMenuActions(leafComponent: NlComponent?) = DefaultActionGroup()
@@ -138,8 +138,18 @@ private class TestActionManager(surface: DesignSurface) : ActionManager<DesignSu
   override fun getToolbarActions(component: NlComponent?, newSelection: MutableList<NlComponent>) = DefaultActionGroup()
 }
 
-private class TestDesignSurface(project: Project, disposible: Disposable) :
-  DesignSurface(project, disposible, java.util.function.Function { TestActionManager(it) }, true) {
+class TestInteractionProvider(surface: DesignSurface) : InteractionProviderBase(surface) {
+  override fun createInteractionOnClick(mouseX: Int, mouseY: Int): Interaction? = null
+
+  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int): Interaction? = null
+}
+
+private class TestDesignSurface(project: Project, disposible: Disposable)
+  : DesignSurface(project,
+                  disposible,
+                  java.util.function.Function { TestActionManager(it) },
+                  java.util.function.Function { TestInteractionProvider(it) },
+                  true) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
@@ -179,10 +189,6 @@ private class TestDesignSurface(project: Project, disposible: Disposable) :
   override fun getPreferredContentSize(availableWidth: Int, availableHeight: Int) = Dimension()
 
   override fun isLayoutDisabled() = true
-
-  override fun doCreateInteractionOnClick(mouseX: Int, mouseY: Int, view: SceneView) = null
-
-  override fun createInteractionOnDrag(draggedSceneComponent: SceneComponent, primary: SceneComponent?) = null
 
   override fun forceUserRequestedRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
 

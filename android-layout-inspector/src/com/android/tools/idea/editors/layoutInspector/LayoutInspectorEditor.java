@@ -20,23 +20,28 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import com.android.ddmlib.Client;
 import com.android.layoutinspector.model.ClientWindow;
 import com.android.layoutinspector.parser.LayoutFileDataParser;
+import com.android.tools.idea.flags.ExperimentalSettingsConfigurable;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
+import com.intellij.ide.DataManager;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
+import com.intellij.ui.SearchTextField;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
@@ -67,17 +72,31 @@ public class LayoutInspectorEditor extends UserDataHolderBase implements FileEdi
                                                            @NotNull Project project) {
       if (fileEditor instanceof LayoutInspectorEditor && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get()) {
         EditorNotificationPanel panel = new EditorNotificationPanel();
-        panel.setText("Using API 29? Try out the new layout inspector.");
+        panel.setText("Using API 29? Try out the new Live Layout Inspector.");
 
         if (fileEditor.getUserData(HIDDEN_KEY) != null || PropertiesComponent.getInstance().isTrueValue(DISABLE_KEY)) {
           return null;
         }
 
-        panel.createActionLabel("Try it", () -> {
-          ToolWindowManager windowManager = ToolWindowManager.getInstance(project);
-          final ToolWindow window = windowManager.getToolWindow("Layout Inspector");
-          window.activate(null);
-        });
+        panel.createActionLabel("Try it", () -> ShowSettingsUtil.getInstance().showSettingsDialog(
+          project, ExperimentalSettingsConfigurable.class, c -> {
+            AtomicReference<Runnable> runnableReference = new AtomicReference<>();
+            Runnable runnable = () -> {
+              JComponent component = c.createComponent();
+              if (component.getParent() == null) {
+                // The component isn't completely set up right away, and we need to be able to iterate up the hierarchy to get the
+                // search box. Reschedule the runnable until it's attached.
+                ApplicationManager.getApplication().invokeLater(runnableReference.get());
+                return;
+              }
+              SearchTextField textField = DataManager.getInstance().getDataContext(component).getData(SearchTextField.KEY);
+              if (textField != null) {  // shouldn't be null, but at least don't blow up if it is. We just won't get highlighting.
+                textField.setText("Enable Live Layout Inspector");
+              }
+            };
+            runnableReference.set(runnable);
+            ApplicationManager.getApplication().invokeLater(runnable, ModalityState.any());
+          }));
         panel.createActionLabel("Hide notification", () -> {
           fileEditor.putUserData(HIDDEN_KEY, "true");
           update(file, project);

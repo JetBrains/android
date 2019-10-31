@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.surface;
 import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
 
 import com.android.sdklib.devices.Device;
@@ -32,15 +31,12 @@ import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
-import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.common.surface.SceneView;
@@ -64,9 +60,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.utils.ImmutableCollectors;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -80,7 +74,6 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -213,14 +206,17 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   public interface NavigationHandler extends Disposable {
 
     /**
-     * Returns the list of file names that the handler can navigate.
+     * Returns true if the file name passed is handled by the navigation handler. False otherwise.
      */
-    @NotNull Set<String> getFileNames();
+    @NotNull boolean isFileHandled(String filename);
 
     /**
      * Triggered when preview in the design surface is clicked.
      */
-    void handleNavigate(SceneView view, ImmutableList<NlModel> models, boolean editor);
+    void handleNavigate(SceneView view,
+                        ImmutableList<NlModel> models,
+                        boolean editor,
+                        @Nullable NlComponent component);
   }
 
   @NotNull private SceneMode mySceneMode = SceneMode.Companion.loadPreferredMode();
@@ -244,7 +240,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Nullable private final NavigationHandler myNavigationHandler;
 
-  private boolean myIsAnimationMode = false;
+  private boolean myIsRenderingSynchronously = false;
   private boolean myIsAnimationScrubbing = false;
 
   private NlDesignSurface(@NotNull Project project,
@@ -256,7 +252,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @NotNull SurfaceLayoutManager layoutManager,
                           @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
                           @Nullable NavigationHandler navigationHandler) {
-    super(project, parentDisposable, actionManagerProvider, isEditable);
+    super(project, parentDisposable, actionManagerProvider, NlInteractionProvider::new, isEditable);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;
@@ -578,12 +574,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return;
     }
 
+    NlComponent component = Coordinates.findComponent(sceneView, x, y);
     if (myNavigationHandler != null) {
-      myNavigationHandler.handleNavigate(sceneView, getModels(), needsFocusEditor);
+      myNavigationHandler.handleNavigate(sceneView, getModels(), needsFocusEditor, component);
       return;
     }
 
-    NlComponent component = Coordinates.findComponent(sceneView, x, y);
     if (component != null) {
       navigateToComponent(component, needsFocusEditor);
     }
@@ -654,7 +650,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * has been rendered (possibly with errors)
    */
   public void updateErrorDisplay() {
-    if (myIsAnimationMode) {
+    if (myIsRenderingSynchronously) {
       // No errors update while we are in the middle of playing an animation
       return;
     }
@@ -808,96 +804,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     scrollToCenter(newSelection);
   }
 
-  @VisibleForTesting
-  @Nullable
-  @Override
-  public Interaction doCreateInteractionOnClick(@SwingCoordinate int mouseX, @SwingCoordinate int mouseY, @NotNull SceneView view) {
-    ScreenView screenView = (ScreenView)view;
-    Dimension size = screenView.getSize();
-    Rectangle resizeZone =
-      new Rectangle(view.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-    if (resizeZone.contains(mouseX, mouseY) && isResizeAvailable()) {
-      Configuration configuration = getConfiguration();
-      assert configuration != null;
-      return new CanvasResizeInteraction(this, screenView, configuration);
-    }
-
-    SelectionModel selectionModel = screenView.getSelectionModel();
-    NlComponent component = Coordinates.findComponent(screenView, mouseX, mouseY);
-    if (component == null) {
-      // If we cannot find an element where we clicked, try to use the first element currently selected
-      // (if any) to find the view group handler that may want to handle the mousePressed()
-      // This allows us to correctly handle elements out of the bounds of the screen view.
-      if (!selectionModel.isEmpty()) {
-        component = selectionModel.getPrimary();
-      }
-      else {
-        return null;
-      }
-    }
-
-    Interaction interaction = null;
-
-    // Give a chance to the current selection's parent handler
-    if (!selectionModel.isEmpty()) {
-      NlComponent primary = screenView.getSelectionModel().getPrimary();
-      NlComponent parent = primary != null ? primary.getParent() : null;
-      if (parent != null) {
-        ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(parent);
-        if (handler != null) {
-          interaction = handler.createInteraction(screenView, primary);
-        }
-      }
-    }
-
-    if (interaction == null) {
-      // Check if we have a ViewGroupHandler that might want
-      // to handle the entire interaction
-      ViewGroupHandler viewGroupHandler = component != null ? NlComponentHelperKt.getViewGroupHandler(component) : null;
-      if (viewGroupHandler != null) {
-        interaction = viewGroupHandler.createInteraction(screenView, component);
-      }
-    }
-
-    if (interaction == null) {
-      interaction = new SceneInteraction(screenView);
-    }
-    return interaction;
-  }
-
-  @Override
-  @Nullable
-  public Interaction createInteractionOnDrag(@NotNull SceneComponent draggedSceneComponent, @Nullable SceneComponent primary) {
-    if (primary == null) {
-      primary = draggedSceneComponent;
-    }
-    List<NlComponent> dragged;
-    NlComponent primaryNlComponent = primary.getNlComponent();
-    // Dragging over a non-root component: move the set of components (if the component dragged over is
-    // part of the selection, drag them all, otherwise drag just this component)
-    if (getSelectionModel().isSelected(draggedSceneComponent.getNlComponent())) {
-      dragged = Lists.newArrayList();
-
-      // Make sure the primary is the first element
-      if (primary.getParent() == null) {
-        primaryNlComponent = null;
-      }
-      else {
-        dragged.add(primaryNlComponent);
-      }
-
-      for (NlComponent selected : getSelectionModel().getSelection()) {
-        if (!selected.isRoot() && selected != primaryNlComponent) {
-          dragged.add(selected);
-        }
-      }
-    }
-    else {
-      dragged = Collections.singletonList(primaryNlComponent);
-    }
-    return new DragDropInteraction(this, dragged);
-  }
-
   @NotNull
   @Override
   protected DesignSurfaceActionHandler createActionHandler() {
@@ -929,11 +835,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * When the surface is in "Animation Mode", the error display is not updated. This allows for the surface
    * to render results faster without triggering updates of the issue panel per frame.
    */
-  public void setAnimationMode(boolean enabled) {
-    myIsAnimationMode = enabled;
+  public void setRenderSynchronously(boolean enabled) {
+    myIsRenderingSynchronously = enabled;
   }
 
-  public boolean isInAnimationMode() { return myIsAnimationMode; }
+  public boolean isRenderingSynchronously() { return myIsRenderingSynchronously; }
 
   public void setAnimationScrubbing(boolean value) {
     myIsAnimationScrubbing = value;

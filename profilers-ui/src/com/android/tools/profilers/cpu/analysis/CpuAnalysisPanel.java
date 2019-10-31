@@ -71,12 +71,6 @@ public class CpuAnalysisPanel extends AspectObserver {
 
   @NotNull
   @VisibleForTesting
-  TabbedToolbar getTabbedToolbar() {
-    return myTabs;
-  }
-
-  @NotNull
-  @VisibleForTesting
   JBTabbedPane getTabView() {
     return myTabView;
   }
@@ -102,16 +96,17 @@ public class CpuAnalysisPanel extends AspectObserver {
    * This function is called when the user selects an analysis tab (eg "Full trace").
    * We update and display the child tabs (eg "Summary", "Flame Chart").
    */
-  private void onSelectAnalysis(@NotNull CpuAnalysisModel model) {
+  private void onSelectAnalysis(@NotNull CpuAnalysisModel<?> model) {
     mySelectedModel = model;
     // Reset state.
     myTabView.removeAll();
 
     // Create new child tabs. These tabs are things like "Flame Chart", "Top Down" etc...
-    for (CpuAnalysisTabModel tab : model.getTabs()) {
-      myTabView.insertTab(tab.getTitle(), null, new JPanel(), tab.getTitle(), myTabView.getTabCount());
-    }
-
+    model.getTabModels().forEach(
+      tabModel -> {
+        String typeName = tabModel.getTabType().getName();
+        myTabView.insertTab(typeName, null, new JPanel(), typeName, myTabView.getTabCount());
+      });
     myTabView.revalidate();
     myTabView.repaint();
   }
@@ -139,7 +134,7 @@ public class CpuAnalysisPanel extends AspectObserver {
         myTabView.setComponentAt(myLastSelectedIndex, new JPanel());
       }
       if (newIndex >= 0 && newIndex < myTabView.getTabCount()) {
-        myTabView.setComponentAt(newIndex, myTabViewsBinder.build(myProfilersView, mySelectedModel.getTabs().get(newIndex)));
+        myTabView.setComponentAt(newIndex, myTabViewsBinder.build(myProfilersView, mySelectedModel.getTabModelAt(newIndex)));
       }
       myLastSelectedIndex = newIndex;
     }

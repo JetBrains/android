@@ -17,12 +17,15 @@ package com.android.tools.idea.naveditor.scene.targets
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.common.primaryPanelBackground
+import com.android.tools.idea.common.model.AndroidLength
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.times
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.common.scene.target.BaseTarget
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
@@ -61,8 +64,8 @@ class ActionHandleTarget(component: SceneComponent) : BaseTarget() {
   private var handleState: HandleState = HandleState.INVISIBLE
   private var isDragging = false
 
-  private enum class HandleState(@NavCoordinate val innerRadius: Float, @NavCoordinate val outerRadius: Float) {
-    INVISIBLE(0f, 0f),
+  private enum class HandleState(val innerRadius: AndroidLength, val outerRadius: AndroidLength) {
+    INVISIBLE(AndroidLength(0f), AndroidLength(0f)),
     SMALL(INNER_RADIUS_SMALL, OUTER_RADIUS_SMALL),
     LARGE(INNER_RADIUS_LARGE, OUTER_RADIUS_LARGE)
   }
@@ -81,10 +84,10 @@ class ActionHandleTarget(component: SceneComponent) : BaseTarget() {
                       @NavCoordinate b: Int): Boolean {
     @NavCoordinate var centerX = r
     if (component.nlComponent.isFragment) {
-      centerX += ACTION_HANDLE_OFFSET
+      centerX += ACTION_HANDLE_OFFSET.value.toInt()
     }
     @NavCoordinate val centerY = t + (b - t) / 2
-    @NavCoordinate val radius = handleState.outerRadius.toInt()
+    @NavCoordinate val radius = handleState.outerRadius.value.toInt()
 
     myLeft = (centerX - radius).toFloat()
     myTop = (centerY - radius).toFloat()
@@ -164,10 +167,11 @@ class ActionHandleTarget(component: SceneComponent) : BaseTarget() {
     @SwingCoordinate val centerY = Coordinates.getSwingYDip(view, centerY)
     @SwingCoordinate val center = Point2D.Float(centerX, centerY)
 
-    @SwingCoordinate val initialOuterRadius = Coordinates.getSwingDimension(view, handleState.outerRadius)
-    @SwingCoordinate val finalOuterRadius = Coordinates.getSwingDimension(view, newState.outerRadius)
-    @SwingCoordinate val initialInnerRadius = Coordinates.getSwingDimension(view, handleState.innerRadius)
-    @SwingCoordinate val finalInnerRadius = Coordinates.getSwingDimension(view, newState.innerRadius)
+    val scale = sceneContext.inlineScale
+    val initialOuterRadius = handleState.outerRadius * scale
+    val finalOuterRadius = newState.outerRadius * scale
+    val initialInnerRadius = handleState.innerRadius * scale
+    val finalInnerRadius = newState.innerRadius * scale
 
     val duration = (DURATION * (handleState.outerRadius - newState.outerRadius) / OUTER_RADIUS_LARGE).absoluteValue.toInt()
 
@@ -175,12 +179,12 @@ class ActionHandleTarget(component: SceneComponent) : BaseTarget() {
     val innerColor = if (component.isSelected) SELECTED else HIGHLIGHTED_FRAME
 
     if (isDragging) {
-      list.add(DrawActionHandleDrag(center, initialOuterRadius, finalOuterRadius,
-                                    finalInnerRadius, duration))
+      list.add(DrawActionHandleDrag(center, initialOuterRadius.value, finalOuterRadius.value,
+                                    finalInnerRadius.value, duration))
     }
     else {
-      list.add(DrawActionHandle(center, initialOuterRadius, finalOuterRadius,
-                                initialInnerRadius, finalInnerRadius, duration, innerColor, outerColor))
+      list.add(DrawActionHandle(center, initialOuterRadius.value, finalOuterRadius.value,
+                                initialInnerRadius.value, finalInnerRadius.value, duration, innerColor, outerColor))
     }
 
     handleState = newState

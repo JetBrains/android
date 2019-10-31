@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.model.android.productFlavors.NdkOptions
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.VectorDrawablesOptionsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
+import com.android.tools.idea.gradle.dsl.parser.android.AbstractProductFlavorDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.ExternalNativeBuildOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement;
@@ -69,7 +70,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @NonNls public static final String WEAR_APP_UNBUNDLED = "mWearAppUnbundled";
 
 
-  public ProductFlavorModelImpl(@NotNull ProductFlavorDslElement dslElement) {
+  public ProductFlavorModelImpl(@NotNull AbstractProductFlavorDslElement dslElement) {
     super(dslElement);
   }
 

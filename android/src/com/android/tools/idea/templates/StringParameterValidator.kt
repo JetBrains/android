@@ -34,13 +34,18 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.impl.java.stubs.index.JavaStaticMemberNameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.GlobalSearchScope.EMPTY_SCOPE
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
-import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
+import org.jetbrains.kotlin.idea.caches.project.SourceType
+import org.jetbrains.kotlin.idea.caches.project.toInfo
+import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
+import org.jetbrains.kotlin.idea.project.TargetPlatformDetector
 import java.io.File
 import java.util.EnumSet
 
@@ -62,6 +67,7 @@ private fun StringParameter.getErrorMessageForViolatedConstraint(c: Constraint, 
   CLASS -> "$name is not set to a valid class name"
   PACKAGE -> "$name is not set to a valid package name"
   MODULE -> "$name is not set to a valid module name"
+  KOTLIN_FUNCTION -> "$name is not set to a valid function name"
   ID -> "$name is not set to a valid id."
   DRAWABLE, NAVIGATION, STRING, LAYOUT -> {
     val rft = c.toResourceFolderType()
@@ -100,7 +106,7 @@ fun StringParameter.validateStringType(
   fun validateConstraint(c: Constraint): Boolean = when (c) {
     NONEMPTY -> value.isEmpty()
     URI_AUTHORITY -> !value.matches("$URI_AUTHORITY_REGEX(;$URI_AUTHORITY_REGEX)*".toRegex())
-    ACTIVITY, CLASS, PACKAGE -> !isValidFullyQualifiedJavaIdentifier(fqName)
+    ACTIVITY, CLASS, PACKAGE, KOTLIN_FUNCTION -> !isValidFullyQualifiedJavaIdentifier(fqName)
     APP_PACKAGE -> AndroidUtils.validateAndroidPackageName(value) != null
     DRAWABLE, NAVIGATION, STRING, LAYOUT, VALUES -> {
       val rft = c.toResourceFolderType()
@@ -119,7 +125,15 @@ fun StringParameter.validateStringType(
         val activityClass = JavaPsiFacade.getInstance(project).findClass(SdkConstants.CLASS_ACTIVITY, GlobalSearchScope.allScope(project))
         aClass != null && activityClass != null && aClass.isInheritor(activityClass, true)
       }
-      CLASS -> project != null && existsClassFile(project, searchScope, provider, fqName)
+    KOTLIN_FUNCTION -> {
+      project ?: return false
+      val moduleInfo = module!!.toInfo(SourceType.PRODUCTION)!!
+      val platform = TargetPlatformDetector.getPlatform(module)
+      val facade = KotlinCacheService.getInstance(project).getResolutionFacadeByModuleInfo(moduleInfo, platform)!!
+      val helper = KotlinIndicesHelper(facade, searchScope, { true })
+      helper.getTopLevelCallablesByName(value).isNotEmpty()
+    }
+    CLASS -> project != null && existsClassFile(project, searchScope, provider, fqName)
       PACKAGE, APP_PACKAGE -> project != null && existsPackage(project, provider, value)
       MODULE -> project != null && ModuleManager.getInstance(project).findModuleByName(value) != null
       LAYOUT -> {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.model;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 
 import com.android.sdklib.AndroidVersion;

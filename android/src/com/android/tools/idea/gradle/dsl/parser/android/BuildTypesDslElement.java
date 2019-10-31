@@ -18,13 +18,22 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
 import com.google.common.collect.Lists;
+import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslElement {
+public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslElement implements GradleDslNamedDomainContainer {
   @NonNls public static final String BUILD_TYPES_BLOCK_NAME = "buildTypes";
+
+  @NotNull private static final List<String> implicitBuildTypes = Arrays.asList("debug", "release");
+
+  @Override
+  public boolean implicitlyExists(@NotNull String name) {
+    return implicitBuildTypes.contains(name);
+  }
 
   public BuildTypesDslElement(@NotNull GradleDslElement parent) {
     super(parent, BUILD_TYPES_BLOCK_NAME);

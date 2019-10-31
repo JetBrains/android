@@ -25,7 +25,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
-import com.android.tools.idea.common.editor.SplitEditor;
+import com.android.tools.idea.common.editor.DesignToolsSplitEditor;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.error.LintIssueProvider;
@@ -89,9 +89,11 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.lang.ref.WeakReference;
@@ -209,6 +211,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
     @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
+    @NotNull Function<DesignSurface, InteractionProvider> interactionProviderCreator,
     boolean isEditable) {
     super(new BorderLayout());
     Disposer.register(parentDisposable, this);
@@ -232,7 +235,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
     };
     mySelectionModel.addListener(selectionListener);
-    myInteractionManager = new InteractionManager(this);
+    myInteractionManager = new InteractionManager(this, interactionProviderCreator.apply(this));
 
     myLayeredPane = new MyLayeredPane();
     myLayeredPane.setFocusable(true);
@@ -574,20 +577,48 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public void onSingleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
     if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
       FileEditor selectedEditor = FileEditorManager.getInstance(getProject()).getSelectedEditor();
-      if (selectedEditor instanceof SplitEditor) {
-        SplitEditor splitEditor = (SplitEditor)selectedEditor;
+      if (selectedEditor instanceof DesignToolsSplitEditor) {
+        DesignToolsSplitEditor splitEditor = (DesignToolsSplitEditor)selectedEditor;
         if (splitEditor.isSplitMode()) {
           // If we're in split mode, we want to select the component in the text editor.
           SceneView sceneView = getSceneView(x, y);
           if (sceneView == null) {
             return;
           }
+          // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
           NlComponent component = Coordinates.findComponent(sceneView, x, y);
           if (component != null) {
            navigateToComponent(component, false);
           }
         }
       }
+    }
+  }
+
+  /**
+   * Called by {@link InteractionManager} when mouse is released without any interaction.
+   */
+  public void onMouseReleaseWithoutInteraction(@SwingCoordinate int x,
+                                               @SwingCoordinate int y,
+                                               @JdkConstants.InputEventMask int modifierEx) {
+    boolean allowToggle = (modifierEx & (InputEvent.SHIFT_MASK | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) != 0;
+    SceneView sceneView = getSceneView(x, y);
+    if (sceneView != null) {
+      SceneViewHelper.selectComponentAt(sceneView, x, y, modifierEx, allowToggle, false);
+    }
+  }
+
+  /**
+   * Called by {@link InteractionManager} when the popup context menu event is triggered. (e.g. right click on a component)
+   */
+  public void onPopupMenuTrigger(@NotNull MouseEvent mouseEvent, boolean ignoredIfAlreadySelected) {
+    int x = mouseEvent.getX();
+    int y = mouseEvent.getY();
+    int modifiersEx = mouseEvent.getModifiersEx();
+    SceneView sceneView = getSceneView(x, y);
+    if (sceneView != null) {
+      NlComponent component = SceneViewHelper.selectComponentAt(sceneView, x, y, modifiersEx, false, ignoredIfAlreadySelected);
+      getActionManager().showPopup(mouseEvent, component);
     }
   }
 
@@ -608,6 +639,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       return;
     }
 
+    // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
     NlComponent component = Coordinates.findComponent(sceneView, x, y);
     if (component != null) {
       // Notify that the user is interested in a component.
@@ -818,6 +850,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Override
   public boolean isPanning() {
     return myInteractionManager.isPanning();
+  }
+
+  @Override
+  public boolean isPannable() {
+    return true;
   }
 
   @Override
@@ -1678,22 +1715,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected List<Layer> getLayers() {
     return myLayers;
   }
-
-  @Nullable
-  public final Interaction createInteractionOnClick(@SwingCoordinate int mouseX, @SwingCoordinate int mouseY) {
-    SceneView sceneView = getSceneView(mouseX, mouseY);
-    if (sceneView == null) {
-      return null;
-    }
-    return doCreateInteractionOnClick(mouseX, mouseY, sceneView);
-  }
-
-  @VisibleForTesting
-  @Nullable
-  public abstract Interaction doCreateInteractionOnClick(@SwingCoordinate int mouseX, @SwingCoordinate int mouseY, @NotNull SceneView view);
-
-  @Nullable
-  public abstract Interaction createInteractionOnDrag(@NotNull SceneComponent draggedSceneComponent, @Nullable SceneComponent primary);
 
   @NotNull
   public ConfigurationManager getConfigurationManager(@NotNull AndroidFacet facet) {

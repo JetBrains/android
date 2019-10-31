@@ -22,9 +22,9 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
  * In the future we hope to change this.
  */
 fun parseViewObject(handler: NlDesignSurface.NavigationHandler,
-                    parent: Any): MutableList<ComposeBoundInfo>? {
+                    parent: Any): List<ComposeBoundInfo> {
   try {
-    val viewObj = findComposeViewAdapter(parent) ?: return null
+    val viewObj = findComposeViewAdapter(parent) ?: return listOf()
     val list = viewObj.javaClass.getMethod("getViewInfos").invoke(viewObj) as List<*>
     val listParsed = parseBounds(list)
 
@@ -34,7 +34,7 @@ fun parseViewObject(handler: NlDesignSurface.NavigationHandler,
     val flatBounds = ArrayList<ComposeBoundInfo>()
     listParsed.forEach { tree ->
       tree.stream().forEach {
-        if (handler.fileNames.contains(it.fileName) && !boundsExist(it.bounds, flatBounds)) {
+        if (handler.isFileHandled(it.fileName) && !boundsExist(it.bounds, flatBounds)) {
           flatBounds.add(it)
         }
       }
@@ -42,7 +42,7 @@ fun parseViewObject(handler: NlDesignSurface.NavigationHandler,
     return flatBounds
   } catch (e: Exception) {
     //    println("Unable to parse the viewInfo. ${e.message}")
-    return null
+    return listOf()
   }
 }
 

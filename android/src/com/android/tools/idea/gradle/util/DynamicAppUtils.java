@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.util;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 
-import com.android.builder.model.AndroidProject;
+import com.android.AndroidProjectTypes;
 import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.AppBundleVariantBuildOutput;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
@@ -403,7 +403,7 @@ public class DynamicAppUtils {
         if (model == null) {
           return null;
         }
-        if (model.getAndroidProject().getProjectType() != AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE) {
+        if (model.getAndroidProject().getProjectType() != AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE) {
           return null;
         }
         String gradlePath = getGradlePath(module);
@@ -427,8 +427,8 @@ public class DynamicAppUtils {
         return false;
       }
       int type = androidModuleModel.getAndroidProject().getProjectType();
-      return type == AndroidProject.PROJECT_TYPE_FEATURE || // Legacy
-             type == AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
+      return type == AndroidProjectTypes.PROJECT_TYPE_FEATURE || // Legacy
+             type == AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
     }).collect(Collectors.toList());
   }
 

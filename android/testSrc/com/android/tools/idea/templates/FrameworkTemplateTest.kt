@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.sdklib.AndroidVersion.VersionCodes.LOLLIPOP
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_JAVA_VERSION
@@ -39,16 +40,14 @@ class FrameworkTemplateTest : TemplateTestBase() {
       return
     }
     val target = sdkData.targets.last()
-    val overrides = mutableMapOf<String, Any>(
-      ATTR_JAVA_VERSION to "1.7"
-    )
     val state = createNewProjectState(sdkData, defaultModuleTemplate)
 
     ensureSdkManagerAvailable()
     // TODO: Allow null activity state!
     val activity = findTemplate("activities", "BasicActivity")
     state.activityTemplateState.setTemplateLocation(activity)
-    checkApiTarget(19, 19, target.version, state, "Test17", TestTemplateWizardState(), overrides, mapOf())
+    state.activityTemplateState.put(ATTR_JAVA_VERSION, "1.7")
+    checkApiTarget(LOLLIPOP, target.version, state, "Test17", TestTemplateWizardState())
   }
 
   fun testTemplateFormatting() {

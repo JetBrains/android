@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,39 @@
 package com.android.tools.idea.uibuilder.handlers.motion;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.resources.ResourceType;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintSceneInteraction;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionLayoutInterface;
-import com.android.tools.idea.uibuilder.handlers.motion.timeline.Gantt;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.google.common.collect.ImmutableList;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import java.text.DecimalFormat;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-
+/**
+ * Implements MotionLayout interaction
+ * <p>
+ * For now, we only do it while in a transition, and only to move KeyFrame positions elements.
+ */
 class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
 
-  private NlComponent myPrimary;
-  int startX;
-  int startY;
-  NlComponent selected;
-  private MotionLayoutComponentHelper myMotionHelper;
+  private static final double SLOPE = 20.0;
+  private final NlDesignSurface mySurface;
+  private int startX;
+  private int startY;
+  private NlComponent mySelectedComponent;
   private Object myKeyframe;
+  private final static int MAX_KEY_POSITIONS = 101; // 0-100 inclusive key positions are allowed
+  private int[] myKeyFrameTypes = new int[MAX_KEY_POSITIONS];
+  private float[] myKeyFramePos = new float[MAX_KEY_POSITIONS * 2];
+  private int myKeyframePosition = -1;
+  private String[] myPositionAttributes = new String[2];
+  private float[] myPositionsValues = new float[2];
 
   /**
    * Base constructor
@@ -54,159 +59,173 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
   public MotionLayoutSceneInteraction(@NotNull SceneView sceneView,
                                       @NotNull NlComponent primary) {
     super(sceneView, primary);
-    myPrimary = primary;
-    if (primary.getParent() != null) {
-      myPrimary = myPrimary.getParent();
+    if (sceneView.getSelectionModel().isEmpty()) {
+      mySelectedComponent = primary;
     }
+    else {
+      mySelectedComponent = sceneView.getSelectionModel().getPrimary();
+    }
+    mySurface = (NlDesignSurface)sceneView.getSurface();
   }
 
-  private void useComponent(@NotNull NlComponent component) {
-    selected = component;
-    NlComponent transitionLayoutComponent = null;
-    if (NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.MOTION_LAYOUT)) {
-      transitionLayoutComponent = component;
-    } else {
-      NlComponent parent = selected.getParent();
-      if (parent != null && NlComponentHelperKt.isOrHasSuperclass(parent, SdkConstants.MOTION_LAYOUT)) {
-        transitionLayoutComponent = parent;
+  /**
+   * On the start of the interaction, we try to find if there's a keyframe close
+   * to the mouse down location.
+   *
+   * @param x         The most recent mouse x coordinate applicable to this interaction
+   * @param y         The most recent mouse y coordinate applicable to this interaction
+   * @param modifiersEx The initial AWT mask for the interaction
+   */
+  @Override
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y,
+                    @JdkConstants.InputEventMask int modifiersEx) {
+    MotionLayoutComponentHelper helper = MotionLayoutComponentHelper.create(mySelectedComponent);
+    Object view = NlComponentHelperKt.getViewInfo(mySelectedComponent).getViewObject();
+    float fx = Coordinates.getAndroidX(mySceneView, x);
+    float fy = Coordinates.getAndroidY(mySceneView, y);
+
+    myKeyframePosition = -1;
+    myKeyframe = null;
+
+    int keyFrameCount = helper.getKeyframePos(mySelectedComponent, myKeyFrameTypes, myKeyFramePos);
+    if (keyFrameCount == 0) {
+      return;
+    }
+
+    mySurface.setRenderSynchronously(true);
+    mySurface.setAnimationScrubbing(true);
+
+    for (int i = 0; i < myKeyFrameTypes.length; i++) {
+      if (myKeyFrameTypes[i] / 1000 == 2) {
+        float kx = myKeyFramePos[i * 2];
+        float ky = myKeyFramePos[i * 2 + 1];
+        double dx = Math.sqrt((kx - fx) * (kx - fx));
+        double dy = Math.sqrt((ky - fy) * (ky - fy));
+        if (dx < SLOPE && dy < SLOPE) {
+          int framePosition = myKeyFrameTypes[i] - 2000;
+          myKeyframe = helper.getKeyframe(view, 2, framePosition);
+          myKeyframePosition = framePosition;
+        }
       }
     }
-    myMotionHelper = transitionLayoutComponent != null ? MotionLayoutComponentHelper.create(transitionLayoutComponent) : null;
+    startX = x;
+    startY = y;
   }
 
-  MotionLayoutTimelinePanel.State getState() {
-    //MotionLayoutTimelinePanel panel = MotionLayoutHandler.getTimeline(myPrimary);
-    //if (panel != null) {
-    //  if (panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_UNKNOWN) {
-    //    panel.updateState();
-    //  }
-    //  return panel.getCurrentState();
-    //}
-    return MotionLayoutTimelinePanel.State.TL_UNKNOWN;
-  }
-
-  int getFramePosition() {
-    //MotionLayoutTimelinePanel panel = MotionLayoutHandler.getTimeline(myPrimary);
-    //if (panel != null) {
-    //  return ((Gantt)panel.getPanel()).getChart().getFramePosition();
-    //}
-    return 0;
-  }
-
-  MotionSceneModel.KeyFrame getSelectedKeyframe() {
-    //MotionLayoutInterface panel = MotionLayoutHandler.getTimeline(myPrimary);
-    //if (panel != null) {
-    //  return panel.getSelectedKeyframe();
-    //}
-    return null;
-  }
-
+  /**
+   * On update, we modify the selected keyframe live.
+   *
+   * @param x         The most recent mouse x coordinate applicable to this interaction
+   * @param y         The most recent mouse y coordinate applicable to this interaction
+   * @param modifiersEx current modifier key mask
+   */
   @Override
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    //myKeyframe = null;
-    //
-    //MotionSceneModel.KeyFrame kf = getSelectedKeyframe();
-    //if (kf == null || !kf.getName().equals("KeyPosition") || kf.getFramePosition() != getFramePosition()) {
-    //  super.begin(x, y, modifiersEx);
-    //  return;
-    //}
-    //
-    //// TODO : cleanup & simplify
-    //NlComponent component = Coordinates.findComponent(mySceneView, x, y);
-    //selected = component;
-    //if (component != null && component.getId() != null) {
-    //  mySceneView.getSelectionModel().setSelection(ImmutableList.of(component));
-    //  useComponent(component);
-    //  MotionLayoutTimelinePanel panel = MotionLayoutHandler.getTimeline(selected);
-    //  MotionSceneModel.KeyFrame keyFrame = panel.getSelectedKeyframe();
-    //  if (keyFrame != null) {
-    //    ResourceIdManager manager = ResourceIdManager.get(component.getModel().getModule());
-    //    ResourceReference reference = new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, component.getId());
-    //    Integer resolved = manager.getCompiledId(reference);
-    //    if (resolved == null) {
-    //      if (component.getDelegate() != null && component.getDelegate() instanceof MotionLayoutComponentDelegate) {
-    //        ((MotionLayoutComponentDelegate)component.getDelegate()).updateIds(component);
-    //        reference = new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, component.getId());
-    //        resolved = manager.getOrGenerateId(reference);
-    //      }
-    //    }
-    //    myKeyframe = myMotionHelper.getKeyframe(2, resolved, keyFrame.getFramePosition());
-    //  }
-    //  else {
-    //    Object view = NlComponentHelperKt.getViewInfo(selected).getViewObject();
-    //    float fx = Coordinates.getAndroidX(mySceneView, x);
-    //    float fy = Coordinates.getAndroidY(mySceneView, y);
-    //    myKeyframe = myMotionHelper.getKeyframeAtLocation(view, fx, fy);
-    //  }
-    //  if (myKeyframe != null) {
-    //    float progress = keyFrame.getFramePosition() / 100f;
-    //    panel.setTimelineProgress(progress);
-    //  }
-    //}
-    //startX = x;
-    //startY = y;
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y,
+                     @JdkConstants.InputEventMask int modifiersEx) {
+    if (myKeyframe == null) {
+      return;
+    }
+    myPositionAttributes[0] = "percentX";
+    myPositionAttributes[1] = "percentY";
+    ViewInfo info = NlComponentHelperKt.getViewInfo(mySelectedComponent);
+    if (info != null) {
+      float fx = Coordinates.getAndroidX(mySceneView, x);
+      float fy = Coordinates.getAndroidY(mySceneView, y);
+      Object view = info.getViewObject();
+      MotionLayoutComponentHelper helper = MotionLayoutComponentHelper.create(mySelectedComponent);
+      if (helper.getPositionKeyframe(myKeyframe, view, fx, fy, myPositionAttributes, myPositionsValues)) {
+        helper.setKeyframe(myKeyframe, myPositionAttributes[0], myPositionsValues[0]);
+        helper.setKeyframe(myKeyframe, myPositionAttributes[1], myPositionsValues[1]);
+        // tell motion layout to display additional path info
+        // TODO: move instead to studio-driven drawing
+        helper.setKeyframe(myKeyframe, "drawPath", 4);
+        mySelectedComponent.getModel().notifyLiveUpdate(false);
+      }
+    }
   }
 
+  /**
+   * On end, we commit the keyframe modifications.
+   *
+   * @param x
+   * @param y
+   * @param modifiersEx
+   * @param canceled
+   */
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    //MotionSceneModel.KeyFrame keyFrame = getSelectedKeyframe();
-    //if (keyFrame == null || !keyFrame.getName().equals("KeyPosition")) {
-    //  super.update(x, y, modifiersEx);
-    //  return;
-    //}
-    //
-    //// TODO : cleanup & simplify
-    //if (selected != null) {
-    //  if (myKeyframe != null) {
-    //    String[] positionAttributes = new String[2];
-    //    positionAttributes[0] = "percentX";
-    //    positionAttributes[1] = "percentY";
-    //    float[] positionsValues = new float[2];
-    //    ViewInfo info = NlComponentHelperKt.getViewInfo(selected);
-    //    if (info != null) {
-    //      float fx = Coordinates.getAndroidX(mySceneView, x);
-    //      float fy = Coordinates.getAndroidY(mySceneView, y);
-    //      Object view = info.getViewObject();
-    //      if (myMotionHelper.getPositionKeyframe(myKeyframe, view, fx, fy, positionAttributes, positionsValues)) {
-    //        myMotionHelper.setKeyframe(myKeyframe, positionAttributes[0], positionsValues[0]);
-    //        myMotionHelper.setKeyframe(myKeyframe, positionAttributes[1], positionsValues[1]);
-    //        myMotionHelper.setKeyframe(myKeyframe, "drawPath", 4);
-    //        myPrimary.getModel().notifyLiveUpdate(false);
-    //      }
-    //    }
-    //  }
-    //}
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y,
+                  @JdkConstants.InputEventMask int modifiersEx) {
+    mySurface.setRenderSynchronously(false);
+    mySurface.setAnimationScrubbing(false);
+    if (myKeyframe == null || mySelectedComponent == null) {
+      return;
+    }
+
+    myPositionAttributes[0] = "percentX";
+    myPositionAttributes[1] = "percentY";
+    ViewInfo info = NlComponentHelperKt.getViewInfo(mySelectedComponent);
+    String selectedId = mySelectedComponent.ensureId();
+    if (info != null) {
+      float fx = Coordinates.getAndroidX(mySceneView, x);
+      float fy = Coordinates.getAndroidY(mySceneView, y);
+      Object view = info.getViewObject();
+      MotionLayoutComponentHelper helper = MotionLayoutComponentHelper.create(mySelectedComponent);
+      if (helper.getPositionKeyframe(myKeyframe, view, fx, fy, myPositionAttributes, myPositionsValues)) {
+        helper.setKeyframe(myKeyframe, myPositionAttributes[0], myPositionsValues[0]);
+        helper.setKeyframe(myKeyframe, myPositionAttributes[1], myPositionsValues[1]);
+        helper.setKeyframe(myKeyframe, "drawPath", 0);
+
+        NlComponent motionLayoutComponent = MotionUtils.getMotionLayoutAncestor(mySelectedComponent);
+        if (motionLayoutComponent != null) {
+          MTag motionScene = MotionUtils.getMotionScene(motionLayoutComponent);
+          MTag[] transitions = motionScene.getChildTags("Transition");
+          String startState = helper.getStartState();
+          String endState = helper.getEndState();
+          MTag[] keyframes = null;
+          if (startState != null && endState != null) {
+            for (int i = 0; i < transitions.length; i++) {
+              MTag transition = transitions[i];
+              String transitionStart = transition.getAttributeValue("constraintSetStart");
+              String transitionEnd = transition.getAttributeValue("constraintSetEnd");
+              if (startState.equals(MotionSceneModel.stripID(transitionStart))
+                  && endState.equals(MotionSceneModel.stripID(transitionEnd))) {
+                // we found the correct transition
+                MTag[] keyframesSet = transition.getChildTags("KeyFrameSet");
+                if (keyframesSet != null && keyframesSet.length > 0) {
+                  keyframes = keyframesSet[0].getChildTags("KeyPosition");
+                  break;
+                }
+              }
+            }
+            if (keyframes != null) {
+              for (int i = 0; i < keyframes.length; i++) {
+                MTag keyframe = keyframes[i];
+                String framePositionValue = keyframe.getAttributeValue("framePosition");
+                int framePosition = framePositionValue != null ? Integer.parseInt(framePositionValue) : -1;
+                if (framePosition == myKeyframePosition) {
+                  String motionTarget = keyframe.getAttributeValue("motionTarget");
+                  if (motionTarget != null && selectedId.equals(MotionSceneModel.stripID(motionTarget))) {
+                    // we are on the correct keyframe
+                    MTag.TagWriter keyframeModification = keyframe.getTagWriter();
+                    keyframeModification.setAttribute(SdkConstants.SHERPA_URI,
+                                                      myPositionAttributes[0], formatValue(myPositionsValues[0]));
+                    keyframeModification.setAttribute(SdkConstants.SHERPA_URI,
+                                                      myPositionAttributes[1], formatValue(myPositionsValues[1]));
+                    keyframeModification.commit("Modified Position Keyframe");
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        mySelectedComponent.getModel().notifyLiveUpdate(false);
+      }
+    }
+    myKeyframe = null;
   }
 
-  @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    //MotionSceneModel.KeyFrame keyFrame = getSelectedKeyframe();
-    //if (keyFrame == null || !keyFrame.getName().equals("KeyPosition")) {
-    //  super.end(x, y, modifiersEx);
-    //  return;
-    //}
-    //
-    //// TODO : cleanup & simplify
-    //if (selected != null && myKeyframe != null) {
-    //  MotionLayoutTimelinePanel panel = MotionLayoutHandler.getTimeline(selected);
-    //  ViewInfo info = NlComponentHelperKt.getViewInfo(selected);
-    //  if (info != null && panel != null) {
-    //    float fx = Coordinates.getAndroidX(mySceneView, x);
-    //    float fy = Coordinates.getAndroidY(mySceneView, y);
-    //    Object view = info.getViewObject();
-    //    String[] positionAttributes = new String[2];
-    //    positionAttributes[0] = "percentX";
-    //    positionAttributes[1] = "percentY";
-    //    float[] positionsValues = new float[2];
-    //    if (myMotionHelper.getPositionKeyframe(myKeyframe, view, fx, fy, positionAttributes, positionsValues)) {
-    //      HashMap<AttrName, String> values = new HashMap<>();
-    //      values.put(AttrName.motionAttr(positionAttributes[0]), Float.toString(positionsValues[0]));
-    //      values.put(AttrName.motionAttr(positionAttributes[1]), Float.toString(positionsValues[1]));
-    //      panel.setKeyframeAttributes(values);
-    //    }
-    //  }
-    //}
-    //
-    //myKeyframe = null;
+  private String formatValue(float value) {
+    return new DecimalFormat("#.###").format(value);
   }
 }

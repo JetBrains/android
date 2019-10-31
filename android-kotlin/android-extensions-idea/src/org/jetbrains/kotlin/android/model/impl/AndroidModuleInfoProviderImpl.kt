@@ -6,11 +6,11 @@
 package org.jetbrains.kotlin.android.model.impl
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.IdeaSourceProvider
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.kotlin.android.model.AndroidModuleInfoProvider

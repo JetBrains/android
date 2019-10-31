@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.flags.StudioFlags;

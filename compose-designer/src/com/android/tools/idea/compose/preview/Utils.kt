@@ -43,6 +43,17 @@ const val UNDEFINED_DIMENSION = -1
 @VisibleForTesting const val MAX_HEIGHT = 2000
 
 /**
+ * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the dimension is [UNDEFINED_DIMENSION], the value
+ * is converted to `wrap_content`. Otherwise, the value is returned concatenated with `dp`.
+ */
+fun dimensionToString(dimension: Int) = if (dimension == UNDEFINED_DIMENSION) {
+  "wrap_content"
+}
+else {
+  "${dimension}dp"
+}
+
+/**
  * Truncates the given dimension value to fit between the [min] and [max] values. If the receiver is null,
  * this will return null.
  */

@@ -84,7 +84,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_EXPERIMENTAL_ACTIVITY_GALLERY = Flag.create(
     NPW, "experimental.activity.gallery", "Show experimental activity gallery",
     "Show experimental activity gallery which contains Kotlin templates passed through plugin in addition to the normal gallery",
-    false);
+    true);
 
   public static final Flag<Boolean> NPW_SHOW_FRAGMENT_GALLERY = Flag.create(
     NPW, "show.fragment.gallery", "Show fragment gallery",
@@ -261,11 +261,6 @@ public final class StudioFlags {
     "If enabled, the surface displays some debug information to diagnose performance",
     false);
 
-  public static final Flag<Boolean> NELE_SHOW_ONLY_SELECTION = Flag.create(
-    NELE, "show.only.selection", "Show only selection boundaries when mouse is not hovered in layout",
-    "Enable this flag to show selection boundaries without other decoration when mouse is not hovered in layout",
-    true);
-
   public static final Flag<Boolean> NELE_SPLIT_EDITOR = Flag.create(
     NELE, "split.layout.editor", "Enable design editors and XML side-by-side view.",
     "Enable this flag to display the design editors side-by-side with their text representation.",
@@ -296,11 +291,6 @@ public final class StudioFlags {
     NELE, "new.property.tabs", "Use a tab panel to switch to the advanced table",
     "Use a tab panel to switch to advanced",
     false);
-
-  public static final Flag<Boolean> NELE_NEW_COLOR_PICKER = Flag.create(
-    NELE, "new.color.picker", "New Color Picker",
-    "Enable new Color Picker in Layout Editor",
-    true);
 
   public static final Flag<Boolean> NELE_DRAG_PLACEHOLDER = Flag.create(
     NELE, "drag.placeholder", "Dragging widgets with Placeholders",
@@ -350,6 +340,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_COLOR_BLIND_MODE = Flag.create(
     NELE, "color.blind.mode", "Color Blind Mode",
     "Enable Visualisation Tool to preview layouts in multiple color blind modes at the same time",
+    false);
+
+  public static final Flag<Boolean> NELE_NEW_INTERACTION_INTERFACE = Flag.create(
+    NELE, "new.interaction.interface", "New Interaction Interface",
+    "Enable new interaction interface in design surface.",
     false);
   //endregion
 
@@ -409,7 +404,7 @@ public final class StudioFlags {
     "Choose a strategy for selecting the default activity to launch from the merged manifest.",
     "This can be \"BLOCK\" to unconditionally block on a fresh merged manifest, \"STALE\" to use a potentially stale manifest, "
       + "or \"INDEX\" to use the custom Android Manifest index (only select this option if manifest indexing is enabled).",
-    DefaultActivityLocatorStrategy.BLOCK
+    DefaultActivityLocatorStrategy.INDEX
   );
 
   public static final Flag<Boolean> SUPPORT_FEATURE_ON_FEATURE_DEPS = Flag.create(
@@ -454,6 +449,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> L4_DEPENDENCY_MODEL = Flag.create(
     GRADLE_IDE, "level4.dependency.model", "Use L4 DependencyGraph Model",
     "Use level4 DependencyGraph model.", false);
+
+  public static final Flag<Boolean> ALLOW_DIFFERENT_JDK_VERSION = Flag.create(
+    GRADLE_IDE, "jdk.allow.different", "Allow different Gradle JDK", "Allow usage of a different JDK version when running Gradle.", true);
   //endregion
 
   //region SQLite Inspector
@@ -480,7 +478,7 @@ public final class StudioFlags {
     "If enabled, users can edit properties in the properties table.", false);
   public static final Flag<Boolean>  DYNAMIC_LAYOUT_INSPECTOR_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector", "Enable dynamic layout inspector",
-    "Turns on the dynamic layout inspector.", false);
+    "Turns on the dynamic layout inspector.", true);
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_EDITING_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.editor", "Enable dynamic layout editor",
     "If enabled, users can edit layout properties with live updates on a device while the dynamic layout inspector is running.",
@@ -659,6 +657,12 @@ public final class StudioFlags {
     "If enabled, Nitrogen test runner configuration becomes available in addition to traditional test runner configurations.",
     false
   );
+
+  public static final Flag<Boolean> MULTIDEVICE_INSTRUMENTATION_TESTS = Flag.create(
+    TESTING, "multidevice.instrumentation.tests", "Allow running instrumentation tests on multiple devices at a time.",
+    "If enabled, you can choose run-on-selected-devices for android instrumentation test run configurations.",
+    false
+  );
   //endregion
 
   //region Translations Editor
@@ -812,25 +816,12 @@ public final class StudioFlags {
 
   //endregion
 
-  //region Binding
-  private static final FlagGroup BINDING = new FlagGroup(FLAGS, "binding", "Data/View Binding");
-  public static final Flag<Boolean> VIEW_BINDING_ENABLED = Flag.create(
-    BINDING, "view.binding.enabled", "Enable View Binding",
-    "Enables view binding integration. Additionally, enabling the compiler may require updating Gradle settings as well",
-    true);
-
-  public static final Flag<Boolean> DATA_BINDING_INSPECTIONS_ENABLED = Flag.create(
-    BINDING, "inspections.enabled", "Enable Data Binding Inspections",
-    "Enables inspections that show up in data binding layout files.",
-    true);
-  //endregion
-
   //region Manifests
   private static final FlagGroup MANIFESTS = new FlagGroup(FLAGS, "manifests", "Android Manifests");
   public static final Flag<Boolean> ANDROID_MANIFEST_INDEX_ENABLED = Flag.create(
     MANIFESTS, "index.enabled", "Enable Android Manifest Indexing",
     "Enables a custom index for pre-parsing your project's AndroidManifest.xml files",
-    false);
+    true);
   //endregion
   private StudioFlags() { }
 }

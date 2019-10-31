@@ -16,13 +16,10 @@
 package com.android.tools.profilers.cpu.analysis;
 
 import com.android.tools.profilers.StudioProfilersView;
-import com.android.tools.profilers.cpu.CpuCapture;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
-public class CpuAnalysisSummaryTab extends CpuAnalysisTab<CpuAnalysisTabModel<?>> {
-  public CpuAnalysisSummaryTab(@NotNull StudioProfilersView view, @NotNull CpuAnalysisTabModel<?> model) {
+public class CpuAnalysisSummaryTab<T> extends CpuAnalysisTab<CpuAnalysisTabModel<T>> {
+  public CpuAnalysisSummaryTab(@NotNull StudioProfilersView view, @NotNull CpuAnalysisTabModel<T> model) {
     super(model);
   }
 }

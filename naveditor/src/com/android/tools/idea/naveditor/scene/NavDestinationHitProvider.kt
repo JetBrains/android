@@ -25,14 +25,14 @@ import com.android.tools.idea.common.scene.ScenePicker
 /*
   Augments the hit region for destinations to include the header above the destination
  */
-open class NavDestinationHitProvider : DefaultHitProvider() {
+object NavDestinationHitProvider : DefaultHitProvider() {
   override fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker) {
     super.addHit(component, sceneTransform, picker)
 
     val sceneView = sceneTransform.surface?.focusedSceneView ?: return
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
 
-    val headerRect = getHeaderRect(sceneView, drawRectangle)
+    val headerRect = getHeaderRect(sceneTransform, drawRectangle)
 
     val x1 = headerRect.x
     val x2 = x1 + headerRect.width

@@ -19,7 +19,7 @@ import static com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT;
 import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.dependsOn;
 import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;
@@ -91,7 +91,7 @@ import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
@@ -798,7 +798,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   public void syncSelectedVariantAndTestArtifact(@NotNull AndroidFacet facet) {
     IdeVariant variant = getSelectedVariant();
-    JpsAndroidModuleProperties state = facet.getProperties();
+    AndroidFacetProperties state = facet.getProperties();
     state.SELECTED_BUILD_VARIANT = variant.getName();
 
     IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
@@ -807,7 +807,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     updateGradleTaskNames(state, mainArtifact);
   }
 
-  private static void updateGradleTaskNames(@NotNull JpsAndroidModuleProperties state, @NotNull IdeAndroidArtifact mainArtifact) {
+  private static void updateGradleTaskNames(@NotNull AndroidFacetProperties state, @NotNull IdeAndroidArtifact mainArtifact) {
     state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
     state.COMPILE_JAVA_TASK_NAME = mainArtifact.getCompileTaskName();
     state.AFTER_SYNC_TASK_NAMES = new HashSet<>(mainArtifact.getIdeSetupTaskNames());

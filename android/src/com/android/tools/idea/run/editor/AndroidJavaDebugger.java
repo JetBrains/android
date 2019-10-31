@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.editor;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.builder.model.TestOptions;

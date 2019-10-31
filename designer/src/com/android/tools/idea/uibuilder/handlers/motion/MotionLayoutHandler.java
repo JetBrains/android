@@ -53,7 +53,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineCyc
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineTarget;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionAccessoryPanel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionAttributePanel;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionLayoutInterface;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutDragTarget;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutResizeBaseTarget;
@@ -72,6 +71,9 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * MotionLayout handler, implements the interactions for MotionLayout components.
+ */
 public class MotionLayoutHandler extends ViewGroupHandler {
   private static final boolean DEBUG = false;
 
@@ -208,13 +210,11 @@ public class MotionLayoutHandler extends ViewGroupHandler {
             Debug.println("SOUTH PANEL");
           }
           return new MotionAccessoryPanel((NlDesignSurface)surface, parent, panelVisibility);
-        //return new MotionLayoutTimelinePanel(surface, parent, panelVisibility);
         case EAST_PANEL:
           if (DEBUG) {
             Debug.println("EAST PANEL");
           }
           return new MotionAttributePanel(parent, panelVisibility);
-        //return  new MotionLayoutAttributePanel(parent, panelVisibility);
       }
     } else {
       switch (type) {
@@ -229,20 +229,11 @@ public class MotionLayoutHandler extends ViewGroupHandler {
 
   @Override
   public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component) {
-    return super.createInteraction(screenView, component);
-  }
-
-  public static MotionLayoutInterface getTimeline(@NotNull NlComponent component) {
-    Object property = component.getClientProperty(MotionLayoutTimelinePanel.TIMELINE);
-    if (property == null && component.getParent() != null) {
-      // need to grab the timeline from the MotionLayout component...
-      // TODO: walk the tree up until we find the MotionLayout?
-      property = component.getParent().getClientProperty(MotionLayoutTimelinePanel.TIMELINE);
+    MotionLayoutComponentHelper helper = MotionLayoutComponentHelper.create(component);
+    if (helper.isInTransition()) {
+      return new MotionLayoutSceneInteraction(screenView, component);
     }
-    if (property == null || !(property instanceof MotionLayoutTimelinePanel)) {
-      return null;
-    }
-    return (MotionLayoutTimelinePanel)property;
+    return null;
   }
 
   @Override

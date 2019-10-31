@@ -221,7 +221,7 @@ fun validateTemplate(template: TemplateMetadata?,
   else if (template.constraints.contains(ANDROIDX) && !isAndroidxProject) {
     message(messageKeys.invalidAndroidX)
   }
-  else if (template.constraints.contains(KOTLIN) && language != Language.KOTLIN) {
+  else if (template.constraints.contains(KOTLIN) && language != Language.KOTLIN && isNewModule) {
     message(messageKeys.invalidNeedsKotlin)
   }
   else ""

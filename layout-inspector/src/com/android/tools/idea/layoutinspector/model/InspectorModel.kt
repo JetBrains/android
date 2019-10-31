@@ -30,6 +30,13 @@ class InspectorModel(val project: Project, initialRoot: ViewNode? = null) {
     }
   }
 
+  val hoverListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
+  var hoveredNode: ViewNode? by Delegates.observable(null as ViewNode?) { _, old, new ->
+    if (new != old) {
+      hoverListeners.forEach { it(old, new) }
+    }
+  }
+
   var root: ViewNode? by Delegates.observable(initialRoot) { _, old, new ->
     modificationListeners.forEach { it(old, new, true) }
   }
@@ -58,6 +65,8 @@ class InspectorModel(val project: Project, initialRoot: ViewNode? = null) {
     }
     modificationListeners.forEach { it(oldRoot, root, structuralChange) }
   }
+
+  fun notifyModified() = modificationListeners.forEach { it(root, root, false) }
 
   private class Updater(private val oldRoot: ViewNode, private val newRoot: ViewNode) {
     private val oldNodes = oldRoot.flatten().associateBy { it.drawId }

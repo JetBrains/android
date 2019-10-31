@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu.atrace
 
-import com.android.tools.profilers.cpu.CpuFramesModel
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.TEST_PID
 import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.TEST_RENDER_ID
@@ -30,7 +29,6 @@ import trebuchet.model.fragments.ProcessModelFragment
 import trebuchet.model.fragments.SliceGroupBuilder
 import trebuchet.task.ImportTask
 import trebuchet.util.PrintlnImportFeedback
-import java.util.concurrent.TimeUnit
 
 class AtraceFrameManagerTest {
   private lateinit var model: Model
@@ -48,24 +46,18 @@ class AtraceFrameManagerTest {
   @Test
   fun filterReturnsFramesOfSameThread() {
     val frameManager = AtraceFrameManager(process, ::convertTimeStamps, TEST_RENDER_ID)
-    val frameFilter = AtraceFrameFilterConfig("Choreographer#doFrame", TEST_PID,
-                                              TimeUnit.MILLISECONDS.toMicros(30))
-    val frames = frameManager.buildFramesList(frameFilter)
+    val frames = frameManager.getFramesList(AtraceFrame.FrameThread.MAIN)
     // Validation metrics come from systrace for the same file.
     assertThat(frames).hasSize(122)
-    assertThat(frames[0].perfClass).isEqualTo(AtraceFrame.PerfClass.GOOD)
-    assertThat(frames[1].perfClass).isEqualTo(AtraceFrame.PerfClass.BAD)
+    assertThat(frames.count { it.perfClass == AtraceFrame.PerfClass.GOOD}).isEqualTo(102)
+    assertThat(frames.count { it.perfClass == AtraceFrame.PerfClass.BAD}).isEqualTo(20)
+    assertThat(frames.count { it.perfClass == AtraceFrame.PerfClass.NOT_SET}).isEqualTo(0)
   }
 
   @Test
   fun noMatchingThreadReturnsEmptyList() {
     val frameManager = AtraceFrameManager(process, ::convertTimeStamps, TEST_RENDER_ID)
-    var frameFilter = AtraceFrameFilterConfig("Choreographer#doFrame", 0,
-                                              TimeUnit.MILLISECONDS.toMicros(30))
-    assertThat(frameManager.buildFramesList(frameFilter)).hasSize(0)
-    frameFilter = AtraceFrameFilterConfig("TestEventOnValidThread", TEST_PID,
-                                          TimeUnit.MILLISECONDS.toMicros(30))
-    assertThat(frameManager.buildFramesList(frameFilter)).hasSize(0)
+    assertThat(frameManager.getFramesList(AtraceFrame.FrameThread.OTHER)).hasSize(0)
   }
 
   private fun getSlice(startTime: Double, endTime: Double, name: String): SliceGroupBuilder.MutableSliceGroup {
@@ -102,10 +94,8 @@ class AtraceFrameManagerTest {
     process = model.processes[TEST_PID]!!
     val frameManager = AtraceFrameManager(process, ::convertTimeStamps, TEST_RENDER_ID)
 
-    val mainThreadFrames = frameManager.buildFramesList(AtraceFrameFilterConfig(
-      AtraceFrameFilterConfig.APP_MAIN_THREAD_FRAME_ID_MPLUS, TEST_PID, CpuFramesModel.SLOW_FRAME_RATE_US))
-    val renderThreadFrames = frameManager.buildFramesList(AtraceFrameFilterConfig(
-      AtraceFrameFilterConfig.APP_RENDER_THREAD_FRAME_ID_MPLUS, TEST_RENDER_ID, CpuFramesModel.SLOW_FRAME_RATE_US))
+    val mainThreadFrames = frameManager.getFramesList(AtraceFrame.FrameThread.MAIN)
+    val renderThreadFrames = frameManager.getFramesList(AtraceFrame.FrameThread.RENDER)
 
     assertThat(mainThreadFrames.size).isEqualTo(4)
     assertThat(renderThreadFrames.size).isEqualTo(5)
@@ -120,5 +110,17 @@ class AtraceFrameManagerTest {
     assertThat(renderThreadFrames[2].associatedFrame).isEqualTo(null)
     assertThat(renderThreadFrames[3].associatedFrame).isEqualTo(null)
     assertThat(renderThreadFrames[4].associatedFrame).isEqualTo(mainThreadFrames[3])
+  }
+
+  @Test
+  fun framesEndWithEmptyFrame() {
+    val frameManager = AtraceFrameManager(process, ::convertTimeStamps, TEST_RENDER_ID)
+    val frames = frameManager.getFrames(AtraceFrame.FrameThread.MAIN)
+    // Each frame has a empty frame after it for spacing.
+    assertThat(frames).hasSize(122 * 2)
+    for (i in 0 until frames.size step 2) {
+      assertThat(frames[i].value).isNotEqualTo(AtraceFrame.EMPTY)
+      assertThat(frames[i + 1].value).isEqualTo(AtraceFrame.EMPTY)
+    }
   }
 }

@@ -15,20 +15,13 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import icons.StudioIcons
-import javax.swing.Icon
 import kotlin.properties.Delegates
 
-enum class ViewMode(val icon: Icon) {
-  FIXED(StudioIcons.LayoutEditor.Extras.ROOT_INLINE),
-  X_ONLY(StudioIcons.DeviceConfiguration.SCREEN_WIDTH),
-  XY(StudioIcons.DeviceConfiguration.SMALLEST_SCREEN_SIZE);
-
-  val next: ViewMode
-    get() = enumValues<ViewMode>()[(this.ordinal + 1).rem(enumValues<ViewMode>().size)]
-}
-
-class DeviceViewSettings(scalePercent: Int = 100, drawBorders: Boolean = true, viewMode: ViewMode = ViewMode.XY) {
+class DeviceViewSettings(
+  scalePercent: Int = 100,
+  drawBorders: Boolean = true,
+  drawLabel: Boolean = false
+) {
   val modificationListeners = mutableListOf<() -> Unit>()
 
   /** Scale of the view in percentage: 100 = 100% */
@@ -44,7 +37,7 @@ class DeviceViewSettings(scalePercent: Int = 100, drawBorders: Boolean = true, v
     _, _, _ -> modificationListeners.forEach { it() }
   }
 
-  var viewMode: ViewMode by Delegates.observable(viewMode) {
+  var drawLabel: Boolean by Delegates.observable(drawLabel) {
     _, _, _ -> modificationListeners.forEach { it() }
   }
 }

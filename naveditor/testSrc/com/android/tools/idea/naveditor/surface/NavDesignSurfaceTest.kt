@@ -26,6 +26,7 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.InteractionManager
+import com.android.tools.idea.common.surface.InteractionProvider
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -38,6 +39,7 @@ import com.android.tools.idea.naveditor.editor.NAV_EDITOR_ID
 import com.android.tools.idea.naveditor.editor.NavEditor
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavSceneManager
+import com.android.tools.idea.naveditor.scene.updateHierarchy
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.LayoutTestUtilities
 import com.google.common.collect.ImmutableList
@@ -350,7 +352,7 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
 
-    val manager = InteractionManager(surface)
+    val manager = InteractionManager(surface, NavInteractionProvider(surface))
     manager.startListening()
 
     val fragment1 = scene.getSceneComponent("fragment1")!!
@@ -438,7 +440,7 @@ class NavDesignSurfaceTest : NavTestCase() {
       }
     }
 
-    NavSceneManager.updateHierarchy(model, model2)
+    updateHierarchy(model, model2)
     val newVersion = model.find("othersubnav")!!.getChild(0)!!
     assertNotEquals(orig, newVersion)
     surface.refreshRoot()
@@ -494,7 +496,7 @@ class NavDesignSurfaceTest : NavTestCase() {
       manager.commitAllDocuments()
     }
 
-    NavSceneManager.updateHierarchy(model, model)
+    updateHierarchy(model, model)
 
     root = model.components[0]
     val component = surface.currentNavigation

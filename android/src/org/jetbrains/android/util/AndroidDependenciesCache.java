@@ -1,6 +1,6 @@
 package org.jetbrains.android.util;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 
 import com.android.tools.idea.res.AndroidProjectRootListener;
 import com.intellij.ProjectTopics;

@@ -57,7 +57,6 @@ iml_module(
     name = "intellij.android.lang-databinding.tests",
     iml_files = ["intellij.android.lang-databinding.tests.iml"],
     tags = [
-        "manual",  # b/141498231
         "no_test_mac",  # b/113099009
         "no_test_windows",
     ],
@@ -92,7 +91,7 @@ iml_module(
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
     ],
     test_srcs = ["testSrc"],
-    test_timeout = "eternal",
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [

@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPL
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SOURCE_SET_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS
@@ -34,6 +35,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPL
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SOURCE_SET_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SOURCE_SET_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_REMOVE_BUILD_TYPE_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_REMOVE_PRODUCT_FLAVOR_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_RESET_BUILD_TYPE_BLOCK
@@ -773,6 +775,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK_EXPECTED)
+
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId())
 
     buildModel.reparse()
@@ -918,6 +922,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("sourceSets", "source", sourceSet.root())
 
     applyChanges(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_SOURCE_SET_BLOCK_EXPECTED)
+
     sourceSets = android.sourceSets()
     assertThat(sourceSets).hasSize(1)
     sourceSet = sourceSets[0]

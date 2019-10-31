@@ -43,11 +43,9 @@ import com.android.tools.idea.common.scene.LerpValue;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
-import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -60,6 +58,7 @@ import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavActionHelperKt;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
+import com.android.tools.idea.naveditor.scene.NavSceneManagerKt;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -161,7 +160,7 @@ public class NavDesignSurface extends DesignSurface {
    * {@code editorPanel} should only be null in tests
    */
   public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
-    super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), true);
+    super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), NavInteractionProvider::new, true);
     setBackground(JBColor.white);
 
     // TODO: add nav-specific issues
@@ -491,7 +490,7 @@ public class NavDesignSurface extends DesignSurface {
       return new Dimension(0, 0);
     }
 
-    @NavCoordinate Rectangle boundingBox = NavSceneManager.getBoundingBox(root);
+    @NavCoordinate Rectangle boundingBox = NavSceneManagerKt.getBoundingBox(root);
     return boundingBox.getSize();
   }
 
@@ -594,19 +593,6 @@ public class NavDesignSurface extends DesignSurface {
     return (component) -> NavComponentHelper.INSTANCE.registerComponent(component);
   }
 
-  @VisibleForTesting
-  @Nullable
-  @Override
-  public Interaction doCreateInteractionOnClick(int mouseX, int mouseY, @NotNull SceneView view) {
-    return new SceneInteraction(view);
-  }
-
-  @Nullable
-  @Override
-  public Interaction createInteractionOnDrag(@NotNull SceneComponent draggedSceneComponent, @Nullable SceneComponent primary) {
-    return null;
-  }
-
   @Override
   public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
     boolean scaled = super.zoom(type, x, y);
@@ -640,7 +626,7 @@ public class NavDesignSurface extends DesignSurface {
     }
 
     @NavCoordinate Rectangle selectionBounds =
-      NavSceneManager.getBoundingBox(list.stream().map(nlComponent -> scene.getSceneComponent(nlComponent))
+      NavSceneManagerKt.getBoundingBox(list.stream().map(nlComponent -> scene.getSceneComponent(nlComponent))
                                          .filter(sceneComponent -> sceneComponent != null)
                                          .collect(Collectors.toList()));
     @SwingCoordinate Dimension swingViewportSize = getScrollPane().getViewport().getExtentSize();

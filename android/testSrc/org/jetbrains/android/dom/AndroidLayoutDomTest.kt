@@ -1,7 +1,7 @@
 package org.jetbrains.android.dom
 
 import com.android.SdkConstants
-import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
+import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
@@ -31,8 +31,6 @@ import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiPolyVariantReference
-import com.intellij.psi.util.parentOfType
-import com.intellij.psi.xml.XmlTag
 import com.intellij.spellchecker.inspections.SpellCheckingInspection
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.PsiTestUtil

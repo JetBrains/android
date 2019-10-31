@@ -29,7 +29,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.Icon
 
 class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
-  override fun getDescriptions(project: Project?): Collection<ModuleGalleryEntry?> = listOf(
+  override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(
     SourceImportModuleGalleryEntry(message("android.wizard.module.import.eclipse.title")),
     SourceImportModuleGalleryEntry(message("android.wizard.module.import.gradle.title")),
     ArchiveImportModuleGalleryEntry()
