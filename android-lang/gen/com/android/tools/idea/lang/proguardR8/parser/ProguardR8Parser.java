@@ -256,14 +256,22 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // qualifiedName
+  // "!"? qualifiedName
   public static boolean class_name(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "class_name")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, CLASS_NAME, "<class name>");
-    result = qualifiedName(builder, level + 1);
+    result = class_name_0(builder, level + 1);
+    result = result && qualifiedName(builder, level + 1);
     exit_section_(builder, level, marker, result, false, null);
     return result;
+  }
+
+  // "!"?
+  private static boolean class_name_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "class_name_0")) return false;
+    consumeToken(builder, EM);
+    return true;
   }
 
   /* ********************************************************** */
