@@ -85,6 +85,7 @@ import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -371,7 +372,7 @@ public class AvdManagerConnection {
 
   @NotNull
   public ListenableFuture<IDevice> startAvd(@Nullable Project project, @NotNull AvdInfo info) {
-    return startAvd(project, info, null);
+    return startAvd(project, info, Collections.emptyList());
   }
 
   /**
@@ -379,7 +380,7 @@ public class AvdManagerConnection {
    * @return a future with the device that was launched
    */
   @NotNull
-  public ListenableFuture<IDevice> startAvd(@Nullable Project project, @NotNull AvdInfo info, @Nullable String snapshot) {
+  public ListenableFuture<IDevice> startAvd(@Nullable Project project, @NotNull AvdInfo info, @NotNull List<String> parameters) {
     if (!initIfNecessary()) {
       return Futures.immediateFailedFuture(new RuntimeException("No Android SDK Found"));
     }
@@ -395,7 +396,7 @@ public class AvdManagerConnection {
     // noinspection ConstantConditions, UnstableApiUsage
     return Futures.transformAsync(
       checkAccelerationAsync(),
-      code -> continueToStartAvdIfAccelerationErrorIsNotBlocking(code, project, info, snapshot),
+      code -> continueToStartAvdIfAccelerationErrorIsNotBlocking(code, project, info, parameters),
       MoreExecutors.directExecutor());
   }
 
@@ -403,23 +404,23 @@ public class AvdManagerConnection {
   private ListenableFuture<IDevice> continueToStartAvdIfAccelerationErrorIsNotBlocking(@NotNull AccelerationErrorCode code,
                                                                                        @Nullable Project project,
                                                                                        @NotNull AvdInfo info,
-                                                                                       @Nullable String snapshot) {
+                                                                                       @NotNull List<String> parameters) {
     switch (code) {
       case ALREADY_INSTALLED:
-        return continueToStartAvd(project, info, snapshot);
+        return continueToStartAvd(project, info, parameters);
       case TOOLS_UPDATE_REQUIRED:
       case PLATFORM_TOOLS_UPDATE_ADVISED:
       case SYSTEM_IMAGE_UPDATE_ADVISED:
         // Launch the virtual device with possibly degraded performance even if there are updates
         // noinspection DuplicateBranchesInSwitch
-        return continueToStartAvd(project, info, snapshot);
+        return continueToStartAvd(project, info, parameters);
       case NO_EMULATOR_INSTALLED:
         return handleAccelerationError(project, info, code);
       default:
         Abi abi = Abi.getEnum(info.getAbiType());
 
         if (abi == null) {
-          return continueToStartAvd(project, info, snapshot);
+          return continueToStartAvd(project, info, parameters);
         }
 
         if (abi.equals(Abi.X86) || abi.equals(Abi.X86_64)) {
@@ -427,12 +428,12 @@ public class AvdManagerConnection {
         }
 
         // Let ARM and MIPS virtual devices launch without hardware acceleration
-        return continueToStartAvd(project, info, snapshot);
+        return continueToStartAvd(project, info, parameters);
     }
   }
 
   @NotNull
-  private ListenableFuture<IDevice> continueToStartAvd(@Nullable Project project, @NotNull AvdInfo info, @Nullable String snapshot) {
+  private ListenableFuture<IDevice> continueToStartAvd(@Nullable Project project, @NotNull AvdInfo info, @NotNull List<String> parameters) {
     final File emulatorBinary = getEmulatorBinary();
     if (emulatorBinary == null) {
       IJ_LOG.error("No emulator binary found!");
@@ -463,7 +464,7 @@ public class AvdManagerConnection {
       return Futures.immediateFailedFuture(new RuntimeException(message));
     }
 
-    EmulatorRunner runner = new EmulatorRunner(newEmulatorCommand(emulatorBinary, info, snapshot), info);
+    EmulatorRunner runner = new EmulatorRunner(newEmulatorCommand(emulatorBinary, info, parameters), info);
     addListeners(runner);
 
     final ProcessHandler processHandler;
@@ -510,7 +511,7 @@ public class AvdManagerConnection {
   }
 
   @NotNull
-  private GeneralCommandLine newEmulatorCommand(@NotNull File emulator, @NotNull AvdInfo device, @Nullable String snapshot) {
+  private GeneralCommandLine newEmulatorCommand(@NotNull File emulator, @NotNull AvdInfo device, @NotNull List<String> parameters) {
     GeneralCommandLine command = new GeneralCommandLine();
 
     command.setExePath(emulator.getPath());
@@ -523,10 +524,7 @@ public class AvdManagerConnection {
       command.addParameters(Splitter.on(',').splitToList(arguments));
     }
 
-    if (snapshot != null) {
-      command.addParameters("-snapshot", snapshot);
-    }
-
+    command.addParameters(parameters);
     return command;
   }
 

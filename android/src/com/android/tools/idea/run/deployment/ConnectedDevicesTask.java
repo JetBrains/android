@@ -15,96 +15,78 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.ConnectedAndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.util.ThreeState;
-import java.io.File;
-import java.util.Arrays;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.Collection;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.function.Function;
+import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class ConnectedDevicesTask implements Callable<Collection<ConnectedDevice>> {
+final class ConnectedDevicesTask implements AsyncSupplier<List<ConnectedDevice>> {
   @NotNull
-  private final Project myProject;
+  private final AndroidDebugBridge myAndroidDebugBridge;
+
+  private final boolean mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
   @Nullable
   private final LaunchCompatibilityChecker myChecker;
 
-  @NotNull
-  private final Function<Project, Stream<IDevice>> myGetDdmlibDevices;
-
-  ConnectedDevicesTask(@NotNull Project project, @Nullable LaunchCompatibilityChecker checker) {
-    this(project, checker, ConnectedDevicesTask::getDdmlibDevices);
-  }
-
-  @VisibleForTesting
-  ConnectedDevicesTask(@NotNull Project project,
-                       @Nullable LaunchCompatibilityChecker checker,
-                       @NotNull Function<Project, Stream<IDevice>> getDdmlibDevices) {
-    myProject = project;
+  ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge,
+                       boolean selectDeviceSnapshotComboBoxSnapshotsEnabled,
+                       @Nullable LaunchCompatibilityChecker checker) {
+    myAndroidDebugBridge = androidDebugBridge;
+    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
     myChecker = checker;
-    myGetDdmlibDevices = getDdmlibDevices;
   }
 
   @NotNull
   @Override
-  public Collection<ConnectedDevice> call() {
-    return myGetDdmlibDevices.apply(myProject)
+  public ListenableFuture<List<ConnectedDevice>> get() {
+    ListenableFuture<Collection<IDevice>> devices = myAndroidDebugBridge.getConnectedDevices();
+
+    // noinspection UnstableApiUsage
+    return Futures.transformAsync(devices, this::newConnectedDevices, AppExecutorUtil.getAppExecutorService());
+  }
+
+  @NotNull
+  private ListenableFuture<List<ConnectedDevice>> newConnectedDevices(@NotNull Collection<IDevice> devices) {
+    Iterable<ListenableFuture<ConnectedDevice>> futures = devices.stream()
       .filter(IDevice::isOnline)
       .map(this::newConnectedDevice)
       .collect(Collectors.toList());
+
+    // noinspection UnstableApiUsage
+    return Futures.successfulAsList(futures);
   }
 
   @NotNull
-  private static Stream<IDevice> getDdmlibDevices(@NotNull Project project) {
-    File adb = AndroidSdkUtils.getAdb(project);
+  private ListenableFuture<ConnectedDevice> newConnectedDevice(@NotNull IDevice ddmlibDevice) {
+    if (mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
+      ListenableFuture<String> idFuture = myAndroidDebugBridge.getVirtualDeviceId(ddmlibDevice);
 
-    if (adb == null) {
-      return Stream.empty();
-    }
-
-    Future<AndroidDebugBridge> futureBridge = AdbService.getInstance().getDebugBridge(adb);
-
-    if (!futureBridge.isDone()) {
-      return Stream.empty();
+      // noinspection ConstantConditions, UnstableApiUsage
+      return Futures.transform(idFuture, id -> newConnectedDevice(ddmlibDevice, id), AppExecutorUtil.getAppExecutorService());
     }
 
-    try {
-      return Arrays.stream(futureBridge.get().getDevices());
-    }
-    catch (InterruptedException exception) {
-      // This should never happen. The future is done and can no longer be interrupted.
-      throw new AssertionError(exception);
-    }
-    catch (ExecutionException exception) {
-      Logger.getInstance(ConnectedDevicesTask.class).warn(exception);
-      return Stream.empty();
-    }
+    // noinspection UnstableApiUsage
+    return Futures.immediateFuture(newConnectedDevice(ddmlibDevice, ""));
   }
 
   @NotNull
-  private ConnectedDevice newConnectedDevice(@NotNull IDevice ddmlibDevice) {
+  private ConnectedDevice newConnectedDevice(@NotNull IDevice ddmlibDevice, @NotNull String id) {
     AndroidDevice androidDevice = new ConnectedAndroidDevice(ddmlibDevice, null);
 
     ConnectedDevice.Builder builder = new ConnectedDevice.Builder()
       .setName(ddmlibDevice.isEmulator() ? "Virtual Device" : "Physical Device")
-      .setKey(newKey(ddmlibDevice))
+      .setKey(newKey(ddmlibDevice, id))
       .setAndroidDevice(androidDevice);
 
     if (myChecker == null) {
@@ -120,7 +102,7 @@ final class ConnectedDevicesTask implements Callable<Collection<ConnectedDevice>
   }
 
   @NotNull
-  private static Key newKey(@NotNull IDevice connectedDevice) {
+  private Key newKey(@NotNull IDevice connectedDevice, @NotNull String id) {
     if (!connectedDevice.isEmulator()) {
       return new Key(connectedDevice.getSerialNumber());
     }
@@ -134,7 +116,6 @@ final class ConnectedDevicesTask implements Callable<Collection<ConnectedDevice>
       return new Key(connectedDevice.getSerialNumber());
     }
 
-    // TODO Get the snapshot from the virtual device
-    return new Key(virtualDevice);
+    return new Key(mySelectDeviceSnapshotComboBoxSnapshotsEnabled ? id : virtualDevice);
   }
 }

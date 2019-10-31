@@ -27,6 +27,9 @@ import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
@@ -155,10 +158,19 @@ final class VirtualDevice extends Device {
     AndroidDevice device = getAndroidDevice();
 
     if (!isConnected()) {
-      device.launch(project, mySnapshot == null ? null : mySnapshot.getDirectory().toString());
+      device.launch(project, getEmulatorCommandArguments());
     }
 
     futures.getDevices().add(device);
+  }
+
+  @NotNull
+  private List<String> getEmulatorCommandArguments() {
+    if (mySnapshot == null) {
+      return Collections.emptyList();
+    }
+
+    return Arrays.asList("-snapshot", mySnapshot.getDirectory().toString(), "-id", getKey().toString());
   }
 
   @Override

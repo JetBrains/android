@@ -142,15 +142,15 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   @Override
   @NotNull
   public ListenableFuture<IDevice> launch(@NotNull Project project) {
-    return launch(project, null);
+    return launch(project, Collections.emptyList());
   }
 
   @Override
   @NotNull
-  public ListenableFuture<IDevice> launch(@NotNull Project project, @Nullable String snapshot) {
+  public ListenableFuture<IDevice> launch(@NotNull Project project, @NotNull List<String> arguments) {
     synchronized (myLock) {
       if (myLaunchedEmulator == null) {
-        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myAvdInfo, snapshot);
+        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myAvdInfo, arguments);
       }
       return myLaunchedEmulator;
     }
