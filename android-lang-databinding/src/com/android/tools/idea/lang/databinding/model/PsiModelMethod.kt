@@ -43,7 +43,7 @@ class PsiModelMethod(override val containingClass: PsiModelClass, val psiMethod:
 
   val isProtected = psiMethod.hasModifierProperty(PsiModifier.PROTECTED)
 
-  val isStatic = psiMethod.hasModifierProperty(PsiModifier.STATIC)
+  override val isStatic = psiMethod.hasModifierProperty(PsiModifier.STATIC)
 
   val isAbstract = psiMethod.hasModifierProperty(PsiModifier.ABSTRACT)
 

@@ -22,4 +22,6 @@ import com.intellij.psi.PsiMember
  */
 interface PsiModelMember {
   val containingClass: PsiModelClass
+
+  val isStatic: Boolean
 }

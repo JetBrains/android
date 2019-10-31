@@ -34,10 +34,33 @@ import java.util.ArrayList
  * Note: This class is adapted from [android.databinding.tool.reflection.ModelClass] from db-compiler.
  */
 class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
+
+  /**
+   * An enum class that defines how a [PsiModelClass] exposes its members.
+   */
+  enum class MemberAccess {
+    ALL_MEMBERS {
+      override fun accept(psiModelMember: PsiModelMember) = true
+    },
+    /**
+     * Access mode that only exposes statics.
+     */
+    STATICS_ONLY {
+      override fun accept(psiModelMember: PsiModelMember) = psiModelMember.isStatic
+    },
+    /**
+     * Access mode that only exposes non-statics.
+     */
+    NON_STATICS_ONLY {
+      override fun accept(psiModelMember: PsiModelMember) = !psiModelMember.isStatic
+    };
+
+    abstract fun accept(psiModelMember: PsiModelMember): Boolean
+  }
+
   /**
    * Constructs a [PsiClass] of the given [.type]. Returns null if [.type] is not an instance of [PsiClassType].
    */
-
   val psiClass: PsiClass?
     get() = (type as? PsiClassType)?.resolve()
 
@@ -190,7 +213,8 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
   val unwrapped: PsiModelClass
     get() = observableGetterName?.let { name ->
       // Find the return type of getter function from LiveData/ObservableField
-      val getterTypeModelClass = getMethod(name, listOf(), staticOnly = false, allowProtected = false)?.returnType ?: return this
+      val getterTypeModelClass = getMethod(name, listOf(), MemberAccess.NON_STATICS_ONLY, allowProtected = false)?.returnType
+                                 ?: return this
       // Recursively unwrap the getter type
       PsiModelClass(getterTypeModelClass.type, mode).unwrapped
     } ?: this
@@ -215,11 +239,11 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    * Finds public methods that matches the given name exactly. These may be resolved into
    * listener methods during Expr.resolveListeners.
    */
-  fun findMethods(name: String, staticOnly: Boolean): List<PsiModelMethod> {
+  fun findMethods(name: String, memberAccess: MemberAccess): List<PsiModelMethod> {
     return allMethods.filter { method ->
       method.isPublic &&
       method.name == name &&
-      (!staticOnly || method.isStatic)
+      memberAccess.accept(method)
     }
   }
 
@@ -231,8 +255,8 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    *
    * @param name The name of the method to find.
    * @param args The types that the method should accept.
-   * @param staticOnly Whether only static methods should be returned or both instance methods
-   * and static methods are valid.
+   * @param memberAccess a filter that accepts certain types of members -- can be static
+   * members, non-static members or all members.
    * @param allowProtected true if the method can be protected as well as public.
    * @param unwrapObservableFields true if the method should check for auto-unwrapping the
    * observable field.
@@ -240,37 +264,35 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    * @return An array containing all public methods with the name `name` and taking
    * `args` parameters.
    */
-  private fun getMethods(name: String, args: List<PsiModelClass>, staticOnly: Boolean, allowProtected: Boolean): List<PsiModelMethod> {
+  private fun getMethods(name: String,
+                         args: List<PsiModelClass>,
+                         memberAccess: MemberAccess,
+                         allowProtected: Boolean): List<PsiModelMethod> {
     return allMethods.filter { method ->
       (method.isPublic || (allowProtected && method.isProtected))
-      && (!staticOnly || method.isStatic)
+      && memberAccess.accept(method)
       && name == method.name
       && method.acceptsArguments(args)
     }
   }
 
   /**
-   * Returns the public method with the name `name` with the parameters that
-   * best match args. `staticOnly` governs whether a static or instance method
-   * will be returned. If no matching method was found, null is returned.
+   * Returns the public method with the name and other constrains.
    *
    * @param name The method name to find
    * @param args The arguments that the method should accept
-   * @param staticOnly true if the returned method must be static or false if it does not
-   * matter.
+   * @param memberAccess a filter that accepts certain types of members -- can be static
+   * members, non-static members or all members.
    * @param allowProtected true if the method can be protected as well as public.
    * @param unwrapObservableFields true if the method should check for auto-unwrapping the
    * observable field.
    */
   fun getMethod(name: String,
                 args: List<PsiModelClass>,
-                staticOnly: Boolean,
+                memberAccess: MemberAccess,
                 allowProtected: Boolean
   ): PsiModelMethod? {
-    val methods = getMethods(name = name,
-                             args = args,
-                             staticOnly = staticOnly,
-                             allowProtected = allowProtected)
+    val methods = getMethods(name, args, memberAccess, allowProtected)
     if (methods.isEmpty()) {
       return null
     }
@@ -281,23 +303,22 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
     return bestMethod
   }
 
-  private fun getField(name: String, staticOnly: Boolean): PsiModelField? {
+  private fun getField(name: String, memberAccess: MemberAccess): PsiModelField? {
     return allFields.firstOrNull { field ->
       (name == field.name || name == stripFieldName(field.name))
-      && (!staticOnly || field.isStatic)
+      && memberAccess.accept(field)
       && field.isPublic
     }
   }
 
   /**
    * Returns the getter method or field that the name refers to.
-   * @param name The name of the field or the body of the method name -- can be name(),
-   * getName(), or isName().
-   * @param staticOnly Whether this should look for static methods and fields or instance
-   * versions
+   * @param name The name of the field or the body of the method name -- can be getName() or isName().
+   * @param memberAccess a filter that accepts certain types of members -- can be static
+   * members or all members
    * @return the getter method or field that the name refers to or null if none can be found.
    */
-  fun findGetterOrField(name: String, staticOnly: Boolean): PsiModelMember? {
+  fun findGetterOrField(name: String, memberAccess: MemberAccess): PsiModelMember? {
     if ("length" == name && isArray) {
       // TODO b/129771951 implement length with Observable
       return null
@@ -305,17 +326,17 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
     val capitalized = StringUtils.capitalize(name)!!
     val methodNames = arrayOf("get$capitalized", "is$capitalized")
     val method = methodNames
-      .flatMap { methodName -> getMethods(methodName, ArrayList(), staticOnly, allowProtected = false) }
+      .flatMap { methodName -> getMethods(methodName, ArrayList(), MemberAccess.NON_STATICS_ONLY, allowProtected = false) }
       .firstOrNull { method -> method.returnType?.isVoid == false }
     // could not find a method. Look for a public field
-    return method ?: getField(name, staticOnly)
+    return method ?: getField(name, memberAccess)
   }
 
-  fun findSetter(fieldName: String, staticOnly: Boolean, parameterType: PsiModelClass): PsiModelMethod? {
+  fun findSetter(fieldName: String, parameterType: PsiModelClass): PsiModelMethod? {
     val setterName = "set${fieldName.usLocaleCapitalize()}"
     return allMethods.firstOrNull { method ->
       method.isPublic
-      && (!staticOnly || method.isStatic)
+      && MemberAccess.NON_STATICS_ONLY.accept(method)
       && setterName == method.name
       && method.parameterTypes.size == 1
       && method.parameterTypes[0] == parameterType

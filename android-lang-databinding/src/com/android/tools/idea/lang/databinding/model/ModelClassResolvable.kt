@@ -26,9 +26,9 @@ import com.intellij.psi.PsiElement
  * resolve to its type, and a method will resolve to its return type, etc.
  */
 interface ModelClassResolvable {
+  val memberAccess: PsiModelClass.MemberAccess
+
   val resolvedType: PsiModelClass?
-  // TODO (b/141383218): Revisit isStatic field in ModelClassResolvable.
-  val isStatic: Boolean
 }
 
 /**
