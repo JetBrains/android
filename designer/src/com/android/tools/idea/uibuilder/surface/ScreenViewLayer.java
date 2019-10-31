@@ -175,7 +175,7 @@ public class ScreenViewLayer extends Layer {
         double xScaleFactor = (double)resultImageWidth / myScreenViewSize.width;
         double yScaleFactor = (double)resultImageHeight / myScreenViewSize.height;
         cancelHighQualityScaleRequests();
-        if (Math.abs(1 - xScaleFactor) > 0.2 && Math.abs(1 - yScaleFactor) > 0.2) {
+        if (xScaleFactor > 1.2 && yScaleFactor > 1.2) {
           // This means that the result image is bigger than the ScreenView by more than a 20%. For this cases, we need to scale down the
           // result image to make it fit in the ScreenView and we use a higher quality (but slow) process. We will issue a request to obtain
           // the high quality version but paint the low quality version below. Once it's ready, we'll repaint.
