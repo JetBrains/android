@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.truth.Truth
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -74,6 +75,12 @@ class MotionAttributeRule(
   fun property(namespace: String, name: String, subTag: String = ""): NelePropertyItem {
     return model!!.allProperties!![subTag]!![namespace, name]
   }
+
+  val properties: Map<String, PropertiesTable<NelePropertyItem>>
+    get() = model!!.allProperties!!
+
+  val attributesModel: MotionLayoutAttributesModel
+    get() = model!!
 
   fun enableFileOpenCaptures() {
     fileManager = Mockito.mock(FileEditorManager::class.java)

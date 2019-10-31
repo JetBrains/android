@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE;
 import static com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel.getMotionSelection;
+import static com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel.getSubTag;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
 import com.android.tools.idea.uibuilder.property2.DefaultPropertyValueProvider;
@@ -46,6 +48,9 @@ public class MotionDefaultPropertyValueProvider implements DefaultPropertyValueP
     HashMap<String, MotionAttributes.DefinedAttribute> map = attrs.getAttrMap();
     MotionAttributes.DefinedAttribute attr = map.get(property.getName());
     if (attr == null) {
+      return null;
+    }
+    if (attr.isCustomAttribute() != (getSubTag(property) == CUSTOM_ATTRIBUTE)) {
       return null;
     }
     return attr.getValue();
