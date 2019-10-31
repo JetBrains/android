@@ -57,7 +57,7 @@ typealias ProjectStateCustomizer = (templateMap: MutableMap<String, Any>, projec
  * - Test all combinations of build tools.
  * - Add metadata to template parameters (e.g. values to test) and simplify code here.
  */
-open class TemplateTestBase : AndroidGradleTestCase() {
+abstract class TemplateTestBase : AndroidGradleTestCase() {
   /** A UsageTracker implementation that allows introspection of logged metrics in tests. */
   private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
 
