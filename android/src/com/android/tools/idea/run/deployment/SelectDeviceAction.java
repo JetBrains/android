@@ -66,9 +66,8 @@ public final class SelectDeviceAction extends AnAction {
 
     if (snapshotActionGroupChild) {
       Snapshot snapshot = device.getSnapshot();
-      assert snapshot != null;
+      presentation.setText(snapshot == null ? "No Snapshot" : snapshot.toString(), false);
 
-      presentation.setText(snapshot.toString(), false);
       return;
     }
 

@@ -23,21 +23,23 @@ import com.google.common.collect.Streams;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import java.io.File;
+import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,7 +54,7 @@ public class AsyncDevicesGetter {
   private final Worker<Collection<VirtualDevice>> myVirtualDevicesWorker;
 
   @NotNull
-  private final Worker<Collection<ConnectedDevice>> myConnectedDevicesWorker;
+  private final Worker<List<ConnectedDevice>> myConnectedDevicesWorker;
 
   @NotNull
   private final KeyToConnectionTimeMap myMap;
@@ -93,16 +95,21 @@ public class AsyncDevicesGetter {
   @NotNull
   List<Device> get() {
     initChecker(RunManager.getInstance(myProject).getSelectedConfiguration(), AndroidFacet::getInstance);
+    File adb = AndroidSdkUtils.getAdb(myProject);
 
-    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled.getAsBoolean()) {
-      Callable<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask(false, FileSystems.getDefault(), myChecker);
-      Callable<Collection<ConnectedDevice>> connectedDevicesTask = new ConnectedDevicesTask(myProject, myChecker);
-
-      return getImpl(myVirtualDevicesWorker.get(virtualDevicesTask), myConnectedDevicesWorker.get(connectedDevicesTask));
+    if (adb == null) {
+      Logger.getInstance(AsyncDevicesGetter.class).info("adb not found");
+      return Collections.emptyList();
     }
 
-    // TODO Reconcile the virtual devices with the connected ones. Retain the connected device keys in the map.
-    return new ArrayList<>(myVirtualDevicesWorker.get(new VirtualDevicesTask(true, FileSystems.getDefault(), myChecker)));
+    boolean snapshotsEnabled = mySelectDeviceSnapshotComboBoxSnapshotsEnabled.getAsBoolean();
+    FileSystem fileSystem = FileSystems.getDefault();
+    AsyncSupplier<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask(snapshotsEnabled, fileSystem, myChecker);
+
+    AndroidDebugBridge bridge = new DdmlibAndroidDebugBridge(adb);
+    AsyncSupplier<List<ConnectedDevice>> connectedDevicesTask = new ConnectedDevicesTask(bridge, snapshotsEnabled, myChecker);
+
+    return getImpl(myVirtualDevicesWorker.perform(virtualDevicesTask), myConnectedDevicesWorker.perform(connectedDevicesTask));
   }
 
   /**

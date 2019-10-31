@@ -24,6 +24,8 @@ import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ThreeState;
 import java.io.IOException;
@@ -33,14 +35,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.concurrent.Callable;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class VirtualDevicesTask implements Callable<Collection<VirtualDevice>> {
+final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice>> {
   private final boolean mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
   @NotNull
@@ -59,29 +60,35 @@ final class VirtualDevicesTask implements Callable<Collection<VirtualDevice>> {
 
   @NotNull
   @Override
-  public Collection<VirtualDevice> call() {
+  public ListenableFuture<Collection<VirtualDevice>> get() {
+    Collection<VirtualDevice> devices;
     Stream<AvdInfo> avds = AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false).stream();
 
     if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
-      return avds
+      devices = avds
         .map(avd -> newDisconnectedDevice(avd, null))
         .collect(Collectors.toList());
     }
+    else {
+      devices = avds
+        .flatMap(this::newDisconnectedDevices)
+        .collect(Collectors.toList());
+    }
 
-    return avds
-      .flatMap(this::newDisconnectedDevices)
-      .collect(Collectors.toList());
+    // noinspection UnstableApiUsage
+    return Futures.immediateFuture(devices);
   }
 
   @NotNull
-  private Stream<VirtualDevice> newDisconnectedDevices(@NotNull AvdInfo avd) {
-    Collection<Snapshot> snapshots = getSnapshots(avd);
+  private Stream<VirtualDevice> newDisconnectedDevices(@NotNull AvdInfo device) {
+    Stream.Builder<VirtualDevice> builder = Stream.<VirtualDevice>builder()
+      .add(newDisconnectedDevice(device, null));
 
-    if (snapshots.isEmpty()) {
-      return Stream.of(newDisconnectedDevice(avd, null));
-    }
+    getSnapshots(device).stream()
+      .map(snapshot -> newDisconnectedDevice(device, snapshot))
+      .forEach(builder::add);
 
-    return snapshots.stream().map(snapshot -> newDisconnectedDevice(avd, snapshot));
+    return builder.build();
   }
 
   @NotNull

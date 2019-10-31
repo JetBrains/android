@@ -246,7 +246,7 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
 
   @NotNull
   @Override
-  public ListenableFuture<IDevice> launch(@NotNull Project project, @Nullable String snapshot) {
+  public ListenableFuture<IDevice> launch(@NotNull Project project, @NotNull List<String> arguments) {
     return getLaunchedDevice();
   }
 
