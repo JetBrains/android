@@ -30,7 +30,7 @@ class PsiModelField(override val containingClass: PsiModelClass, val psiField: P
 
   val isPublic = psiField.hasModifierProperty(PsiModifier.PUBLIC)
 
-  val isStatic = psiField.hasModifierProperty(PsiModifier.STATIC)
+  override val isStatic = psiField.hasModifierProperty(PsiModifier.STATIC)
 
   val fieldType = PsiModelClass(containingClass.substitutor.substitute(psiField.type), containingClass.mode)
 }

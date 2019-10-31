@@ -426,6 +426,57 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
   }
 
   @Test
+  fun dbFieldCanNotReferenceStaticGetter() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public static String getStrValue() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@{model.str${caret}Value}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    // A static method can not be the getter for a data binding field.
+    assertThat(fixture.getReferenceAtCaretPosition()).isNull()
+  }
+
+  @Test
+  fun dbFieldCanNotReferenceStaticSetter() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public String getStrValue() {}
+        static public void setStrValue(String value) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@={model.str${caret}Value}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    // A static method can not be the setter for a data binding field.
+    assertThat((fixture.getReferenceAtCaretPosition()!!.resolve() as PsiMethod).name).isNotEqualTo("setStrValue")
+  }
+
+  @Test
   fun dbIdReferencesXmlImport() {
     fixture.addClass("""
       package test.langdb;
@@ -482,6 +533,58 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     // If both of these are true, it means XML can reach Java and Java can reach XML
     assertThat(xmlHandleClick.isReferenceTo(javaHandleClick)).isTrue()
     assertThat(xmlHandleClick.resolve()).isEqualTo(javaHandleClick)
+  }
+
+  @Test
+  fun dbClassCanNotReferenceInstanceMethodWithDoubleColon() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Model {
+        public void handleClick(View v) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model" />
+        </data>
+        <TextView android:onClick="@{Model::handle${caret}Click}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    assertThat(fixture.getReferenceAtCaretPosition()).isNull()
+  }
+
+  @Test
+  fun dbClassCanNotReferenceInstanceMethodWithDot() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Model {
+        public void handleClick(View v) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Model" />
+        </data>
+        <TextView android:onClick="@{Model.handle${caret}Click}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    assertThat(fixture.getReferenceAtCaretPosition()).isNull()
   }
 
   @Test

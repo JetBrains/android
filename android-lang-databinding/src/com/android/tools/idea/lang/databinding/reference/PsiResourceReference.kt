@@ -50,7 +50,7 @@ internal class PsiResourceReference(element: PsiElement, resolveTo: PsiElement, 
                     } ?: return null
       return PsiModelClass(psiType, DataBindingMode.fromPsiElement(element))
     }
-  override val isStatic = false
+  override val memberAccess = PsiModelClass.MemberAccess.ALL_MEMBERS
 
   private fun parseType(name: String) = LayoutBindingTypeUtil.parsePsiType(name, element)
 }

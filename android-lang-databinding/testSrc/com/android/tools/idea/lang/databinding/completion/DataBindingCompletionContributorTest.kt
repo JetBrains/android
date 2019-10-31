@@ -825,7 +825,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
   @Test
   @RunsInEdt
   fun testDataBindingCompletion_fieldsAreSuggestedWithType() {
-    val psiClass = fixture.addClass("""
+    fixture.addClass("""
       package test.langdb;
 
       import android.view.View;

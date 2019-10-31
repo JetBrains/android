@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.databinding.reference
 
 import com.android.tools.idea.databinding.util.DataBindingUtil.stripPrefixFromMethod
+import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
@@ -75,7 +76,7 @@ internal class PsiMethodReference private constructor(element: PsiElement,
    */
   override val resolvedType = if (kind == Kind.METHOD_REFERENCE) null else method.returnType
 
-  override val isStatic = false
+  override val memberAccess = PsiModelClass.MemberAccess.ALL_MEMBERS
 
   override fun handleElementRename(newElementName: String): PsiElement? {
     val identifier = element.findElementAt(rangeInElement.startOffset) as? LeafPsiElement ?: return null
