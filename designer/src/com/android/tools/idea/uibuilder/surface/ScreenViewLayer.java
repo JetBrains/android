@@ -67,7 +67,7 @@ public class ScreenViewLayer extends Layer {
   private final Rectangle myScreenViewVisibleRect = new Rectangle();
   private final Dimension myScreenViewSize = new Dimension();
   private final Rectangle myCachedScreenViewDisplayRect = new Rectangle();
-
+  private double myLastScale;
   /**
    * Create a new ScreenView
    *
@@ -91,6 +91,7 @@ public class ScreenViewLayer extends Layer {
   ScreenViewLayer(@NotNull ScreenView screenView, @Nullable ScheduledExecutorService executor) {
     myScreenView = screenView;
     myScheduledExecutorService = executor != null ? executor : Executors.newScheduledThreadPool(1);
+    myLastScale = myScreenView.getScale();
     Disposer.register(screenView.getSurface(), this);
   }
 
@@ -163,7 +164,9 @@ public class ScreenViewLayer extends Layer {
 
     Graphics2D g = (Graphics2D) graphics2D.create();
     BufferedImage cachedVisibleImage = drawNewImg ? null : previousVisibleImage;
-    if (drawNewImg || !myScreenViewVisibleRect.equals(myCachedScreenViewDisplayRect)) {
+    double currentScale = myScreenView.getScale();
+    //noinspection FloatingPointEquality
+    if (drawNewImg || currentScale != myLastScale || !myScreenViewVisibleRect.equals(myCachedScreenViewDisplayRect)) {
       if (myLastRenderResult != null && myLastRenderResult.hasImage()) {
         BufferedImage renderedImage = myLastRenderResult.getRenderedImage().getCopy();
         assert renderedImage != null : "Image was already disposed";
@@ -188,6 +191,7 @@ public class ScreenViewLayer extends Layer {
                                              myScreenViewVisibleRect, xScaleFactor, yScaleFactor,
                                              previousVisibleImage, myScreenView.hasBorderLayer());
         myCachedVisibleImage = cachedVisibleImage;
+        myLastScale = currentScale;
       }
     }
 
