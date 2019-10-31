@@ -90,6 +90,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 import javax.swing.BoxLayout
 import javax.swing.JPanel
+import kotlin.properties.Delegates
 import kotlin.streams.asSequence
 
 /** Preview element name */
@@ -304,9 +305,18 @@ private class PreviewEditor(private val psiFile: PsiFile,
     .build()
     .apply {
       setScreenMode(SceneMode.SCREEN_COMPOSE_ONLY, true)
+      setMaxFitIntoScale(2f) // Set fit into limit to 200%
     }
 
   private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
+  private var savedIsShowingDecorations: Boolean by Delegates.observable(
+    RenderSettings.getProjectSettings(project).showDecorations) { _, oldValue, newValue ->
+    if (oldValue != newValue) {
+      // If the state changes, [DesignSurface.zoomToFit] will be called  to re-adjust the preview to the new content since the render sizes
+      // will be significantly different. This way, the user will see all the content when this changes.
+      surface.zoomToFit()
+    }
+  }
 
   /**
    * List of [PreviewElement] being rendered by this editor
@@ -466,8 +476,6 @@ private class PreviewEditor(private val psiFile: PsiFile,
    */
   private fun doRefresh(filePreviewElements: List<PreviewElement>) {
     if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.size} elements")
-    // Only display component border if decorations are not showed
-    val showBorder = !RenderSettings.getProjectSettings(project).showDecorations
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
 
     val facet = AndroidFacet.getInstance(psiFile)!!
@@ -529,7 +537,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
       val renders = newModels.map {
         // We call addModel even though the model might not be new. If we try to add an existing model,
         // this will trigger a new render which is exactly what we want.
-        surface.addModel(it)
+        surface.addModel(it, false)
       }
       CompletableFuture.allOf(*(renders.toTypedArray()))
     }
@@ -569,6 +577,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
         isRefreshingPreview = false
         hasRenderedAtLeastOnce = true
+        savedIsShowingDecorations = RenderSettings.getProjectSettings(project).showDecorations
         updateSurfaceVisibilityAndNotifications()
 
         onRefresh?.invoke()
