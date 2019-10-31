@@ -80,7 +80,6 @@ abstract class GradleSyncProjectComparisonTest(
     private val singleVariantSync: Boolean = false
 ) : GradleSyncIntegrationTestCase(), SnapshotComparisonTest {
   override fun useSingleVariantSyncInfrastructure(): Boolean = singleVariantSync
-  override fun useCompoundSyncInfrastructure(): Boolean = false
 
   class FullVariantGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTest()
 

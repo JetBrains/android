@@ -62,11 +62,6 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
     return true;
   }
 
-  @Override
-  protected boolean useCompoundSyncInfrastructure() {
-    return true;
-  }
-
   public void testFetchGradleModelsWithSimpleApplication() throws Exception {
     loadSimpleApplication();
 

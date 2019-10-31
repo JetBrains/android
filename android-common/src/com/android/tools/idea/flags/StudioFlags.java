@@ -431,9 +431,6 @@ public final class StudioFlags {
     "Turns on Single-Variant Sync.", false);
   public static final Flag<Boolean> BUILD_AFTER_SYNC_ENABLED =
     Flag.create(GRADLE_IDE, "build.after.sync", "Enable building after sync", "Turns on building after sync", false);
-  public static final Flag<Boolean> COMPOUND_SYNC_ENABLED = Flag.create(
-    GRADLE_IDE, "compound.sync", "Enable new \"Compound Sync\"",
-    "Turns on Compound Sync. Building after sync must be enabled for this to take effect.", true);
   public static final Flag<Boolean> USE_DEVELOPMENT_OFFLINE_REPOS = Flag.create(
     GRADLE_IDE, "development.offline.repos", "Enable development offline repositories",
     "Makes Gradle use development offline repositories such as /out/repo", isDevBuild());

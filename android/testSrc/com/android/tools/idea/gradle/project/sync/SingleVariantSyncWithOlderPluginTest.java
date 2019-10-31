@@ -23,9 +23,4 @@ public class SingleVariantSyncWithOlderPluginTest extends GradleSyncWithOlderPlu
   protected boolean useSingleVariantSyncInfrastructure() {
     return true;
   }
-
-  @Override
-  protected boolean useCompoundSyncInfrastructure() {
-    return true;
-  }
 }

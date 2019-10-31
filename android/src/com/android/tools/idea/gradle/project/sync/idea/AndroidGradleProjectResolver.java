@@ -185,7 +185,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public boolean requiresTaskRunning() {
     Project project = myProjectFinder.findProject(resolverCtx);
-    // This tells IDEAs infrastructure to allow AGP to run tasks if we are running compound sync.
+    // This tells IDEAs infrastructure to allow AGP to run tasks if source generation is required.
     return project != null && shouldGenerateSources(project);
   }
 
