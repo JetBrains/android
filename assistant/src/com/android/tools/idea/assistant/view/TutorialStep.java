@@ -137,7 +137,14 @@ public class TutorialStep extends JPanel {
       switch (element.getType()) {
         case SECTION:
           // TODO: Make a custom inner class to handle this.
-          JEditorPane section = new JEditorPane();
+          JEditorPane section = new JEditorPane() {
+            // Set the section to be as small as possible: this will make long lines wrap properly instead of forcing the panel to extend
+            // as long as the line. When a line can't be wrapped (e.g. a long word or an image), the horizontal scrollbar should appear.
+            @Override
+            public Dimension getPreferredSize() {
+              return getMinimumSize();
+            }
+          };
           section.setOpaque(false);
           section.setBorder(BorderFactory.createEmptyBorder());
           section.setDragEnabled(false);
