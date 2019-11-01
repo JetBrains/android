@@ -58,6 +58,10 @@ private class LayoutInspectorLaunchTask(private val module: Module): LaunchTask 
   override fun getDuration() = LaunchTaskDurations.ASYNC_TASK
 
   override fun run(executor: Executor, device: IDevice, launchStatus: LaunchStatus, printer: ConsolePrinter): LaunchResult {
+    if (device.version.apiLevel < 29) {
+      return LaunchResult.success();
+    }
+
     val project = module.project
     val window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID) ?: return LaunchResult.success()
     val preferredProcess = LayoutInspectorPreferredProcess(device, module)

@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.ui
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.util.PropertiesComponent
 
 private const val PREFERENCE_KEY = "live.layout.inspector.enabled"
 
 var enableLiveLayoutInspector
-  get() = PropertiesComponent.getInstance().getBoolean(PREFERENCE_KEY, false)
+  get() = PropertiesComponent.getInstance().getBoolean(PREFERENCE_KEY, false) ||
+          StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get()
   set(value) = PropertiesComponent.getInstance().setValue(PREFERENCE_KEY, value)
+
 
