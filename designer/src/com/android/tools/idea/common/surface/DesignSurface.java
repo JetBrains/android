@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.common.surface;
 
-import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
 import static com.android.tools.adtui.PannableKt.PANNABLE_KEY;
+import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
 
 import com.android.tools.adtui.Pannable;
 import com.android.tools.adtui.Zoomable;
@@ -102,8 +102,10 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import javax.annotation.concurrent.GuardedBy;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
@@ -148,7 +150,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private List<PanZoomListener> myZoomListeners;
   private final ActionManager myActionManager;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
-  protected final LinkedHashMap<NlModel, SceneManager> myModelToSceneManagers = new LinkedHashMap<>();
+  private final ReentrantReadWriteLock myModelToSceneManagersLock = new ReentrantReadWriteLock();
+  @GuardedBy("myModelToSceneManagersLock")
+  private final LinkedHashMap<NlModel, SceneManager> myModelToSceneManagers = new LinkedHashMap<>();
   protected final JPanel myVisibleSurfaceLayerPanel;
 
   private final SelectionModel mySelectionModel = new SelectionModel();
@@ -291,7 +295,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
           layoutContent();
           updateScrolledAreaSize();
         }
-        myModelToSceneManagers.values().forEach(it -> it.getScene().needsRebuildList());
+        getSceneManagers().forEach(it -> it.getScene().needsRebuildList());
       }
     });
 
@@ -357,7 +361,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @Nullable
   public NlModel getModel() {
-    return Iterables.getFirst(myModelToSceneManagers.keySet(), null);
+    return Iterables.getFirst(getModels(), null);
   }
 
   /**
@@ -366,7 +370,28 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @NotNull
   public ImmutableList<NlModel> getModels() {
-    return ImmutableList.copyOf(myModelToSceneManagers.keySet());
+    myModelToSceneManagersLock.readLock().lock();
+    try {
+      return ImmutableList.copyOf(myModelToSceneManagers.keySet());
+    }
+    finally {
+      myModelToSceneManagersLock.readLock().unlock();
+    }
+  }
+
+  /**
+   * Returns the list of all the {@link SceneManager} part of this surface
+   * @return
+   */
+  @NotNull
+  protected ImmutableList<SceneManager> getSceneManagers() {
+    myModelToSceneManagersLock.readLock().lock();
+    try {
+      return ImmutableList.copyOf(myModelToSceneManagers.values());
+    }
+    finally {
+      myModelToSceneManagersLock.readLock().unlock();
+    }
   }
 
   /**
@@ -377,7 +402,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @NotNull
   private SceneManager addModelImpl(@NotNull NlModel model) {
-    SceneManager manager = myModelToSceneManagers.get(model);
+    SceneManager manager = getSceneManager(model);
     // No need to add same model twice.
     if (manager != null) {
       return manager;
@@ -386,7 +411,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     model.addListener(myModelListener);
     model.getConfiguration().addListener(myConfigurationListener);
     manager = createSceneManager(model);
-    myModelToSceneManagers.put(model, manager);
+    myModelToSceneManagersLock.writeLock().lock();
+    try {
+      myModelToSceneManagers.put(model, manager);
+    }
+    finally {
+      myModelToSceneManagersLock.writeLock().unlock();
+    }
 
     if (myIsActive) {
       model.activate(this);
@@ -441,7 +472,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @returns true if the model existed and was removed
    */
   private boolean removeModelImpl(@NotNull NlModel model) {
-    SceneManager manager = myModelToSceneManagers.remove(model);
+    SceneManager manager;
+      myModelToSceneManagersLock.writeLock().lock();
+    try {
+      manager = myModelToSceneManagers.remove(model);
+    }
+    finally {
+      myModelToSceneManagersLock.writeLock().unlock();
+    }
+
     if (manager == null) {
       return false;
     }
@@ -488,9 +527,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       removeModelImpl(oldModel);
     }
 
-    // Should not have any other NlModel in this use case.
-    assert myModelToSceneManagers.isEmpty();
-
     if (model == null) {
       return CompletableFuture.completedFuture(null);
     }
@@ -525,7 +561,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Override
   public void dispose() {
     myInteractionManager.stopListening();
-    for (NlModel model : myModelToSceneManagers.keySet()) {
+    for (NlModel model : getModels()) {
       model.getConfiguration().removeListener(myConfigurationListener);
       model.removeListener(myModelListener);
     }
@@ -667,7 +703,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @Nullable
   public SceneView getFocusedSceneView() {
-    if (myModelToSceneManagers.size() == 1) {
+    ImmutableList<SceneManager> managers = getSceneManagers();
+    if (managers.size() == 1) {
       // Always return primary SceneView In single-model mode,
       SceneManager manager = getSceneManager();
       assert manager != null;
@@ -676,7 +713,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     List<NlComponent> selection = mySelectionModel.getSelection();
     if (!selection.isEmpty()) {
       NlComponent primary = selection.get(0);
-      SceneManager manager = myModelToSceneManagers.get(primary.getModel());
+      SceneManager manager = getSceneManager(primary.getModel());
       if (manager != null) {
         return manager.getSceneView();
       }
@@ -1083,7 +1120,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     if (!myIsActive) {
-      for (NlModel model : myModelToSceneManagers.keySet()) {
+      for (NlModel model : getModels()) {
         model.activate(this);
       }
     }
@@ -1092,7 +1129,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   public void deactivate() {
     if (myIsActive) {
-      for (NlModel model : myModelToSceneManagers.keySet()) {
+      for (NlModel model : getModels()) {
         model.deactivate(this);
       }
     }
@@ -1164,7 +1201,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @Nullable
   public SceneManager getSceneManager(@NotNull NlModel model) {
-    return myModelToSceneManagers.get(model);
+    myModelToSceneManagersLock.readLock().lock();
+    try {
+      return myModelToSceneManagers.get(model);
+    }
+    finally {
+      myModelToSceneManagersLock.readLock().unlock();
+    }
   }
 
   /**
@@ -1583,11 +1626,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @NotNull
   public CompletableFuture<Void> requestRender() {
-    if (myModelToSceneManagers.isEmpty()) {
+    ImmutableList<SceneManager> managers = getSceneManagers();
+    if (managers.isEmpty()) {
       return CompletableFuture.completedFuture(null);
     }
 
-    return CompletableFuture.allOf(myModelToSceneManagers.values().stream()
+    return CompletableFuture.allOf(managers.stream()
                                      .map(manager -> manager.requestRender())
                                      .toArray(CompletableFuture[]::new));
   }
@@ -1721,9 +1765,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Override
   public void updateUI() {
     super.updateUI();
+    //noinspection FieldAccessNotGuarded We are only accessing the reference so we do not need to guard the access
     if (myModelToSceneManagers != null) {
       // updateUI() is called in the parent constructor, at that time all class member in this class has not initialized.
-      for (SceneManager manager : myModelToSceneManagers.values()) {
+      for (SceneManager manager : getSceneManagers()) {
         manager.getSceneView().updateUI();
       }
     }
