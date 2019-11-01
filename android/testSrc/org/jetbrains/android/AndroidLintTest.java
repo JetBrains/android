@@ -262,12 +262,9 @@ public class AndroidLintTest extends AndroidTestCase {
     assertNotNull(action);
     assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
 
-    new WriteCommandAction(myFixture.getProject(), "") {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        action.invokeIntention(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile(), "hello");
-      }
-    }.execute();
+    WriteCommandAction.runWriteCommandAction(myFixture.getProject(),
+       () -> action.invokeIntention(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile(), "hello")
+    );
 
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
   }
