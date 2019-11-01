@@ -28,22 +28,22 @@ import com.intellij.psi.PsiFile
 import com.intellij.ui.EditorNotifications
 import java.util.function.Consumer
 
-interface SmartRefreshable : Disposable {
-  fun refresh()
+interface SmartBuildable {
+  fun buildSucceeded()
   fun buildFailed() {}
   fun buildStarted() {}
 }
 
 /**
  * This is the component that receives updates every time gradle build starts or finishes. On successful build, it calls
- * [SmartRefreshable.refresh] method of the passed [SmartRefreshable]. If the build fails, [SmartRefreshable.buildFailed] will be called
+ * [SmartBuildable.buildSucceeded] method of the passed [SmartBuildable]. If the build fails, [SmartBuildable.buildFailed] will be called
  * instead.
  *
  * This is intended to be used by [com.intellij.openapi.fileEditor.FileEditor]'s. The editor should recreate/amend the model to reflect
- * build changes. This component should be created the last, so that all other members are initialized as it could call [refresh] method
- * straight away.
+ * build changes. This component should be created the last, so that all other members are initialized as it could call
+ * [SmartBuildable.buildSucceeded] method straight away.
  */
-class SmartAutoRefresher(psiFile: PsiFile, private val refreshable: SmartRefreshable) {
+class SmartAutoBuildRefresher(psiFile: PsiFile, private val buildable: SmartBuildable, private val parentDisposable: Disposable) {
   private val project = psiFile.project
   private val virtualFile = psiFile.virtualFile!!
 
@@ -57,42 +57,42 @@ class SmartAutoRefresher(psiFile: PsiFile, private val refreshable: SmartRefresh
   private fun initPreviewWhenSmartAndSynced() {
     val status = GradleBuildState.getInstance(project)?.summary?.status
     if (status.isSuccess()) {
-      // This is called from runWhenSmartAndSyncedOnEdt callback which should not be called if refreshable is disposed
-      refreshable.refresh()
+      // This is called from runWhenSmartAndSyncedOnEdt callback which should not be called if parentDisposable is disposed
+      buildable.buildSucceeded()
     }
 
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
-      // We do not have to check isDisposed inside the callbacks since they won't get called if refreshable is disposed
+      // We do not have to check isDisposed inside the callbacks since they won't get called if parentDisposable is disposed
       override fun buildStarted(context: BuildContext) {
-        refreshable.buildStarted()
+        buildable.buildStarted()
         EditorNotifications.getInstance(project).updateNotifications(virtualFile)
       }
 
       override fun buildFinished(status: BuildStatus, context: BuildContext?) {
         EditorNotifications.getInstance(project).updateNotifications(virtualFile)
         if (status.isSuccess()) {
-          refreshable.refresh()
+          buildable.buildSucceeded()
         }
         else {
-          refreshable.buildFailed()
+          buildable.buildFailed()
         }
       }
-    }, refreshable)
+    }, parentDisposable)
   }
 
   /**
    * Initialize the preview. This method does not make assumptions about the project sync and smart status.
    */
   private fun initPreview() {
-    if (Disposer.isDisposed(refreshable)) return
+    if (Disposer.isDisposed(parentDisposable)) return
     // We are not registering before the constructor finishes, so we should be safe here
-    project.runWhenSmartAndSyncedOnEdt(refreshable, Consumer { result ->
+    project.runWhenSmartAndSyncedOnEdt(parentDisposable, Consumer { result ->
       if (result.isSuccessful) {
         initPreviewWhenSmartAndSynced()
       }
       else {
         // The project failed to sync, run initialization when the project syncs correctly
-        project.listenUntilNextSync(refreshable, object : ProjectSystemSyncManager.SyncResultListener {
+        project.listenUntilNextSync(parentDisposable, object : ProjectSystemSyncManager.SyncResultListener {
           override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
             // Sync has completed but we might not be in smart mode so re-run the initialization
             initPreview()
