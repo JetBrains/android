@@ -174,8 +174,7 @@ public class IdeaTestSuiteBase {
   protected static void setUpOfflineRepo(@NotNull String repoZip, @NotNull String outputPath) {
     File offlineRepoZip = new File(getWorkspaceRoot(), repoZip);
     if (!offlineRepoZip.exists()) {
-      System.err.println("Warning: Repo: " + repoZip + " was not found and will not be available");
-      return;
+      throw new IllegalArgumentException(repoZip + " does not exist");
     }
     try {
       InstallerUtil.unzip(
