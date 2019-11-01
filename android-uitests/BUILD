@@ -32,6 +32,7 @@ COMMON_DATA = [
     "//tools/base/build-system:gradle-distrib",
     "//tools/base/templates",
     "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
+    "//tools/data-binding:data_binding_runtime.zip",
     "//tools/idea/java/jdkAnnotations",
     "//tools/idea:config",
     "//tools/idea:platform-build-info",
@@ -139,7 +140,6 @@ java_test(
     size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "//tools/data-binding:data_binding_runtime.zip",
     ] + glob([
         "testData/DatabindingMethodsTest/**",
     ]),
@@ -1068,9 +1068,7 @@ java_test(
 # fast test
 java_test(
     name = "DataBindingTest",
-    data = COMMON_DATA + [
-        "//tools/data-binding:data_binding_runtime.zip",
-    ] + glob([
+    data = COMMON_DATA + glob([
         "testData/DatabindingMethodsTest/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.DataBindingTest"],
