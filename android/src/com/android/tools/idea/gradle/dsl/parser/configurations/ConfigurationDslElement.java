@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.configurations;
 
+import static com.android.tools.idea.gradle.dsl.model.configurations.ConfigurationModelImpl.*;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-import com.android.tools.idea.gradle.dsl.model.configurations.ConfigurationModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -34,14 +34,14 @@ import org.jetbrains.annotations.Nullable;
 public class ConfigurationDslElement extends GradleDslBlockElement implements GradleDslNamedDomainElement {
   @NotNull
   public static final ImmutableMap<String, String> ktsToModelNameMap = Stream.of(new String[][]{
-    {"isTransitive", ConfigurationModelImpl.TRANSITIVE},
-    {"isVisible", ConfigurationModelImpl.VISIBLE}
+    {"isTransitive", TRANSITIVE},
+    {"isVisible", VISIBLE}
   }).collect(toImmutableMap(data -> data[0], data -> data[1]));
 
   @NotNull
   public static final ImmutableMap<String, String> groovyToModelNameMap = Stream.of(new String[][]{
-    {"transitive", ConfigurationModelImpl.TRANSITIVE},
-    {"visible", ConfigurationModelImpl.VISIBLE}
+    {"transitive", TRANSITIVE},
+    {"visible", VISIBLE}
   }).collect(toImmutableMap(data -> data[0], data -> data[1]));
 
   @Override

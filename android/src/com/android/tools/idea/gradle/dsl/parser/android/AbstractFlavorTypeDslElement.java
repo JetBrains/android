@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.dsl.parser.android;
 
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static com.android.tools.idea.gradle.dsl.model.android.FlavorTypeModelImpl.*;
 
-import com.android.tools.idea.gradle.dsl.model.android.FlavorTypeModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
@@ -32,37 +32,37 @@ import org.jetbrains.annotations.NotNull;
 public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement {
   @NotNull
   public static final ImmutableMap<String, String> ktsToModelNameMap = Stream.of(new String[][]{
-    {"applicationIdSuffix", FlavorTypeModelImpl.APPLICATION_ID_SUFFIX},
-    {"buildConfigField", FlavorTypeModelImpl.BUILD_CONFIG_FIELD},
-    {"consumerProguardFiles", FlavorTypeModelImpl.CONSUMER_PROGUARD_FILES},
-    {"manifestPlaceholders", FlavorTypeModelImpl.MANIFEST_PLACEHOLDERS},
-    {"matchingFallbacks", FlavorTypeModelImpl.MATCHING_FALLBACKS},
-    {"multiDexEnabled", FlavorTypeModelImpl.MULTI_DEX_ENABLED},
-    {"multiDexKeepFile", FlavorTypeModelImpl.MULTI_DEX_KEEP_FILE},
-    {"multiDexKeepProguard", FlavorTypeModelImpl.MULTI_DEX_KEEP_PROGUARD},
-    {"proguardFiles", FlavorTypeModelImpl.PROGUARD_FILES},
-    {"resValue", FlavorTypeModelImpl.RES_VALUE},
-    {"signingConfig", FlavorTypeModelImpl.SIGNING_CONFIG},
-    {"useJack", FlavorTypeModelImpl.USE_JACK},
-    {"versionNameSuffix", FlavorTypeModelImpl.VERSION_NAME_SUFFIX}
+    {"applicationIdSuffix", APPLICATION_ID_SUFFIX},
+    {"buildConfigField", BUILD_CONFIG_FIELD},
+    {"consumerProguardFiles", CONSUMER_PROGUARD_FILES},
+    {"manifestPlaceholders", MANIFEST_PLACEHOLDERS},
+    {"matchingFallbacks", MATCHING_FALLBACKS},
+    {"multiDexEnabled", MULTI_DEX_ENABLED},
+    {"multiDexKeepFile", MULTI_DEX_KEEP_FILE},
+    {"multiDexKeepProguard", MULTI_DEX_KEEP_PROGUARD},
+    {"proguardFiles", PROGUARD_FILES},
+    {"resValue", RES_VALUE},
+    {"signingConfig", SIGNING_CONFIG},
+    {"useJack", USE_JACK},
+    {"versionNameSuffix", VERSION_NAME_SUFFIX}
   })
     .collect(toImmutableMap(data -> data[0], data-> data[1]));
 
   @NotNull
   public static final ImmutableMap<String, String> groovyToModelNameMap = Stream.of(new String[][]{
-    {"applicationIdSuffix", FlavorTypeModelImpl.APPLICATION_ID_SUFFIX},
-    {"buildConfigField", FlavorTypeModelImpl.BUILD_CONFIG_FIELD},
-    {"consumerProguardFiles", FlavorTypeModelImpl.CONSUMER_PROGUARD_FILES},
-    {"manifestPlaceholders", FlavorTypeModelImpl.MANIFEST_PLACEHOLDERS},
-    {"matchingFallbacks", FlavorTypeModelImpl.MATCHING_FALLBACKS},
-    {"multiDexEnabled", FlavorTypeModelImpl.MULTI_DEX_ENABLED},
-    {"multiDexKeepFile", FlavorTypeModelImpl.MULTI_DEX_KEEP_FILE},
-    {"multiDexKeepProguard", FlavorTypeModelImpl.MULTI_DEX_KEEP_PROGUARD},
-    {"proguardFiles", FlavorTypeModelImpl.PROGUARD_FILES},
-    {"resValue", FlavorTypeModelImpl.RES_VALUE},
-    {"signingConfig", FlavorTypeModelImpl.SIGNING_CONFIG},
-    {"useJack", FlavorTypeModelImpl.USE_JACK},
-    {"versionNameSuffix", FlavorTypeModelImpl.VERSION_NAME_SUFFIX}
+    {"applicationIdSuffix", APPLICATION_ID_SUFFIX},
+    {"buildConfigField", BUILD_CONFIG_FIELD},
+    {"consumerProguardFiles", CONSUMER_PROGUARD_FILES},
+    {"manifestPlaceholders", MANIFEST_PLACEHOLDERS},
+    {"matchingFallbacks", MATCHING_FALLBACKS},
+    {"multiDexEnabled", MULTI_DEX_ENABLED},
+    {"multiDexKeepFile", MULTI_DEX_KEEP_FILE},
+    {"multiDexKeepProguard", MULTI_DEX_KEEP_PROGUARD},
+    {"proguardFiles", PROGUARD_FILES},
+    {"resValue", RES_VALUE},
+    {"signingConfig", SIGNING_CONFIG},
+    {"useJack", USE_JACK},
+    {"versionNameSuffix", VERSION_NAME_SUFFIX}
   })
     .collect(toImmutableMap(data -> data[0], data-> data[1]));
 
@@ -92,27 +92,27 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     // setProguardFiles has the same name in Groovy and Kotlin
     if (property.equals("setProguardFiles")) {
       // Clear the property since setProguardFiles overwrites these.
-      removeProperty(FlavorTypeModelImpl.PROGUARD_FILES);
-      addToParsedExpressionList(FlavorTypeModelImpl.PROGUARD_FILES, element);
+      removeProperty(PROGUARD_FILES);
+      addToParsedExpressionList(PROGUARD_FILES, element);
       return;
     }
 
     // setConsumerProguardFiles has the same name in Groovy and Kotlin
     if (property.equals("setConsumerProguardFiles")) {
-      removeProperty(FlavorTypeModelImpl.CONSUMER_PROGUARD_FILES);
-      addToParsedExpressionList(FlavorTypeModelImpl.CONSUMER_PROGUARD_FILES, element);
+      removeProperty(CONSUMER_PROGUARD_FILES);
+      addToParsedExpressionList(CONSUMER_PROGUARD_FILES, element);
       return;
     }
 
     // proguardFiles and proguardFile have the same name in Groovy and Kotlin
     if (property.equals("proguardFiles") || property.equals("proguardFile")) {
-      addToParsedExpressionList(FlavorTypeModelImpl.PROGUARD_FILES, element);
+      addToParsedExpressionList(PROGUARD_FILES, element);
       return;
     }
 
     // consumerProguardFiles and consumerProguardFile have the same name in Groovy and Kotlin
     if (property.equals("consumerProguardFiles") || property.equals("consumerProguardFile")) {
-      addToParsedExpressionList(FlavorTypeModelImpl.CONSUMER_PROGUARD_FILES, element);
+      addToParsedExpressionList(CONSUMER_PROGUARD_FILES, element);
       return;
     }
 
