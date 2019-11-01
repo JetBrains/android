@@ -27,6 +27,7 @@ public interface ProguardR8PsiTypes {
 
   IElementType ANNOTATION_NAME = new ProguardR8AstNodeType("ANNOTATION_NAME");
   IElementType ANY_FIELD_OR_METHOD = new ProguardR8AstNodeType("ANY_FIELD_OR_METHOD");
+  IElementType ANY_NOT_PRIMITIVE_TYPE = new ProguardR8AstNodeType("ANY_NOT_PRIMITIVE_TYPE");
   IElementType ANY_PRIMITIVE_TYPE = new ProguardR8AstNodeType("ANY_PRIMITIVE_TYPE");
   IElementType ANY_TYPE = new ProguardR8AstNodeType("ANY_TYPE");
   IElementType ARRAY_TYPE = new ProguardR8AstNodeType("ARRAY_TYPE");
@@ -75,6 +76,7 @@ public interface ProguardR8PsiTypes {
   IElementType COMMA = new ProguardR8TokenType(",");
   IElementType DOT = new ProguardR8TokenType(".");
   IElementType DOUBLE = new ProguardR8TokenType("double");
+  IElementType DOUBLE_ASTERISK = new ProguardR8TokenType("DOUBLE_ASTERISK");
   IElementType EM = new ProguardR8TokenType("!");
   IElementType ENUM = new ProguardR8TokenType("enum");
   IElementType EXTENDS = new ProguardR8TokenType("extends");
@@ -126,6 +128,9 @@ public interface ProguardR8PsiTypes {
       }
       else if (type == ANY_FIELD_OR_METHOD) {
         return new ProguardR8AnyFieldOrMethodImpl(node);
+      }
+      else if (type == ANY_NOT_PRIMITIVE_TYPE) {
+        return new ProguardR8AnyNotPrimitiveTypeImpl(node);
       }
       else if (type == ANY_PRIMITIVE_TYPE) {
         return new ProguardR8AnyPrimitiveTypeImpl(node);

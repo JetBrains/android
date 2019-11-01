@@ -82,7 +82,7 @@ keep_option_modifier ::= includedescriptorclasses|includecode|allowshrinking|all
 private java_keywords_ ::= interface|class|enum|public|final|abstract|static|volatile|transient|synchronized|native|strictfp|boolean|byte|
   char|short|int|long|float|double|void|extends|implements|private|protected
 
-private java_identifier_ ::= (JAVA_IDENTIFIER|JAVA_IDENTIFIER_WITH_WILDCARDS|ASTERISK|java_keywords_)
+private java_identifier_ ::= (JAVA_IDENTIFIER|JAVA_IDENTIFIER_WITH_WILDCARDS|ASTERISK|DOUBLE_ASTERISK|java_keywords_)
 
 qualifiedName ::= java_identifier_ ("." java_identifier_)* {
   methods=[getReferences resolveToPsiClass]
@@ -99,8 +99,9 @@ java_primitive ::= boolean|byte|char|short|int|long|float|double|void {
   methods=[getPsiPrimitive]
 }
 any_type ::= ANY_TYPE_
-any_primitive_type ::=ANY_PRIMITIVE_TYPE_
-type ::= any_type|any_primitive_type|(java_primitive|qualifiedName)array_type? {
+any_primitive_type ::= ANY_PRIMITIVE_TYPE_
+any_not_primitive_type ::= DOUBLE_ASTERISK
+type ::= any_type|(any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName)array_type? {
   methods=[matchesPsiType]
 }
 array_type ::= "[]"+ {methods=[getNumberOfDimensions]}

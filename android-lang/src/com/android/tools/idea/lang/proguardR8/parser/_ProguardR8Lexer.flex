@@ -74,6 +74,7 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
   ":"                                    { return COLON; }
   ","                                    { return COMMA; }
   "."                                    { return DOT; }
+  "**"                                   { return DOUBLE_ASTERISK; }
   "*"                                    { return ASTERISK; }
   "@"                                    { yybegin(STATE_JAVA_SECTION_HEADER); return AT; }
   "includedescriptorclasses"             { return INCLUDEDESCRIPTORCLASSES; }
@@ -108,6 +109,7 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
   ";"                                    { return SEMICOLON; }
   ","                                    { return COMMA; }
   "."                                    { return DOT; }
+  "**"                                   { return DOUBLE_ASTERISK; }
   "*"                                    { return ASTERISK; }
   "@"                                    { return AT; }
 
@@ -138,6 +140,7 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
   ";"                                    { return SEMICOLON; }
   ","                                    { return COMMA; }
   "."                                    { return DOT; }
+  "**"                                   { return DOUBLE_ASTERISK; }
   "*"                                    { return ASTERISK; }
   "@"                                    { return AT; }
 
@@ -163,7 +166,6 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
   "<init>"                               { return _INIT_; }
   "<clinit>"                             { return _CLINIT_; }
   "return"                               { return RETURN; }
-  "values"                               { return VALUES; }
   "synchronized"                         { return SYNCHRONIZED; }
   "native"                               { return NATIVE; }
   "strictfp"                             { return STRICTFP; }
