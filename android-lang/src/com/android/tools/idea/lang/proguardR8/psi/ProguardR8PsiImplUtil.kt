@@ -110,6 +110,8 @@ fun getNumberOfDimensions(array: ProguardR8ArrayType): Int {
  * Returns true if ProguardR8Type would match given "other" PsiType otherwise returns false
  */
 fun matchesPsiType(type: ProguardR8Type, other: PsiType): Boolean {
+  if (PsiTreeUtil.hasErrorElements(type)) return false
+
   var typeToMatch = other
   if (type.arrayType != null) {
     for (x in 0 until type.arrayType!!.numberOfDimensions)
@@ -125,6 +127,7 @@ fun matchesPsiType(type: ProguardR8Type, other: PsiType): Boolean {
     type.qualifiedName != null && typeToMatch is PsiClassReferenceType -> type.qualifiedName!!.resolveToPsiClass() == typeToMatch.resolve()
     // "%" matches any primitive type ("boolean", "int", etc, but not "void").
     type.anyPrimitiveType != null -> typeToMatch is PsiPrimitiveType && typeToMatch != PsiPrimitiveType.VOID
+    type.anyNotPrimitiveType != null -> typeToMatch is PsiClassReferenceType
     type.anyType != null -> true
     else -> false
   }

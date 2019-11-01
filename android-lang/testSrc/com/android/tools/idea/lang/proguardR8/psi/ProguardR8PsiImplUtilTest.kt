@@ -582,4 +582,24 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     type = myFixture.moveCaret("in|t").parentOfType()!!
     assertThat(type.matchesPsiType(elementFactory.createTypeFromText("int[][][]", null))).isTrue()
   }
+
+  fun testAnyNotPrimitiveType() {
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep class MyClass {
+          ** myFunction1();
+          **[] myFunction2();
+        }
+      """.trimIndent()
+    )
+
+    var type = myFixture.moveCaret("*|* myFunction1();").parentOfType<ProguardR8Type>()!!
+    assertThat(type.matchesPsiType(elementFactory.createTypeFromText("Object", null))).isTrue()
+    assertThat(type.matchesPsiType(elementFactory.createTypeFromText("Object[]", null))).isFalse()
+
+    type = myFixture.moveCaret("*|*[] myFunction2();").parentOfType()!!
+    assertThat(type.matchesPsiType(elementFactory.createTypeFromText("Object", null))).isFalse()
+    assertThat(type.matchesPsiType(elementFactory.createTypeFromText("Object[]", null))).isTrue()
+  }
 }
