@@ -657,6 +657,7 @@ java_test(
 # sanity test
 java_test(
     name = "CreateNewProjectWithCpp1Test",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
@@ -672,6 +673,7 @@ java_test(
 # sanity test
 java_test(
     name = "CreateNewProjectWithCpp2Test",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
@@ -687,6 +689,7 @@ java_test(
 # sanity test
 java_test(
     name = "CreateNewProjectWithCpp3Test",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
@@ -717,6 +720,7 @@ java_test(
 # sanity test
 java_test(
     name = "CreateCppKotlinProjectTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ] + glob([
