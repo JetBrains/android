@@ -44,6 +44,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
+import com.google.common.util.concurrent.Futures
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PsiNavigationSupport
@@ -81,6 +82,7 @@ import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBColor
+import com.intellij.util.concurrency.AppExecutorUtil
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.backend.common.pop
@@ -238,6 +240,22 @@ private fun configureExistingModel(existingModel: NlModel,
 
   return existingModel
 }
+
+/**
+ * Refreshes the given [surface] with the given list of [CompletableFuture<NlModel>]. The method
+ */
+private fun updateSurfaceWithNewModels(surface: NlDesignSurface,
+                                       futureModels: List<CompletableFuture<NlModel>>): CompletableFuture<Void> =
+  CompletableFuture.allOf(*(futureModels.toTypedArray()))
+    .thenCompose {
+      val modelAddedFutures = futureModels.map {
+        // We call addModel even though the model might not be new. If we try to add an existing model,
+        // this will trigger a new render which is exactly what we want.
+        surface.addModel(Futures.getDone(it), false)
+      }
+
+      CompletableFuture.allOf(*(modelAddedFutures.toTypedArray()))
+    }
 
 /**
  * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh
@@ -486,7 +504,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
     val existingModels = surface.models.reverse().toMutableList()
 
     // Now we generate all the models (or reuse) for the PreviewElements.
-    val newModels = filePreviewElements
+    val futureModels = filePreviewElements
       .asSequence()
       .onEach {
         if (LOG.isDebugEnabled) {
@@ -502,30 +520,33 @@ private class PreviewEditor(private val psiFile: PsiFile,
       .map {
         val (previewElement, fileContents) = it
 
-        val model = if (existingModels.isNotEmpty()) {
+        val modelFuture = if (existingModels.isNotEmpty()) {
           LOG.debug("Re-using model")
-          configureExistingModel(existingModels.pop(), previewElement.displayName, fileContents, surface)
+          CompletableFuture.completedFuture(configureExistingModel(existingModels.pop(), previewElement.displayName, fileContents, surface))
         }
         else {
           LOG.debug("No models to reuse were found. New model.")
           val file = ComposeAdapterLightVirtualFile("testFile.xml", fileContents)
           val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
-          NlModel.create(this@PreviewEditor,
-                         previewElement.displayName,
-                         facet,
-                         file,
-                         configuration,
-                         surface.componentRegistrar,
-                         modelUpdater)
+          CompletableFuture.supplyAsync(Supplier<NlModel> {
+            NlModel.create(this@PreviewEditor,
+                           previewElement.displayName,
+                           facet,
+                           file,
+                           configuration,
+                           surface.componentRegistrar,
+                           modelUpdater)
+          }, AppExecutorUtil.getAppExecutorService())
         }
 
-        val navigable: Navigatable = PsiNavigationSupport.getInstance().createNavigatable(
-          project, psiFile.virtualFile, previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0)
-        navigationHandler.addDefaultLocation(model, navigable, psiFile.virtualFile)
+        modelFuture.whenComplete { model, ex ->
+          ex?.let { LOG.warn(ex) }
+          val navigable: Navigatable = PsiNavigationSupport.getInstance().createNavigatable(
+            project, psiFile.virtualFile, previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0)
+          navigationHandler.addDefaultLocation(model, navigable, psiFile.virtualFile)
 
-        previewElement.configuration.applyTo(model.configuration)
-
-        model
+          previewElement.configuration.applyTo(model.configuration)
+        }
       }
       .toList()
 
@@ -534,13 +555,8 @@ private class PreviewEditor(private val psiFile: PsiFile,
     if (LOG.isDebugEnabled) LOG.debug("Removing ${existingModels.size} model(s)")
     existingModels.forEach { surface.removeModel(it) }
 
-    val rendersCompletedFuture = if (newModels.isNotEmpty()) {
-      val renders = newModels.map {
-        // We call addModel even though the model might not be new. If we try to add an existing model,
-        // this will trigger a new render which is exactly what we want.
-        surface.addModel(it, false)
-      }
-      CompletableFuture.allOf(*(renders.toTypedArray()))
+    val rendersCompletedFuture = if (futureModels.isNotEmpty()) {
+      updateSurfaceWithNewModels(surface, futureModels)
     }
     else {
       showModalErrorMessage(message("panel.no.previews.defined"))

@@ -444,7 +444,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   private ImmutableList<SceneView> getSceneViews() {
     ImmutableList.Builder<SceneView> builder = new ImmutableList.Builder<>();
-    for (SceneManager manager : myModelToSceneManagers.values()) {
+    for (SceneManager manager : getSceneManagers()) {
       SceneView view = manager.getSceneView();
       builder.add(view);
       SceneView secondarySceneView = ((LayoutlibSceneManager)manager).getSecondarySceneView();
@@ -706,7 +706,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   public CompletableFuture<Void> forceUserRequestedRefresh() {
     ArrayList<CompletableFuture<Void>> refreshFutures = new ArrayList<>();
-    for (SceneManager sceneManager : myModelToSceneManagers.values()) {
+    for (SceneManager sceneManager : getSceneManagers()) {
       LayoutlibSceneManager layoutlibSceneManager = (LayoutlibSceneManager)sceneManager;
       refreshFutures.add(layoutlibSceneManager.requestUserInitiatedRender());
     }
