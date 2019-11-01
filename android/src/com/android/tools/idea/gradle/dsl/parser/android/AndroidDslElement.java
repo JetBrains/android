@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.*;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -35,29 +35,29 @@ public final class AndroidDslElement extends GradleDslBlockElement {
 
   @NotNull
   private static final ImmutableMap<String, String> ktsToModelNameMap = Stream.of(new String[][]{
-    {"buildToolsVersion", AndroidModelImpl.BUILD_TOOLS_VERSION},
-    {"compileSdkVersion", AndroidModelImpl.COMPILE_SDK_VERSION},
-    {"defaultPublishConfig", AndroidModelImpl.DEFAULT_PUBLISH_CONFIG},
-    {"dynamicFeatures", AndroidModelImpl.DYNAMIC_FEATURES},
-    {"flavorDimensions", AndroidModelImpl.FLAVOR_DIMENSIONS},
-    {"generatePureSplits", AndroidModelImpl.GENERATE_PURE_SPLITS},
-    {"ndkVersion", AndroidModelImpl.NDK_VERSION},
+    {"buildToolsVersion", BUILD_TOOLS_VERSION},
+    {"compileSdkVersion", COMPILE_SDK_VERSION},
+    {"defaultPublishConfig", DEFAULT_PUBLISH_CONFIG},
+    {"dynamicFeatures", DYNAMIC_FEATURES},
+    {"flavorDimensions", FLAVOR_DIMENSIONS},
+    {"generatePureSplits", GENERATE_PURE_SPLITS},
+    {"ndkVersion", NDK_VERSION},
     // TODO(b/142111082): this works to handle the fact that Kotlin does not provide a writeable publishNonDefault property.
-    {"setPublishNonDefault", AndroidModelImpl.PUBLISH_NON_DEFAULT},
-    {"resourcePrefix", AndroidModelImpl.RESOURCE_PREFIX}
+    {"setPublishNonDefault", PUBLISH_NON_DEFAULT},
+    {"resourcePrefix", RESOURCE_PREFIX}
   }).collect(toImmutableMap(data -> data[0], data -> data[1]));
 
   @NotNull
   private static final ImmutableMap<String, String> groovyToModelNameMap = Stream.of(new String[][]{
-    {"buildToolsVersion", AndroidModelImpl.BUILD_TOOLS_VERSION},
-    {"compileSdkVersion", AndroidModelImpl.COMPILE_SDK_VERSION},
-    {"defaultPublishConfig", AndroidModelImpl.DEFAULT_PUBLISH_CONFIG},
-    {"dynamicFeatures", AndroidModelImpl.DYNAMIC_FEATURES},
-    {"flavorDimensions", AndroidModelImpl.FLAVOR_DIMENSIONS},
-    {"generatePureSplits", AndroidModelImpl.GENERATE_PURE_SPLITS},
-    {"ndkVersion", AndroidModelImpl.NDK_VERSION},
-    {"publishNonDefault", AndroidModelImpl.PUBLISH_NON_DEFAULT},
-    {"resourcePrefix", AndroidModelImpl.RESOURCE_PREFIX}
+    {"buildToolsVersion", BUILD_TOOLS_VERSION},
+    {"compileSdkVersion", COMPILE_SDK_VERSION},
+    {"defaultPublishConfig", DEFAULT_PUBLISH_CONFIG},
+    {"dynamicFeatures", DYNAMIC_FEATURES},
+    {"flavorDimensions", FLAVOR_DIMENSIONS},
+    {"generatePureSplits", GENERATE_PURE_SPLITS},
+    {"ndkVersion", NDK_VERSION},
+    {"publishNonDefault", PUBLISH_NON_DEFAULT},
+    {"resourcePrefix", RESOURCE_PREFIX}
   }).collect(toImmutableMap(data -> data[0], data -> data[1]));
 
   @Override
@@ -81,7 +81,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
     if (element.getName().equals("flavorDimensions") && element instanceof GradleDslSimpleExpression) {
-      addAsParsedDslExpressionList(AndroidModelImpl.FLAVOR_DIMENSIONS, (GradleDslSimpleExpression)element);
+      addAsParsedDslExpressionList(FLAVOR_DIMENSIONS, (GradleDslSimpleExpression)element);
       return;
     }
     super.addParsedElement(element);
