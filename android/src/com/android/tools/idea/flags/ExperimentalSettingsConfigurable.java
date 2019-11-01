@@ -84,8 +84,10 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myLayoutEditorQualitySlider.setMajorTickSpacing(25);
     myNewPsdSeparator.setVisible(StudioFlags.NEW_PSD_ENABLED.get());
     myNewPsdCheckbox.setVisible(StudioFlags.NEW_PSD_ENABLED.get());
-    myLayoutInspectorSeparator.setVisible(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get());
-    myLayoutInspectorCheckbox.setVisible(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get());
+    boolean showLayoutInspectorSettings =
+      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get() && !StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get();
+    myLayoutInspectorSeparator.setVisible(showLayoutInspectorSettings);
+    myLayoutInspectorCheckbox.setVisible(showLayoutInspectorSettings);
 
     reset();
   }

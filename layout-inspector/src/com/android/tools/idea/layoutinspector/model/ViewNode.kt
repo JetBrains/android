@@ -44,6 +44,7 @@ class ViewNode(val drawId: Long,
                var viewId: ResourceReference?,
                var textValue: String) {
 
+  lateinit var hash: String
   val bounds: Rectangle
     get() = Rectangle(x, y, width, height)
 

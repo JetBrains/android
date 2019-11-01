@@ -26,18 +26,14 @@ import com.android.tools.adtui.ui.AdtUiCursors
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
-import com.android.tools.profiler.proto.Common
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -285,7 +281,7 @@ class DeviceViewPanel(
 
     val leftPanel = AdtPrimaryPanel(BorderLayout())
     val leftGroup = DefaultActionGroup()
-    leftGroup.add(SelectProcessAction(client))
+    leftGroup.add(SelectProcessAction(client, layoutInspector))
     leftGroup.add(object : DropDownAction(null, "View options", StudioIcons.Common.VISIBILITY_INLINE) {
       init {
         add(object : ToggleAction("Show borders") {
@@ -325,107 +321,6 @@ class DeviceViewPanel(
                   BorderLayout.CENTER)
     panel.add(leftPanel, BorderLayout.CENTER)
     return panel
-  }
-
-  private class SelectProcessAction(val client: InspectorClient) :
-    DropDownAction("Select Process", "Select a process to connect to.", AllIcons.General.Add) {
-
-    private var currentProcess = Common.Process.getDefaultInstance()
-
-    override fun update(event: AnActionEvent) {
-      if (currentProcess != client.selectedProcess) {
-        val processName = client.selectedProcess.name.substringAfterLast('.')
-        val actionName = if (client.selectedProcess == Common.Process.getDefaultInstance()) "Select Process" else processName
-        currentProcess = client.selectedProcess
-        event.presentation.text = actionName
-      }
-    }
-
-    override fun updateActions(): Boolean {
-      removeAll()
-
-      // Rebuild the action tree.
-      val processesMap = client.loadProcesses()
-      if (processesMap.isEmpty()) {
-        val noDeviceAction = object : AnAction("No devices detected") {
-          override fun actionPerformed(event: AnActionEvent) {}
-        }
-        noDeviceAction.templatePresentation.isEnabled = false
-        add(noDeviceAction)
-      }
-      else {
-        for (stream in processesMap.keys) {
-          val deviceName = buildDeviceName(stream.device)
-          val deviceAction = if (stream.device.featureLevel < 29) {
-            object : AnAction("$deviceName (Unsupported for API < 29)") {
-              override fun actionPerformed(e: AnActionEvent) {}
-            }.apply { templatePresentation.isEnabled = false }
-          }
-          else {
-            object : DropDownAction(deviceName, null, null) {
-              override fun displayTextInToolbar() = true
-            }.apply {
-              val processes = processesMap[stream]
-              if (processes == null || processes.isEmpty()) {
-                val noProcessAction = object : AnAction("No debuggable processes detected") {
-                  override fun actionPerformed(event: AnActionEvent) {}
-                }
-                noProcessAction.templatePresentation.isEnabled = false
-                add(noProcessAction)
-              }
-              else {
-                val sortedProcessList = processes.sortedWith(compareBy({ it.name }, { it.pid }))
-                for (process in sortedProcessList) {
-                  val processAction = object : ToggleAction("${process.name} (${process.pid})") {
-                    override fun isSelected(event: AnActionEvent): Boolean {
-                      return process == client.selectedProcess && stream == client.selectedStream
-                    }
-
-                    override fun setSelected(event: AnActionEvent, state: Boolean) {
-                      if (state) {
-                        client.attach(stream, process)
-                      }
-                    }
-                  }
-                  add(processAction)
-                }
-              }
-            }
-          }
-          add(deviceAction)
-        }
-        add(object : AnAction("Stop inspector") {
-          override fun update(event: AnActionEvent) {
-            event.presentation.isEnabled = client.isConnected
-          }
-
-          override fun actionPerformed(event: AnActionEvent) {
-            client.disconnect()
-          }
-        })
-      }
-      return true
-    }
-
-    override fun displayTextInToolbar() = true
-
-    private fun buildDeviceName(device: Common.Device): String {
-      val deviceNameBuilder = StringBuilder()
-      val manufacturer = device.manufacturer
-      var model = device.model
-      val serial = device.serial
-      val suffix = String.format("-%s", serial)
-      if (model.endsWith(suffix)) {
-        model = model.substring(0, model.length - suffix.length)
-      }
-      if (!StringUtil.isEmpty(manufacturer)) {
-        deviceNameBuilder.append(manufacturer)
-        deviceNameBuilder.append(" ")
-      }
-      deviceNameBuilder.append(model)
-
-      return deviceNameBuilder.toString()
-    }
   }
 
   private class PauseLayoutInspectorAction(val client: InspectorClient) : CheckboxAction("Live updates") {
