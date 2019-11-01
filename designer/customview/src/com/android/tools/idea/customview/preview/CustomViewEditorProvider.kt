@@ -23,8 +23,8 @@ import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.editor.DesignFileEditor
 import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
-import com.android.tools.idea.common.editor.SmartAutoRefresher
-import com.android.tools.idea.common.editor.SmartRefreshable
+import com.android.tools.idea.common.editor.SmartAutoBuildRefresher
+import com.android.tools.idea.common.editor.SmartBuildable
 import com.android.tools.idea.common.editor.SourceCodeChangeListener
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
@@ -47,6 +47,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -275,7 +276,7 @@ private class CustomViewPreviewActionManager(
  * A preview for a file containing custom android view classes. Allows selecting between the classes if multiple custom view classes are
  * present in the file.
  */
-private class CustomViewPreview(private val psiFile: PsiFile) : SmartRefreshable, DesignFileEditor(psiFile.virtualFile!!) {
+private class CustomViewPreview(private val psiFile: PsiFile) : Disposable, DesignFileEditor(psiFile.virtualFile!!) {
   private val project = psiFile.project
   private val virtualFile = psiFile.virtualFile!!
 
@@ -356,12 +357,22 @@ private class CustomViewPreview(private val psiFile: PsiFile) : SmartRefreshable
     showLoading("Waiting for build to finish...")
   }
 
-  private val refresher = SmartAutoRefresher(psiFile, this)
+  init {
+    SmartAutoBuildRefresher(psiFile, object : SmartBuildable {
+      override fun buildSucceeded() {
+        refresh()
+      }
+
+      override fun buildFailed() {
+        workbench.loadingStopped("Preview is unavailable until after a successful project sync")
+      }
+    }, this)
+  }
 
   /**
    * Refresh the preview surfaces
    */
-  override fun refresh() {
+  private fun refresh() {
     // We are in a smart mode here
     classes = (AndroidPsiUtils.getPsiFileSafely(project,
                                                 virtualFile) as PsiClassOwner).classes.filter { it.name != null && it.extendsView() }.mapNotNull { it.qualifiedName }
@@ -370,10 +381,6 @@ private class CustomViewPreview(private val psiFile: PsiFile) : SmartRefreshable
       return
     }
     updateModel()
-  }
-
-  override fun buildFailed() {
-    workbench.loadingStopped("Preview is unavailable until after a successful project sync")
   }
 
   private fun updateModel() {

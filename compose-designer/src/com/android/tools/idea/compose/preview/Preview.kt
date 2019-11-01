@@ -23,8 +23,8 @@ import com.android.tools.idea.common.actions.IssueNotificationAction
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.editor.DesignFileEditor
 import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
-import com.android.tools.idea.common.editor.SmartAutoRefresher
-import com.android.tools.idea.common.editor.SmartRefreshable
+import com.android.tools.idea.common.editor.SmartAutoBuildRefresher
+import com.android.tools.idea.common.editor.SmartBuildable
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.DefaultModelUpdater
@@ -35,8 +35,6 @@ import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.build.BuildContext
-import com.android.tools.idea.gradle.project.build.GradleBuildListener
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.rendering.RefreshRenderAction.clearCacheAndRefreshSurface
@@ -49,6 +47,7 @@ import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PsiNavigationSupport
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -59,7 +58,6 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
@@ -278,7 +276,7 @@ private fun findComposePreviewManagerForAction(e: AnActionEvent): ComposePreview
  * @param previewProvider call to obtain the [PreviewElement]s from the file.
  */
 private class PreviewEditor(private val psiFile: PsiFile,
-                            private val previewProvider: () -> List<PreviewElement>) : ComposePreviewManager, SmartRefreshable, DesignFileEditor(
+                            private val previewProvider: () -> List<PreviewElement>) : ComposePreviewManager, Disposable, DesignFileEditor(
   psiFile.virtualFile!!) {
   private val LOG = Logger.getInstance(PreviewEditor::class.java)
   private val project = psiFile.project
@@ -358,7 +356,25 @@ private class PreviewEditor(private val psiFile: PsiFile,
     /**
      * Calls refresh method on the successful gradle build
      */
-    SmartAutoRefresher(psiFile, this)
+    SmartAutoBuildRefresher(psiFile, object : SmartBuildable {
+      override fun buildSucceeded() {
+        refresh()
+      }
+
+      override fun buildFailed() {
+        LOG.debug("buildFailed")
+        isRefreshingPreview = false
+        updateSurfaceVisibilityAndNotifications()
+      }
+
+      override fun buildStarted() {
+        isRefreshingPreview = true
+        if (workbench.isMessageVisible) {
+          workbench.showLoading(message("panel.building"))
+          workbench.hideContent()
+        }
+      }
+    }, this)
   }
 
   private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce || surface.models.asSequence()
@@ -443,20 +459,6 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
     // Make sure all notifications are cleared-up
     EditorNotifications.getInstance(project).updateNotifications(file)
-  }
-
-  override fun buildFailed() {
-    LOG.debug("buildFailed")
-    isRefreshingPreview = false
-    updateSurfaceVisibilityAndNotifications()
-  }
-
-  override fun buildStarted() {
-    isRefreshingPreview = true
-    if (workbench.isMessageVisible) {
-      workbench.showLoading(message("panel.building"))
-      workbench.hideContent()
-    }
   }
 
   /**
