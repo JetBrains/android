@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 
@@ -58,6 +59,20 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
   @Override
   @NotNull
   public String getPackageName() throws ApkProvisionException {
+    // Android library project doesn't produce APK except for instrumentation tests. And for instrumentation test,
+    // AGP creates instrumentation APK only. Both test code and library code will be packaged into an instrumentation APK.
+    // This is called self-instrumenting test: https://source.android.com/compatibility/tests/development/instr-self-e2e
+    // For this reason, this method should return test package name for Android library project.
+    if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_LIBRARY) {
+      String testPackageName = getTestPackageName();
+      if (testPackageName != null) {
+        return testPackageName;
+      }
+      else {
+        getLogger().warn("Could not get applicationId for library module.");
+      }
+    }
+
     if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_TEST) {
       AndroidFacet targetFacet = getTargetFacet();
       if (targetFacet != null) {
@@ -149,7 +164,8 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
       return testPackageName;
     }
 
-    if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_DYNAMIC_FEATURE) {
+    if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_DYNAMIC_FEATURE
+        || myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_LIBRARY) {
       return ApkProviderUtil.computePackageName(myFacet) + DEFAULT_TEST_PACKAGE_SUFFIX;
     }
     else {
