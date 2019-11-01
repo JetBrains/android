@@ -993,7 +993,7 @@ public class NavigationSchema implements Disposable {
 
       Query<PsiClass> query = ClassInheritorsSearch.search(destinationClass, scope, true, true, false);
       for (PsiClass inherited : query) {
-        if (!NavClassHelperKt.extendsNavHostFragment(inherited)) {
+        if (!NavClassHelperKt.extendsNavHostFragment(inherited, myModule)) {
           projectClasses.add(inherited);
         }
       }

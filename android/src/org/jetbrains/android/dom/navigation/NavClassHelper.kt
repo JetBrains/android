@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.dom.navigation
 
-import com.android.SdkConstants
+import com.android.SdkConstants.FQCN_NAV_HOST_FRAGMENT
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.JavaPsiFacade
@@ -25,21 +25,27 @@ import com.intellij.psi.search.GlobalSearchScope
 /**
  * Returns true if NavHostFragment is a superclass of the specified class
  */
-fun extendsNavHostFragment(psiClass: PsiClass) = psiClass.supers.any { it.qualifiedName == SdkConstants.FQCN_NAV_HOST_FRAGMENT }
+fun extendsNavHostFragment(psiClass: PsiClass, module: Module): Boolean {
+  val navHostClass = getClass(FQCN_NAV_HOST_FRAGMENT, module) ?: return false
+  return psiClass.isInheritor(navHostClass, true)
+}
 
 /**
  * Returns true if NavHostFragment is either the specified class or a superclass of it
  */
 fun isNavHostFragment(className: String, module: Module): Boolean {
-  if (className == SdkConstants.FQCN_NAV_HOST_FRAGMENT) {
+  if (className == FQCN_NAV_HOST_FRAGMENT) {
     return true;
   }
 
-  val javaPsiFacade = JavaPsiFacade.getInstance(module.project) ?: return false
-  val scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, true)
-  val psiClass = javaPsiFacade.findClass(className, scope) ?: return false
+  val psiClass = getClass(className, module) ?: return false
+  return extendsNavHostFragment(psiClass, module)
+}
 
-  return extendsNavHostFragment(psiClass)
+private fun getClass(className: String, module: Module): PsiClass? {
+  val javaPsiFacade = JavaPsiFacade.getInstance(module.project) ?: return null
+  val scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, true)
+  return javaPsiFacade.findClass(className, scope)
 }
 
 fun PsiClass.isInProject() = ModuleUtilCore.findModuleForPsiElement(this) != null
