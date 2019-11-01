@@ -50,8 +50,6 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
 /**
  * An action which recognizes classes from key Maven artifacts and offers to add a dependency on them.
- *
- * TODO: Support in XML files
  */
 class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   private var artifact: String? = null
@@ -61,14 +59,22 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   }
 
   fun perform(project: Project, element: PsiElement, offset: Int, sync: Boolean): ListenableFuture<ProjectSystemSyncManager.SyncResult>? {
-    val module = ModuleUtil.findModuleForPsiElement(element) ?: return null
     // this.artifact should be the same, but make absolutely certain
     val artifact = findArtifact(project, element, offset) ?: return null
     val importSymbol = findImport(project, element, offset)
+    return perform(project, element, artifact, importSymbol, sync)
+  }
 
+  fun perform(
+    project: Project,
+    element: PsiElement,
+    artifact: String,
+    importSymbol: String?,
+    sync: Boolean
+  ): ListenableFuture<ProjectSystemSyncManager.SyncResult>? {
     var future: ListenableFuture<ProjectSystemSyncManager.SyncResult>? = null
     WriteCommandAction.runWriteCommandAction(project) {
-      future = performWithLock(project, element, module, artifact, importSymbol, sync)
+      future = performWithLock(project, element, artifact, importSymbol, sync)
     }
 
     return future
@@ -82,11 +88,12 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   private fun performWithLock(
     project: Project,
     element: PsiElement,
-    module: Module,
     artifact: String,
     importSymbol: String?,
     sync: Boolean
   ): ListenableFuture<ProjectSystemSyncManager.SyncResult>? {
+    val module = ModuleUtil.findModuleForPsiElement(element) ?: return null
+
     // Import the class as well (if possible); otherwise it might be confusing that you have to invoke two
     // separate intention actions in order to get your symbol resolved
     if (importSymbol != null) {
@@ -216,7 +223,12 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   }
 
   private fun findArtifact(project: Project, element: PsiElement, caret: Int): String? {
-    val text = findElement(element, caret).text
+    val leaf = findElement(element, caret)
+    return findArtifact(project, leaf)
+  }
+
+  fun findArtifact(project: Project, element: PsiElement): String? {
+    val text = element.text
     val artifact = MavenClassRegistry.findArtifact(text) ?: return null
 
     return if (project.isAndroidx()) {
@@ -227,7 +239,6 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       // contains Kotlin.
       if (isKotlin(element)) {
         androidx = MavenClassRegistry.findKtxLibrary(androidx) ?: androidx
-
       }
 
       androidx
