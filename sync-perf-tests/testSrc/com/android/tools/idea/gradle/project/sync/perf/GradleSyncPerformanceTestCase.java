@@ -72,6 +72,12 @@ public abstract class GradleSyncPerformanceTestCase extends GradleSyncIntegratio
     }
   }
 
+  @Override
+  public void setUpFixture() throws Exception {
+    super.setUpFixture();
+    myFixture.setTestDataPath(getModulePath("sync-perf-tests") + "/testData");
+  }
+
   /**
    * Measure the following sync times:
    *   - Initial sync time.
