@@ -345,7 +345,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
   /**
    * [WorkBench] used to contain all the preview elements.
    */
-  override val workbench = WorkBench<DesignSurface>(project, "Compose Preview", this, this).apply {
+  val workbench = WorkBench<DesignSurface>(project, "Compose Preview", this, this).apply {
 
     val actionsToolbar = ActionsToolbar(this@PreviewEditor, surface)
     val surfacePanel = JPanel(BorderLayout()).apply {
@@ -363,6 +363,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
   }
 
   init {
+    component.add(workbench, BorderLayout.CENTER)
     /**
      * Calls refresh method on the successful gradle build
      */

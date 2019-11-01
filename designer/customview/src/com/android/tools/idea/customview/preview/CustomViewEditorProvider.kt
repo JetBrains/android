@@ -352,12 +352,14 @@ private class CustomViewPreview(private val psiFile: PsiFile) : Disposable, Desi
   /**
    * [WorkBench] used to contain all the preview elements.
    */
-  override val workbench = WorkBench<DesignSurface>(project, "Main Preview", this, this).apply {
+  val workbench = WorkBench<DesignSurface>(project, "Main Preview", this, this).apply {
     init(editorPanel, surface, listOf(), false)
     showLoading("Waiting for build to finish...")
   }
 
   init {
+    component.add(workbench)
+
     SmartAutoBuildRefresher(psiFile, object : SmartBuildable {
       override fun buildSucceeded() {
         refresh()
@@ -366,7 +368,7 @@ private class CustomViewPreview(private val psiFile: PsiFile) : Disposable, Desi
       override fun buildFailed() {
         workbench.loadingStopped("Preview is unavailable until after a successful project sync")
       }
-    }, this)
+    }, this)  
   }
 
   /**
