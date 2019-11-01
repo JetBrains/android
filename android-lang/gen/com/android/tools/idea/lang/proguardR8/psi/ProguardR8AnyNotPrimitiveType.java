@@ -21,28 +21,7 @@ package com.android.tools.idea.lang.proguardR8.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiType;
 
-public interface ProguardR8Type extends PsiElement {
-
-  @Nullable
-  ProguardR8AnyNotPrimitiveType getAnyNotPrimitiveType();
-
-  @Nullable
-  ProguardR8AnyPrimitiveType getAnyPrimitiveType();
-
-  @Nullable
-  ProguardR8AnyType getAnyType();
-
-  @Nullable
-  ProguardR8ArrayType getArrayType();
-
-  @Nullable
-  ProguardR8JavaPrimitive getJavaPrimitive();
-
-  @Nullable
-  ProguardR8QualifiedName getQualifiedName();
-
-  boolean matchesPsiType(@NotNull PsiType other);
+public interface ProguardR8AnyNotPrimitiveType extends PsiElement {
 
 }
