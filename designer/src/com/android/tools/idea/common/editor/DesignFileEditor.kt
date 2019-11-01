@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.common.editor
 
-import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.ide.structureView.StructureViewBuilder
 import com.intellij.openapi.fileEditor.FileEditor
@@ -24,18 +22,20 @@ import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
+import java.awt.BorderLayout
 import java.beans.PropertyChangeListener
 import javax.swing.JComponent
+import javax.swing.JPanel
 
 
 /**
- * A basic implementation of FileEditor interface for design editor (using WorkBench with DesignSurface). Useful in case most of the methods
- * return obvious values or have no-op implementations
+ * A basic implementation of FileEditor interface for design editor. Useful in case most of the methods return obvious values or have no-op
+ * implementations
  */
-abstract class DesignFileEditor(private val virtualFile: VirtualFile) : FileEditor, UserDataHolderBase() {
-  protected abstract val workbench: WorkBench<DesignSurface>
-  override fun getComponent(): JComponent = workbench
-  override fun getPreferredFocusedComponent(): JComponent = workbench
+open class DesignFileEditor(private val virtualFile: VirtualFile) : FileEditor, UserDataHolderBase() {
+  private val previewPanel = JPanel(BorderLayout())
+  override fun getComponent(): JComponent = previewPanel
+  override fun getPreferredFocusedComponent(): JComponent = previewPanel
   override fun getName() = "Base File Editor"
   override fun setState(state: FileEditorState) {}
   override fun dispose() {}
