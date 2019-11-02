@@ -206,6 +206,14 @@ class SceneHitListener {
     return candidate;
   }
 
+  public SceneComponent getTopHitComponent() {
+    int count = myHitComponents.size();
+    if (count == 0) {
+      return null;
+    }
+    return myHitComponents.get(count - 1);
+  }
+
   public ArrayList<SceneComponent> getHitComponents() {
     return myHitComponents;
   }

@@ -28,6 +28,7 @@ import static com.android.SdkConstants.SHERPA_URI;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -228,10 +229,16 @@ public class MotionLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component) {
+  @Nullable
+  public Interaction createInteraction(@NotNull ScreenView screenView,
+                                                 @SwingCoordinate int x,
+                                                 @SwingCoordinate int y,
+                                                 @NotNull NlComponent component) {
     MotionLayoutComponentHelper helper = MotionLayoutComponentHelper.create(component);
     if (helper.isInTransition()) {
-      return new MotionLayoutSceneInteraction(screenView, component);
+      if (MotionLayoutSceneInteraction.hitKeyFrame(screenView, x, y, helper, component)) {
+        return new MotionLayoutSceneInteraction(screenView, component);
+      }
     }
     return null;
   }
