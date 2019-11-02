@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.AndroidCoordinate;
@@ -73,8 +74,11 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
 
   @Override
   @Nullable
-  public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent layout) {
-    return myHandler.createInteraction(screenView, layout);
+  public Interaction createInteraction(@NotNull ScreenView screenView,
+                                       @SwingCoordinate int x,
+                                       @SwingCoordinate int y,
+                                       @NotNull NlComponent component) {
+    return myHandler.createInteraction(screenView, x, y, component);
   }
 
   @Override

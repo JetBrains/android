@@ -190,4 +190,38 @@ public class SceneOverlapSelectionTest extends SceneTest {
                  "        tools:layout_editor_absoluteX=\"585dp\"\n" +
                  "        tools:layout_editor_absoluteY=\"585dp\" />");
   }
+
+  public void testDragSelection4() {
+    myInteraction.select("button1", true);
+    List<NlComponent> componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(1, componentList.size());
+    assertEquals(myScene.getSceneComponent("button1").getNlComponent(), componentList.get(0));
+    assertTrue(myScene.getSceneComponent("button1").isSelected());
+    myInteraction.mouseDown(130, 210);
+    myInteraction.mouseRelease(130, 210);
+    componentList = myScreen.getScreen().getSelectionModel().getSelection();
+    assertEquals(1, componentList.size());
+    assertEquals(myScene.getSceneComponent("button2").getNlComponent(), componentList.get(0));
+    myScreen.get("@id/button1")
+      .expectXml("<Button\n" +
+                 "    android:id=\"@id/button1\"\n" +
+                 "    android:layout_width=\"100dp\"\n" +
+                 "    android:layout_height=\"100dp\"\n" +
+                 "    tools:layout_editor_absoluteX=\"100dp\"\n" +
+                 "    tools:layout_editor_absoluteY=\"200dp\"/>");
+    myScreen.get("@id/button2")
+      .expectXml("<Button\n" +
+                 "    android:id=\"@id/button2\"\n" +
+                 "    android:layout_width=\"100dp\"\n" +
+                 "    android:layout_height=\"100dp\"\n" +
+                 "    tools:layout_editor_absoluteX=\"125dp\"\n" +
+                 "    tools:layout_editor_absoluteY=\"165dp\"/>");
+    myScreen.get("@id/button3")
+      .expectXml("<Button\n" +
+                 "        android:id=\"@id/button3\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        tools:layout_editor_absoluteX=\"145dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"230dp\" />");
+  }
 }

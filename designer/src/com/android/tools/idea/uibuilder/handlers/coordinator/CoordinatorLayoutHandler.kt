@@ -104,12 +104,17 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
 
   /**
    * Return a new ConstraintInteraction instance to handle a mouse interaction
-
+   *
    * @param screenView the associated screen view
-   * @param component  the component we belong to
+   * @param x          mouse down (x)
+   * @param y          mouse down (y)
+   * @param component  the component target of the interaction
    * @return a new instance of ConstraintInteraction
    */
-  override fun createInteraction(screenView: ScreenView, component: NlComponent) = SceneInteraction(screenView)
+  override fun createInteraction(screenView: ScreenView,
+                                 x: Int,
+                                 y: Int,
+                                 component: NlComponent) = SceneInteraction(screenView)
 
   override fun createChildTargets(parentComponent: SceneComponent, childComponent: SceneComponent): MutableList<Target> {
     val listBuilder = ImmutableList.builder<Target>()
