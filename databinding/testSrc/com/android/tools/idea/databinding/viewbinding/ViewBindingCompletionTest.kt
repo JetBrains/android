@@ -20,6 +20,7 @@ import com.android.tools.idea.databinding.finders.BindingKotlinScopeEnlarger
 import com.android.tools.idea.databinding.finders.BindingScopeEnlarger
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.createAndroidProjectBuilder
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
@@ -83,7 +84,7 @@ class ViewBindingCompletionTest {
           import test.vb.databinding.ActivityMainBinding;
 
           public class Model {
-            ActivityMainB<caret>
+            ActivityMainB${caret}
           }
         """.trimIndent())
 
@@ -124,7 +125,7 @@ class ViewBindingCompletionTest {
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
                   ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
-                  binding.test<caret>
+                  binding.test${caret}
               }
           }
         """.trimIndent())
@@ -168,7 +169,7 @@ class ViewBindingCompletionTest {
 
           fun dummy() {
             lateinit var binding: ActivityMainBinding
-            binding.test<caret>
+            binding.test${caret}
           }
         """.trimIndent())
 

@@ -20,6 +20,7 @@ import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.lang.databinding.getTestDataPath
 import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
 import com.intellij.psi.PsiMethod
@@ -173,7 +174,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="model" type="test.langdb.Model" />
         </data>
-        <TextView android:text="@{mo<caret>del.strValue}"/>
+        <TextView android:text="@{mo${caret}del.strValue}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -207,7 +208,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     val landFile = fixture.addFileToProject("res/layout-land/test_layout.xml", """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <TextView android:text="@{mo<caret>del.strValue}"/>
+        <TextView android:text="@{mo${caret}del.strValue}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(landFile.virtualFile)
@@ -235,7 +236,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="model" type="test.langdb.Model" />
         </data>
-        <TextView android:text="@{model.str<caret>Value}"/>
+        <TextView android:text="@{model.str${caret}Value}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -256,7 +257,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="map" type="java.util.Map<Integer, String>" />
         </data>
-        <TextView android:text="@{map.str<caret>Value}"/>
+        <TextView android:text="@{map.str${caret}Value}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -279,7 +280,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="map" type="java.util.HashMap<Integer, String>" />
         </data>
-        <TextView android:text="@{map.str<caret>Value}"/>
+        <TextView android:text="@{map.str${caret}Value}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -310,7 +311,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="map" type="test.langdb.MyMap" />
         </data>
-        <TextView android:text="@{map.myFiel<caret>d"/>
+        <TextView android:text="@{map.myFiel${caret}d"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -339,7 +340,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="model" type="test.langdb.Model" />
         </data>
-        <TextView android:text="@{model.do<caret>Something()}"/>
+        <TextView android:text="@{model.do${caret}Something()}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -368,7 +369,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="model" type="test.langdb.Model" />
         </data>
-        <TextView android:text="@{model.do<caret>Something(model, model, model)}"/>
+        <TextView android:text="@{model.do${caret}Something(model, model, model)}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -397,7 +398,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="model" type="test.langdb.Model" />
         </data>
-        <TextView android:text="@{mod<caret>el.str<caret>Value}"/>
+        <TextView android:text="@{mod${caret}el.str${caret}Value}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -428,7 +429,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <import type="test.langdb.Model" />
         </data>
-        <TextView android:onClick="@{Mo<caret>del::handleClick}"/>
+        <TextView android:onClick="@{Mo${caret}del::handleClick}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -456,7 +457,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <import type="test.langdb.Model" />
         </data>
-        <TextView android:onClick="@{Model::handle<caret>Click}"/>
+        <TextView android:onClick="@{Model::handle${caret}Click}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -487,7 +488,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="clickHandler" type="test.langdb.ClickHandler" />
         </data>
-        <TextView android:onClick="@{clickHandler::handle<caret>Click}"/>
+        <TextView android:onClick="@{clickHandler::handle${caret}Click}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -518,7 +519,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="clickHandler" type="test.langdb.ClickHandler" />
         </data>
-        <TextView android:onClick="@{clickHandler.handle<caret>Click}"/>
+        <TextView android:onClick="@{clickHandler.handle${caret}Click}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -549,7 +550,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="clickHandler" type="test.langdb.ClickHandler" />
         </data>
-        <TextView android:onClick="@{clickHandler.handle<caret>Click}"/>
+        <TextView android:onClick="@{clickHandler.handle${caret}Click}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -582,7 +583,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="model" type="test.langdb.Model" />
         </data>
-        <TextView android:onClick="@{(v) -> model.handle<caret>Click(v)}"/>
+        <TextView android:onClick="@{(v) -> model.handle${caret}Click(v)}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -610,7 +611,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     val file = fixture.addFileToProject("res/layout/test_layout.xml", """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <TextView android:text="@{test.langdb.Mo<caret>del.NAME}"/>
+        <TextView android:text="@{test.langdb.Mo${caret}del.NAME}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -639,7 +640,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="model" type="test.langdb.Model" />
         </data>
-        <TextView android:onClick="@{() -> mode<caret>l.doSomething()}"/>
+        <TextView android:onClick="@{() -> mode${caret}l.doSomething()}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -665,7 +666,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="model" type="test.langdb.Model" />
         </data>
-        <TextView android:onClick="@{() -> model.doSomethin<caret>g}"/>
+        <TextView android:onClick="@{() -> model.doSomethin${caret}g}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -695,7 +696,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="model" type="test.langdb.Model" />
         </data>
-        <TextView android:text="@{model.same(mo<caret>del.getValue())}"/>
+        <TextView android:text="@{model.same(mo${caret}del.getValue())}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -722,7 +723,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="model" type="test.langdb.Model" />
         </data>
-        <TextView android:text="@{model.same(model.get<caret>Value())}"/>
+        <TextView android:text="@{model.same(model.get${caret}Value())}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -752,7 +753,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="model" type="test.langdb.Model" />
         </data>
-        <TextView android:text="@{model.calcula<caret>te(15)}"/>
+        <TextView android:text="@{model.calcula${caret}te(15)}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -778,7 +779,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="model" type="test.langdb.Model" />
         </data>
-        <TextView android:text="@{model.calcula<caret>te(`15`)}"/>
+        <TextView android:text="@{model.calcula${caret}te(`15`)}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -792,7 +793,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     val file = fixture.addFileToProject("res/layout/test_layout.xml", """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <TextView android:text="@{`string`.subst<caret>ring(5)"/>
+        <TextView android:text="@{`string`.subst${caret}ring(5)"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -831,7 +832,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick2="@{(<caret>) -> model.getString()}"/>
+            android:onClick2="@{(${caret}) -> model.getString()}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -870,7 +871,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick2="@{() -> unresolvable_<caret>_code}"/>
+            android:onClick2="@{() -> unresolvable_${caret}_code}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -912,7 +913,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            app:t<caret>ext2="@={model.string}"/>
+            app:t${caret}ext2="@={model.string}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -958,7 +959,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:tex<caret>t="@={model.string}"/>
+            android:tex${caret}t="@={model.string}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1003,7 +1004,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
             android:id="@+id/c_0_0"
             android:layout_width="120dp"
             android:layout_height="120dp"
-            android:checke<caret>d="@={model.boolean}"/>
+            android:checke${caret}d="@={model.boolean}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1050,7 +1051,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:tex<caret>t2="@={model.string}"/>
+            android:tex${caret}t2="@={model.string}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1070,7 +1071,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick2="@{vie<caret>wId.getText()}"/>
+            android:onClick2="@{vie${caret}wId.getText()}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1091,7 +1092,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{viewId.getText().le<caret>ngth()}"/>
+            android:onClick="@{viewId.getText().le${caret}ngth()}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1111,7 +1112,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{con<caret>text.getText()}"/>
+            android:onClick="@{con${caret}text.getText()}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1133,7 +1134,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:onClick="@{con<caret>text}"/>
+            android:onClick="@{con${caret}text}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1158,7 +1159,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="model" type="test.langdb.Model" />
         </data>
-        <TextView android:text="@{model.staticModel.mod<caret>el}"/>
+        <TextView android:text="@{model.staticModel.mod${caret}el}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1186,7 +1187,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="map" type="test.langdb.MyMap<Integer, String>" />
         </data>
-        <TextView android:text="@{map.str<caret>Value}"/>
+        <TextView android:text="@{map.str${caret}Value}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1218,7 +1219,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <data>
           <variable name="model" type="test.langdb.Model" />
         </data>
-        <TextView android:text="@{model.confu<caret>singFunction(`string`)}"/>
+        <TextView android:text="@{model.confu${caret}singFunction(`string`)}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1240,7 +1241,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     val file = fixture.addFileToProject("res/layout/test_layout.xml", """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <TextView android:text="@{@plurals/oran<caret>ge(count)}"/>
+        <TextView android:text="@{@plurals/oran${caret}ge(count)}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1259,7 +1260,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     val file = fixture.addFileToProject("res/layout/test_layout.xml", """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <TextView android:text="@{@string/nameWi<caret>thTitle}"/>
+        <TextView android:text="@{@string/nameWi${caret}thTitle}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1278,7 +1279,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     val file = fixture.addFileToProject("res/layout/test_layout.xml", """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <TextView android:text="@{@fraction/myFrac<caret>tion}"/>
+        <TextView android:text="@{@fraction/myFrac${caret}tion}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1297,7 +1298,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     val file = fixture.addFileToProject("res/layout/test_layout.xml", """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <TextView android:text="@{@text/ze<caret>ro}"/>
+        <TextView android:text="@{@text/ze${caret}ro}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1317,7 +1318,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:gravity="center"
-            android:text="@{@id/view<caret>_id}"/>
+            android:text="@{@id/view${caret}_id}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -1336,7 +1337,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
         <ImageView
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        android:src="@{@drawable/p<caret>ic}" />
+        android:src="@{@drawable/p${caret}ic}" />
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)

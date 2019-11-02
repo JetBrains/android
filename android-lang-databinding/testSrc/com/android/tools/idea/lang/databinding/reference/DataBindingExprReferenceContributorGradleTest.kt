@@ -121,7 +121,7 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     val layoutFile = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     fixture.configureFromExistingVirtualFile(layoutFile)
 
-    // Move to android:onClick="@{v<caret>iew -> vo.saveView(view)}"/>
+    // Move to android:onClick="@{v|iew -> vo.saveView(view)}"/>
     moveCaretToString("iew -> vo.save")
     // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
     fixture.configureFromExistingVirtualFile(layoutFile)
@@ -139,7 +139,7 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     val layoutFile = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     fixture.configureFromExistingVirtualFile(layoutFile)
 
-    // Move to app:onClick2=="@{v<caret>iew2 -> vo.saveView(view2)}"/>
+    // Move to app:onClick2=="@{v|iew2 -> vo.saveView(view2)}"/>
     moveCaretToString("iew2 -> vo.save")
     // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
     fixture.configureFromExistingVirtualFile(layoutFile)
@@ -157,7 +157,7 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     val layoutFile = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     fixture.configureFromExistingVirtualFile(layoutFile)
 
-    // Move to onClick3="@{v<caret>iew3 -> vo.saveView(view3)}"/>
+    // Move to onClick3="@{v|iew3 -> vo.saveView(view3)}"/>
     moveCaretToString("iew3 -> vo.save")
     // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
     fixture.configureFromExistingVirtualFile(layoutFile)
@@ -175,7 +175,7 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     val layoutFile = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
     fixture.configureFromExistingVirtualFile(layoutFile)
 
-    // Move to onClick3="@{v<caret>iew3 -> vo.saveView(view3)}"/>
+    // Move to onClick3="@{v|iew3 -> vo.saveView(view3)}"/>
     moveCaretToString("Click3")
     // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
     fixture.configureFromExistingVirtualFile(layoutFile)
