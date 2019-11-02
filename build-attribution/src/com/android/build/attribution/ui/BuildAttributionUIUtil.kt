@@ -15,9 +15,25 @@
  */
 package com.android.build.attribution.ui
 
+import com.android.build.attribution.ui.data.CriticalPathPluginUiData
+import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
+import com.intellij.util.ui.ColorIcon
+import com.intellij.util.ui.EmptyIcon
+import com.intellij.util.ui.JBUI
+import java.awt.Color
+import javax.swing.Icon
+
 
 
 fun TimeWithPercentage.durationString() = "%.3f s".format(timeMs.toDouble() / 1000)
 
 fun TimeWithPercentage.percentageString() = "%.1f%%".format(percentage)
+
+fun colorIcon(color: Color): Icon = JBUI.scale(ColorIcon(12, color))
+
+fun emptyIcon(): Icon = EmptyIcon.ICON_16
+
+fun getTaskIcon(taskData: TaskUiData): Icon = emptyIcon()
+
+fun getPluginIcon(pluginData: CriticalPathPluginUiData): Icon = emptyIcon()
