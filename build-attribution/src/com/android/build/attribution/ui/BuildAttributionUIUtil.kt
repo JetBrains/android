@@ -31,9 +31,11 @@ import java.awt.Graphics
 import javax.swing.Icon
 
 
-fun TimeWithPercentage.durationString() = "%.3f s".format(timeMs.toDouble() / 1000)
+fun TimeWithPercentage.durationString() = durationString(timeMs)
 
 fun TimeWithPercentage.percentageString() = "%.1f%%".format(percentage)
+
+fun durationString(timeMs: Long) = "%.3f s".format(timeMs.toDouble() / 1000)
 
 fun issuesCountString(warningsCount: Int, infoCount: Int) = when {
   warningsCount > 0 && infoCount > 0 -> "${warningsCountString(warningsCount)}, ${infoCountString(infoCount)}"
