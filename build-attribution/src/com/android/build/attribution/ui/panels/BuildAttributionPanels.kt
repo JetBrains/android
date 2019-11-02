@@ -16,8 +16,12 @@
 package com.android.build.attribution.ui.panels
 
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData
+import com.android.build.attribution.ui.data.TaskIssueType
+import com.android.build.attribution.ui.data.TaskIssueUiData
+import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.durationString
+import com.android.build.attribution.ui.issueIcon
 import com.android.build.attribution.ui.percentageString
 import com.android.utils.HtmlBuilder
 import com.intellij.openapi.ui.OnePixelDivider
@@ -37,10 +41,26 @@ import javax.swing.SwingConstants
 
 private const val CRITICAL_PATH_LINK = "https://developer.android.com/r/tools/build-attribution/critical-path"
 
+interface TreeLinkListener<T> {
+  fun clickedOn(target: T)
+}
 
-fun pluginInfoPanel(pluginUiData: CriticalPathPluginUiData): JComponent =
+fun pluginInfoPanel(pluginUiData: CriticalPathPluginUiData, listener: TreeLinkListener<TaskIssueType>): JComponent =
   JBPanel<JBPanel<*>>(VerticalLayout(15)).apply {
     add(commonPluginInfo(pluginUiData))
+    add(JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
+      add(JBLabel("Issues with this plugin").withFont(JBUI.Fonts.label().asBold()))
+      for (issueGroup in pluginUiData.issues) {
+        add(HyperlinkLabel("${issueGroup.type.uiName} (${issueGroup.size})").apply {
+          addHyperlinkListener { listener.clickedOn(issueGroup.type) }
+          border = JBUI.Borders.emptyLeft(15)
+          setIcon(issueIcon(issueGroup.type))
+        })
+      }
+      if (pluginUiData.issues.isEmpty()) {
+        add(JLabel("No issues found"))
+      }
+    })
   }
 
 private fun commonPluginInfo(data: CriticalPathPluginUiData): JBLabel {
@@ -75,9 +95,22 @@ private fun commonTaskInfo(taskData: TaskUiData): JComponent {
   return JBLabel(text.html).setCopyable(true).setAllowAutoWrapping(true)
 }
 
-fun taskInfoPanel(taskData: TaskUiData): JPanel {
+fun taskInfoPanel(taskData: TaskUiData, listener: TreeLinkListener<TaskIssueUiData>): JPanel {
   val infoPanel = JPanel(GridBagLayout())
   val taskInfo = commonTaskInfo(taskData)
+  val issuesList = JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
+    add(JBLabel("Issues with this task").withFont(JBUI.Fonts.label().asBold()))
+    for (issue in taskData.issues) {
+      val label = HyperlinkLabel(issue.type.uiName)
+      label.addHyperlinkListener { listener.clickedOn(issue) }
+      label.border = JBUI.Borders.emptyLeft(15)
+      label.setIcon(issueIcon(issue.type))
+      add(label)
+    }
+    if (taskData.issues.isEmpty()) {
+      add(JLabel("No issues found"))
+    }
+  }
   val reasonsToRunHeader = JBLabel("Reason task ran").withFont(JBUI.Fonts.label().asBold())
   val reasonsList = reasonsToRunList(taskData)
 
@@ -91,6 +124,9 @@ fun taskInfoPanel(taskData: TaskUiData): JPanel {
   infoPanel.add(taskInfo, c)
 
   c.gridy = 1
+  infoPanel.add(issuesList, c)
+
+  c.gridy = 2
   c.insets = JBUI.insetsTop(8)
   infoPanel.add(reasonsToRunHeader, c)
 
@@ -126,6 +162,15 @@ fun verticalRuler(): JPanel = JBPanel<JBPanel<*>>()
   .withPreferredWidth(1)
   .withMaximumWidth(1)
   .withMinimumWidth(1)
+
+fun createIssueTypeListPanel(issuesGroup: TaskIssuesGroup, listener: TreeLinkListener<TaskIssueUiData>): JComponent =
+  JBPanel<JBPanel<*>>().apply {
+    layout = VerticalLayout(6)
+    add(JBLabel("${issuesGroup.type.uiName} (${issuesGroup.issues.size})"))
+    issuesGroup.issues.forEach {
+      add(HyperlinkLabel(it.task.taskPath).apply { addHyperlinkListener { _ -> listener.clickedOn(it) } })
+    }
+  }
 
 fun criticalPathHeader(prefix: String, duration: String): JComponent = JPanel().apply {
   layout = HorizontalLayout(10, SwingConstants.BOTTOM)

@@ -20,8 +20,8 @@ import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
 import com.android.build.attribution.ui.data.CriticalPathTasksUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
-import com.android.build.attribution.ui.getPluginIcon
-import com.android.build.attribution.ui.getTaskIcon
+import com.android.build.attribution.ui.pluginIcon
+import com.android.build.attribution.ui.taskIcon
 import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.android.build.attribution.ui.panels.TimeDistributionChart
 import com.intellij.ui.JBColor
@@ -114,7 +114,7 @@ private class TaskChartItem(
     return taskData.taskPath
   }
 
-  override fun getTableIcon() = getTaskIcon(taskData)
+  override fun getTableIcon() = taskIcon(taskData)
 
   override fun getLegendColor(): JBColor {
     return assignedColor
@@ -142,7 +142,7 @@ private class PluginChartItem(
     return pluginData.name
   }
 
-  override fun getTableIcon(): Icon? = getPluginIcon(pluginData)
+  override fun getTableIcon(): Icon? = pluginIcon(pluginData)
 
   override fun getLegendColor(): JBColor {
     return assignedColor
