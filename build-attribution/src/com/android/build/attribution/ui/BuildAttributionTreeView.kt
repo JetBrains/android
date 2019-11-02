@@ -18,6 +18,7 @@ package com.android.build.attribution.ui
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.tree.AbstractBuildAttributionNode
 import com.android.build.attribution.ui.tree.BuildAttributionNodeRenderer
+import com.android.build.attribution.ui.tree.BuildSummaryNode
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComponentContainer
@@ -156,6 +157,7 @@ class BuildAttributionTreeView(
 
     override fun buildChildren(): Array<SimpleNode> {
       val nodes = mutableListOf<SimpleNode>()
+      nodes.add(BuildSummaryNode(reportData.buildSummary, this))
       return nodes.toTypedArray()
     }
   }

@@ -56,6 +56,7 @@ class BuildAttributionManagerImpl(
   }
 
   override fun onBuildSuccess(attributionFilePath: String) {
+    val buildFinishedTimestamp = System.currentTimeMillis()
     val attributionData = AndroidGradlePluginAttributionData.load(File(attributionFilePath))
     if (attributionData != null) {
       taskContainer.updateTasksData(attributionData)
@@ -64,7 +65,7 @@ class BuildAttributionManagerImpl(
 
     logBuildAttributionResults()
 
-    reportUiData = BuildAttributionReportBuilder().build()
+    reportUiData = BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp).build()
     ApplicationManager.getApplication().invokeLater { createUiTab() }
   }
 

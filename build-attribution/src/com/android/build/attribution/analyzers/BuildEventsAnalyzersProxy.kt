@@ -23,13 +23,26 @@ import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
 
+interface BuildEventsAnalyzersResultsProvider {
+  fun getAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData>
+  fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData>
+  fun getCriticalPathDuration(): Long
+  fun getTotalBuildTime(): Long
+  fun getTasksCriticalPath(): List<TaskData>
+  fun getPluginsCriticalPath(): List<CriticalPathAnalyzer.PluginBuildData>
+  fun getProjectsConfigurationData(): List<ProjectConfigurationData>
+  fun getAlwaysRunTasks(): List<AlwaysRunTaskData>
+  fun getNoncacheableTasks(): List<TaskData>
+  fun getTasksSharingOutput(): List<TasksSharingOutputData>
+}
+
 /**
  * A way of interaction between the build events analyzers and the build attribution manager.
  * Used to fetch the final data from the analyzers after the build is complete.
  */
 class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter,
                                 taskContainer: TaskContainer,
-                                pluginContainer: PluginContainer) {
+                                pluginContainer: PluginContainer) : BuildEventsAnalyzersResultsProvider {
   private val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(warningsFilter, taskContainer, pluginContainer)
   private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(warningsFilter)
   private val criticalPathAnalyzer = CriticalPathAnalyzer(warningsFilter, taskContainer, pluginContainer)
@@ -45,43 +58,43 @@ class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter,
   fun getBuildAttributionReportAnalyzers(): List<BuildAttributionReportAnalyzer> = listOf(noncacheableTasksAnalyzer,
                                                                                           tasksConfigurationIssuesAnalyzer)
 
-  fun getAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> {
+  override fun getAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> {
     return annotationProcessorsAnalyzer.getAnnotationProcessorsData()
   }
 
-  fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> {
+  override fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> {
     return annotationProcessorsAnalyzer.getNonIncrementalAnnotationProcessorsData()
   }
 
-  fun getCriticalPathDuration(): Long {
+  override fun getCriticalPathDuration(): Long {
     return criticalPathAnalyzer.criticalPathDuration
   }
 
-  fun getTotalBuildTime(): Long {
+  override fun getTotalBuildTime(): Long {
     return criticalPathAnalyzer.totalBuildTime
   }
 
-  fun getTasksCriticalPath(): List<TaskData> {
+  override fun getTasksCriticalPath(): List<TaskData> {
     return criticalPathAnalyzer.tasksCriticalPath
   }
 
-  fun getPluginsCriticalPath(): List<CriticalPathAnalyzer.PluginBuildData> {
+  override fun getPluginsCriticalPath(): List<CriticalPathAnalyzer.PluginBuildData> {
     return criticalPathAnalyzer.pluginsCriticalPath
   }
 
-  fun getProjectsConfigurationData(): List<ProjectConfigurationData> {
+  override fun getProjectsConfigurationData(): List<ProjectConfigurationData> {
     return projectConfigurationAnalyzer.projectsConfigurationData
   }
 
-  fun getAlwaysRunTasks(): List<AlwaysRunTaskData> {
+  override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> {
     return alwaysRunTasksAnalyzer.alwaysRunTasks
   }
 
-  fun getNoncacheableTasks(): List<TaskData> {
+  override fun getNoncacheableTasks(): List<TaskData> {
     return noncacheableTasksAnalyzer.noncacheableTasks
   }
 
-  fun getTasksSharingOutput(): List<TasksSharingOutputData> {
+  override fun getTasksSharingOutput(): List<TasksSharingOutputData> {
     return tasksConfigurationIssuesAnalyzer.tasksSharingOutput
   }
 }

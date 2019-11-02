@@ -24,5 +24,12 @@ package com.android.build.attribution.ui.data
  * (e.g. should be properly sorted).
  */
 
-interface BuildAttributionReportUiData
+interface BuildAttributionReportUiData {
+  val buildSummary: BuildSummary
+}
 
+interface BuildSummary {
+  val buildFinishedTimestamp: Long
+  val totalBuildDuration: TimeWithPercentage
+  val criticalPathDuration: TimeWithPercentage
+}
