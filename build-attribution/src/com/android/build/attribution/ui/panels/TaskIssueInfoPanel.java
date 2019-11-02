@@ -19,6 +19,7 @@ import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.duration
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.issueIcon;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.percentageString;
 
+import com.android.build.attribution.ui.data.InterTaskIssueUiData;
 import com.android.build.attribution.ui.data.TaskIssueUiData;
 import com.android.build.attribution.ui.data.TaskUiData;
 import com.android.utils.HtmlBuilder;
@@ -98,6 +99,11 @@ public class TaskIssueInfoPanel extends JBPanel {
     c.fill = GridBagConstraints.NONE;
 
     panel.add(createTaskInfo(myTaskData), c);
+    if (myIssue instanceof InterTaskIssueUiData) {
+      c.gridx = 1;
+      c.insets = JBUI.insetsLeft(100);
+      panel.add(createTaskInfo(((InterTaskIssueUiData)myIssue).getConnectedTask()), c);
+    }
 
     //add space filler to the right
     c.weightx = 1.0;

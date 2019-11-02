@@ -24,6 +24,7 @@ import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueType.ALWAYS_RUN_TASKS
+import com.android.build.attribution.ui.data.TaskIssueType.TASK_SETUP_ISSUE
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.TaskUiData
 import com.google.common.truth.Truth.assertThat
@@ -61,12 +62,15 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
     val report = BuildAttributionReportBuilder(analyzerResults, 12345).build()
 
     assertThat(report.criticalPathTasks.size).isEqualTo(4)
-    assertThat(report.criticalPathTasks.warningCount).isEqualTo(3)
+    // Five warning level issues found (TasksSharingOutput contributes as two - one for every task)
+    assertThat(report.criticalPathTasks.warningCount).isEqualTo(5)
     assertThat(report.criticalPathTasks.infoCount).isEqualTo(0)
     // Check issues assigned for each task.
-    report.criticalPathTasks.tasks[0].verifyIssues(":app:taskA", listOf(ALWAYS_RUN_TASKS), warningExpected = true, infoExpected = false)
+    report.criticalPathTasks.tasks[0].verifyIssues(":app:taskA", listOf(ALWAYS_RUN_TASKS, TASK_SETUP_ISSUE), warningExpected = true,
+                                                   infoExpected = false)
     report.criticalPathTasks.tasks[1].verifyIssues(":app:taskB", listOf(ALWAYS_RUN_TASKS), warningExpected = true, infoExpected = false)
-    report.criticalPathTasks.tasks[2].verifyIssues(":lib:taskC", listOf(ALWAYS_RUN_TASKS), warningExpected = true, infoExpected = false)
+    report.criticalPathTasks.tasks[2].verifyIssues(":lib:taskC", listOf(ALWAYS_RUN_TASKS, TASK_SETUP_ISSUE), warningExpected = true,
+                                                   infoExpected = false)
     report.criticalPathTasks.tasks[3].verifyIssues(":app:taskD", listOf(), warningExpected = false, infoExpected = false)
   }
 
@@ -100,12 +104,16 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
 
     val report = BuildAttributionReportBuilder(analyzerResults, 12345).build()
 
-    report.criticalPathPlugins.verify(expectedSize = 2, expectedWarnings = 3, expectedInfos = 0)
+    // Five warning level issues found (TasksSharingOutput contributes as two - one for every task)
+    report.criticalPathPlugins.verify(expectedSize = 2, expectedWarnings = 5, expectedInfos = 0)
     // Only one taskA is on critical path but there is another issue for pluginA for the task not on critical path.
-    report.criticalPathPlugins.plugins[0].verify(expectedTasksSize = 1, expectedWarnings = 2, expectedInfos = 0)
-    report.criticalPathPlugins.plugins[0].criticalPathTasks.verify(expectedSize = 1, expectedWarnings = 1, expectedInfos = 0)
-    assertThat(report.criticalPathPlugins.plugins[0].issues.size).isEqualTo(1)
+    // 2 warnings and 1 info from taskA and 2 warnings from nonCritPathTask
+    report.criticalPathPlugins.plugins[0].verify(expectedTasksSize = 1, expectedWarnings = 4, expectedInfos = 0)
+    report.criticalPathPlugins.plugins[0].criticalPathTasks.verify(expectedSize = 1, expectedWarnings = 2, expectedInfos = 0)
+    assertThat(report.criticalPathPlugins.plugins[0].issues.size).isEqualTo(2)
     report.criticalPathPlugins.plugins[0].issues[0].verify(expectedType = ALWAYS_RUN_TASKS, expectedSize = 2, expectedWarnings = 2,
+                                                           expectedInfos = 0)
+    report.criticalPathPlugins.plugins[0].issues[1].verify(expectedType = TASK_SETUP_ISSUE, expectedSize = 2, expectedWarnings = 2,
                                                            expectedInfos = 0)
 
     report.criticalPathPlugins.plugins[1].verify(expectedTasksSize = 1, expectedWarnings = 1, expectedInfos = 0)
@@ -143,8 +151,9 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
 
     val report = BuildAttributionReportBuilder(analyzerResults, 12345).build()
 
-    assertThat(report.issues.size).isEqualTo(1)
+    assertThat(report.issues.size).isEqualTo(2)
     report.issues[0].verify(ALWAYS_RUN_TASKS, 3, 3, 0)
+    report.issues[1].verify(TASK_SETUP_ISSUE, 2, 2, 0)
   }
 
   private fun CriticalPathPluginTasksUiData.verify(

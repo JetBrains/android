@@ -122,6 +122,8 @@ enum class TaskIssueType(
 ) {
   // Order is important and reflects sorting order on the UI.
   ALWAYS_RUN_TASKS("Always-run Tasks", IssueLevel.WARNING),
+  TASK_SETUP_ISSUE("Task Setup Issues", IssueLevel.WARNING),
+
 }
 
 interface TaskIssueUiData {
@@ -129,4 +131,12 @@ interface TaskIssueUiData {
   val task: TaskUiData
   val explanation: String
   val helpLink: String
+}
+
+/**
+ * Represents an issue that has another task connected to it
+ * e.g. For tasks declaring same output we want to show the original task and another task that declares same output.
+ */
+interface InterTaskIssueUiData : TaskIssueUiData {
+  val connectedTask: TaskUiData
 }
