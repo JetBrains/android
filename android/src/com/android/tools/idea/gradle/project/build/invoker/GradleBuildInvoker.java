@@ -36,6 +36,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.android.build.attribution.BuildAttributionManager;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.build.attribution.ui.filters.BuildAttributionOutputLinkFilter;
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.ProjectStructure;
@@ -440,6 +441,9 @@ public class GradleBuildInvoker {
           StartBuildEventImpl event = new StartBuildEventImpl(new DefaultBuildDescriptor(id, executionName, workingDir, eventTime),
                                                               "running...");
           event.withRestartAction(restartAction).withExecutionFilter(new AndroidReRunBuildFilter(workingDir));
+          if (isBuildAttributionEnabledForProject(myProject)) {
+            event.withExecutionFilter(new BuildAttributionOutputLinkFilter());
+          }
           myBuildEventDispatcher.onEvent(id, event);
         }
 
@@ -485,9 +489,17 @@ public class GradleBuildInvoker {
 
         @Override
         public void onSuccess(@NotNull ExternalSystemTaskId id) {
+          addBuildAttributionLinkToTheOutput(id);
           FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "successful",
                                                                 new SuccessResultImpl());
           myBuildEventDispatcher.onEvent(id, event);
+        }
+
+        private void addBuildAttributionLinkToTheOutput(@NotNull ExternalSystemTaskId id) {
+          if (isBuildAttributionEnabledForProject(myProject)) {
+            String buildAttributionTabLinkLine = ServiceManager.getService(myProject, BuildAttributionManager.class).buildOutputLine();
+            onTaskOutput(id, "\n" + buildAttributionTabLinkLine, true);
+          }
         }
 
         @Override

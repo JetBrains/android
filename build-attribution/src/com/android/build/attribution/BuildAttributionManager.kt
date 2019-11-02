@@ -28,4 +28,11 @@ interface BuildAttributionManager : ProgressListener {
   fun onBuildSuccess(attributionFilePath: String)
 
   fun onBuildFailure()
+
+  fun openResultsTab()
+
+  /**
+   * Provides the line to be added to the end of build output to advertise the feature.
+   */
+  fun buildOutputLine(): String
 }

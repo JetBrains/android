@@ -24,6 +24,7 @@ import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.ui.BuildAttributionTreeView
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
+import com.android.build.attribution.ui.filters.BuildAttributionOutputLinkFilter
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
@@ -93,6 +94,16 @@ class BuildAttributionManagerImpl(
       }
     }
   }
+
+  @UiThread
+  override fun openResultsTab() {
+    if (buildContent?.isValid != true) {
+      createUiTab()
+    }
+    buildContentManager.setSelectedContent(buildContent, true, true, true) {}
+  }
+
+  override fun buildOutputLine(): String = BuildAttributionOutputLinkFilter.INSIGHTS_AVAILABLE_LINE
 
   private fun logBuildAttributionResults() {
     val stringBuilder = StringBuilder()
