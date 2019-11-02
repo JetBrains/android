@@ -18,6 +18,7 @@ package com.android.tools.idea.databinding
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
 import com.intellij.psi.search.GlobalSearchScope
@@ -174,7 +175,7 @@ class BrTests(private val mode: DataBindingMode) {
       public class MainActivity extends Activity {
         @Override
         protected void onCreate(Bundle savedInstanceState) {
-          BR.<caret>
+          BR.${caret}
         }
       }
     """.trimIndent())

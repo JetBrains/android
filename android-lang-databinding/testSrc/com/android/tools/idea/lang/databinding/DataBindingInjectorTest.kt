@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
 import com.intellij.testFramework.EdtRule
@@ -104,7 +105,7 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
         </data>
         <TextView
             android:id="@+id/c_0_0"
-            app:print="@{<caret>member.doSomething()}"/>
+            app:print="@{${caret}member.doSomething()}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -134,7 +135,7 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
         </data>
         <TextView
             android:id="@+id/c_0_0"
-            android:text="@{<caret>member.doSomething()}"/>
+            android:text="@{${caret}member.doSomething()}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -167,7 +168,7 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
         </data>
         <TextView
             android:id="@+id/c_0_0"
-            app:print="@{<caret>member.doSomething()}"/>
+            app:print="@{${caret}member.doSomething()}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -196,7 +197,7 @@ class DataBindingInjectorTest(private val mode: DataBindingMode) {
         </data>
         <TextView
             android:id="@+id/c_0_0"
-            app:print="@DataBinding{<caret>member.doSomething()}"/>
+            app:print="@DataBinding{${caret}member.doSomething()}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
