@@ -15,14 +15,31 @@
  */
 package com.android.build.attribution.ui.data.builder
 
+import com.android.build.attribution.analyzers.BuildEventsAnalyzersResultsProvider
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
+import com.android.build.attribution.ui.data.BuildSummary
+import com.android.build.attribution.ui.data.TimeWithPercentage
 
 
 /**
  * A Builder class for a data structure holding the data gathered by Gradle build analyzers.
  * The data structure of the report is described in UiDataModel.kt
  */
-class BuildAttributionReportBuilder {
+class BuildAttributionReportBuilder(
+  val analyzersProxy: BuildEventsAnalyzersResultsProvider,
+  val buildFinishedTimestamp: Long
+) {
 
-  fun build(): BuildAttributionReportUiData = object : BuildAttributionReportUiData {}
+  fun build(): BuildAttributionReportUiData {
+    val buildSummary = createBuildSummary()
+    return object : BuildAttributionReportUiData {
+      override val buildSummary: BuildSummary = buildSummary
+    }
+  }
+
+  private fun createBuildSummary() = object : BuildSummary {
+    override val buildFinishedTimestamp = this@BuildAttributionReportBuilder.buildFinishedTimestamp
+    override val totalBuildDuration = TimeWithPercentage(analyzersProxy.getTotalBuildTime(), analyzersProxy.getTotalBuildTime())
+    override val criticalPathDuration = TimeWithPercentage(analyzersProxy.getCriticalPathDuration(), analyzersProxy.getTotalBuildTime())
+  }
 }
