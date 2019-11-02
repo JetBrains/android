@@ -20,9 +20,11 @@ import com.android.build.attribution.analyzers.CriticalPathAnalyzer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.BuildSummary
+import com.android.build.attribution.ui.data.CriticalPathPluginTasksUiData
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
 import com.android.build.attribution.ui.data.CriticalPathTasksUiData
+import com.android.build.attribution.ui.data.IssueLevel
 import com.android.build.attribution.ui.data.TimeWithPercentage
 
 
@@ -35,14 +37,17 @@ class BuildAttributionReportBuilder(
   val buildFinishedTimestamp: Long
 ) {
 
-  private val taskUiDataContainer: TaskUiDataContainer = TaskUiDataContainer(analyzersProxy)
+  private val issueUiDataContainer: TaskIssueUiDataContainer = TaskIssueUiDataContainer(analyzersProxy)
+  private val taskUiDataContainer: TaskUiDataContainer = TaskUiDataContainer(analyzersProxy, issueUiDataContainer)
 
   fun build(): BuildAttributionReportUiData {
+    issueUiDataContainer.populate(taskUiDataContainer)
     val buildSummary = createBuildSummary()
     return object : BuildAttributionReportUiData {
       override val buildSummary: BuildSummary = buildSummary
       override val criticalPathTasks = createCriticalPathTasks(buildSummary.criticalPathDuration)
       override val criticalPathPlugins = createCriticalPathPlugins(buildSummary.criticalPathDuration)
+      override val issues = issueUiDataContainer.allIssueGroups()
     }
   }
 
@@ -52,13 +57,14 @@ class BuildAttributionReportBuilder(
     override val criticalPathDuration = TimeWithPercentage(analyzersProxy.getCriticalPathDuration(), analyzersProxy.getTotalBuildTime())
   }
 
-
   private fun createCriticalPathTasks(criticalPathDuration: TimeWithPercentage) = object : CriticalPathTasksUiData {
     override val criticalPathDuration = criticalPathDuration
     override val miscStepsTime = criticalPathDuration.supplement()
     override val tasks = analyzersProxy.getTasksCriticalPath()
       .map { taskUiDataContainer.getByTaskData(it) }
       .sortedByDescending { it.executionTime }
+    override val warningCount = tasks.flatMap { it.issues }.count { it.type.level == IssueLevel.WARNING }
+    override val infoCount = tasks.flatMap { it.issues }.count { it.type.level == IssueLevel.INFO }
   }
 
   private fun createCriticalPathPlugins(criticalPathDuration: TimeWithPercentage): CriticalPathPluginsUiData {
@@ -71,6 +77,8 @@ class BuildAttributionReportBuilder(
           createCriticalPathPluginUiData(taskByPlugin[it.plugin].orEmpty(), it)
         }
         .sortedByDescending { it.criticalPathDuration }
+      override val warningCount = plugins.sumBy { it.warningCount }
+      override val infoCount = plugins.sumBy { it.infoCount }
     }
   }
 
@@ -80,6 +88,17 @@ class BuildAttributionReportBuilder(
   ) = object : CriticalPathPluginUiData {
     override val name = pluginCriticalPathBuildData.plugin.displayName
     override val criticalPathDuration = TimeWithPercentage(pluginCriticalPathBuildData.buildDuration, analyzersProxy.getTotalBuildTime())
-    override val criticalPathTasks = criticalPathTasks.map { taskUiDataContainer.getByTaskData(it) }
+    override val criticalPathTasks = createPluginTasksCriticalPath(criticalPathTasks, criticalPathDuration)
+    override val issues = issueUiDataContainer.pluginIssueGroups(pluginCriticalPathBuildData.plugin)
+    override val warningCount = issues.sumBy { it.warningCount }
+    override val infoCount = issues.sumBy { it.infoCount }
   }
+
+  private fun createPluginTasksCriticalPath(criticalPathTasks: List<TaskData>, criticalPathDuration: TimeWithPercentage) =
+    object : CriticalPathPluginTasksUiData {
+      override val criticalPathDuration = criticalPathDuration
+      override val tasks = criticalPathTasks.map { taskUiDataContainer.getByTaskData(it) }
+      override val warningCount = tasks.flatMap { it.issues }.count { it.type.level == IssueLevel.WARNING }
+      override val infoCount = tasks.flatMap { it.issues }.count { it.type.level == IssueLevel.INFO }
+    }
 }

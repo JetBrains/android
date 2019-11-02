@@ -28,6 +28,10 @@ interface BuildAttributionReportUiData {
   val buildSummary: BuildSummary
   val criticalPathTasks: CriticalPathTasksUiData
   val criticalPathPlugins: CriticalPathPluginsUiData
+  /**
+   * All detected issues grouped by issue type
+   */
+  val issues: List<TaskIssuesGroup>
 }
 
 interface BuildSummary {
@@ -42,12 +46,16 @@ interface CriticalPathTasksUiData {
   val tasks: List<TaskUiData>
   val size: Int
     get() = tasks.size
+  val warningCount: Int
+  val infoCount: Int
 }
 
 interface CriticalPathPluginsUiData {
   val criticalPathDuration: TimeWithPercentage
   val miscStepsTime: TimeWithPercentage
   val plugins: List<CriticalPathPluginUiData>
+  val warningCount: Int
+  val infoCount: Int
 }
 
 interface TaskUiData {
@@ -60,6 +68,11 @@ interface TaskUiData {
   val pluginName: String
   val sourceType: PluginSourceType
   val reasonsToRun: List<String>
+  val issues: List<TaskIssueUiData>
+  val hasWarning: Boolean
+    get() = issues.any { it.type.level == IssueLevel.WARNING }
+  val hasInfo: Boolean
+    get() = issues.any { it.type.level == IssueLevel.INFO }
 }
 
 enum class PluginSourceType {
@@ -71,5 +84,49 @@ interface CriticalPathPluginUiData {
   /** Total time of this plugin tasks on critical path. */
   val criticalPathDuration: TimeWithPercentage
   /** This plugin tasks on critical path. */
-  val criticalPathTasks: List<TaskUiData>
+  val criticalPathTasks: CriticalPathPluginTasksUiData
+  val issues: List<TaskIssuesGroup>
+  val warningCount: Int
+  val infoCount: Int
+}
+
+interface CriticalPathPluginTasksUiData {
+  val criticalPathDuration: TimeWithPercentage
+  val tasks: List<TaskUiData>
+  val size: Int
+    get() = tasks.size
+  val warningCount: Int
+  val infoCount: Int
+}
+
+/**
+ * Represents issues list of one type.
+ */
+interface TaskIssuesGroup {
+  val type: TaskIssueType
+  val issues: List<TaskIssueUiData>
+  val size: Int
+    get() = issues.size
+  val warningCount: Int
+    get() = if (type.level == IssueLevel.WARNING) size else 0
+  val infoCount: Int
+    get() = if (type.level == IssueLevel.INFO) size else 0
+  val timeContribution: TimeWithPercentage
+}
+
+enum class IssueLevel { WARNING, INFO }
+
+enum class TaskIssueType(
+  val uiName: String,
+  val level: IssueLevel
+) {
+  // Order is important and reflects sorting order on the UI.
+  ALWAYS_RUN_TASKS("Always-run Tasks", IssueLevel.WARNING),
+}
+
+interface TaskIssueUiData {
+  val type: TaskIssueType
+  val task: TaskUiData
+  val explanation: String
+  val helpLink: String
 }

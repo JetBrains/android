@@ -1,0 +1,142 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.build.attribution.ui.panels;
+
+import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.durationString;
+import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.issueIcon;
+import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.percentageString;
+
+import com.android.build.attribution.ui.data.TaskIssueUiData;
+import com.android.build.attribution.ui.data.TaskUiData;
+import com.android.utils.HtmlBuilder;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.JBUI;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.SwingConstants;
+
+public class TaskIssueInfoPanel extends JBPanel {
+  private final TaskUiData myTaskData;
+  private final TaskIssueUiData myIssue;
+
+  public TaskIssueInfoPanel(TaskIssueUiData issue) {
+    super(new GridBagLayout());
+    myIssue = issue;
+    myTaskData = issue.getTask();
+
+    GridBagConstraints c = new GridBagConstraints();
+    c.insets = JBUI.insetsBottom(15);
+    c.weightx = 1.0;
+    c.weighty = 0.0;
+    c.fill = GridBagConstraints.BOTH;
+    c.anchor = GridBagConstraints.FIRST_LINE_START;
+    add(createIssueDescription(), c);
+
+    c.gridy = 1;
+    c.fill = GridBagConstraints.HORIZONTAL;
+    add(createTaskInfo(), c);
+
+    //add bottom space filler
+    c.gridy = 3;
+    c.weighty = 1.0;
+    c.fill = GridBagConstraints.BOTH;
+    add(new JBPanel(), c);
+  }
+
+  protected JComponent createIssueDescription() {
+    String text = new HtmlBuilder()
+      .openHtmlBody()
+      .addHtml(myIssue.getExplanation())
+      .newline()
+      .addLink("Learn more", myIssue.getHelpLink())
+      .closeHtmlBody()
+      .getHtml();
+
+    JLabel iconLabel = new JLabel(issueIcon(myIssue.getType()));
+    JLabel issueDescription = createWrappableHtmlLabel(text);
+
+    JBPanel<JBPanel> panel = new JBPanel<>(new GridBagLayout());
+    GridBagConstraints c = new GridBagConstraints();
+    c.fill = GridBagConstraints.NONE;
+    c.gridx = 0;
+    c.gridy = 0;
+    c.anchor = GridBagConstraints.FIRST_LINE_START;
+    panel.add(iconLabel, c);
+
+    c.gridx = 1;
+    c.insets = JBUI.insetsLeft(5);
+    c.weightx = 1.0;
+    c.weighty = 1.0;
+    c.fill = GridBagConstraints.BOTH;
+    panel.add(issueDescription, c);
+    return panel;
+  }
+
+  protected JComponent createTaskInfo() {
+    JBPanel<JBPanel> panel = new JBPanel<>(new GridBagLayout());
+    GridBagConstraints c = new GridBagConstraints();
+    c.insets = JBUI.insetsBottom(15);
+    c.weightx = 0.0;
+    c.weighty = 1.0;
+    c.anchor = GridBagConstraints.FIRST_LINE_START;
+    c.fill = GridBagConstraints.NONE;
+
+    panel.add(createTaskInfo(myTaskData), c);
+
+    //add space filler to the right
+    c.weightx = 1.0;
+    c.fill = GridBagConstraints.BOTH;
+    c.gridx++;
+    panel.add(new JBPanel(), c);
+    return panel;
+  }
+
+  private static JComponent createTaskInfo(TaskUiData taskData) {
+    String text = new HtmlBuilder()
+      .openHtmlBody()
+      .addBold(taskData.getTaskPath())
+      .newline()
+      .add("Plugin: ")
+      .add(taskData.getPluginName())
+      .newline()
+      .add("Type: ")
+      .add(taskData.getTaskType())
+      .newline()
+      .add("On Critical Path: ")
+      .add(taskData.getOnCriticalPath() ? "Yes" : "No")
+      .newline()
+      .add("Duration: ")
+      .add(durationString(taskData.getExecutionTime()))
+      .add(" / ")
+      .add(percentageString(taskData.getExecutionTime()))
+      .newline()
+      .add("Executed incrementally: ")
+      .add(taskData.getExecutedIncrementally() ? "Yes" : "No")
+      .closeHtmlBody()
+      .getHtml();
+    return createWrappableHtmlLabel(text);
+  }
+
+  public static JLabel createWrappableHtmlLabel(String text) {
+    JBLabel label = new JBLabel().setCopyable(true).setAllowAutoWrapping(true);
+    label.setVerticalTextPosition(SwingConstants.TOP);
+    label.setText(text);
+    return label;
+  }
+}

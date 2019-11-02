@@ -22,6 +22,7 @@ import com.android.build.attribution.analyzers.isKotlinPlugin
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.ui.data.PluginSourceType
+import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 
@@ -29,7 +30,10 @@ import com.android.build.attribution.ui.data.TimeWithPercentage
  * This class holds [TaskUiData] representations for [TaskData] objects provided from build analyzers.
  * Clients of this class may assume that there is only one [TaskUiData] object for every [TaskData] object.
  */
-class TaskUiDataContainer(analyzersProxy: BuildEventsAnalyzersResultsProvider) {
+class TaskUiDataContainer(
+  analyzersProxy: BuildEventsAnalyzersResultsProvider,
+  val issuesContainer: TaskIssueUiDataContainer
+) {
 
   private val tasksCache: MutableMap<TaskData, TaskUiData> = HashMap()
   private val criticalPathTasks: Set<TaskData> = analyzersProxy.getTasksCriticalPath().toHashSet()
@@ -52,6 +56,8 @@ class TaskUiDataContainer(analyzersProxy: BuildEventsAnalyzersResultsProvider) {
       override val executedIncrementally: Boolean = task.executionMode == TaskData.TaskExecutionMode.INCREMENTAL
       override val onCriticalPath: Boolean = task in criticalPathTasks
       override val reasonsToRun: List<String> = task.executionReasons
+      override val issues: List<TaskIssueUiData>
+        get() = issuesContainer.issuesForTask(task)
     }
   }
 }
