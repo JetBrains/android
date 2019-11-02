@@ -20,6 +20,7 @@ import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.panels.TreeLinkListener
 import com.android.build.attribution.ui.tree.AbstractBuildAttributionNode
+import com.android.build.attribution.ui.tree.AnnotationProcessorsRoot
 import com.android.build.attribution.ui.tree.BuildAttributionNodeRenderer
 import com.android.build.attribution.ui.tree.BuildSummaryNode
 import com.android.build.attribution.ui.tree.PluginConfigurationTimeRoot
@@ -179,6 +180,7 @@ class BuildAttributionTreeView(
         nodes.add(TaskIssuesRoot(it, this, this@BuildAttributionTreeView))
       }
       nodes.add(PluginConfigurationTimeRoot(reportData.configurationTime, this, this@BuildAttributionTreeView))
+      nodes.add(AnnotationProcessorsRoot(reportData.annotationProcessors, this, this@BuildAttributionTreeView))
 
       return nodes.toTypedArray()
     }

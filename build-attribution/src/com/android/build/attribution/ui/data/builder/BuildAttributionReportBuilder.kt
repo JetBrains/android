@@ -51,6 +51,7 @@ class BuildAttributionReportBuilder(
       override val criticalPathPlugins = createCriticalPathPlugins(buildSummary.criticalPathDuration)
       override val issues = issueUiDataContainer.allIssueGroups()
       override val configurationTime = pluginConfigurationTimeReport
+      override val annotationProcessors = AnnotationProcessorsReportBuilder(analyzersProxy).build()
     }
   }
 

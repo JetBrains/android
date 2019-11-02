@@ -33,6 +33,7 @@ interface BuildAttributionReportUiData {
    */
   val issues: List<TaskIssuesGroup>
   val configurationTime: ConfigurationUiData
+  val annotationProcessors: AnnotationProcessorsReport
 }
 
 interface BuildSummary {
@@ -162,4 +163,15 @@ interface PluginConfigurationUiData {
   val slowsConfiguration: Boolean
   val nestedPlugins: List<PluginConfigurationUiData>
   val nestedIssueCount: Int
+}
+
+interface AnnotationProcessorsReport {
+  val nonIncrementalProcessors: List<AnnotationProcessorUiData>
+  val issueCount: Int
+    get() = nonIncrementalProcessors.size
+}
+
+interface AnnotationProcessorUiData {
+  val className: String
+  val compilationTimeMs: Long
 }
