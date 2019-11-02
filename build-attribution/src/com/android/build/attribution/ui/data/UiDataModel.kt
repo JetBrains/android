@@ -32,12 +32,14 @@ interface BuildAttributionReportUiData {
    * All detected issues grouped by issue type
    */
   val issues: List<TaskIssuesGroup>
+  val configurationTime: ConfigurationUiData
 }
 
 interface BuildSummary {
   val buildFinishedTimestamp: Long
   val totalBuildDuration: TimeWithPercentage
   val criticalPathDuration: TimeWithPercentage
+  val configurationDuration: TimeWithPercentage
 }
 
 interface CriticalPathTasksUiData {
@@ -139,4 +141,25 @@ interface TaskIssueUiData {
  */
 interface InterTaskIssueUiData : TaskIssueUiData {
   val connectedTask: TaskUiData
+}
+
+interface ConfigurationUiData {
+  val totalConfigurationTime: TimeWithPercentage
+  val projects: List<ProjectConfigurationUiData>
+  val totalIssueCount: Int
+}
+
+interface ProjectConfigurationUiData {
+  val project: String
+  val configurationTime: TimeWithPercentage
+  val plugins: List<PluginConfigurationUiData>
+  val issueCount: Int
+}
+
+interface PluginConfigurationUiData {
+  val pluginName: String
+  val configurationTime: TimeWithPercentage
+  val slowsConfiguration: Boolean
+  val nestedPlugins: List<PluginConfigurationUiData>
+  val nestedIssueCount: Int
 }

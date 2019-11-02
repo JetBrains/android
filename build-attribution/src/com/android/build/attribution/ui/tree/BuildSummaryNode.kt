@@ -19,13 +19,14 @@ import com.android.build.attribution.ui.data.BuildSummary
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.panels.AbstractBuildAttributionInfoPanel
 import com.android.build.attribution.ui.panels.headerLabel
+import com.android.utils.HtmlBuilder
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.treeStructure.SimpleNode
 import com.intellij.util.text.DateFormatUtil
 import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.JLabel
 
 class BuildSummaryNode(
   val buildSummary: BuildSummary,
@@ -44,8 +45,18 @@ class BuildSummaryNode(
 
     override fun createBody(): JComponent {
       return JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
-        add(JLabel("Build duration: ${buildSummary.totalBuildDuration.durationString()}"))
-        add(JLabel("Critical path duration: ${buildSummary.criticalPathDuration.durationString()}"))
+        add(JBLabel().apply {
+          setCopyable(true)
+          setAllowAutoWrapping(true)
+          text = HtmlBuilder()
+            .openHtmlBody()
+            .add("Total build duration was ${buildSummary.totalBuildDuration.durationString()}, it includes:")
+            .newline()
+            .add("Build configuration: ${buildSummary.configurationDuration.durationString()}")
+            .newline()
+            .add("Critical path tasks execution: ${buildSummary.criticalPathDuration.durationString()}")
+            .closeHtmlBody().html
+        })
       }
     }
   }

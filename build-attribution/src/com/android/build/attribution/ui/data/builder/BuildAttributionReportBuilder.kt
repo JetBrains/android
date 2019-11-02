@@ -20,6 +20,7 @@ import com.android.build.attribution.analyzers.CriticalPathAnalyzer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.BuildSummary
+import com.android.build.attribution.ui.data.ConfigurationUiData
 import com.android.build.attribution.ui.data.CriticalPathPluginTasksUiData
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
@@ -42,19 +43,22 @@ class BuildAttributionReportBuilder(
 
   fun build(): BuildAttributionReportUiData {
     issueUiDataContainer.populate(taskUiDataContainer)
-    val buildSummary = createBuildSummary()
+    val pluginConfigurationTimeReport = ConfigurationTimesUiDataBuilder(analyzersProxy).build()
+    val buildSummary = createBuildSummary(pluginConfigurationTimeReport)
     return object : BuildAttributionReportUiData {
       override val buildSummary: BuildSummary = buildSummary
       override val criticalPathTasks = createCriticalPathTasks(buildSummary.criticalPathDuration)
       override val criticalPathPlugins = createCriticalPathPlugins(buildSummary.criticalPathDuration)
       override val issues = issueUiDataContainer.allIssueGroups()
+      override val configurationTime = pluginConfigurationTimeReport
     }
   }
 
-  private fun createBuildSummary() = object : BuildSummary {
+  private fun createBuildSummary(pluginConfigurationTimeReport: ConfigurationUiData) = object : BuildSummary {
     override val buildFinishedTimestamp = this@BuildAttributionReportBuilder.buildFinishedTimestamp
     override val totalBuildDuration = TimeWithPercentage(analyzersProxy.getTotalBuildTime(), analyzersProxy.getTotalBuildTime())
     override val criticalPathDuration = TimeWithPercentage(analyzersProxy.getCriticalPathDuration(), analyzersProxy.getTotalBuildTime())
+    override val configurationDuration = pluginConfigurationTimeReport.totalConfigurationTime
   }
 
   private fun createCriticalPathTasks(criticalPathDuration: TimeWithPercentage) = object : CriticalPathTasksUiData {
