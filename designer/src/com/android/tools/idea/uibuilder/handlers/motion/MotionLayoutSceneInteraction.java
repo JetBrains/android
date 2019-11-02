@@ -42,29 +42,30 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
   private int startX;
   private int startY;
   private NlComponent mySelectedComponent;
-  private Object myKeyframe;
+  private KeyframeCandidate myKeyframeCandidate = new KeyframeCandidate();
+
   private final static int MAX_KEY_POSITIONS = 101; // 0-100 inclusive key positions are allowed
-  private int[] myKeyFrameTypes = new int[MAX_KEY_POSITIONS];
-  private float[] myKeyFramePos = new float[MAX_KEY_POSITIONS * 2];
-  private int myKeyframePosition = -1;
   private String[] myPositionAttributes = new String[2];
   private float[] myPositionsValues = new float[2];
 
+  private static class KeyframeCandidate {
+    Object keyframe;
+    int position = -1;
+    int[] keyFrameTypes = new int[MAX_KEY_POSITIONS];
+    float[] keyFramePos = new float[MAX_KEY_POSITIONS * 2];
+    public void clear() { keyframe = null; position = -1; }
+  }
+
   /**
    * Base constructor
-   *
-   * @param sceneView the ScreenView we belong to
+   *  @param sceneView the ScreenView we belong to
    * @param primary
+   * @param component
    */
   public MotionLayoutSceneInteraction(@NotNull SceneView sceneView,
                                       @NotNull NlComponent primary) {
     super(sceneView, primary);
-    if (sceneView.getSelectionModel().isEmpty()) {
-      mySelectedComponent = primary;
-    }
-    else {
-      mySelectedComponent = sceneView.getSelectionModel().getPrimary();
-    }
+    mySelectedComponent = primary; //sceneView.getSelectionModel().getPrimary();
     mySurface = (NlDesignSurface)sceneView.getSurface();
   }
 
@@ -72,57 +73,92 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
    * On the start of the interaction, we try to find if there's a keyframe close
    * to the mouse down location.
    *
-   * @param x         The most recent mouse x coordinate applicable to this interaction
-   * @param y         The most recent mouse y coordinate applicable to this interaction
+   * @param x           The most recent mouse x coordinate applicable to this interaction
+   * @param y           The most recent mouse y coordinate applicable to this interaction
    * @param modifiersEx The initial AWT mask for the interaction
    */
   @Override
   public void begin(@SwingCoordinate int x, @SwingCoordinate int y,
                     @JdkConstants.InputEventMask int modifiersEx) {
+    startX = x;
+    startY = y;
+
     MotionLayoutComponentHelper helper = MotionLayoutComponentHelper.create(mySelectedComponent);
-    Object view = NlComponentHelperKt.getViewInfo(mySelectedComponent).getViewObject();
     float fx = Coordinates.getAndroidX(mySceneView, x);
     float fy = Coordinates.getAndroidY(mySceneView, y);
 
-    myKeyframePosition = -1;
-    myKeyframe = null;
+    if (hitKeyframe(helper, mySelectedComponent, fx, fy, myKeyframeCandidate)) {
+      mySurface.setRenderSynchronously(true);
+      mySurface.setAnimationScrubbing(true);
+    }
+  }
 
-    int keyFrameCount = helper.getKeyframePos(mySelectedComponent, myKeyFrameTypes, myKeyFramePos);
-    if (keyFrameCount == 0) {
-      return;
+  /**
+   * Returns true if we hit a keyframe of the component at position (fx, fy) and set the KeyFrame and KeyFrame position
+   *
+   * @param helper
+   * @param component
+   * @param fx
+   * @param fy
+   * @param keyframeCandidate
+   * @return
+   */
+  public static boolean hitKeyframe(@NotNull MotionLayoutComponentHelper helper, @NotNull NlComponent component,
+                                    float fx, float fy, @NotNull KeyframeCandidate keyframeCandidate) {
+
+    keyframeCandidate.clear();
+
+    int keyFrameCount = helper.getKeyframePos(component, keyframeCandidate.keyFrameTypes, keyframeCandidate.keyFramePos);
+    if (keyFrameCount <= 0) {
+      return false;
     }
 
-    mySurface.setRenderSynchronously(true);
-    mySurface.setAnimationScrubbing(true);
-
-    for (int i = 0; i < myKeyFrameTypes.length; i++) {
-      if (myKeyFrameTypes[i] / 1000 == 2) {
-        float kx = myKeyFramePos[i * 2];
-        float ky = myKeyFramePos[i * 2 + 1];
+    Object view = NlComponentHelperKt.getViewInfo(component).getViewObject();
+    for (int i = 0; i < keyframeCandidate.keyFrameTypes.length; i++) {
+      if (keyframeCandidate.keyFrameTypes[i] / 1000 == 2) {
+        float kx = keyframeCandidate.keyFramePos[i * 2];
+        float ky = keyframeCandidate.keyFramePos[i * 2 + 1];
         double dx = Math.sqrt((kx - fx) * (kx - fx));
         double dy = Math.sqrt((ky - fy) * (ky - fy));
         if (dx < SLOPE && dy < SLOPE) {
-          int framePosition = myKeyFrameTypes[i] - 2000;
-          myKeyframe = helper.getKeyframe(view, 2, framePosition);
-          myKeyframePosition = framePosition;
+          int framePosition = keyframeCandidate.keyFrameTypes[i] - 2000;
+          keyframeCandidate.keyframe = helper.getKeyframe(view, 2, framePosition);
+          keyframeCandidate.position = framePosition;
         }
       }
     }
-    startX = x;
-    startY = y;
+
+    return keyframeCandidate.keyframe != null;
   }
+
+  /**
+   * Returns true if we hit a keyframe of the component at position (x, y)
+   *
+   * @param sceneView
+   * @param x
+   * @param y
+   * @param helper
+   * @param component
+   * @return
+   */
+  public static boolean hitKeyFrame(@NotNull SceneView sceneView, int x, int y, MotionLayoutComponentHelper helper, NlComponent component) {
+    float fx = Coordinates.getAndroidX(sceneView, x);
+    float fy = Coordinates.getAndroidY(sceneView, y);
+    return hitKeyframe(helper, component, fx, fy, new KeyframeCandidate());
+  }
+
 
   /**
    * On update, we modify the selected keyframe live.
    *
-   * @param x         The most recent mouse x coordinate applicable to this interaction
-   * @param y         The most recent mouse y coordinate applicable to this interaction
+   * @param x           The most recent mouse x coordinate applicable to this interaction
+   * @param y           The most recent mouse y coordinate applicable to this interaction
    * @param modifiersEx current modifier key mask
    */
   @Override
   public void update(@SwingCoordinate int x, @SwingCoordinate int y,
                      @JdkConstants.InputEventMask int modifiersEx) {
-    if (myKeyframe == null) {
+    if (myKeyframeCandidate.keyframe == null) {
       return;
     }
     myPositionAttributes[0] = "percentX";
@@ -133,12 +169,12 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
       float fy = Coordinates.getAndroidY(mySceneView, y);
       Object view = info.getViewObject();
       MotionLayoutComponentHelper helper = MotionLayoutComponentHelper.create(mySelectedComponent);
-      if (helper.getPositionKeyframe(myKeyframe, view, fx, fy, myPositionAttributes, myPositionsValues)) {
-        helper.setKeyframe(myKeyframe, myPositionAttributes[0], myPositionsValues[0]);
-        helper.setKeyframe(myKeyframe, myPositionAttributes[1], myPositionsValues[1]);
+      if (helper.getPositionKeyframe(myKeyframeCandidate.keyframe, view, fx, fy, myPositionAttributes, myPositionsValues)) {
+        helper.setKeyframe(myKeyframeCandidate.keyframe, myPositionAttributes[0], myPositionsValues[0]);
+        helper.setKeyframe(myKeyframeCandidate.keyframe, myPositionAttributes[1], myPositionsValues[1]);
         // tell motion layout to display additional path info
         // TODO: move instead to studio-driven drawing
-        helper.setKeyframe(myKeyframe, "drawPath", 4);
+        helper.setKeyframe(myKeyframeCandidate.keyframe, "drawPath", 4);
         mySelectedComponent.getModel().notifyLiveUpdate(false);
       }
     }
@@ -157,7 +193,7 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
                   @JdkConstants.InputEventMask int modifiersEx) {
     mySurface.setRenderSynchronously(false);
     mySurface.setAnimationScrubbing(false);
-    if (myKeyframe == null || mySelectedComponent == null) {
+    if (myKeyframeCandidate.keyframe == null || mySelectedComponent == null) {
       return;
     }
 
@@ -170,10 +206,10 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
       float fy = Coordinates.getAndroidY(mySceneView, y);
       Object view = info.getViewObject();
       MotionLayoutComponentHelper helper = MotionLayoutComponentHelper.create(mySelectedComponent);
-      if (helper.getPositionKeyframe(myKeyframe, view, fx, fy, myPositionAttributes, myPositionsValues)) {
-        helper.setKeyframe(myKeyframe, myPositionAttributes[0], myPositionsValues[0]);
-        helper.setKeyframe(myKeyframe, myPositionAttributes[1], myPositionsValues[1]);
-        helper.setKeyframe(myKeyframe, "drawPath", 0);
+      if (helper.getPositionKeyframe(myKeyframeCandidate.keyframe, view, fx, fy, myPositionAttributes, myPositionsValues)) {
+        helper.setKeyframe(myKeyframeCandidate.keyframe, myPositionAttributes[0], myPositionsValues[0]);
+        helper.setKeyframe(myKeyframeCandidate.keyframe, myPositionAttributes[1], myPositionsValues[1]);
+        helper.setKeyframe(myKeyframeCandidate.keyframe, "drawPath", 0);
 
         NlComponent motionLayoutComponent = MotionUtils.getMotionLayoutAncestor(mySelectedComponent);
         if (motionLayoutComponent != null) {
@@ -202,7 +238,7 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
                 MTag keyframe = keyframes[i];
                 String framePositionValue = keyframe.getAttributeValue("framePosition");
                 int framePosition = framePositionValue != null ? Integer.parseInt(framePositionValue) : -1;
-                if (framePosition == myKeyframePosition) {
+                if (framePosition == myKeyframeCandidate.position) {
                   String motionTarget = keyframe.getAttributeValue("motionTarget");
                   if (motionTarget != null && selectedId.equals(MotionSceneModel.stripID(motionTarget))) {
                     // we are on the correct keyframe
@@ -222,10 +258,11 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
         mySelectedComponent.getModel().notifyLiveUpdate(false);
       }
     }
-    myKeyframe = null;
+    myKeyframeCandidate.clear();
   }
 
   private String formatValue(float value) {
     return new DecimalFormat("#.###").format(value);
   }
+
 }
