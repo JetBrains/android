@@ -15,31 +15,41 @@
  */
 package com.android.build.attribution
 
+import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersWrapper
 import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
+import com.android.build.attribution.ui.BuildAttributionTreeView
+import com.android.build.attribution.ui.data.BuildAttributionReportUiData
+import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.ui.content.Content
+import com.intellij.ui.content.impl.ContentImpl
 import org.gradle.tooling.events.ProgressEvent
 import java.io.File
 import java.time.Duration
 
 class BuildAttributionManagerImpl(
-  private val myProject: Project,
-  private val myBuildContentManager: BuildContentManager
+  private val project: Project,
+  private val buildContentManager: BuildContentManager
 ) : BuildAttributionManager {
   private val taskContainer = TaskContainer()
   private val pluginContainer = PluginContainer()
 
   @get:VisibleForTesting
-  val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter.getInstance(myProject), taskContainer, pluginContainer)
+  val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter.getInstance(project), taskContainer, pluginContainer)
   private val analyzersWrapper = BuildEventsAnalyzersWrapper(analyzersProxy.getBuildEventsAnalyzers(),
                                                              analyzersProxy.getBuildAttributionReportAnalyzers())
+
+  private var buildContent: Content? = null
+  private var reportUiData: BuildAttributionReportUiData? = null
 
   override fun onBuildStart() {
     analyzersWrapper.onBuildStart()
@@ -52,8 +62,10 @@ class BuildAttributionManagerImpl(
     }
     analyzersWrapper.onBuildSuccess(attributionData)
 
-    // TODO: add proper UI
     logBuildAttributionResults()
+
+    reportUiData = BuildAttributionReportBuilder().build()
+    ApplicationManager.getApplication().invokeLater { createUiTab() }
   }
 
   override fun onBuildFailure() {
@@ -64,6 +76,21 @@ class BuildAttributionManagerImpl(
     if (event == null) return
 
     analyzersWrapper.receiveEvent(event)
+  }
+
+  @UiThread
+  private fun createUiTab() {
+    reportUiData?.let {
+      val view = BuildAttributionTreeView(project, it)
+      val content = buildContent
+      if (content != null && content.isValid) {
+        content.component = view.component
+      }
+      else {
+        buildContent = ContentImpl(view.component, "Build Speed", true)
+        buildContentManager.addContent(buildContent)
+      }
+    }
   }
 
   private fun logBuildAttributionResults() {
