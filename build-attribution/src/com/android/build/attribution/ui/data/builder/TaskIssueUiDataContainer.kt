@@ -19,6 +19,7 @@ import com.android.build.attribution.analyzers.BuildEventsAnalyzersResultsProvid
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
+import com.android.build.attribution.ui.data.InterTaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
@@ -51,6 +52,18 @@ class TaskIssueUiDataContainer(
           AlwaysRunNoOutputIssue(tasksUiDataContainer.getByTaskData(it.taskData))
         }
       )
+    }
+    analyzersProxy.getTasksSharingOutput().forEach { taskSharingIssue ->
+      taskSharingIssue.taskList.forEach { task ->
+        addNewIssue(
+          taskData = task,
+          issueUiData = TaskSetupIssue(
+            task = tasksUiDataContainer.getByTaskData(task),
+            connectedTask = tasksUiDataContainer.getByTaskData(taskSharingIssue.taskList.first { it != task }),
+            outputFolder = taskSharingIssue.outputFilePath
+          )
+        )
+      }
     }
   }
 
@@ -85,6 +98,20 @@ class TaskIssueUiDataContainer(
     .groupBy { it.type }
     .map { (issueType, issuesList) -> toTaskIssueGroup(issueType, issuesList) }
     .sortedBy { it.type.ordinal }
+
+  private inner class TaskSetupIssue(
+    override val task: TaskUiData,
+    override val connectedTask: TaskUiData,
+    val outputFolder: String
+  ) : InterTaskIssueUiData {
+    override val type = TaskIssueType.TASK_SETUP_ISSUE
+    override val explanation = """
+This task declares the same output directory as task ${connectedTask.taskPath}: <span>${outputFolder}</span>.
+As a result, these tasks are not able to take advantage of incremental build optimizations,
+and might need to run with each subsequent build.
+"""
+    override val helpLink = "https://d.android.com/r/tools/build-attribution/duplicate-output-folder"
+  }
 
   private inner class AlwaysRunNoOutputIssue(
     override val task: TaskUiData
