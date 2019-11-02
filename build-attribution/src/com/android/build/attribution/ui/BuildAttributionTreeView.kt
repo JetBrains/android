@@ -19,6 +19,8 @@ import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.tree.AbstractBuildAttributionNode
 import com.android.build.attribution.ui.tree.BuildAttributionNodeRenderer
 import com.android.build.attribution.ui.tree.BuildSummaryNode
+import com.android.build.attribution.ui.tree.CriticalPathPluginsRoot
+import com.android.build.attribution.ui.tree.CriticalPathTasksRoot
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComponentContainer
@@ -158,6 +160,8 @@ class BuildAttributionTreeView(
     override fun buildChildren(): Array<SimpleNode> {
       val nodes = mutableListOf<SimpleNode>()
       nodes.add(BuildSummaryNode(reportData.buildSummary, this))
+      nodes.add(CriticalPathPluginsRoot(reportData.criticalPathPlugins, this))
+      nodes.add(CriticalPathTasksRoot(reportData.criticalPathTasks, this))
       return nodes.toTypedArray()
     }
   }

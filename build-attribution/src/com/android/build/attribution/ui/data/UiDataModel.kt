@@ -26,10 +26,50 @@ package com.android.build.attribution.ui.data
 
 interface BuildAttributionReportUiData {
   val buildSummary: BuildSummary
+  val criticalPathTasks: CriticalPathTasksUiData
+  val criticalPathPlugins: CriticalPathPluginsUiData
 }
 
 interface BuildSummary {
   val buildFinishedTimestamp: Long
   val totalBuildDuration: TimeWithPercentage
   val criticalPathDuration: TimeWithPercentage
+}
+
+interface CriticalPathTasksUiData {
+  val criticalPathDuration: TimeWithPercentage
+  val miscStepsTime: TimeWithPercentage
+  val tasks: List<TaskUiData>
+  val size: Int
+    get() = tasks.size
+}
+
+interface CriticalPathPluginsUiData {
+  val criticalPathDuration: TimeWithPercentage
+  val miscStepsTime: TimeWithPercentage
+  val plugins: List<CriticalPathPluginUiData>
+}
+
+interface TaskUiData {
+  val module: String
+  val taskPath: String
+  val taskType: String
+  val executionTime: TimeWithPercentage
+  val executedIncrementally: Boolean
+  val onCriticalPath: Boolean
+  val pluginName: String
+  val sourceType: PluginSourceType
+  val reasonsToRun: List<String>
+}
+
+enum class PluginSourceType {
+  ANDROID_PLUGIN, BUILD_SRC, THIRD_PARTY
+}
+
+interface CriticalPathPluginUiData {
+  val name: String
+  /** Total time of this plugin tasks on critical path. */
+  val criticalPathDuration: TimeWithPercentage
+  /** This plugin tasks on critical path. */
+  val criticalPathTasks: List<TaskUiData>
 }

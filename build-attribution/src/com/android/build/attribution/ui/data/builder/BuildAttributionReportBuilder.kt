@@ -16,8 +16,13 @@
 package com.android.build.attribution.ui.data.builder
 
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersResultsProvider
+import com.android.build.attribution.analyzers.CriticalPathAnalyzer
+import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.BuildSummary
+import com.android.build.attribution.ui.data.CriticalPathPluginUiData
+import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
+import com.android.build.attribution.ui.data.CriticalPathTasksUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 
 
@@ -30,10 +35,14 @@ class BuildAttributionReportBuilder(
   val buildFinishedTimestamp: Long
 ) {
 
+  private val taskUiDataContainer: TaskUiDataContainer = TaskUiDataContainer(analyzersProxy)
+
   fun build(): BuildAttributionReportUiData {
     val buildSummary = createBuildSummary()
     return object : BuildAttributionReportUiData {
       override val buildSummary: BuildSummary = buildSummary
+      override val criticalPathTasks = createCriticalPathTasks(buildSummary.criticalPathDuration)
+      override val criticalPathPlugins = createCriticalPathPlugins(buildSummary.criticalPathDuration)
     }
   }
 
@@ -41,5 +50,36 @@ class BuildAttributionReportBuilder(
     override val buildFinishedTimestamp = this@BuildAttributionReportBuilder.buildFinishedTimestamp
     override val totalBuildDuration = TimeWithPercentage(analyzersProxy.getTotalBuildTime(), analyzersProxy.getTotalBuildTime())
     override val criticalPathDuration = TimeWithPercentage(analyzersProxy.getCriticalPathDuration(), analyzersProxy.getTotalBuildTime())
+  }
+
+
+  private fun createCriticalPathTasks(criticalPathDuration: TimeWithPercentage) = object : CriticalPathTasksUiData {
+    override val criticalPathDuration = criticalPathDuration
+    override val miscStepsTime = criticalPathDuration.supplement()
+    override val tasks = analyzersProxy.getTasksCriticalPath()
+      .map { taskUiDataContainer.getByTaskData(it) }
+      .sortedByDescending { it.executionTime }
+  }
+
+  private fun createCriticalPathPlugins(criticalPathDuration: TimeWithPercentage): CriticalPathPluginsUiData {
+    val taskByPlugin = analyzersProxy.getTasksCriticalPath().groupBy { it.originPlugin }
+    return object : CriticalPathPluginsUiData {
+      override val criticalPathDuration = criticalPathDuration
+      override val miscStepsTime = criticalPathDuration.supplement()
+      override val plugins = analyzersProxy.getPluginsCriticalPath()
+        .map {
+          createCriticalPathPluginUiData(taskByPlugin[it.plugin].orEmpty(), it)
+        }
+        .sortedByDescending { it.criticalPathDuration }
+    }
+  }
+
+  private fun createCriticalPathPluginUiData(
+    criticalPathTasks: List<TaskData>,
+    pluginCriticalPathBuildData: CriticalPathAnalyzer.PluginBuildData
+  ) = object : CriticalPathPluginUiData {
+    override val name = pluginCriticalPathBuildData.plugin.displayName
+    override val criticalPathDuration = TimeWithPercentage(pluginCriticalPathBuildData.buildDuration, analyzersProxy.getTotalBuildTime())
+    override val criticalPathTasks = criticalPathTasks.map { taskUiDataContainer.getByTaskData(it) }
   }
 }
