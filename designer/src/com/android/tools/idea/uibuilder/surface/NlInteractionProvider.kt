@@ -63,7 +63,7 @@ class NlInteractionProvider(private val surface: DesignSurface): InteractionProv
       if (parent != null) {
         val handler = parent.viewGroupHandler
         if (handler != null) {
-          interaction = handler!!.createInteraction(screenView, primary)
+          interaction = handler!!.createInteraction(screenView, mouseX, mouseY, primary)
         }
       }
     }
@@ -73,7 +73,7 @@ class NlInteractionProvider(private val surface: DesignSurface): InteractionProv
       // to handle the entire interaction
       val viewGroupHandler = component?.viewGroupHandler
       if (viewGroupHandler != null) {
-        interaction = viewGroupHandler!!.createInteraction(screenView, component!!)
+        interaction = viewGroupHandler!!.createInteraction(screenView, mouseX, mouseY, component!!)
       }
     }
 

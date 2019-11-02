@@ -67,7 +67,10 @@ class RelativeLayoutHandler : ViewGroupHandler() {
 
   override fun handlesPainting(): Boolean = true
 
-  override fun createInteraction(screenView: ScreenView, layout: NlComponent) = SceneInteraction(screenView)
+  override fun createInteraction(screenView: ScreenView,
+                                 x: Int,
+                                 y: Int,
+                                 component: NlComponent) = SceneInteraction(screenView)
 
   override fun createTargets(sceneComponent: SceneComponent): List<Target> {
     val listBuilder = ImmutableList.Builder<Target>()

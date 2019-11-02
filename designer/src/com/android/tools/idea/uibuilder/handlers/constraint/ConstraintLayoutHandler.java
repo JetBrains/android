@@ -65,6 +65,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
@@ -398,11 +399,17 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
    * Return a new ConstraintInteraction instance to handle a mouse interaction
    *
    * @param screenView the associated screen view
-   * @param component  the component we belong to
+   * @param x          mouse down (x)
+   * @param y          mouse down (y)
+   * @param component  the component target of the interaction
    * @return a new instance of ConstraintInteraction
    */
   @Override
-  public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component) {
+  @Nullable
+  public Interaction createInteraction(@NotNull ScreenView screenView,
+                                       @SwingCoordinate int x,
+                                       @SwingCoordinate int y,
+                                       @NotNull NlComponent component) {
     return new ConstraintSceneInteraction(screenView, component);
   }
 

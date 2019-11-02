@@ -988,6 +988,17 @@ public class Scene implements SelectionListener, Disposable {
     SecondarySelector secondarySelector = getSecondarySelector(transform, x, y);
 
     boolean same = sameSelection();
+    if (same && myHitListener.getTopHitComponent() != closestComponent
+        && isWithinThreshold(myPressedMouseX, x, transform)
+        && isWithinThreshold(myPressedMouseY, y, transform)) {
+      // if the hit target ended up selecting the same component -- but
+      // we have a /different/ top component, we should select it instead.
+      // Let's only do that though if there was no drag action.
+      myNewSelectedComponentsOnRelease.clear();
+      myNewSelectedComponentsOnRelease.add(myHitListener.getTopHitComponent());
+      myHitTarget = null;
+      same = sameSelection();
+    }
     if (secondarySelector == null && !same && (myHitTarget == null || myHitTarget.canChangeSelection())) {
       select(myNewSelectedComponentsOnRelease);
     }
