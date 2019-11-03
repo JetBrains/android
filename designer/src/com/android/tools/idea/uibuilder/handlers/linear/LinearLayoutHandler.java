@@ -42,6 +42,7 @@ import static com.android.SdkConstants.VALUE_ZERO_DP;
 import static com.android.tools.idea.uibuilder.api.actions.ViewActionsKt.withRank;
 import static com.android.utils.XmlUtils.formatFloatValue;
 
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
@@ -330,9 +331,12 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     return true;
   }
 
-  @Nullable
   @Override
-  public Interaction createInteraction(@NotNull ScreenView sceneView, @NotNull NlComponent layout) {
+  @Nullable
+  public Interaction createInteraction(@NotNull ScreenView sceneView,
+                                       @SwingCoordinate int x,
+                                       @SwingCoordinate int y,
+                                       @NotNull NlComponent component) {
     return new SceneInteraction(sceneView);
   }
 
