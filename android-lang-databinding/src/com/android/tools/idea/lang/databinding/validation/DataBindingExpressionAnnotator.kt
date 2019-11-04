@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.validation
 
+import com.android.SdkConstants
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.lang.databinding.config.DbFile
 import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
@@ -135,7 +136,7 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
     val attributeMatcher = AttributeTypeMatcher(dbExprType.type, androidFacet)
     val attributeSetterTypes = attribute.getAllSetterTypes()
     val tagName = attribute.parentOfType<XmlTag>()?.references?.firstNotNullResult { it.resolve() as? PsiClass }?.name
-                  ?: "View"
+                  ?: SdkConstants.VIEW_TAG
     if (attributeSetterTypes.isNotEmpty() && attributeSetterTypes.none { attributeMatcher.matches(it.unwrapped.erasure()) }) {
       annotateError(rootExpression, SETTER_NOT_FOUND, tagName, attribute.name, dbExprType.type.canonicalText)
     }
