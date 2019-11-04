@@ -618,19 +618,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  /**
-   * Called by {@link InteractionManager} when mouse is released without any interaction.
-   */
-  public void onMouseReleaseWithoutInteraction(@SwingCoordinate int x,
-                                               @SwingCoordinate int y,
-                                               @JdkConstants.InputEventMask int modifierEx) {
-    boolean allowToggle = (modifierEx & (InputEvent.SHIFT_MASK | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) != 0;
-    SceneView sceneView = getSceneView(x, y);
-    if (sceneView != null) {
-      SceneViewHelper.selectComponentAt(sceneView, x, y, modifierEx, allowToggle, false);
-    }
-  }
-
   protected static void navigateToComponent(@NotNull NlComponent component, boolean needsFocusEditor) {
     NlComponentBackend componentBackend = component.getBackend();
     PsiElement element = componentBackend.getTag() == null ? null : componentBackend.getTag().getNavigationElement();
