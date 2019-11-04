@@ -28,7 +28,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.SequentialTaskExecutor
 import java.sql.Connection
-import java.sql.DriverManager
 import java.sql.JDBCType
 import java.util.concurrent.Executor
 
@@ -39,6 +38,7 @@ import java.util.concurrent.Executor
  * operations are executed sequentially, to avoid concurrency issues with the Jdbc objects.
  */
 class SqliteJdbcService(
+  private val connection: Connection,
   private val sqliteFile: VirtualFile,
   pooledExecutor: Executor
 ) : SqliteService {
@@ -46,51 +46,29 @@ class SqliteJdbcService(
     private val logger: Logger = Logger.getInstance(SqliteJdbcService::class.java)
   }
 
-  private var connection: Connection? = null
-
   val sequentialTaskExecutor = FutureCallbackExecutor.wrap(
     SequentialTaskExecutor.createSequentialApplicationPoolExecutor("Sqlite JDBC service", pooledExecutor)
   )
 
   override fun closeDatabase(): ListenableFuture<Unit> = sequentialTaskExecutor.executeAsync {
-    connection?.close()
-    connection = null
+    connection.close()
     logger.info("Successfully closed database: ${sqliteFile.path}")
   }
 
-  override fun openDatabase() = sequentialTaskExecutor.executeAsync {
-    try {
-      check(connection == null) { "Database is already open" }
-
-      // db parameters
-      val url = "jdbc:sqlite:" + sqliteFile.path
-
-      // create a connection to the database
-      connection = DriverManager.getConnection(url)
-      logger.info("Successfully opened database: ${sqliteFile.path}")
-    } catch (e: Exception) {
-      throw Exception("Error opening Sqlite database file \"$sqliteFile\"", e)
-    }
-  }
-
   override fun readSchema(): ListenableFuture<SqliteSchema> = sequentialTaskExecutor.executeAsync {
-    checkNotNull(connection) { "Database is not open" }
-
-    connection!!.let { connection ->
-      val tables = connection.metaData.getTables(null, null, null, null)
-      val sqliteTables = mutableListOf<SqliteTable>()
-      while (tables.next()) {
-        sqliteTables.add(
-          SqliteTable(
-            tables.getString("TABLE_NAME"),
-            readColumnDefinitions(connection, tables.getString("TABLE_NAME")),
-            isView = tables.getString("TABLE_TYPE") == "VIEW"
-          )
+    val tables = connection.metaData.getTables(null, null, null, null)
+    val sqliteTables = mutableListOf<SqliteTable>()
+    while (tables.next()) {
+      sqliteTables.add(
+        SqliteTable(
+          tables.getString("TABLE_NAME"),
+          readColumnDefinitions(connection, tables.getString("TABLE_NAME")),
+          isView = tables.getString("TABLE_TYPE") == "VIEW"
         )
-      }
-
-      SqliteSchema(sqliteTables).apply { logger.info("Successfully read database schema: ${sqliteFile.path}") }
+      )
     }
+
+    SqliteSchema(sqliteTables).apply { logger.info("Successfully read database schema: ${sqliteFile.path}") }
   }
 
   private fun readColumnDefinitions(connection: Connection, tableName: String?): ArrayList<SqliteColumn> {
@@ -114,19 +92,15 @@ class SqliteJdbcService(
   }
 
   override fun executeQuery(sqLiteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
-    val newSqliteResultSet = SqliteJdbcResultSet(this, connection!!, sqLiteStatement)
+    val newSqliteResultSet = SqliteJdbcResultSet(this, connection, sqLiteStatement)
     return Futures.immediateFuture(newSqliteResultSet)
   }
 
   override fun executeUpdate(sqLiteStatement: SqliteStatement): ListenableFuture<Int> {
     return sequentialTaskExecutor.executeAsync {
-      checkNotNull(connection) { "Database is not open" }
-
-      connection!!.let { connection ->
-        val preparedStatement = connection.resolvePreparedStatement(sqLiteStatement)
-        return@executeAsync preparedStatement.executeUpdate().also {
-          logger.info("SQL statement \"${sqLiteStatement.sqliteStatementText}\" executed with success.")
-        }
+      val preparedStatement = connection.resolvePreparedStatement(sqLiteStatement)
+      return@executeAsync preparedStatement.executeUpdate().also {
+        logger.info("SQL statement \"${sqLiteStatement.sqliteStatementText}\" executed with success.")
       }
     }
   }

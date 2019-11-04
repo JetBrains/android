@@ -17,21 +17,16 @@ package com.android.tools.idea.sqlite.model
 
 import com.android.tools.idea.sqlite.SqliteService
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.vfs.VirtualFile
 import java.sql.JDBCType
 
 /**
  * Representation of a database instance.
+ * @param name Human readable name of the database.
+ * @param sqliteService A connection to this database.
  */
-data class SqliteDatabase(
-  val virtualFile: VirtualFile,
-  val sqliteService: SqliteService
-) : Disposable {
-
-  // TODO(b/139525976)
-  val name = virtualFile.path.split("data/data/").getOrNull(1)?.replace("databases/", "")
-             ?: virtualFile.path
-
+// TODO(b/144018531) add an ID to SqliteDatabase or SqliteService.
+//  We cannot use the name as id, there is a conflict if the same app is opened on two different devices.
+data class SqliteDatabase(val name: String, val sqliteService: SqliteService) : Disposable {
   override fun dispose() {
     sqliteService.closeDatabase().get()
   }

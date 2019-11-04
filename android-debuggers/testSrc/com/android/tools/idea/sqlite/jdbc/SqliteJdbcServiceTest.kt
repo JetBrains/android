@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.jdbc
 
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.editors.sqlite.SqliteTestUtil
 import com.android.tools.idea.editors.sqlite.SqliteViewer
 import com.android.tools.idea.sqlite.SqliteService
@@ -24,12 +25,14 @@ import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import org.jetbrains.ide.PooledThreadExecutor
+import java.sql.DriverManager
 import java.sql.JDBCType
 
 class SqliteJdbcServiceTest : PlatformTestCase() {
@@ -45,7 +48,7 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     previouslyEnabled = SqliteViewer.enableFeature(true)
 
     sqliteFile = sqliteUtil.createTestSqliteDatabase()
-    sqliteService = SqliteJdbcService(sqliteFile, PooledThreadExecutor.INSTANCE)
+    sqliteService = pumpEventsAndWaitForFuture(getSqliteJdbcService(sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)))
   }
 
   override fun tearDown() {
@@ -60,6 +63,9 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
   }
 
   fun testReadSchemaFailsIfDatabaseNotOpened() {
+    //Prepare
+    pumpEventsAndWaitForFuture(sqliteService.closeDatabase())
+
     // Act
     val error = pumpEventsAndWaitForFutureException(sqliteService.readSchema())
 
@@ -69,7 +75,6 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
 
   fun testReadSchemaReturnsTablesAndColumns() {
     // Prepare
-    pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
     val schema = pumpEventsAndWaitForFuture(sqliteService.readSchema())
@@ -93,7 +98,6 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
 
   fun testCloseUnlocksFile() {
     // Prepare
-    pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
     pumpEventsAndWaitForFuture(sqliteService.closeDatabase())
@@ -107,7 +111,6 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
 
   fun testExecuteQuerySelectAllReturnsResultSet() {
     // Prepare
-    pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
     val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery(SqliteStatement("SELECT * FROM Book")))
@@ -133,7 +136,6 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
 
   fun testExecuteQuerySelectColumnReturnsResultSet() {
     // Prepare
-    pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
     val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery(SqliteStatement("SELECT book_id FROM Book")))
@@ -159,7 +161,6 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
 
   fun testExecuteUpdateDropTable() {
     // Prepare
-    pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
     pumpEventsAndWaitForFuture(sqliteService.executeUpdate(SqliteStatement("DROP TABLE Book")))
@@ -172,7 +173,6 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
 
   fun testResultSetThrowsAfterDisposed() {
     // Prepare
-    pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
     val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery(SqliteStatement("SELECT * FROM Book")))
@@ -185,7 +185,6 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
 
   fun testExecuteQueryFailsWhenIncorrectTableName() {
     // Prepare
-    pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
     val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery(SqliteStatement("SELECTE * FROM IncorrectTableName")))
@@ -202,5 +201,14 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
 
   private fun SqliteTable.hasColumn(name: String, type: JDBCType) : Boolean {
     return this.columns.find { it.name == name }?.type?.equals(type) ?: false
+  }
+
+  private fun getSqliteJdbcService(sqliteFile: VirtualFile, executor: FutureCallbackExecutor): ListenableFuture<SqliteService> {
+    return executor.executeAsync {
+      val url = "jdbc:sqlite:${sqliteFile.path}"
+      val connection = DriverManager.getConnection(url)
+
+      return@executeAsync SqliteJdbcService(connection, sqliteFile, executor)
+    }
   }
 }

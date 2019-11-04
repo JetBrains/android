@@ -17,18 +17,12 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
-import com.android.testutils.MockitoKt.refEq
-import com.android.tools.idea.device.fs.DeviceFileDownloaderService
-import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
-import com.android.tools.idea.device.fs.DownloadedFileData
-import com.android.tools.idea.editors.sqlite.SqliteTestUtil
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.MockSchemaProvider
 import com.android.tools.idea.sqlite.mocks.MockSqliteEditorViewFactory
-import com.android.tools.idea.sqlite.mocks.MockSqliteServiceFactory
 import com.android.tools.idea.sqlite.mocks.MockSqliteView
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteResultSet
@@ -36,53 +30,37 @@ import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.tableView.TableView
-import com.google.common.truth.Truth.assertThat
+import com.android.tools.idea.sqliteExplorer.SqliteExplorerProjectService
 import com.google.common.util.concurrent.Futures
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.SameThreadExecutor
 import org.mockito.InOrder
-import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
-import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import java.io.File
 import java.util.concurrent.Executor
-import java.util.function.Consumer
 import javax.swing.JComponent
 
 class SqliteControllerTest : PlatformTestCase() {
 
-  private lateinit var sqliteUtil: SqliteTestUtil
-
   private lateinit var sqliteView: MockSqliteView
   private lateinit var edtExecutor: EdtExecutorService
   private lateinit var taskExecutor: Executor
-  private lateinit var sqliteController: SqliteController
+  private lateinit var sqliteController: SqliteControllerImpl
   private lateinit var orderVerifier: InOrder
 
-  private lateinit var sqliteServiceFactory: MockSqliteServiceFactory
   private lateinit var viewFactory: MockSqliteEditorViewFactory
-
-  private lateinit var sqliteFile1: VirtualFile
-  private lateinit var sqliteFile2: VirtualFile
-  private lateinit var sqliteFile3: VirtualFile
 
   private lateinit var sqliteDatabase1: SqliteDatabase
   private lateinit var sqliteDatabase2: SqliteDatabase
   private lateinit var sqliteDatabase3: SqliteDatabase
-  private lateinit var sqliteDatabaseMockVirtualFile: SqliteDatabase
 
   private lateinit var testSqliteSchema1: SqliteSchema
   private lateinit var testSqliteSchema2: SqliteSchema
@@ -93,20 +71,10 @@ class SqliteControllerTest : PlatformTestCase() {
   private val testSqliteTable = SqliteTable("testTable", arrayListOf(), true)
   private lateinit var sqliteResultSet: SqliteResultSet
 
-  private lateinit var openedFiles: MutableList<VirtualFile>
-
   override fun setUp() {
     super.setUp()
 
-    sqliteServiceFactory = MockSqliteServiceFactory()
     viewFactory = spy(MockSqliteEditorViewFactory::class.java)
-
-    sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
-    sqliteUtil.setUp()
-
-    sqliteFile1 = sqliteUtil.createTestSqliteDatabase("/data/data/com.my.app/databases/db1.db")
-    sqliteFile2 = sqliteUtil.createTestSqliteDatabase("/data/data/com.my.app/databases/db2.db")
-    sqliteFile3 = sqliteUtil.createTestSqliteDatabase("/data/data/com.ay.app/databases/db.db")
 
     testSqliteSchema1 = SqliteSchema(emptyList())
     testSqliteSchema2 = SqliteSchema(emptyList())
@@ -116,14 +84,11 @@ class SqliteControllerTest : PlatformTestCase() {
     edtExecutor = EdtExecutorService.getInstance()
     taskExecutor = SameThreadExecutor.INSTANCE
 
-    openedFiles = mutableListOf()
-    sqliteController = SqliteController(
+    sqliteController = SqliteControllerImpl(
       project,
       MockDatabaseInspectorModel(),
-      sqliteServiceFactory,
       viewFactory,
       sqliteView,
-      Consumer { openedFiles.add(it) },
       edtExecutor,
       taskExecutor
     )
@@ -132,116 +97,83 @@ class SqliteControllerTest : PlatformTestCase() {
     sqliteResultSet = mock(SqliteResultSet::class.java)
     `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(testSqliteTable.columns))
 
-    mockSqliteService = sqliteServiceFactory.sqliteService
-    `when`(mockSqliteService.openDatabase()).thenReturn(Futures.immediateFuture(Unit))
+    mockSqliteService = mock(SqliteService::class.java)
     `when`(mockSqliteService.closeDatabase()).thenReturn(Futures.immediateFuture(null))
     `when`(mockSqliteService.executeQuery(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
 
-    sqliteDatabase1 = SqliteDatabase(sqliteFile1, mockSqliteService)
-    sqliteDatabase2 = SqliteDatabase(sqliteFile2, mockSqliteService)
-    sqliteDatabase3 = SqliteDatabase(sqliteFile3, mockSqliteService)
-
-    val tempPath = FileUtil.createTempDirectory("sqliteControllerTest/deviceId", "", true)
-    val file = File(tempPath, "filePath").apply { createNewFile() }
-    val virtualFile = getVirtualFile(file)
-    virtualFile.putUserData(DeviceFileId.KEY, DeviceFileId("deviceId", "filePath"))
-    sqliteDatabaseMockVirtualFile = SqliteDatabase(virtualFile, mockSqliteService)
+    sqliteDatabase1 = SqliteDatabase("db1", mockSqliteService)
+    sqliteDatabase2 = SqliteDatabase("db2", mockSqliteService)
+    sqliteDatabase3 = SqliteDatabase("db", mockSqliteService)
 
     Disposer.register(project, sqliteDatabase1)
     Disposer.register(project, sqliteDatabase2)
     Disposer.register(project, sqliteDatabase3)
-    Disposer.register(project, sqliteDatabaseMockVirtualFile)
 
     orderVerifier = inOrder(sqliteView, mockSqliteService)
   }
 
-  override fun tearDown() {
-    try {
-      sqliteUtil.tearDown()
-    } finally {
-      super.tearDown()
-    }
-  }
-
-  fun testOpenSqliteDatabase() {
+  fun testAddSqliteDatabase() {
     // Prepare
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
 
     // Act
-    sqliteController.openSqliteDatabase(sqliteFile1)
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    orderVerifier.verify(sqliteView).startLoading("Opening Sqlite database...")
-
-    orderVerifier.verify(mockSqliteService).openDatabase()
+    orderVerifier.verify(sqliteView).startLoading("Getting database...")
     orderVerifier.verify(mockSqliteService).readSchema()
-
     orderVerifier.verify(sqliteView).stopLoading()
   }
 
-  fun testOpenSqliteDatabaseFailureOpenDatabase() {
+  fun testAddSqliteDatabaseFailure() {
     // Prepare
-    val throwable = Throwable()
-    `when`(mockSqliteService.openDatabase()).thenReturn(Futures.immediateFailedFuture(throwable))
+    val exception = IllegalStateException()
+    `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
 
     // Act
-    sqliteController.openSqliteDatabase(sqliteFile1)
+    sqliteController.addSqliteDatabase(Futures.immediateFailedFuture(exception))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    orderVerifier.verify(mockSqliteService).openDatabase()
-    Mockito.verifyNoMoreInteractions(mockSqliteService)
-
-    orderVerifier.verify(sqliteView)
-      .reportErrorRelatedToService(eq(mockSqliteService), eq("Error opening Sqlite database"), refEq(throwable))
+    orderVerifier.verify(sqliteView).reportError("Error getting database", exception)
+    orderVerifier.verifyNoMoreInteractions()
   }
 
-  fun testOpenSqliteDatabaseFailureReadSchema() {
+  fun testAddSqliteDatabaseFailureReadSchema() {
     // Prepare
-    val throwable = Throwable()
-    `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFailedFuture(throwable))
+    val exception = IllegalStateException()
+    `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFailedFuture(exception))
 
     // Act
-    sqliteController.openSqliteDatabase(sqliteFile1)
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(sqliteView).reportErrorRelatedToService(eq(mockSqliteService), eq("Error reading Sqlite database"), refEq(throwable))
+    orderVerifier.verify(sqliteView).startLoading("Getting database...")
+    orderVerifier.verify(mockSqliteService).readSchema()
+    orderVerifier.verify(sqliteView).reportError("Error reading Sqlite database", exception)
+    orderVerifier.verifyNoMoreInteractions()
   }
 
-  fun testOpenSqliteDatabaseWhenControllerIsDisposed() {
+  fun testAddSqliteDatabaseWhenControllerIsDisposed() {
     // Prepare
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
 
     // Act
     Disposer.dispose(sqliteController)
-    sqliteController.openSqliteDatabase(sqliteFile1)
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    orderVerifier.verify(sqliteView, times(0)).stopLoading()
-  }
-
-  fun testOpenSqliteDatabaseFailureIsDisposed() {
-    // Prepare
-    val throwable = Throwable()
-    `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFailedFuture(throwable))
-
-    // Act
-    Disposer.dispose(sqliteController)
-    sqliteController.openSqliteDatabase(sqliteFile1)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    // Assert
-    orderVerifier.verify(sqliteView, times(0))
-      .reportErrorRelatedToService(eq(mockSqliteService), eq("Error opening Sqlite database"), refEq(throwable))
+    orderVerifier.verify(sqliteView).startLoading("Getting database...")
+    orderVerifier.verifyNoMoreInteractions()
   }
 
   fun testDisplayResultSetIsCalledForTable() {
     // Prepare
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.openSqliteDatabase(sqliteFile1)
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
@@ -258,7 +190,7 @@ class SqliteControllerTest : PlatformTestCase() {
   fun testDisplayResultSetIsCalledForEvaluatorView() {
     // Prepare
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.openSqliteDatabase(sqliteFile1)
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
@@ -273,7 +205,7 @@ class SqliteControllerTest : PlatformTestCase() {
   fun testCloseTabIsCalledForTable() {
     // Prepare
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.openSqliteDatabase(sqliteFile1)
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
@@ -289,7 +221,7 @@ class SqliteControllerTest : PlatformTestCase() {
   fun testCloseTabIsCalledForEvaluatorView() {
     // Prepare
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.openSqliteDatabase(sqliteFile1)
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
@@ -307,7 +239,7 @@ class SqliteControllerTest : PlatformTestCase() {
   fun testFocusTabIsCalled() {
     // Prepare
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.openSqliteDatabase(sqliteFile1)
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
@@ -328,15 +260,15 @@ class SqliteControllerTest : PlatformTestCase() {
   fun testAddNewDatabaseAlphabeticOrder() {
     // Act
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.openSqliteDatabase(sqliteFile1)
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema2))
-    sqliteController.openSqliteDatabase(sqliteFile2)
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase2))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema3))
-    sqliteController.openSqliteDatabase(sqliteFile3)
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase3))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -352,15 +284,15 @@ class SqliteControllerTest : PlatformTestCase() {
 
     // Act
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.openSqliteDatabase(sqliteFile1)
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema2))
-    sqliteController.openSqliteDatabase(sqliteFile2)
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase2))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema3))
-    sqliteController.openSqliteDatabase(sqliteFile3)
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase3))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -373,7 +305,7 @@ class SqliteControllerTest : PlatformTestCase() {
   fun testRemoveDatabase() {
     // Prepare
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.openSqliteDatabase(sqliteFile1)
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     sqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
@@ -382,6 +314,7 @@ class SqliteControllerTest : PlatformTestCase() {
 
     // Act
     sqliteView.viewListeners.first().removeDatabaseActionInvoked(sqliteDatabase1)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
     verify(mockSqliteService).closeDatabase()
@@ -394,7 +327,7 @@ class SqliteControllerTest : PlatformTestCase() {
     // Prepare
     val schema = SqliteSchema(listOf(SqliteTable("table1", emptyList(), false), testSqliteTable))
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(schema))
-    sqliteController.openSqliteDatabase(sqliteFile1)
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     sqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, testSqliteTable)
@@ -402,6 +335,7 @@ class SqliteControllerTest : PlatformTestCase() {
 
     // Act
     sqliteView.viewListeners.first().removeDatabaseActionInvoked(sqliteDatabase1)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
     verify(sqliteView).closeTab(eq(TabId.TableTab(sqliteDatabase1, testSqliteTable.name)))
@@ -416,8 +350,7 @@ class SqliteControllerTest : PlatformTestCase() {
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(schema))
     `when`(mockSqliteService.executeUpdate(SqliteStatement("INSERT"))).thenReturn(Futures.immediateFuture(0))
 
-    sqliteController.openSqliteDatabase(sqliteFile1)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
 
     sqliteView.viewListeners.first().openSqliteEvaluatorTabActionInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -434,43 +367,22 @@ class SqliteControllerTest : PlatformTestCase() {
     )
   }
 
-  fun testDatabaseIsClosedWhenFileIsDeleted() {
-    // Prepare
-    `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-
-    // Act
-    sqliteController.openSqliteDatabase(sqliteFile1)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    ApplicationManager.getApplication().runWriteAction { sqliteFile1.delete(this) }
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    // Assert
-    verify(sqliteView).removeDatabaseSchema(sqliteDatabase1)
-    verify(mockSqliteService).closeDatabase()
-  }
-
   fun testSyncUpdatesView() {
     // Prepare
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.openSqliteDatabase(sqliteFile1)
+    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-    val mockDownloaderService = mock(DeviceFileDownloaderService::class.java)
-    `when`(mockDownloaderService.downloadFile(any(DeviceFileId::class.java), any(DownloadProgress::class.java)))
-      .thenReturn(Futures.immediateFuture(
-        DownloadedFileData(
-          DeviceFileId("deviceId", "filePath"),
-          sqliteDatabaseMockVirtualFile.virtualFile, emptyList()
-        )
-      ))
-    project.registerServiceInstance(DeviceFileDownloaderService::class.java, mockDownloaderService)
+    val mockSqliteExplorerProjectService = mock(SqliteExplorerProjectService::class.java)
+    `when`(mockSqliteExplorerProjectService.sync(any(SqliteDatabase::class.java), any(DownloadProgress::class.java)))
+      .thenReturn(Futures.immediateFuture(null))
+    project.registerServiceInstance(SqliteExplorerProjectService::class.java, mockSqliteExplorerProjectService)
 
     // Act
-    sqliteView.viewListeners.single().syncDatabaseActionInvoked(sqliteDatabaseMockVirtualFile)
+    sqliteView.viewListeners.single().syncDatabaseActionInvoked(sqliteDatabase1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    assertThat(openedFiles).containsExactly(sqliteDatabaseMockVirtualFile.virtualFile)
+    orderVerifier.verify(sqliteView).reportSyncProgress(any(String::class.java))
   }
 }

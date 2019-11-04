@@ -27,7 +27,6 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.icons.AllIcons
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.editor.markup.GutterIconRenderer
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.ui.EmptyIcon
 import org.mockito.Mockito.`when`
@@ -45,12 +44,8 @@ class RunSqlQueryAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     super.setUp()
     StudioFlags.SQLITE_VIEWER_ENABLED.override(true)
 
-    val virtualFile1 = mock(VirtualFile::class.java)
-    `when`(virtualFile1.path).thenReturn("data/data/myapp/databases/file1.db")
-    val virtualFile2 = mock(VirtualFile::class.java)
-    `when`(virtualFile2.path).thenReturn("data/data/myapp/databases/file2.db")
-    sqliteDatabase1 = SqliteDatabase(virtualFile1, mock(SqliteService::class.java))
-    sqliteDatabase2 = SqliteDatabase(virtualFile2, mock(SqliteService::class.java))
+    sqliteDatabase1 = SqliteDatabase("db1", mock(SqliteService::class.java))
+    sqliteDatabase2 = SqliteDatabase("db2", mock(SqliteService::class.java))
 
     ideComponents = IdeComponents(myFixture)
     mockSqliteExplorerProjectService = ideComponents.mockProjectService(SqliteExplorerProjectService::class.java)

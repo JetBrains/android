@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sqlite.ui.mainView
 
-import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -65,7 +64,7 @@ interface SqliteView {
 
   fun reportSyncProgress(message: String)
 
-  fun reportErrorRelatedToService(service: SqliteService, message: String, t: Throwable)
+  fun reportError(message: String, t: Throwable)
 }
 
 interface SqliteViewListener {

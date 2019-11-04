@@ -17,12 +17,9 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.device.fs.DeviceFileDownloaderService
-import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.SchemaProvider
-import com.android.tools.idea.sqlite.SqliteServiceFactory
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -30,22 +27,16 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.SqliteEditorViewFactory
 import com.android.tools.idea.sqlite.ui.mainView.SqliteView
 import com.android.tools.idea.sqlite.ui.mainView.SqliteViewListener
+import com.android.tools.idea.sqliteExplorer.SqliteExplorerProjectService
 import com.google.common.util.concurrent.FutureCallback
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.openapi.vfs.newvfs.BulkFileListener
-import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
-import com.intellij.openapi.vfs.newvfs.events.VFileEvent
-import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.text.trimMiddle
-import org.jetbrains.ide.PooledThreadExecutor
 import java.util.TreeMap
 import java.util.concurrent.Executor
-import java.util.function.Consumer
+import javax.swing.JComponent
 
 /**
  * Implementation of the application logic related to viewing/editing sqlite databases.
@@ -53,16 +44,14 @@ import java.util.function.Consumer
  * All methods are assumed to run on the UI (EDT) thread.
  */
 @UiThread
-class SqliteController(
+class SqliteControllerImpl(
   private val project: Project,
-  private val model: Model,
-  private val sqliteServiceFactory: SqliteServiceFactory,
+  private val model: SqliteController.Model,
   private val viewFactory: SqliteEditorViewFactory,
-  val sqliteView: SqliteView,
-  val fileOpener: Consumer<VirtualFile>,
-  edtExecutor: EdtExecutorService,
+  private val sqliteView: SqliteView,
+  edtExecutor: Executor,
   taskExecutor: Executor
-) : Disposable {
+) : SqliteController {
   private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
   private val taskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
 
@@ -76,112 +65,39 @@ class SqliteController(
 
   private val sqliteViewListener = SqliteViewListenerImpl()
 
-  private val virtualFileListener: BulkFileListener
+  override val component: JComponent
+    get() = sqliteView.component
 
-  init {
-    Disposer.register(project, this)
-
-    virtualFileListener = object : BulkFileListener {
-      override fun before(events: MutableList<out VFileEvent>) {
-        val openDatabases = model.openDatabases.keys
-
-        if (openDatabases.isEmpty()) return
-
-        val toClose = mutableListOf<SqliteDatabase>()
-        for (event in events) {
-          if (event !is VFileDeleteEvent) continue
-
-          for (database in openDatabases) {
-            if (VfsUtil.isAncestor(event.file, database.virtualFile, false)) {
-              toClose.add(database)
-            }
-          }
-        }
-
-        toClose.forEach { closeDatabase(it) }
-      }
-    }
-
-    val messageBusConnection = project.messageBus.connect(this)
-    messageBusConnection.subscribe(VirtualFileManager.VFS_CHANGES, virtualFileListener)
-  }
-
-  fun setUp() {
+  override fun setUp() {
     sqliteView.addListener(sqliteViewListener)
   }
 
-  fun openSqliteDatabase(sqliteFile: VirtualFile) {
-    val sqliteService = sqliteServiceFactory.getSqliteService(sqliteFile, PooledThreadExecutor.INSTANCE)
-    val database = SqliteDatabase(sqliteFile, sqliteService)
-    Disposer.register(project, database)
-
-    openDatabase(database) { openDatabase ->
-      readDatabaseSchema(openDatabase) { schema -> addNewDatabaseSchema(database, schema) }
-    }
-  }
-
-  private fun openDatabase(database: SqliteDatabase, onDatabaseOpened: (SqliteDatabase) -> Unit) {
-    sqliteView.startLoading("Opening Sqlite database...")
-    taskExecutor.addCallback(database.sqliteService.openDatabase(), object : FutureCallback<Unit> {
-      override fun onSuccess(result: Unit?) {
-        onDatabaseOpened(database)
+  override fun addSqliteDatabase(sqliteDatabaseFuture: ListenableFuture<SqliteDatabase>) {
+    sqliteView.startLoading("Getting database...")
+    taskExecutor.addCallback(sqliteDatabaseFuture, object : FutureCallback<SqliteDatabase> {
+      override fun onSuccess(sqliteDatabase: SqliteDatabase?) {
+        if (Disposer.isDisposed(this@SqliteControllerImpl)) return
+        Disposer.register(project, sqliteDatabase!!)
+        readDatabaseSchema(sqliteDatabase) { schema -> addNewDatabaseSchema(sqliteDatabase, schema) }
       }
 
       override fun onFailure(t: Throwable) {
-        sqliteView.reportErrorRelatedToService(database.sqliteService, "Error opening Sqlite database", t)
+        sqliteView.reportError("Error getting database", t)
       }
     })
   }
 
-  fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
+  override fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
     val sqliteEvaluatorController = openNewEvaluatorTab()
     sqliteEvaluatorController.evaluateSqlStatement(database, sqliteStatement)
   }
 
-  override fun dispose() {
-    sqliteView.removeListener(sqliteViewListener)
-
-    resultSetControllers.values
-      .asSequence()
-      .filterIsInstance<SqliteEvaluatorController>()
-      .forEach { it.removeListeners() }
-  }
-
-  private fun readDatabaseSchema(database: SqliteDatabase, onSchemaRead: (SqliteSchema) -> Unit) {
-    val futureSchema = database.sqliteService.readSchema()
-
-    edtExecutor.addListener(futureSchema) {
-      if (!Disposer.isDisposed(this@SqliteController)) {
-        sqliteView.stopLoading()
-      }
+  override fun closeDatabase(database: SqliteDatabase) {
+    // TODO(b/143873070) when a database is closed with the close button the corresponding file is not deleted.
+    if (!model.openDatabases.containsKey(database)) {
+      return
     }
 
-    edtExecutor.addCallback(futureSchema, object : FutureCallback<SqliteSchema> {
-      override fun onSuccess(sqliteSchema: SqliteSchema?) {
-        sqliteSchema?.let { onSchemaRead(sqliteSchema) }
-      }
-
-      override fun onFailure(t: Throwable) {
-        if (!Disposer.isDisposed(this@SqliteController)) {
-          sqliteView.reportErrorRelatedToService(database.sqliteService, "Error reading Sqlite database", t)
-        }
-      }
-    })
-  }
-
-  private fun addNewDatabaseSchema(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
-    if (Disposer.isDisposed(this)) return
-    val index = model.getSortedIndexOf(database)
-    sqliteView.addDatabaseSchema(database, sqliteSchema, index)
-
-    resultSetControllers.values
-      .asSequence()
-      .filterIsInstance<SqliteEvaluatorController>()
-      .forEach { it.addDatabase(database, index) }
-    model.add(database, sqliteSchema)
-  }
-
-  private fun closeDatabase(database: SqliteDatabase) {
     val tabsToClose = resultSetControllers.keys
       .filterIsInstance<TabId.TableTab>()
       .filter { it.database == database }
@@ -198,6 +114,49 @@ class SqliteController(
 
     model.remove(database)
     Disposer.dispose(database)
+  }
+
+  override fun dispose() {
+    sqliteView.removeListener(sqliteViewListener)
+
+    resultSetControllers.values
+      .asSequence()
+      .filterIsInstance<SqliteEvaluatorController>()
+      .forEach { it.removeListeners() }
+  }
+
+  private fun readDatabaseSchema(database: SqliteDatabase, onSchemaRead: (SqliteSchema) -> Unit) {
+    val futureSchema = database.sqliteService.readSchema()
+
+    edtExecutor.addListener(futureSchema) {
+      if (!Disposer.isDisposed(this@SqliteControllerImpl)) {
+        sqliteView.stopLoading()
+      }
+    }
+
+    edtExecutor.addCallback(futureSchema, object : FutureCallback<SqliteSchema> {
+      override fun onSuccess(sqliteSchema: SqliteSchema?) {
+        sqliteSchema?.let { onSchemaRead(sqliteSchema) }
+      }
+
+      override fun onFailure(t: Throwable) {
+        if (!Disposer.isDisposed(this@SqliteControllerImpl)) {
+          sqliteView.reportError("Error reading Sqlite database", t)
+        }
+      }
+    })
+  }
+
+  private fun addNewDatabaseSchema(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
+    if (Disposer.isDisposed(this)) return
+    val index = model.getSortedIndexOf(database)
+    sqliteView.addDatabaseSchema(database, sqliteSchema, index)
+
+    resultSetControllers.values
+      .asSequence()
+      .filterIsInstance<SqliteEvaluatorController>()
+      .forEach { it.addDatabase(database, index) }
+    model.add(database, sqliteSchema)
   }
 
   private fun closeTab(tabId: TabId) {
@@ -231,7 +190,7 @@ class SqliteController(
     sqliteView.openTab(tabId, "New Query", sqliteEvaluatorView.component)
 
     val sqliteEvaluatorController = SqliteEvaluatorController(
-      this@SqliteController,
+      project,
       sqliteEvaluatorView,
       edtExecutor
     ).also { it.setUp() }
@@ -260,7 +219,7 @@ class SqliteController(
       sqliteView.openTab(tableId, table.name, tableView.component)
 
       val tableController = TableController(
-        parentDisposable = this@SqliteController,
+        parentDisposable = project,
         view = tableView,
         tableName = table.name,
         sqliteService = sqliteService,
@@ -274,7 +233,7 @@ class SqliteController(
         }
 
         override fun onFailure(t: Throwable) {
-          sqliteView.reportErrorRelatedToService(sqliteService, "Error reading Sqlite table \"${table.name}\"", t)
+          sqliteView.reportError("Error reading Sqlite table \"${table.name}\"", t)
         }
       })
     }
@@ -292,8 +251,7 @@ class SqliteController(
     }
 
     override fun syncDatabaseActionInvoked(database: SqliteDatabase) {
-      val deviceFileId: DeviceFileId = database.virtualFile.getUserData(DeviceFileId.KEY) ?: return
-      val downloadFuture = DeviceFileDownloaderService.getInstance(project).downloadFile(deviceFileId, object : DownloadProgress {
+      val downloadFuture = SqliteExplorerProjectService.getInstance(project).sync(database, object : DownloadProgress {
         override val isCancelled: Boolean
           get() = false
 
@@ -310,8 +268,7 @@ class SqliteController(
         }
       })
 
-      edtExecutor.transform(downloadFuture) { downloadedFileData ->
-        fileOpener.accept(downloadedFileData.virtualFile)
+      edtExecutor.transform(downloadFuture) {
         sqliteView.reportSyncProgress("")
       }
     }
@@ -322,9 +279,21 @@ class SqliteController(
       updateDatabaseSchema(database)
     }
   }
+}
+
+/**
+ * Interface that defines the contract of a SqliteController.
+ */
+interface SqliteController : Disposable {
+  val component: JComponent
+
+  fun setUp()
+  fun addSqliteDatabase(sqliteDatabaseFuture: ListenableFuture<SqliteDatabase>)
+  fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement)
+  fun closeDatabase(database: SqliteDatabase)
 
   /**
-   * Thread safe model for Database Inspector. Used to store and access currently open [SqliteDatabase]s and their [SqliteSchema]s.
+   * Model for Database Inspector. Used to store and access currently open [SqliteDatabase]s and their [SqliteSchema]s.
    */
   interface Model {
     /**
@@ -335,6 +304,14 @@ class SqliteController(
     fun getSortedIndexOf(database: SqliteDatabase): Int
     fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema)
     fun remove(database: SqliteDatabase)
+
+    fun addListener(modelListener: Listener)
+    fun removeListener(modelListener: Listener)
+
+    interface Listener {
+      fun onDatabaseAdded(database: SqliteDatabase)
+      fun onDatabaseRemoved(database: SqliteDatabase)
+    }
   }
 }
 
