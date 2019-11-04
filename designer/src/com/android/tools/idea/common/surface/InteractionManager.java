@@ -565,7 +565,7 @@ public class InteractionManager implements Disposable {
       int modifiersEx = event.getModifiersEx();
 
       if (myCurrentInteraction == null) {
-        mySurface.onMouseReleaseWithoutInteraction(x, y, modifiersEx);
+        myInteractionProvider.mouseReleaseWhenNoInteraction(x, y, modifiersEx);
         updateCursor(x, y, modifiersEx);
       }
       else {

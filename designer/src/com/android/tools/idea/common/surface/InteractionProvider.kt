@@ -27,8 +27,10 @@ import com.android.tools.idea.uibuilder.model.NlDropEvent
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction
 import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
+import java.awt.Toolkit
 import java.awt.dnd.DnDConstants
 import java.awt.dnd.DropTargetDragEvent
+import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 
@@ -40,6 +42,11 @@ interface InteractionProvider {
   fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction?
 
   fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction?
+
+  /**
+   * Called by [InteractionManager] when mouse is released without any interaction.
+   */
+  fun mouseReleaseWhenNoInteraction(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifierEx: Int)
 
   fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
                              @SwingCoordinate mouseY: Int,
@@ -111,6 +118,13 @@ abstract class InteractionProviderBase(private val surface: DesignSurface) : Int
     // that reflects the users choice i.e. controlled by the modifier key.
     event.accept(insertType)
     return interaction
+  }
+
+  override fun mouseReleaseWhenNoInteraction(@SwingCoordinate x: Int,
+                                             @SwingCoordinate y: Int,
+                                             @JdkConstants.InputEventMask modifierEx: Int) {
+    val allowToggle = modifierEx and (InputEvent.SHIFT_MASK or Toolkit.getDefaultToolkit().menuShortcutKeyMask) != 0
+    surface.getSceneView(x, y)?.selectComponentAt(x, y, modifierEx, allowToggle, false)
   }
 
   override fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
