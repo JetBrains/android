@@ -75,14 +75,14 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    doPerformAction(e.getProject());
+    submit(e.getProject());
   }
 
-  public static void doPerformAction(@Nullable Project project) {
-    doPerformAction(project, "");
+  public static void submit(@Nullable Project project) {
+    submit(project, "");
   }
 
-  public static void doPerformAction(@Nullable Project project, @Nullable String extraDescriptionDetails) {
+  public static void submit(@Nullable Project project, @Nullable String extraDescriptionDetails) {
     new Task.Modal(project, "Collecting Data", false) {
       @Override
       public void run(@NotNull com.intellij.openapi.progress.ProgressIndicator indicator) {
@@ -100,7 +100,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
     // that any exceptions along the way do not actually break the feedback sending flow (we're already reporting a bug,
     // so let's not make that process prone to exceptions)
     return safeCall(() -> {
-      StringBuilder sb = new StringBuilder(com.intellij.ide.actions.SendFeedbackAction.getDescription());
+      StringBuilder sb = new StringBuilder(com.intellij.ide.actions.SendFeedbackAction.getDescription(null));
       ProgressIndicator progress = new StudioLoggerProgressIndicator(SendFeedbackAction.class);
       AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
       // Add Android Studio custom information we want to see prepopulated in the bug reports
