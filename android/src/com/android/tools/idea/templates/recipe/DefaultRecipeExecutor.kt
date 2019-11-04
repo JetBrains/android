@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
-import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath
 import com.android.tools.idea.templates.FmGetConfigurationNameMethod
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException
@@ -53,6 +52,7 @@ import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2.DryRunReci
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2.RecipeIO
 import com.android.tools.idea.templates.resolveDependency
 import com.android.utils.XmlUtils.XML_PROLOG
+import com.android.utils.findGradleBuildFile
 import com.google.common.base.Strings.isNullOrEmpty
 import com.google.common.base.Strings.nullToEmpty
 import com.google.common.collect.SetMultimap
@@ -148,7 +148,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
   }
 
   override fun setExtVar(name: String, value: String) {
-    val rootBuildFile = getGradleBuildFilePath(getBaseDirPath(context.project))
+    val rootBuildFile = findGradleBuildFile(getBaseDirPath(context.project))
     // TODO(qumeric) handle it in more reliable way?
     val buildModel = getBuildModel(rootBuildFile, context.project) ?: return
     val property = buildModel.buildscript().ext().findProperty(name)
@@ -168,7 +168,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
                               throw RuntimeException("$mavenUrl is not a valid classpath dependency")
 
     val project = context.project
-    val rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project))
+    val rootBuildFile = findGradleBuildFile(getBaseDirPath(project))
     val buildModel = getBuildModel(rootBuildFile, project)
     if (buildModel != null) {
       val buildscriptDependencies = buildModel.buildscript().dependencies()
@@ -223,7 +223,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     // Translate from "configuration" to "implementation" based on the parameter map context
     val configuration = FmGetConfigurationNameMethod.convertConfiguration(paramMap, configuration)
 
-    val buildFile = getGradleBuildFilePath(File(toModule))
+    val buildFile = findGradleBuildFile(File(toModule))
 
     // TODO(qumeric) handle it in a better way?
     val buildModel = getBuildModel(buildFile, context.project) ?: return
@@ -431,7 +431,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
 
       // If a Library (e.g. Google Maps) Manifest references its own resources, it needs to be added to the Base, otherwise aapt2 will fail
       // during linking. Since we don't know the libraries Manifest references, we declare this libraries in the base as "api" dependencies.
-      val baseBuildFile = getGradleBuildFilePath(File(baseFeatureRoot))
+      val baseBuildFile = findGradleBuildFile(File(baseFeatureRoot))
       val configuration = configName
       writeDependencies(baseBuildFile) { it == configuration }
       writeDependencies(featureBuildFile) { it != configuration }
@@ -613,5 +613,5 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
 private fun getBuildFilePath(context: RenderingContext): File {
   val module = context.module
   val moduleBuildFile = if (module == null) null else getGradleBuildFile(module)
-  return moduleBuildFile?.let { virtualToIoFile(it) } ?: getGradleBuildFilePath(context.moduleRoot)
+  return moduleBuildFile?.let { virtualToIoFile(it) } ?: findGradleBuildFile(context.moduleRoot)
 }
