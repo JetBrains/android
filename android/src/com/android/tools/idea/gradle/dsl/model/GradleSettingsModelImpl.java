@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.dsl.model;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.BUILD_FILE_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
+import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -251,7 +251,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
 
     // If the BUILD_FILE_NAME property doesn't exist, look for the default build file in the module.
     if (buildFileName == null) {
-      return getGradleBuildFilePath(moduleDirectory);
+      return findGradleBuildFile(moduleDirectory);
     }
 
     return new File(moduleDirectory, buildFileName);
