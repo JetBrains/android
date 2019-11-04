@@ -27,6 +27,7 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.Project
 import com.intellij.util.ArrayUtil
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 
 private const val SPLIT_MODE_PROPERTY_PREFIX = "SPLIT_EDITOR_MODE"
 
@@ -36,7 +37,9 @@ private const val SPLIT_MODE_PROPERTY_PREFIX = "SPLIT_EDITOR_MODE"
 open class DesignToolsSplitEditor(textEditor: TextEditor,
                                   val designerEditor: DesignerEditor,
                                   editorName: String,
-                                  private val project: Project) : SplitEditor(textEditor, designerEditor, editorName, Layout.SHOW_PREVIEW) {
+                                  private val project: Project)
+  : SplitEditor(textEditor, designerEditor, editorName,
+                if (AndroidEditorSettings.getInstance().globalState.isPreferXmlEditor) Layout.SHOW_EDITOR else Layout.SHOW_PREVIEW) {
 
   private val propertiesComponent = PropertiesComponent.getInstance()
 
