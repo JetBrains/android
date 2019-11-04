@@ -34,8 +34,11 @@ import static com.intellij.openapi.ui.Messages.YES;
 import static com.intellij.openapi.ui.Messages.YesNoCancelResult;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+import com.android.build.attribution.BuildAttributionManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserManager;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -569,6 +572,12 @@ public class GradleBuildInvoker {
   @NotNull
   public Project getProject() {
     return myProject;
+  }
+
+  public static boolean isBuildAttributionEnabledForProject(Project project) {
+    return StudioFlags.BUILD_ATTRIBUTION_ENABLED.get() &&
+           ProjectStructure.getInstance(project).getAndroidPluginVersions()
+             .checkAllVersionsAreAtLeast(BuildAttributionManager.Companion.getMinimumSupportedAgpVersion());
   }
 
   public interface AfterGradleInvocationTask {
