@@ -17,18 +17,12 @@ package com.android.tools.idea.actions
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
-import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.AnalysisScope
-import com.intellij.openapi.extensions.Extensions
-import com.intellij.testFramework.PlatformTestUtil
-import org.jetbrains.android.AndroidTestCase
-
-import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
-import com.intellij.analysis.AnalysisUIOptions
-import com.intellij.analysis.BaseAnalysisActionDialog
 import com.intellij.codeInsight.NullableNotNullManager
+import org.jetbrains.android.AndroidTestCase
 
 class AndroidInferNullityActionTest : AndroidTestCase() {
 
@@ -39,8 +33,7 @@ class AndroidInferNullityActionTest : AndroidTestCase() {
   public override fun setUp() {
     super.setUp()
     myProjectSystem = TestProjectSystem(project, PLATFORM_SUPPORT_LIBS)
-    PlatformTestUtil.registerExtension(
-      Extensions.getArea(project), EP_NAME, myProjectSystem, testRootDisposable)
+    myProjectSystem.useInTests()
     myFixture.addClass(
       """
 import android.graphics.Color;
