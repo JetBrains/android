@@ -56,7 +56,7 @@ class UnexpectedIssueChecker: GradleIssueChecker {
     override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
       val future = CompletableFuture<Any>()
       invokeLater {
-        SendFeedbackAction.doPerformAction(project)
+        SendFeedbackAction.submit(project)
         future.complete(null)
       }
       return future
