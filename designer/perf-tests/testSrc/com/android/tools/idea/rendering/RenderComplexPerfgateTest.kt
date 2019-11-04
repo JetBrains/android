@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.Result
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.PerfgateRenderUtil.NUMBER_OF_SAMPLES
 import com.android.tools.idea.rendering.PerfgateRenderUtil.NUMBER_OF_WARM_UP
 import com.android.tools.idea.rendering.PerfgateRenderUtil.pruneOutliers
@@ -63,7 +62,6 @@ class RenderComplexPerfgateTest : AndroidGradleTestCase() {
     val xmlPath = AndroidTestBase.getTestDataPath() +
                   "/projects/perfgateComplexLayout/app/src/main/res/layout/activity_main.xml"
     val file =  LocalFileSystem.getInstance().findFileByPath(xmlPath)!!
-      //myFixture.addFileToProject("res/layout/activity_main.xml", COMPLEX_LAYOUT).virtualFile
     val configuration = RenderTestUtil.getConfiguration(module, file)
     val logger = mock<RenderLogger>(RenderLogger::class.java)
 
@@ -85,7 +83,6 @@ class RenderComplexPerfgateTest : AndroidGradleTestCase() {
     val xmlPath = AndroidTestBase.getTestDataPath() +
                   "/projects/perfgateComplexLayout/app/src/main/res/layout/activity_main.xml"
     val file =  LocalFileSystem.getInstance().findFileByPath(xmlPath)!!
-    //myFixture.addFileToProject("res/layout/activity_main.xml", COMPLEX_LAYOUT).virtualFile
     val configuration = RenderTestUtil.getConfiguration(module, file)
     val logger = mock<RenderLogger>(RenderLogger::class.java)
 
