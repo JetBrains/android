@@ -51,10 +51,9 @@ interface SqliteView {
   /**
    * Updates the UI for an existing database, by adding and removing tables from its schema.
    * @param database The database that needs to be updated.
-   * @param toRemove The list of [SqliteTable] to remove from the database schema.
-   * @param toAdd The list of [IndexedSqliteTable] to add to the database schema. Each table is added at the specified index.
+   * @param toAdd The list of [SqliteTable] belonging to the database schema.
    */
-  fun updateDatabase(database: SqliteDatabase, toRemove: List<SqliteTable>, toAdd: List<IndexedSqliteTable>)
+  fun updateDatabase(database: SqliteDatabase, toAdd: List<SqliteTable>)
 
   /**
    * Removes the [SqliteSchema] corresponding to the [SqliteDatabase] passed as argument.
@@ -81,8 +80,3 @@ interface SqliteViewListener {
   /** Called when the user wants to sync a database */
   fun syncDatabaseActionInvoked(database: SqliteDatabase)
 }
-
-/**
- * Class containing a [SqliteTable] and its index among other tables in the UI.
- */
-data class IndexedSqliteTable(val index: Int, val sqliteTable: SqliteTable)

@@ -20,7 +20,6 @@ import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
-import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.SqliteView
 import com.android.tools.idea.sqlite.ui.mainView.SqliteViewListener
 import org.mockito.Mockito.mock
@@ -61,5 +60,5 @@ open class MockSqliteView : SqliteView {
 
   override fun reportErrorRelatedToService(service: SqliteService, message: String, t: Throwable) { }
 
-  override fun updateDatabase(database: SqliteDatabase, toRemove: List<SqliteTable>, toAdd: List<IndexedSqliteTable>) { }
+  override fun updateDatabase(database: SqliteDatabase, toAdd: List<SqliteTable>) { }
 }
