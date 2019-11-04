@@ -29,15 +29,20 @@ data class PluginData(val pluginType: PluginType, val displayName: String) {
   constructor(pluginIdentifier: PluginIdentifier?, projectPath: String) : this(getPluginType(pluginIdentifier),
                                                                                getPluginName(pluginIdentifier, projectPath))
 
-  override fun toString(): String {
-    return when (pluginType) {
-      PluginType.UNKNOWN -> "unknown plugin"
-      PluginType.PLUGIN -> "plugin $displayName"
-      PluginType.SCRIPT -> "script $displayName"
-    }
-  }
+  override fun toString(): String = toString(pluginType, displayName)
 
   companion object {
+    fun toString(pluginIdentifier: PluginIdentifier?, projectPath: String): String = toString(getPluginType(pluginIdentifier),
+                                                                                              getPluginName(pluginIdentifier, projectPath))
+
+    fun toString(pluginType: PluginType, displayName: String): String {
+      return when (pluginType) {
+        PluginType.UNKNOWN -> "unknown plugin"
+        PluginType.PLUGIN -> "plugin $displayName"
+        PluginType.SCRIPT -> "script $displayName"
+      }
+    }
+
     private fun getPluginType(pluginIdentifier: PluginIdentifier?): PluginType {
       return when (pluginIdentifier) {
         is BinaryPluginIdentifier -> PluginType.PLUGIN
