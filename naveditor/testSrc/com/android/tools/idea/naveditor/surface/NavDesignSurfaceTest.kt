@@ -26,17 +26,13 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.InteractionManager
-import com.android.tools.idea.common.surface.InteractionProvider
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.NavLogEvent
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
-import com.android.tools.idea.naveditor.editor.NAV_EDITOR_ID
-import com.android.tools.idea.naveditor.editor.NavEditor
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.updateHierarchy
@@ -46,24 +42,19 @@ import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.components.impl.ComponentManagerImpl
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
-import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.ui.docking.DockManager
 import com.intellij.util.indexing.UnindexedFilesUpdater
 import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.jetbrains.android.sdk.AndroidSdkData
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.eq
@@ -262,7 +253,6 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     val surface = model.surface as NavDesignSurface
     `when`(surface.layeredPane).thenReturn(mock(JComponent::class.java))
-    `when`(surface.onDoubleClick(anyInt(), anyInt())).thenCallRealMethod()
     val interactionManager = surface.interactionManager
     interactionManager.startListening()
 
