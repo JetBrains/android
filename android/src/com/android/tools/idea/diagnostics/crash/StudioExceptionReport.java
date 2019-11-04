@@ -25,17 +25,16 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class StudioExceptionReport extends BaseStudioReport {
   /**
@@ -77,7 +76,7 @@ public class StudioExceptionReport extends BaseStudioReport {
       builder.addTextBody("kotlinVersion", getKotlinPluginVersionDescription());
     }
     try {
-      IdeaPluginDescriptor plugin = PluginManager.getPlugin(pluginId);
+      IdeaPluginDescriptor plugin = PluginManagerCore.getPlugin(pluginId);
       if (plugin != null) {
         final String name = plugin.getName();
         final String version = plugin.getVersion();
