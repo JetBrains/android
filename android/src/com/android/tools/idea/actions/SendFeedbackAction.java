@@ -89,7 +89,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
         indicator.setText("Collecting feedback information");
         indicator.setIndeterminate(true);
         String description = getDescription(project);
-        com.intellij.ide.actions.SendFeedbackAction.doPerformAction(project, description + extraDescriptionDetails);
+        com.intellij.ide.actions.SendFeedbackAction.submit(project, description + extraDescriptionDetails);
       }
     }.setCancelText("Cancel").queue();
   }
