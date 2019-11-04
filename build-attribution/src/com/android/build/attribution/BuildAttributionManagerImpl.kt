@@ -92,15 +92,19 @@ class BuildAttributionManagerImpl(
         buildContent = ContentImpl(view.component, "Build Speed", true)
         buildContentManager.addContent(buildContent)
       }
+      view.setInitialSelection()
     }
   }
 
-  @UiThread
   override fun openResultsTab() {
-    if (buildContent?.isValid != true) {
-      createUiTab()
+    ApplicationManager.getApplication().invokeLater {
+      if (buildContent?.isValid != true) {
+        createUiTab()
+      }
+      ApplicationManager.getApplication().invokeLater {
+        buildContentManager.setSelectedContent(buildContent, true, true, false) {}
+      }
     }
-    buildContentManager.setSelectedContent(buildContent, true, true, true) {}
   }
 
   override fun buildOutputLine(): String = BuildAttributionOutputLinkFilter.INSIGHTS_AVAILABLE_LINE
