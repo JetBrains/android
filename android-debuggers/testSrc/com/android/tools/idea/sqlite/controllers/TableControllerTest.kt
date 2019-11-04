@@ -32,7 +32,9 @@ import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -44,6 +46,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import java.sql.DriverManager
 import java.sql.JDBCType
 
 class TableControllerTest : PlatformTestCase() {
@@ -64,7 +67,7 @@ class TableControllerTest : PlatformTestCase() {
   private lateinit var authorsRow2: SqliteRow
   private lateinit var authorsRow4: SqliteRow
   private lateinit var authorsRow5: SqliteRow
-  
+
   override fun setUp() {
     super.setUp()
     tableView = spy(MockTableView::class.java)
@@ -77,7 +80,9 @@ class TableControllerTest : PlatformTestCase() {
     sqliteUtil.setUp()
 
     val sqliteFile = sqliteUtil.createTestSqliteDatabase()
-    realSqliteService = SqliteJdbcService(sqliteFile, edtExecutor)
+    realSqliteService = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(sqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
 
     authorIdColumn = SqliteColumn("author_id", JDBCType.INTEGER)
     val authorNameColumn = SqliteColumn("first_name", JDBCType.VARCHAR)
@@ -675,8 +680,6 @@ class TableControllerTest : PlatformTestCase() {
 
   fun testSetUpOnRealDb() {
     // Prepare
-    pumpEventsAndWaitForFuture(realSqliteService.openDatabase())
-
     tableController = TableController(
       testRootDisposable,
       2,
@@ -696,8 +699,6 @@ class TableControllerTest : PlatformTestCase() {
 
   fun testSort() {
     // Prepare
-    pumpEventsAndWaitForFuture(realSqliteService.openDatabase())
-
     tableController = TableController(
       testRootDisposable,
       2,
@@ -723,8 +724,6 @@ class TableControllerTest : PlatformTestCase() {
 
   fun testSortOnSortedQuery() {
     // Prepare
-    pumpEventsAndWaitForFuture(realSqliteService.openDatabase())
-
     tableController = TableController(
       testRootDisposable,
       2,
@@ -750,6 +749,14 @@ class TableControllerTest : PlatformTestCase() {
     invocations.forEachIndexed { index, rows ->
       assertEquals(expectedInvocations[index][0], rows.first().values[0].value)
       assertEquals(expectedInvocations[index][1], rows.last().values[0].value)
+    }
+  }
+
+  private fun getSqliteJdbcService(sqliteFile: VirtualFile, executor: FutureCallbackExecutor): ListenableFuture<SqliteService> {
+    return executor.executeAsync {
+      val url = "jdbc:sqlite:${sqliteFile.path}"
+      val connection = DriverManager.getConnection(url)
+      return@executeAsync SqliteJdbcService(connection, sqliteFile, executor)
     }
   }
 }

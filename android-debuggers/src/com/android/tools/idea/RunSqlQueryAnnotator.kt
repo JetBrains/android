@@ -170,10 +170,11 @@ class DatabaseInspectorGutterIconAction(
     }
     else {
       val view = viewFactory.createParametersBindingView(project)
-      val controller = ParametersBindingController(view, sqliteStatement, parametersNames) {
+      ParametersBindingController(view, sqliteStatement, parametersNames) {
         SqliteExplorerProjectService.getInstance(project).runSqliteStatement(database, it)
       }.also {
         it.setUp()
+        it.show()
         Disposer.register(project, it)
       }
     }

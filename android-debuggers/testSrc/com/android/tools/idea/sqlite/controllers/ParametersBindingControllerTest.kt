@@ -55,7 +55,6 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     orderVerifier.verify(view).addListener(any(ParametersBindingDialogView.Listener::class.java))
     orderVerifier.verify(view).showNamedParameters(setOf("param1", "param2"))
-    orderVerifier.verify(view).show()
   }
 
   fun testRunStatement() {

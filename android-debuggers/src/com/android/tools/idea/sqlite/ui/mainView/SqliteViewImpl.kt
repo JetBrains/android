@@ -24,7 +24,6 @@ import com.android.tools.adtui.workbench.Split
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -205,7 +204,7 @@ class SqliteViewImpl(
     tabs.removeTab(tab)
   }
 
-  override fun reportErrorRelatedToService(service: SqliteService, message: String, t: Throwable) {
+  override fun reportError(message: String, t: Throwable) {
     val errorMessage = if (t.message != null) "$message: ${t.message}" else message
     workBench.loadingStopped(errorMessage)
   }

@@ -36,6 +36,9 @@ class ParametersBindingController(
   fun setUp() {
     view.addListener(listener)
     view.showNamedParameters(parametersNames.toSet())
+  }
+
+  fun show() {
     view.show()
   }
 

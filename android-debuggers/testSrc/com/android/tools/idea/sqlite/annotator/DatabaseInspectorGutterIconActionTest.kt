@@ -30,7 +30,6 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.ui.awt.RelativePoint
@@ -55,12 +54,8 @@ class DatabaseInspectorGutterIconActionTest : LightJavaCodeInsightFixtureTestCas
 
   override fun setUp() {
     super.setUp()
-    val virtualFile1 = mock(VirtualFile::class.java)
-    `when`(virtualFile1.path).thenReturn("data/data/myapp/databases/file1.db")
-    val virtualFile2 = mock(VirtualFile::class.java)
-    `when`(virtualFile2.path).thenReturn("data/data/myapp/databases/file2.db")
-    sqliteDatabase1 = SqliteDatabase(virtualFile1, mock(SqliteService::class.java))
-    sqliteDatabase2 = SqliteDatabase(virtualFile2, mock(SqliteService::class.java))
+    sqliteDatabase1 = SqliteDatabase("db1", mock(SqliteService::class.java))
+    sqliteDatabase2 = SqliteDatabase("d2", mock(SqliteService::class.java))
 
     ideComponents = IdeComponents(myFixture)
     mockSqliteExplorerProjectService = ideComponents.mockProjectService(SqliteExplorerProjectService::class.java)

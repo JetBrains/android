@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
-import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -58,7 +57,7 @@ open class MockSqliteView : SqliteView {
 
   override fun closeTab(tabId: TabId) { }
 
-  override fun reportErrorRelatedToService(service: SqliteService, message: String, t: Throwable) { }
+  override fun reportError(message: String, t: Throwable) { }
 
   override fun updateDatabase(database: SqliteDatabase, toAdd: List<SqliteTable>) { }
 }

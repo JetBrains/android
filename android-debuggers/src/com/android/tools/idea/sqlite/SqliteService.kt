@@ -23,14 +23,9 @@ import com.google.common.util.concurrent.ListenableFuture
 /**
  * Abstraction over operations allowed on a single underlying sqlite database.
  *
- * All operations, except [dispose], are asynchronous, where completion is communicated through
- * [ListenableFuture] return values.
- *
- * The [dispose] method cancels all pending operations and releases all resources associated with
- * the service.
+ * All operations are asynchronous, where completion is communicated through [ListenableFuture] return values.
  */
 interface SqliteService {
-  fun openDatabase(): ListenableFuture<Unit>
   fun closeDatabase(): ListenableFuture<Unit>
   fun readSchema(): ListenableFuture<SqliteSchema>
 
