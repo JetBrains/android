@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters
 
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
+import com.android.tools.idea.common.analytics.setApplicationId
 import com.android.tools.idea.common.surface.DesignSurface
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.MotionLayoutEditorEvent
@@ -54,13 +55,12 @@ internal class InternalMotionTrackerFactory {
  *
  * @param myExecutor - shared thread pool for all layout editor events (some exception)
  * @param surface - key used by [UsageTracker] for session info
- * @param myConsumer - Consumer that eventually calls []UsageTracker.log]
+ * @param myConsumer - Consumer that eventually calls [UsageTracker.log]
  */
 private class MotionUsageTrackerImpl internal constructor(
   private val myExecutor: Executor,
-  surface: DesignSurface?,
+  private val surface: DesignSurface?,
   private val myConsumer: Consumer<AndroidStudioEvent.Builder>) : InternalMotionTracker {
-
 
   override fun track(eventType: MotionLayoutEditorEvent.MotionLayoutEditorEventType) {
     try {
@@ -68,6 +68,7 @@ private class MotionUsageTrackerImpl internal constructor(
         val event = AndroidStudioEvent.newBuilder()
           .setKind(AndroidStudioEvent.EventKind.MOTION_LAYOUT_EDITOR_EVENT)
           .setMotionLayoutEditorEvent(MotionLayoutEditorEvent.newBuilder().setType(eventType).build())
+        surface?.model?.let { event.setApplicationId(surface.model!!.facet) }
 
         myConsumer.accept(event)
       }
