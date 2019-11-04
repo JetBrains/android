@@ -15,13 +15,6 @@
  */
 package com.android.tools.idea.common.model;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ID;
-import static com.android.SdkConstants.ID_PREFIX;
-import static com.android.SdkConstants.NEW_ID_PREFIX;
-import static com.android.SdkConstants.XMLNS;
-import static com.android.SdkConstants.XMLNS_PREFIX;
-
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -48,20 +41,17 @@ import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Stream;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import java.util.*;
+import java.util.stream.Stream;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Represents a component editable in the UI builder. A component has properties,
@@ -714,9 +704,9 @@ public class NlComponent implements NlAttributesHolder {
     // in the R class
     NamesValidator validator = LanguageNamesValidation.INSTANCE.forLanguage(JavaLanguage.INSTANCE);
 
-    while (ids.contains(nextIdValue) || validator != null && validator.isKeyword(nextIdValue, project)) {
+    while (ids.contains(nextIdValue) || validator.isKeyword(nextIdValue, project)) {
       index++;
-      if (index == 1 && (validator == null || !validator.isKeyword(nextIdValue, project))) {
+      if (index == 1 && !validator.isKeyword(nextIdValue, project)) {
         nextIdValue = idValue;
       }
       else {
