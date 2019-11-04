@@ -15,9 +15,14 @@
  */
 package com.android.build.attribution
 
+import com.android.ide.common.repository.GradleVersion
 import org.gradle.tooling.events.ProgressListener
 
 interface BuildAttributionManager : ProgressListener {
+  companion object {
+    val minimumSupportedAgpVersion = GradleVersion.tryParseAndroidGradlePluginVersion("4.0.0-alpha03")!!
+  }
+
   fun onBuildStart()
 
   fun onBuildSuccess(attributionFilePath: String)
