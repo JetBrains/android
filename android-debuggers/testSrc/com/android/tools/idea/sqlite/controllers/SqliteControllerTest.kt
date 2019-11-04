@@ -25,6 +25,7 @@ import com.android.tools.idea.device.fs.DownloadedFileData
 import com.android.tools.idea.editors.sqlite.SqliteTestUtil
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.SqliteService
+import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.MockSchemaProvider
 import com.android.tools.idea.sqlite.mocks.MockSqliteEditorViewFactory
 import com.android.tools.idea.sqlite.mocks.MockSqliteServiceFactory
@@ -35,7 +36,6 @@ import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.tableView.TableView
-import com.android.tools.idea.sqliteExplorer.SqliteExplorerProjectService
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.application.ApplicationManager
@@ -119,7 +119,7 @@ class SqliteControllerTest : PlatformTestCase() {
     openedFiles = mutableListOf()
     sqliteController = SqliteController(
       project,
-      SqliteExplorerProjectService.getInstance(project),
+      MockDatabaseInspectorModel(),
       sqliteServiceFactory,
       viewFactory,
       sqliteView,
