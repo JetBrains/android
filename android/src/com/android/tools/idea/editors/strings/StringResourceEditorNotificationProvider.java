@@ -34,11 +34,7 @@ import java.awt.*;
 
 public class StringResourceEditorNotificationProvider extends EditorNotifications.Provider<StringResourceEditorNotificationProvider.InfoPanel> {
   private static final Key<InfoPanel> KEY = Key.create("android.editors.strings");
-  private boolean myShow;
-
-  public StringResourceEditorNotificationProvider() {
-    myShow = true;
-  }
+  private boolean myHide;
 
   @NotNull
   @Override
@@ -49,7 +45,7 @@ public class StringResourceEditorNotificationProvider extends EditorNotification
   @Nullable
   @Override
   public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull FileEditor fileEditor, @NotNull Project project) {
-    if (!myShow || !canViewTranslations(project, file)) {
+    if (myHide || !canViewTranslations(project, file)) {
       return null;
     }
 
@@ -58,7 +54,7 @@ public class StringResourceEditorNotificationProvider extends EditorNotification
     panel.createActionLabel("Open editor", () -> openEditor(project, file));
     panel.createActionLabel("Hide notification", () -> {
       panel.setVisible(false);
-      myShow = false;
+      myHide = true;
     });
     return panel;
   }
