@@ -29,6 +29,7 @@ import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
 import java.awt.dnd.DnDConstants
 import java.awt.dnd.DropTargetDragEvent
+import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 
 interface InteractionProvider {
@@ -43,6 +44,11 @@ interface InteractionProvider {
   fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
                              @SwingCoordinate mouseY: Int,
                              @JdkConstants.InputEventMask modifiersEx: Int)
+
+  /**
+   * Called by [InteractionManager] when the popup context menu event is triggered. (e.g. right click on a component)
+   */
+  fun popupMenuTrigger(mouseEvent: MouseEvent, ignoredIfAlreadySelected: Boolean)
 
   /**
    * Get Cursor by [InteractionManager] when there is no active [Interaction].
@@ -126,6 +132,17 @@ abstract class InteractionProviderBase(private val surface: DesignSurface) : Int
     }
     for (layer in surface.layers) {
       layer.onHover(mouseX, mouseY)
+    }
+  }
+
+  override fun popupMenuTrigger(mouseEvent: MouseEvent, ignoredIfAlreadySelected: Boolean) {
+    val x = mouseEvent.x
+    val y = mouseEvent.y
+    val modifiersEx = mouseEvent.modifiersEx
+    val sceneView = surface.getSceneView(x, y)
+    if (sceneView != null) {
+      val component = sceneView.selectComponentAt(x, y, modifiersEx, false, ignoredIfAlreadySelected)
+      surface.actionManager.showPopup(mouseEvent, component)
     }
   }
 
