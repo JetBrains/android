@@ -1280,6 +1280,76 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
     assertThat(lookupElement.renderedText).startsWith("String")
   }
 
+  @Test
+  @RunsInEdt
+  fun testDataBindingCompletion_innerClass() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Data {
+        public class InnerData {
+          public static int x = 1;
+        }
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Data"/>
+          <variable name="model" type="Data" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{Data.${caret}}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    assertThat(fixture.completeBasic().any { it.lookupString == "InnerData" }).isTrue()
+  }
+
+  @Test
+  @RunsInEdt
+  fun testDataBindingCompletion_methodFromInnerClass() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class Data {
+        static public class Inner {
+          public static void doNothing() {}
+        }
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="test.langdb.Data"/>
+          <variable name="model" type="Data" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{Data.Inner.${caret}}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    assertThat(fixture.completeBasic().any { it.lookupString == "doNothing" }).isTrue()
+  }
+
   /**
    * Returns a lookup element's full rendered text, with a "$type $value$tail" format,
    * e.g. "String name (from getName())"
