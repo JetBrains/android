@@ -17,12 +17,15 @@ package com.android.tools.idea.util
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.NON_PLATFORM_SUPPORT_LAYOUT_LIBS
+import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.truth.Truth
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.testFramework.PlatformTestCase
-import com.intellij.testFramework.PlatformTestUtil
-import java.util.*
+import java.util.Collections
 
 /**
  * Tests for [DependencyManagement].
@@ -36,8 +39,7 @@ class DependencyManagementTest : PlatformTestCase() {
     super.setUp()
     projectSystem = TestProjectSystem(myProject, availableDependencies = PLATFORM_SUPPORT_LIBS + NON_PLATFORM_SUPPORT_LAYOUT_LIBS,
                                       lastSyncResult = ProjectSystemSyncManager.SyncResult.UNKNOWN)
-    PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME,
-                                                                     projectSystem, testRootDisposable)
+    projectSystem.useInTests()
     syncManager = projectSystem.getSyncManager()
   }
 

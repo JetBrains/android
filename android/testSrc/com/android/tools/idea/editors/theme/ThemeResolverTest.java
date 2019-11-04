@@ -25,17 +25,13 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
-import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestUtil;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -108,8 +104,7 @@ public class ThemeResolverTest extends AndroidTestCase {
 
   public void testRequiredBaseThemesWithDesignLibraryPresent() {
     TestProjectSystem projectSystem = new TestProjectSystem(getProject(), TestRepositories.PLATFORM_SUPPORT_LIBS);
-    ExtensionPointName<AndroidProjectSystemProvider> epName = new ExtensionPointName<>("com.android.project.projectsystem");
-    PlatformTestUtil.registerExtension(Extensions.getArea(getProject()), epName, projectSystem, getTestRootDisposable());
+    projectSystem.useInTests();
     projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, new GradleVersion(1337, 600613));
     projectSystem.addDependency(GoogleMavenArtifactId.DESIGN, myModule, new GradleVersion(1338, 600614));
 
@@ -146,8 +141,7 @@ public class ThemeResolverTest extends AndroidTestCase {
 
   private void doTestRecommendedThemesAppcompat() {
     TestProjectSystem projectSystem = new TestProjectSystem(getProject(), TestRepositories.PLATFORM_SUPPORT_LIBS);
-    ExtensionPointName<AndroidProjectSystemProvider> epName = new ExtensionPointName<>("com.android.project.projectsystem");
-    PlatformTestUtil.registerExtension(Extensions.getArea(getProject()), epName, projectSystem, getTestRootDisposable());
+    projectSystem.useInTests();
     projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, myModule, new GradleVersion(1337, 600613));
 
     ResourceNamespace appcompatNamespace =
