@@ -19,7 +19,6 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.editor.DesignFileEditor
 import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
@@ -48,6 +47,7 @@ import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -55,6 +55,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorPolicy
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.TextEditor
@@ -82,7 +83,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.KotlinFileType
 import java.awt.BorderLayout
 import java.util.function.BiFunction
-import javax.swing.JComponent
 import javax.swing.JPanel
 
 
@@ -154,7 +154,7 @@ private fun PsiFile.hasViewSuccessor() =
 /**
  * Text editor that enables preview if the file contains classes extending android.view.View
  */
-private class TextEditorWithCustomViewPreview(textEditor: TextEditor, preview: CustomViewPreview) : SeamlessTextEditorWithPreview(
+private class TextEditorWithCustomViewPreview(textEditor: TextEditor, val preview: CustomViewPreview) : SeamlessTextEditorWithPreview(
   textEditor, preview, "Custom View and Preview") {
   init {
     preview.editorWithPreview = this
@@ -171,7 +171,10 @@ class CustomViewEditorProvider : FileEditorProvider, DumbAware {
   private object CustomViewEditorFileType : DesignerEditorFileType {
     override fun isResourceTypeOf(file: PsiFile) = file.virtualFile is CustomViewLightVirtualFile
 
-    override fun getToolbarActionGroups(surface: DesignSurface) = ToolbarActionGroups(surface)
+    override fun getToolbarActionGroups(surface: DesignSurface) = CustomViewPreviewToolbar(surface)
+
+    override fun getSelectionContextToolbar(surface: DesignSurface, selection: List<NlComponent>): DefaultActionGroup =
+      DefaultActionGroup()
 
     override fun isEditable() = true
   }
@@ -220,49 +223,60 @@ class CustomViewEditorProvider : FileEditorProvider, DumbAware {
   override fun getPolicy() = FileEditorPolicy.HIDE_DEFAULT_EDITOR
 }
 
+
 /**
- * ActionManager that creates a dropdown button allowing to select between the custom views available from the current file.
+ * Toolbar that creates a dropdown button allowing to select between the custom views available from the current file and two toggle buttons
+ * for switching vertical and horizontal wrap content options.
+ * TODO(b/143067434): Utilize this for switching between custom view and compose representations
  */
-private class CustomViewPreviewActionManager(
-  designSurface: NlDesignSurface, private val previewEditor: CustomViewPreview) : ActionManager<NlDesignSurface>(designSurface) {
-  override fun registerActionsShortcuts(component: JComponent) {}
+private class CustomViewPreviewToolbar(private val surface: DesignSurface) :
+  ToolbarActionGroups(surface) {
 
-  override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup {
-    return DefaultActionGroup()
-  }
+  private fun findPreviewEditors() = FileEditorManager.getInstance(surface.project)?.let { fileEditorManager ->
+    surface.models.flatMap { fileEditorManager.getAllEditors(it.virtualFile).asIterable() }
+      .filterIsInstance<TextEditorWithCustomViewPreview>()
+      .map { it.preview }
+      .distinct()
+  } ?: listOf()
 
-  override fun getToolbarActions(component: NlComponent?, newSelection: MutableList<NlComponent>): DefaultActionGroup {
+  override fun getNorthGroup(): ActionGroup {
     val customViewPreviewActions = DefaultActionGroup()
     val customViews = object : DropDownAction(null, "Custom View for Preview", CUSTOM_VIEW) {
       override fun update(e: AnActionEvent) {
         super.update(e)
-        e.presentation.setText(previewEditor.currentState, false)
+        removeAll()
+
+        // We need just a single previewEditor here (any) to retrieve (read) the states and currently selected state
+        findPreviewEditors().firstOrNull()?.let { previewEditor ->
+          previewEditor.states.forEach {
+            val state = it
+            add(object : AnAction(it) {
+              override fun actionPerformed(e: AnActionEvent) {
+                // Here we iterate over all editors as change in selection (write) should trigger updates in all of them
+                findPreviewEditors().forEach { it.currentState = state }
+              }
+            })
+          }
+          e.presentation.setText(previewEditor.currentState, false)
+        }
       }
 
       override fun displayTextInToolbar() = true
     }
-    previewEditor.states.forEach {
-      val state = it
-      customViews.add(object : AnAction(it) {
-        override fun actionPerformed(e: AnActionEvent) {
-          previewEditor.currentState = state
-        }
-      })
-    }
 
     val wrapWidth = object : ToggleAction(null, "Set preview width to wrap content", WRAP_WIDTH) {
-      override fun isSelected(e: AnActionEvent) = previewEditor.shrinkWidth
+      override fun isSelected(e: AnActionEvent) = findPreviewEditors().any { it.shrinkWidth }
 
       override fun setSelected(e: AnActionEvent, state: Boolean) {
-        previewEditor.shrinkWidth = state
+        findPreviewEditors().forEach { it.shrinkWidth = state }
       }
     }
 
     val wrapHeight = object : ToggleAction(null, "Set preview height to wrap content", WRAP_HEIGHT) {
-      override fun isSelected(e: AnActionEvent) = previewEditor.shrinkHeight
+      override fun isSelected(e: AnActionEvent) = findPreviewEditors().any { it.shrinkHeight }
 
       override fun setSelected(e: AnActionEvent, state: Boolean) {
-        previewEditor.shrinkHeight = state
+        findPreviewEditors().forEach { it.shrinkHeight = state }
       }
     }
 
@@ -339,8 +353,6 @@ private class CustomViewPreview(private val psiFile: PsiFile, persistenceProvide
     NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
       setShrinkRendering(true)
     }
-  }.setActionManagerProvider { surface ->
-    CustomViewPreviewActionManager(surface as NlDesignSurface, this)
   }.build().apply {
     setScreenMode(SceneMode.RESIZABLE_PREVIEW, false)
   }
