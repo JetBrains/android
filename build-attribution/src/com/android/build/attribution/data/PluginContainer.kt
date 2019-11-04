@@ -15,29 +15,27 @@
  */
 package com.android.build.attribution.data
 
-import com.google.common.cache.Cache
-import com.google.common.cache.CacheBuilder
 import org.gradle.tooling.events.PluginIdentifier
 
 /**
  * A cache object to unify [PluginData] objects and share them between different analyzers.
  */
-data class PluginContainer(private val pluginCache: Cache<String, PluginData> = CacheBuilder.newBuilder().build<String, PluginData>()) {
+class PluginContainer {
+  private val pluginCache = HashMap<String, PluginData>()
+
   fun getPlugin(pluginType: PluginData.PluginType, displayName: String): PluginData {
-    val pluginData = PluginData(pluginType, displayName)
-    return pluginCache.get(pluginData.toString()) {
-      pluginData
+    return pluginCache.getOrPut(PluginData.toString(pluginType, displayName)) {
+      PluginData(pluginType, displayName)
     }
   }
 
   fun getPlugin(pluginIdentifier: PluginIdentifier?, projectPath: String): PluginData {
-    val pluginData = PluginData(pluginIdentifier, projectPath)
-    return pluginCache.get(pluginData.toString()) {
-      pluginData
+    return pluginCache.getOrPut(PluginData.toString(pluginIdentifier, projectPath)) {
+      PluginData(pluginIdentifier, projectPath)
     }
   }
 
   fun clear() {
-    pluginCache.invalidateAll()
+    pluginCache.clear()
   }
 }
