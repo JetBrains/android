@@ -388,6 +388,7 @@ private class CustomViewPreview(private val psiFile: PsiFile) : Disposable, Desi
   private fun updateModel() {
     surface.deactivate()
     surface.models.forEach { surface.removeModel(it) }
+    surface.zoomToFit()
     val selectedClass = classes.firstOrNull { fqcn2name(it) == currentState }
     selectedClass?.let {
       val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", getXmlLayout(selectedClass, shrinkWidth, shrinkHeight))
@@ -409,6 +410,7 @@ private class CustomViewPreview(private val psiFile: PsiFile) : Disposable, Desi
                                  surface.componentRegistrar,
                                  BiFunction { project, _ -> AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile })
       surface.addModel(model).whenComplete { _, ex ->
+        surface.zoomToFit()
         surface.activate()
         configuration.addListener { flags ->
           if ((flags and ConfigurationListener.CFG_DEVICE_STATE) == ConfigurationListener.CFG_DEVICE_STATE) {

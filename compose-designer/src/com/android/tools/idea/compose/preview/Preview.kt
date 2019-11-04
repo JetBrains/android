@@ -252,7 +252,7 @@ private fun updateSurfaceWithNewModels(surface: NlDesignSurface,
       val modelAddedFutures = futureModels.map {
         // We call addModel even though the model might not be new. If we try to add an existing model,
         // this will trigger a new render which is exactly what we want.
-        surface.addModel(Futures.getDone(it), false)
+        surface.addModel(Futures.getDone(it));
       }
 
       CompletableFuture.allOf(*(modelAddedFutures.toTypedArray()))
@@ -582,6 +582,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
     // This will happen if the user removes one or more previews.
     if (LOG.isDebugEnabled) LOG.debug("Removing ${existingModels.size} model(s)")
     existingModels.forEach { surface.removeModel(it) }
+    surface.zoomToFit()
 
     val rendersCompletedFuture = if (futureModels.isNotEmpty()) {
       updateSurfaceWithNewModels(surface, futureModels)

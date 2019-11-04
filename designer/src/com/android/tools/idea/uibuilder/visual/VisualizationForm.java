@@ -236,6 +236,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
     for (NlModel model : models) {
       model.deactivate(this);
       mySurface.removeModel(model);
+      mySurface.zoomToFit();
       Disposer.dispose(model);
     }
   }
@@ -364,7 +365,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
               return CompletableFuture.completedFuture(null);
             }
             else {
-              return mySurface.addModel(model, false);
+              return mySurface.addModel(model);
             }
           });
         }
