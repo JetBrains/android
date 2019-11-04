@@ -25,7 +25,6 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
-import com.android.tools.idea.common.editor.DesignToolsSplitEditor;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.error.LintIssueProvider;
@@ -36,7 +35,6 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlComponentBackend;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
@@ -48,7 +46,6 @@ import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
@@ -56,20 +53,16 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.ide.util.PsiNavigationSupport;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.IdeGlassPane;
-import com.intellij.pom.Navigatable;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
@@ -89,11 +82,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Toolkit;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.lang.ref.WeakReference;
@@ -595,54 +586,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   public interface StateChangeListener {
     void onStateChange(@NotNull State newState);
-  }
-
-  public void onSingleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
-    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
-      FileEditor selectedEditor = FileEditorManager.getInstance(getProject()).getSelectedEditor();
-      if (selectedEditor instanceof DesignToolsSplitEditor) {
-        DesignToolsSplitEditor splitEditor = (DesignToolsSplitEditor)selectedEditor;
-        if (splitEditor.isSplitMode()) {
-          // If we're in split mode, we want to select the component in the text editor.
-          SceneView sceneView = getSceneView(x, y);
-          if (sceneView == null) {
-            return;
-          }
-          // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
-          NlComponent component = Coordinates.findComponent(sceneView, x, y);
-          if (component != null) {
-           navigateToComponent(component, false);
-          }
-        }
-      }
-    }
-  }
-
-  protected static void navigateToComponent(@NotNull NlComponent component, boolean needsFocusEditor) {
-    NlComponentBackend componentBackend = component.getBackend();
-    PsiElement element = componentBackend.getTag() == null ? null : componentBackend.getTag().getNavigationElement();
-    if (element == null) {
-      return;
-    }
-    if (PsiNavigationSupport.getInstance().canNavigate(element) && element instanceof Navigatable) {
-      ((Navigatable)element).navigate(needsFocusEditor);
-    }
-  }
-
-  public void onDoubleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
-    SceneView sceneView = getSceneView(x, y);
-    if (sceneView == null) {
-      return;
-    }
-
-    // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
-    NlComponent component = Coordinates.findComponent(sceneView, x, y);
-    if (component != null) {
-      // Notify that the user is interested in a component.
-      // A properties manager may move the focus to the most important attribute of the component.
-      // Such as the text attribute of a TextView
-      notifyComponentActivate(component, Coordinates.getAndroidX(sceneView, x), Coordinates.getAndroidY(sceneView, y));
-    }
   }
 
   /**

@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.api.DragType
+import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.Coordinates.getAndroidXDip
 import com.android.tools.idea.common.model.Coordinates.getAndroidYDip
@@ -25,6 +26,9 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.model.NlDropEvent
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction
+import com.intellij.ide.util.PsiNavigationSupport
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.pom.Navigatable
 import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
 import java.awt.Toolkit
@@ -47,6 +51,10 @@ interface InteractionProvider {
    * Called by [InteractionManager] when mouse is released without any interaction.
    */
   fun mouseReleaseWhenNoInteraction(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifierEx: Int)
+
+  fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int)
+
+  fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int)
 
   fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
                              @SwingCoordinate mouseY: Int,
@@ -168,6 +176,37 @@ abstract class InteractionProviderBase(private val surface: DesignSurface) : Int
     return ScrollInteraction.createScrollInteraction(sceneView, component)
   }
 
+  override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int) {
+    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
+      val selectedEditor = FileEditorManager.getInstance(surface.project).selectedEditor
+      if (selectedEditor is DesignToolsSplitEditor) {
+        val splitEditor = selectedEditor as DesignToolsSplitEditor?
+        if (splitEditor!!.isSplitMode()) {
+          // If we're in split mode, we want to select the component in the text editor.
+          val sceneView = surface.getSceneView(x, y) ?: return
+          // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
+          val component = Coordinates.findComponent(sceneView, x, y)
+          if (component != null) {
+            navigateToComponent(component, false)
+          }
+        }
+      }
+    }
+  }
+
+  override fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int) {
+    val sceneView = surface.getSceneView(x, y) ?: return
+
+    // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
+    val component = Coordinates.findComponent(sceneView, x, y)
+    if (component != null) {
+      // Notify that the user is interested in a component.
+      // A properties manager may move the focus to the most important attribute of the component.
+      // Such as the text attribute of a TextView
+      surface.notifyComponentActivate(component, Coordinates.getAndroidX(sceneView, x), Coordinates.getAndroidY(sceneView, y))
+    }
+  }
+
   override fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
                                           @SwingCoordinate mouseY: Int,
                                           @JdkConstants.InputEventMask modifiersEx: Int): Cursor? {
@@ -183,5 +222,13 @@ abstract class InteractionProviderBase(private val surface: DesignSurface) : Int
       sceneView.scene.mouseHover(context, getAndroidXDip(sceneView, mouseX), getAndroidYDip(sceneView, mouseY), modifiersEx)
       return sceneView.scene.mouseCursor
     }
+  }
+}
+
+internal fun navigateToComponent(component: NlComponent, needsFocusEditor: Boolean) {
+  val componentBackend = component.backend
+  val element = (if (componentBackend.tag == null) null else componentBackend.tag!!.navigationElement) ?: return
+  if (PsiNavigationSupport.getInstance().canNavigate(element) && element is Navigatable) {
+    (element as Navigatable).navigate(needsFocusEditor)
   }
 }
