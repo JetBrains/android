@@ -24,9 +24,18 @@ import org.junit.runner.RunWith
 @JarTestSuiteRunner.ExcludeClasses(ComposePreviewTestSuite::class, ComposeLightJavaCodeInsightFixtureTestCase::class)
 class ComposePreviewTestSuite : IdeaTestSuiteBase() {
   companion object {
-
     init {
-      symlinkToIdeaHome("tools/idea/java")
+      symlinkToIdeaHome(
+        "prebuilts/studio/layoutlib",
+        "prebuilts/studio/jdk",
+        "prebuilts/studio/sdk",
+        "tools/adt/idea/android/testData",
+        "tools/base/templates",
+        "tools/idea/java")
+
+      IdeaTestSuiteBase.setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository")
+      IdeaTestSuiteBase.setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo")
+      IdeaTestSuiteBase.setUpOfflineRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip", "prebuilts/tools/common/m2/repository")
     }
   }
 }

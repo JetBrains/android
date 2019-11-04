@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.SdkConstants.VALUE_MATCH_PARENT
-import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.ColoredIconGenerator
@@ -79,7 +77,6 @@ import com.intellij.pom.Navigatable
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBColor
@@ -126,38 +123,12 @@ private val NOTIFICATIONS_EP_NAME =
 internal fun getBuildAndRefreshShortcut(): ShortcutSet = KeymapUtil.getActiveKeymapShortcuts(FORCE_REFRESH_ACTION_ID)
 
 /**
- * Generates the XML string wrapper for one [PreviewElement].
- * @param matchParent when true, the component will take the maximum available space at the parent.
- */
-private fun PreviewElement.toPreviewXmlString(matchParent: Boolean = false) =
-  """
-    <$COMPOSE_VIEW_ADAPTER
-      xmlns:tools="http://schemas.android.com/tools"
-      xmlns:aapt="http://schemas.android.com/aapt"
-      xmlns:android="http://schemas.android.com/apk/res/android"
-      android:layout_width="${dimensionToString(configuration.width, if (matchParent) VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)}"
-      android:layout_height="${dimensionToString(configuration.height, if (matchParent) VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)}"
-      $COMPOSABLE_NAME_ATTR="$composableMethodFqn" />
-  """.trimIndent()
-
-val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
-
-/**
  * [ComposePreviewManager.Status] result for when the preview is refreshing. Only [ComposePreviewManager.Status.isRefreshing] will be true.
  */
 private val REFRESHING_STATUS = ComposePreviewManager.Status(hasRuntimeErrors = false,
                                                              hasSyntaxErrors = false,
                                                              isOutOfDate = false,
                                                              isRefreshing = true)
-
-/**
- * A [LightVirtualFile] defined to allow quickly identifying the given file as an XML that is used as adapter
- * to be able to preview composable functions.
- * The contents of the file only reside in memory and contain some XML that will be passed to Layoutlib.
- */
-private class ComposeAdapterLightVirtualFile(name: String, content: String) : LightVirtualFile(name, content) {
-  override fun getParent() = FAKE_LAYOUT_RES_DIR
-}
 
 /**
  * Interface that provides access to the Compose Preview logic.
