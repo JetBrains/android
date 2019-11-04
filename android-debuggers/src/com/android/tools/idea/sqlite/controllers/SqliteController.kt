@@ -28,7 +28,6 @@ import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.SqliteEditorViewFactory
-import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.SqliteView
 import com.android.tools.idea.sqlite.ui.mainView.SqliteViewListener
 import com.google.common.util.concurrent.FutureCallback
@@ -208,20 +207,15 @@ class SqliteController(
   }
 
   private fun updateDatabaseSchema(database: SqliteDatabase) {
-    val oldSchema = model.openDatabases[database] ?: return
     readDatabaseSchema(database) { newSchema ->
-      updateExistingDatabaseSchemaView(database, oldSchema, newSchema)
+      updateExistingDatabaseSchemaView(database, newSchema)
       model.add(database, newSchema)
     }
   }
 
-  private fun updateExistingDatabaseSchemaView(database: SqliteDatabase, oldSchema: SqliteSchema, newSqliteSchema: SqliteSchema) {
-    val toRemove = oldSchema.tables.filter { !newSqliteSchema.tables.contains(it) }
-    val toAdd = newSqliteSchema.tables
-      .sortedBy { it.name }
-      .mapIndexed { index, table -> IndexedSqliteTable(index, table) }
-      .filter { !oldSchema.tables.contains(it.sqliteTable) }
-    sqliteView.updateDatabase(database, toRemove, toAdd)
+  private fun updateExistingDatabaseSchemaView(database: SqliteDatabase, newSqliteSchema: SqliteSchema) {
+    val toAdd = newSqliteSchema.tables.sortedBy { it.name }
+    sqliteView.updateDatabase(database, toAdd)
   }
 
   private fun openNewEvaluatorTab(): SqliteEvaluatorController {
