@@ -23,9 +23,9 @@ import com.android.build.attribution.ui.tree.AbstractBuildAttributionNode
 import com.android.build.attribution.ui.tree.AnnotationProcessorsRoot
 import com.android.build.attribution.ui.tree.BuildAttributionNodeRenderer
 import com.android.build.attribution.ui.tree.BuildSummaryNode
-import com.android.build.attribution.ui.tree.PluginConfigurationTimeRoot
 import com.android.build.attribution.ui.tree.CriticalPathPluginsRoot
 import com.android.build.attribution.ui.tree.CriticalPathTasksRoot
+import com.android.build.attribution.ui.tree.PluginConfigurationTimeRoot
 import com.android.build.attribution.ui.tree.TaskIssuesRoot
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -90,8 +90,6 @@ class BuildAttributionTreeView(
     handler = InfoViewHandler(tree)
     componentsSplitter.secondComponent = handler.component
     panel.add(componentsSplitter, BorderLayout.CENTER)
-
-    TreeUtil.selectFirstNode(tree)
   }
 
   private fun initTree(model: AsyncTreeModel): Tree {
@@ -112,6 +110,14 @@ class BuildAttributionTreeView(
   override fun selectNode(node: SimpleNode) {
     treeModel.select(node, tree) { t: TreePath? ->
       Logger.getInstance(BuildAttributionTreeView::class.java).debug("Path selected with link: ${t}")
+    }
+  }
+
+  fun setInitialSelection() {
+    // We want CriticalPathPluginsRoot to be initially selected
+    // as BuildSummary node does not have enough information to catch the user's attention at the moment.
+    rootNode.children.find { it is CriticalPathPluginsRoot }?.let {
+      treeModel.select(it, tree) {}
     }
   }
 
