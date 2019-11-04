@@ -473,7 +473,7 @@ public class InteractionManager implements Disposable {
       }
 
       if (event.isPopupTrigger()) {
-        mySurface.onPopupMenuTrigger(event, true);
+        myInteractionProvider.popupMenuTrigger(event, true);
       }
     }
 
@@ -490,7 +490,7 @@ public class InteractionManager implements Disposable {
       myLastModifiersEx = event.getModifiersEx();
 
       if (event.isPopupTrigger()) {
-        mySurface.onPopupMenuTrigger(event, true);
+        myInteractionProvider.popupMenuTrigger(event, true);
         event.consume();
         return;
       }
@@ -530,7 +530,7 @@ public class InteractionManager implements Disposable {
         return;
       }
       if (event.isPopupTrigger()) {
-        mySurface.onPopupMenuTrigger(event, true);
+        myInteractionProvider.popupMenuTrigger(event, true);
         return;
       }
 

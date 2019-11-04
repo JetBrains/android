@@ -631,20 +631,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  /**
-   * Called by {@link InteractionManager} when the popup context menu event is triggered. (e.g. right click on a component)
-   */
-  public void onPopupMenuTrigger(@NotNull MouseEvent mouseEvent, boolean ignoredIfAlreadySelected) {
-    int x = mouseEvent.getX();
-    int y = mouseEvent.getY();
-    int modifiersEx = mouseEvent.getModifiersEx();
-    SceneView sceneView = getSceneView(x, y);
-    if (sceneView != null) {
-      NlComponent component = SceneViewHelper.selectComponentAt(sceneView, x, y, modifiersEx, false, ignoredIfAlreadySelected);
-      getActionManager().showPopup(mouseEvent, component);
-    }
-  }
-
   protected static void navigateToComponent(@NotNull NlComponent component, boolean needsFocusEditor) {
     NlComponentBackend componentBackend = component.getBackend();
     PsiElement element = componentBackend.getTag() == null ? null : componentBackend.getTag().getNavigationElement();
