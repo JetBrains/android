@@ -32,6 +32,7 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_N
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
@@ -258,7 +259,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       ideModule.createChild(NDK_MODEL, ndkModuleModel);
     }
 
-    File gradleSettingsFile = new File(moduleRootDirPath, FN_SETTINGS_GRADLE);
+    File gradleSettingsFile = findGradleSettingsFile(moduleRootDirPath);
     if (gradleSettingsFile.isFile() && androidProject == null && nativeAndroidProject == null &&
         // if the module has artifacts, it is a Java library module.
         // https://code.google.com/p/android/issues/detail?id=226802
