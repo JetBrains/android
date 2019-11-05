@@ -141,7 +141,7 @@ class BuildAnalyzerShowActionStateManagerTest {
     init {
       `when`(project.messageBus).thenReturn(messageBus)
       `when`(messageBus.connect(eq(project))).thenReturn(messageBusConnection)
-      `when`(project.getService(eq(BuildAttributionUiManager::class.java), eq(true))).thenReturn(buildAttributionUiManagerMock)
+      `when`(project.getService(eq(BuildAttributionUiManager::class.java))).thenReturn(buildAttributionUiManagerMock)
       `when`<BuildAttributionStateReporter>(buildAttributionUiManagerMock.stateReporter).thenReturn(buildAttributionStateReporterMock)
       `when`(buildAttributionStateReporterMock.currentState()).thenReturn(BuildAttributionStateReporter.State.NO_DATA)
       WhatsNewMetricsTracker.getInstance().open(project, false)
