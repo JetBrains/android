@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -47,7 +48,7 @@ public class GradleProjectDependencyParser {
 
   @NotNull
   private static Set<String> parse(@NotNull VirtualFile moduleRoot, @NotNull Project project) {
-    VirtualFile buildFile = moduleRoot.findChild(FN_BUILD_GRADLE);
+    VirtualFile buildFile = findGradleBuildFile(moduleRoot);
     if (buildFile == null) {
       return Collections.emptySet();
     }

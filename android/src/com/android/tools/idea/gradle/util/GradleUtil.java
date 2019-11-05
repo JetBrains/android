@@ -20,8 +20,12 @@ import static com.android.SdkConstants.DOT_KTS;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_RES_CLASS;
 import static com.android.SdkConstants.FD_SOURCE_GEN;
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
@@ -33,8 +37,6 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
-import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
-import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -307,6 +309,49 @@ public final class GradleUtil {
     return moduleRoot != null ? getGradleBuildFile(moduleRoot) : null;
   }
 
+  /**
+   * Returns the virtual file representing a build.gradle or build.gradle.kts file in the directory at the given
+   * parentDir. build.gradle.kts is only returned when build.gradle doesn't exist and build.gradle.kts exists.
+   *
+   * __Note__: Do __not__ use this method unless you have to, use {@link #getGradleBuildFile(Module)} instead.
+   * This will return the actual build script that is used by Gradle rather than just guessing its location.
+   *
+   * __Note__: There is a {@link File} implementation of this method {@link BuildScriptUtil#findGradleBuildFile(File)}.
+   * Prefer working with {@link VirtualFile}s if possible as these are more compatible with IDEAs testing infrastructure.
+   *
+   */
+  @Nullable
+  public static VirtualFile findGradleBuildFile(@NotNull VirtualFile parentDir) {
+    return findFileWithNames(parentDir, FN_BUILD_GRADLE, FN_BUILD_GRADLE_KTS);
+  }
+
+  /**
+   * Returns the virtual file representing a settings.gradle or settings.gradle.kts file in the directory at the given
+   * parentDir. settings.gradle.kts is only returned when settings.gradle doesn't exist and settings.gradle.kts exists.
+   *
+   * __Note__: There is a {@link File} implementation of this method {@link BuildScriptUtil#findGradleSettingsFile(File)}.
+   * Prefer working with {@link VirtualFile}s if possible as these are more compatible with IDEAs testing infrastructure.
+   */
+  @Nullable
+  public static VirtualFile findGradleSettingsFile(@NotNull VirtualFile parentDir) {
+    return findFileWithNames(parentDir, FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS);
+  }
+
+  /**
+   * Finds and returns a file that exists as a child of the parentDir with one of the given names. This method will search for the
+   * names in order and will return as soon as one is found.
+   */
+  @Nullable
+  private static VirtualFile findFileWithNames(@NotNull VirtualFile parentDir, @NotNull String...names) {
+    for (String name : names) {
+      VirtualFile file = parentDir.findChild(name);
+      if (file != null && !file.isDirectory()) {
+        return file;
+      }
+    }
+    return null;
+  }
+
   @Nullable
   private static GradleModuleModel getGradleModuleModel(Module module) {
     GradleFacet gradleFacet = GradleFacet.getInstance(module);
@@ -331,7 +376,7 @@ public final class GradleUtil {
    */
   @Nullable
   public static VirtualFile getGradleBuildFile(@NotNull File dirPath) {
-    File gradleBuildFilePath = findGradleBuildFile(dirPath);
+    File gradleBuildFilePath = BuildScriptUtil.findGradleBuildFile(dirPath);
     VirtualFile result = findFileByIoFile(gradleBuildFilePath, false);
     return (result != null && result.isValid()) ? result : null;
   }
@@ -348,7 +393,7 @@ public final class GradleUtil {
    */
   @Nullable
   public static VirtualFile getGradleSettingsFile(@NotNull File dirPath) {
-    File gradleSettingsFilePath = findGradleSettingsFile(dirPath);
+    File gradleSettingsFilePath = BuildScriptUtil.findGradleSettingsFile(dirPath);
     VirtualFile result = findFileByIoFile(gradleSettingsFilePath, false);
     return (result != null && result.isValid()) ? result : null;
   }
