@@ -16,6 +16,8 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingLength
+import com.android.tools.adtui.common.SwingPoint
 import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.model.scaledAndroidLength
 import com.android.tools.idea.common.model.times
@@ -72,20 +74,6 @@ fun scaledFont(scale: Float, style: Int): Font {
   return Font(DEFAULT_FONT_NAME, style, size.toInt())
 }
 
-fun growRectangle(rectangle: Rectangle2D.Float, growX: Float, growY: Float) {
-  rectangle.x -= growX
-  rectangle.y -= growY
-  rectangle.width += 2 * growX
-  rectangle.height += 2 * growY
-}
-
-fun growRectangle(rectangle: RoundRectangle2D.Float, growX: Float, growY: Float) {
-  rectangle.x -= growX
-  rectangle.y -= growY
-  rectangle.width += 2 * growX
-  rectangle.height += 2 * growY
-}
-
 fun createDrawImageCommand(rectangle: SwingRectangle, image: RefinableImage?): DrawCommand {
   return if (image == null) {
     DrawPlaceholder(rectangle)
@@ -95,13 +83,13 @@ fun createDrawImageCommand(rectangle: SwingRectangle, image: RefinableImage?): D
   }
 }
 
-fun makeCircle(center: Point2D.Float, radius: Float): Ellipse2D.Float {
+fun makeCircle(center: SwingPoint, radius: SwingLength): Ellipse2D.Float {
   val x = center.x - radius
   val y = center.y - radius
-  return Ellipse2D.Float(x, y, 2 * radius, 2 * radius)
+  return Ellipse2D.Float(x.value, y.value, 2 * radius.value, 2 * radius.value)
 }
 
-fun makeCircleLerp(center: Point2D.Float, initialRadius: Float, finalRadius: Float, duration: Int): LerpEllipse {
+fun makeCircleLerp(center: SwingPoint, initialRadius: SwingLength, finalRadius: SwingLength, duration: Int): LerpEllipse {
   val initialCircle = makeCircle(center, initialRadius)
   val finalCircle = makeCircle(center, finalRadius)
   return LerpEllipse(initialCircle, finalCircle, duration)

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingLength
+import com.android.tools.adtui.common.SwingPoint
 import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.scene.draw.DrawCommand
@@ -69,8 +71,8 @@ class SerializationTest : TestCase() {
   fun testDrawEmptyDesigner() {
     val factory = { s: String -> DrawEmptyDesigner(s) }
 
-    testSerialization("DrawEmptyDesigner,0x0", DrawEmptyDesigner(Point(0, 0)), factory)
-    testSerialization("DrawEmptyDesigner,10x20", DrawEmptyDesigner(Point(10, 20)), factory)
+    testSerialization("DrawEmptyDesigner,0.0x0.0", DrawEmptyDesigner(SwingPoint(Point2D.Float(0f, 0f))), factory)
+    testSerialization("DrawEmptyDesigner,10.0x20.0", DrawEmptyDesigner(SwingPoint(Point2D.Float(10f, 20f))), factory)
   }
 
   fun testDrawNavScreen() {
@@ -98,21 +100,25 @@ class SerializationTest : TestCase() {
     val factory = { s: String -> DrawActionHandle(s) }
 
     testSerialization("DrawActionHandle,10.0x20.0,1.0,2.0,3.0,4.0,5,ffff0000,ff0000ff",
-                      DrawActionHandle(Point2D.Float(10f, 20f),
-                                       1f, 2f, 3f, 4f, 5, Color.RED, Color.BLUE), factory)
+                      DrawActionHandle(SwingPoint(Point2D.Float(10f, 20f)),
+                                       SwingLength(1f), SwingLength(2f), SwingLength(3f), SwingLength(4f),
+                                       5, Color.RED, Color.BLUE), factory)
 
     testSerialization("DrawActionHandle,30.0x40.0,11.0,12.0,13.0,14.0,15,ff00ff00,ffffc800",
-                      DrawActionHandle(Point2D.Float(30f, 40f),
-                                       11f, 12f, 13f, 14f, 15, Color.GREEN, Color.ORANGE), factory)
+                      DrawActionHandle(SwingPoint(Point2D.Float(30f, 40f)),
+                                       SwingLength(11f), SwingLength(12f), SwingLength(13f), SwingLength(14f),
+                                       15, Color.GREEN, Color.ORANGE), factory)
   }
 
   fun testDrawActionHandleDrag() {
     val factory = { s: String -> DrawActionHandleDrag(s) }
 
-    testSerialization("DrawActionHandleDrag,10.0x20.0,1.0,2.0,3.0,4", DrawActionHandleDrag(Point2D.Float(10f, 20f),
-                                                                         1f, 2f, 3f, 4), factory)
-    testSerialization("DrawActionHandleDrag,30.0x40.0,11.0,12.0,13.0,4", DrawActionHandleDrag(Point2D.Float(30f, 40f),
-                                                                         11f, 12f, 13f, 4), factory)
+    testSerialization("DrawActionHandleDrag,10.0x20.0,1.0,2.0,3.0,4",
+                      DrawActionHandleDrag(SwingPoint(Point2D.Float(10f, 20f)),
+                                           SwingLength(1f), SwingLength(2f), SwingLength(3f), 4), factory)
+    testSerialization("DrawActionHandleDrag,30.0x40.0,11.0,12.0,13.0,4", DrawActionHandleDrag(SwingPoint(Point2D.Float(30f, 40f)),
+                                                                                              SwingLength(11f), SwingLength(12f),
+                                                                                              SwingLength(13f), 4), factory)
   }
 
   fun testDrawHorizontalAction() {
@@ -128,8 +134,8 @@ class SerializationTest : TestCase() {
   fun testDrawLineToMouse() {
     val factory = { s: String -> DrawLineToMouse(s) }
 
-    testSerialization("DrawLineToMouse,10.0x20.0", DrawLineToMouse(Point2D.Float(10f, 20f)), factory)
-    testSerialization("DrawLineToMouse,30.0x40.0", DrawLineToMouse(Point2D.Float(30f, 40f)), factory)
+    testSerialization("DrawLineToMouse,10.0x20.0", DrawLineToMouse(SwingPoint(Point2D.Float(10f, 20f))), factory)
+    testSerialization("DrawLineToMouse,30.0x40.0", DrawLineToMouse(SwingPoint(Point2D.Float(30f, 40f))), factory)
   }
 
   fun testDrawNestedGraph() {

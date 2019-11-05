@@ -16,6 +16,9 @@
 package com.android.tools.idea.naveditor.scene.targets
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingPoint
+import com.android.tools.adtui.common.SwingX
+import com.android.tools.adtui.common.SwingY
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.common.model.AndroidLength
 import com.android.tools.idea.common.model.Coordinates
@@ -47,7 +50,6 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.Computable
 import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
-import java.awt.geom.Point2D
 import kotlin.math.absoluteValue
 
 private const val DURATION = 200
@@ -163,9 +165,9 @@ class ActionHandleTarget(component: SceneComponent) : BaseTarget() {
 
     val view = myComponent.scene.designSurface.focusedSceneView ?: return
 
-    @SwingCoordinate val centerX = Coordinates.getSwingXDip(view, centerX)
-    @SwingCoordinate val centerY = Coordinates.getSwingYDip(view, centerY)
-    @SwingCoordinate val center = Point2D.Float(centerX, centerY)
+    val centerX = SwingX(Coordinates.getSwingXDip(view, centerX))
+    val centerY = SwingY(Coordinates.getSwingYDip(view, centerY))
+    val center = SwingPoint(centerX, centerY)
 
     val scale = sceneContext.inlineScale
     val initialOuterRadius = handleState.outerRadius * scale
@@ -179,12 +181,12 @@ class ActionHandleTarget(component: SceneComponent) : BaseTarget() {
     val innerColor = if (component.isSelected) SELECTED else HIGHLIGHTED_FRAME
 
     if (isDragging) {
-      list.add(DrawActionHandleDrag(center, initialOuterRadius.value, finalOuterRadius.value,
-                                    finalInnerRadius.value, duration))
+      list.add(DrawActionHandleDrag(center, initialOuterRadius, finalOuterRadius,
+                                    finalInnerRadius, duration))
     }
     else {
-      list.add(DrawActionHandle(center, initialOuterRadius.value, finalOuterRadius.value,
-                                initialInnerRadius.value, finalInnerRadius.value, duration, innerColor, outerColor))
+      list.add(DrawActionHandle(center, initialOuterRadius, finalOuterRadius,
+                                initialInnerRadius, finalInnerRadius, duration, innerColor, outerColor))
     }
 
     handleState = newState

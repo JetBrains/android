@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingPoint
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import junit.framework.TestCase
@@ -25,7 +26,7 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.geom.Point2D
 
-private val CENTER = Point2D.Float(10f, 10f)
+private val CENTER = SwingPoint(Point2D.Float(10f, 10f))
 private val MAX_DISTANCE = 5
 
 class DrawLineToMouseTest : TestCase() {
@@ -50,8 +51,8 @@ class DrawLineToMouseTest : TestCase() {
     val inOrder = inOrder(g)
     drawLineToMouse.paint(g, sceneContext)
 
-    assertEquals(drawLineToMouse.line.x1, CENTER.x)
-    assertEquals(drawLineToMouse.line.y1, CENTER.y)
+    assertEquals(drawLineToMouse.line.x1, CENTER.x.value)
+    assertEquals(drawLineToMouse.line.y1, CENTER.y.value)
     assertEquals(drawLineToMouse.line.x2, mouseX.toFloat())
     assertEquals(drawLineToMouse.line.y2, mouseY.toFloat())
 

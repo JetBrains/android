@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingLength
+import com.android.tools.adtui.common.SwingPoint
+import com.android.tools.adtui.common.toSwingLength
+import com.android.tools.adtui.common.toSwingPoint
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.TARGET_LEVEL
@@ -23,29 +27,26 @@ import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorToString
 import com.android.tools.idea.common.scene.draw.parse
-import com.android.tools.idea.common.scene.draw.point2DToString
 import com.android.tools.idea.common.scene.draw.stringToColor
-import com.android.tools.idea.common.scene.draw.stringToPoint2D
 import com.android.tools.idea.naveditor.scene.HANDLE_STROKE
 import com.android.tools.idea.naveditor.scene.makeCircleLerp
 import java.awt.Color
-import java.awt.geom.Point2D
 
-data class DrawActionHandle(private val center: Point2D.Float,
-                            private val initialOuterRadius: Float,
-                            private val finalOuterRadius: Float,
-                            private val initialInnerRadius: Float,
-                            private val finalInnerRadius: Float,
+data class DrawActionHandle(private val center: SwingPoint,
+                            private val initialOuterRadius: SwingLength,
+                            private val finalOuterRadius: SwingLength,
+                            private val initialInnerRadius: SwingLength,
+                            private val finalInnerRadius: SwingLength,
                             private val duration: Int,
                             private val outerColor: Color,
                             private val innerColor: Color
 ) : CompositeDrawCommand(TARGET_LEVEL) {
   private constructor(tokens: Array<String>)
-    : this(stringToPoint2D(tokens[0]),
-           tokens[1].toFloat(),
-           tokens[2].toFloat(),
-           tokens[3].toFloat(),
-           tokens[4].toFloat(),
+    : this(tokens[0].toSwingPoint(),
+           tokens[1].toSwingLength(),
+           tokens[2].toSwingLength(),
+           tokens[3].toSwingLength(),
+           tokens[4].toSwingLength(),
            tokens[5].toInt(),
            stringToColor(tokens[6]),
            stringToColor(tokens[7]))
@@ -53,7 +54,7 @@ data class DrawActionHandle(private val center: Point2D.Float,
   constructor(s: String) : this(parse(s, 8))
 
   override fun serialize(): String = buildString(javaClass.simpleName,
-                                                 point2DToString(center),
+                                                 center,
                                                  initialOuterRadius,
                                                  finalOuterRadius,
                                                  initialInnerRadius,
