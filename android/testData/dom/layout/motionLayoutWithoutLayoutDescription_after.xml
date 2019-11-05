@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.motion.MotionLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/motionLayout"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent" app:layoutDescription="@xml/motionLayoutWithoutLayoutDescription_scene">
+
+  <TextView
+      android:id="@+id/textView"
+      android:layout_width="64dp"
+      android:layout_height="64dp"
+      android:background="#FF9999"
+      android:text="1"
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintStart_toStartOf="parent"/>
+
+</android.support.constraint.motion.MotionLayout>
