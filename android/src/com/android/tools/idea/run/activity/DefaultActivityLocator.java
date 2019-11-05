@@ -91,6 +91,18 @@ public class DefaultActivityLocator extends ActivityLocator {
   @Override
   public void validate() throws ActivityLocatorException {
     assert !myFacet.getProperties().USE_CUSTOM_COMPILER_MANIFEST;
+    DefaultActivityLocatorStrategy strategy = StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.get();
+
+    if (strategy == DefaultActivityLocatorStrategy.INDEX && AndroidManifestIndex.indexEnabled()) {
+      if (DumbService.isDumb(myFacet.getModule().getProject())) {
+        return;
+      }
+      List<ActivityWrapper> activities = getActivitiesFromManifestIndex(myFacet);
+      if (computeDefaultActivity(activities) == null) {
+        throw new ActivityLocatorException(AndroidBundle.message("default.activity.not.found.error"));
+      }
+      return;
+    }
 
     // Workaround for b/123339491 since the Mac touchbar icon updater will call this method on the UI thread
     // This workaround avoids calculating the MergedManifest on the UI thread.
@@ -114,8 +126,7 @@ public class DefaultActivityLocator extends ActivityLocator {
   static List<ActivityWrapper> getActivitiesFromMergedManifest(@NotNull final AndroidFacet facet) {
     DefaultActivityLocatorStrategy strategy = StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.get();
     if (strategy == DefaultActivityLocatorStrategy.INDEX && AndroidManifestIndex.indexEnabled()) {
-      return DumbService.getInstance(facet.getModule().getProject())
-        .runReadActionInSmartMode(() -> getActivitiesFromManifestIndex(facet));
+      return  getActivitiesFromManifestIndex(facet);
     }
     boolean onEdt = ApplicationManager.getApplication().isDispatchThread();
     boolean usePotentiallyStaleManifest = onEdt && strategy == DefaultActivityLocatorStrategy.STALE;
@@ -144,28 +155,33 @@ public class DefaultActivityLocator extends ActivityLocator {
   @NotNull
   private static List<ActivityWrapper> getActivitiesFromManifestIndex(@NotNull final AndroidFacet facet) {
     Module module = facet.getModule();
-    Project project = module.getProject();
     MergedManifestModificationTracker modificationTracker = MergedManifestModificationTracker.getInstance(module);
-    assert !DumbService.isDumb(project) && ApplicationManager.getApplication().isReadAccessAllowed();
-    boolean onEdt = ApplicationManager.getApplication().isDispatchThread();
-    Stopwatch timer = Stopwatch.createStarted();
-    List<ActivityWrapper> activityWrappers = CachedValuesManager.getManager(project)
+    return CachedValuesManager.getManager(module.getProject())
       .getCachedValue(facet, () -> CachedValueProvider.Result.create(doGetActivitiesFromManifestIndex(facet), modificationTracker));
-    logManifestLatency(onEdt, true, false, timer.elapsed(TimeUnit.MILLISECONDS));
-    return activityWrappers;
   }
 
   @NotNull
   private static List<ActivityWrapper> doGetActivitiesFromManifestIndex(@NotNull final AndroidFacet facet) {
-    ManifestOverrides overrides = ProjectSystemUtil.getModuleSystem(facet.getModule()).getManifestOverrides();
+    boolean onEdt = ApplicationManager.getApplication().isDispatchThread();
+    Stopwatch timer = Stopwatch.createStarted();
+
+    Module module = facet.getModule();
+    Project project = facet.getModule().getProject();
+    ManifestOverrides overrides = ProjectSystemUtil.getModuleSystem(module).getManifestOverrides();
     LinkedList<ActivityWrapper> activityWrappers = new LinkedList<>();
     LinkedList<ActivityWrapper> activityAliasWrappers = new LinkedList<>();
-    AndroidManifestIndex.getDataForMergedManifestContributors(facet)
-      .forEach(manifest -> {
-        activityWrappers.addAll(IndexedActivityWrapper.getActivities(manifest, overrides));
-        activityAliasWrappers.addAll(IndexedActivityWrapper.getActivityAliases(manifest, overrides));
-      });
+
+    DumbService.getInstance(project).runReadActionInSmartMode(() -> {
+      assert !DumbService.isDumb(project) && ApplicationManager.getApplication().isReadAccessAllowed();
+      AndroidManifestIndex.getDataForMergedManifestContributors(facet)
+        .forEach(manifest -> {
+          activityWrappers.addAll(IndexedActivityWrapper.getActivities(manifest, overrides));
+          activityAliasWrappers.addAll(IndexedActivityWrapper.getActivityAliases(manifest, overrides));
+        });
+    });
     activityWrappers.addAll(activityAliasWrappers);
+
+    logManifestLatency(onEdt, true, false, timer.elapsed(TimeUnit.MILLISECONDS));
     return activityWrappers;
   }
 
