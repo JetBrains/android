@@ -14,7 +14,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
         "//tools/adt/idea/android/annotations",
-        "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/android-templates/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
         "//tools/base/build-system/previous-versions:3.5.0.zip",
