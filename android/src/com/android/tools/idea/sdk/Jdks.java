@@ -31,6 +31,7 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -227,7 +228,9 @@ public class Jdks {
 
   @Nullable
   public Sdk createJdk(@NotNull String jdkHomePath) {
-    Sdk jdk = createAndAddSDK(jdkHomePath, JavaSdk.getInstance());
+    Sdk jdk = ExternalSystemApiUtil.executeOnEdt(() -> {
+      return createAndAddSDK(jdkHomePath, JavaSdk.getInstance());
+    });
     if (jdk == null) {
       String msg = String.format("Unable to create JDK from path '%1$s'", jdkHomePath);
       LOG.error(msg);
