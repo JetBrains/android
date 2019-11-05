@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.intellij.concurrency.JobLauncher;
 import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
@@ -208,13 +209,15 @@ public class GradleFiles {
    */
   @Nullable
   private Integer computeHash(@NotNull VirtualFile file) {
-    PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
+    return ReadAction.compute(() -> {
+      PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
 
-    if (psiFile != null && psiFile.isValid()) {
-      return psiFile.getText().hashCode();
-    }
+      if (psiFile != null && psiFile.isValid()) {
+        return psiFile.getText().hashCode();
+      }
 
-    return null;
+      return null;
+    });
   }
 
   private boolean areHashesEqual(@NotNull VirtualFile file) {
