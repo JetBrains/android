@@ -514,6 +514,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     addModelImpl(model);
+    zoomToFit();
 
     return requestRender()
       .whenCompleteAsync((result, ex) -> {
