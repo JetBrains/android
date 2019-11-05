@@ -92,6 +92,7 @@ import java.awt.BorderLayout
 import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 import javax.swing.Box
+import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.OverlayLayout
 import kotlin.properties.Delegates
@@ -192,11 +193,6 @@ interface ComposePreviewManager {
    * Invalidates the last cached [PreviewElement]s and forces a refresh
    */
   fun invalidateAndRefresh()
-
-  /**
-   * Same as [invalidateAndRefresh] but triggers a build first.
-   */
-  fun buildAndRefresh()
 }
 
 /**
@@ -253,24 +249,6 @@ private fun updateSurfaceWithNewModels(surface: NlDesignSurface,
 
       CompletableFuture.allOf(*(modelAddedFutures.toTypedArray()))
     }
-
-/**
- * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh
- * of the surface.
- */
-private class ForceCompileAndRefreshAction :
-  AnAction(message("notification.action.build.and.refresh"), null, GREEN_REFRESH_BUTTON) {
-  override fun actionPerformed(e: AnActionEvent) {
-    findComposePreviewManagerForAction(e)?.buildAndRefresh()
-  }
-
-  override fun update(e: AnActionEvent) {
-    val project = e.project ?: return
-    val presentation = e.presentation
-    val isRefreshing = findComposePreviewManagerForAction(e)?.status()?.isRefreshing == true
-    presentation.isEnabled = !isRefreshing && !GradleBuildState.getInstance(project).isBuildInProgress
-  }
-}
 
 private fun findComposePreviewManagerForAction(e: AnActionEvent): ComposePreviewManager? {
   val project = e.project ?: return null
@@ -672,12 +650,31 @@ private class PreviewEditor(private val psiFile: PsiFile,
     doRefresh(previewProvider())
   }
 
-  override fun buildAndRefresh() {
-    val module = surface.model?.module ?: return
-    requestBuild(surface.project, module)
+  override fun getName(): String = "Compose Preview"
+
+  fun registerShortcuts(applicableTo: JComponent) {
+    ForceCompileAndRefreshAction(surface).registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
+  }
+}
+
+/**
+ * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh
+ * of the surface.
+ */
+private class ForceCompileAndRefreshAction(val surface: DesignSurface) :
+  AnAction(message("notification.action.build.and.refresh"), null, GREEN_REFRESH_BUTTON) {
+  override fun actionPerformed(e: AnActionEvent) {
+    surface.models.map { it.module }.distinct().forEach {
+      requestBuild(surface.project, it)
+    }
   }
 
-  override fun getName(): String = "Compose Preview"
+  override fun update(e: AnActionEvent) {
+    val project = e.project ?: return
+    val presentation = e.presentation
+    val isRefreshing = findComposePreviewManagerForAction(e)?.status()?.isRefreshing == true
+    presentation.isEnabled = !isRefreshing && !GradleBuildState.getInstance(project).isBuildInProgress
+  }
 }
 
 /**
@@ -709,7 +706,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
 
   override fun getNorthGroup(): ActionGroup = DefaultActionGroup(listOf(
     ViewOptionsAction(),
-    ForceCompileAndRefreshAction()
+    ForceCompileAndRefreshAction(surface)
   ))
 
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup().apply {
@@ -723,7 +720,7 @@ private class ComposeTextEditorWithPreview constructor(
   val preview: PreviewEditor) :
   SeamlessTextEditorWithPreview(composeTextEditor, preview, "Compose Editor") {
   init {
-    ForceCompileAndRefreshAction().registerCustomShortcutSet(getBuildAndRefreshShortcut(), component, this)
+    preview.registerShortcuts(component)
   }
 }
 
