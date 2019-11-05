@@ -73,7 +73,10 @@ fun Signature.isWhitelisted(): Boolean =
   entry(-4) == "org.jdom.JDOMInterner#myStrings" ||
   // coroutine scheduler thread pool: b/140457368
   entry(-2) == "kotlinx.coroutines.scheduling.CoroutineScheduler#workers" ||
-  entry(-2) == "com.intellij.ide.plugins.MainRunner$1#threads"
+  entry(-2) == "com.intellij.ide.plugins.MainRunner$1#threads" ||
+  entry(-2) == "com.intellij.openapi.command.impl.UndoRedoStacksHolder#myGlobalStack" ||
+  entry(-4) == "com.intellij.openapi.command.impl.UndoRedoStacksHolder#myDocumentStacks" ||
+  entry(-2) == "com.intellij.openapi.fileEditor.impl.IdeDocumentHistoryImpl#myBackPlaces"
 
 class BleakResult(val leakInfos: List<LeakInfo> = listOf(), val disposerInfo: Map<DisposerInfo.Key, Int> = mapOf()) {
   val success = leakInfos.filterNot { it.whitelisted }.isEmpty() && disposerInfo.isEmpty()
