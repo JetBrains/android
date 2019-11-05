@@ -33,6 +33,7 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -164,6 +165,9 @@ public class IdeaGradleSync implements GradleSync {
     if (projectsSettings.isEmpty()) {
       if (project.getBasePath() != null && GradleProjectImportUtil.canOpenGradleProject(project.getBaseDir())) {
         GradleProjectSettings projectSettings = new GradleProjectSettings();
+        // As of now, mismatch between IDE JDK and Gradle JDK will result in StreamCorruptedException => use the same JDK in Idea and Gradle
+        // (see https://github.com/gradle/gradle/issues/8285)
+        projectSettings.setGradleJvm(ExternalSystemJdkUtil.USE_INTERNAL_JAVA);
         String externalProjectPath = toCanonicalPath(project.getBasePath());
         projectSettings.setExternalProjectPath(externalProjectPath);
         gradleSettings.setLinkedProjectsSettings(Collections.singletonList(projectSettings));
