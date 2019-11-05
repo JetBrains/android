@@ -89,16 +89,24 @@ const val caret = EditorTestUtil.CARET_TAG
  *
  * Meant to be used in a Kotlin string template to stand out from the surrounding XML.
  */
-infix fun String.highlightedAs(level: HighlightSeverity): String {
+fun String.highlightedAs(level: HighlightSeverity, message: String?): String {
   // See com.intellij.testFramework.ExpectedHighlightingData
   val marker = when (level) {
     HighlightSeverity.ERROR -> "error"
     HighlightSeverity.WARNING -> "warning"
-    else -> error("Don't know how to handle $this.")
+    HighlightSeverity.WEAK_WARNING -> "weak_warning"
+    else -> error("Don't know how to handle $level.")
   }
 
-  return "<$marker>$this</$marker>"
+  return if (message != null) "<$marker descr=\"$message\">$this</$marker>" else "<$marker>$this</$marker>"
 }
+
+/**
+ * Helper function for constructing strings understood by [com.intellij.testFramework.ExpectedHighlightingData].
+ *
+ * Meant to be used in a Kotlin string template to stand out from the surrounding XML.
+ */
+infix fun String.highlightedAs(level: HighlightSeverity) = highlightedAs(level, null)
 
 fun CodeInsightTestFixture.goToElementAtCaret() {
   performEditorAction(IdeActions.ACTION_GOTO_DECLARATION)
