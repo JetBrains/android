@@ -180,7 +180,7 @@ class CustomViewEditorProvider : FileEditorProvider, DumbAware {
 
   // TODO(b/143067434): remove ComposeFileEditorProvider check and rework it so that Compose and custom View previews work together
   override fun accept(project: Project, file: VirtualFile) =
-    !ComposeFileEditorProvider().accept(project, file) && StudioFlags.NELE_CUSTOM_VIEW_PREVIEW.get() && file.hasSourceFileExtension()
+    StudioFlags.NELE_CUSTOM_VIEW_PREVIEW.get() && !ComposeFileEditorProvider().accept(project, file) && file.hasSourceFileExtension()
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
