@@ -1,10 +1,12 @@
 package org.jetbrains.android.dom
 
-import com.android.SdkConstants
 import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+import com.android.SdkConstants
+import com.android.SdkConstants.DOT_XML
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.tools.idea.lint.AndroidLintMotionLayoutInvalidSceneFileReferenceInspection
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
@@ -46,6 +48,7 @@ import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix
+import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator
 import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction
 import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.junit.Test
@@ -2197,6 +2200,14 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
     myFixture.configureFromExistingVirtualFile(layout.virtualFile)
     myFixture.checkHighlighting()
+  }
+
+  fun testMotionLayoutWithoutLayoutDescription() {
+    myFixture.enableInspections(AndroidLintMotionLayoutInvalidSceneFileReferenceInspection())
+    val file = copyFileToProject(getTestName(true) + DOT_XML)
+    doTestOnClickQuickfix(file, AndroidLintExternalAnnotator.MyFixingIntention::class.java, getTestName(true) + "_after" + DOT_XML)
+    val sceneFile = "${getTestName(true)}_scene.xml"
+    myFixture.checkResultByFile("res/xml/$sceneFile", "$myTestFolder/$sceneFile", false)
   }
 
   /**
