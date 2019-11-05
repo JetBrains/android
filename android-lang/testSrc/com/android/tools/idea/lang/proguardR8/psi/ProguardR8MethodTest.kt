@@ -20,8 +20,10 @@ import com.android.tools.idea.lang.proguardR8.ProguardR8ClassMemberInspection
 import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
 import com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.lang.annotation.HighlightSeverity.WEAK_WARNING
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.ResolveResult
@@ -38,7 +40,6 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
 
   private fun getMethodsAtCaret(): List<PsiMethod> {
     val proguardMethod = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMemberName::class)
-
     assertThat(proguardMethod).isNotNull()
     return (proguardMethod!!.reference!!.resolveReference() as Collection<ResolveResult>).map { it.element as PsiMethod }
   }
@@ -522,7 +523,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
       ProguardR8FileType.INSTANCE,
       """
       -keep class test.MyClass {
-        long <error descr="The rule matches no class members">myBoolean</error>();
+        long ${"myBoolean" highlightedAs WEAK_WARNING};
       }
       """.trimIndent())
 
