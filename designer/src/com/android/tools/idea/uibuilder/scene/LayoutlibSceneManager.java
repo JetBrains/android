@@ -567,23 +567,23 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   @Override
-  public void requestLayoutAndRender(boolean animate) {
+  @NotNull
+  public CompletableFuture<Void> requestLayoutAndRender(boolean animate) {
     // Don't render if we're just showing the blueprint
     if (getDesignSurface().getSceneMode() == SceneMode.BLUEPRINT_ONLY) {
-      requestLayout(animate);
-      return;
+      return requestLayout(animate);
     }
 
     if (getDesignSurface().isRenderingSynchronously()) {
-      render(getTriggerFromChangeType(getModel().getLastChangeType()));
-      notifyListenersModelLayoutComplete(animate);
+      return render(getTriggerFromChangeType(getModel().getLastChangeType())).thenRun(() -> notifyListenersModelLayoutComplete(animate));
     } else {
-      doRequestLayoutAndRender(animate);
+      return doRequestLayoutAndRender(animate);
     }
   }
 
-  void doRequestLayoutAndRender(boolean animate) {
-    requestRender(getTriggerFromChangeType(getModel().getLastChangeType()))
+  @NotNull
+  CompletableFuture<Void> doRequestLayoutAndRender(boolean animate) {
+    return requestRender(getTriggerFromChangeType(getModel().getLastChangeType()))
       .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(animate), PooledThreadExecutor.INSTANCE);
   }
 
