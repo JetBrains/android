@@ -31,7 +31,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.argThat
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
@@ -65,7 +64,7 @@ class AndroidProcessHandlerTest {
   fun setUp() {
     initMocks(this)
 
-    `when`(mockProject.getService(eq(ExecutionTargetManager::class.java), anyBoolean()))
+    `when`(mockProject.getService(eq(ExecutionTargetManager::class.java)))
       .thenReturn(mockExecutionTargetManager)
     `when`(mockExecutionTargetManager.activeTarget).thenReturn(mockExecutionTarget)
 
