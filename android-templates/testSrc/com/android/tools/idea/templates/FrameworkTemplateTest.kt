@@ -52,14 +52,12 @@ class FrameworkTemplateTest : TemplateTestBase() {
 
   fun testTemplateFormatting() {
     setUpFixture()
-    val template = Template.createFromPath(
-      File(AndroidTestBase.getTestDataPath(), FileUtil.join("templates", "TestTemplate")).canonicalFile)
+    val template = Template.createFromPath(getTestTemplatePath())
     val context = createRenderingContext(template, myFixture.project, File(myFixture.tempDirPath), File("dummy"))
     template.render(context, false)
     FileDocumentManager.getInstance().saveAllDocuments()
     val fileSystem = LocalFileSystem.getInstance()
-    val desired = fileSystem.findFileByIoFile(
-      File(AndroidTestBase.getTestDataPath(), FileUtil.join("templates", "TestTemplate", "MergedStringsFile.xml")))!!
+    val desired = fileSystem.findFileByIoFile(File(getTestTemplatePath(), "MergedStringsFile.xml"))!!
     val actual = fileSystem.findFileByIoFile(File(myFixture.tempDirPath, FileUtil.join("values", "TestTargetResourceFile.xml")))!!
     desired.refresh(false, false)
     actual.refresh(false, false)
@@ -67,7 +65,7 @@ class FrameworkTemplateTest : TemplateTestBase() {
   }
 
   fun testRelatedParameters() {
-    val template = Template.createFromPath(File(AndroidTestBase.getTestDataPath(), FileUtil.join("templates", "TestTemplate")))
+    val template = Template.createFromPath(getTestTemplatePath())
     val templateMetadata = template.metadata!!
 
     val activityTitle = templateMetadata.getParameter("activityTitle")
@@ -83,5 +81,9 @@ class FrameworkTemplateTest : TemplateTestBase() {
     assertSameElements(templateMetadata.getRelatedParams(mainFragment), detailsActivity, activityClass)
     assertSameElements(templateMetadata.getRelatedParams(detailsActivity), activityClass, mainFragment)
     assertSameElements(templateMetadata.getRelatedParams(detailsLayoutName), layoutName)
+  }
+
+  private fun getTestTemplatePath() : File {
+    return File(getModulePath("android-templates"), FileUtil.join("testData", "TestTemplate"))
   }
 }

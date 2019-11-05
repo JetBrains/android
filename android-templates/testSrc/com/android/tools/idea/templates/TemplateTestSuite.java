@@ -30,7 +30,7 @@ public class TemplateTestSuite extends IdeaTestSuiteBase {
       "prebuilts/studio/jdk",
       "prebuilts/studio/sdk",
       "tools/adt/idea/android/annotations",
-      "tools/adt/idea/android/testData",
+      "tools/adt/idea/android-templates/testData",
       "tools/base/templates",
       "tools/idea/java"
     );
