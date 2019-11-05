@@ -31,6 +31,8 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.jvm.JvmLibrary
 import org.gradle.language.base.artifact.SourcesArtifact
 import org.gradle.language.java.artifact.JavadocArtifact
+import org.gradle.maven.MavenModule
+import org.gradle.maven.MavenPomArtifact
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
 import java.io.File
 
@@ -73,16 +75,28 @@ class SourcesAndJavadocModelBuilder : ParameterizedToolingModelBuilder<SourcesAn
     }
 
     try {
-      val query = project.dependencies.createArtifactResolutionQuery()
+      // Create query for Maven Pom File.
+      val pomQuery = project.dependencies.createArtifactResolutionQuery()
+        .forComponents(ids)
+        .withArtifacts(MavenModule::class.java, MavenPomArtifact::class.java)
+
+      // Map from component id to Pom File.
+      val idToPomFile = pomQuery.execute().resolvedComponents.map {
+        it.id.displayName to getFile(it, MavenPomArtifact::class.java)
+      }.toMap()
+
+      // Create query for Javadoc and Sources.
+      val docQuery = project.dependencies.createArtifactResolutionQuery()
         .forComponents(ids)
         .withArtifacts(JvmLibrary::class.java, SourcesArtifact::class.java, JavadocArtifact::class.java)
 
-      artifacts = query.execute().resolvedComponents.filter { it.id is ModuleComponentIdentifier }.map {
+      artifacts = docQuery.execute().resolvedComponents.filter { it.id is ModuleComponentIdentifier }.map {
         val id = it.id as ModuleComponentIdentifier
         SourcesAndJavadocArtifactImpl(
           SourcesAndJavadocArtifactIdentifierImpl(id.group, id.module, id.version),
           getFile(it, SourcesArtifact::class.java),
-          getFile(it, JavadocArtifact::class.java))
+          getFile(it, JavadocArtifact::class.java),
+          idToPomFile[it.id.displayName])
       }
     }
     catch (t: Throwable) {
