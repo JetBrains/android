@@ -70,6 +70,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -634,11 +637,18 @@ public class IdeSdks {
       }
     }
 
+    Set<String> checkedJdkPaths = jdks.stream().map(Sdk::getHomePath).collect(Collectors.toSet());
     List<File> jdkPaths = getPotentialJdkPaths();
     for (File jdkPath : jdkPaths) {
+      if (checkedJdkPaths.contains(jdkPath.getAbsolutePath())){
+        continue; // already checked: didn't fit
+      }
+
       if (checkForJdk(jdkPath)) {
-        Sdk jdk = createJdk(jdkPath);
-        return isJdkCompatible(jdk, preferredVersion) ? jdk : null;
+        Sdk jdk = createJdk(jdkPath); // TODO-ank: this adds JDK to the project even if the JDK is not compatibile and will be skipped
+        if (isJdkCompatible(jdk, preferredVersion) ) {
+          return jdk;
+        }
       }
       // On Linux, the returned path is the folder that contains all JDKs, instead of a specific JDK.
       if (SystemInfo.isLinux) {
@@ -780,7 +790,7 @@ public class IdeSdks {
    * Look for the Java version currently used in this order:
    *   - System property "java.version" (should be what the IDE is currently using)
    *   - Embedded JDK
-   *   - {@link IdeSdks.DEFAULT_JDK_VERSION}
+   *   - {@link IdeSdks#DEFAULT_JDK_VERSION}
    */
   @NotNull
   public JavaSdkVersion getRunningVersionOrDefault() {
