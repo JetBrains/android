@@ -21,16 +21,8 @@ import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
 import com.android.tools.analytics.UsageTracker
 import com.google.common.base.Strings
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.DeviceInfo
-import com.google.wireless.android.sdk.stats.DisplayDetails
-import com.google.wireless.android.sdk.stats.IdePlugin
-import com.google.wireless.android.sdk.stats.IdePluginInfo
-import com.google.wireless.android.sdk.stats.MachineDetails
-import com.google.wireless.android.sdk.stats.ProductDetails
+import com.google.wireless.android.sdk.stats.*
 import com.google.wireless.android.sdk.stats.ProductDetails.SoftwareLifeCycleChannel
-import com.google.wireless.android.sdk.stats.StudioProjectChange
-import com.google.wireless.android.sdk.stats.UserSentiment
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.ide.ui.LafManager
@@ -46,8 +38,7 @@ import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import java.io.File
-import java.util.ArrayList
-import java.util.Locale
+import java.util.*
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
@@ -137,7 +128,9 @@ object AndroidStudioUsageTracker {
     val pluginInfoProto = IdePluginInfo.newBuilder()
 
     for (plugin in plugins) {
-      if (!plugin.isEnabled) continue
+      if (!plugin.isEnabled) {
+        continue
+      }
       val id = plugin.pluginId?.idString ?: continue
 
       val pluginProto = IdePlugin.newBuilder()
