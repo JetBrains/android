@@ -40,10 +40,10 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
     val taskD = TaskData("taskD", ":app", pluginB, 100, TaskData.TaskExecutionMode.FULL, emptyList())
 
     val analyzerResults = object : MockResultsProvider() {
-      override fun getTotalBuildTime(): Long = 1500
-      override fun getCriticalPathDuration(): Long = 1000
-      override fun getTasksCriticalPath(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
-      override fun getPluginsCriticalPath(): List<CriticalPathAnalyzer.PluginBuildData> = listOf(
+      override fun getTotalBuildTimeMs(): Long = 1500
+      override fun getCriticalPathDurationMs(): Long = 1000
+      override fun getCriticalPathTasks(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
+      override fun getCriticalPathPlugins(): List<CriticalPathAnalyzer.PluginBuildData> = listOf(
         CriticalPathAnalyzer.PluginBuildData(pluginA, 400),
         CriticalPathAnalyzer.PluginBuildData(pluginB, 600)
       )
@@ -81,10 +81,10 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
     val nonCritPathTask = TaskData("taskOther", ":app", pluginA, 100, TaskData.TaskExecutionMode.FULL, emptyList())
 
     val analyzerResults = object : MockResultsProvider() {
-      override fun getTotalBuildTime(): Long = 1500
-      override fun getCriticalPathDuration(): Long = 1000
-      override fun getTasksCriticalPath(): List<TaskData> = listOf(taskA, taskB)
-      override fun getPluginsCriticalPath(): List<CriticalPathAnalyzer.PluginBuildData> = listOf(
+      override fun getTotalBuildTimeMs(): Long = 1500
+      override fun getCriticalPathDurationMs(): Long = 1000
+      override fun getCriticalPathTasks(): List<TaskData> = listOf(taskA, taskB)
+      override fun getCriticalPathPlugins(): List<CriticalPathAnalyzer.PluginBuildData> = listOf(
         CriticalPathAnalyzer.PluginBuildData(pluginA, 400),
         CriticalPathAnalyzer.PluginBuildData(pluginB, 300)
       )
@@ -95,7 +95,7 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
         AlwaysRunTaskData(nonCritPathTask, AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE)
       )
 
-      override fun getNoncacheableTasks(): List<TaskData> = listOf(taskA)
+      override fun getNonCacheableTasks(): List<TaskData> = listOf(taskA)
 
       override fun getTasksSharingOutput(): List<TasksSharingOutputData> = listOf(
         TasksSharingOutputData("/tmp/tasks_sharing_output/test/path", listOf(taskA, nonCritPathTask))
@@ -128,10 +128,10 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
     val nonCritPathTask = TaskData("taskOther", ":app", pluginA, 100, TaskData.TaskExecutionMode.FULL, emptyList())
 
     val analyzerResults = object : MockResultsProvider() {
-      override fun getTotalBuildTime(): Long = 1500
-      override fun getCriticalPathDuration(): Long = 1000
-      override fun getTasksCriticalPath(): List<TaskData> = listOf(taskA, taskB)
-      override fun getPluginsCriticalPath(): List<CriticalPathAnalyzer.PluginBuildData> = listOf(
+      override fun getTotalBuildTimeMs(): Long = 1500
+      override fun getCriticalPathDurationMs(): Long = 1000
+      override fun getCriticalPathTasks(): List<TaskData> = listOf(taskA, taskB)
+      override fun getCriticalPathPlugins(): List<CriticalPathAnalyzer.PluginBuildData> = listOf(
         CriticalPathAnalyzer.PluginBuildData(pluginA, 400),
         CriticalPathAnalyzer.PluginBuildData(pluginB, 600)
       )
@@ -142,7 +142,7 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
         AlwaysRunTaskData(nonCritPathTask, AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE)
       )
 
-      override fun getNoncacheableTasks(): List<TaskData> = listOf(taskA)
+      override fun getNonCacheableTasks(): List<TaskData> = listOf(taskA)
 
       override fun getTasksSharingOutput(): List<TasksSharingOutputData> = listOf(
         TasksSharingOutputData("/tmp/tasks_sharing_output/test/path", listOf(taskA, nonCritPathTask))

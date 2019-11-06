@@ -16,7 +16,7 @@
 package com.android.build.attribution.ui.data.builder
 
 import com.android.build.attribution.analyzers.AnnotationProcessorsAnalyzer
-import com.android.build.attribution.analyzers.BuildEventsAnalyzersResultsProvider
+import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
 import com.android.build.attribution.analyzers.CriticalPathAnalyzer
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.PluginData
@@ -38,16 +38,16 @@ open class AbstractBuildAttributionReportBuilderTest {
   /**
    * Mock results provider with default empty values.
    */
-  open class MockResultsProvider : BuildEventsAnalyzersResultsProvider {
+  open class MockResultsProvider : BuildEventsAnalysisResult {
     override fun getAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> = emptyList()
     override fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> = emptyList()
-    override fun getCriticalPathDuration(): Long = 0
-    override fun getTotalBuildTime(): Long = 0
-    override fun getTasksCriticalPath(): List<TaskData> = emptyList()
-    override fun getPluginsCriticalPath(): List<CriticalPathAnalyzer.PluginBuildData> = emptyList()
+    override fun getCriticalPathDurationMs(): Long = 0
+    override fun getTotalBuildTimeMs(): Long = 0
+    override fun getCriticalPathTasks(): List<TaskData> = emptyList()
+    override fun getCriticalPathPlugins(): List<CriticalPathAnalyzer.PluginBuildData> = emptyList()
     override fun getProjectsConfigurationData(): List<ProjectConfigurationData> = emptyList()
     override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> = emptyList()
-    override fun getNoncacheableTasks(): List<TaskData> = emptyList()
+    override fun getNonCacheableTasks(): List<TaskData> = emptyList()
     override fun getTasksSharingOutput(): List<TasksSharingOutputData> = emptyList()
   }
 }

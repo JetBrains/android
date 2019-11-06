@@ -34,10 +34,10 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
 
 
     val analyzerResults = object : MockResultsProvider() {
-      override fun getTotalBuildTime(): Long = 1500
-      override fun getCriticalPathDuration(): Long = 1000
-      override fun getTasksCriticalPath(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
-      override fun getPluginsCriticalPath(): List<CriticalPathAnalyzer.PluginBuildData> = listOf(
+      override fun getTotalBuildTimeMs(): Long = 1500
+      override fun getCriticalPathDurationMs(): Long = 1000
+      override fun getCriticalPathTasks(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
+      override fun getCriticalPathPlugins(): List<CriticalPathAnalyzer.PluginBuildData> = listOf(
         CriticalPathAnalyzer.PluginBuildData(pluginA, 400),
         CriticalPathAnalyzer.PluginBuildData(pluginB, 600)
       )
@@ -65,10 +65,10 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
 
 
     val analyzerResults = object : MockResultsProvider() {
-      override fun getTotalBuildTime(): Long = 1500
-      override fun getCriticalPathDuration(): Long = 1000
-      override fun getTasksCriticalPath(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
-      override fun getPluginsCriticalPath(): List<CriticalPathAnalyzer.PluginBuildData> = listOf(
+      override fun getTotalBuildTimeMs(): Long = 1500
+      override fun getCriticalPathDurationMs(): Long = 1000
+      override fun getCriticalPathTasks(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
+      override fun getCriticalPathPlugins(): List<CriticalPathAnalyzer.PluginBuildData> = listOf(
         CriticalPathAnalyzer.PluginBuildData(pluginA, 400),
         CriticalPathAnalyzer.PluginBuildData(pluginB, 600)
       )

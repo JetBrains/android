@@ -119,22 +119,22 @@ class BuildAttributionManagerImpl(
       }
     }
 
-    analyzersProxy.getTasksCriticalPath().let {
+    analyzersProxy.getCriticalPathTasks().let {
       if (it.isNotEmpty()) {
         stringBuilder.appendln("Tasks critical path:")
         it.forEach { taskData ->
-          val percentage = taskData.executionTime * 100 / analyzersProxy.getTotalBuildTime()
+          val percentage = taskData.executionTime * 100 / analyzersProxy.getTotalBuildTimeMs()
           stringBuilder.append("Task ${taskData.getTaskPath()} from ${taskData.originPlugin}")
             .appendln(", time ${Duration.ofMillis(taskData.executionTime)} ($percentage%)")
         }
       }
     }
 
-    analyzersProxy.getPluginsCriticalPath().let {
+    analyzersProxy.getCriticalPathPlugins().let {
       if (it.isNotEmpty()) {
         stringBuilder.appendln("Plugins determining build duration:")
         it.forEach { pluginBuildData ->
-          val percentage = pluginBuildData.buildDuration * 100 / analyzersProxy.getTotalBuildTime()
+          val percentage = pluginBuildData.buildDuration * 100 / analyzersProxy.getTotalBuildTimeMs()
           stringBuilder.append("${pluginBuildData.plugin}, time ${Duration.ofMillis(pluginBuildData.buildDuration)}")
             .appendln(" ($percentage%)")
         }
@@ -180,7 +180,7 @@ class BuildAttributionManagerImpl(
       }
     }
 
-    analyzersProxy.getNoncacheableTasks().let {
+    analyzersProxy.getNonCacheableTasks().let {
       if (it.isNotEmpty()) {
         stringBuilder.appendln("Non-cacheable tasks:")
         it.forEach { taskData ->

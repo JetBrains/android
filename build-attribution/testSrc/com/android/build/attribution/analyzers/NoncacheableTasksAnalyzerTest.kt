@@ -74,8 +74,8 @@ class NoncacheableTasksAnalyzerTest {
     val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
                                                             BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
-    assertThat(buildAttributionManager.analyzersProxy.getNoncacheableTasks()).hasSize(1)
-    val noncacheableTask = buildAttributionManager.analyzersProxy.getNoncacheableTasks()[0]
+    assertThat(buildAttributionManager.analyzersProxy.getNonCacheableTasks()).hasSize(1)
+    val noncacheableTask = buildAttributionManager.analyzersProxy.getNonCacheableTasks()[0]
 
     assertThat(noncacheableTask.getTaskPath()).isEqualTo(":app:dummy")
     assertThat(noncacheableTask.taskType).isEqualTo("org.gradle.api.DefaultTask")
@@ -94,6 +94,6 @@ class NoncacheableTasksAnalyzerTest {
     val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
                                                             BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
-    assertThat(buildAttributionManager.analyzersProxy.getNoncacheableTasks()).isEmpty()
+    assertThat(buildAttributionManager.analyzersProxy.getNonCacheableTasks()).isEmpty()
   }
 }

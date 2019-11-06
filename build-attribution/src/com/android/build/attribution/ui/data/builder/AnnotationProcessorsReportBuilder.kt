@@ -15,13 +15,13 @@
  */
 package com.android.build.attribution.ui.data.builder
 
-import com.android.build.attribution.analyzers.BuildEventsAnalyzersResultsProvider
+import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 
 
 class AnnotationProcessorsReportBuilder(
-  val analyzersResultsProvider: BuildEventsAnalyzersResultsProvider
+  val analyzersResultsProvider: BuildEventsAnalysisResult
 ) {
 
   fun build(): AnnotationProcessorsReport = object : AnnotationProcessorsReport {
