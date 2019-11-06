@@ -17,7 +17,6 @@ package com.android.tools.idea.appinspection.transport
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.transport.TransportClient
-import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.TransportServiceProxy
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.idea.transport.poller.TransportEventPoller
@@ -33,8 +32,9 @@ typealias AttachCallback = (Common.Stream, Common.Process) -> Unit
 
 // TODO(b/143628758): This Discovery must be called only behind the flag SQLITE_APP_INSPECTOR_ENABLED
 // This  copy pasted from layout inspector (DefaultInspectorClient.kt) with minor changes
-internal class AppInspectionAttacher(private val executor: ScheduledExecutorService) {
-  private var client = TransportClient(TransportService.getInstance().channelName)
+internal class AppInspectionAttacher(private val executor: ScheduledExecutorService,
+                                     transportChannel: AppInspectionDiscoveryHost.TransportChannel) {
+  private var client = TransportClient(transportChannel.channelName)
   private var transportPoller = TransportEventPoller.createPoller(client.transportStub,
                                                                   TimeUnit.MILLISECONDS.toNanos(100),
                                                                   Comparator.comparing(Common.Event::getTimestamp).reversed())
