@@ -15,10 +15,10 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.profilers.ProfilerTooltip;
+import com.android.tools.adtui.model.TooltipModel;
 import org.jetbrains.annotations.NotNull;
 
-public class CpuUsageTooltip implements ProfilerTooltip {
+public class CpuUsageTooltip implements TooltipModel {
   @NotNull private final CpuProfilerStage.CpuStageLegends myLegends;
 
   public CpuUsageTooltip(@NotNull CpuProfilerStage stage) {

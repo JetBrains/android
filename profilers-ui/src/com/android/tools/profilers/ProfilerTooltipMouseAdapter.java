@@ -15,20 +15,20 @@
  */
 package com.android.tools.profilers;
 
-import org.jetbrains.annotations.NotNull;
-
+import com.android.tools.adtui.model.TooltipModel;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Basic tooltip mouse listener that toggles active tooltip.
  */
 public class ProfilerTooltipMouseAdapter extends MouseAdapter {
   private Stage myStage;
-  private Supplier<ProfilerTooltip> myTooltipBuilder;
+  private Supplier<TooltipModel> myTooltipBuilder;
 
-  public ProfilerTooltipMouseAdapter(@NotNull Stage stage, Supplier<ProfilerTooltip> tooltipBuilder) {
+  public ProfilerTooltipMouseAdapter(@NotNull Stage stage, Supplier<TooltipModel> tooltipBuilder) {
     myStage = stage;
     myTooltipBuilder = tooltipBuilder;
   }
