@@ -147,6 +147,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareTabbedActivity() {
+    checkCreateTemplate("activities", "TabbedActivity", false, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareTabbedActivityWithKotlin() {
+    checkCreateTemplate("activities", "TabbedActivity", false, true, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewBlankWearActivity() {
     checkCreateTemplate("activities", "BlankWearActivity", false, true)
   }
