@@ -30,6 +30,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.startup.StartupActivity;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.IOException;
@@ -117,13 +118,25 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
   @VisibleForTesting
   @Nullable
   Path getRootDir() {
+    // Retries on Windows are an attempt to work around b/144005851.
+    int triesLeft = SystemInfo.isWindows ? 5 : 1;
     if (!Files.isDirectory(myRootDir, LinkOption.NOFOLLOW_LINKS)) {
-      try {
-        Files.createDirectories(myRootDir);
-      }
-      catch (IOException e) {
-        getLogger().error("Failed to create cache root directory " + myRootDir, e);
-        return null;
+      while (true) {
+        try {
+          Files.createDirectories(myRootDir);
+          break;
+        }
+        catch (IOException e) {
+          if (--triesLeft <= 0) {
+            getLogger().error("Failed to create cache root directory " + myRootDir, e);
+            return null;
+          }
+          try {
+            Thread.sleep(5 + (long)(Math.random() * 10));
+          }
+          catch (InterruptedException e1) {
+          }
+        }
       }
     }
     return myRootDir;
@@ -173,18 +186,32 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
       return;
     }
     // First delete all the subdirectories except for the stamp.
+    boolean[] errorDeletingDirectories = new boolean[1];
     try {
       Files.list(rootDir).forEach(subCache -> {
         if (!subCache.getFileName().toString().equals(INVALIDATION_MARKER_FILE)) {
-          FileUtil.delete(subCache.toFile());
+          try {
+            FileUtil.delete(subCache);
+          }
+          catch (IOException e) {
+            getLogger().error("Failed to delete " + subCache + " directory", e);
+            errorDeletingDirectories[0] = true;
+          }
         }
       });
     }
     catch (IOException ignored) {
     }
 
-    // Finally, delete the stamp and the directory.
-    FileUtil.delete(rootDir.toFile());
+    if (!errorDeletingDirectories[0]) {
+      // Finally, delete the stamp and the directory.
+      try {
+        FileUtil.delete(rootDir);
+      }
+      catch (IOException e) {
+        getLogger().error("Failed to delete " + rootDir + " directory", e);
+      }
+    }
   }
 
   /**
