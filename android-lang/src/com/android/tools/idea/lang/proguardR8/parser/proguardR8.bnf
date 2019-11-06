@@ -48,10 +48,10 @@
 
     FLAG = 'regexp:-[a-z]+' // Anything that starts with @ or -
     FILE_NAME = 'regexp:[\w\-./<>*?]+'
-    FILE_NAME_SINGLE_QUOTED = "regexp:'([\w\-./<>*?\s()])*'"
-    FILE_NAME_DOUBLE_QUOTED = 'regexp:"([\w\-./<>*?\s()])*"'
-    UNTERMINATED_FILE_NAME_SINGLE_QUOTED = "regexp:'([\w\-./<>*?\s()])*"
-    UNTERMINATED_FILE_NAME_DOUBLE_QUOTED = 'regexp:"([\w\-./<>*?\s()])*'
+    SINGLE_QUOTED_STRING = "regexp:'(\\'|[^'])*'"
+    DOUBLE_QUOTED_STRING = 'regexp:"(\\"|[^"])*"'
+    UNTERMINATED_SINGLE_QUOTED_STRING = "regexp:'(\\'|[^'])*"
+    UNTERMINATED_DOUBLE_QUOTED_STRING = 'regexp:"(\\"|[^"])*'
     LINE_CMT = 'regexp:#[^\n\r]*'     // Line comment, anything that starts with "#".
     JAVA_IDENTIFIER = 'regexp:[a-zA-Z_][a-zA-Z\d_]*'
     JAVA_IDENTIFIER_WITH_WILDCARDS = 'regexp:(((\?|\*{1,2})?\w+)+(\?|\*{1,2})?)|(\?|\*{1,2})' // Any string from letters and digits
@@ -72,7 +72,7 @@ private rule_ ::= rule_with_class_specification | rule {recoverWhile=not_flag}
 rule ::= FLAG (flag_argument ("," flag_argument)*)?
 rule_with_class_specification ::= FLAG  ("," keep_option_modifier)* class_specification_header class_specification_body?
 
-private file_ ::= "!"?(FILE_NAME|FILE_NAME_SINGLE_QUOTED|FILE_NAME_DOUBLE_QUOTED|UNTERMINATED_FILE_NAME_SINGLE_QUOTED|UNTERMINATED_FILE_NAME_DOUBLE_QUOTED)
+private file_ ::= "!"?(FILE_NAME|SINGLE_QUOTED_STRING|DOUBLE_QUOTED_STRING|UNTERMINATED_SINGLE_QUOTED_STRING|UNTERMINATED_DOUBLE_QUOTED_STRING)
 private file_list ::= file_ ((':'|';') file_)*
 file_filter ::= file_list (',' file_list)*
 flag_argument ::= file_list ('(' file_filter ')')?
