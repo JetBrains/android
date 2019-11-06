@@ -48,7 +48,7 @@ class TableViewImpl : TableView {
     }
   }
 
-  private val listeners = mutableListOf<TableViewListener>()
+  private val listeners = mutableListOf<TableView.Listener>()
   private val pageSizeDefaultValues = listOf(5, 10, 20, 25, 50)
   private var isLoading = false
 
@@ -157,11 +157,11 @@ class TableViewImpl : TableView {
     lastRowsPageButton.isEnabled = enable
   }
 
-  override fun addListener(listener: TableViewListener) {
+  override fun addListener(listener: TableView.Listener) {
     listeners.add(listener)
   }
 
-  override fun removeListener(listener: TableViewListener) {
+  override fun removeListener(listener: TableView.Listener) {
     listeners.remove(listener)
   }
 

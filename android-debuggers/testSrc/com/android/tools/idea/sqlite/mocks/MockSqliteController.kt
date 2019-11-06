@@ -35,7 +35,7 @@ open class MockSqliteController(val model: SqliteController.Model) : SqliteContr
 
   override fun closeDatabase(database: SqliteDatabase) {
     model.remove(database)
-    database.sqliteService.closeDatabase().get()
+    database.databaseConnection.closeDatabase().get()
   }
 
   override fun dispose() { }
