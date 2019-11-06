@@ -19,12 +19,12 @@ import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TOOLTIP_BORDER;
 
 import com.android.tools.adtui.TooltipComponent;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.profilers.BorderlessTableCellRenderer;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.TimelineTable;
 import com.android.tools.profilers.network.httpdata.HttpData;
@@ -77,7 +77,7 @@ final class ConnectionsView {
       Object getValueFrom(@NotNull HttpData data) {
         HttpData.ContentType type = data.getResponseHeader().getContentType();
         String[] mimeTypeParts = type.getMimeType().split("/");
-        return mimeTypeParts[mimeTypeParts.length-1];
+        return mimeTypeParts[mimeTypeParts.length - 1];
       }
     },
     STATUS(0.25 / 4, Integer.class) {
@@ -190,7 +190,7 @@ final class ConnectionsView {
         for (int i = 0; i < Column.values().length; ++i) {
           Column column = Column.values()[i];
           myConnectionsTable.getColumnModel().getColumn(i)
-                            .setPreferredWidth((int)(myConnectionsTable.getWidth() * column.getWidthPercentage()));
+            .setPreferredWidth((int)(myConnectionsTable.getWidth() * column.getWidthPercentage()));
         }
       }
     });
@@ -208,7 +208,7 @@ final class ConnectionsView {
     textPane.setBorder(TOOLTIP_BORDER);
     textPane.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
     textPane.setForeground(ProfilerColors.TOOLTIP_TEXT);
-    textPane.setFont(ProfilerFonts.TOOLTIP_BODY_FONT);
+    textPane.setFont(TooltipView.TOOLTIP_BODY_FONT);
     TooltipComponent tooltip =
       new TooltipComponent.Builder(textPane, myConnectionsTable, stageView.getProfilersView().getComponent()).build();
     tooltip.registerListenersOn(myConnectionsTable);

@@ -18,9 +18,8 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerFonts;
-import com.android.tools.profilers.ProfilerTooltipView;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -30,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tooltip view for {@link CpuCaptureStageCpuUsageTooltip}.
  */
-public class CpuCaptureStageCpuUsageTooltipView extends ProfilerTooltipView {
+public class CpuCaptureStageCpuUsageTooltipView extends TooltipView {
   private final CpuCaptureStageCpuUsageTooltip myTooltip;
 
   public CpuCaptureStageCpuUsageTooltipView(@NotNull CpuCaptureStageView stageView, @NotNull CpuCaptureStageCpuUsageTooltip tooltip) {
@@ -50,7 +49,7 @@ public class CpuCaptureStageCpuUsageTooltipView extends ProfilerTooltipView {
     legendComponent.configure(myTooltip.getCpuLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_USAGE_CAPTURED));
 
     JLabel contextHelpLabel = new JLabel("Select to inspect");
-    contextHelpLabel.setFont(ProfilerFonts.TOOLTIP_BODY_FONT);
+    contextHelpLabel.setFont(TooltipView.TOOLTIP_BODY_FONT);
     contextHelpLabel.setForeground(ProfilerColors.TOOLTIP_LOW_CONTRAST);
 
     panel.add(new JSeparator(), new TabularLayout.Constraint(0, 0));

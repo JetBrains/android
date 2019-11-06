@@ -126,14 +126,14 @@ final class ThreadsView {
       }
     });
 
-    TooltipView.install(myThreadsTable, stageView);
+    ThreadsView.TooltipView.install(myThreadsTable, stageView);
 
     myObserver = new AspectObserver();
     stageView.getStage().getAspect().addDependency(myObserver)
-             .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, () -> {
-               timelineRenderer.updateRows();
-               myThreadsTable.repaint();
-             });
+      .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, () -> {
+        timelineRenderer.updateRows();
+        myThreadsTable.repaint();
+      });
   }
 
   @NotNull
@@ -373,7 +373,7 @@ final class ThreadsView {
       myContent = new JPanel(new TabularLayout("*", "*"));
       myContent.setBorder(TOOLTIP_BORDER);
       myContent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
-      myContent.setFont(ProfilerFonts.TOOLTIP_BODY_FONT);
+      myContent.setFont(com.android.tools.adtui.TooltipView.TOOLTIP_BODY_FONT);
 
       myTooltipComponent = new TooltipComponent.Builder(myContent, table, stageView.getProfilersView().getComponent()).build();
       myTooltipComponent.registerListenersOn(table);
@@ -432,7 +432,7 @@ final class ThreadsView {
     private static JLabel newTooltipLabel(String text) {
       JLabel label = new JLabel(text);
       label.setForeground(ProfilerColors.TOOLTIP_TEXT);
-      label.setFont(ProfilerFonts.TOOLTIP_BODY_FONT);
+      label.setFont(com.android.tools.adtui.TooltipView.TOOLTIP_BODY_FONT);
       return label;
     }
 

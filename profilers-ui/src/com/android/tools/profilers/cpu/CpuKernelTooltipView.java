@@ -15,13 +15,11 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
-
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
@@ -38,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
  * The data is populated by listening to changes from the {@link CpuKernelTooltip.Aspect} as well as
  * listening to when the timeline range changes.
  */
-public class CpuKernelTooltipView extends ProfilerTooltipView {
+public class CpuKernelTooltipView extends TooltipView {
   @NotNull private final CpuKernelTooltip myTooltip;
   @NotNull private final JPanel myContent;
   @NotNull private final JLabel myThread;

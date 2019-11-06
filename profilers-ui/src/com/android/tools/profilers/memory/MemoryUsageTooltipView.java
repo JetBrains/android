@@ -18,13 +18,13 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.LegendConfig.IconType;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.StageView;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
-class MemoryUsageTooltipView extends ProfilerTooltipView {
+class MemoryUsageTooltipView extends TooltipView {
   @NotNull private final MemoryUsageTooltip myTooltip;
 
   MemoryUsageTooltipView(@NotNull StageView view, @NotNull MemoryUsageTooltip tooltip) {
