@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
@@ -33,10 +32,10 @@ import org.junit.Test
 import org.mockito.Mockito.mock
 import java.awt.Color
 import java.awt.Dimension
+import java.awt.Image
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
-import javax.imageio.ImageIO
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
@@ -62,9 +61,8 @@ class DeviceViewContentPanelTest {
         view(VIEW2, 60, 160, 10, 20)
       }
     }
-    val inspector = LayoutInspector(model)
     val settings = DeviceViewSettings(scalePercent = 30)
-    val panel = DeviceViewContentPanel(inspector, settings)
+    val panel = DeviceViewContentPanel(model, settings)
     assertEquals(Dimension(188, 197), panel.preferredSize)
 
     settings.scalePercent = 100
@@ -90,9 +88,8 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val inspector = LayoutInspector(model)
     val settings = DeviceViewSettings(scalePercent = 100)
-    val panel = DeviceViewContentPanel(inspector, settings)
+    val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(200, 300)
 
     panel.paint(graphics)
@@ -140,9 +137,8 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()
 
-    val inspector = LayoutInspector(model)
     val settings = DeviceViewSettings(scalePercent = 50)
-    val panel = DeviceViewContentPanel(inspector, settings)
+    val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(200, 300)
 
     panel.paint(graphics)
@@ -153,13 +149,12 @@ class DeviceViewContentPanelTest {
   fun testDrag() {
     val model = model {
       view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 25, 30, 50, 50)
+        view(VIEW1, 25, 30, 50, 50, imageBottom = mock(Image::class.java))
       }
     }
 
-    val inspector = LayoutInspector(model)
     val settings = DeviceViewSettings(scalePercent = 100)
-    val panel = DeviceViewContentPanel(inspector, settings)
+    val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(200, 300)
     val fakeUi = FakeUi(panel)
 
