@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.SdkConstants.VALUE_MATCH_PARENT
+import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.ColoredIconGenerator
@@ -126,20 +128,18 @@ private val NOTIFICATIONS_EP_NAME =
 /** [ShortcutSet] that triggers a build and refreshes the preview */
 internal fun getBuildAndRefreshShortcut(): ShortcutSet = KeymapUtil.getActiveKeymapShortcuts(FORCE_REFRESH_ACTION_ID)
 
-const val paddingDp = 5
-
 /**
- * Generates the XML string wrapper for one [PreviewElement]
+ * Generates the XML string wrapper for one [PreviewElement].
+ * @param matchParent when true, the component will take the maximum available space at the parent.
  */
-private fun PreviewElement.toPreviewXmlString() =
+private fun PreviewElement.toPreviewXmlString(matchParent: Boolean = false) =
   """
     <$COMPOSE_VIEW_ADAPTER
       xmlns:tools="http://schemas.android.com/tools"
       xmlns:aapt="http://schemas.android.com/aapt"
       xmlns:android="http://schemas.android.com/apk/res/android"
-      android:layout_width="${dimensionToString(configuration.width)}"
-      android:layout_height="${dimensionToString(configuration.height)}"
-      android:padding="${paddingDp}dp"
+      android:layout_width="${dimensionToString(configuration.width, if (matchParent) VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)}"
+      android:layout_height="${dimensionToString(configuration.height, if (matchParent) VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)}"
       $COMPOSABLE_NAME_ATTR="$composableMethodFqn" />
   """.trimIndent()
 
@@ -528,23 +528,23 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
     // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
     val existingModels = surface.models.reverse().toMutableList()
+    val showDecorations = RenderSettings.getProjectSettings(project).showDecorations
 
     // Now we generate all the models (or reuse) for the PreviewElements.
     val futureModels = filePreviewElements
       .asSequence()
-      .onEach {
-        if (LOG.isDebugEnabled) {
-          LOG.debug("""Preview found at ${stopwatch?.duration?.toMillis()}ms
-              displayName=${it.displayName}
-              methodName=${it.composableMethodFqn}
-
-              ${it.toPreviewXmlString()}
-          """.trimIndent())
-        }
-      }
-      .map { Pair(it, it.toPreviewXmlString()) }
+      .map { Pair(it, it.toPreviewXmlString(matchParent = showDecorations)) }
       .map {
         val (previewElement, fileContents) = it
+
+        if (LOG.isDebugEnabled) {
+          LOG.debug("""Preview found at ${stopwatch?.duration?.toMillis()}ms
+              displayName=${previewElement.displayName}
+              methodName=${previewElement.composableMethodFqn}
+
+              ${fileContents}
+          """.trimIndent())
+        }
 
         val modelFuture = if (existingModels.isNotEmpty()) {
           LOG.debug("Re-using model")
@@ -621,7 +621,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
         isRefreshingPreview = false
         hasRenderedAtLeastOnce = true
-        savedIsShowingDecorations = RenderSettings.getProjectSettings(project).showDecorations
+        savedIsShowingDecorations = showDecorations
         updateSurfaceVisibilityAndNotifications()
 
         onRefresh?.invoke()

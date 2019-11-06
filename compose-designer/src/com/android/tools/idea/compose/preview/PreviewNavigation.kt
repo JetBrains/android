@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.api.InsertType
-import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.intellij.psi.xml.XmlTag
 import com.android.tools.idea.common.model.NlComponent
@@ -166,16 +165,14 @@ private fun createSceneGraph(list: List<ComposeBoundInfo>, parent: NlComponent, 
       surface,
       null,
       InsertType.CREATE)!!.apply{
-      val totalVerticalPaddingDp = Coordinates.dpToPx(surface, paddingDp.toFloat())
-      val totalHorizontalPaddingDp = Coordinates.dpToPx(surface, paddingDp.toFloat())
 
       setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH, dimensionToString(bounds.width.toInt()))
       setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT, dimensionToString(bounds.height.toInt()))
       setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, dimensionToString(bounds.top.toInt()))
       setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, dimensionToString(bounds.left.toInt()))
 
-      x = totalHorizontalPaddingDp + bounds.left.toInt()
-      y = totalVerticalPaddingDp + bounds.top.toInt()
+      x = bounds.left.toInt()
+      y = bounds.top.toInt()
       w = bounds.width.toInt()
       h = bounds.height.toInt()
     }
