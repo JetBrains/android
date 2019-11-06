@@ -61,8 +61,8 @@ public class CreateAPKProjectTestUtil {
     ideFrame.getEditor()
       .open(smaliFile)
       .awaitNotification(
-        "Disassembled classes.dex file. To set up breakpoints for debugging, please attach Java source files.")
-      .performActionWithoutWaitingForDisappearance("Attach Java Sources...");
+        "Disassembled classes.dex file. To set up breakpoints for debugging, please attach Kotlin/Java source files.")
+      .performActionWithoutWaitingForDisappearance("Attach Kotlin/Java Sources...");
 
     FileChooserDialogFixture.findDialog(ideFrame.robot(), "Attach Sources")
       .select(VfsUtil.findFileByIoFile(sourceDir, true))
