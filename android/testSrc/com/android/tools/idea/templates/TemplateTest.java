@@ -173,7 +173,6 @@ import org.w3c.dom.Element;
  * <li>Test creating a project <b>without</b> a template</li>
  * </ul>
  */
-@Ignore // FIXME-ank: super slow (1h)
 @SuppressWarnings("deprecation") // We need to move away from the old Wizard framework usage
 public class TemplateTest extends AndroidGradleTestCase {
   /**

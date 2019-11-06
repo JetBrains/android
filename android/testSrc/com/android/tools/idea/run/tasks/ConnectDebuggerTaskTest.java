@@ -79,7 +79,7 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
     builder.installDefaultCommandHandlers();
 
     // Add the debug commands handler
-    //builder.addDeviceHandler(new JdwpCommandHandler()); // FIXME-ank
+    builder.addDeviceHandler(new JdwpCommandHandler());
     myServer = builder.build();
     myServer.start();
 

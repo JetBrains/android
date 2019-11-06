@@ -15,7 +15,6 @@
  */
 package com.android.tools.nativeSymbolizer
 
-// FIXME-ank: check the module location project structure!
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
