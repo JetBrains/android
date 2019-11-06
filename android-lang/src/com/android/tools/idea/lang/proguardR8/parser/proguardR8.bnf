@@ -72,7 +72,7 @@ private rule_ ::= rule_with_class_specification | rule {recoverWhile=not_flag}
 rule ::= FLAG (flag_argument ("," flag_argument)*)?
 rule_with_class_specification ::= FLAG  ("," keep_option_modifier)* class_specification_header class_specification_body?
 
-private file_ ::= "!"?(FILE_NAME|SINGLE_QUOTED_STRING|DOUBLE_QUOTED_STRING|UNTERMINATED_SINGLE_QUOTED_STRING|UNTERMINATED_DOUBLE_QUOTED_STRING)
+private file_ ::= "!"?(FILE_NAME|SINGLE_QUOTED_STRING|DOUBLE_QUOTED_STRING|UNTERMINATED_SINGLE_QUOTED_STRING|UNTERMINATED_DOUBLE_QUOTED_STRING|ASTERISK)
 private file_list ::= file_ ((':'|';') file_)*
 file_filter ::= file_list (',' file_list)*
 flag_argument ::= file_list ('(' file_filter ')')?

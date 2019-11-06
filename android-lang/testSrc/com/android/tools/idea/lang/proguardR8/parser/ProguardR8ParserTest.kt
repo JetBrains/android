@@ -1416,4 +1416,19 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       )
     )
   }
+
+  fun testAsteriskInFileName() {
+    assertEquals(
+      """
+        FILE
+          ProguardR8RuleImpl(RULE)
+            PsiElement(FLAG)('-rule')
+            ProguardR8FlagArgumentImpl(FLAG_ARGUMENT)
+              PsiElement(asterisk)('*')
+      """.trimIndent(),
+      toParseTreeText("""
+        -rule *
+      """.trimIndent())
+    )
+  }
 }
