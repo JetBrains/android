@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
+import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -59,7 +60,8 @@ public class Win32DeprecationNotifier {
     Notification notification = new Notification(myGroupId,
                                                  "",
                                                  AndroidBundle.message(key),
-                                                 NotificationType.INFORMATION);
+                                                 NotificationType.INFORMATION,
+                                                 NotificationListener.URL_OPENING_LISTENER);
 
     notification.addAction(new NotificationAction("Don't show again") {
       @Override
