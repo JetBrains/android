@@ -116,9 +116,6 @@ const val COMPOSABLE_NAME_ATTR = "tools:composableName"
 private val GREEN_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
                                                                             JBColor(0x59A869, 0x499C54))
 
-/** Old FQN to lookup and throw a warning. This import should not be used anymore after migrating to using ui-tooling */
-const val OLD_PREVIEW_ANNOTATION_FQN = "com.android.tools.preview.Preview"
-
 /** Action ID of the IDE declared force refresh action (see PlatformActions.xml). This allows us to re-use the shortcut of the declared action. */
 const val FORCE_REFRESH_ACTION_ID = "ForceRefresh"
 
