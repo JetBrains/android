@@ -37,4 +37,4 @@ class ResolutionStackItem(
   property.isDeclared,
   reference,
   property.view,
-  property.model)
+  property.resourceLookup)

@@ -19,11 +19,13 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.model.TreeLoader
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
+import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.project.Project
 
 /**
  * Client for communicating with the agent.
@@ -92,17 +94,22 @@ interface InspectorClient {
    */
   val isCapturing: Boolean
 
+  /**
+   * Return a provider of properties from the current agent.
+   */
+  val provider: PropertiesProvider
+
   companion object {
     /**
      * Prove a way for tests to generate a mock client.
      */
     @VisibleForTesting
-    var clientFactory: (project: Project) -> InspectorClient = { DefaultInspectorClient(it) }
+    var clientFactory: (model: InspectorModel) -> InspectorClient = { DefaultInspectorClient(it) }
 
     /**
      * Use this method to create a new client.
      */
-    fun createInstance(project: Project): InspectorClient = clientFactory(project)
+    fun createInstance(model: InspectorModel): InspectorClient = clientFactory(model)
   }
 }
 
@@ -121,5 +128,5 @@ object DisconnectedClient : InspectorClient {
   override val selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
   override val selectedProcess: Common.Process = Common.Process.getDefaultInstance()
   override val isCapturing = false
-
+  override val provider = EmptyPropertiesProvider
 }

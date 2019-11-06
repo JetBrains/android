@@ -53,10 +53,10 @@ open class InspectorPropertyItem(
   val source: ResourceReference?,
 
   /** The view this attribute belongs to */
-  val view: ViewNode,
+  var view: ViewNode,
 
-  /** The properties model this item is a part of */
-  val model: InspectorPropertiesModel
+  /** The inspector model this item is a part of */
+  val resourceLookup: ResourceLookup?
 
 ) : PropertyItem {
 
@@ -75,9 +75,6 @@ open class InspectorPropertyItem(
       location.navigatable?.navigate(true)
     }
   }
-
-  val resourceLookup: ResourceLookup?
-    get() = model.layoutInspector?.layoutInspectorModel?.resourceLookup
 
   override val colorButton = createColorButton()
 

@@ -90,7 +90,6 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     refresh()
   }
 
-  @VisibleForTesting
   fun refresh() {
     val root = model.root
     if (root == null) {

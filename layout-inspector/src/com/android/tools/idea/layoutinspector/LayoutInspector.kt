@@ -37,6 +37,7 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel) {
         field.disconnect()
       }
       field = client
+      layoutInspectorModel.updateConnection(client)
     }
 
   private val latestLoadTime = AtomicLong(-1)
@@ -44,7 +45,7 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel) {
   val allClients: List<InspectorClient>
 
   init {
-    val defaultClient = InspectorClient.createInstance(layoutInspectorModel.project)
+    val defaultClient = InspectorClient.createInstance(layoutInspectorModel)
     registerClientListeners(defaultClient)
 
     if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get()) {

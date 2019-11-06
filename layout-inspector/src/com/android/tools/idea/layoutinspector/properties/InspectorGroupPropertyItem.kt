@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.property.ptable2.PTableGroupItem
@@ -39,9 +40,9 @@ class InspectorGroupPropertyItem(
   isDeclared: Boolean,
   source: ResourceReference?,
   view: ViewNode,
-  model: InspectorPropertiesModel,
+  resourceLookup: ResourceLookup?,
   stack: Map<ResourceReference, String?>
-): InspectorPropertyItem(namespace, name, name, type, value, isDeclared, source, view, model), PTableGroupItem {
+): InspectorPropertyItem(namespace, name, name, type, value, isDeclared, source, view, resourceLookup), PTableGroupItem {
   override val children: List<InspectorPropertyItem> =
     stack.map { (reference, value) -> ResolutionStackItem(this, reference, value) }
 }
