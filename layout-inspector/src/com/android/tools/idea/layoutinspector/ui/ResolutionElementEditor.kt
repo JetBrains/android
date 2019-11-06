@@ -72,8 +72,8 @@ class ResolutionElementEditor(
 
   private fun updateFromModel() {
     val property = editorModel.property as InspectorPropertyItem
-    val resourceLookup = property.model.layoutInspector?.layoutInspectorModel?.resourceLookup
-    val locations = resourceLookup?.findFileLocations(property) ?: emptyList()
+    val resourceLookup = property.resourceLookup
+    val locations = resourceLookup?.findFileLocations(property) ?: listOf()
     val classLocation = (property as? InspectorGroupPropertyItem)?.classLocation
     val hideLinkPanel = (locations.isEmpty() && classLocation == null) || (property is PTableGroupItem && !editorModel.isExpandedTableItem)
     linkPanel.isVisible = !hideLinkPanel

@@ -16,12 +16,14 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.intellij.openapi.project.Project
 import kotlin.properties.Delegates
 
 class InspectorModel(val project: Project, initialRoot: ViewNode? = null) {
   val selectionListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
   val modificationListeners = mutableListOf<(ViewNode?, ViewNode?, Boolean) -> Unit>()
+  val connectionListeners = mutableListOf<(InspectorClient?) -> Unit>()
   val resourceLookup = ResourceLookup(project)
   var hasSubImages = findSubimages(initialRoot)
     private set
@@ -44,6 +46,10 @@ class InspectorModel(val project: Project, initialRoot: ViewNode? = null) {
 
   var root: ViewNode? by Delegates.observable(initialRoot) { _, old, new ->
     modificationListeners.forEach { it(old, new, true) }
+  }
+
+  fun updateConnection(client: InspectorClient?) {
+    connectionListeners.forEach { it(client) }
   }
 
   /**

@@ -16,6 +16,8 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.property.panel.api.PropertiesTable
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
@@ -37,8 +39,8 @@ class ViewNode(val drawId: Long,
                val layout: ResourceReference?,
                var x: Int,
                var y: Int,
-               val scrollX: Int,
-               val scrollY: Int,
+               var scrollX: Int,
+               var scrollY: Int,
                var width: Int,
                var height: Int,
                var viewId: ResourceReference?,

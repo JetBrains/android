@@ -59,6 +59,8 @@ class LegacyClient(private val project: Project) : InspectorClient {
 
   override val isCapturing = false
 
+  override val provider = LegacyPropertiesProvider()
+
   private val processChangedListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
 
   private val processToClient: MutableMap<Common.Process, Client> = mutableMapOf()

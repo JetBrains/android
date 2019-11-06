@@ -235,15 +235,17 @@ class ResourceLookupResolverTest {
     val textStyleMaterialBody1 = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material.Body1")
     val titleId = ResourceReference(exampleNS, ResourceType.ID, "title")
     val model = InspectorPropertiesModel()
+    val inspectorModel = model.layoutInspector?.layoutInspectorModel
+    val resourceLookup = inspectorModel?.resourceLookup
     val title = ViewNode(1, "TextView", demo, 30, 60, 0, 0, 300, 100, titleId, "Hello Folks")
-    val textColor = InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "", true, demo, title, model)
+    val textColor = InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "", true, demo, title, resourceLookup)
     val background = InspectorPropertyItem(
-      ANDROID_URI, ATTR_BACKGROUND, ATTR_BACKGROUND, Type.DRAWABLE, "", true, demo, title, model)
+      ANDROID_URI, ATTR_BACKGROUND, ATTR_BACKGROUND, Type.DRAWABLE, "", true, demo, title, resourceLookup)
     val backgroundTint = InspectorPropertyItem(
-      ANDROID_URI, ATTR_BACKGROUND_TINT, ATTR_BACKGROUND_TINT, Type.DRAWABLE, "", true, demo, title, model)
+      ANDROID_URI, ATTR_BACKGROUND_TINT, ATTR_BACKGROUND_TINT, Type.DRAWABLE, "", true, demo, title, resourceLookup)
     val drawableLeft = InspectorPropertyItem(
-      ANDROID_URI, ATTR_DRAWABLE_LEFT, ATTR_DRAWABLE_LEFT, Type.DRAWABLE, "", true, demo, title, model)
+      ANDROID_URI, ATTR_DRAWABLE_LEFT, ATTR_DRAWABLE_LEFT, Type.DRAWABLE, "", true, demo, title, resourceLookup)
     val drawableRight = InspectorPropertyItem(
-      ANDROID_URI, ATTR_DRAWABLE_RIGHT, ATTR_DRAWABLE_RIGHT, Type.DRAWABLE, "", true, demo, title, model)
+      ANDROID_URI, ATTR_DRAWABLE_RIGHT, ATTR_DRAWABLE_RIGHT, Type.DRAWABLE, "", true, demo, title, resourceLookup)
   }
 }

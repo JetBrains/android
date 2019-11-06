@@ -23,6 +23,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.isDeviceMatch
 import com.android.tools.idea.layoutinspector.model.ComponentTreeLoader
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileManager
@@ -72,7 +73,8 @@ import kotlin.properties.Delegates
 
 private const val MAX_RETRY_COUNT = 60
 
-class DefaultInspectorClient(private val project: Project) : InspectorClient {
+class DefaultInspectorClient(model: InspectorModel) : InspectorClient {
+  private val project = model.project
   private var client = TransportClient(TransportService.getInstance().channelName)
   private var transportPoller = TransportEventPoller.createPoller(client.transportStub,
                                                                   TimeUnit.MILLISECONDS.toNanos(100),
@@ -84,6 +86,8 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
     }
   }
   override var selectedProcess: Common.Process = Common.Process.getDefaultInstance()
+
+  override val provider = DefaultPropertiesProvider(this, model.resourceLookup)
 
   private var loggedInitialRender = false
 
