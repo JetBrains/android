@@ -131,7 +131,7 @@ public class AndroidStudioInitializer implements Runnable {
       UsageTracker.setIdeaIsInternal(true);
     }
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
-    new GcPauseWatcher(); // FIXME-ank: delete?
+    new GcPauseWatcher();
   }
 
   private static AndroidStudioEvent.IdeBrand getIdeBrand() {
