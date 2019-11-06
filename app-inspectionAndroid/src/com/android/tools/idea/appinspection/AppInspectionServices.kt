@@ -17,12 +17,17 @@ package com.android.tools.idea.appinspection
 
 import com.android.tools.idea.appinspection.transport.AppInspectionDiscovery
 import com.android.tools.idea.appinspection.transport.AppInspectionDiscoveryHost
+import com.android.tools.idea.transport.TransportService
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.util.concurrency.AppExecutorUtil
 
 // service that holds a reference to [AppInspectionDiscoveryHost] and has full access to it: it has power to establish new connections
 internal class AppInspectionHostService {
-  val discoveryHost = AppInspectionDiscoveryHost(AppExecutorUtil.getAppScheduledExecutorService())
+  private val transportChannel = object : AppInspectionDiscoveryHost.TransportChannel {
+    override val channelName = TransportService.getInstance().channelName
+  }
+
+  val discoveryHost = AppInspectionDiscoveryHost(AppExecutorUtil.getAppScheduledExecutorService(), transportChannel)
 
   companion object {
     val instance: AppInspectionHostService

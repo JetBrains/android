@@ -17,7 +17,6 @@ package com.android.tools.idea.appinspection.transport
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.addCallback
-import com.android.tools.idea.transport.TransportService
 import com.google.common.util.concurrent.FutureCallback
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -29,6 +28,7 @@ typealias DexPusher = (File, String) -> Unit
 
 typealias PipelineConnectionListener = (AppInspectionPipelineConnection, DexPusher) -> Unit
 
+
 /**
  * A class that hosts an [AppInspectionDiscovery] instance and exposes a method to initialize its connection.
  *
@@ -36,8 +36,15 @@ typealias PipelineConnectionListener = (AppInspectionPipelineConnection, DexPush
  * the discovery with interested clients.
  */
 // TODO(b/143628758): This Discovery mechanism must be called only behind the flag SQLITE_APP_INSPECTOR_ENABLED
-class AppInspectionDiscoveryHost(executor: ScheduledExecutorService) {
-  val discovery = AppInspectionDiscovery(executor)
+class AppInspectionDiscoveryHost(executor: ScheduledExecutorService, transportChannel: TransportChannel) {
+  /**
+   * This class represents a channel between some host (which should implement this class) and a target Android device.
+   */
+  interface TransportChannel {
+    val channelName: String
+  }
+
+  val discovery = AppInspectionDiscovery(executor, transportChannel)
 
   // TODO(b/143836794): this method should return to the caller if it was to connect to device
   fun connect(device: IDevice, preferredProcess: AutoPreferredProcess) {
@@ -52,26 +59,26 @@ class AppInspectionDiscoveryHost(executor: ScheduledExecutorService) {
  * to and fire listeners for all of them.
  */
 // TODO(b/143628758): This Discovery mechanism must be called only behind the flag SQLITE_APP_INSPECTOR_ENABLED
-class AppInspectionDiscovery(private val executor: ScheduledExecutorService) {
+class AppInspectionDiscovery(private val executor: ScheduledExecutorService,
+                             private val transportChannel: AppInspectionDiscoveryHost.TransportChannel) {
   private val listeners = ConcurrentHashMap<PipelineConnectionListener, Executor>()
-  private val attacher = AppInspectionAttacher(executor)
+  private val attacher = AppInspectionAttacher(executor, transportChannel)
 
   internal fun connect(device: IDevice, preferredProcess: AutoPreferredProcess) {
     val dexPusher = { file: File, onDevicePath: String -> device.pushFile(file.toPath().toAbsolutePath().toString(), onDevicePath) }
     attacher.attach(preferredProcess) { stream, process ->
-      AppInspectionPipelineConnection.attach(stream, process,
-                                             TransportService.getInstance().channelName,
-                                             executor).addCallback(executor, object : FutureCallback<AppInspectionPipelineConnection> {
-        override fun onSuccess(result: AppInspectionPipelineConnection?) {
-          listeners.forEach {
-            it.value.execute { it.key(result!!, dexPusher) }
+      AppInspectionPipelineConnection.attach(stream, process, transportChannel.channelName, executor)
+        .addCallback(executor, object : FutureCallback<AppInspectionPipelineConnection> {
+          override fun onSuccess(result: AppInspectionPipelineConnection?) {
+            listeners.forEach {
+              it.value.execute { it.key(result!!, dexPusher) }
+            }
           }
-        }
 
-        override fun onFailure(t: Throwable) {
-          TODO("not implemented")
-        }
-      })
+          override fun onFailure(t: Throwable) {
+            TODO("not implemented")
+          }
+        })
 
     }
   }

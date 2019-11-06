@@ -14,5 +14,7 @@
     <orderEntry type="module" module-name="intellij.android.app-inspection" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
+    <orderEntry type="module" module-name="intellij.android.transport" />
+    <orderEntry type="module" module-name="intellij.platform.util" />
   </component>
 </module>
