@@ -28,6 +28,7 @@ import com.intellij.diagnostic.ReportMessages;
 import com.intellij.errorreport.bean.ErrorBean;
 import com.intellij.ide.DataManager;
 import com.intellij.idea.IdeaLogger;
+//import com.intellij.internal.statistic.analytics.StudioCrashDetails; // FIXME-ank: move from AOSP's platform sources to android-plugin sources (see code below)
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -155,8 +156,33 @@ public class ErrorReporter extends ErrorReportSubmitter {
       return false;
     }
 
-    // FIXME-ank: do we need to restore this code in a plugin?
-
+    Map map = (Map)data;
+    String type = (String)map.get("Type");
+    if ("Exception".equals(type)) {
+      ImmutableMap<String, String> productData = ImmutableMap.of("md5", (String)map.get("md5"),
+                                                                 "summary", (String)map.get("summary"));
+      StudioExceptionReport exceptionReport =
+        new StudioExceptionReport.Builder().setThrowable(t, false).addProductData(productData).build();
+      StudioCrashReporter.getInstance().submit(exceptionReport);
+    }
+    else if ("Crashes".equals(type)) {
+      // FIXME-ank: in AOSP com.intellij.internal.statistic.analytics.StudioCrashDetails is declared here:
+      //  /tools/idea/platform/bootstrap/src/com/intellij/internal/statistic/analytics/StudioCrashDetails.java
+      //  In IC/IU this type does not exist
+      ////noinspection unchecked
+      //List<StudioCrashDetails> crashDetails = (List<StudioCrashDetails>)map.get("crashDetails");
+      //List<String> descriptions = crashDetails.stream().map(details -> details.getDescription()).collect(Collectors.toList());
+      //// If at least one report was JVM crash, submit the batch as a JVM crash
+      //boolean isJvmCrash = crashDetails.stream().anyMatch(details -> details.isJvmCrash());
+      //// As there may be multiple crashes reported together, take the shortest uptime (most of the time there is only
+      //// a single crash anyway).
+      //long uptimeInMs = crashDetails.stream().mapToLong(details -> details.getUptimeInMs()).min().orElse(-1);
+      //
+      //StudioCrashReport report =
+      //  new StudioCrashReport.Builder().setDescriptions(descriptions).setIsJvmCrash(isJvmCrash).setUptimeInMs(uptimeInMs).build();
+      //// Crash reports are not limited by a rate limiter.
+      //StudioCrashReporter.getInstance().submit(report, true);
+    }
     return true;
   }
 

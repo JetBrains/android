@@ -35,8 +35,6 @@ import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.intellij.openapi.util.io.FileUtil.*;
 
-//import org.jetbrains.android.download.AndroidProfilerDownloader;  // FIXME-ank
-
 public class EmbeddedDistributionPaths {
   @NotNull
   public static EmbeddedDistributionPaths getInstance() {
@@ -221,9 +219,9 @@ public class EmbeddedDistributionPaths {
     if (SystemInfo.isWindows) {
       jdkRootPath = new File(jdkRootPath, "win64");
     }
-    //else if (SystemInfo.isLinux) {
-    //  jdkRootPath = new File(jdkRootPath, "linux");
-    //} // FIXME-ank (jdk detection does not work well)
+    else if (SystemInfo.isLinux) {
+      jdkRootPath = new File(jdkRootPath, "linux");
+    }
     else if (SystemInfo.isMac) {
       jdkRootPath = new File(jdkRootPath, "mac");
     }

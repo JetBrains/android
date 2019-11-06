@@ -43,7 +43,6 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
   @NotNull private final GeneratedSourceFileChangeTracker myGeneratedSourceFileChangeTracker;
   @NotNull private final GradleProjectInfo myProjectInfo;
 
-  // FIXME-ank: inspection!
   public GeneratedFileNotificationProvider(@NotNull Project project,
                                            @NotNull GeneratedSourceFileChangeTracker changeTracker,
                                            @NotNull GradleProjectInfo projectInfo) {
