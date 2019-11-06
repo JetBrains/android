@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.SdkConstants.EXT_GRADLE
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+import com.android.tools.idea.gradle.util.GradleUtil.isGradleScript
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.utils.usLocaleCapitalize
 import com.google.common.base.CaseFormat
@@ -183,7 +183,7 @@ object TemplateUtils {
                                    keepDocumentLocked: Boolean = false) {
     ApplicationManager.getApplication().assertWriteAccessAllowed()
 
-    if (virtualFile.extension == EXT_GRADLE) {
+    if (isGradleScript(virtualFile)) {
       // Do not format Gradle files. Otherwise we get spurious "Gradle files have changed since last project sync" warnings that make UI
       // tests flaky.
       return
