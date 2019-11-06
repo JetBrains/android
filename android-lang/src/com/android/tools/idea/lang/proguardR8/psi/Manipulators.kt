@@ -53,11 +53,11 @@ class ProguardR8ClassMemberNameManipulator : AbstractElementManipulator<Proguard
   override fun handleContentChange(element: ProguardR8ClassMemberName, range: TextRange, newContent: String): ProguardR8ClassMemberName {
     /**
      * Throwing an exception here blocks refactoring, included renames started from a Kotlin file,
-     * even if the Proguard/R8 file wasn't even open. For the user this means a error message is displayed and refactoring is cancelled.
-     * It blocks it just in case name is used in Proguard/R8 file.
+     * even if the Shrinker Config File wasn't even open. For the user this means a error message is displayed and refactoring is cancelled.
+     * It blocks it just in case name is used in Shrinker Config File.
      */
     if (!ProguardR8Lexer.isJavaIdentifier(newContent)) {
-      throw IncorrectOperationException("\"$newContent\" is not an identifier for Proguard/R8 files.")
+      throw IncorrectOperationException("\"$newContent\" is not an identifier for Shrinker Config.")
     }
 
     val identifier = element.node.findChildByType(ProguardR8PsiTypes.JAVA_IDENTIFIER) as? LeafPsiElement

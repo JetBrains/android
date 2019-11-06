@@ -27,7 +27,7 @@ import com.intellij.psi.tree.TokenSet
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
 
-private val PROGUARD_R8_USAGE_TYPE = UsageType("Referenced in Proguard/R8 files")
+private val PROGUARD_R8_USAGE_TYPE = UsageType("Referenced in Shrinker Config files")
 
 /**
  * [UsageTypeProvider] that labels references from Proguard/R8 with the right description.

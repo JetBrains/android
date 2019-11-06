@@ -38,7 +38,7 @@ class ProguardR8UsageTypeProviderTest : ProguardR8TestCase() {
     )
 
     val usageType = ProguardR8UsageTypeProvider().getUsageType(myFixture.referenceAtCaret.element)
-    assertThat(usageType.toString()).isEqualTo("Referenced in Proguard/R8 files")
+    assertThat(usageType.toString()).isEqualTo("Referenced in Shrinker Config files")
   }
 
   fun testUsageViewTreeTextRepresentation() {
@@ -62,6 +62,6 @@ class ProguardR8UsageTypeProviderTest : ProguardR8TestCase() {
 
     val representation = myFixture.getUsageViewTreeTextRepresentation(info)
 
-    assertThat(representation).contains("Referenced in Proguard/R8 files (1 usage)")
+    assertThat(representation).contains("Referenced in Shrinker Config files (1 usage)")
   }
 }
