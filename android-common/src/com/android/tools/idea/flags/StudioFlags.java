@@ -434,7 +434,7 @@ public final class StudioFlags {
     "Makes Gradle use development offline repositories such as /out/repo", isDevBuild());
   public static final Flag<Boolean> BUILD_ATTRIBUTION_ENABLED = Flag.create(
     GRADLE_IDE, "build.attribution", "Enable build attribution",
-    "Enable build attribution.", false);
+    "Enable build attribution.", true);
   public static final Flag<Boolean> KOTLIN_DSL_PARSING = Flag.create(
     GRADLE_IDE, "kotlin.dsl", "Enable parsing for Kotlin build files",
     "Enables parsing for Gradle build files written using Kotlin (.gradle.kts)", true);
