@@ -735,20 +735,22 @@ class ComposeFileEditorProvider @JvmOverloads constructor(
   private val previewElementProvider: () -> PreviewElementFinder = ::defaultPreviewElementFinder) : FileEditorProvider, DumbAware {
   private val LOG = Logger.getInstance(ComposeFileEditorProvider::class.java)
 
+  private object ComposeEditorFileType : LayoutEditorFileType() {
+    override fun getLayoutEditorStateType() = LayoutEditorState.Type.COMPOSE
+
+    override fun isResourceTypeOf(file: PsiFile): Boolean =
+      file.virtualFile is ComposeAdapterLightVirtualFile
+
+    override fun getToolbarActionGroups(surface: DesignSurface): ToolbarActionGroups =
+      ComposePreviewToolbar(surface)
+
+    override fun getSelectionContextToolbar(surface: DesignSurface, selection: List<NlComponent>): DefaultActionGroup =
+      DefaultActionGroup()
+  }
+
   init {
     if (StudioFlags.COMPOSE_PREVIEW.get()) {
-      DesignerTypeRegistrar.register(object : LayoutEditorFileType() {
-        override fun getLayoutEditorStateType() = LayoutEditorState.Type.COMPOSE
-
-        override fun isResourceTypeOf(file: PsiFile): Boolean =
-          file.virtualFile is ComposeAdapterLightVirtualFile
-
-        override fun getToolbarActionGroups(surface: DesignSurface): ToolbarActionGroups =
-          ComposePreviewToolbar(surface)
-
-        override fun getSelectionContextToolbar(surface: DesignSurface, selection: List<NlComponent>): DefaultActionGroup =
-          DefaultActionGroup()
-      })
+      DesignerTypeRegistrar.register(ComposeEditorFileType)
     }
   }
 

@@ -168,14 +168,16 @@ private class TextEditorWithCustomViewPreview(textEditor: TextEditor, preview: C
  * for which we can get a visual representation.
  */
 class CustomViewEditorProvider : FileEditorProvider, DumbAware {
+  private object CustomViewEditorFileType : DesignerEditorFileType {
+    override fun isResourceTypeOf(file: PsiFile) = file.virtualFile is CustomViewLightVirtualFile
+
+    override fun getToolbarActionGroups(surface: DesignSurface) = ToolbarActionGroups(surface)
+
+    override fun isEditable() = true
+  }
+
   init {
-    DesignerTypeRegistrar.register(object : DesignerEditorFileType {
-      override fun isResourceTypeOf(file: PsiFile) = file.virtualFile is CustomViewLightVirtualFile
-
-      override fun getToolbarActionGroups(surface: DesignSurface) = ToolbarActionGroups(surface)
-
-      override fun isEditable() = true
-    })
+    DesignerTypeRegistrar.register(CustomViewEditorFileType)
   }
 
   // TODO(b/143067434): remove ComposeFileEditorProvider check and rework it so that Compose and custom View previews work together
