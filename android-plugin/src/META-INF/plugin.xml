@@ -26,9 +26,8 @@
   <xi:include href="/META-INF/android-layout-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-gradle-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-<!-- FIXME-ank: <xi:include href="/META-INF/assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
-<!-- FIXME-ank: <xi:include href="/META-INF/connection-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
-<!-- FIXME-ank: <xi:include href="/META-INF/whats-new-assistant.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+  <!-- Currently we do not include "assistant.xml", "connection-assistant.xml" and "whats-new-assistant.xml" into IJ.
+       These modules are only included into AndroidStudio (see AndroidStudioPlugin.xml) -->
   <xi:include href="/META-INF/layout-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 </idea-plugin>
