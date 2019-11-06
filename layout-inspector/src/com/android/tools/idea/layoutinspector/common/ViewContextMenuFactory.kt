@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.common
 
-import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -23,8 +23,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import javax.swing.JComponent
 
-fun showViewContextMenu(view: ViewNode?, layoutInspector: LayoutInspector, source: JComponent, x: Int, y: Int) {
-  val root = layoutInspector.layoutInspectorModel.root
+fun showViewContextMenu(view: ViewNode?, inspectorModel: InspectorModel, source: JComponent, x: Int, y: Int) {
+  val root = inspectorModel.root
   if (root != null) {
     val actionManager = ActionManager.getInstance()
     val group = object : ActionGroup("", true) {
@@ -32,7 +32,7 @@ fun showViewContextMenu(view: ViewNode?, layoutInspector: LayoutInspector, sourc
         val showAllAction = object : AnAction("Show All") {
           override fun actionPerformed(e: AnActionEvent) {
             root.flatten().forEach { it.visible = true }
-            layoutInspector.layoutInspectorModel.notifyModified()
+            inspectorModel.notifyModified()
           }
 
           override fun update(e: AnActionEvent) {
@@ -45,19 +45,19 @@ fun showViewContextMenu(view: ViewNode?, layoutInspector: LayoutInspector, sourc
           arrayOf(object : AnAction("Hide Subtree") {
             override fun actionPerformed(e: AnActionEvent) {
               view.flatten().forEach { it.visible = false }
-              layoutInspector.layoutInspectorModel.notifyModified()
+              inspectorModel.notifyModified()
             }
           }, object : AnAction("Show Only Subtree") {
             override fun actionPerformed(e: AnActionEvent) {
               root.flatten().forEach { it.visible = false }
               view.flatten().forEach { it.visible = true }
-              layoutInspector.layoutInspectorModel.notifyModified()
+              inspectorModel.notifyModified()
             }
           }, object : AnAction("Show Only Parents") {
             override fun actionPerformed(e: AnActionEvent) {
               root.flatten().forEach { it.visible = false }
               generateSequence(view) { it.parent }.forEach { it.visible = true }
-              layoutInspector.layoutInspectorModel.notifyModified()
+              inspectorModel.notifyModified()
             }
           }, showAllAction)
       }

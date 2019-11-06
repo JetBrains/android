@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.legacydevice.getLegacyConnectActions
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.profiler.proto.Common
 import com.intellij.icons.AllIcons
@@ -32,8 +31,7 @@ val NO_PROCESS_ACTION = object : AnAction("No debuggable processes detected") {
   override fun actionPerformed(event: AnActionEvent) {}
 }.apply { templatePresentation.isEnabled = false }
 
-class SelectProcessAction(val client: InspectorClient,
-                          val layoutInspector: LayoutInspector) :
+class SelectProcessAction(val layoutInspector: LayoutInspector) :
   DropDownAction("Select Process", "Select a process to connect to.", AllIcons.General.Add) {
 
   private var currentProcess = Common.Process.getDefaultInstance()
@@ -42,10 +40,11 @@ class SelectProcessAction(val client: InspectorClient,
   override fun update(event: AnActionEvent) {
     project = event.project
 
-    if (currentProcess != client.selectedProcess) {
-      val processName = client.selectedProcess.name.substringAfterLast('.')
-      val actionName = if (client.selectedProcess == Common.Process.getDefaultInstance()) "Select Process" else processName
-      currentProcess = client.selectedProcess
+    if (currentProcess != layoutInspector.currentClient.selectedProcess) {
+      val processName = layoutInspector.currentClient.selectedProcess.name.substringAfterLast('.')
+      val actionName =
+        if (layoutInspector.currentClient.selectedProcess == Common.Process.getDefaultInstance()) "Select Process" else processName
+      currentProcess = layoutInspector.currentClient.selectedProcess
       event.presentation.text = actionName
     }
   }
@@ -53,27 +52,25 @@ class SelectProcessAction(val client: InspectorClient,
   override fun updateActions(): Boolean {
     removeAll()
 
-    // Rebuild the action tree.
-    val processesMap = client.loadProcesses()
     val serials = mutableSetOf<String>()
-    for (stream in processesMap.keys) {
-      val serial = stream.device.serial
-      val deviceName = buildDeviceName(serial, stream.device.model, stream.device.manufacturer)
-      if (stream.device.featureLevel < 29) {
-        if (!StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get()) {
+
+    // Rebuild the action tree.
+    for (client in layoutInspector.allClients) {
+      val processesMap = client.loadProcesses()
+      for (stream in processesMap.keys) {
+        val serial = stream.device.serial
+        if (!serials.add(serial)) {
+          continue
+        }
+        val deviceName = buildDeviceName(serial, stream.device.model, stream.device.manufacturer)
+        if (stream.device.featureLevel < 29 && !StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get()) {
           add(object : AnAction("$deviceName (Unsupported for API < 29)") {
             override fun actionPerformed(e: AnActionEvent) {}
           }.apply { templatePresentation.isEnabled = false })
         }
-      }
-      else {
-        serials.add(serial)
-        add(DeviceAction(deviceName, processesMap, stream, client))
-      }
-    }
-    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get()) {
-      project?.let {
-        addAll(getLegacyConnectActions(it, layoutInspector) { device -> !serials.contains(device.serialNumber) })
+        else {
+          add(DeviceAction(deviceName, processesMap, stream, client))
+        }
       }
     }
     if (childrenCount == 0) {
@@ -84,14 +81,14 @@ class SelectProcessAction(val client: InspectorClient,
       add(noDeviceAction)
     }
     else {
-      add(StopAction(client))
+      add(StopAction(layoutInspector::currentClient))
     }
     return true
   }
 
   override fun displayTextInToolbar() = true
 
-  private class ConnectAction(val process: Common.Process, val stream: Common.Stream, val client: InspectorClient) :
+  private inner class ConnectAction(val process: Common.Process, val stream: Common.Stream, val client: InspectorClient) :
     ToggleAction("${process.name} (${process.pid})") {
     override fun isSelected(event: AnActionEvent): Boolean {
       return process == client.selectedProcess && stream == client.selectedStream
@@ -104,17 +101,17 @@ class SelectProcessAction(val client: InspectorClient,
     }
   }
 
-  private class StopAction(val client: InspectorClient) : AnAction("Stop inspector") {
+  private class StopAction(val client: () -> InspectorClient) : AnAction("Stop inspector") {
     override fun update(event: AnActionEvent) {
-      event.presentation.isEnabled = client.isConnected
+      event.presentation.isEnabled = client().isConnected
     }
 
     override fun actionPerformed(event: AnActionEvent) {
-      client.disconnect()
+      client().disconnect()
     }
   }
 
-  private class DeviceAction(
+  private inner class DeviceAction(
     deviceName: String, processesMap: Map<Common.Stream, List<Common.Process>>, stream: Common.Stream, client: InspectorClient
   ) : DropDownAction(deviceName, null, null) {
     override fun displayTextInToolbar() = true

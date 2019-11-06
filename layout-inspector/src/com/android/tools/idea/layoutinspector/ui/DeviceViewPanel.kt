@@ -23,7 +23,9 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.ui.AdtUiCursors
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.legacydevice.CaptureAction
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.intellij.openapi.Disposable
@@ -66,14 +68,12 @@ class DeviceViewPanel(
   disposableParent: Disposable
 ) : JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
 
-  private val client = layoutInspector.client
-
   override val scale
     get() = viewSettings.scaleFraction
 
   override val screenScalingFactor = 1f
 
-  private val contentPanel = DeviceViewContentPanel(layoutInspector, viewSettings)
+  private val contentPanel = DeviceViewContentPanel(layoutInspector.layoutInspectorModel, viewSettings)
   private val panInterceptorPanel = JPanel()
 
   private val scrollPane = JBScrollPane(contentPanel)
@@ -281,13 +281,13 @@ class DeviceViewPanel(
 
     val leftPanel = AdtPrimaryPanel(BorderLayout())
     val leftGroup = DefaultActionGroup()
-    leftGroup.add(SelectProcessAction(client, layoutInspector))
+    leftGroup.add(SelectProcessAction(layoutInspector))
     leftGroup.add(object : DropDownAction(null, "View options", StudioIcons.Common.VISIBILITY_INLINE) {
       init {
         add(object : ToggleAction("Show borders") {
           override fun update(event: AnActionEvent) {
             super.update(event)
-            event.presentation.isEnabled = client.isConnected
+            event.presentation.isEnabled = layoutInspector.currentClient.isConnected == true
           }
 
           override fun isSelected(event: AnActionEvent): Boolean {
@@ -302,7 +302,7 @@ class DeviceViewPanel(
         add(object : ToggleAction("Show View Label") {
           override fun update(event: AnActionEvent) {
             super.update(event)
-            event.presentation.isEnabled = client.isConnected
+            event.presentation.isEnabled = layoutInspector.currentClient.isConnected == true
           }
 
           override fun isSelected(event: AnActionEvent): Boolean {
@@ -316,31 +316,34 @@ class DeviceViewPanel(
         })
       }
     })
-    leftGroup.add(PauseLayoutInspectorAction(client))
+    leftGroup.add(PauseLayoutInspectorAction(layoutInspector::currentClient))
+    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get()) {
+      leftGroup.add(CaptureAction(layoutInspector::currentClient, layoutInspector.layoutInspectorModel))
+    }
     leftPanel.add(ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true).component,
                   BorderLayout.CENTER)
     panel.add(leftPanel, BorderLayout.CENTER)
     return panel
   }
 
-  private class PauseLayoutInspectorAction(val client: InspectorClient) : CheckboxAction("Live updates") {
+  private class PauseLayoutInspectorAction(val client: () -> InspectorClient) : CheckboxAction("Live updates") {
 
     override fun update(event: AnActionEvent) {
       super.update(event)
-      event.presentation.isEnabled = client.isConnected
+      event.presentation.isVisible = client().isConnected && client().selectedStream.device.apiLevel >= 29
     }
 
     // Display as "Live updates ON" when disconnected to indicate the default value after the inspector is connected to the device.
     override fun isSelected(event: AnActionEvent): Boolean {
-      return !client.isConnected || client.isCapturing
+      return !client().isConnected || client().isCapturing
     }
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
-      if (!client.isConnected) {
+      if (!client().isConnected) {
         return
       }
-      val command = if (client.isCapturing) LayoutInspectorCommand.Type.STOP else LayoutInspectorCommand.Type.START
-      client.execute(command)
+      val command = if (client().isCapturing) LayoutInspectorCommand.Type.STOP else LayoutInspectorCommand.Type.START
+      client().execute(command)
     }
   }
 }

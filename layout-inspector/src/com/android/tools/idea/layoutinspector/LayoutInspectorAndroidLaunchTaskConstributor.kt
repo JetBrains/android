@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.LaunchOptions
@@ -58,15 +59,15 @@ private class LayoutInspectorLaunchTask(private val module: Module): LaunchTask 
   override fun getDuration() = LaunchTaskDurations.ASYNC_TASK
 
   override fun run(executor: Executor, device: IDevice, launchStatus: LaunchStatus, printer: ConsolePrinter): LaunchResult {
-    if (device.version.apiLevel < 29) {
-      return LaunchResult.success();
+    if (!StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get() && device.version.apiLevel < 29) {
+      return LaunchResult.success()
     }
 
     val project = module.project
     val window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID) ?: return LaunchResult.success()
     val preferredProcess = LayoutInspectorPreferredProcess(device, module)
     if (window.isVisible) {
-      lookupDeviceWindow(window)?.layoutInspector?.client?.attach(preferredProcess)
+      lookupDeviceWindow(window)?.layoutInspector?.allClients?.find { it.attachIfSupported(preferredProcess) }
     }
     project.putUserData(PREFERRED_PROCESS, preferredProcess)
 

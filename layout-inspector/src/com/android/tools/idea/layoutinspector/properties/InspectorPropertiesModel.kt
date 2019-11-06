@@ -56,7 +56,7 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
     oldInspector?.layoutInspectorModel?.modificationListeners?.remove(::handleModelChange)
     newInspector?.layoutInspectorModel?.modificationListeners?.add(::handleModelChange)
     // TODO: stop the existing client polling, and detach from agent
-    client = newInspector?.client
+    client = newInspector?.currentClient
     client?.register(Common.Event.EventGroupIds.PROPERTIES, ::loadProperties)
   }
 
@@ -97,7 +97,8 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
     }
   }
 
-  private fun loadProperties(event: LayoutInspectorEvent) {
+  private fun loadProperties(maybeEvent: Any?) {
+    val event = maybeEvent as? LayoutInspectorEvent ?: return
     val selectedView = layoutInspector?.layoutInspectorModel?.selection
     properties = provider.loadProperties(event, selectedView)
     firePropertiesGenerated()

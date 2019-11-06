@@ -76,8 +76,8 @@ private class LayoutInspectorToolWindowManagerListener(private val project: Proj
       return
     }
     val panel = lookupDeviceWindow(window) ?: return
-    if (!panel.layoutInspector.client.isConnected) {
-      panel.layoutInspector.client.attach(preferredProcess)
+    if (!panel.layoutInspector.currentClient.isConnected) {
+      panel.layoutInspector.allClients.find { it.attachIfSupported(preferredProcess) }
     }
   }
 }

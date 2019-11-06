@@ -50,7 +50,9 @@ object RecenterAction : AnAction(StudioIcons.LayoutInspector.RESET_VIEW) {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isEnabled = event.getData(DEVICE_VIEW_MODEL_KEY)?.isRotated ?: false
+    val model = event.getData(DEVICE_VIEW_MODEL_KEY)
+    event.presentation.isEnabled = model?.isRotated ?: false
+    event.presentation.isVisible = model?.model?.hasSubImages == true
   }
 }
 

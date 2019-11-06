@@ -35,7 +35,7 @@ val DEVICE_VIEW_MODEL_KEY = DataKey.create<DeviceViewPanelModel>(DeviceViewPanel
 
 data class ViewDrawInfo(val bounds: Shape, val transform: AffineTransform, val node: ViewNode, val clip: Rectangle)
 
-class DeviceViewPanelModel(private val model: InspectorModel) {
+class DeviceViewPanelModel(val model: InspectorModel) {
   @VisibleForTesting
   var xOff = 0.0
   @VisibleForTesting

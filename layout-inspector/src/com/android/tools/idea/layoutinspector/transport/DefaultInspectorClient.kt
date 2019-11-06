@@ -19,8 +19,10 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adb.AdbService
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.isDeviceMatch
+import com.android.tools.idea.layoutinspector.model.ComponentTreeLoader
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileManager
@@ -28,7 +30,6 @@ import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.idea.transport.poller.TransportEventPoller
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
@@ -99,6 +100,8 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
   override var isCapturing = false
     private set
 
+  override val treeLoader = ComponentTreeLoader
+
   init {
     registerProcessEnded()
     registerProjectClosed(project)
@@ -108,7 +111,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
   // TODO: detect when a connection is dropped
   // TODO: move all communication with the agent off the UI thread
 
-  override fun register(groupId: Common.Event.EventGroupIds, callback: (LayoutInspectorEvent) -> Unit) {
+  override fun register(groupId: Common.Event.EventGroupIds, callback: (Any) -> Unit) {
     // TODO: unregister listeners
     transportPoller.registerListener(TransportEventListener(
       eventKind = Common.Event.Kind.LAYOUT_INSPECTOR,
@@ -212,7 +215,8 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
                            continue
       val stream = connectedEvent.stream.streamConnected.stream
       // We only want streams of type device to get process information.
-      if (stream.type == Common.Stream.Type.DEVICE) {
+      if (stream.type == Common.Stream.Type.DEVICE &&
+          (!StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get() || stream.device.apiLevel >= 29)) {
         streams.add(stream)
       }
     }
@@ -299,8 +303,12 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
    *
    * The method called will retry itself up to MAX_RETRY_COUNT times.
    */
-  override fun attach(preferredProcess: LayoutInspectorPreferredProcess) {
+  override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Boolean {
+    if (preferredProcess.api < 29) {
+      return false
+    }
     ApplicationManager.getApplication().executeOnPooledThread { attachWithRetry(preferredProcess, 0) }
+    return true
   }
 
   fun logInitialRender(containsPicture: Boolean) {
@@ -344,7 +352,6 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
           if (process.name == preferredProcess.packageName) {
             try {
               attach(stream, process, timesAttempted == 0)
-
               return
             }
             catch (ex: StatusRuntimeException) {
