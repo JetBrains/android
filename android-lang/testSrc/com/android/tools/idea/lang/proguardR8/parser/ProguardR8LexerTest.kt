@@ -26,9 +26,8 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.COLON
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.COMMA
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.DOT
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.DOUBLE_ASTERISK
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.DOUBLE_QUOTED_STRING
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.FILE_NAME
-import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.FILE_NAME_DOUBLE_QUOTED
-import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.FILE_NAME_SINGLE_QUOTED
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.FLAG
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.IMPLEMENTS
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.INT
@@ -39,7 +38,9 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.OPEN_BRACE
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.PUBLIC
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.RPAREN
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.SEMICOLON
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.SINGLE_QUOTED_STRING
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.STATIC
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.UNTERMINATED_DOUBLE_QUOTED_STRING
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes._INIT_
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes._METHODS_
 import com.google.common.truth.Truth.assertThat
@@ -239,9 +240,9 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       """-injars "my program.jar":'/your directory/your program.jar';<java.home>/lib/rt.jar""".trimIndent(),
       "-injars" to FLAG,
       SPACE,
-      "\"my program.jar\"" to FILE_NAME_DOUBLE_QUOTED,
+      "\"my program.jar\"" to DOUBLE_QUOTED_STRING,
       ":" to COLON,
-      "'/your directory/your program.jar'" to FILE_NAME_SINGLE_QUOTED,
+      "'/your directory/your program.jar'" to SINGLE_QUOTED_STRING,
       ";" to SEMICOLON,
       "<java.home>/lib/rt.jar" to FILE_NAME
     )
@@ -456,6 +457,62 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       "class" to CLASS,
       SPACE,
       "**${'$'}D<2>" to JAVA_IDENTIFIER_WITH_WILDCARDS
+    )
+  }
+
+  fun testQuotingInFileNames() {
+    assertTokenTypes(
+      """
+        -printusage 'xxx'
+        -printusage "xxx"
+        -printusage 'xxx xxx'
+        -printusage "xxx xxx"
+        -printusage "'xxx'"
+        -printusage " xxx xxx ("
+        -printusage '"xxx"'
+        -printusage " xxx xxx "
+        -printusage ' xxx xxx '
+        -printusage "xxx'
+      """.trimIndent(),
+      "-printusage" to FLAG,
+      SPACE,
+      "'xxx'" to SINGLE_QUOTED_STRING,
+      NEWLINE,
+      "-printusage" to FLAG,
+      SPACE,
+      "\"xxx\"" to DOUBLE_QUOTED_STRING,
+      NEWLINE,
+      "-printusage" to FLAG,
+      SPACE,
+      "'xxx xxx'" to SINGLE_QUOTED_STRING,
+      NEWLINE,
+      "-printusage" to FLAG,
+      SPACE,
+      "\"xxx xxx\"" to DOUBLE_QUOTED_STRING,
+      NEWLINE,
+      "-printusage" to FLAG,
+      SPACE,
+      "\"'xxx'\"" to DOUBLE_QUOTED_STRING,
+      NEWLINE,
+      "-printusage" to FLAG,
+      SPACE,
+      "\" xxx xxx (\"" to DOUBLE_QUOTED_STRING,
+      NEWLINE,
+      "-printusage" to FLAG,
+      SPACE,
+      "'\"xxx\"'" to SINGLE_QUOTED_STRING,
+      NEWLINE,
+      "-printusage" to FLAG,
+      SPACE,
+      "\" xxx xxx \"" to DOUBLE_QUOTED_STRING,
+      NEWLINE,
+      "-printusage" to FLAG,
+      SPACE,
+      "' xxx xxx '" to SINGLE_QUOTED_STRING,
+      NEWLINE,
+      "-printusage" to FLAG,
+      SPACE,
+      "\"xxx'" to UNTERMINATED_DOUBLE_QUOTED_STRING
     )
   }
 }

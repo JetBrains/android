@@ -624,7 +624,7 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // "!"?(FILE_NAME|FILE_NAME_SINGLE_QUOTED|FILE_NAME_DOUBLE_QUOTED|UNTERMINATED_FILE_NAME_SINGLE_QUOTED|UNTERMINATED_FILE_NAME_DOUBLE_QUOTED)
+  // "!"?(FILE_NAME|SINGLE_QUOTED_STRING|DOUBLE_QUOTED_STRING|UNTERMINATED_SINGLE_QUOTED_STRING|UNTERMINATED_DOUBLE_QUOTED_STRING)
   static boolean file_(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "file_")) return false;
     boolean result;
@@ -642,15 +642,15 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // FILE_NAME|FILE_NAME_SINGLE_QUOTED|FILE_NAME_DOUBLE_QUOTED|UNTERMINATED_FILE_NAME_SINGLE_QUOTED|UNTERMINATED_FILE_NAME_DOUBLE_QUOTED
+  // FILE_NAME|SINGLE_QUOTED_STRING|DOUBLE_QUOTED_STRING|UNTERMINATED_SINGLE_QUOTED_STRING|UNTERMINATED_DOUBLE_QUOTED_STRING
   private static boolean file__1(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "file__1")) return false;
     boolean result;
     result = consumeToken(builder, FILE_NAME);
-    if (!result) result = consumeToken(builder, FILE_NAME_SINGLE_QUOTED);
-    if (!result) result = consumeToken(builder, FILE_NAME_DOUBLE_QUOTED);
-    if (!result) result = consumeToken(builder, UNTERMINATED_FILE_NAME_SINGLE_QUOTED);
-    if (!result) result = consumeToken(builder, UNTERMINATED_FILE_NAME_DOUBLE_QUOTED);
+    if (!result) result = consumeToken(builder, SINGLE_QUOTED_STRING);
+    if (!result) result = consumeToken(builder, DOUBLE_QUOTED_STRING);
+    if (!result) result = consumeToken(builder, UNTERMINATED_SINGLE_QUOTED_STRING);
+    if (!result) result = consumeToken(builder, UNTERMINATED_DOUBLE_QUOTED_STRING);
     return result;
   }
 
