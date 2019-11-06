@@ -124,6 +124,10 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
   "enum"                                 { return ENUM; }
 
 
+  {SINGLE_QUOTED_STRING}                 { return SINGLE_QUOTED_CLASS; }
+  {DOUBLE_QUOTED_STRING}                 { return DOUBLE_QUOTED_CLASS; }
+  {UNTERMINATED_SINGLE_QUOTED_STRING}    { return UNTERMINATED_SINGLE_QUOTED_CLASS; }
+  {UNTERMINATED_DOUBLE_QUOTED_STRING}    { return UNTERMINATED_DOUBLE_QUOTED_CLASS; }
   {JAVA_IDENTIFIER}                      { return JAVA_IDENTIFIER; }
   {JAVA_IDENTIFIER_WITH_WILDCARDS}       { return JAVA_IDENTIFIER_WITH_WILDCARDS; }
   {FLAG}                                 { yypushback(yytext().length()); yybegin(YYINITIAL);}
@@ -175,6 +179,10 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
   "final"                                { return FINAL; }
   "abstract"                             { return ABSTRACT; }
 
+  {SINGLE_QUOTED_STRING}                 { return SINGLE_QUOTED_CLASS; }
+  {DOUBLE_QUOTED_STRING}                 { return DOUBLE_QUOTED_CLASS; }
+  {UNTERMINATED_SINGLE_QUOTED_STRING}    { return UNTERMINATED_SINGLE_QUOTED_CLASS; }
+  {UNTERMINATED_DOUBLE_QUOTED_STRING}    { return UNTERMINATED_DOUBLE_QUOTED_CLASS; }
   {JAVA_IDENTIFIER}                      { return JAVA_IDENTIFIER; }
   {JAVA_IDENTIFIER_WITH_WILDCARDS}       { return JAVA_IDENTIFIER_WITH_WILDCARDS; }
   {LINE_CMT}                             { return LINE_CMT; }
