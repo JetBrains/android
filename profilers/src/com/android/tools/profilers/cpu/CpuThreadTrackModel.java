@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
-import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisChartModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
@@ -39,16 +38,10 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   private final Range mySelectionRange;
   private final CpuThreadInfo myThreadInfo;
 
-  public CpuThreadTrackModel(@NotNull StudioProfilers profilers,
+  public CpuThreadTrackModel(@NotNull DataSeries<CpuProfilerStage.ThreadState> threadStateDataSeries,
                              @NotNull Range range,
                              @NotNull CpuCapture capture,
                              @NotNull CpuThreadInfo threadInfo) {
-    DataSeries<CpuProfilerStage.ThreadState> threadStateDataSeries =
-      new CpuThreadStateDataSeries(profilers.getClient().getTransportClient(),
-                                   profilers.getSession().getStreamId(),
-                                   profilers.getSession().getPid(),
-                                   threadInfo.getId(),
-                                   capture);
     myThreadStateChartModel = new StateChartModel<>();
     myThreadStateChartModel.addSeries(new RangedSeries<>(range, threadStateDataSeries));
 

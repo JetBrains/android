@@ -105,7 +105,7 @@ public class CpuFramesView {
     });
 
     // Handle Tooltip
-    myFrames.addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuFrameTooltip(myStage)));
+    myFrames.addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuFrameTooltip(myStage.getTimeline())));
     myFrames.addMouseMotionListener(new MouseAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
