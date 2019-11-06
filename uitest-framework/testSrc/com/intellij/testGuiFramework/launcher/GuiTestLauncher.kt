@@ -126,6 +126,7 @@ object GuiTestLauncher {
         .plus("-classpath")
         .plus(classpathJar.absolutePath)
         .plus(MAIN_CLASS_NAME)
+        .plus(GuiTestStarter.COMMAND_NAME)
 
   private fun createArgsByPath(path: String): List<String> = listOf(path)
 
