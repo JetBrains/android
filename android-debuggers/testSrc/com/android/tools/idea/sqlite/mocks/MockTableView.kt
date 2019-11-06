@@ -18,13 +18,12 @@ package com.android.tools.idea.sqlite.mocks
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.ui.tableView.TableView
-import com.android.tools.idea.sqlite.ui.tableView.TableViewListener
 import org.mockito.Mockito.mock
 import javax.swing.JComponent
 
 open class MockTableView : TableView {
 
-  val listeners = mutableListOf<TableViewListener>()
+  val listeners = mutableListOf<TableView.Listener>()
 
   override val component = mock(JComponent::class.java)
 
@@ -44,11 +43,11 @@ open class MockTableView : TableView {
 
   override fun setFetchNextRowsButtonState(enable: Boolean) { }
 
-  override fun addListener(listener: TableViewListener) {
+  override fun addListener(listener: TableView.Listener) {
     listeners.add(listener)
   }
 
-  override fun removeListener(listener: TableViewListener) {
+  override fun removeListener(listener: TableView.Listener) {
     listeners.remove(listener)
   }
 

@@ -17,7 +17,7 @@ package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
-import com.android.tools.idea.sqlite.model.SqliteResultSet
+import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture

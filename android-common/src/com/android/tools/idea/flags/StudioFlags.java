@@ -428,15 +428,16 @@ public final class StudioFlags {
     GRADLE_IDE, "jdk.allow.different", "Allow different Gradle JDK", "Allow usage of a different JDK version when running Gradle.", true);
   //endregion
 
-  //region SQLite Inspector
-  private static final FlagGroup SQLITE_VIEWER = new FlagGroup(FLAGS, "sqlite.viewer", "SQLite Viewer");
-  public static final Flag<Boolean> SQLITE_VIEWER_ENABLED = Flag.create(
-    SQLITE_VIEWER, "enabled", "Enable the SQLite database viewer",
-    "If enabled, SQLite files downloaded from Android devices or emulators are open in a custom SQLite editor window",
+  //region Database Inspector
+  private static final FlagGroup DATABASE_INSPECTOR = new FlagGroup(FLAGS, "database.inspector", "Database Inspector");
+  public static final Flag<Boolean> DATABASE_INSPECTOR_ENABLED = Flag.create(
+    DATABASE_INSPECTOR, "enabled", "Enable Database Inspector",
+    "If enabled the Database Inspector tool window will appear. SQLite files opened from the Device Explorer will be opened in the inspector.",
     false);
 
+  // TODO(b/144073974) why do we need a separate flag for this?
   public static final Flag<Boolean> SQLITE_APP_INSPECTOR_ENABLED = Flag.create(
-    SQLITE_VIEWER, "sqlite.app.inspector", "Enable experimental SQLite inspector",
+    DATABASE_INSPECTOR, "sqlite.app.inspector", "Enable experimental SQLite inspector",
     "SQLite inspector runs and executes all operations in app process",
     false);
   //endregion

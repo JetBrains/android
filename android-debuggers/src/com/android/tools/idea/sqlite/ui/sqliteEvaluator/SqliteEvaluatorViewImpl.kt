@@ -40,7 +40,7 @@ class SqliteEvaluatorViewImpl(
 
   private val editorTextField = LanguageTextField(AndroidSqlLanguage.INSTANCE, project, "")
 
-  private val listeners = ArrayList<SqliteEvaluatorViewListener>()
+  private val listeners = ArrayList<SqliteEvaluatorView.Listener>()
 
   init {
     evaluatorPanel.controlsContainer.add(editorTextField, BorderLayout.CENTER)
@@ -74,11 +74,11 @@ class SqliteEvaluatorViewImpl(
     evaluatorPanel.schemaComboBox.removeItemAt(index)
   }
 
-  override fun addListener(listener: SqliteEvaluatorViewListener) {
+  override fun addListener(listener: SqliteEvaluatorView.Listener) {
     listeners.add(listener)
   }
 
-  override fun removeListener(listener: SqliteEvaluatorViewListener) {
+  override fun removeListener(listener: SqliteEvaluatorView.Listener) {
     listeners.remove(listener)
   }
 

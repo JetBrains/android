@@ -26,7 +26,7 @@ import javax.swing.JComponent
  * This is used by [com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController] to avoid direct dependency on the
  * UI implementation.
  *
- * @see [SqliteEvaluatorViewListener] for the listener interface.
+ * @see [SqliteEvaluatorView.Listener] for the listener interface.
  */
 interface SqliteEvaluatorView {
   val project: Project
@@ -35,8 +35,8 @@ interface SqliteEvaluatorView {
    */
   val component: JComponent
   val tableView: TableView
-  fun addListener(listener: SqliteEvaluatorViewListener)
-  fun removeListener(listener: SqliteEvaluatorViewListener)
+  fun addListener(listener: Listener)
+  fun removeListener(listener: Listener)
   fun showSqliteStatement(sqliteStatement: String)
 
   /**
@@ -47,11 +47,11 @@ interface SqliteEvaluatorView {
   fun addDatabase(database: SqliteDatabase, index: Int)
   fun selectDatabase(database: SqliteDatabase)
   fun removeDatabase(index: Int)
-}
 
-interface SqliteEvaluatorViewListener {
-  /**
-   * Method invoked when an sql statement needs to be evaluated.
-   */
-  fun evaluateSqlActionInvoked(database: SqliteDatabase, sqliteStatement: String)
+  interface Listener {
+    /**
+     * Method invoked when an sql statement needs to be evaluated.
+     */
+    fun evaluateSqlActionInvoked(database: SqliteDatabase, sqliteStatement: String)
+  }
 }
