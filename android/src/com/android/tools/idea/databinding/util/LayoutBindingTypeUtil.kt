@@ -62,6 +62,16 @@ object LayoutBindingTypeUtil {
   }
 
   /**
+   * Convert a view name (e.g. "TextView") to its PSI type, if possible, or return `null` otherwise.
+   */
+  @JvmStatic
+  fun resolveViewPsiType(viewTag: String, context: PsiElement): PsiType? {
+    val androidFacet = context.androidFacet ?: return null
+    val viewClassName = getViewClassName(viewTag, null, androidFacet) ?: return null
+    return if (viewClassName.isNotEmpty()) PsiType.getTypeByName(viewClassName, context.project, context.resolveScope) else null
+  }
+
+  /**
    * Receives a [ViewIdData] and returns the name of the View class that is implied by it. May return null if it cannot find anything
    * reasonable (e.g. it is a merge but does not have data binding)
    */
