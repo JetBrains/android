@@ -17,9 +17,9 @@ package com.android.tools.profilers.cpu.analysis;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.StudioProfilersView;
-import com.android.tools.profilers.ViewBinder;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetailsView;
 import com.android.tools.profilers.cpu.capturedetails.ChartDetailsView;
@@ -58,7 +58,7 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel> {
       AxisComponent percentAxis = new AxisComponent(getModel().getAxisComponentModel(), AxisComponent.AxisOrientation.BOTTOM);
       percentAxis.setShowAxisLine(true);
       percentAxis.setMinimumSize(new Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT));
-      add(percentAxis, new TabularLayout.Constraint(1,0));
+      add(percentAxis, new TabularLayout.Constraint(1, 0));
     }
   }
 }

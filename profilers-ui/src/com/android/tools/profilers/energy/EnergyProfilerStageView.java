@@ -31,6 +31,7 @@ import com.android.tools.adtui.RangeSelectionComponent;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.instructions.InstructionsPanel;
@@ -293,7 +294,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     textPane.setBorder(TOOLTIP_BORDER);
     textPane.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
     textPane.setForeground(ProfilerColors.TOOLTIP_TEXT);
-    textPane.setFont(ProfilerFonts.TOOLTIP_BODY_FONT);
+    textPane.setFont(TooltipView.TOOLTIP_BODY_FONT);
     textPane.setText(
       "The Energy Profiler models your app's estimated energy usage of CPU, Network, and GPS resources of your device. " +
       "It also highlights background events that may contribute to battery drain, " +

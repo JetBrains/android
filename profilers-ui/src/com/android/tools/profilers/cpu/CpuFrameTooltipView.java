@@ -16,8 +16,8 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
-import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.cpu.atrace.AtraceFrame;
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
@@ -28,7 +28,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
-public class CpuFrameTooltipView extends ProfilerTooltipView {
+public class CpuFrameTooltipView extends TooltipView {
   @NotNull private final CpuFrameTooltip myTooltip;
   @NotNull private final JPanel myContent;
 

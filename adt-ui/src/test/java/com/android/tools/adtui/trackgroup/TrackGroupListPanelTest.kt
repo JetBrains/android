@@ -15,15 +15,21 @@
  */
 package com.android.tools.adtui.trackgroup
 
+import com.android.tools.adtui.TooltipView
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.MultiSelectionModel
+import com.android.tools.adtui.model.TooltipModel
 import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel
 import com.android.tools.adtui.model.trackgroup.TrackModel
+import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JLabel
+import javax.swing.SwingUtilities
 
 class TrackGroupListPanelTest {
   companion object {
@@ -98,9 +104,36 @@ class TrackGroupListPanelTest {
     assertThat(multiSectionModel.selection).isEmpty()
   }
 
+  @Test
+  fun showTooltip() {
+    val trackGroupListPanel = TrackGroupListPanel(TRACK_RENDERER_FACTORY)
+    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group1").build()
+    trackGroupModel.addTrackModel(TrackModel.newBuilder(true, TestTrackRendererType.FOO, "Foo").setTooltipModel(TestTooltip()))
+    trackGroupListPanel.tooltipBinder.bind(TestTooltip::class.java, ::TestTooltipView)
+    trackGroupListPanel.loadTrackGroups(listOf(trackGroupModel))
+    trackGroupListPanel.component.setBounds(0, 0, 500, 500)
+    val ui = FakeUi(trackGroupListPanel.component)
+    val trackList = trackGroupListPanel.trackGroups[0].trackList
+    val trackListOrigin = SwingUtilities.convertPoint(trackList, Point(0, 0), trackGroupListPanel.component)
+
+    assertThat(trackGroupListPanel.activeTooltip).isNull()
+    ui.mouse.moveTo(trackListOrigin.x, trackListOrigin.y)
+    assertThat(trackGroupListPanel.activeTooltip).isInstanceOf(TestTooltip::class.java)
+  }
+
   private fun getTrackGroupTitle(component: JComponent): String {
     val treeWalker = TreeWalker(component)
     val titleLabel = treeWalker.descendants().filterIsInstance(JLabel::class.java).first()
     return titleLabel.text
+  }
+
+  private class TestTooltip : TooltipModel {
+    val timeline = DefaultTimeline()
+  }
+
+  private class TestTooltipView(@Suppress("UNUSED_PARAMETER") parent: JComponent, tooltip: TestTooltip) : TooltipView(tooltip.timeline) {
+    override fun createTooltip(): JComponent {
+      return JLabel()
+    }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.adtui;
 
-import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
-import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_HEADER_FONT;
-
-import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.TooltipComponent;
-import com.android.tools.adtui.TreeWalker;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -40,7 +37,13 @@ import javax.swing.JPanel;
 import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class ProfilerTooltipView extends AspectObserver {
+public abstract class TooltipView extends AspectObserver {
+  public static final Font TOOLTIP_BODY_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(2); // 12 scaled
+  private static final Font TOOLTIP_HEADER_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(3); // 13 scaled
+  private static final Color TOOLTIP_TEXT = JBColor.foreground();
+  private static final Color TOOLTIP_BACKGROUND = StudioColorsKt.getCanvasTooltipBackground();
+
+
   @NotNull
   private final Timeline myTimeline;
 
@@ -49,10 +52,10 @@ public abstract class ProfilerTooltipView extends AspectObserver {
 
   protected final Font myFont;
 
-  protected ProfilerTooltipView(@NotNull Timeline timeline) {
+  protected TooltipView(@NotNull Timeline timeline) {
     myTimeline = timeline;
     myHeadingLabel = new JLabel();
-    myHeadingLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
+    myHeadingLabel.setForeground(TOOLTIP_TEXT);
     myFont = TOOLTIP_HEADER_FONT;
     myHeadingLabel.setFont(myFont);
     timeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
@@ -90,7 +93,7 @@ public abstract class ProfilerTooltipView extends AspectObserver {
   protected static JLabel createTooltipLabel() {
     JLabel label = new JLabel();
     label.setFont(TOOLTIP_BODY_FONT);
-    label.setForeground(ProfilerColors.TOOLTIP_TEXT);
+    label.setForeground(TOOLTIP_TEXT);
     return label;
   }
 
@@ -107,8 +110,8 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     TooltipPanel tooltipPanel = new TooltipPanel(new TabularLayout("Fit", "Fit-,8px,Fit"));
     tooltipPanel.add(myHeadingLabel, new TabularLayout.Constraint(0, 0));
     tooltipPanel.add(createTooltip(), new TabularLayout.Constraint(2, 0));
-    tooltipPanel.setForeground(ProfilerColors.TOOLTIP_TEXT);
-    tooltipPanel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
+    tooltipPanel.setForeground(TOOLTIP_TEXT);
+    tooltipPanel.setBackground(TOOLTIP_BACKGROUND);
     Border visibleBorder = JBUI.Borders.customLine(StudioColorsKt.getBorderLight());
     tooltipPanel.setBorder(JBUI.Borders.merge(new JBEmptyBorder(9, 9, 9, 9), visibleBorder, true));
     updateHeader();

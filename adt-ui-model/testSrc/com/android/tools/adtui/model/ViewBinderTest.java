@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.adtui.model;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class ViewBinderTest {
   @Test
@@ -35,14 +36,22 @@ public class ViewBinderTest {
     assertTrue(view instanceof TestViewExtended);
   }
 
-  private static class TestParentView {}
-  private static class TestModel {}
+  private static class TestParentView {
+  }
+
+  private static class TestModel {
+  }
+
   private static class TestView {
     TestView(TestParentView parentView, TestModel model) {}
   }
 
-  private static class TestParentViewExtended extends TestParentView {}
-  private static class TestModelExtended extends TestModel {}
+  private static class TestParentViewExtended extends TestParentView {
+  }
+
+  private static class TestModelExtended extends TestModel {
+  }
+
   private static class TestViewExtended extends TestView {
     TestViewExtended(TestParentViewExtended parentView, TestModelExtended model) {
       super(parentView, model);

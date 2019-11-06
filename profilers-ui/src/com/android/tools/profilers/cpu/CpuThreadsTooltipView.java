@@ -15,13 +15,11 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
-
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.StageView;
 import com.intellij.util.ui.JBUI;
 import javax.swing.JComponent;
@@ -31,7 +29,7 @@ import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 
-public class CpuThreadsTooltipView extends ProfilerTooltipView {
+public class CpuThreadsTooltipView extends TooltipView {
   @NotNull private final CpuThreadsTooltip myTooltip;
   @NotNull private final JPanel myContent;
   @NotNull private final JLabel myLabel;

@@ -29,6 +29,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.Timeline;
+import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.profiler.proto.Common;

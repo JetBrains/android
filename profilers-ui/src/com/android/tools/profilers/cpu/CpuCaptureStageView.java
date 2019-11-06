@@ -51,6 +51,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     super(view, stage);
     myTrackGroupList = new TrackGroupListPanel(TRACK_RENDERER_FACTORY);
     myAnalysisPanel = new CpuAnalysisPanel(view, stage);
+
     getTooltipBinder().bind(CpuCaptureStageCpuUsageTooltip.class, CpuCaptureStageCpuUsageTooltipView::new);
 
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
@@ -95,20 +96,35 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   }
 
   private JComponent createAnalyzingComponents() {
+    // Minimap
     CpuCaptureMinimapModel minimapModel = getStage().getMinimapModel();
     CpuCaptureMinimapView minimap = new CpuCaptureMinimapView(minimapModel);
-    RangeTooltipComponent rangeTooltipComponent =
-      new RangeTooltipComponent(getStage().getCaptureTimeline(), getTooltipPanel(), getProfilersView().getComponent(), () -> false);
-    rangeTooltipComponent.registerListenersOn(minimap.getComponent());
+    // Minimap tooltip uses the capture timeline
+    RangeTooltipComponent minimapTooltipComponent =
+      new RangeTooltipComponent(getStage().getCaptureTimeline(),
+                                getTooltipPanel(),
+                                getProfilersView().getComponent(),
+                                () -> false);
+    minimapTooltipComponent.registerListenersOn(minimap.getComponent());
     minimap.getComponent().addMouseListener(
       new ProfilerTooltipMouseAdapter(
         getStage(),
         () -> new CpuCaptureStageCpuUsageTooltip(minimapModel.getCpuUsage(), getStage().getCaptureTimeline().getTooltipRange())));
+
+    // Track Groups
     loadTrackGroupModels();
+    // Track groups tooltip uses the track group timeline (based on minimap selection)
+    RangeTooltipComponent trackGroupTooltipComponent =
+      new RangeTooltipComponent(getStage().getTimeline(),
+                                myTrackGroupList.getTooltipPanel(),
+                                getProfilersView().getComponent(),
+                                () -> false);
+    trackGroupTooltipComponent.registerListenersOn(myTrackGroupList.getComponent());
 
     JPanel container = new JPanel(new TabularLayout("*", "Fit-,*"));
     // The tooltip component should be first so it draws on top of all elements.
-    container.add(rangeTooltipComponent, new TabularLayout.Constraint(0, 0, 2, 1));
+    container.add(minimapTooltipComponent, new TabularLayout.Constraint(0, 0, 2, 1));
+    container.add(trackGroupTooltipComponent, new TabularLayout.Constraint(0, 0, 2, 1));
     container.add(minimap.getComponent(), new TabularLayout.Constraint(0, 0));
     container.add(
       new JBScrollPane(myTrackGroupList.getComponent(),

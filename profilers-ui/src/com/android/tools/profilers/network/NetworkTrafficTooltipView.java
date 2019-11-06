@@ -17,13 +17,13 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.StageView;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
-public final class NetworkTrafficTooltipView extends ProfilerTooltipView {
+public final class NetworkTrafficTooltipView extends TooltipView {
   @NotNull private final NetworkTrafficTooltip myTooltip;
 
   NetworkTrafficTooltipView(@NotNull StageView view, @NotNull NetworkTrafficTooltip tooltip) {

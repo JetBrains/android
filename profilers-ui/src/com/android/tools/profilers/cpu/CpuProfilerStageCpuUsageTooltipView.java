@@ -15,14 +15,12 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
-
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.StageView;
 import com.intellij.util.ui.JBUI;
 import java.util.List;
@@ -36,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tooltip view for {@link CpuCaptureStageCpuUsageTooltip}.
  */
-class CpuProfilerStageCpuUsageTooltipView extends ProfilerTooltipView {
+class CpuProfilerStageCpuUsageTooltipView extends TooltipView {
   @NotNull private final CpuProfilerStageCpuUsageTooltip myTooltip;
   @NotNull private final JLabel mySelectionLabel;
 

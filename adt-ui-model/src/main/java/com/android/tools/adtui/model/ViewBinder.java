@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
-
-import org.jetbrains.annotations.NotNull;
+package com.android.tools.adtui.model;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A class which maintains a mapping between a a model class and a generator of its views.
  * This allows for a reactive UI builder that given an object of an unknown class
  * it can create its associated view.
- *
+ * <p>
  * To use, register class associations using {@link #bind} and then, later, call
  * {@link #build} to cause an instantiation.
  *
