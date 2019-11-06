@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite
 
 import com.android.testutils.MockitoKt.any
+import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
@@ -156,6 +157,18 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     project.registerServiceInstance(DeviceFileDownloaderService::class.java, mockDownloaderService)
 
     // Act/Assert
+    pumpEventsAndWaitForFutureException(databaseInspectorProjectService.sync(openedDatabase!!, mock(DownloadProgress::class.java)))
+  }
+
+  fun testSyncFileDoesNotWorkWithLiveDatabase() {
+    // Prepare
+    openedDatabase = pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(
+      mock(AppInspectorClient.CommandMessenger::class.java),
+      1,
+      "live db"
+    ))
+
+    // Act
     pumpEventsAndWaitForFutureException(databaseInspectorProjectService.sync(openedDatabase!!, mock(DownloadProgress::class.java)))
   }
 }

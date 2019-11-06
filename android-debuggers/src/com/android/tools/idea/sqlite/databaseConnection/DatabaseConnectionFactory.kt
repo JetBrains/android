@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.sqlite.databaseConnection
 
+import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.sqlite.DatabaseInspectorClient
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.JdbcDatabaseConnection
+import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
@@ -30,6 +34,18 @@ interface DatabaseConnectionFactory {
    * @param executor An executor for long-running and/or IO-bound tasks, such as [PooledThreadExecutor].
    */
   fun getDatabaseConnection(sqliteFile: VirtualFile, executor: FutureCallbackExecutor): ListenableFuture<DatabaseConnection>
+
+  /**
+   * Returns a [DatabaseConnection] ready to be used, associated with a live connection to an on-device inspector.
+   * @param id The id of the connection.
+   * @param databaseInspectorClient The [AppInspectorClient] used to send messages between studio and an on-device inspector.
+   * @param executor An executor for long-running and/or IO-bound tasks, such as [PooledThreadExecutor].
+   */
+  fun getLiveDatabaseConnection(
+    messenger: AppInspectorClient.CommandMessenger,
+    id: Int,
+    executor: FutureCallbackExecutor
+  ): ListenableFuture<DatabaseConnection>
 }
 
 class DatabaseConnectionFactoryImpl : DatabaseConnectionFactory {
@@ -52,5 +68,13 @@ class DatabaseConnectionFactoryImpl : DatabaseConnectionFactory {
         throw Exception("Error opening Sqlite database file \"${sqliteFile.path}\"", e)
       }
     }
+  }
+
+  override fun getLiveDatabaseConnection(
+    messenger: AppInspectorClient.CommandMessenger,
+    id: Int,
+    executor: FutureCallbackExecutor
+  ): ListenableFuture<DatabaseConnection> {
+    return Futures.immediateFuture(LiveDatabaseConnection(messenger, id, executor))
   }
 }

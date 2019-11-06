@@ -19,12 +19,15 @@ package com.android.tools.idea.sqlite
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorControllerImpl
+import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
+import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionFactory
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionFactoryImpl
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -78,6 +81,18 @@ interface DatabaseInspectorProjectService {
   fun openSqliteDatabase(file: VirtualFile): ListenableFuture<SqliteDatabase>
 
   /**
+   * Creates a [com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection]
+   * and shows the database content in the Database Inspector.
+   *
+   * @param id Unique identifier of a connection to a database.
+   * @param name The name of the database. Could be the path of the database for an on-disk database,
+   * or a different string for other types of database. (eg :memory: for an in-memory database)
+   * @param messenger The [AppInspectorClient.CommandMessenger] used to send messages between studio and an on-device inspector.
+   */
+  @AnyThread
+  fun openSqliteDatabase(messenger: AppInspectorClient.CommandMessenger, id: Int, name: String): ListenableFuture<SqliteDatabase>
+
+  /**
    * Runs the query passed as argument in the Sqlite Inspector.
    */
   @UiThread
@@ -108,6 +123,7 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
   private val toolWindowManager: ToolWindowManager = ToolWindowManager.getInstance(project),
   edtExecutor: Executor = EdtExecutorService.getInstance(),
   taskExecutor: Executor = PooledThreadExecutor.INSTANCE,
+  private val databaseConnectionFactory: DatabaseConnectionFactory = DatabaseConnectionFactoryImpl(),
   private val fileOpener: Consumer<VirtualFile> = Consumer { OpenFileAction.openFile(it, project) },
   private val viewFactory: DatabaseInspectorViewsFactory = DatabaseInspectorViewsFactoryImpl(),
   private val model: DatabaseInspectorController.Model = Model(),
@@ -171,19 +187,34 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
     messageBusConnection.subscribe(VirtualFileManager.VFS_CHANGES, virtualFileListener)
   }
 
-
   @AnyThread
   override fun openSqliteDatabase(file: VirtualFile): ListenableFuture<SqliteDatabase> {
-    val databaseConnectionFuture = DatabaseConnectionFactoryImpl().getDatabaseConnection(file, taskExecutor)
+    val databaseConnectionFuture = databaseConnectionFactory.getDatabaseConnection(file, taskExecutor)
 
+    // TODO(b/139525976)
+    val name = file.path.split("data/data/").getOrNull(1)?.replace("databases/", "") ?: file.path
+
+    return taskExecutor.transform(openSqliteDatabase(databaseConnectionFuture, name)) { database ->
+      lock.withLock { databaseToFile[database] = file }
+      database
+    }
+  }
+
+  @AnyThread
+  override fun openSqliteDatabase(messenger: AppInspectorClient.CommandMessenger, id: Int, name: String): ListenableFuture<SqliteDatabase> {
+    val databaseConnectionFuture = databaseConnectionFactory.getLiveDatabaseConnection(messenger, id, taskExecutor)
+    return openSqliteDatabase(databaseConnectionFuture, name)
+  }
+
+  private fun openSqliteDatabase(
+    databaseConnectionFuture: ListenableFuture<DatabaseConnection>,
+    name: String
+  ): ListenableFuture<SqliteDatabase> {
     val openSqliteServiceFuture = taskExecutor.transform(databaseConnectionFuture) { databaseConnection ->
       Disposer.register(project, databaseConnection)
-      // TODO(b/139525976)
-      val name = file.path.split("data/data/").getOrNull(1)?.replace("databases/", "") ?: file.path
+
       val database = SqliteDatabase(name, databaseConnection)
       Disposer.register(project, database)
-
-      lock.withLock { databaseToFile[database] = file }
 
       return@transform database
     }

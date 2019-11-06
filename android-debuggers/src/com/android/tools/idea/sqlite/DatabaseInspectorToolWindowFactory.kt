@@ -19,6 +19,7 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
+import org.jetbrains.ide.PooledThreadExecutor
 
 class DatabaseInspectorToolWindowFactory : DumbAware, ToolWindowFactory {
   companion object {
@@ -26,6 +27,12 @@ class DatabaseInspectorToolWindowFactory : DumbAware, ToolWindowFactory {
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
+    DatabaseInspectorClient.startListeningForPipelineConnections(
+      DatabaseInspectorProjectService.getInstance(project),
+      PooledThreadExecutor.INSTANCE
+    )
+
+
     val toolWindowContent = toolWindow.contentManager.factory.createContent(
       DatabaseInspectorProjectService.getInstance(project).sqliteInspectorComponent,
       "",
