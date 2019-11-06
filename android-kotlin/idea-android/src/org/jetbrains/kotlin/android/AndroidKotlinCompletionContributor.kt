@@ -39,6 +39,7 @@ import org.jetbrains.kotlin.resolve.bindingContextUtil.getReferenceTargets
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import java.util.function.Predicate
 
+
 /**
  * CompletionContributor for Android kotlin files. It provides:
  *  * Removing class and member references from completion when the reference resolves to the other test scope.
