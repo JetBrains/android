@@ -358,7 +358,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * @return the primary (first) {@link NlModel} if exist. null otherwise.
    * @see #getModels()
+   * @deprecated The surface can contain multiple models. Use {@link #getModels() instead}.
    */
+  @Deprecated
   @Nullable
   public NlModel getModel() {
     return Iterables.getFirst(getModels(), null);
