@@ -15,19 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
-import com.android.ddmlib.Log
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
-import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INCOMPLETE_PARSING
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
-import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -46,6 +42,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.getBlockElement
 import com.google.common.collect.Lists
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.text.StringUtil.unquoteString
 import com.intellij.psi.PsiElement
 import com.intellij.util.IncorrectOperationException
@@ -158,7 +155,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
             try {
               return BigDecimal(LiteralFormatUtil.removeUnderscores(literal.text).trimEnd('f', 'F'))
             } catch (e: NumberFormatException) {
-              Log.e("KotlinDslParser", e)
+              Logger.getInstance(KotlinDslParser::class.java).error(e)
               return null
             }
           }
