@@ -22,12 +22,12 @@ public class ProguardR8Language extends Language {
   public static final ProguardR8Language INSTANCE = new ProguardR8Language();
 
   private ProguardR8Language() {
-    super("PROGUARD_R8");
+    super("SHRINKER_CONFIG");
   }
 
   @NotNull
   @Override
   public String getDisplayName() {
-    return "R8/Proguard rule file";
+    return "Shrinker Config";
   }
 }

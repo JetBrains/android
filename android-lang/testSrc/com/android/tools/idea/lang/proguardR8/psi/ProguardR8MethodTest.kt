@@ -495,7 +495,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     }
     catch (e: RuntimeException) {
       assertThat(e.cause).isInstanceOf(IncorrectOperationException::class.java)
-      assertEquals("\"myMethod-New\" is not an identifier for Proguard/R8 files.", e.cause?.message)
+      assertEquals("\"myMethod-New\" is not an identifier for Shrinker Config.", e.cause?.message)
     }
 
     val method = myFixture.findClass("MyClass").findMethodsByName("myMethod", false).first()
