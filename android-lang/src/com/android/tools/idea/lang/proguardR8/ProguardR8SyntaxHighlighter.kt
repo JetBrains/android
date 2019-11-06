@@ -24,6 +24,7 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.CLASS
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.CLOSE_BRACE
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.COMMA
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.DOUBLE
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.DOUBLE_QUOTED_CLASS
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.DOUBLE_QUOTED_STRING
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.ENUM
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.EXTENDS
@@ -47,6 +48,7 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.PUBLIC
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.RPAREN
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.SEMICOLON
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.SHORT
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.SINGLE_QUOTED_CLASS
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.SINGLE_QUOTED_STRING
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.STATIC
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.STRICTFP
@@ -76,7 +78,7 @@ val JAVA_KEY_WORDS = TokenSet.create(CLASS, INTERFACE, ENUM, EXTENDS, IMPLEMENTS
 
 val JAVA_PRIMITIVE = TokenSet.create(BOOLEAN, BYTE, CHAR, SHORT, INT, LONG, FLOAT, DOUBLE, VOID)
 
-val JAVA_IDENTIFIER_TOKENS = TokenSet.create(JAVA_IDENTIFIER, JAVA_IDENTIFIER_WITH_WILDCARDS)
+val JAVA_IDENTIFIER_TOKENS = TokenSet.create(JAVA_IDENTIFIER, JAVA_IDENTIFIER_WITH_WILDCARDS, SINGLE_QUOTED_CLASS, DOUBLE_QUOTED_CLASS)
 
 val PATHS = TokenSet.create(FILE_NAME, SINGLE_QUOTED_STRING, DOUBLE_QUOTED_STRING)
 

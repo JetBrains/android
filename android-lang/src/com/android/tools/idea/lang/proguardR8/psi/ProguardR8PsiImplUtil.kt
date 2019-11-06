@@ -80,7 +80,7 @@ fun resolveToPsiClass(className: ProguardR8QualifiedName): PsiClass? {
  * Returns all resolvable psiClasses found in header, including classes that specified after "extends"/"implements" key words.
  */
 fun resolvePsiClasses(classSpecificationHeader: ProguardR8ClassSpecificationHeader): List<PsiClass> {
-  return classSpecificationHeader.classNameList.mapNotNull { it.qualifiedName.resolveToPsiClass() }
+  return classSpecificationHeader.classNameList.mapNotNull { it.qualifiedName?.resolveToPsiClass() }
 }
 
 fun getPsiPrimitive(proguardR8JavaPrimitive: ProguardR8JavaPrimitive): PsiPrimitiveType? {

@@ -268,20 +268,31 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // "!"? qualifiedName
+  // "!"? qualifiedName | quoted_class_names
   public static boolean class_name(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "class_name")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, CLASS_NAME, "<class name>");
     result = class_name_0(builder, level + 1);
-    result = result && qualifiedName(builder, level + 1);
+    if (!result) result = quoted_class_names(builder, level + 1);
     exit_section_(builder, level, marker, result, false, null);
     return result;
   }
 
-  // "!"?
+  // "!"? qualifiedName
   private static boolean class_name_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "class_name_0")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = class_name_0_0(builder, level + 1);
+    result = result && qualifiedName(builder, level + 1);
+    exit_section_(builder, marker, null, result);
+    return result;
+  }
+
+  // "!"?
+  private static boolean class_name_0_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "class_name_0_0")) return false;
     consumeToken(builder, EM);
     return true;
   }
@@ -1314,6 +1325,18 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // SINGLE_QUOTED_CLASS|DOUBLE_QUOTED_CLASS|UNTERMINATED_SINGLE_QUOTED_CLASS|UNTERMINATED_DOUBLE_QUOTED_CLASS
+  static boolean quoted_class_names(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "quoted_class_names")) return false;
+    boolean result;
+    result = consumeToken(builder, SINGLE_QUOTED_CLASS);
+    if (!result) result = consumeToken(builder, DOUBLE_QUOTED_CLASS);
+    if (!result) result = consumeToken(builder, UNTERMINATED_SINGLE_QUOTED_CLASS);
+    if (!result) result = consumeToken(builder, UNTERMINATED_DOUBLE_QUOTED_CLASS);
+    return result;
+  }
+
+  /* ********************************************************** */
   // (include_file|rule_)*
   static boolean root(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "root")) return false;
@@ -1446,7 +1469,7 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // any_type|(any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName)array_type?
+  // any_type|(any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName|quoted_class_names)array_type?
   public static boolean type(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "type")) return false;
     boolean result;
@@ -1457,7 +1480,7 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // (any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName)array_type?
+  // (any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName|quoted_class_names)array_type?
   private static boolean type_1(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "type_1")) return false;
     boolean result;
@@ -1468,7 +1491,7 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName
+  // any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName|quoted_class_names
   private static boolean type_1_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "type_1_0")) return false;
     boolean result;
@@ -1476,6 +1499,7 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     if (!result) result = any_not_primitive_type(builder, level + 1);
     if (!result) result = java_primitive(builder, level + 1);
     if (!result) result = qualifiedName(builder, level + 1);
+    if (!result) result = quoted_class_names(builder, level + 1);
     return result;
   }
 

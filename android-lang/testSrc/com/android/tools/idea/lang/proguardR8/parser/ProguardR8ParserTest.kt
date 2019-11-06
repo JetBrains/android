@@ -1431,4 +1431,46 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """.trimIndent())
     )
   }
+
+  fun testQuotedClasses() {
+    assertEquals(
+      """
+        FILE
+          ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
+            PsiElement(FLAG)('-keepclassmembers')
+            ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
+              ProguardR8ClassTypeImpl(CLASS_TYPE)
+                PsiElement(class)('class')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                PsiElement(DOUBLE_QUOTED_CLASS)('"a.b.c.**"')
+              PsiElement(comma)(',')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                PsiElement(!)('!')
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(JAVA_IDENTIFIER_WITH_WILDCARDS)('**d')
+              PsiElement(comma)(',')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                PsiElement(SINGLE_QUOTED_CLASS)(''!**e'')
+              PsiElement(comma)(',')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                PsiElement(DOUBLE_QUOTED_CLASS)('"!**f"')
+              PsiElement(comma)(',')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(JAVA_IDENTIFIER)('g')
+              PsiElement(comma)(',')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                PsiElement(SINGLE_QUOTED_CLASS)(''h'')
+              PsiElement(comma)(',')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                PsiElement(DOUBLE_QUOTED_CLASS)('"i"')
+      """.trimIndent(),
+      toParseTreeText(
+        """
+          -keepclassmembers class "a.b.c.**" , !**d , '!**e' , "!**f" , g , 'h' , "i"
+        """.trimIndent()
+      )
+    )
+  }
+
 }
