@@ -67,7 +67,7 @@ class CpuKernelTooltipViewTest {
     profilers.stage = myStage
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     val stageView: CpuProfilerStageView = view.stageView as CpuProfilerStageView
-    myCpuKernelTooltip = CpuKernelTooltip(myStage)
+    myCpuKernelTooltip = CpuKernelTooltip(myStage.timeline, profilers.session.pid)
     myCpuKernelTooltipView = FakeCpuKernelTooltipView(stageView, myCpuKernelTooltip)
     myStage.tooltip = myCpuKernelTooltip
     stageView.stage.timeline.dataRange.set(0.0, TimeUnit.SECONDS.toMicros(5).toDouble())
@@ -106,7 +106,7 @@ class CpuKernelTooltipViewTest {
   private class FakeCpuKernelTooltipView(
     view: CpuProfilerStageView,
     tooltip: CpuKernelTooltip
-  ) : CpuKernelTooltipView(view, tooltip) {
+  ) : CpuKernelTooltipView(view.component, tooltip) {
     val tooltipPanel = createComponent()
   }
 }

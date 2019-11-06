@@ -609,7 +609,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     viewRange.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(11));
 
     myStage.enter();
-    myStage.setTooltip(new CpuThreadsTooltip(myStage));
+    myStage.setTooltip(new CpuThreadsTooltip(myStage.getTimeline()));
     assertThat(myStage.getTooltip()).isInstanceOf(CpuThreadsTooltip.class);
     CpuThreadsTooltip tooltip = (CpuThreadsTooltip)myStage.getTooltip();
 
@@ -656,7 +656,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
       .parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 0);
     myStage.setCapture(cpuCapture);
     myStage.enter();
-    myStage.setTooltip(new CpuKernelTooltip(myStage));
+    myStage.setTooltip(new CpuKernelTooltip(myStage.getTimeline(), FAKE_PID));
     assertThat(myStage.getTooltip()).isInstanceOf(CpuKernelTooltip.class);
     CpuKernelTooltip tooltip = (CpuKernelTooltip)myStage.getTooltip();
 

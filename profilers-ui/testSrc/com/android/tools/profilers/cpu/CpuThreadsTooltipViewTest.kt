@@ -72,7 +72,7 @@ class CpuThreadsTooltipViewTest {
 
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     val stageView: CpuProfilerStageView = view.stageView as CpuProfilerStageView
-    cpuThreadsTooltip = CpuThreadsTooltip(cpuStage)
+    cpuThreadsTooltip = CpuThreadsTooltip(cpuStage.timeline)
     cpuThreadsTooltipView = FakeCpuThreadsTooltipView(stageView, cpuThreadsTooltip)
     cpuStage.tooltip = cpuThreadsTooltip
 
@@ -128,7 +128,7 @@ class CpuThreadsTooltipViewTest {
   private class FakeCpuThreadsTooltipView(
     parent: CpuProfilerStageView,
     tooltip: CpuThreadsTooltip)
-    : CpuThreadsTooltipView(parent, tooltip) {
+    : CpuThreadsTooltipView(parent.component, tooltip) {
     val tooltipPanel: JComponent = createComponent()
   }
 }

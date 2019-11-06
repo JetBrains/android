@@ -19,8 +19,8 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.TooltipModel;
-import com.android.tools.profilers.cpu.CpuProfilerStage;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,19 +31,18 @@ public class CpuFrameTooltip extends AspectModel<CpuFrameTooltip.Aspect> impleme
     FRAME_CHANGED,
   }
 
-  @NotNull private final CpuProfilerStage myStage;
+  @NotNull private Timeline myTimeline;
   @Nullable private DataSeries<AtraceFrame> mySeries;
   @Nullable private AtraceFrame myFrame;
 
-  public CpuFrameTooltip(@NotNull CpuProfilerStage stage) {
-    myStage = stage;
-    Range tooltipRange = stage.getTimeline().getTooltipRange();
-    tooltipRange.addDependency(this).onChange(Range.Aspect.RANGE, this::updateState);
+  public CpuFrameTooltip(@NotNull Timeline timeline) {
+    myTimeline = timeline;
+    myTimeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::updateState);
   }
 
   @Override
   public void dispose() {
-    myStage.getTimeline().getTooltipRange().removeDependencies(this);
+    myTimeline.getTooltipRange().removeDependencies(this);
   }
 
   private void updateState() {
@@ -53,8 +52,7 @@ public class CpuFrameTooltip extends AspectModel<CpuFrameTooltip.Aspect> impleme
       return;
     }
 
-    Range tooltipRange = myStage.getTimeline().getTooltipRange();
-    List<SeriesData<AtraceFrame>> series = mySeries.getDataForRange(tooltipRange);
+    List<SeriesData<AtraceFrame>> series = mySeries.getDataForRange(myTimeline.getTooltipRange());
     myFrame = series.isEmpty() ? null : series.get(0).value;
     changed(Aspect.FRAME_CHANGED);
   }
@@ -67,5 +65,10 @@ public class CpuFrameTooltip extends AspectModel<CpuFrameTooltip.Aspect> impleme
   @Nullable
   public AtraceFrame getFrame() {
     return myFrame;
+  }
+
+  @NotNull
+  public Timeline getTimeline() {
+    return myTimeline;
   }
 }

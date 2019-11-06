@@ -141,7 +141,7 @@ public class TrackGroupListPanel implements TrackGroupMover {
 
   @VisibleForTesting
   @NotNull
-  protected List<TrackGroup> getTrackGroups() {
+  public List<TrackGroup> getTrackGroups() {
     return myTrackGroups;
   }
 

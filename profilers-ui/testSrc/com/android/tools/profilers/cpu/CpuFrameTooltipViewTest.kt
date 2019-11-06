@@ -65,7 +65,7 @@ class CpuFrameTooltipViewTest {
     profilers.stage = stage
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     val stageView = view.stageView as CpuProfilerStageView
-    tooltip = CpuFrameTooltip(stage)
+    tooltip = CpuFrameTooltip(stage.timeline)
     tooltipView = FakeCpuFrameTooltipView(stageView, tooltip)
     stage.tooltip = tooltip
     stageView.stage.timeline.apply {
@@ -146,7 +146,7 @@ class CpuFrameTooltipViewTest {
   private class FakeCpuFrameTooltipView(
     view: CpuProfilerStageView,
     tooltip: CpuFrameTooltip
-  ) : CpuFrameTooltipView(view, tooltip) {
+  ) : CpuFrameTooltipView(view.component, tooltip) {
     val tooltipPanel = createComponent()
   }
 }

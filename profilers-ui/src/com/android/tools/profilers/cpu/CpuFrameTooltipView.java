@@ -42,8 +42,8 @@ public class CpuFrameTooltipView extends TooltipView {
 
   @NotNull private final JLabel myTotalTimeText;
 
-  protected CpuFrameTooltipView(@NotNull StageView view, @NotNull CpuFrameTooltip tooltip) {
-    super(view.getStage().getTimeline());
+  protected CpuFrameTooltipView(@NotNull JComponent view, @NotNull CpuFrameTooltip tooltip) {
+    super(tooltip.getTimeline());
     myTooltip = tooltip;
     myContent = new JPanel(new TabularLayout("*").setVGap(12));
 

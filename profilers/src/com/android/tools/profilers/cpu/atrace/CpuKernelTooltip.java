@@ -19,8 +19,8 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.TooltipModel;
-import com.android.tools.profilers.cpu.CpuProfilerStage;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,22 +34,21 @@ public class CpuKernelTooltip extends AspectModel<CpuKernelTooltip.Aspect> imple
     CPU_KERNEL_THREAD_SLICE_INFO,
   }
 
-  @NotNull private final CpuProfilerStage myStage;
+  @NotNull private final Timeline myTimeline;
   @Nullable private DataSeries<CpuThreadSliceInfo> mySeries;
   @Nullable private CpuThreadSliceInfo myCpuThreadSliceInfo;
   private int myCpuId;
   private final int myProcessId;
 
-  public CpuKernelTooltip(@NotNull CpuProfilerStage stage) {
-    myStage = stage;
-    myProcessId = stage.getStudioProfilers().getSession().getPid();
-    Range tooltipRange = stage.getTimeline().getTooltipRange();
-    tooltipRange.addDependency(this).onChange(Range.Aspect.RANGE, this::updateState);
+  public CpuKernelTooltip(@NotNull Timeline timeline, int pid) {
+    myTimeline = timeline;
+    myProcessId = pid;
+    timeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::updateState);
   }
 
   @Override
   public void dispose() {
-    myStage.getTimeline().getTooltipRange().removeDependencies(this);
+    myTimeline.getTooltipRange().removeDependencies(this);
   }
 
   /**
@@ -62,7 +61,7 @@ public class CpuKernelTooltip extends AspectModel<CpuKernelTooltip.Aspect> imple
       return;
     }
 
-    Range tooltipRange = myStage.getTimeline().getTooltipRange();
+    Range tooltipRange = myTimeline.getTooltipRange();
     List<SeriesData<CpuThreadSliceInfo>> series = mySeries.getDataForRange(tooltipRange);
     myCpuThreadSliceInfo = series.isEmpty() ? null : series.get(0).value;
     if (myCpuThreadSliceInfo == CpuThreadSliceInfo.NULL_THREAD) {
@@ -88,5 +87,10 @@ public class CpuKernelTooltip extends AspectModel<CpuKernelTooltip.Aspect> imple
 
   public int getProcessId() {
     return myProcessId;
+  }
+
+  @NotNull
+  public Timeline getTimeline() {
+    return myTimeline;
   }
 }

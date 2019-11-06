@@ -109,7 +109,8 @@ public final class CpuKernelsView {
     });
 
     // Handle Tooltip
-    myKernels.addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuKernelTooltip(myStage)));
+    int pid = myStage.getStudioProfilers().getSession().getPid();
+    myKernels.addMouseListener(new ProfilerTooltipMouseAdapter(myStage, () -> new CpuKernelTooltip(myStage.getTimeline(), pid)));
     myKernels.addMouseMotionListener(new MouseAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
