@@ -96,7 +96,7 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="protobuf" level="project" />
-    <orderEntry type="library" name="analytics-proto" level="project" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="nosyncbuilder" level="project" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
     <orderEntry type="library" scope="TEST" name="intellij.android.kotlin.idea" level="project" />
