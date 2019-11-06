@@ -20,6 +20,7 @@ import static com.android.SdkConstants.ATTR_ID;
 import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.databinding.BindingLayout;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
 import com.android.tools.idea.databinding.index.BindingLayoutType;
@@ -120,14 +121,17 @@ public class LightBindingClass extends AndroidLightClassBase {
     setModuleInfo(myConfig.getFacet().getModule(), false);
 
     CachedValuesManager cachedValuesManager = CachedValuesManager.getManager(getProject());
-    myPsiMethodsCache =
-      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiMethod[]>(myConfig.getFacet(), myCacheLock) {
+    myPsiMethodsCache = cachedValuesManager.createCachedValue(
+      new ResourceCacheValueProvider<PsiMethod[]>(myConfig.getFacet(), myCacheLock,
+                                                  AndroidPsiUtils.getXmlPsiModificationTracker(getProject())) {
         @Override
         protected PsiMethod[] doCompute() {
           List<PsiMethod> methods = new ArrayList<>();
 
           PsiMethod constructor = createConstructor();
           methods.add(constructor);
+
+          createRootOverride(methods);
 
           for (Pair<VariableData, XmlTag> variableTag : myConfig.getVariableTags()) {
             createVariableMethods(variableTag, methods);
@@ -326,6 +330,38 @@ public class LightBindingClass extends AndroidLightClassBase {
       }
     }
     return true;
+  }
+
+  /**
+   * If applicable, create a `getRoot` method that overrides / specializes the one in the base
+   * class.
+   *
+   * For example, "View getRoot()" in the base interface could be returned as
+   * "LinearLayout getRoot()" in this binding class.
+   *
+   * If this binding is for a layout with multiple configurations that define inconsistent
+   * root tags, then "View" will be returned.
+   */
+  private void createRootOverride(@NotNull List<PsiMethod> outPsiMethods) {
+    BindingXmlData xmlData = myConfig.getTargetLayout().getData();
+    // For legacy reasons, data binding does not override getRoot with a more specialized return
+    // type (e.g. FrameLayout instead of View). Only view binding does this at this time.
+    if (xmlData.getLayoutType() == BindingLayoutType.PLAIN_LAYOUT && ViewBindingUtil.isViewBindingEnabled(myConfig.getFacet())) {
+      XmlTag xmlRootTag = myConfig.getTargetLayout().toXmlFile().getRootTag();
+      if (xmlRootTag == null) {
+        return; // Abort if we can't find an actual PSI tag we can navigate to
+      }
+
+      // Note: We don't simply use xmlRootTag's name, since the final return type could be
+      // different if root tag names are not consistent across layout configurations.
+      String rootTag = myConfig.getRootType();
+
+      PsiType type = LayoutBindingTypeUtil.resolveViewPsiType(rootTag, this);
+      if (type != null) {
+        LightMethodBuilder rootMethod = createPublicMethod("getRoot", type);
+        outPsiMethods.add(new LightDataBindingMethod(xmlRootTag, getManager(), rootMethod, this, JavaLanguage.INSTANCE));
+      }
+    }
   }
 
   private void createVariableMethods(@NotNull Pair<VariableData, XmlTag> variableTag, @NotNull List<PsiMethod> outPsiMethods) {

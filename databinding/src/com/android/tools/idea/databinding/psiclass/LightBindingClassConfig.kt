@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.databinding.psiclass
 
+import com.android.SdkConstants
 import com.android.tools.idea.databinding.BindingLayout
 import com.android.tools.idea.databinding.BindingLayoutGroup
 import com.android.tools.idea.databinding.ModuleDataBinding
@@ -51,6 +52,11 @@ interface LightBindingClassConfig {
    * including an "Impl" suffix.
    */
   val qualifiedName: String
+
+  /**
+   * The (unqualified) view type that this binding's `getRoot` method should return.
+   */
+  val rootType: String
 
   /**
    * A list of all `<variable>` tags paired with their corresponding PSI XML tag.
@@ -124,6 +130,21 @@ class BindingClassConfig(override val facet: AndroidFacet, private val group: Bi
   override val className = group.mainLayout.className
   override val qualifiedName = group.mainLayout.qualifiedClassName
 
+  /**
+   * Returns the specialized root type if set consistently across all layout configurations,
+   * e.g. "LinearLayout", or "View" otherwise.
+   */
+  override val rootType: String
+    get() {
+      val mainTag = group.mainLayout.data.rootTag
+      if (group.layouts.all { it.data.rootTag == mainTag }) {
+        return mainTag
+      }
+      else {
+        return SdkConstants.VIEW
+      }
+    }
+
   override val variableTags: List<Pair<VariableData, XmlTag>>
     get() = group.getAggregatedVariables()
 
@@ -166,6 +187,7 @@ class BindingImplClassConfig(override val facet: AndroidFacet,
 
   override val className = targetLayout.className + targetLayout.getImplSuffix()
   override val qualifiedName = targetLayout.qualifiedClassName + targetLayout.getImplSuffix()
+  override val rootType = targetLayout.data.rootTag
 
   override val variableTags: List<Pair<VariableData, XmlTag>>
     get() = group.getAggregatedVariables()
