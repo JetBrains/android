@@ -15,7 +15,7 @@
  */
 package com.android.build.attribution.ui.data.builder
 
-import com.android.build.attribution.analyzers.BuildEventsAnalyzersResultsProvider
+import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
 import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.ui.data.ConfigurationUiData
@@ -28,7 +28,7 @@ import com.android.build.attribution.ui.data.TimeWithPercentage
  * It accesses analysis results from [analyzersProxy] and provides an implementation for [ConfigurationUiData].
  */
 class ConfigurationTimesUiDataBuilder(
-  val analyzersProxy: BuildEventsAnalyzersResultsProvider
+  val analyzersProxy: BuildEventsAnalysisResult
 ) {
 
   val totalConfigurationTimeMs = analyzersProxy.getProjectsConfigurationData()
@@ -39,7 +39,7 @@ class ConfigurationTimesUiDataBuilder(
 
   private fun createConfigurationUiData(): ConfigurationUiData =
     object : ConfigurationUiData {
-      override val totalConfigurationTime = TimeWithPercentage(totalConfigurationTimeMs, analyzersProxy.getTotalBuildTime())
+      override val totalConfigurationTime = TimeWithPercentage(totalConfigurationTimeMs, analyzersProxy.getTotalBuildTimeMs())
       override val projects: List<ProjectConfigurationUiData> = analyzersProxy.getProjectsConfigurationData()
         .map { createProjectConfigurationUiData(it) }
         .sortedByDescending { it.configurationTime }

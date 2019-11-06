@@ -23,16 +23,16 @@ import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
 
-interface BuildEventsAnalyzersResultsProvider {
+interface BuildEventsAnalysisResult {
   fun getAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData>
   fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData>
-  fun getCriticalPathDuration(): Long
-  fun getTotalBuildTime(): Long
-  fun getTasksCriticalPath(): List<TaskData>
-  fun getPluginsCriticalPath(): List<CriticalPathAnalyzer.PluginBuildData>
+  fun getCriticalPathDurationMs(): Long
+  fun getTotalBuildTimeMs(): Long
+  fun getCriticalPathTasks(): List<TaskData>
+  fun getCriticalPathPlugins(): List<CriticalPathAnalyzer.PluginBuildData>
   fun getProjectsConfigurationData(): List<ProjectConfigurationData>
   fun getAlwaysRunTasks(): List<AlwaysRunTaskData>
-  fun getNoncacheableTasks(): List<TaskData>
+  fun getNonCacheableTasks(): List<TaskData>
   fun getTasksSharingOutput(): List<TasksSharingOutputData>
 }
 
@@ -40,9 +40,11 @@ interface BuildEventsAnalyzersResultsProvider {
  * A way of interaction between the build events analyzers and the build attribution manager.
  * Used to fetch the final data from the analyzers after the build is complete.
  */
-class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter,
-                                taskContainer: TaskContainer,
-                                pluginContainer: PluginContainer) : BuildEventsAnalyzersResultsProvider {
+class BuildEventsAnalyzersProxy(
+  warningsFilter: BuildAttributionWarningsFilter,
+  taskContainer: TaskContainer,
+  pluginContainer: PluginContainer
+) : BuildEventsAnalysisResult {
   private val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(warningsFilter, taskContainer, pluginContainer)
   private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(warningsFilter)
   private val criticalPathAnalyzer = CriticalPathAnalyzer(warningsFilter, taskContainer, pluginContainer)
@@ -50,13 +52,17 @@ class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter,
   private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(warningsFilter, taskContainer, pluginContainer)
   private val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(warningsFilter, taskContainer, pluginContainer)
 
-  fun getBuildEventsAnalyzers(): List<BuildEventsAnalyzer> = listOf(alwaysRunTasksAnalyzer,
-                                                                    annotationProcessorsAnalyzer,
-                                                                    criticalPathAnalyzer,
-                                                                    projectConfigurationAnalyzer)
+  fun getBuildEventsAnalyzers(): List<BuildEventsAnalyzer> = listOf(
+    alwaysRunTasksAnalyzer,
+    annotationProcessorsAnalyzer,
+    criticalPathAnalyzer,
+    projectConfigurationAnalyzer
+  )
 
-  fun getBuildAttributionReportAnalyzers(): List<BuildAttributionReportAnalyzer> = listOf(noncacheableTasksAnalyzer,
-                                                                                          tasksConfigurationIssuesAnalyzer)
+  fun getBuildAttributionReportAnalyzers(): List<BuildAttributionReportAnalyzer> = listOf(
+    noncacheableTasksAnalyzer,
+    tasksConfigurationIssuesAnalyzer
+  )
 
   override fun getAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> {
     return annotationProcessorsAnalyzer.getAnnotationProcessorsData()
@@ -66,19 +72,19 @@ class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter,
     return annotationProcessorsAnalyzer.getNonIncrementalAnnotationProcessorsData()
   }
 
-  override fun getCriticalPathDuration(): Long {
+  override fun getCriticalPathDurationMs(): Long {
     return criticalPathAnalyzer.criticalPathDuration
   }
 
-  override fun getTotalBuildTime(): Long {
+  override fun getTotalBuildTimeMs(): Long {
     return criticalPathAnalyzer.totalBuildTime
   }
 
-  override fun getTasksCriticalPath(): List<TaskData> {
+  override fun getCriticalPathTasks(): List<TaskData> {
     return criticalPathAnalyzer.tasksCriticalPath
   }
 
-  override fun getPluginsCriticalPath(): List<CriticalPathAnalyzer.PluginBuildData> {
+  override fun getCriticalPathPlugins(): List<CriticalPathAnalyzer.PluginBuildData> {
     return criticalPathAnalyzer.pluginsCriticalPath
   }
 
@@ -90,7 +96,7 @@ class BuildEventsAnalyzersProxy(warningsFilter: BuildAttributionWarningsFilter,
     return alwaysRunTasksAnalyzer.alwaysRunTasks
   }
 
-  override fun getNoncacheableTasks(): List<TaskData> {
+  override fun getNonCacheableTasks(): List<TaskData> {
     return noncacheableTasksAnalyzer.noncacheableTasks
   }
 

@@ -15,7 +15,7 @@
  */
 package com.android.build.attribution.ui.data.builder
 
-import com.android.build.attribution.analyzers.BuildEventsAnalyzersResultsProvider
+import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
 import com.android.build.attribution.analyzers.isAndroidPlugin
 import com.android.build.attribution.analyzers.isGradlePlugin
 import com.android.build.attribution.analyzers.isKotlinPlugin
@@ -31,13 +31,13 @@ import com.android.build.attribution.ui.data.TimeWithPercentage
  * Clients of this class may assume that there is only one [TaskUiData] object for every [TaskData] object.
  */
 class TaskUiDataContainer(
-  analyzersProxy: BuildEventsAnalyzersResultsProvider,
+  buildAnalysisResult: BuildEventsAnalysisResult,
   val issuesContainer: TaskIssueUiDataContainer
 ) {
 
   private val tasksCache: MutableMap<TaskData, TaskUiData> = HashMap()
-  private val criticalPathTasks: Set<TaskData> = analyzersProxy.getTasksCriticalPath().toHashSet()
-  private val totalBuildTimeMs: Long = analyzersProxy.getTotalBuildTime()
+  private val criticalPathTasks: Set<TaskData> = buildAnalysisResult.getCriticalPathTasks().toHashSet()
+  private val totalBuildTimeMs: Long = buildAnalysisResult.getTotalBuildTimeMs()
 
   fun getByTaskData(task: TaskData): TaskUiData = tasksCache.computeIfAbsent(task) {
     object : TaskUiData {

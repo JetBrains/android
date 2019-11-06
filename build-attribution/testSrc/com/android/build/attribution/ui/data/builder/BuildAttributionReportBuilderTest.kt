@@ -32,8 +32,8 @@ class BuildAttributionReportBuilderTest : AbstractBuildAttributionReportBuilderT
   @Test
   fun testBuildSummary() {
     val analyzerResults = object : MockResultsProvider() {
-      override fun getTotalBuildTime(): Long = 1500
-      override fun getCriticalPathDuration(): Long = 1000
+      override fun getTotalBuildTimeMs(): Long = 1500
+      override fun getCriticalPathDurationMs(): Long = 1000
     }
 
     val report = BuildAttributionReportBuilder(analyzerResults, 12345).build()

@@ -15,7 +15,7 @@
  */
 package com.android.build.attribution.ui.data.builder
 
-import com.android.build.attribution.analyzers.BuildEventsAnalyzersResultsProvider
+import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
@@ -31,10 +31,10 @@ import java.util.EnumMap
 /**
  * This class holds [TaskIssueUiData] representations for issues detected by Gradle build analyzers.
  * Clients may assume there is only one [TaskIssueUiData] for each issue detected.
- * It gets build analysis results from [analyzersProxy].
+ * It gets build analysis results from [buildAnalysisResult].
  */
 class TaskIssueUiDataContainer(
-  private val analyzersProxy: BuildEventsAnalyzersResultsProvider
+  private val buildAnalysisResult: BuildEventsAnalysisResult
 ) {
 
   private val issuesByTask: MutableMap<TaskData, MutableList<TaskIssueUiData>> = HashMap()
@@ -42,7 +42,7 @@ class TaskIssueUiDataContainer(
   private val issuesByPlugin: MutableMap<PluginData, MutableList<TaskIssueUiData>> = HashMap()
 
   fun populate(tasksUiDataContainer: TaskUiDataContainer) {
-    analyzersProxy.getAlwaysRunTasks().forEach {
+    buildAnalysisResult.getAlwaysRunTasks().forEach {
       addNewIssue(
         it.taskData,
         if (it.rerunReason == AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE) {
@@ -53,7 +53,7 @@ class TaskIssueUiDataContainer(
         }
       )
     }
-    analyzersProxy.getTasksSharingOutput().forEach { taskSharingIssue ->
+    buildAnalysisResult.getTasksSharingOutput().forEach { taskSharingIssue ->
       taskSharingIssue.taskList.forEach { task ->
         addNewIssue(
           taskData = task,
@@ -86,7 +86,7 @@ class TaskIssueUiDataContainer(
     override val type = issueType
     override val issues: List<TaskIssueUiData> = issuesList.sortedByDescending { it.task.executionTime }
     override val timeContribution =
-      TimeWithPercentage(issues.map { it.task.executionTime.timeMs }.sum(), analyzersProxy.getTotalBuildTime())
+      TimeWithPercentage(issues.map { it.task.executionTime.timeMs }.sum(), buildAnalysisResult.getTotalBuildTimeMs())
   }
 
   /**
