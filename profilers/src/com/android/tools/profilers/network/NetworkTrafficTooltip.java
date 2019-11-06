@@ -15,13 +15,13 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.profilers.ProfilerTooltip;
+import com.android.tools.adtui.model.TooltipModel;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Tooltip shown when user hovers mouse over the traffic area in Network Profiler stage. Shows network traffic, number of connects, etc.
  */
-public final class NetworkTrafficTooltip implements ProfilerTooltip {
+public final class NetworkTrafficTooltip implements TooltipModel {
   @NotNull private final NetworkProfilerStage myStage;
 
   NetworkTrafficTooltip(@NotNull NetworkProfilerStage stage) {

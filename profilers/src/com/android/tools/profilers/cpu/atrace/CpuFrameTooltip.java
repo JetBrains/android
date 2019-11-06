@@ -19,14 +19,13 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profilers.ProfilerTooltip;
+import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
-public class CpuFrameTooltip extends AspectModel<CpuFrameTooltip.Aspect> implements ProfilerTooltip {
+public class CpuFrameTooltip extends AspectModel<CpuFrameTooltip.Aspect> implements TooltipModel {
   public enum Aspect {
     // The hovering frame state changed
     FRAME_CHANGED,

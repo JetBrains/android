@@ -19,17 +19,16 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profilers.ProfilerTooltip;
+import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * Tooltip model for hovering threads in the CPU kernel list.
  */
-public class CpuKernelTooltip extends AspectModel<CpuKernelTooltip.Aspect> implements ProfilerTooltip {
+public class CpuKernelTooltip extends AspectModel<CpuKernelTooltip.Aspect> implements TooltipModel {
   public enum Aspect {
     // Triggered when the CpuThreadSliceInfo being tracked by the tooltip model changes.
     CPU_KERNEL_THREAD_SLICE_INFO,

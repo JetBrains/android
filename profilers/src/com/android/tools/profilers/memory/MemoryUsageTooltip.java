@@ -15,10 +15,10 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.profilers.ProfilerTooltip;
+import com.android.tools.adtui.model.TooltipModel;
 import org.jetbrains.annotations.NotNull;
 
-public class MemoryUsageTooltip implements ProfilerTooltip {
+public class MemoryUsageTooltip implements TooltipModel {
   @NotNull private final MemoryProfilerStage myStage;
 
   MemoryUsageTooltip(@NotNull MemoryProfilerStage stage) {

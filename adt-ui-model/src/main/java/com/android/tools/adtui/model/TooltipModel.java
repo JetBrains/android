@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.adtui.model;
 
 /**
- * Represents a tooltip model used by a multi-tooltip Profiler stage, e.g. CPU stage view, which uses usage tooltip and threads tooltip).
+ * Represents a tooltip model used by a multi-tooltip UI stage, e.g. CPU profiler stage, which uses usage tooltip and threads tooltip).
  */
-public interface ProfilerTooltip {
+public interface TooltipModel {
   /**
    * Invoked when user exists the tooltip.
    */
