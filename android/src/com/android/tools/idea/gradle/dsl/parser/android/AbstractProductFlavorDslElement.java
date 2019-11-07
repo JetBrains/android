@@ -218,14 +218,6 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
     }
 
     super.addParsedElement(element);
-    maybeRenameElement(element);
-  }
-
-  @Override
-  public void setParsedElement(@NotNull GradleDslElement element) {
-    // FIXME(xof): investigate whether any of the addParsedElement() cleverness needs to be implemented in setParsedElement
-    super.setParsedElement(element);
-    maybeRenameElement(element);
   }
 
   @Override

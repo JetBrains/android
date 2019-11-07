@@ -68,16 +68,4 @@ public class ViewBindingDslElement extends GradleDslBlockElement {
   public ViewBindingDslElement(@NotNull GradleDslElement parent) {
     super(parent, GradleNameElement.create(VIEW_BINDING_BLOCK_NAME));
   }
-
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    super.addParsedElement(element);
-    maybeRenameElement(element);
-  }
-
-  @Override
-  public void setParsedElement(@NotNull GradleDslElement element) {
-    super.setParsedElement(element);
-    maybeRenameElement(element);
-  }
 }
