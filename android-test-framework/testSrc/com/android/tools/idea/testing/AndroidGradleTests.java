@@ -241,14 +241,31 @@ public class AndroidGradleTests {
 
   @NotNull
   public static String getLocalRepositoriesForGroovy() {
+    // Add metadataSources to work around http://b/144088459. Wrap it in try-catch because
+    // we are also using older Gradle versions that do not have this method.
     return StringUtil.join(getLocalRepositoryDirectories(),
-                           file -> "maven {url \"" + file.toURI().toString() + "\"}", "\n");
+                           file -> "maven {\n" +
+                                   "  url \"" + file.toURI().toString() + "\"\n" +
+                                   "  try {\n" +
+                                   "    metadataSources() {\n" +
+                                   "      mavenPom()\n" +
+                                   "      artifact()\n" +
+                                   "    }\n" +
+                                   "  } catch (Throwable ignored) { /* In case this Gradle version does not support this. */}\n" +
+                                   "}", "\n");
   }
 
   @NotNull
   public static String getLocalRepositoriesForKotlin() {
+    // Add metadataSources to work around http://b/144088459.
     return StringUtil.join(getLocalRepositoryDirectories(),
-                           file -> "maven {setUrl(\"" + file.toURI().toString() + "\")}", "\n");
+                           file -> "maven {\n" +
+                                   "  setUrl(\"" + file.toURI().toString() + "\")\n" +
+                                   "  metadataSources() {\n" +
+                                   "    mavenPom()\n" +
+                                   "    artifact()\n" +
+                                   "  }\n" +
+                                   "}", "\n");
   }
 
   @NotNull
