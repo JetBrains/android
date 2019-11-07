@@ -16,48 +16,59 @@
 package com.android.build.attribution.ui.panels;
 
 import com.android.build.attribution.ui.data.TaskUiData;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.util.ui.ColorIcon;
+import java.awt.Color;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+@SuppressWarnings("UseJBColor")
 public interface CriticalPathChartLegend {
-  JBColor MISC_COLOR = new JBColor(0xBDBDBD, 0xBDBDBD);
-  JBColor OTHER_TASKS_COLOR = new JBColor(0xA2DFFE, 0xA2DFFE);
-  JBColor androidPluginColor = new JBColor(0xE66F9A, 0xE66F9A);
-  JBColor externalPluginColor = new JBColor(0x1A7AFF, 0x1A7AFF);
-  JBColor buildsrcPluginColor = new JBColor(0xA78BD9, 0xA78BD9);
+  ChartColor MISC_COLOR = new ChartColor(new Color(0xBDBDBD));
+  ChartColor OTHER_TASKS_COLOR = new ChartColor(new Color(0xA2DFFE));
+  ChartColor androidPluginColor = new ChartColor(new Color(0xE66F9A));
+  ChartColor externalPluginColor = new ChartColor(new Color(0x1A7AFF));
+  ChartColor buildsrcPluginColor = new ChartColor(new Color(0xA78BD9));
 
-  JBColor[] categoricalGooglePalette = new JBColor[]{
-    new JBColor(0x97B1C0, 0x97B1C0),
-    new JBColor(0xA2DFFE, 0xA2DFFE),
-    new JBColor(0xF79C6E, 0xF79C6E),
-    new JBColor(0x74E288, 0x74E288),
-    new JBColor(0xA78BD9, 0xA78BD9),
-    new JBColor(0xE66F9A, 0xE66F9A),
-    new JBColor(0x52E5CF, 0x52E5CF),
-    new JBColor(0xDFCC9F, 0xDFCC9F),
-    new JBColor(0x0093D4, 0x0093D4),
-    new JBColor(0x158F7F, 0x158F7F),
-    new JBColor(0x824BDF, 0x824BDF),
-    new JBColor(0xC1571A, 0xC1571A),
-    new JBColor(0x335A99, 0x335A99),
-    new JBColor(0xADAC38, 0xADAC38),
-    new JBColor(0xB8388E, 0xB8388E),
-    new JBColor(0x1A7AFF, 0x1A7AFF),
+  ChartColor[] categoricalGooglePalette = new ChartColor[]{
+    new ChartColor(new Color(0x97B1C0)),
+    new ChartColor(new Color(0xA2DFFE)),
+    new ChartColor(new Color(0xF79C6E)),
+    new ChartColor(new Color(0x74E288)),
+    new ChartColor(new Color(0xA78BD9)),
+    new ChartColor(new Color(0xE66F9A)),
+    new ChartColor(new Color(0x52E5CF)),
+    new ChartColor(new Color(0xDFCC9F)),
+    new ChartColor(new Color(0x0093D4)),
+    new ChartColor(new Color(0x158F7F)),
+    new ChartColor(new Color(0x824BDF)),
+    new ChartColor(new Color(0xC1571A)),
+    new ChartColor(new Color(0x335A99)),
+    new ChartColor(new Color(0xADAC38)),
+    new ChartColor(new Color(0xB8388E)),
+    new ChartColor(new Color(0x1A7AFF))
   };
+
+  class ChartColor {
+    public final Color baseColor;
+    public final Color selectionColor;
+
+    public ChartColor(Color baseColor) {
+      this.baseColor = baseColor;
+      this.selectionColor = new Color(baseColor.getRed() / 2, baseColor.getGreen() / 2, baseColor.getBlue() / 2);
+    }
+  }
 
   static JPanel createTasksLegendPanel() {
     JPanel panel = new JPanel(new HorizontalLayout(10));
-    panel.add(new JBLabel("Android/Java/Kotlin plugin", new ColorIcon(10, androidPluginColor), SwingConstants.RIGHT));
-    panel.add(new JBLabel("external plugin", new ColorIcon(10, externalPluginColor), SwingConstants.RIGHT));
-    panel.add(new JBLabel("buildSrc plugin", new ColorIcon(10, buildsrcPluginColor), SwingConstants.RIGHT));
+    panel.add(new JBLabel("Android/Java/Kotlin plugin", new ColorIcon(10, androidPluginColor.baseColor), SwingConstants.RIGHT));
+    panel.add(new JBLabel("external plugin", new ColorIcon(10, externalPluginColor.baseColor), SwingConstants.RIGHT));
+    panel.add(new JBLabel("buildSrc plugin", new ColorIcon(10, buildsrcPluginColor.baseColor), SwingConstants.RIGHT));
     return panel;
   }
 
-  static JBColor resolveTaskColor(TaskUiData taskData) {
+  static ChartColor resolveTaskColor(TaskUiData taskData) {
     switch (taskData.getSourceType()) {
       case BUILD_SRC:
         return buildsrcPluginColor;
@@ -73,7 +84,7 @@ public interface CriticalPathChartLegend {
   class PluginColorPalette {
     private int paletteCursor = 0;
 
-    public JBColor getNewColor() {
+    public ChartColor getNewColor() {
       return categoricalGooglePalette[Math.min(paletteCursor++, categoricalGooglePalette.length)];
     }
   }
