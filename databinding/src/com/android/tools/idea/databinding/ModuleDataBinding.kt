@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
+import com.android.tools.idea.databinding.index.BindingLayoutType
 import com.android.tools.idea.databinding.psiclass.BindingClassConfig
 import com.android.tools.idea.databinding.psiclass.BindingImplClassConfig
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
@@ -248,6 +249,9 @@ class ModuleDataBinding private constructor(private val module: Module) {
         lightBindingClassesCacheCleanupPassRequested = false
       }
 
+      // Only create "Impl" bindings for data binding; view binding does not generate them
+      val isDataBinding = group.mainLayout.data.layoutType == BindingLayoutType.DATA_BINDING_LAYOUT
+
       val cacheKey = cacheKeyFor(group)
       var bindingClasses = lightBindingClassesCache[cacheKey]
       if (bindingClasses != null) {
@@ -257,7 +261,7 @@ class ModuleDataBinding private constructor(private val module: Module) {
         // -- that is, if there's only one layout, we generate a Binding, but if there's multiple
         // layouts, we generate a general Binding plus one BindingImpl per layout.
         val numLayouts = group.layouts.size
-        val numClassesToGenerate = if (numLayouts == 1) 1 else numLayouts + 1
+        val numClassesToGenerate = if (numLayouts == 1 || !isDataBinding) 1 else numLayouts + 1
         if (bindingClasses.size != numClassesToGenerate) {
           bindingClasses = null
         }
@@ -272,8 +276,8 @@ class ModuleDataBinding private constructor(private val module: Module) {
         bindingClasses.add(bindingClass)
 
         // "Impl" classes are only necessary if we have more than a single configuration.
-        if (group.layouts.size > 1) {
-          for (layoutIndex in 0 until group.layouts.size) {
+        if (group.layouts.size > 1 && isDataBinding) {
+          for (layoutIndex in group.layouts.indices) {
             val layout = group.layouts[layoutIndex]
             val bindingImplClass = LightBindingClass(psiManager, BindingImplClassConfig(facet, group, layoutIndex))
             layout.psiClass = bindingImplClass
