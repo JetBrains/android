@@ -99,7 +99,7 @@ interface ModuleModelData : ProjectModelData {
    */
   val templateFile: OptionalValueProperty<File>
   /**
-   * Used in place of [templateFile] if [StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY] is enabled.
+   * Used in place of [templateFile] if [StudioFlags.NPW_NEW_MODULE_TEMPLATES] is enabled.
    */
   var moduleRecipe: NewAndroidModuleRecipe?
   val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem>
@@ -174,7 +174,7 @@ class NewModuleModel(
 
       val project = project.value
 
-      if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get()) {
+      if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
         moduleTemplateDataBuilder.apply {
           formFactor = this@NewModuleModel.formFactor.get().toTemplateFormFactor()
           isNew = true

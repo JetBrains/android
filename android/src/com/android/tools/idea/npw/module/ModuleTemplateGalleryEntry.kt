@@ -25,12 +25,12 @@ typealias NewAndroidModuleRecipe = (String?) -> Recipe
 interface ModuleTemplateGalleryEntry : ModuleGalleryEntry {
   /**
    * The file from where this template was loaded.
-   * [newTemplate] should be used instead if [StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY] is enabled.
+   * [newTemplate] should be used instead if [StudioFlags.NPW_NEW_MODULE_TEMPLATES] is enabled.
    */
   val templateFile: File?
   /**
    * A recipe to run (actually a closure which runs the recipe with additional parameters).
-   * Used instead of [templateFile] if [StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY] is enabled.
+   * Used instead of [templateFile] if [StudioFlags.NPW_NEW_MODULE_TEMPLATES] is enabled.
    */
   val recipe: NewAndroidModuleRecipe?
 
