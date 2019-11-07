@@ -185,10 +185,35 @@ class LightViewBindingClassTest {
     run {
       val binding = fixture.findClass("test.db.databinding.ActivityInconsistentRootBinding", context)!!
       assertThat(binding.findMethodsByName("getRoot", false)[0].returnType!!.canonicalText).isEqualTo("android.view.View")
-      val bindingImpl1 = fixture.findClass("test.db.databinding.ActivityInconsistentRootBindingImpl", context)!!
-      assertThat(bindingImpl1.findMethodsByName("getRoot", false)[0].returnType!!.canonicalText).isEqualTo("android.widget.FrameLayout")
-      val bindingImpl2 = fixture.findClass("test.db.databinding.ActivityInconsistentRootBindingLandImpl", context)!!
-      assertThat(bindingImpl2.findMethodsByName("getRoot", false)[0].returnType!!.canonicalText).isEqualTo("android.widget.RelativeLayout")
+    }
+  }
+
+  @Test
+  fun viewBindingDoesntGenerateImplClasses() {
+    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <FrameLayout
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent">
+      </FrameLayout>
+    """.trimIndent())
+
+    fixture.addFileToProject("src/main/res/layout-land/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <RelativeLayout
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent">
+      </RelativeLayout>
+    """.trimIndent())
+
+    val context = fixture.addClass("public class MainActivity {}")
+
+    run {
+      assertThat(fixture.findClass("test.db.databinding.ActivityMainBinding", context)).isNotNull()
+      assertThat(fixture.findClass("test.db.databinding.ActivityMainBindingImpl", context)).isNull()
+      assertThat(fixture.findClass("test.db.databinding.ActivityMainBindingLandImpl", context)).isNull()
     }
   }
 }
