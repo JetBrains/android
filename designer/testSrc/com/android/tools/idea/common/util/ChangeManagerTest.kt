@@ -13,14 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.idea.common.util
 
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.editor.Document
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiFile
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertEquals
 
+
+/**
+ * Extension to run operations on the [Document] associated to the given [PsiFile]
+ */
+private fun PsiFile.runOnDocument(runnable: (PsiDocumentManager, Document) -> Unit) {
+  val documentManager = PsiDocumentManager.getInstance(project)
+  val document = documentManager.getDocument(this)!!
+
+  WriteCommandAction.runWriteCommandAction(project) {
+    runnable(documentManager, document)
+  }
+}
+/**
+ * Extension to replace the first occurrence of the [find] string to [replace]
+ */
+private fun PsiFile.replaceStringOnce(find: String, replace: String) = runOnDocument { documentManager, document ->
+  documentManager.commitDocument(document)
+
+  val index = text.indexOf(find)
+  assert(index != -1) { "\"$find\" not found in the given file"}
+
+  document.replaceString(index, index + find.length, replace)
+  documentManager.commitDocument(document)
+}
 /**
  * Helper class do test change tracking and asserting on specific types of changes.
  */
@@ -52,7 +80,7 @@ private class ChangeTracker {
   fun assertRefreshed(runnable: () -> Unit) = assertWithCounters(refresh = 1, runnable = runnable)
 }
 
-class ChangeManagerTest : ComposeLightJavaCodeInsightFixtureTestCase() {
+class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
   fun testSingleFileChangeTests() {
     @Language("kotlin")
     val startFileContent = """
