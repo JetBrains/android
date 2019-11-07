@@ -21,29 +21,10 @@ package com.android.tools.idea.lang.proguardR8.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiClass;
 
-public interface ProguardR8ClassSpecificationHeader extends PsiElement {
+public interface ProguardR8SuperClassName extends PsiElement {
 
-  @NotNull
-  List<ProguardR8AnnotationName> getAnnotationNameList();
-
-  @NotNull
-  List<ProguardR8ClassModifier> getClassModifierList();
-
-  @NotNull
-  List<ProguardR8ClassName> getClassNameList();
-
-  @NotNull
-  ProguardR8ClassType getClassType();
-
-  @NotNull
-  List<ProguardR8SuperClassName> getSuperClassNameList();
-
-  @NotNull
-  List<PsiClass> resolvePsiClasses();
-
-  @NotNull
-  List<PsiClass> resolveSuperPsiClasses();
+  @Nullable
+  ProguardR8QualifiedName getQualifiedName();
 
 }

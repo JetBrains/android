@@ -27,16 +27,15 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguardR8.psi.*;
-import com.intellij.psi.PsiClass;
 
-public class ProguardR8ClassSpecificationHeaderImpl extends ASTWrapperPsiElement implements ProguardR8ClassSpecificationHeader {
+public class ProguardR8SuperClassNameImpl extends ASTWrapperPsiElement implements ProguardR8SuperClassName {
 
-  public ProguardR8ClassSpecificationHeaderImpl(@NotNull ASTNode node) {
+  public ProguardR8SuperClassNameImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull ProguardR8Visitor visitor) {
-    visitor.visitClassSpecificationHeader(this);
+    visitor.visitSuperClassName(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -45,45 +44,9 @@ public class ProguardR8ClassSpecificationHeaderImpl extends ASTWrapperPsiElement
   }
 
   @Override
-  @NotNull
-  public List<ProguardR8AnnotationName> getAnnotationNameList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8AnnotationName.class);
-  }
-
-  @Override
-  @NotNull
-  public List<ProguardR8ClassModifier> getClassModifierList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8ClassModifier.class);
-  }
-
-  @Override
-  @NotNull
-  public List<ProguardR8ClassName> getClassNameList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8ClassName.class);
-  }
-
-  @Override
-  @NotNull
-  public ProguardR8ClassType getClassType() {
-    return findNotNullChildByClass(ProguardR8ClassType.class);
-  }
-
-  @Override
-  @NotNull
-  public List<ProguardR8SuperClassName> getSuperClassNameList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8SuperClassName.class);
-  }
-
-  @Override
-  @NotNull
-  public List<PsiClass> resolvePsiClasses() {
-    return ProguardR8PsiImplUtil.resolvePsiClasses(this);
-  }
-
-  @Override
-  @NotNull
-  public List<PsiClass> resolveSuperPsiClasses() {
-    return ProguardR8PsiImplUtil.resolveSuperPsiClasses(this);
+  @Nullable
+  public ProguardR8QualifiedName getQualifiedName() {
+    return findChildByClass(ProguardR8QualifiedName.class);
   }
 
 }

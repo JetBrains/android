@@ -23,14 +23,18 @@ import com.intellij.psi.util.parentOfType
 interface ProguardR8ClassMember : PsiElement {
   val type: ProguardR8Type?
   val parameters: ProguardR8Parameters?
-  val modifierList:List<ProguardR8Modifier>
+  val modifierList: List<ProguardR8Modifier>
 }
 
 fun ProguardR8ClassMember.resolveParentClasses(): List<PsiClass> {
   return parentOfType<ProguardR8RuleWithClassSpecification>()
     ?.classSpecificationHeader
-    ?.resolvePsiClasses()
+    ?.let { it.resolvePsiClasses() + it.resolveSuperPsiClasses() }
     .orEmpty()
+}
+
+fun ProguardR8ClassMember.isParentClassKnown(): Boolean {
+  return parentOfType<ProguardR8RuleWithClassSpecification>()?.classSpecificationHeader?.resolvePsiClasses()?.isNotEmpty() == true
 }
 
 /**

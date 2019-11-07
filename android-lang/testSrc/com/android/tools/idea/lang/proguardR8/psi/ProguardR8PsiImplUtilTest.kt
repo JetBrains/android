@@ -385,7 +385,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       """.trimIndent()
     )
     header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
-    assertThat(header.resolvePsiClasses()).containsExactly(myClass)
+    assertThat(header.resolveSuperPsiClasses()).containsExactly(myClass)
 
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
@@ -394,7 +394,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       """.trimIndent()
     )
     header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
-    assertThat(header.resolvePsiClasses()).containsExactly(myClass, superClass)
+    assertThat(header.resolvePsiClasses() + header.resolveSuperPsiClasses()).containsExactly(myClass, superClass)
   }
 
   fun testResolveToMultiplePsiClasses() {
