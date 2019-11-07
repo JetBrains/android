@@ -132,11 +132,6 @@ public class MemoryProfiler extends StudioProfiler {
       return;
     }
 
-    // Only starts live tracking if an existing one is not available.
-    if (isUsingLiveAllocation(myProfilers, session)) {
-      return;
-    }
-
     if (!myProfilers.isAgentAttached()) {
       // Early return if JVMTI agent is not attached.
       return;
