@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
-import com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassName
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8JavaRule
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Modifier
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiFile
@@ -217,7 +216,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
     extend(
       CompletionType.BASIC,
       or(
-        psiElement().inside(psiElement(ProguardR8ClassName::class.java)),
+        psiElement().inside(psiElement(ProguardR8QualifiedName::class.java)),
         type,
         startOfNewJavaRule,
         afterFieldOrMethodModifier

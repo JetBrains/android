@@ -406,6 +406,15 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
       }
       """.trimIndent())
 
+    // don't highlight if class is unknown, but super class is known
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class * extends test.MyClass {
+        foo;
+      }
+      """.trimIndent())
+
     myFixture.checkHighlighting()
 
     // don't highlight if class is unknown (2)
