@@ -419,6 +419,12 @@ private class PreviewEditor(private val psiFile: PsiFile,
         }
       }
     }, this)
+
+    setupChangeListener(
+      project,
+      psiFile,
+      { refresh() },
+      this)
   }
 
   private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce || surface.models.asSequence()
@@ -782,12 +788,6 @@ class ComposeFileEditorProvider @JvmOverloads constructor(
     previewEditor.onRefresh = {
       composeEditorWithPreview.isPureTextEditor = previewEditor.previewElements.isEmpty()
     }
-
-    setupChangeListener(
-      project,
-      psiFile,
-      { previewEditor.refresh() },
-      composeEditorWithPreview)
 
     return composeEditorWithPreview
   }
