@@ -325,7 +325,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_COLOR_BLIND_MODE = Flag.create(
     NELE, "color.blind.mode", "Color Blind Mode",
     "Enable Visualisation Tool to preview layouts in multiple color blind modes at the same time",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_NEW_INTERACTION_INTERFACE = Flag.create(
     NELE, "new.interaction.interface", "New Interaction Interface",
