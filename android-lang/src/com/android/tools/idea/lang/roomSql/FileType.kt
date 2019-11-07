@@ -35,8 +35,3 @@ object ROOM_SQL_FILE_TYPE : LanguageFileType(RoomSqlLanguage.INSTANCE) {
  */
 val ROOM_ICON: Icon = AndroidIcons.DeviceExplorer.DatabaseFolder
 
-class RoomSqlFileTypeFactory : FileTypeFactory() {
-  override fun createFileTypes(consumer: FileTypeConsumer) {
-    consumer.consume(ROOM_SQL_FILE_TYPE)
-  }
-}
