@@ -1,6 +1,6 @@
 android {
   aaptOptions {
-    additionalParameters("abcd", "efgh")
-    ignoreAssetsPattern("mnop")
+    additionalParameters = listOf("abcd", "efgh")
+    ignoreAssetsPattern = "mnop"
   }
 }

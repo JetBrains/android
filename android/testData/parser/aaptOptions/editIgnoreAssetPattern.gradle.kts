@@ -1,6 +1,6 @@
 android {
   aaptOptions {
-    additionalParameters("abcd", "efgh")
-    ignoreAssetsPattern("ijkl")
+    additionalParameters = listOf("abcd", "efgh")
+    ignoreAssetsPattern = "ijkl"
   }
 }

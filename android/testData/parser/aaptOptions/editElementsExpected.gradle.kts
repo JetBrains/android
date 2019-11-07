@@ -1,10 +1,10 @@
 android {
   aaptOptions {
-    additionalParameters("abcd", "xyz")
-    cruncherEnabled(true)
-    cruncherProcesses(3)
-    failOnMissingConfigEntry(false)
-    ignoreAssetsPattern("mnop")
+    additionalParameters = listOf("abcd", "xyz")
+    cruncherEnabled = true
+    cruncherProcesses = 3
+    failOnMissingConfigEntry = false
+    ignoreAssetsPattern = "mnop"
     noCompress("a", "c")
   }
 }
