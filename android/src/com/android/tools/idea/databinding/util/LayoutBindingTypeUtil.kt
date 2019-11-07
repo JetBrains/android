@@ -18,6 +18,7 @@ package com.android.tools.idea.databinding.util
 import com.android.SdkConstants
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
+import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.index.BindingLayoutType
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.index.ViewIdData
@@ -77,7 +78,12 @@ object LayoutBindingTypeUtil {
         SdkConstants.VIEW_INCLUDE == viewName -> return getViewClassNameFromIncludeTag(layoutName, facet)
         SdkConstants.VIEW_STUB == viewName -> {
           val mode = DataBindingUtil.getDataBindingMode(facet)
-          return mode.viewStubProxy
+          if (mode != DataBindingMode.NONE) {
+            return mode.viewStubProxy
+          }
+          else {
+            return SdkConstants.CLASS_VIEWSTUB
+          }
         }
         else -> return SdkConstants.WIDGET_PKG_PREFIX + viewName
       }
