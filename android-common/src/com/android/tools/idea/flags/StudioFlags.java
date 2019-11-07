@@ -326,6 +326,11 @@ public final class StudioFlags {
     NELE, "new.interaction.interface", "New Interaction Interface",
     "Enable new interaction interface in design surface.",
     true);
+
+  public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
+    NELE, "show.source.code.editor", "New Source Code Editor",
+    "Enable new source code editor with preview(s) coming as a substitute to Compose and Custom View editors.",
+    false);
   //endregion
 
   //region Navigation Editor

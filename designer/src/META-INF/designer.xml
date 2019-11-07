@@ -34,6 +34,17 @@
   <!-- New layout editor -->
 
   <extensions defaultExtensionNs="com.intellij">
+    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodeEditorProvider" />
+    <editorNotificationProvider implementation="com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreviewNotificationForwarder" />
+  </extensions>
+
+  <!-- Collects all the providers for source code preview representations -->
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.sourceCodePreviewRepresentationProvider"
+                    interface="com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider" />
+  </extensionPoints>
+
+  <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.NlEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.DesignFilesPreviewEditorProvider"/>
   </extensions>

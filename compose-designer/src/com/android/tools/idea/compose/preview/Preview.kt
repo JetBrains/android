@@ -33,13 +33,13 @@ import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.rendering.RefreshRenderAction.clearCacheAndRefreshSurface
 import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.run.util.StopWatch
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.google.common.util.concurrent.Futures
 import com.intellij.ide.util.PsiNavigationSupport
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
@@ -47,6 +47,8 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
@@ -134,20 +136,21 @@ private fun updateSurfaceWithNewModels(surface: NlDesignSurface,
     }
 
 /**
- * A [FileEditor] that displays a preview of composable elements defined in the given [psiFile].
+ * A [PreviewRepresentation] that provides a compose elements preview representation of the given [psiFile].
  *
- * The editor will display previews for all declared `@Composable` functions that also use the `@Preview` (see [PREVIEW_ANNOTATION_FQN])
- * annotation.
+ * A [component] is implied to display previews for all declared `@Composable` functions that also use the `@Preview` (see
+ * [PREVIEW_ANNOTATION_FQN]) annotation.
  * For every preview element a small XML is generated that allows Layoutlib to render a `@Composable` functions.
  *
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
  * @param previewProvider [PreviewElementProvider] to obtain the [PreviewElement]s.
  */
-internal class PreviewEditor(private val psiFile: PsiFile,
-                             private val previewProvider: PreviewElementProvider) : ComposePreviewManager, Disposable, DesignFileEditor(
-  psiFile.virtualFile!!) {
-  private val LOG = Logger.getInstance(PreviewEditor::class.java)
+class ComposePreviewRepresentation(private val psiFile: PsiFile,
+                                   private val previewProvider: PreviewElementProvider) :
+  PreviewRepresentation, ComposePreviewManager {
+  private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
+  private val file: VirtualFile = psiFile.virtualFile!!
 
   private val navigationHandler = PreviewNavigationHandler()
   private val surface = NlDesignSurface.builder(project, this)
@@ -220,9 +223,9 @@ internal class PreviewEditor(private val psiFile: PsiFile,
   /**
    * [WorkBench] used to contain all the preview elements.
    */
-  val workbench = WorkBench<DesignSurface>(project, "Compose Preview", this, this).apply {
+  private val workbench = WorkBench<DesignSurface>(project, "Compose Preview", null, this).apply {
 
-    val actionsToolbar = ActionsToolbar(this@PreviewEditor, surface)
+    val actionsToolbar = ActionsToolbar(this@ComposePreviewRepresentation, surface)
     val contentPanel = JPanel(BorderLayout()).apply {
       add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
 
@@ -241,8 +244,6 @@ internal class PreviewEditor(private val psiFile: PsiFile,
       add(overlayPanel, BorderLayout.CENTER)
     }
 
-
-
     val issueErrorSplitter = IssuePanelSplitter(surface, contentPanel)
 
     init(issueErrorSplitter, surface, listOf(), false)
@@ -250,8 +251,6 @@ internal class PreviewEditor(private val psiFile: PsiFile,
   }
 
   init {
-    component.add(workbench, BorderLayout.CENTER)
-
     setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
         EditorNotifications.getInstance(project).updateNotifications(psiFile.virtualFile!!)
@@ -285,6 +284,10 @@ internal class PreviewEditor(private val psiFile: PsiFile,
       refresh()
     })
   }
+
+  override val component = workbench
+
+  override fun dispose() { }
 
   override var isAutoBuildEnabled: Boolean = COMPOSE_PREVIEW_AUTO_BUILD.get()
     get() = COMPOSE_PREVIEW_AUTO_BUILD.get() && field
@@ -342,11 +345,11 @@ internal class PreviewEditor(private val psiFile: PsiFile,
    * Method called when the notifications of the [PreviewEditor] need to be updated. This is called by the
    * [ComposePreviewEditorNotificationAdapter] when the editor needs to refresh the notifications.
    */
-  internal fun updateNotifications() {
+  override fun updateNotifications(parentEditor: FileEditor) {
     notificationsPanel.removeAll()
     NOTIFICATIONS_EP_NAME.extensions()
       .asSequence()
-      .mapNotNull { it.createNotificationPanel(file, this, project)  }
+      .mapNotNull { it.createNotificationPanel(file, parentEditor, project) }
       .forEach {
         notificationsPanel.add(it)
       }
@@ -420,7 +423,7 @@ internal class PreviewEditor(private val psiFile: PsiFile,
           val file = ComposeAdapterLightVirtualFile("testFile.xml", fileContents)
           val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
           CompletableFuture.supplyAsync(Supplier<NlModel> {
-            NlModel.create(this@PreviewEditor,
+            NlModel.create(this@ComposePreviewRepresentation,
                            previewElement.displayName,
                            facet,
                            file,
@@ -526,9 +529,35 @@ internal class PreviewEditor(private val psiFile: PsiFile,
     doRefresh(filePreviewElements)
   }
 
-  override fun getName(): String = "Compose Preview"
-
-  fun registerShortcuts(applicableTo: JComponent) {
+  override fun registerShortcuts(applicableTo: JComponent) {
     ForceCompileAndRefreshAction(surface).registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
   }
+}
+
+/**
+ * A thin [FileEditor] wrapper around [ComposePreviewRepresentation].
+ *
+ * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
+ * @param representation a compose PreviewRepresentation of the [psiFile].
+ */
+internal class PreviewEditor(psiFile: PsiFile, val representation: ComposePreviewRepresentation) :
+  ComposePreviewManager by representation, DesignFileEditor(
+  psiFile.virtualFile!!) {
+
+  var onRefresh: (() -> Unit)? = null
+    set(value) {
+      field = value
+      representation.onRefresh = value
+    }
+
+  init {
+    Disposer.register(this, representation)
+    component.add(representation.component, BorderLayout.CENTER)
+  }
+
+  override fun getName(): String = "Compose Preview"
+
+  fun registerShortcuts(applicableTo: JComponent) { representation.registerShortcuts(applicableTo) }
+
+  fun updateNotifications() { representation.updateNotifications(this@PreviewEditor) }
 }
