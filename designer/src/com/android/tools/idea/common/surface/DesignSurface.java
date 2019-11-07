@@ -48,10 +48,13 @@ import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -116,6 +119,11 @@ import org.jetbrains.annotations.Nullable;
  * A generic design surface for use in a graphical editor.
  */
 public abstract class DesignSurface extends EditorDesignSurface implements Disposable, DataProvider, Zoomable, Pannable {
+  /** Filter got {@link #getModels()} to avoid returning disposed elements **/
+  private static final Predicate<NlModel> FILTER_DISPOSED_MODELS = input -> input != null && !input.getModule().isDisposed();
+  /** Filter got {@link #getSceneManagers()} ()} to avoid returning disposed elements **/
+  private static final Predicate<SceneManager> FILTER_DISPOSED_SCENE_MANAGERS =
+    input -> input != null && FILTER_DISPOSED_MODELS.apply(input.getModel());
 
   public enum State {
     /** Surface is taking the total space of the design editor. */
@@ -365,7 +373,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public ImmutableList<NlModel> getModels() {
     myModelToSceneManagersLock.readLock().lock();
     try {
-      return ImmutableList.copyOf(myModelToSceneManagers.keySet());
+      return ImmutableList.copyOf(Sets.filter(myModelToSceneManagers.keySet(), FILTER_DISPOSED_MODELS));
     }
     finally {
       myModelToSceneManagersLock.readLock().unlock();
@@ -380,7 +388,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected ImmutableList<SceneManager> getSceneManagers() {
     myModelToSceneManagersLock.readLock().lock();
     try {
-      return ImmutableList.copyOf(myModelToSceneManagers.values());
+      return ImmutableList.copyOf(Collections2.filter(myModelToSceneManagers.values(), FILTER_DISPOSED_SCENE_MANAGERS));
     }
     finally {
       myModelToSceneManagersLock.readLock().unlock();
@@ -1102,6 +1110,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @Nullable
   public SceneManager getSceneManager(@NotNull NlModel model) {
+    if (model.getModule().isDisposed()) {
+      return null;
+    }
+
     myModelToSceneManagersLock.readLock().lock();
     try {
       return myModelToSceneManagers.get(model);
