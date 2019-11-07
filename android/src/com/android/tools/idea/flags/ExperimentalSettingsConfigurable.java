@@ -46,6 +46,12 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @NotNull private final GradleExperimentalSettings mySettings;
   @NotNull private final RenderSettings myRenderSettings;
 
+  // Should match LayoutInspectorFileType.getName()
+  private static final String LAYOUT_INSPECTOR_FILE_TYPE_NAME = "Layout Inspector";
+
+  // Should match LayoutInspectorToolWindowFactory.TOOL_WINDOW_ID
+  private static final String LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector";
+
   private JPanel myPanel;
   private JCheckBox myUseL2DependenciesCheckBox;
   private JCheckBox myUseSingleVariantSyncCheckbox;
@@ -139,14 +145,14 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
       if (myLayoutInspectorCheckbox.isSelected()) {
         for (FacetDependentToolWindow windowEp : FacetDependentToolWindow.EXTENSION_POINT_NAME.getExtensionList()) {
-          if (windowEp.id.equals("Layout Inspector")) {
+          if (windowEp.id.equals(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)) {
             for (Project project : ProjectManager.getInstance().getOpenProjects()) {
               ToolWindowManagerEx windowManager = ((ToolWindowManagerEx)ToolWindowManager.getInstance(project));
-              ToolWindow window = windowManager.getToolWindow("Layout Inspector");
+              ToolWindow window = windowManager.getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID);
               if (window == null) {
                 windowManager.initToolWindow(windowEp);
               }
-              window = windowManager.getToolWindow("Layout Inspector");
+              window = windowManager.getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID);
               window.activate(null);
             }
           }
@@ -154,7 +160,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
         for (Project project : ProjectManager.getInstance().getOpenProjects()) {
           FileEditorManager editorManager = FileEditorManager.getInstance(project);
           for (VirtualFile vf : editorManager.getOpenFiles()) {
-            if (vf.getFileType().getName().equals("Layout Inspector")) {
+            if (vf.getFileType().getName().equals(LAYOUT_INSPECTOR_FILE_TYPE_NAME)) {
               editorManager.closeFile(vf);
             }
           }
@@ -163,7 +169,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
       else {
         for (Project project : ProjectManager.getInstance().getOpenProjects()) {
           ToolWindowManagerEx windowManager = ((ToolWindowManagerEx)ToolWindowManager.getInstance(project));
-          ToolWindow window = windowManager.getToolWindow("Layout Inspector");
+          ToolWindow window = windowManager.getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID);
           window.hide(null);
         }
       }
