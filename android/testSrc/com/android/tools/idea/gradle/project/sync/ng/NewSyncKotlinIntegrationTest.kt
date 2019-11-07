@@ -134,7 +134,7 @@ class NewSyncKotlinIntegrationTest : AndroidGradleTestCase() {
     assertEquals(oldSettings.useProjectSettings, settings.useProjectSettings)
     assertEquals(oldSettings.languageLevel, settings.languageLevel)
     assertEquals(oldSettings.apiLevel, settings.apiLevel)
-    // assertEquals(oldSettings.platform, settings.platform) // FIXME-ank: depreceated API
+    assertEquals(oldSettings.targetPlatform, settings.targetPlatform)
     assertEquals(oldSettings.coroutineSupport, settings.coroutineSupport)
     assertEquals(oldSettings.implementedModuleNames, settings.implementedModuleNames)
     assertEquals(oldSettings.productionOutputPath, settings.productionOutputPath)

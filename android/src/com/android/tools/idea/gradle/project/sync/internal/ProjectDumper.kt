@@ -349,7 +349,7 @@ fun ProjectDumper.dump(kotlinFacetConfiguration: KotlinFacetConfiguration) {
       head("MergedCompilerArguments") { null }
       dump(mergedCompilerArguments)
     }
-//    prop("Platform") { platform?.toString() } // FIXME-ank (deprecated API)
+    prop("TargetPlatform") { targetPlatform?.toString() }
     prop("ProductionOutputPath") { productionOutputPath }
     sourceSetNames.forEach { prop("- SourceSetName") { it } }
     prop("TestOutputPath") { testOutputPath }
