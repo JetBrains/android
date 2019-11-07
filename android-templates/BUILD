@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.templates.tests",
     iml_files = ["intellij.android.templates.tests.iml"],
     test_class = "com.android.tools.idea.templates.TemplateTestSuite",
+    test_coverage = True,
     test_data = [
         "//tools/adt/idea/android:test_deps.zip",
         "//prebuilts/studio/jdk",
