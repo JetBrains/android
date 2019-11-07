@@ -67,16 +67,4 @@ public class UnitTestsDslElement extends GradleDslBlockElement {
   public UnitTestsDslElement(@NotNull GradleDslElement parent) {
     super(parent, GradleNameElement.create(UNIT_TESTS_BLOCK_NAME));
   }
-
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    super.addParsedElement(element);
-    maybeRenameElement(element);
-  }
-
-  @Override
-  public void setParsedElement(@NotNull GradleDslElement element) {
-    super.setParsedElement(element);
-    maybeRenameElement(element);
-  }
 }
