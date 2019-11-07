@@ -92,5 +92,6 @@ val mapVariable by extra(mapOf("a" to "\"double\" quotes", "b" to "'single' quot
 
 dependencies {
     api("com.android.support:appcompat-v7:+")
-    api(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+    // This is to work around the issue in Gradle 6.0 RC, where the line below fails. See b/144281891.
+    //api(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 }
