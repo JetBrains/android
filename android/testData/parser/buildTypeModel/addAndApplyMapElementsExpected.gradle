@@ -1,7 +1,7 @@
 android {
   buildTypes {
     xyz {
-      manifestPlaceholders activityLabel2: 'newName2', activityLabel1: 'newName1'
+      manifestPlaceholders activityLabel1: 'newName1', activityLabel2: 'newName2'
     }
   }
 }

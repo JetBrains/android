@@ -1,6 +1,6 @@
 android {
   defaultConfig {
-    manifestPlaceholders activityLabel2: 'newName2', activityLabel1: 'newName1'
-    testInstrumentationRunnerArguments key: 'value', size: 'small'
+    manifestPlaceholders activityLabel1: 'newName1', activityLabel2: 'newName2'
+    testInstrumentationRunnerArguments size: 'small', key: 'value'
   }
 }
