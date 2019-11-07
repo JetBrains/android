@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_MULTIPROJECT;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -89,6 +90,15 @@ public class GradleApplicationIdProviderTest extends AndroidGradleTestCase {
     ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
     assertEquals("google.simpleapplication", provider.getPackageName());
     assertEquals("com.example.feature1.test", provider.getTestPackageName());
+  }
+
+  public void testGetPackageNameForLibraryModule() throws Exception {
+    loadProject(TEST_ARTIFACTS_MULTIPROJECT, "module2");
+    ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
+    // Note that Android library module uses self-instrumenting APK meaning there is only an instrumentation APK.
+    // So both getPackageName() and getTestPackageName() should return library's package name suffixed with ".test".
+    assertEquals("com.example.test.multiproject.module2.test", provider.getPackageName());
+    assertEquals("com.example.test.multiproject.module2.test", provider.getTestPackageName());
   }
 
   private static InstantAppProjectBuildOutput createInstantAppProjectBuildOutputMock(@NotNull String variant,

@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.scene.decorator
 
 import com.android.SdkConstants
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
@@ -34,7 +35,6 @@ import com.android.tools.idea.naveditor.scene.targets.isDragCreateInProgress
 import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
 import java.awt.Color
-import java.awt.geom.Rectangle2D
 
 @SwingCoordinate
 val REGULAR_FRAME_THICKNESS = JBUI.scale(1f)
@@ -50,7 +50,7 @@ abstract class NavBaseDecorator : SceneDecorator() {
   override fun addBackground(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
   }
 
-  protected fun addHeader(list: DisplayList, sceneContext: SceneContext, rectangle: Rectangle2D.Float, component: SceneComponent) {
+  protected fun addHeader(list: DisplayList, sceneContext: SceneContext, rectangle: SwingRectangle, component: SceneComponent) {
     val headerRect = getHeaderRect(sceneContext, rectangle)
     val scale = sceneContext.inlineScale
     val text = component.nlComponent.uiName

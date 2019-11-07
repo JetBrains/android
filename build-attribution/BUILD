@@ -31,10 +31,10 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/.idea/libraries:Gradle",
-        "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
     ],
 )
 

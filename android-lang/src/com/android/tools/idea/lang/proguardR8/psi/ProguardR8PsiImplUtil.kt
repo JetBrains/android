@@ -34,6 +34,7 @@ import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassRe
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassReferenceSet
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
+import org.jetbrains.kotlin.psi.psiUtil.children
 
 private class ProguardR8JavaClassReferenceProvider(
   val scope: GlobalSearchScope,
@@ -45,7 +46,8 @@ private class ProguardR8JavaClassReferenceProvider(
   override fun getReferencesByString(str: String, position: PsiElement, offsetInPosition: Int): Array<PsiReference> {
     return if (StringUtil.isEmpty(str)) {
       PsiReference.EMPTY_ARRAY
-    } else {
+    }
+    else {
       object : JavaClassReferenceSet(str, position, offsetInPosition, true, this) {
         // Allows inner classes be separated by a dollar sign "$", e.g.java.lang.Thread$State
         // We can't just use ALLOW_DOLLAR_NAMES flag because to make JavaClassReferenceSet work in the way we want;
@@ -100,27 +102,32 @@ fun getPsiPrimitive(proguardR8JavaPrimitive: ProguardR8JavaPrimitive): PsiPrimit
   }
 }
 
-fun isArray(type: ProguardR8Type): Boolean {
-  return !PsiTreeUtil.hasErrorElements(type) && type.text.endsWith("[]")
+fun getNumberOfDimensions(array: ProguardR8ArrayType): Int {
+  return array.node.children().count()
 }
 
 /**
  * Returns true if ProguardR8Type would match given "other" PsiType otherwise returns false
  */
 fun matchesPsiType(type: ProguardR8Type, other: PsiType): Boolean {
+  if (PsiTreeUtil.hasErrorElements(type)) return false
+
   var typeToMatch = other
-  if (type.isArray) {
-    if (other is PsiArrayType) {
-      typeToMatch = other.componentType
-    } else {
-      return false
-    }
+  if (type.arrayType != null) {
+    for (x in 0 until type.arrayType!!.numberOfDimensions)
+      if (typeToMatch is PsiArrayType) {
+        typeToMatch = typeToMatch.componentType
+      }
+      else {
+        return false
+      }
   }
   return when {
     type.javaPrimitive != null -> type.javaPrimitive!!.psiPrimitive == typeToMatch
     type.qualifiedName != null && typeToMatch is PsiClassReferenceType -> type.qualifiedName!!.resolveToPsiClass() == typeToMatch.resolve()
     // "%" matches any primitive type ("boolean", "int", etc, but not "void").
     type.anyPrimitiveType != null -> typeToMatch is PsiPrimitiveType && typeToMatch != PsiPrimitiveType.VOID
+    type.anyNotPrimitiveType != null -> typeToMatch is PsiClassReferenceType
     type.anyType != null -> true
     else -> false
   }

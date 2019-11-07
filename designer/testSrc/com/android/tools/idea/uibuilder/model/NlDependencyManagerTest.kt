@@ -19,10 +19,11 @@ import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.common.model.NlDependencyManager
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.NON_PLATFORM_SUPPORT_LAYOUT_LIBS
+import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
+import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.intellij.openapi.extensions.Extensions
-import com.intellij.testFramework.PlatformTestUtil
 import junit.framework.TestCase
 
 open class NlDependencyManagerTest : LayoutTestCase() {
@@ -33,8 +34,7 @@ open class NlDependencyManagerTest : LayoutTestCase() {
   override fun setUp() {
     super.setUp()
     projectSystem = TestProjectSystem(project, availableDependencies = PLATFORM_SUPPORT_LIBS + NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
-    PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME,
-                                                                     projectSystem, testRootDisposable)
+    projectSystem.useInTests()
     model = model("model.xml",
                   component(SdkConstants.CONSTRAINT_LAYOUT.defaultName())
                     .withBounds(0, 0, 10, 10)

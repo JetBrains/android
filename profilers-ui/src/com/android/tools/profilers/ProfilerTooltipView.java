@@ -20,6 +20,7 @@ import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.google.common.annotations.VisibleForTesting;
@@ -36,14 +37,14 @@ import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_HEADER_FONT;
 
 public abstract class ProfilerTooltipView extends AspectObserver {
   @NotNull
-  private final ProfilerTimeline myTimeline;
+  private final Timeline myTimeline;
 
   @NotNull
   private final JLabel myHeadingLabel;
 
   protected final Font myFont;
 
-  protected ProfilerTooltipView(@NotNull ProfilerTimeline timeline) {
+  protected ProfilerTooltipView(@NotNull Timeline timeline) {
     myTimeline = timeline;
     myHeadingLabel = new JLabel();
     myHeadingLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
@@ -63,9 +64,9 @@ public abstract class ProfilerTooltipView extends AspectObserver {
   }
 
   private void updateHeader() {
-    Range range = myTimeline.getTooltipRange();
-    if (!range.isEmpty() && range.getMin() >= myTimeline.getDataRange().getMin()) {
-      String time = TimeFormatter.getSemiSimplifiedClockString((long)(range.getMin() - myTimeline.getDataRange().getMin()));
+    Range tooltipRange = myTimeline.getTooltipRange();
+    if (!tooltipRange.isEmpty() && tooltipRange.getMin() >= myTimeline.getDataRange().getMin()) {
+      String time = TimeFormatter.getSemiSimplifiedClockString((long)(tooltipRange.getMin() - myTimeline.getDataRange().getMin()));
       myHeadingLabel.setText(time);
     }
     else {
@@ -114,7 +115,7 @@ public abstract class ProfilerTooltipView extends AspectObserver {
    * Special {@link JPanel} derived class to be able to synchronize its bounds with the tooltip renderer.
    */
   private static class TooltipPanel extends JPanel {
-    public TooltipPanel(LayoutManager layoutManager) {
+    TooltipPanel(LayoutManager layoutManager) {
       super(layoutManager);
     }
 

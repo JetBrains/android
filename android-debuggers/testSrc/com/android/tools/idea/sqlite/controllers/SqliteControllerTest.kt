@@ -25,6 +25,7 @@ import com.android.tools.idea.device.fs.DownloadedFileData
 import com.android.tools.idea.editors.sqlite.SqliteTestUtil
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.SqliteService
+import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.MockSchemaProvider
 import com.android.tools.idea.sqlite.mocks.MockSqliteEditorViewFactory
 import com.android.tools.idea.sqlite.mocks.MockSqliteServiceFactory
@@ -32,10 +33,10 @@ import com.android.tools.idea.sqlite.mocks.MockSqliteView
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
+import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.tableView.TableView
-import com.android.tools.idea.sqliteExplorer.SqliteExplorerProjectService
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.application.ApplicationManager
@@ -119,7 +120,7 @@ class SqliteControllerTest : PlatformTestCase() {
     openedFiles = mutableListOf()
     sqliteController = SqliteController(
       project,
-      SqliteExplorerProjectService.getInstance(project),
+      MockDatabaseInspectorModel(),
       sqliteServiceFactory,
       viewFactory,
       sqliteView,
@@ -135,7 +136,7 @@ class SqliteControllerTest : PlatformTestCase() {
     mockSqliteService = sqliteServiceFactory.sqliteService
     `when`(mockSqliteService.openDatabase()).thenReturn(Futures.immediateFuture(Unit))
     `when`(mockSqliteService.closeDatabase()).thenReturn(Futures.immediateFuture(null))
-    `when`(mockSqliteService.executeQuery(any(String::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
+    `when`(mockSqliteService.executeQuery(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
 
     sqliteDatabase1 = SqliteDatabase(sqliteFile1, mockSqliteService)
     sqliteDatabase2 = SqliteDatabase(sqliteFile2, mockSqliteService)
@@ -414,7 +415,7 @@ class SqliteControllerTest : PlatformTestCase() {
     val evaluatorView = viewFactory.sqliteEvaluatorView
 
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(schema))
-    `when`(mockSqliteService.executeUpdate("INSERT")).thenReturn(Futures.immediateFuture(0))
+    `when`(mockSqliteService.executeUpdate(SqliteStatement("INSERT"))).thenReturn(Futures.immediateFuture(0))
 
     sqliteController.openSqliteDatabase(sqliteFile1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -443,7 +444,7 @@ class SqliteControllerTest : PlatformTestCase() {
 
     // Prepare
     `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(schema))
-    `when`(mockSqliteService.executeUpdate("INSERT")).thenReturn(Futures.immediateFuture(0))
+    `when`(mockSqliteService.executeUpdate(SqliteStatement("INSERT"))).thenReturn(Futures.immediateFuture(0))
 
     sqliteController.openSqliteDatabase(sqliteFile1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()

@@ -23,8 +23,11 @@ import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionProviderBase
+import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.model.viewGroupHandler
+import org.intellij.lang.annotations.JdkConstants
+import java.awt.Cursor
 import java.awt.Rectangle
 
 class NlInteractionProvider(private val surface: DesignSurface): InteractionProviderBase(surface) {
@@ -32,12 +35,7 @@ class NlInteractionProvider(private val surface: DesignSurface): InteractionProv
   override fun createInteractionOnClick(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction? {
     val view = surface.getSceneView(mouseX, mouseY) ?: return null
     val screenView = view as ScreenView
-    val size = screenView.size
-    val resizeZone = Rectangle(view.getX() + size.width,
-                               screenView.y + size.height,
-                               NlConstants.RESIZING_HOVERING_SIZE,
-                               NlConstants.RESIZING_HOVERING_SIZE)
-    if (resizeZone.contains(mouseX, mouseY) && surface.isResizeAvailable) {
+    if (surface.isResizeAvailable && isInResizeZone(view, mouseX, mouseY)) {
       val configuration = surface.configuration!!
       return CanvasResizeInteraction(surface as NlDesignSurface, screenView, configuration)
     }
@@ -83,6 +81,16 @@ class NlInteractionProvider(private val surface: DesignSurface): InteractionProv
       interaction = SceneInteraction(screenView)
     }
     return interaction
+  }
+
+  private fun isInResizeZone(sceneView: SceneView, @SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Boolean {
+    val size = sceneView.size
+    // Check if the mouse position is at the bottom-right corner of sceneView.
+    val resizeZone = Rectangle(sceneView.x + size.width,
+                               sceneView.y + size.height,
+                               NlConstants.RESIZING_HOVERING_SIZE,
+                               NlConstants.RESIZING_HOVERING_SIZE)
+    return resizeZone.contains(mouseX, mouseY)
   }
 
   override fun createInteractionOnDrag(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction? {
@@ -145,5 +153,16 @@ class NlInteractionProvider(private val surface: DesignSurface): InteractionProv
       dragged = listOf(primaryDraggedComponent.nlComponent)
     }
     return DragDropInteraction(surface, dragged)
+  }
+
+  override fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
+                                          @SwingCoordinate mouseY: Int,
+                                          @JdkConstants.InputEventMask modifiersEx: Int): Cursor? {
+    val sceneView = surface.getSceneView(mouseX, mouseY)
+    // Check if the mouse position is at the bottom-right corner of sceneView.
+    if (sceneView != null && sceneView.surface.isResizeAvailable && isInResizeZone(sceneView, mouseX, mouseY)) {
+      return Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR)
+    }
+    return super.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx)
   }
 }

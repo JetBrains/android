@@ -16,9 +16,11 @@
 package com.android.tools.profilers.customevent
 
 import com.android.tools.adtui.AxisComponent
+import com.android.tools.adtui.LegendComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.chart.linechart.LineChart
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -53,7 +55,7 @@ class CustomEventTrackRendererTest {
   fun testRendererComponents() {
     // Tests that the line chart and axis component are rendered in the track.
     val lineChartModel = UserCounterModel(profilers, "foo")
-    val customEventTrackModel = TrackModel.newBuilder(CustomEventTrackModel(lineChartModel),
+    val customEventTrackModel = TrackModel.newBuilder(CustomEventTrackModel(lineChartModel, Range(0.0, 0.0)),
                                                       ProfilerTrackRendererType.CUSTOM_EVENTS,
                                                       "Custom Events").build()
 
@@ -66,5 +68,8 @@ class CustomEventTrackRendererTest {
 
     val trackAxisComponent = treeWalker.descendants().filterIsInstance(AxisComponent::class.java)
     Truth.assertThat(trackAxisComponent.size).isEqualTo(1)
+
+    val trackLegendComponent = treeWalker.descendants().filterIsInstance(CustomEventTrackLegendComponent::class.java)
+    Truth.assertThat(trackLegendComponent.size).isEqualTo(1)
   }
 }

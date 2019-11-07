@@ -8,9 +8,9 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="Gradle" level="project" />
-    <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
   </component>
 </module>

@@ -114,8 +114,8 @@ iml_module(
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
-        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
     ],
     # do not sort: must match IML order
     deps = [

@@ -378,7 +378,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
   public void testAppliedKotlinPlugin() throws Exception {
     writeToBuildFile(APPLY_PLUGIN_APPLIED_KOTLIN_PLUGIN);
     GradleBuildModel buildModel = getGradleBuildModel();
-    verifyPlugins(ImmutableList.of("kotlin-android", "kotlin-plugin-extensions"), buildModel.plugins());
+    verifyPlugins(ImmutableList.of("org.jetbrains.kotlin.android", "org.jetbrains.kotlin.plugin-extensions"), buildModel.plugins());
   }
 
   @Test

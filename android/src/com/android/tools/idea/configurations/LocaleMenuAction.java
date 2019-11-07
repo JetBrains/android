@@ -195,8 +195,7 @@ public class LocaleMenuAction extends DropDownAction {
       Locale locale = configuration.getLocale();
       presentation.setIcon(
         locale != Locale.ANY && FlagManager.showFlagsForLanguages() ? locale.getFlagImage() : StudioIcons.LayoutEditor.Toolbar.LANGUAGE);
-      // TODO: remove the tail space after we fix the offset of Dropdown arrow in DropDownAction.
-      String brief = getLocaleLabel(locale, true) + " ";
+      String brief = getLocaleLabel(locale, true);
       presentation.setText(brief);
     }
     else {

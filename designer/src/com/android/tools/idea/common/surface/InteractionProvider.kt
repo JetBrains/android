@@ -18,11 +18,15 @@ package com.android.tools.idea.common.surface
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.idea.common.model.Coordinates.getAndroidXDip
+import com.android.tools.idea.common.model.Coordinates.getAndroidYDip
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.model.NlDropEvent
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction
+import org.intellij.lang.annotations.JdkConstants
+import java.awt.Cursor
 import java.awt.dnd.DnDConstants
 import java.awt.dnd.DropTargetDragEvent
 import java.awt.event.MouseWheelEvent
@@ -35,9 +39,24 @@ interface InteractionProvider {
   fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction?
 
   fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction?
+
+  fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
+                             @SwingCoordinate mouseY: Int,
+                             @JdkConstants.InputEventMask modifiersEx: Int)
+
+  /**
+   * Get Cursor by [InteractionManager] when there is no active [Interaction].
+   *
+   * TODO (b/142953949): Remove those 3 arguments when StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
+   */
+  fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
+                                 @SwingCoordinate mouseY: Int,
+                                 @JdkConstants.InputEventMask modifiersEx: Int): Cursor?
 }
 
 abstract class InteractionProviderBase(private val surface: DesignSurface) : InteractionProvider {
+  private var cursorWhenNoInteraction: Cursor? = null
+
   override fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction? {
     val event = NlDropEvent(dragEvent)
     val location = dragEvent.location
@@ -88,11 +107,50 @@ abstract class InteractionProviderBase(private val surface: DesignSurface) : Int
     return interaction
   }
 
+  override fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
+                                      @SwingCoordinate mouseY: Int,
+                                      @JdkConstants.InputEventMask modifiersEx: Int) {
+    if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+      // b/142953949: Before refactoring the hover is done when updating cursor. Use a flag to make the old behavior as same as before when
+      // flag is not enabled.
+      val sceneView = surface.getSceneView(mouseX, mouseY)
+      if (sceneView != null) {
+        val context = sceneView.context
+        context.setMouseLocation(mouseX, mouseY)
+        sceneView.scene.mouseHover(context, getAndroidXDip(sceneView, mouseX), getAndroidYDip(sceneView, mouseY), modifiersEx)
+        cursorWhenNoInteraction = sceneView.scene.mouseCursor
+      }
+      else {
+        cursorWhenNoInteraction = null
+      }
+    }
+    for (layer in surface.layers) {
+      layer.onHover(mouseX, mouseY)
+    }
+  }
+
   override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? {
     val x = mouseWheelEvent.x
     val y = mouseWheelEvent.y
     val sceneView = surface.getSceneView(x, y) ?: return null
     val component = Coordinates.findComponent(sceneView, x, y) ?: return null // There is no component consuming the scroll
     return ScrollInteraction.createScrollInteraction(sceneView, component)
+  }
+
+  override fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
+                                          @SwingCoordinate mouseY: Int,
+                                          @JdkConstants.InputEventMask modifiersEx: Int): Cursor? {
+    if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
+      return cursorWhenNoInteraction
+    }
+    else {
+      // b/142953949: Before refactoring the hover is done when updating cursor. Use a flag to make the old behavior as same as before when
+      // flag is not enabled.
+      val sceneView = surface.getSceneView(mouseX, mouseY) ?: return null
+      val context = sceneView.context
+      context.setMouseLocation(mouseX, mouseY)
+      sceneView.scene.mouseHover(context, getAndroidXDip(sceneView, mouseX), getAndroidYDip(sceneView, mouseY), modifiersEx)
+      return sceneView.scene.mouseCursor
+    }
   }
 }

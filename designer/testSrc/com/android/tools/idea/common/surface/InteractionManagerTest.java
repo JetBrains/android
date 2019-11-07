@@ -63,6 +63,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -341,7 +342,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
   }
 
-  private InteractionManager setupLinearLayoutCursorTest() {
+  protected InteractionManager setupLinearLayoutCursorTest() {
     SyncNlModel model = model("test.xml", component(LINEAR_LAYOUT)
       .withAttribute(ATTR_ORIENTATION, VALUE_VERTICAL)
       .withBounds(0, 0, 100, 100)
@@ -413,6 +414,10 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testCursorChangeWhenSetPanningTrue() {
+    if (GraphicsEnvironment.isHeadless()) {
+      // AdtUiCursors.GRAB is not created properly in headless environment. See AdtUiCursors.makeCursor()
+      return;
+    }
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
 
@@ -422,6 +427,10 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testInterceptPanOnModifiedKeyPressed() {
+    if (GraphicsEnvironment.isHeadless()) {
+      // AdtUiCursors.GRABBING is not created properly in headless environment. See AdtUiCursors.makeCursor()
+      return;
+    }
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     Point moved = new Point(0, 0);
@@ -433,6 +442,10 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testInterceptPanModifiedKeyReleased() {
+    if (GraphicsEnvironment.isHeadless()) {
+      // AdtUiCursors.GRAB is not created properly in headless environment. See AdtUiCursors.makeCursor()
+      return;
+    }
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
@@ -519,7 +532,7 @@ public class InteractionManagerTest extends LayoutTestCase {
       sourceMock, id, 0, modifierKeyMask, 0, 0, 0, false);
   }
 
-  private InteractionManager setupConstraintLayoutCursorTest() {
+  protected InteractionManager setupConstraintLayoutCursorTest() {
     SyncNlModel model = model("constraint.xml", component(CONSTRAINT_LAYOUT.defaultName())
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()

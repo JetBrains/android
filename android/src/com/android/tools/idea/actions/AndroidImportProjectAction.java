@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.eclipse.GradleImport.isEclipseProjec
 import static com.android.tools.idea.gradle.project.AdtModuleImporter.isAdtProjectLocation;
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
 import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
+import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 import static com.intellij.ide.impl.NewProjectUtil.createFromWizard;
 import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;
 import static com.intellij.openapi.roots.ui.configuration.ModulesProvider.EMPTY_MODULES_PROVIDER;
@@ -26,7 +27,6 @@ import static com.intellij.openapi.util.io.FileUtil.ensureExists;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
-import com.android.SdkConstants;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
 import com.android.tools.idea.ui.validation.validators.ProjectImportPathValidator;
@@ -51,7 +51,6 @@ import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.projectImport.ProjectImportProvider;
@@ -189,7 +188,7 @@ public class AndroidImportProjectAction extends AnAction {
       importAdtProject(file);
     }
     else if (isEclipseProjectDir(targetDirFile) &&
-             targetDir.findChild(SdkConstants.FN_BUILD_GRADLE) == null &&
+             !findGradleBuildFile(targetDirFile).exists() &&
              !ApplicationManager.getApplication().isUnitTestMode()) {
       String message = String.format("%1$s is an Eclipse project, but not an Android Eclipse project.\n\n" +
                                      "Please select the directory of an Android Eclipse project" +

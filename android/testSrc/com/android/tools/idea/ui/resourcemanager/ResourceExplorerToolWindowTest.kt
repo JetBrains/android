@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.resourcemanager
 
-import com.android.tools.idea.projectsystem.EP_NAME
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -24,14 +23,12 @@ import com.android.tools.idea.ui.resourcemanager.explorer.NoFacetView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
@@ -60,9 +57,7 @@ class ResourceExplorerToolWindowTest {
     fixture = createHeavyFixture()
     fixture.setUp()
     module = fixture.module
-    TestProjectSystem(project, lastSyncResult = ProjectSystemSyncManager.SyncResult.UNKNOWN).also {
-      PlatformTestUtil.registerExtension(Extensions.getArea(project), EP_NAME, it, fixture.projectDisposable)
-    }
+    TestProjectSystem(project, lastSyncResult = ProjectSystemSyncManager.SyncResult.UNKNOWN).useInTests()
     ClearResourceCacheAfterFirstBuild.getInstance(module.project).syncSucceeded()
   }
 

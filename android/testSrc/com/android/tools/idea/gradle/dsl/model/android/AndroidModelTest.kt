@@ -66,6 +66,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_EDIT_AND_APP
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_EDIT_AND_RESET_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_PARSE_NO_RESCONFIGS_PROPERTY
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_BLOCK_APPLICATION_STATEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_BUILD_TYPE_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED
@@ -86,8 +87,16 @@ import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_FROM_
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REPLACE_AND_RESET_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.LIST
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl
+import com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -1454,5 +1463,34 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
     assertEquals("dynamicFeatures", listOf(":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
+  }
+
+  @Test
+  fun testParseNoResConfigsProperty() {
+    writeToBuildFile(ANDROID_MODEL_PARSE_NO_RESCONFIGS_PROPERTY)
+
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    var resConfigsModel : GradlePropertyModel?
+    var zzzModel : GradlePropertyModel?
+
+    resConfigsModel = buildModel.declaredProperties[0]
+    zzzModel = buildModel.declaredProperties[1]
+
+    verifyListProperty(resConfigsModel, listOf("abc"), VARIABLE, 0, "resConfigs")
+    verifyListProperty(zzzModel, listOf("def"), VARIABLE, 0, "zzz")
+
+    resConfigsModel = android.defaultConfig().declaredProperties[0]
+    zzzModel = android.defaultConfig().declaredProperties[1]
+
+    // TODO(b/143934194): The effect of assigning to a global variable is currently to create a local property shadowing the global.
+    //  This is right for the remainder of the scope of the local block (in this case defaultConfig) and technically incorrect for
+    //  the rest of the Dsl, though Dsl configuration which depends on order of execution is probably not well-formed.
+    verifyListProperty(zzzModel, listOf("jkl"), REGULAR, 0, "zzz")
+    verifyListProperty(resConfigsModel, listOf("ghi"), REGULAR, 0, "resConfigs")
+
+    assertMissingProperty(android.defaultConfig().resConfigs())
   }
 }

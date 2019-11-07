@@ -25,13 +25,13 @@ iml_module(
     runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-customization:intellij.java.ide.customization",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
-        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
     ],
     # do not sort: must match IML order
     deps = [
@@ -91,7 +91,6 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
         "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:studio_repo.zip",
         "//tools/base/build-system/previous-versions:2.2.0.zip",
         "//tools/base/templates",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",

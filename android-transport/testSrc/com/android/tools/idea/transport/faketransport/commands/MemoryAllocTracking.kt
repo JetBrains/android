@@ -16,6 +16,7 @@
 package com.android.tools.idea.transport.faketransport.commands
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory
@@ -30,10 +31,12 @@ class MemoryAllocTracking(timer: FakeTimer) : CommandHandler(timer) {
   var legacyTracking = false
   var trackStatus = Memory.TrackStatus.getDefaultInstance()
   var lastInfo = Memory.AllocationsInfo.getDefaultInstance()
+  var lastCommand = Commands.Command.getDefaultInstance()
 
   override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
     val isStartTracking = command.type == Command.CommandType.START_ALLOC_TRACKING
     val infoId = timer.currentTimeNs
+    lastCommand = command
     lastInfo = Memory.AllocationsInfo.newBuilder()
       .setStartTime(trackStatus.startTime)
       .setEndTime(if (isStartTracking) Long.MAX_VALUE else trackStatus.startTime + 1)

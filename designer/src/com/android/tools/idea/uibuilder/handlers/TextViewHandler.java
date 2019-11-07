@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.flags.StudioFlags.NELE_SAMPLE_DATA_UI;
 
 /**
  * Handler for several widgets that have a {@code text} attribute.
@@ -88,10 +87,6 @@ public class TextViewHandler extends ViewHandler {
 
   @Nullable
   private static ComponentAssistantFactory getComponentAssistant(@NotNull NlComponent component) {
-    if (!NELE_SAMPLE_DATA_UI.get()) {
-      return null;
-    }
-
     String toolsText = component.getAttribute(TOOLS_URI, ATTR_TEXT);
     String text = component.getAttribute(ANDROID_URI, ATTR_TEXT);
 

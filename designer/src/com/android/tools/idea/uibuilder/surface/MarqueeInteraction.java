@@ -26,6 +26,7 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
+import java.awt.Cursor;
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
@@ -112,6 +113,12 @@ public class MarqueeInteraction extends Interaction {
   @Override
   public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
     mySceneView.getSelectionModel().clear();
+  }
+
+  @Nullable
+  @Override
+  public Cursor getCursor() {
+    return null;
   }
 
   @NotNull

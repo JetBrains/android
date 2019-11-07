@@ -75,6 +75,7 @@ public class AndroidRootUtil {
    */
   @Nullable
   public static VirtualFile getPrimaryManifestFile(@NotNull AndroidFacet facet) {
+    if (facet.isDisposed()) return null;
     return SourceProviderManager.getInstance(facet).getMainManifestFile();
   }
 

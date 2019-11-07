@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.testFramework.UsefulTestCase.assertThrows;
+import static java.lang.Thread.sleep;
 
 import com.android.ide.common.util.PathString;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -63,11 +65,7 @@ public final class IconGeneratorTest {
                 List<Callable<GeneratedIcon>> tasks = new ArrayList<>();
                 tasks.add(() -> {
                     latch.countDown(); // Broadcast that we are now starting to execute a task
-                    try {
-                        Thread.sleep(1_000); // Simulate a slow task
-                    }
-                    catch (Throwable ignored) {
-                    }
+                    sleep(1_000); // Simulate a slow task
                     return new GeneratedXmlResource("name", new PathString(""), IconCategory.REGULAR, "xmlText");
                 });
 
@@ -83,7 +81,7 @@ public final class IconGeneratorTest {
             }
             catch (InterruptedException ignored) {
             }
-
+            assertThat(latch.getCount()).isEqualTo(0);
             Disposer.dispose(iconGenerator);
         }).start();
 

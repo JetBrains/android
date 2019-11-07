@@ -21,6 +21,7 @@ import com.android.resources.ResourceType
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.res.SampleDataResourceItem
 import com.android.tools.idea.res.resolveDrawable
 import com.android.tools.idea.res.toFileResourcePathString
 import com.android.tools.idea.ui.resourcemanager.ImageCache
@@ -82,6 +83,11 @@ class DrawableIconProvider(
   val project = facet.module.project
 
   private fun getDrawableImage(dimension: Dimension, designAsset: DesignAsset): CompletableFuture<out BufferedImage?>? {
+    if (designAsset.resourceItem is SampleDataResourceItem) {
+      // Do not try to resolve SampleData, it will return an iterable resourceValue that will generate different previews.
+      val file = designAsset.file
+      return DesignAssetRendererManager.getInstance().getViewer(file).getImage(file, facet.module, dimension)
+    }
     val resolveValue = resourceResolver.resolveValue(designAsset) ?: return null
     if (resolveValue.isFramework) {
       // Delegate framework resources to FrameworkDrawableRenderer. DesignAssetRendererManager fails to provide an image for framework xml
@@ -194,7 +200,9 @@ class DrawableIconProvider(
               .thenApplyAsync { image -> image ?: throw Exception("Failed to resolve resource") }
               .thenApply { image -> scaleToFitIfNeeded(image, targetSize) }
               .exceptionally { throwable ->
-                LOG.error("Error while rendering $designAsset", throwable); ERROR_ICON
+                // TODO: Selectively log exceptions. Some of this errors are expected and not worth investigating. Would be better if could
+                //  tell those apart so that we can properly Log them as warnings/errors.
+                LOG.warn("Error while rendering $designAsset", throwable); ERROR_ICON
               }.get()
           }
           else {

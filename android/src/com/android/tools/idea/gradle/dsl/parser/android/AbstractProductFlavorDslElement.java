@@ -16,19 +16,24 @@
 package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
-import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 /**
@@ -37,68 +42,96 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 public abstract class AbstractProductFlavorDslElement extends AbstractFlavorTypeDslElement {
 
   @NotNull
-  public static final ImmutableMap<String, String> ktsToModelNameMap =
+  public static final ImmutableMap<Pair<String, Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap =
     Stream.concat(
-      AbstractFlavorTypeDslElement.ktsToModelNameMap.entrySet().stream().map(data -> new String[]{data.getKey(), data.getValue()}),
-      Stream.of(new String[][]{
-        // FIXME(xof): a few of these, despite having getFoo() and setFoo() methods, don't allow setting through the implicit setter foo = ...
-        //  (setDimension, setTestFunctionalTest, setTestHandleProfiling)
-        //  why not?  And is it too cute to pun using the setter method, or is that in fact the Right Thing?
-        //
-        // FIXME(b/142111082): it is too cute, in fact.  This trick works for parsing and for creating new properties (with cooperation from
-        //  ModelImpl.asMethod() builders) but doesn't work for resolution.
-        {"applicationId", ProductFlavorModelImpl.APPLICATION_ID},
-        {"setDimension", ProductFlavorModelImpl.DIMENSION},
-        {"maxSdkVersion", ProductFlavorModelImpl.MAX_SDK_VERSION},
-        {"minSdkVersion", ProductFlavorModelImpl.MIN_SDK_VERSION},
-        {"missingDimensionStrategy", ProductFlavorModelImpl.MISSING_DIMENSION_STRATEGY}, // FIXME(xof): missingDimensionStrategies?
-        {"renderscriptTargetApi", ProductFlavorModelImpl.RENDER_SCRIPT_TARGET_API},
-        {"renderscriptSupportModeEnabled", ProductFlavorModelImpl.RENDER_SCRIPT_SUPPORT_MODE_ENABLED},
-        {"renderscriptSupportModeBlasEnabled", ProductFlavorModelImpl.RENDER_SCRIPT_SUPPORT_MODE_BLAS_ENABLED},
-        {"renderscriptNdkModeEnabled", ProductFlavorModelImpl.RENDER_SCRIPT_NDK_MODE_ENABLED},
-        {"resConfigs", ProductFlavorModelImpl.RES_CONFIGS},
-        {"targetSdkVersion", ProductFlavorModelImpl.TARGET_SDK_VERSION},
-        {"testApplicationId", ProductFlavorModelImpl.TEST_APPLICATION_ID},
-        {"setTestFunctionalTest", ProductFlavorModelImpl.TEST_FUNCTIONAL_TEST},
-        {"setTestHandleProfiling", ProductFlavorModelImpl.TEST_HANDLE_PROFILING},
-        {"testInstrumentationRunner", ProductFlavorModelImpl.TEST_INSTRUMENTATION_RUNNER},
-        {"testInstrumentationRunnerArguments", ProductFlavorModelImpl.TEST_INSTRUMENTATION_RUNNER_ARGUMENTS},
-        {"versionCode", ProductFlavorModelImpl.VERSION_CODE},
-        {"versionName", ProductFlavorModelImpl.VERSION_NAME},
-        {"wearAppUnbundled", ProductFlavorModelImpl.WEAR_APP_UNBUNDLED}
+      AbstractFlavorTypeDslElement.ktsToModelNameMap.entrySet().stream().map(data -> new Object[]{
+        data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().getFirst(), data.getValue().getSecond()
+      }),
+      Stream.of(new Object[][]{
+        {"applicationId", property, APPLICATION_ID, VAR},
+        {"setApplicationId", exactly(1), APPLICATION_ID, SET},
+        {"setDimension", exactly(1), DIMENSION, SET},
+        {"dimension", property, DIMENSION, VAL}, // VAL: can read but not assign
+        {"maxSdkVersion", exactly(1), MAX_SDK_VERSION, SET},
+        {"minSdkVersion", exactly(1), MIN_SDK_VERSION, SET},
+        {"missingDimensionStrategy", atLeast(1), MISSING_DIMENSION_STRATEGY, OTHER}, // ADD
+        {"renderscriptTargetApi", property, RENDER_SCRIPT_TARGET_API, VAR},
+        {"renderscriptSupportModeEnabled", property, RENDER_SCRIPT_SUPPORT_MODE_ENABLED, VAR},
+        {"renderscriptSupportModeBlasEnabled", property, RENDER_SCRIPT_SUPPORT_MODE_BLAS_ENABLED, VAR},
+        {"renderscriptNdkModeEnabled", property, RENDER_SCRIPT_NDK_MODE_ENABLED, VAR},
+        {"resConfigs", atLeast(0), RES_CONFIGS, OTHER}, // FIXME(xof): actually APPENDN fails to handle resConfigs(listOf(...))
+        {"resConfig", exactly(1), RES_CONFIGS, OTHER},
+        {"targetSdkVersion", exactly(1), TARGET_SDK_VERSION, SET},
+        {"testApplicationId", property, TEST_APPLICATION_ID, VAR},
+        {"setTestApplicationId", exactly(1), TEST_APPLICATION_ID, SET},
+        {"setTestFunctionalTest", exactly(1), TEST_FUNCTIONAL_TEST, SET},
+        {"testFunctionalTest", property, TEST_FUNCTIONAL_TEST, VAL},
+        {"setTestHandleProfiling", exactly(1), TEST_HANDLE_PROFILING, SET},
+        {"testHandleProfiling", property, TEST_HANDLE_PROFILING, VAL},
+        {"testInstrumentationRunner", property, TEST_INSTRUMENTATION_RUNNER, VAR},
+        {"testInstrumentationRunner", exactly(1), TEST_INSTRUMENTATION_RUNNER, SET},
+        {"testInstrumentationRunnerArguments", property, TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, VAR},
+        {"testInstrumentationRunnerArguments", exactly(1), TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, OTHER}, // PUTALL
+        {"versionCode", property, VERSION_CODE, VAR},
+        {"setVersionCode", exactly(1), VERSION_CODE, SET},
+        {"versionName", property, VERSION_NAME, VAR},
+        {"setVersionName", exactly(1), VERSION_NAME, SET},
+        {"wearAppUnbundled", property, WEAR_APP_UNBUNDLED, VAR}
       }))
-      .collect(toImmutableMap(data -> data[0], data -> data[1]));
+      .collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
+                              data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
 
   @NotNull
-  public static final ImmutableMap<String, String> groovyToModelNameMap =
+  public static final ImmutableMap<Pair<String, Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap =
     Stream.concat(
-      AbstractFlavorTypeDslElement.groovyToModelNameMap.entrySet().stream().map(data -> new String[]{data.getKey(), data.getValue()}),
-      Stream.of(new String[][]{
-        {"applicationId", ProductFlavorModelImpl.APPLICATION_ID},
-        {"dimension", ProductFlavorModelImpl.DIMENSION},
-        {"maxSdkVersion", ProductFlavorModelImpl.MAX_SDK_VERSION},
-        {"minSdkVersion", ProductFlavorModelImpl.MIN_SDK_VERSION},
-        {"missingDimensionStrategy", ProductFlavorModelImpl.MISSING_DIMENSION_STRATEGY}, // FIXME(xof): missingDimensionStrategies?
-        {"renderscriptTargetApi", ProductFlavorModelImpl.RENDER_SCRIPT_TARGET_API},
-        {"renderscriptSupportModeEnabled", ProductFlavorModelImpl.RENDER_SCRIPT_SUPPORT_MODE_ENABLED},
-        {"renderscriptSupportModeBlasEnabled", ProductFlavorModelImpl.RENDER_SCRIPT_SUPPORT_MODE_BLAS_ENABLED},
-        {"renderscriptNdkModeEnabled", ProductFlavorModelImpl.RENDER_SCRIPT_NDK_MODE_ENABLED},
-        {"resConfigs", ProductFlavorModelImpl.RES_CONFIGS},
-        {"targetSdkVersion", ProductFlavorModelImpl.TARGET_SDK_VERSION},
-        {"testApplicationId", ProductFlavorModelImpl.TEST_APPLICATION_ID},
-        {"testFunctionalTest", ProductFlavorModelImpl.TEST_FUNCTIONAL_TEST},
-        {"testHandleProfiling", ProductFlavorModelImpl.TEST_HANDLE_PROFILING},
-        {"testInstrumentationRunner", ProductFlavorModelImpl.TEST_INSTRUMENTATION_RUNNER},
-        {"testInstrumentationRunnerArguments", ProductFlavorModelImpl.TEST_INSTRUMENTATION_RUNNER_ARGUMENTS},
-        {"versionCode", ProductFlavorModelImpl.VERSION_CODE},
-        {"versionName", ProductFlavorModelImpl.VERSION_NAME},
-        {"wearAppUnbundled", ProductFlavorModelImpl.WEAR_APP_UNBUNDLED}
+      AbstractFlavorTypeDslElement.groovyToModelNameMap.entrySet().stream().map(data -> new Object[]{
+        data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().getFirst(), data.getValue().getSecond()
+      }),
+      Stream.of(new Object[][]{
+        {"applicationId", property, APPLICATION_ID, VAR},
+        {"applicationId", exactly(1), APPLICATION_ID, SET},
+        {"dimension", property, DIMENSION, VAR},
+        {"dimension", exactly(1), DIMENSION, SET},
+        {"maxSdkVersion", property, MAX_SDK_VERSION, VAR},
+        {"maxSdkVersion", exactly(1), MAX_SDK_VERSION, SET},
+        {"minSdkVersion", property, MIN_SDK_VERSION, VAR},
+        {"minSdkVersion", exactly(1), MIN_SDK_VERSION, SET},
+        {"missingDimensionStrategy", atLeast(1), MISSING_DIMENSION_STRATEGY, OTHER},
+        {"renderscriptTargetApi", property, RENDER_SCRIPT_TARGET_API, VAR},
+        {"renderscriptTargetApi", exactly(1), RENDER_SCRIPT_TARGET_API, SET},
+        {"renderscriptSupportModeEnabled", property, RENDER_SCRIPT_SUPPORT_MODE_ENABLED, VAR},
+        {"renderscriptSupportModeEnabled", exactly(1), RENDER_SCRIPT_SUPPORT_MODE_ENABLED, SET},
+        {"renderscriptSupportModeBlasEnabled", property, RENDER_SCRIPT_SUPPORT_MODE_BLAS_ENABLED, VAR},
+        {"renderscriptSupportModeBlasEnabled", exactly(1), RENDER_SCRIPT_SUPPORT_MODE_BLAS_ENABLED, SET},
+        {"renderscriptNdkModeEnabled", property, RENDER_SCRIPT_NDK_MODE_ENABLED, VAR},
+        {"renderscriptNdkModeEnabled", exactly(1), RENDER_SCRIPT_NDK_MODE_ENABLED, SET},
+        {"resConfigs", atLeast(0), RES_CONFIGS, OTHER},
+        {"resConfig", exactly(1), RES_CONFIGS, OTHER},
+        {"targetSdkVersion", property, TARGET_SDK_VERSION, VAR},
+        {"targetSdkVersion", exactly(1), TARGET_SDK_VERSION, SET},
+        {"testApplicationId", property, TEST_APPLICATION_ID, VAR},
+        {"testApplicationId", exactly(1), TEST_APPLICATION_ID, SET},
+        {"testFunctionalTest", property, TEST_FUNCTIONAL_TEST, VAR},
+        {"testFunctionalTest", exactly(1), TEST_FUNCTIONAL_TEST, SET},
+        {"testHandleProfiling", property, TEST_HANDLE_PROFILING, VAR},
+        {"testHandleProfiling", exactly(1), TEST_HANDLE_PROFILING, SET},
+        {"testInstrumentationRunner", property, TEST_INSTRUMENTATION_RUNNER, VAR},
+        {"testInstrumentationRunner", exactly(1), TEST_INSTRUMENTATION_RUNNER, SET},
+        {"testInstrumentationRunnerArguments", property, TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, VAR},
+        {"testInstrumentationRunnerArguments", exactly(1), TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, SET},
+        {"versionCode", property, VERSION_CODE, VAR},
+        {"versionCode", exactly(1), VERSION_CODE, SET},
+        {"versionName", property, VERSION_NAME, VAR},
+        {"versionName", exactly(1), VERSION_NAME, SET},
+        {"wearAppUnbundled", property, WEAR_APP_UNBUNDLED, VAR},
+        {"wearAppUnbundled", exactly(1), WEAR_APP_UNBUNDLED, SET}
       }))
-      .collect(toImmutableMap(data -> data[0], data -> data[1]));
+      .collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
+                              data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
 
   @Override
   @NotNull
-  public ImmutableMap<String, String> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public ImmutableMap<Pair<String, Integer>, Pair<String, SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }
@@ -120,7 +153,7 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
 
     // these two methods have the same names in both currently-supported languages (Kotlin and Groovy)
     if (property.equals("resConfigs") || property.equals("resConfig")) {
-      addToParsedExpressionList(ProductFlavorModelImpl.RES_CONFIGS, element);
+      addToParsedExpressionList(RES_CONFIGS, element);
       return;
     }
 
@@ -136,9 +169,9 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
       }
 
       GradleDslExpressionMap testInstrumentationRunnerArgumentsElement =
-        getPropertyElement(ProductFlavorModelImpl.TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, GradleDslExpressionMap.class);
+        getPropertyElement(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, GradleDslExpressionMap.class);
       if (testInstrumentationRunnerArgumentsElement == null) {
-        oldElement.getNameElement().rename(ProductFlavorModelImpl.TEST_INSTRUMENTATION_RUNNER_ARGUMENTS);
+        oldElement.getNameElement().rename(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS);
         testInstrumentationRunnerArgumentsElement =
           new GradleDslExpressionMap(this, element.getPsiElement(), oldElement.getNameElement(), true);
         setParsedElement(testInstrumentationRunnerArgumentsElement);
@@ -154,6 +187,9 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
 
     // testInstrumentationRunnerArgument has the same name in Groovy and Kotlin
     if (property.equals("testInstrumentationRunnerArgument")) {
+      if (element instanceof GradleDslMethodCall) {
+        element = ((GradleDslMethodCall)element).getArgumentsElement();
+      }
       if (!(element instanceof GradleDslExpressionList)) {
         return;
       }
@@ -172,10 +208,11 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
       value.getNameElement().commitNameChange(elements.get(0).getPsiElement(), this.getDslFile().getWriter(), this);
 
       GradleDslExpressionMap testInstrumentationRunnerArgumentsElement =
-        getPropertyElement(ProductFlavorModelImpl.TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, GradleDslExpressionMap.class);
+        getPropertyElement(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, GradleDslExpressionMap.class);
       if (testInstrumentationRunnerArgumentsElement == null) {
         testInstrumentationRunnerArgumentsElement =
-          new GradleDslExpressionMap(this, GradleNameElement.create(ProductFlavorModelImpl.TEST_INSTRUMENTATION_RUNNER_ARGUMENTS));
+          new GradleDslExpressionMap(this, GradleNameElement.create(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS));
+        setParsedElement(testInstrumentationRunnerArgumentsElement);
       }
       testInstrumentationRunnerArgumentsElement.setParsedElement(value);
       return;

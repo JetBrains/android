@@ -459,7 +459,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   }
 
   private void createAndAlignApk(final String apkPath) {
-    AndroidPlatform platform = getFacet().getConfiguration().getAndroidPlatform();
+    AndroidPlatform platform = AndroidPlatform.getInstance(getFacet().getModule());
     assert platform != null;
     BuildToolInfo buildTool = platform.getTarget().getBuildToolInfo();
     String zipAlignPath = buildTool.getPath(BuildToolInfo.PathId.ZIP_ALIGN);

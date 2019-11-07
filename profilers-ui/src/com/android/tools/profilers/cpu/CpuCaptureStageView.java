@@ -15,10 +15,13 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.RangeTooltipComponent;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.trackgroup.TrackGroupListPanel;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.ProfilerTrackRendererFactory;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilersView;
@@ -28,7 +31,6 @@ import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
-import java.awt.BorderLayout;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.ScrollPaneConstants;
@@ -49,6 +51,8 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     super(view, stage);
     myTrackGroupList = new TrackGroupListPanel(TRACK_RENDERER_FACTORY);
     myAnalysisPanel = new CpuAnalysisPanel(view, stage);
+    getTooltipBinder().bind(CaptureCpuUsageTooltip.class, CaptureCpuUsageTooltipView::new);
+
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
     myMultiSelectionModel.addDependency(this).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, this::onTrackGroupSelectionChange);
     updateComponents();
@@ -91,14 +95,26 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   }
 
   private JComponent createAnalyzingComponents() {
+    CpuCaptureMinimapModel minimapModel = getStage().getMinimapModel();
+    CpuCaptureMinimapView minimap = new CpuCaptureMinimapView(minimapModel);
+    RangeTooltipComponent rangeTooltipComponent =
+      new RangeTooltipComponent(getStage().getCaptureTimeline(), getTooltipPanel(), getProfilersView().getComponent(), () -> false);
+    rangeTooltipComponent.registerListenersOn(minimap.getComponent());
+    minimap.getComponent().addMouseListener(
+      new ProfilerTooltipMouseAdapter(
+        getStage(),
+        () -> new CaptureCpuUsageTooltip(minimapModel.getCpuUsage(), getStage().getCaptureTimeline().getTooltipRange())));
     loadTrackGroupModels();
-    JPanel container = new JPanel(new BorderLayout());
-    container.add(new CpuCaptureMinimapView(getStage().getMinimapModel()).getComponent(), BorderLayout.NORTH);
+
+    JPanel container = new JPanel(new TabularLayout("*", "Fit-,*"));
+    // The tooltip component should be first so it draws on top of all elements.
+    container.add(rangeTooltipComponent, new TabularLayout.Constraint(0, 0, 2, 1));
+    container.add(minimap.getComponent(), new TabularLayout.Constraint(0, 0));
     container.add(
       new JBScrollPane(myTrackGroupList.getComponent(),
                        ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER),
-      BorderLayout.CENTER);
+      new TabularLayout.Constraint(1, 0));
 
     JBSplitter splitter = new JBSplitter(false, 0.5f);
     splitter.setFirstComponent(container);

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.model
 
-import com.intellij.util.ui.JBUI
+import com.intellij.ui.scale.JBUIScale
 
 /**
  * Represents the distance between two points in android space
@@ -31,5 +31,5 @@ inline class AndroidLength(val value: Float) {
   fun toInt() = value.toInt()
 }
 
-fun scaledAndroidLength(value: Float) = AndroidLength(JBUI.scale(value))
+fun scaledAndroidLength(value: Float) = AndroidLength(JBUIScale.scale(value))
 operator fun Int.times(rhs: AndroidLength) = rhs * this

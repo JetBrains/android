@@ -29,20 +29,14 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 /**
- * Sets up a change listener for the given [psiFile]. When the file changes, [refreshPreview] will be called if any [PreviewElement] has
- * been affected by the change. [sourceCodeChanged] will be called if there was a potential source code change but the [PreviewElement]s
- * remained the same.
- *
- * The [previewElementProvider] should provide the last valid list of [PreviewElement]s.
+ * Sets up a change listener for the given [psiFile]. When the file changes, [refreshPreview] will be called.
  *
  * The given [parentDisposable] will be used to set the life cycle of the listener. When disposed, the listener will be disposed too.
  */
 fun setupChangeListener(
   project: Project,
   psiFile: PsiFile,
-  previewElementProvider: () -> List<PreviewElement>,
   refreshPreview: () -> Unit,
-  sourceCodeChanged: () -> Unit,
   parentDisposable: Disposable,
   mergeQueue: MergingUpdateQueue = MergingUpdateQueue("Document change queue",
                                                       TimeUnit.SECONDS.toMillis(1).toInt(),
@@ -53,19 +47,9 @@ fun setupChangeListener(
   documentManager.getDocument(psiFile)!!.addDocumentListener(object : DocumentListener {
     val aggregatedEventsLock = ReentrantLock()
     val aggregatedEvents = mutableSetOf<DocumentEvent>()
-    var previousPreviewElements = previewElementProvider()
 
     private fun onDocumentChanged(event: Set<DocumentEvent>) {
-      val currentPreviewElements = previewElementProvider()
-      if (currentPreviewElements != previousPreviewElements) {
-        // The preview elements have changed so force refresh
-        refreshPreview()
-      }
-      else {
-        sourceCodeChanged()
-      }
-
-      previousPreviewElements = currentPreviewElements
+      refreshPreview()
     }
 
     override fun documentChanged(event: DocumentEvent) {

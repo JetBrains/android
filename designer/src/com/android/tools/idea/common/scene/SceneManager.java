@@ -243,7 +243,10 @@ abstract public class SceneManager implements Disposable {
   @NotNull
   public abstract CompletableFuture<Void> requestRender();
 
-  public void requestLayoutAndRender(boolean animate) {}
+  @NotNull
+  public CompletableFuture<Void> requestLayoutAndRender(boolean animate) {
+    return CompletableFuture.completedFuture(null);
+  }
 
   @NotNull
   public abstract CompletableFuture<Void> requestLayout(boolean animate);

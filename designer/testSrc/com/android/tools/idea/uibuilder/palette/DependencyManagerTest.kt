@@ -64,8 +64,7 @@ class DependencyManagerTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     val testProjectSystem = TestProjectSystem(project, availableDependencies = PLATFORM_SUPPORT_LIBS)
-    PlatformTestUtil.registerExtension<AndroidProjectSystemProvider>(Extensions.getArea(project), EP_NAME, testProjectSystem,
-                                                                     testRootDisposable)
+    testProjectSystem.useInTests()
     panel = mock(PalettePanel::class.java)
     palette = NlPaletteModel.get(myFacet).getPalette(LayoutFileType)
     disposable = Disposer.newDisposable()

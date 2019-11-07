@@ -67,7 +67,7 @@ public class ScreenViewLayer extends Layer {
   private final Rectangle myScreenViewVisibleRect = new Rectangle();
   private final Dimension myScreenViewSize = new Dimension();
   private final Rectangle myCachedScreenViewDisplayRect = new Rectangle();
-
+  private double myLastScale;
   /**
    * Create a new ScreenView
    *
@@ -91,8 +91,11 @@ public class ScreenViewLayer extends Layer {
   ScreenViewLayer(@NotNull ScreenView screenView, @Nullable ScheduledExecutorService executor) {
     myScreenView = screenView;
     myScheduledExecutorService = executor != null ? executor : Executors.newScheduledThreadPool(1);
+    myLastScale = myScreenView.getScale();
     Disposer.register(screenView.getSurface(), this);
   }
+
+  private static final Color CLEAR_BACKGROUND = new Color(255, 255, 255, 0);
 
   /**
    * Renders a preview image trying to reuse the existing buffer when possible.
@@ -112,6 +115,7 @@ public class ScreenViewLayer extends Layer {
     int sx2 = sx1 + (int)Math.round(screenViewVisibleSize.width * xScaleFactor);
     int sy2 = sy1 + (int)Math.round(screenViewVisibleSize.height * yScaleFactor);
     BufferedImage image;
+    boolean clearBackground;
     boolean bufferWithScreenViewSizeExists = existingBuffer != null && existingBuffer.getWidth() == screenViewVisibleSize.width
                                              && existingBuffer.getHeight() == screenViewVisibleSize.height;
     if (screenViewHasBorderLayer && bufferWithScreenViewSizeExists) {
@@ -120,13 +124,22 @@ public class ScreenViewLayer extends Layer {
       // might cause the unexpected effect of parts of the old image being rendered on the transparent parts of the new one. Therefore, we
       // need to force the creation of a new image in this case.
       image = existingBuffer;
+      clearBackground = true;
     }
     else {
       image = configuration.createCompatibleImage(screenViewVisibleSize.width, screenViewVisibleSize.height, Transparency.TRANSLUCENT);
       assert image != null;
+      // No need to clear the background for a new image
+      clearBackground = false;
     }
     Graphics2D cacheImageGraphics = image.createGraphics();
     cacheImageGraphics.setRenderingHints(HQ_RENDERING_HINTS);
+    if (clearBackground) {
+      cacheImageGraphics.setColor(CLEAR_BACKGROUND);
+      cacheImageGraphics.setComposite(AlphaComposite.Clear);
+      cacheImageGraphics.fillRect(0,0,image.getWidth(),image.getHeight());
+      cacheImageGraphics.setComposite(AlphaComposite.Src);
+    }
     cacheImageGraphics.drawImage(renderedImage, 0, 0, image.getWidth(), image.getHeight(), sx1, sy1, sx2, sy2, null);
     cacheImageGraphics.dispose();
 
@@ -163,7 +176,9 @@ public class ScreenViewLayer extends Layer {
 
     Graphics2D g = (Graphics2D) graphics2D.create();
     BufferedImage cachedVisibleImage = drawNewImg ? null : previousVisibleImage;
-    if (drawNewImg || !myScreenViewVisibleRect.equals(myCachedScreenViewDisplayRect)) {
+    double currentScale = myScreenView.getScale();
+    //noinspection FloatingPointEquality
+    if (drawNewImg || currentScale != myLastScale || !myScreenViewVisibleRect.equals(myCachedScreenViewDisplayRect)) {
       if (myLastRenderResult != null && myLastRenderResult.hasImage()) {
         BufferedImage renderedImage = myLastRenderResult.getRenderedImage().getCopy();
         assert renderedImage != null : "Image was already disposed";
@@ -175,7 +190,7 @@ public class ScreenViewLayer extends Layer {
         double xScaleFactor = (double)resultImageWidth / myScreenViewSize.width;
         double yScaleFactor = (double)resultImageHeight / myScreenViewSize.height;
         cancelHighQualityScaleRequests();
-        if (Math.abs(1 - xScaleFactor) > 0.2 && Math.abs(1 - yScaleFactor) > 0.2) {
+        if (xScaleFactor > 1.2 && yScaleFactor > 1.2) {
           // This means that the result image is bigger than the ScreenView by more than a 20%. For this cases, we need to scale down the
           // result image to make it fit in the ScreenView and we use a higher quality (but slow) process. We will issue a request to obtain
           // the high quality version but paint the low quality version below. Once it's ready, we'll repaint.
@@ -188,6 +203,7 @@ public class ScreenViewLayer extends Layer {
                                              myScreenViewVisibleRect, xScaleFactor, yScaleFactor,
                                              previousVisibleImage, myScreenView.hasBorderLayer());
         myCachedVisibleImage = cachedVisibleImage;
+        myLastScale = currentScale;
       }
     }
 
@@ -196,8 +212,6 @@ public class ScreenViewLayer extends Layer {
       if (screenShape != null) {
         g.clip(screenShape);
       }
-      // b/140428773 : Graphics.drawImage returns even it is not completed. Fill the default color here to avoid un-painted image.
-      g.fillRect(myScreenViewVisibleRect.x, myScreenViewVisibleRect.y, myScreenViewVisibleRect.width, myScreenViewVisibleRect.height);
       UIUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleRect.x, myScreenViewVisibleRect.y, null);
     }
     g.dispose();

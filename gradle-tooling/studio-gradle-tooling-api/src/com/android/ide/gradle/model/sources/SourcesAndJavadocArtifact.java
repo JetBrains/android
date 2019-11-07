@@ -40,4 +40,10 @@ public interface SourcesAndJavadocArtifact {
    */
   @Nullable
   File getJavadoc();
+
+  /**
+   * Returns the location of downloaded pom file, null if pom file is not available.
+   */
+  @Nullable
+  File getMavenPom();
 }

@@ -21,6 +21,7 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.SceneView;
 import com.intellij.openapi.diagnostic.Logger;
+import java.awt.Cursor;
 import java.awt.event.MouseEvent;
 import java.util.EventObject;
 import org.intellij.lang.annotations.JdkConstants;
@@ -80,7 +81,10 @@ public class SceneInteraction extends Interaction {
   public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
     if (event instanceof MouseEvent) {
       MouseEvent mouseEvent = (MouseEvent)event;
-      update(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
+      int mouseX = mouseEvent.getX();
+      int mouseY = mouseEvent.getY();
+      mySceneView.getContext().setMouseLocation(mouseX, mouseY);
+      update(mouseX, mouseY, mouseEvent.getModifiersEx());
     }
   }
 
@@ -146,5 +150,11 @@ public class SceneInteraction extends Interaction {
     Scene scene = mySceneView.getScene();
     scene.mouseCancel();
     mySceneView.getSurface().repaint();
+  }
+
+  @Override
+  @Nullable
+  public Cursor getCursor() {
+    return mySceneView.getScene().getMouseCursor();
   }
 }

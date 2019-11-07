@@ -39,7 +39,6 @@ public class AndroidGradleTaskManagerTest {
     GradleBuildInvoker gradleBuildInvoker = createInvokerMock(projectPath, taskId, project);
     ExternalSystemTaskNotificationListenerAdapter listener = new ExternalSystemTaskNotificationListenerAdapter() {};
 
-/* b/137231583
     new AndroidGradleTaskManager().executeTasks(taskId, taskNames, projectPath, null, null, listener);
 
     verify(gradleBuildInvoker).executeTasks(argThat(new RequestMatcher(
@@ -48,7 +47,6 @@ public class AndroidGradleTaskManagerTest {
         .setCommandLineArguments(new ArrayList<>())
         .setTaskListener(listener)
         .waitForCompletion())));
-b/137231583 */
   }
 
   @NotNull

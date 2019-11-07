@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -47,7 +48,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.util.TimeoutUtil;
 import java.io.File;
@@ -227,7 +227,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   }
 
   public void testLibRClass() throws Exception {
-    SourceProviderManager sourceProviderManager = SourceProviderManager.getInstance(myFacet);
+    SourceProviders sourceProviderManager = SourceProviderManager.getInstance(myFacet);
     VirtualFile defaultManifest = sourceProviderManager.getMainManifestFile();
 
     AndroidProjectStub androidProject = TestProjects.createBasicProject();

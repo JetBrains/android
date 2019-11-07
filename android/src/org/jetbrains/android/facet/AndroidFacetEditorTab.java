@@ -136,6 +136,14 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private static final String MAVEN_TAB_TITLE = "Maven";
   private final Component myMavenTabComponent;
 
+  public static final class Provider implements AndroidFacetConfiguration.EditorTabProvider {
+    @Override
+    public FacetEditorTab createFacetEditorTab(@NotNull FacetEditorContext editorContext,
+                                               @NotNull AndroidFacetConfiguration configuration) {
+      return new AndroidFacetEditorTab(editorContext, configuration);
+    }
+  }
+
   public AndroidFacetEditorTab(FacetEditorContext context, AndroidFacetConfiguration androidFacetConfiguration) {
     final Project project = context.getProject();
     myConfiguration = androidFacetConfiguration;
@@ -185,11 +193,10 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       @Override
       public void actionPerformed(ActionEvent e) {
         AndroidFacetConfiguration configuration = new AndroidFacetConfiguration();
-        configuration.setFacet((AndroidFacet)myContext.getFacet());
         Module module = myContext.getModule();
         VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
         if (contentRoots.length == 1) {
-          configuration.init(module, contentRoots[0]);
+          AndroidUtils.setUpAndroidFacetConfiguration(module, configuration, contentRoots[0].getPath());
         }
         if (AndroidMavenUtil.isMavenizedModule(module)) {
           AndroidMavenProvider mavenProvider = AndroidMavenUtil.getMavenProvider();

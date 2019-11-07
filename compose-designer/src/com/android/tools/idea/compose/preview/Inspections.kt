@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtVisitorVoid
 
 private const val INSPECTIONS_GROUP_NAME = "Compose Preview"
@@ -142,3 +143,41 @@ class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
     }
   }
 }
+
+/**
+ * Inspection that checks that `@Preview` width parameter doesn't go higher than [MAX_WIDTH],
+ * and the height parameter doesn't go higher than [MAX_HEIGHT].
+ */
+class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
+  override fun getDisplayName() = message("inspection.dimension.limit.name")
+
+  override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
+                                             function: KtNamedFunction,
+                                             previewAnnotation: KtAnnotationEntry,
+                                             functionAnnotations: Map<String, KtAnnotationEntry>) {
+    previewAnnotation.getArgumentValue(WIDTH_PARAMETER)?.let {
+      if (it.exceedsLimit(MAX_WIDTH)) {
+        holder.registerProblem(it.psiOrParent as PsiElement,
+                               message("inspection.width.limit.description", MAX_WIDTH),
+                               ProblemHighlightType.WARNING)
+      }
+    }
+
+    previewAnnotation.getArgumentValue(HEIGHT_PARAMETER)?.let {
+      if (it.exceedsLimit(MAX_HEIGHT)) {
+        holder.registerProblem(it.psiOrParent as PsiElement,
+                               message("inspection.height.limit.description", MAX_HEIGHT),
+                               ProblemHighlightType.WARNING)
+      }
+    }
+
+  }
+}
+
+private fun KtValueArgument.exceedsLimit(limit: Int): Boolean {
+  (getArgumentExpression() as? PsiElement)?.node?.text?.toIntOrNull()?.let { return it > limit }
+  return false
+}
+
+private fun KtAnnotationEntry.getArgumentValue(name: String) =
+  valueArguments.firstOrNull { it.getArgumentName()?.asName?.asString() == name } as? KtValueArgument

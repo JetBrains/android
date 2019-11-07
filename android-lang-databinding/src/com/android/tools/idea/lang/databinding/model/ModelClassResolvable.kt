@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.model
 
-import com.android.tools.idea.lang.databinding.psi.PsiDbExpr
+import com.intellij.psi.PsiElement
 
 /**
  * An interface for references that can be resolved to a model class (a data class that can be
@@ -32,9 +32,17 @@ interface ModelClassResolvable {
 }
 
 /**
- * Check if a generic data binding expression can be converted to a [ModelClassResolvable], or
- * `null` if
+ * Returns a [ModelClassResolvable] that the element can be converted to or null if such conversion
+ * is not applicable.
+ *
+ * Note: If the element can be converted to multiple [ModelClassResolvable], choose the one with
+ * non-null resolvedType.
+ * For example, a data binding field `myField` could have two [ModelClassResolvable] references: one for
+ * its getter `getMyField` and one for its setter `setMyField`. Only the getter method reference has a
+ * non-null resolvedType and should be used to decide myField's type. On the other hand, The setter method
+ * is used for type matching in two-way bindings.
  */
-fun PsiDbExpr.toModelClassResolvable(): ModelClassResolvable? {
-  return references.filterIsInstance<ModelClassResolvable>().firstOrNull()
+fun PsiElement.toModelClassResolvable(): ModelClassResolvable? {
+  val bindingReferences = references.filterIsInstance<ModelClassResolvable>()
+  return bindingReferences.firstOrNull { it.resolvedType != null } ?: bindingReferences.firstOrNull()
 }

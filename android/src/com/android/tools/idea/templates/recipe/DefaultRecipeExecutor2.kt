@@ -39,7 +39,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
-import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.templates.RenderingContextAdapter
 import com.android.tools.idea.templates.RepositoryUrlManager
@@ -56,6 +55,7 @@ import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.SourceSetType
 import com.android.utils.XmlUtils.XML_PROLOG
+import com.android.utils.findGradleBuildFile
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Strings.nullToEmpty
 import com.google.common.io.Resources.getResource
@@ -227,7 +227,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     val toBeAddedDependency = ArtifactDependencySpec.create(resolvedCoordinate)
     check(toBeAddedDependency != null) { "$resolvedCoordinate is not a valid classpath dependency" }
 
-    val rootBuildFile = getGradleBuildFilePath(getBaseDirPath(project))
+    val rootBuildFile = findGradleBuildFile(getBaseDirPath(project))
     val buildModel = getBuildModel(rootBuildFile, project)
     if (buildModel == null) {
       mergeBuildFilesAndWrite(
@@ -367,7 +367,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
   }
 
   override fun setExtVar(name: String, value: Any) {
-    val rootBuildFile = getGradleBuildFilePath(getBaseDirPath(context.project))
+    val rootBuildFile = findGradleBuildFile(getBaseDirPath(context.project))
     // TODO(qumeric) handle it in more reliable way?
     val buildModel = getBuildModel(rootBuildFile, context.project) ?: return
     val property = buildModel.buildscript().ext().findProperty(name)
@@ -592,7 +592,7 @@ fun getBuildModel(buildFile: File, project: Project): GradleBuildModel? {
 private fun getBuildFilePath(context: RenderingContext2): File {
   val module = context.module
   val moduleBuildFile = if (module == null) null else getGradleBuildFile(module)
-  return moduleBuildFile?.let { virtualToIoFile(it) } ?: getGradleBuildFilePath(context.moduleRoot)
+  return moduleBuildFile?.let { virtualToIoFile(it) } ?: findGradleBuildFile(context.moduleRoot)
 }
 
 // TODO(qumeric): make private

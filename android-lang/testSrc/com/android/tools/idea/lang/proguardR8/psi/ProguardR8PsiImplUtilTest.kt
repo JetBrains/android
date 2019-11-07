@@ -564,4 +564,42 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     accessModifier = myFixture.moveCaret("! fi|nal int field3").parentOfType(ProguardR8Modifier::class)!!
     assertThat(accessModifier.isNegated).isTrue()
   }
+
+  fun testMultiDimensionArray() {
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep class MyClass {
+          java.lang.Object[][] myFunction1();
+          int[][][] myFunction2();
+        }
+      """.trimIndent()
+    )
+
+    var type = myFixture.moveCaret("Objec|t").parentOfType<ProguardR8Type>()!!
+    assertThat(type.matchesPsiType(elementFactory.createTypeFromText("Object[][]", null))).isTrue()
+
+    type = myFixture.moveCaret("in|t").parentOfType()!!
+    assertThat(type.matchesPsiType(elementFactory.createTypeFromText("int[][][]", null))).isTrue()
+  }
+
+  fun testAnyNotPrimitiveType() {
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep class MyClass {
+          ** myFunction1();
+          **[] myFunction2();
+        }
+      """.trimIndent()
+    )
+
+    var type = myFixture.moveCaret("*|* myFunction1();").parentOfType<ProguardR8Type>()!!
+    assertThat(type.matchesPsiType(elementFactory.createTypeFromText("Object", null))).isTrue()
+    assertThat(type.matchesPsiType(elementFactory.createTypeFromText("Object[]", null))).isFalse()
+
+    type = myFixture.moveCaret("*|*[] myFunction2();").parentOfType()!!
+    assertThat(type.matchesPsiType(elementFactory.createTypeFromText("Object", null))).isFalse()
+    assertThat(type.matchesPsiType(elementFactory.createTypeFromText("Object[]", null))).isTrue()
+  }
 }

@@ -32,11 +32,19 @@ public class ProguardR8Visitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitAnyNotPrimitiveType(@NotNull ProguardR8AnyNotPrimitiveType o) {
+    visitPsiElement(o);
+  }
+
   public void visitAnyPrimitiveType(@NotNull ProguardR8AnyPrimitiveType o) {
     visitPsiElement(o);
   }
 
   public void visitAnyType(@NotNull ProguardR8AnyType o) {
+    visitPsiElement(o);
+  }
+
+  public void visitArrayType(@NotNull ProguardR8ArrayType o) {
     visitPsiElement(o);
   }
 

@@ -26,10 +26,16 @@ import com.intellij.psi.PsiType;
 public interface ProguardR8Type extends PsiElement {
 
   @Nullable
+  ProguardR8AnyNotPrimitiveType getAnyNotPrimitiveType();
+
+  @Nullable
   ProguardR8AnyPrimitiveType getAnyPrimitiveType();
 
   @Nullable
   ProguardR8AnyType getAnyType();
+
+  @Nullable
+  ProguardR8ArrayType getArrayType();
 
   @Nullable
   ProguardR8JavaPrimitive getJavaPrimitive();
@@ -38,7 +44,5 @@ public interface ProguardR8Type extends PsiElement {
   ProguardR8QualifiedName getQualifiedName();
 
   boolean matchesPsiType(@NotNull PsiType other);
-
-  boolean isArray();
 
 }

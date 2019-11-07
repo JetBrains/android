@@ -20,6 +20,7 @@ import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
+import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -29,7 +30,6 @@ import com.intellij.util.concurrency.SequentialTaskExecutor
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.JDBCType
-import java.sql.PreparedStatement
 import java.util.concurrent.Executor
 
 /**
@@ -52,13 +52,13 @@ class SqliteJdbcService(
     SequentialTaskExecutor.createSequentialApplicationPoolExecutor("Sqlite JDBC service", pooledExecutor)
   )
 
-  override fun closeDatabase() = sequentialTaskExecutor.executeAsync {
-      connection?.close()
-      connection = null
-      logger.info("Successfully closed database: ${sqliteFile.path}")
+  override fun closeDatabase(): ListenableFuture<Unit> = sequentialTaskExecutor.executeAsync {
+    connection?.close()
+    connection = null
+    logger.info("Successfully closed database: ${sqliteFile.path}")
   }
 
-  override fun openDatabase(): ListenableFuture<Unit> = sequentialTaskExecutor.executeAsync {
+  override fun openDatabase() = sequentialTaskExecutor.executeAsync {
     try {
       check(connection == null) { "Database is already open" }
 
@@ -113,21 +113,20 @@ class SqliteJdbcService(
     return columns
   }
 
-  override fun executeQuery(query: String): ListenableFuture<SqliteResultSet> {
-    val newSqliteResultSet = SqliteJdbcResultSet(this, connection!!, query)
+  override fun executeQuery(sqLiteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
+    val newSqliteResultSet = SqliteJdbcResultSet(this, connection!!, sqLiteStatement)
     return Futures.immediateFuture(newSqliteResultSet)
   }
 
-  override fun executeUpdate(query: String): ListenableFuture<Int> {
-    return execute(query) { preparedStatement -> preparedStatement.executeUpdate() }
-  }
+  override fun executeUpdate(sqLiteStatement: SqliteStatement): ListenableFuture<Int> {
+    return sequentialTaskExecutor.executeAsync {
+      checkNotNull(connection) { "Database is not open" }
 
-  private fun <T> execute(query: String, connectionMethod: (PreparedStatement) -> T) = sequentialTaskExecutor.executeAsync {
-    checkNotNull(connection) { "Database is not open" }
-
-    connection!!.let { connection ->
-      connectionMethod(connection.prepareStatement(query)).also {
-        logger.info("SQL statement \"$query\" executed with success.")
+      connection!!.let { connection ->
+        val preparedStatement = connection.resolvePreparedStatement(sqLiteStatement)
+        return@executeAsync preparedStatement.executeUpdate().also {
+          logger.info("SQL statement \"${sqLiteStatement.sqliteStatementText}\" executed with success.")
+        }
       }
     }
   }

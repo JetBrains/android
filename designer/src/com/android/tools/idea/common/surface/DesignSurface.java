@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.common.surface;
 
-import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
 import static com.android.tools.adtui.PannableKt.PANNABLE_KEY;
+import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
 
 import com.android.tools.adtui.Pannable;
 import com.android.tools.adtui.Zoomable;
@@ -102,8 +102,10 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import javax.annotation.concurrent.GuardedBy;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
@@ -148,7 +150,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private List<PanZoomListener> myZoomListeners;
   private final ActionManager myActionManager;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
-  protected final LinkedHashMap<NlModel, SceneManager> myModelToSceneManagers = new LinkedHashMap<>();
+  private final ReentrantReadWriteLock myModelToSceneManagersLock = new ReentrantReadWriteLock();
+  @GuardedBy("myModelToSceneManagersLock")
+  private final LinkedHashMap<NlModel, SceneManager> myModelToSceneManagers = new LinkedHashMap<>();
   protected final JPanel myVisibleSurfaceLayerPanel;
 
   private final SelectionModel mySelectionModel = new SelectionModel();
@@ -202,6 +206,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private State myState = State.FULL;
   @Nullable
   private StateChangeListener myStateChangeListener;
+
+  private float myMaxFitIntoScale = Float.MAX_VALUE;
 
   private final Timer myRepaintTimer = new Timer(15, (actionEvent) -> {
     repaint();
@@ -272,7 +278,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       public void componentResized(ComponentEvent componentEvent) {
         boolean scaled = false;
         if (isShowing() && getWidth() > 0 && getHeight() > 0
-            && (!contentResizeSkipped() || getFitScale(false) > myScale)) {
+            && !contentResizeSkipped()) {
           // We skip the resize only if the flag is set to true
           // and the content size will be increased.
           // Like this, when the issue panel is opened, the content size stays the
@@ -289,7 +295,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
           layoutContent();
           updateScrolledAreaSize();
         }
-        myModelToSceneManagers.values().forEach(it -> it.getScene().needsRebuildList());
+        getSceneManagers().forEach(it -> it.getScene().needsRebuildList());
       }
     });
 
@@ -352,10 +358,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * @return the primary (first) {@link NlModel} if exist. null otherwise.
    * @see #getModels()
+   * @deprecated The surface can contain multiple models. Use {@link #getModels() instead}.
    */
+  @Deprecated
   @Nullable
   public NlModel getModel() {
-    return Iterables.getFirst(myModelToSceneManagers.keySet(), null);
+    return Iterables.getFirst(getModels(), null);
   }
 
   /**
@@ -364,7 +372,28 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @NotNull
   public ImmutableList<NlModel> getModels() {
-    return ImmutableList.copyOf(myModelToSceneManagers.keySet());
+    myModelToSceneManagersLock.readLock().lock();
+    try {
+      return ImmutableList.copyOf(myModelToSceneManagers.keySet());
+    }
+    finally {
+      myModelToSceneManagersLock.readLock().unlock();
+    }
+  }
+
+  /**
+   * Returns the list of all the {@link SceneManager} part of this surface
+   * @return
+   */
+  @NotNull
+  protected ImmutableList<SceneManager> getSceneManagers() {
+    myModelToSceneManagersLock.readLock().lock();
+    try {
+      return ImmutableList.copyOf(myModelToSceneManagers.values());
+    }
+    finally {
+      myModelToSceneManagersLock.readLock().unlock();
+    }
   }
 
   /**
@@ -375,7 +404,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @NotNull
   private SceneManager addModelImpl(@NotNull NlModel model) {
-    SceneManager manager = myModelToSceneManagers.get(model);
+    SceneManager manager = getSceneManager(model);
     // No need to add same model twice.
     if (manager != null) {
       return manager;
@@ -384,7 +413,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     model.addListener(myModelListener);
     model.getConfiguration().addListener(myConfigurationListener);
     manager = createSceneManager(model);
-    myModelToSceneManagers.put(model, manager);
+    myModelToSceneManagersLock.writeLock().lock();
+    try {
+      myModelToSceneManagers.put(model, manager);
+    }
+    finally {
+      myModelToSceneManagersLock.writeLock().unlock();
+    }
 
     if (myIsActive) {
       model.activate(this);
@@ -398,23 +433,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
    *
    * @param model the added {@link NlModel}
-   * @see #addModel(NlModel, boolean)
    */
   @NotNull
   public CompletableFuture<Void> addModel(@NotNull NlModel model) {
-    return addModel(model, true);
-  }
-
-  /**
-   * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, only
-   * the refresh will be triggered.
-   * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
-   *
-   * @param model the added {@link NlModel}
-   * @param zoomToFitAfterAdding indicate if surface should zoom to fit the content after rendering.
-   */
-  @NotNull
-  public CompletableFuture<Void> addModel(@NotNull NlModel model, boolean zoomToFitAfterAdding) {
     SceneManager modelSceneManager = addModelImpl(model);
 
     // We probably do not need to request a render for all models but it is currently the
@@ -422,9 +443,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return modelSceneManager.requestRender()
       .whenCompleteAsync((result, ex) -> {
         reactivateInteractionManager();
-        if (zoomToFitAfterAdding) {
-          zoomToFit();
-        }
 
         for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
           listener.modelChanged(this, model);
@@ -439,7 +457,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @returns true if the model existed and was removed
    */
   private boolean removeModelImpl(@NotNull NlModel model) {
-    SceneManager manager = myModelToSceneManagers.remove(model);
+    SceneManager manager;
+      myModelToSceneManagersLock.writeLock().lock();
+    try {
+      manager = myModelToSceneManagers.remove(model);
+    }
+    finally {
+      myModelToSceneManagersLock.writeLock().unlock();
+    }
+
     if (manager == null) {
       return false;
     }
@@ -467,7 +493,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     reactivateInteractionManager();
-    zoomToFit();
   }
 
   /**
@@ -486,14 +511,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       removeModelImpl(oldModel);
     }
 
-    // Should not have any other NlModel in this use case.
-    assert myModelToSceneManagers.isEmpty();
-
     if (model == null) {
       return CompletableFuture.completedFuture(null);
     }
 
     addModelImpl(model);
+    zoomToFit();
 
     return requestRender()
       .whenCompleteAsync((result, ex) -> {
@@ -523,7 +546,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Override
   public void dispose() {
     myInteractionManager.stopListening();
-    for (NlModel model : myModelToSceneManagers.keySet()) {
+    for (NlModel model : getModels()) {
       model.getConfiguration().removeListener(myConfigurationListener);
       model.removeListener(myModelListener);
     }
@@ -665,7 +688,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @Nullable
   public SceneView getFocusedSceneView() {
-    if (myModelToSceneManagers.size() == 1) {
+    ImmutableList<SceneManager> managers = getSceneManagers();
+    if (managers.size() == 1) {
       // Always return primary SceneView In single-model mode,
       SceneManager manager = getSceneManager();
       assert manager != null;
@@ -674,7 +698,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     List<NlComponent> selection = mySelectionModel.getSelection();
     if (!selection.isEmpty()) {
       NlComponent primary = selection.get(0);
-      SceneManager manager = myModelToSceneManagers.get(primary.getModel());
+      SceneManager manager = getSceneManager(primary.getModel());
       if (manager != null) {
         return manager.getSceneView();
       }
@@ -709,12 +733,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
           repaint();
         }
       }
-    }
-  }
-
-  public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
-    for (Layer layer : myLayers) {
-      layer.onHover(x, y);
     }
   }
 
@@ -828,6 +846,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       double min = 1d / getScreenScalingFactor();
       scale = Math.min(min, scale);
     }
+    scale = Math.min(scale, myMaxFitIntoScale);
     return scale;
   }
 
@@ -1086,7 +1105,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     if (!myIsActive) {
-      for (NlModel model : myModelToSceneManagers.keySet()) {
+      for (NlModel model : getModels()) {
         model.activate(this);
       }
     }
@@ -1095,7 +1114,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   public void deactivate() {
     if (myIsActive) {
-      for (NlModel model : myModelToSceneManagers.keySet()) {
+      for (NlModel model : getModels()) {
         model.deactivate(this);
       }
     }
@@ -1167,7 +1186,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @Nullable
   public SceneManager getSceneManager(@NotNull NlModel model) {
-    return myModelToSceneManagers.get(model);
+    myModelToSceneManagersLock.readLock().lock();
+    try {
+      return myModelToSceneManagers.get(model);
+    }
+    finally {
+      myModelToSceneManagersLock.readLock().unlock();
+    }
   }
 
   /**
@@ -1586,11 +1611,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @NotNull
   public CompletableFuture<Void> requestRender() {
-    if (myModelToSceneManagers.isEmpty()) {
+    ImmutableList<SceneManager> managers = getSceneManagers();
+    if (managers.isEmpty()) {
       return CompletableFuture.completedFuture(null);
     }
 
-    return CompletableFuture.allOf(myModelToSceneManagers.values().stream()
+    return CompletableFuture.allOf(managers.stream()
                                      .map(manager -> manager.requestRender())
                                      .toArray(CompletableFuture[]::new));
   }
@@ -1724,9 +1750,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Override
   public void updateUI() {
     super.updateUI();
+    //noinspection FieldAccessNotGuarded We are only accessing the reference so we do not need to guard the access
     if (myModelToSceneManagers != null) {
       // updateUI() is called in the parent constructor, at that time all class member in this class has not initialized.
-      for (SceneManager manager : myModelToSceneManagers.values()) {
+      for (SceneManager manager : getSceneManagers()) {
         manager.getSceneView().updateUI();
       }
     }
@@ -1739,4 +1766,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @NotNull
   abstract public List<NlComponent> getSelectableComponents();
+
+  /**
+   * Sets the maximum value allowed for {@link ZoomType#FIT} or {@link ZoomType#FIT_INTO}. By default there is no maximum value.
+   */
+  public void setMaxFitIntoScale(float maxFitIntoScale) {
+    myMaxFitIntoScale = maxFitIntoScale;
+  }
 }

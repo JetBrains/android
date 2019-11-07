@@ -80,7 +80,6 @@ abstract class GradleSyncProjectComparisonTest(
     private val singleVariantSync: Boolean = false
 ) : GradleSyncIntegrationTestCase(), SnapshotComparisonTest {
   override fun useSingleVariantSyncInfrastructure(): Boolean = singleVariantSync
-  override fun useCompoundSyncInfrastructure(): Boolean = false
 
   class FullVariantGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTest()
 
@@ -132,9 +131,9 @@ abstract class GradleSyncProjectComparisonTest(
   // https://code.google.com/p/android/issues/detail?id=233038
   open fun testLoadPlainJavaProject() {
     val text = importSyncAndDumpProject(PURE_JAVA_PROJECT)
-/* b/137231583
+    /* b/142255663
     assertIsEqualToSnapshot(text)
-b/137231583 */
+    */
   }
 
   // See https://code.google.com/p/android/issues/detail?id=226802

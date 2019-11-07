@@ -15,32 +15,30 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.adtui.common.ColoredIconGenerator
-import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.adtui.common.toSwingRect
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommandBase
 import com.android.tools.idea.common.scene.draw.HQ_RENDERING_HINTS
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorOrNullToString
 import com.android.tools.idea.common.scene.draw.parse
-import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToColorOrNull
-import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.common.util.iconToImage
+import com.google.common.annotations.VisibleForTesting
 import icons.StudioIcons.NavEditor.Surface.DEEPLINK
 import icons.StudioIcons.NavEditor.Surface.POP_ACTION
 import icons.StudioIcons.NavEditor.Surface.START_DESTINATION
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.Image
-import java.awt.geom.Rectangle2D
 
 /**
  * [DrawIcon] is a DrawCommand that draws an icon
  * in the specified rectangle.
  */
-data class DrawIcon(@SwingCoordinate private val rectangle: Rectangle2D.Float,
+data class DrawIcon(private val rectangle: SwingRectangle,
                     @VisibleForTesting val iconType: IconType,
                     private val color: Color? = null) : DrawCommandBase() {
   enum class IconType {
@@ -52,7 +50,7 @@ data class DrawIcon(@SwingCoordinate private val rectangle: Rectangle2D.Float,
   private var image: Image? = null
 
   init {
-    if (rectangle.width > 0 && rectangle.height > 0) {
+    if (rectangle.width.value > 0 && rectangle.height.value > 0) {
       var icon = when (iconType) {
         IconType.START_DESTINATION -> START_DESTINATION
         IconType.DEEPLINK -> DEEPLINK
@@ -67,13 +65,13 @@ data class DrawIcon(@SwingCoordinate private val rectangle: Rectangle2D.Float,
     }
   }
 
-  private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), IconType.valueOf(tokens[1]),
+  private constructor(tokens: Array<String>) : this(tokens[0].toSwingRect(), IconType.valueOf(tokens[1]),
                                                     stringToColorOrNull((tokens[2])))
 
   constructor(serialized: String) : this(parse(serialized, 3))
 
   override fun serialize(): String {
-    return buildString(javaClass.simpleName, rect2DToString(rectangle), iconType, colorOrNullToString(color))
+    return buildString(javaClass.simpleName, rectangle.toString(), iconType, colorOrNullToString(color))
   }
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {

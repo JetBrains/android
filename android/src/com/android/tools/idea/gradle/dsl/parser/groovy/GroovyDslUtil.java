@@ -145,8 +145,8 @@ public final class GroovyDslUtil {
 
   static void  maybeDeleteIfEmpty(@Nullable PsiElement element, @NotNull GradleDslElement dslElement) {
     GradleDslElement parentDslElement = dslElement.getParent();
-    if ((parentDslElement instanceof GradleDslExpressionList && !((GradleDslExpressionList)parentDslElement).shouldBeDeleted()) ||
-        (parentDslElement instanceof GradleDslExpressionMap && !((GradleDslExpressionMap)parentDslElement).shouldBeDeleted()) &&
+    if (((parentDslElement instanceof GradleDslExpressionList && !((GradleDslExpressionList)parentDslElement).shouldBeDeleted()) ||
+         (parentDslElement instanceof GradleDslExpressionMap && !((GradleDslExpressionMap)parentDslElement).shouldBeDeleted())) &&
         parentDslElement.getPsiElement() == element) {
       // Don't delete parent if empty.
       return;

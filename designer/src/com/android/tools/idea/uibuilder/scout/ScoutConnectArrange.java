@@ -171,6 +171,10 @@ public class ScoutConnectArrange {
 
     NlComponent componentFrom = widgets.get(0);
     NlComponent componentTo = widgets.size() > 1 ? widgets.get(1) : null;
+    if (componentFrom == componentTo) {
+      // Cannot connect to itself.
+      return false;
+    }
     if (reverse) {
       NlComponent swap = componentTo;
       componentTo = componentFrom;

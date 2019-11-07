@@ -19,6 +19,7 @@ import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemRendererFactor
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService;
 import com.android.tools.idea.explorer.ui.DeviceExplorerViewImpl;
 import com.intellij.ide.actions.OpenFileAction;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -63,7 +64,8 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
 
       @Override
       public void openFile(@NotNull VirtualFile virtualFile) {
-        OpenFileAction.openFile(virtualFile, project);
+        // OpenFileAction.openFile triggers a write action, which needs to be executed from a write-safe context.
+        TransactionGuard.submitTransaction(project, () -> OpenFileAction.openFile(virtualFile, project));
       }
     };
 

@@ -35,10 +35,14 @@ import javax.swing.ListCellRenderer
 open class MockPopupChooserBuilder: IPopupChooserBuilder<SqliteDatabase> {
 
   val mockPopUp: JBPopup = mock(JBPopup::class.java)
+  var callback: Consumer<in SqliteDatabase>? = null
 
   override fun setRenderer(renderer: ListCellRenderer<*>?): IPopupChooserBuilder<SqliteDatabase> = this
 
-  override fun setItemChosenCallback(callback: Consumer<in SqliteDatabase>): IPopupChooserBuilder<SqliteDatabase> = this
+  override fun setItemChosenCallback(callback: Consumer<in SqliteDatabase>): IPopupChooserBuilder<SqliteDatabase> {
+    this.callback = callback
+    return this
+  }
 
   override fun setItemsChosenCallback(callback: Consumer<in MutableSet<SqliteDatabase>>): IPopupChooserBuilder<SqliteDatabase> = this
 

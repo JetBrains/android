@@ -21,14 +21,15 @@ import junit.framework.TestCase
 import org.fest.swing.core.Robot
 import org.fest.swing.timing.Wait
 import org.junit.Assert.assertTrue
+import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
 /**
  * Fixture for the Compose preview notifications panel
  */
-class NotificationsFixture(val robot: Robot, private val notificationsPanel: JPanel) :
-  ComponentFixture<NotificationsFixture, JPanel>(
+class NotificationsFixture(val robot: Robot, private val notificationsPanel: JComponent) :
+  ComponentFixture<NotificationsFixture, JComponent>(
     NotificationsFixture::class.java, robot, notificationsPanel) {
   fun assertNotificationTextContains(text: String) {
     TestCase.assertNotNull(robot.finder().find(target()) {
@@ -51,4 +52,4 @@ class NotificationsFixture(val robot: Robot, private val notificationsPanel: JPa
 }
 
 fun SplitEditorFixture.getNotificationsFixture(): NotificationsFixture =
-  NotificationsFixture(robot, robot.finder().findByName(target(), "NotificationsPanel", JPanel::class.java, false))
+  NotificationsFixture(robot, robot.finder().findByName(target(), "NotificationsPanel", JComponent::class.java, false))

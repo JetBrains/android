@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.adtui.ui.AdtUiCursors;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.*;
@@ -264,6 +265,12 @@ public class DragDropInteraction extends Interaction {
       myDragHandler.cancel();
     }
     myDesignSurface.stopDragDropInteraction();
+  }
+
+  @Nullable
+  @Override
+  public Cursor getCursor() {
+    return Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
   }
 
   private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask final int modifiers, boolean commit) {

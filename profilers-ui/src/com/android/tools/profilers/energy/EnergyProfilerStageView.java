@@ -129,13 +129,10 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     ProfilerTimeline timeline = profilers.getTimeline();
     RangeSelectionComponent selection = new RangeSelectionComponent(getStage().getRangeSelectionModel(), getTimeline().getViewRange());
     selection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
-    RangeTooltipComponent tooltip =
-      new RangeTooltipComponent(timeline.getTooltipRange(),
-                                timeline.getViewRange(),
-                                timeline.getDataRange(),
-                                getTooltipPanel(),
-                                getProfilersView().getComponent(),
-                                () -> selection.shouldShowSeekComponent());
+    RangeTooltipComponent tooltip = new RangeTooltipComponent(getTimeline(),
+                                                              getTooltipPanel(),
+                                                              getProfilersView().getComponent(),
+                                                              () -> selection.shouldShowSeekComponent());
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
     panel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);

@@ -24,7 +24,6 @@ import com.android.tools.idea.databinding.util.findImportTag
 import com.android.tools.idea.databinding.util.findVariableTag
 import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.lang.databinding.config.DbFileType
-import com.android.tools.idea.lang.databinding.model.PsiCallable
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.android.tools.idea.lang.databinding.model.PsiModelField
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
@@ -39,6 +38,7 @@ import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaParameters
 import com.android.tools.idea.lang.databinding.psi.PsiDbLiteralExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbResourcesExpr
+import com.android.tools.idea.lang.databinding.resolveScopeWithResources
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.module.Module
@@ -49,6 +49,7 @@ import com.intellij.psi.LambdaUtil
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceContributor
@@ -145,7 +146,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
 
           bindingData.findImport(simpleName)?.let { import ->
             xmlFile.findImportTag(simpleName)?.let { importTag ->
-              return arrayOf(XmlImportReference(element, importTag, import, module))
+              return arrayOf(XmlImportReference(element, importTag, import))
             }
           }
 
@@ -204,22 +205,20 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       // Resolve fully qualified methods / fields, e.g. "variable.value" or "variable.method"
       val psiClass = psiModelClass.psiClass ?: return PsiReference.EMPTY_ARRAY
 
-
       // Find the reference to a field or its getter e.g. "var.field" may reference "var.field", "var.isField()" or "var.getField()".
       val getterOrField = psiModelClass.findGetterOrField(fieldText, modelResolvable.isStatic)
-      when (getterOrField?.type) {
-        PsiCallable.Type.METHOD -> {
-          val methodsByName = psiClass.findMethodsByName(getterOrField.name, true)
-          if (methodsByName.isNotEmpty()) {
-            return arrayOf(
-              PsiMethodReference(refExpr, PsiModelMethod(psiModelClass, methodsByName[0]), PsiMethodReference.Kind.METHOD_CALL))
-          }
+      when (getterOrField) {
+        is PsiModelMethod -> {
+          val getterReference = PsiMethodReference(refExpr, getterOrField, PsiMethodReference.Kind.METHOD_CALL)
+          // Find the reference to setter method that has the same pattern and type.
+          // e.g. `String getName()` and `setName(String)`
+          val setterReference = getterOrField.returnType
+            ?.let { type -> psiModelClass.findSetter(fieldText, modelResolvable.isStatic, type) }
+            ?.let { setterMethod -> PsiMethodReference(refExpr, setterMethod, PsiMethodReference.Kind.METHOD_REFERENCE) }
+          return if (setterReference != null) arrayOf(getterReference, setterReference) else arrayOf(getterReference)
         }
-        PsiCallable.Type.FIELD -> {
-          val fieldsByName = psiClass.findFieldByName(getterOrField.name, true)
-          if (fieldsByName != null) {
-            return arrayOf(PsiFieldReference(refExpr, PsiModelField(psiModelClass, fieldsByName)))
-          }
+        is PsiModelField -> {
+          return arrayOf(PsiFieldReference(refExpr, getterOrField))
         }
       }
 
@@ -232,14 +231,9 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       }
 
       // Find the reference to an inner class.
-      val module = ModuleUtilCore.findModuleForPsiElement(refExpr)
-      if (module != null) {
-        val innerName = "${psiClass.qualifiedName}.$fieldText"
-        val innerClass = JavaPsiFacade.getInstance(refExpr.project).findClass(innerName,
-                                                                              module.getModuleWithDependenciesAndLibrariesScope(false))
-        if (innerClass != null) {
-          return arrayOf(PsiClassReference(refExpr, innerClass, true))
-        }
+      val innerClass = psiClass.findInnerClassByName(fieldText, true)
+      if (innerClass != null && innerClass.hasModifierProperty(PsiModifier.PUBLIC)) {
+        return arrayOf(PsiClassReference(refExpr, innerClass, true))
       }
 
       // Find the reference to get() method if [psiModelClass] is an instance of [java.util.Map] and we can not find any other references.
@@ -265,8 +259,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       val fieldText = refExpr.id.text
       if (fieldText.isBlank()) return PsiReference.EMPTY_ARRAY
 
-      val module = ModuleUtilCore.findModuleForPsiElement(refExpr) ?: return PsiReference.EMPTY_ARRAY
-      val scope = module.getModuleWithDependenciesAndLibrariesScope(false)
+      val scope = refExpr.resolveScopeWithResources ?: refExpr.resolveScope
 
       fun fieldMatchesPackage(field: String, aPackage: PsiPackage) = aPackage.name!!.substringAfterLast('.') == field
 

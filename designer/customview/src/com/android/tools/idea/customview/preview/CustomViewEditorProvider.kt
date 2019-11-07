@@ -23,8 +23,8 @@ import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.editor.DesignFileEditor
 import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
-import com.android.tools.idea.common.editor.SmartAutoRefresher
-import com.android.tools.idea.common.editor.SmartRefreshable
+import com.android.tools.idea.common.editor.SmartAutoBuildRefresher
+import com.android.tools.idea.common.editor.SmartBuildable
 import com.android.tools.idea.common.editor.SourceCodeChangeListener
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
@@ -47,6 +47,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -179,7 +180,7 @@ class CustomViewEditorProvider : FileEditorProvider, DumbAware {
 
   // TODO(b/143067434): remove ComposeFileEditorProvider check and rework it so that Compose and custom View previews work together
   override fun accept(project: Project, file: VirtualFile) =
-    !ComposeFileEditorProvider().accept(project, file) && StudioFlags.NELE_CUSTOM_VIEW_PREVIEW.get() && file.hasSourceFileExtension()
+    StudioFlags.NELE_CUSTOM_VIEW_PREVIEW.get() && !ComposeFileEditorProvider().accept(project, file) && file.hasSourceFileExtension()
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
@@ -275,7 +276,7 @@ private class CustomViewPreviewActionManager(
  * A preview for a file containing custom android view classes. Allows selecting between the classes if multiple custom view classes are
  * present in the file.
  */
-private class CustomViewPreview(private val psiFile: PsiFile) : SmartRefreshable, DesignFileEditor(psiFile.virtualFile!!) {
+private class CustomViewPreview(private val psiFile: PsiFile) : Disposable, DesignFileEditor(psiFile.virtualFile!!) {
   private val project = psiFile.project
   private val virtualFile = psiFile.virtualFile!!
 
@@ -351,17 +352,29 @@ private class CustomViewPreview(private val psiFile: PsiFile) : SmartRefreshable
   /**
    * [WorkBench] used to contain all the preview elements.
    */
-  override val workbench = WorkBench<DesignSurface>(project, "Main Preview", this, this).apply {
+  val workbench = WorkBench<DesignSurface>(project, "Main Preview", this, this).apply {
     init(editorPanel, surface, listOf(), false)
     showLoading("Waiting for build to finish...")
   }
 
-  private val refresher = SmartAutoRefresher(psiFile, this)
+  init {
+    component.add(workbench)
+
+    SmartAutoBuildRefresher(psiFile, object : SmartBuildable {
+      override fun buildSucceeded() {
+        refresh()
+      }
+
+      override fun buildFailed() {
+        workbench.loadingStopped("Preview is unavailable until after a successful project sync")
+      }
+    }, this)  
+  }
 
   /**
    * Refresh the preview surfaces
    */
-  override fun refresh() {
+  private fun refresh() {
     // We are in a smart mode here
     classes = (AndroidPsiUtils.getPsiFileSafely(project,
                                                 virtualFile) as PsiClassOwner).classes.filter { it.name != null && it.extendsView() }.mapNotNull { it.qualifiedName }
@@ -372,13 +385,10 @@ private class CustomViewPreview(private val psiFile: PsiFile) : SmartRefreshable
     updateModel()
   }
 
-  override fun buildFailed() {
-    workbench.loadingStopped("Preview is unavailable until after a successful project sync")
-  }
-
   private fun updateModel() {
     surface.deactivate()
     surface.models.forEach { surface.removeModel(it) }
+    surface.zoomToFit()
     val selectedClass = classes.firstOrNull { fqcn2name(it) == currentState }
     selectedClass?.let {
       val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", getXmlLayout(selectedClass, shrinkWidth, shrinkHeight))
@@ -400,6 +410,7 @@ private class CustomViewPreview(private val psiFile: PsiFile) : SmartRefreshable
                                  surface.componentRegistrar,
                                  BiFunction { project, _ -> AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile })
       surface.addModel(model).whenComplete { _, ex ->
+        surface.zoomToFit()
         surface.activate()
         configuration.addListener { flags ->
           if ((flags and ConfigurationListener.CFG_DEVICE_STATE) == ConfigurationListener.CFG_DEVICE_STATE) {

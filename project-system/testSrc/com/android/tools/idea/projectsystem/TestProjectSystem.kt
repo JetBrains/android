@@ -39,10 +39,19 @@ import java.util.concurrent.CountDownLatch
  * This implementation of AndroidProjectSystem is used during integration tests and includes methods
  * to stub project system functionalities.
  */
-class TestProjectSystem @JvmOverloads constructor(val project: Project,
-                                                  availableDependencies: List<GradleCoordinate> = listOf(),
-                                                  @Volatile private var lastSyncResult: SyncResult = SyncResult.SUCCESS)
-  : AndroidProjectSystem, AndroidProjectSystemProvider {
+class TestProjectSystem @JvmOverloads constructor(
+  val project: Project,
+  availableDependencies: List<GradleCoordinate> = listOf(),
+  @Volatile private var lastSyncResult: SyncResult = SyncResult.SUCCESS
+)
+  : AndroidProjectSystem {
+
+  /**
+   * Injects this project system into the [project] it was created for.
+   */
+  fun useInTests() {
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(this)
+  }
 
   private val dependenciesByModule: HashMultimap<Module, GradleCoordinate> = HashMultimap.create()
   private val availablePreviewDependencies: List<GradleCoordinate>
@@ -67,12 +76,6 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
    * @return the set of dependencies added to the given module.
    */
   fun getAddedDependencies(module: Module): Set<GradleCoordinate> = dependenciesByModule.get(module)
-
-  override val id: String = "com.android.tools.idea.projectsystem.TestProjectSystem"
-
-  override val projectSystem = this
-
-  override fun isApplicable(): Boolean = true
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {

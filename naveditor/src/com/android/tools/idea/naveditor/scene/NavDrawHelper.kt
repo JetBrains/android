@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.model.scaledAndroidLength
 import com.android.tools.idea.common.model.times
 import com.android.tools.idea.common.scene.LerpEllipse
@@ -58,6 +59,9 @@ val HEADER_PADDING = scaledAndroidLength(8f)
 val HEADER_HEIGHT = HEADER_ICON_SIZE + HEADER_PADDING
 val HEADER_TEXT_HEIGHT = HEADER_ICON_SIZE - 2 * HEADER_TEXT_PADDING
 
+val ACTION_ARROW_PARALLEL = scaledAndroidLength(10f)
+val ACTION_ARROW_PERPENDICULAR = scaledAndroidLength(12f)
+
 fun regularFont(scale: Float, style: Int): Font {
   val size = scale * DEFAULT_FONT_SIZE
   return Font(DEFAULT_FONT_NAME, style, size.toInt())
@@ -82,7 +86,7 @@ fun growRectangle(rectangle: RoundRectangle2D.Float, growX: Float, growY: Float)
   rectangle.height += 2 * growY
 }
 
-fun createDrawImageCommand(rectangle: Rectangle2D.Float, image: RefinableImage?): DrawCommand {
+fun createDrawImageCommand(rectangle: SwingRectangle, image: RefinableImage?): DrawCommand {
   return if (image == null) {
     DrawPlaceholder(rectangle)
   }
@@ -103,10 +107,9 @@ fun makeCircleLerp(center: Point2D.Float, initialRadius: Float, finalRadius: Flo
   return LerpEllipse(initialCircle, finalCircle, duration)
 }
 
-@SwingCoordinate
-fun getHeaderRect(context: SceneContext, @SwingCoordinate rectangle: Rectangle2D.Float): Rectangle2D.Float {
-  val height = (context.inlineScale * HEADER_HEIGHT).value
-  return Rectangle2D.Float(rectangle.x, rectangle.y - height, rectangle.width, height)
+fun getHeaderRect(context: SceneContext, rectangle: SwingRectangle): SwingRectangle {
+  val height = context.inlineScale * HEADER_HEIGHT
+  return SwingRectangle(rectangle.x, rectangle.y - height, rectangle.width, height)
 }
 
 enum class ArrowDirection {
@@ -116,9 +119,9 @@ enum class ArrowDirection {
   DOWN
 }
 
-fun makeDrawArrowCommand(@SwingCoordinate rectangle: Rectangle2D.Float, direction: ArrowDirection, color: Color): DrawCommand {
-  val left = rectangle.x
-  val right = left + rectangle.width
+fun makeDrawArrowCommand(rectangle: SwingRectangle, direction: ArrowDirection, color: Color): DrawCommand {
+  val left = rectangle.x.value
+  val right = left + rectangle.width.value
 
   val xValues = when (direction) {
     ArrowDirection.LEFT -> floatArrayOf(right, left, right)
@@ -126,8 +129,8 @@ fun makeDrawArrowCommand(@SwingCoordinate rectangle: Rectangle2D.Float, directio
     else -> floatArrayOf(left, (left + right) / 2, right)
   }
 
-  val top = rectangle.y
-  val bottom = top + rectangle.height
+  val top = rectangle.y.value
+  val bottom = top + rectangle.height.value
 
   val yValues = when (direction) {
     ArrowDirection.UP -> floatArrayOf(bottom, top, bottom)
