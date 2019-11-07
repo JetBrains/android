@@ -181,7 +181,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           else if (argumentList.arguments.size == 1) {
             val nameExpression = argumentList.arguments[0].getArgumentExpression() ?: return null
             return when (context.parent?.fullName) {
-              "plugins" -> "kotlin-${unquoteString(nameExpression.text)}"
+              "plugins" -> "org.jetbrains.kotlin.${unquoteString(nameExpression.text)}"
               "dependencies" -> "org.jetbrains.kotlin:kotlin-${unquoteString(nameExpression.text)}"
               else -> literal.text
             }

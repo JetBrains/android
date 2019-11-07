@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
@@ -42,12 +43,17 @@ const val UNDEFINED_DIMENSION = -1
 @VisibleForTesting const val MAX_WIDTH = 2000
 @VisibleForTesting const val MAX_HEIGHT = 2000
 
+const val WIDTH_PARAMETER = "widthDp"
+const val HEIGHT_PARAMETER = "heightDp"
+
 /**
  * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the dimension is [UNDEFINED_DIMENSION], the value
  * is converted to `wrap_content`. Otherwise, the value is returned concatenated with `dp`.
+ * @param dimension the dimension in dp or [UNDEFINED_DIMENSION]
+ * @param defaultValue the value to be used when the given dimension is [UNDEFINED_DIMENSION]
  */
-fun dimensionToString(dimension: Int) = if (dimension == UNDEFINED_DIMENSION) {
-  "wrap_content"
+fun dimensionToString(dimension: Int, defaultValue: String = VALUE_WRAP_CONTENT) = if (dimension == UNDEFINED_DIMENSION) {
+  defaultValue
 }
 else {
   "${dimension}dp"

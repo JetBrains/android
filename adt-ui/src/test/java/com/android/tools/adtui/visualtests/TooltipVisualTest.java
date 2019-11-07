@@ -16,41 +16,44 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.AnimatedComponent;
-import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.RangeTooltipComponent;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.model.DefaultTimeline;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.updater.Updatable;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.Box;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 public class TooltipVisualTest extends VisualTest {
 
   private RangeTooltipComponent myTooltip;
 
-  private Range myRange;
-  private Range myDataRange;
-  private Range myHighlight;
+  private Timeline myTimeline = new DefaultTimeline();
   private JPanel myContent;
   private JLabel myLabel;
 
   @Override
   protected List<Updatable> createModelList() {
-
-    myRange = new Range(0, 1000);
-    myDataRange = new Range(250, 1000);
-    myHighlight = new Range(500, 500);
+    myTimeline.getViewRange().set(0, 1000);
+    myTimeline.getDataRange().set(250, 1000);
+    myTimeline.getTooltipRange().set(500, 500);
 
     myContent = new JPanel(new BorderLayout());
-    myTooltip = new RangeTooltipComponent(myHighlight, myRange, myDataRange, myContent);
+    myTooltip = new RangeTooltipComponent(myTimeline, myContent);
 
     List<Updatable> componentsList = new ArrayList<>();
-    componentsList.add(t -> myLabel.setText("" + System.nanoTime()));
+    componentsList.add(t -> myLabel.setText(String.valueOf(System.nanoTime())));
     return componentsList;
   }
 
@@ -85,15 +88,16 @@ public class TooltipVisualTest extends VisualTest {
 
     JPanel controls = VisualTest.createControlledPane(panel, container);
     controls.add(VisualTest.createVariableSlider("Highlight", 1, 1000, new VisualTests.Value() {
-                                                   @Override
-                                                   public void set(int v) {
-                                                     myHighlight.set(v, v);
-                                                   }
+      @Override
+      public void set(int v) {
+        myTimeline.getTooltipRange().set(v, v);
+      }
 
-                                                   @Override
-                                                   public int get() {
-                                                     return (int)myHighlight.getMin();
-                                                   }}));
+      @Override
+      public int get() {
+        return (int)myTimeline.getTooltipRange().getMin();
+      }
+    }));
 
     myLabel = new JLabel();
     controls.add(VisualTest.createButton("Small", e -> setContent(myLabel)));

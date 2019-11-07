@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -25,8 +28,10 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
+import kotlin.Pair;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,35 +39,48 @@ public final class AndroidDslElement extends GradleDslBlockElement {
   @NonNls public static final String ANDROID_BLOCK_NAME = "android";
 
   @NotNull
-  private static final ImmutableMap<String, String> ktsToModelNameMap = Stream.of(new String[][]{
-    {"buildToolsVersion", AndroidModelImpl.BUILD_TOOLS_VERSION},
-    {"compileSdkVersion", AndroidModelImpl.COMPILE_SDK_VERSION},
-    {"defaultPublishConfig", AndroidModelImpl.DEFAULT_PUBLISH_CONFIG},
-    {"dynamicFeatures", AndroidModelImpl.DYNAMIC_FEATURES},
-    {"flavorDimensions", AndroidModelImpl.FLAVOR_DIMENSIONS},
-    {"generatePureSplits", AndroidModelImpl.GENERATE_PURE_SPLITS},
-    {"ndkVersion", AndroidModelImpl.NDK_VERSION},
-    // TODO(b/142111082): this works to handle the fact that Kotlin does not provide a writeable publishNonDefault property.
-    {"setPublishNonDefault", AndroidModelImpl.PUBLISH_NON_DEFAULT},
-    {"resourcePrefix", AndroidModelImpl.RESOURCE_PREFIX}
-  }).collect(toImmutableMap(data -> data[0], data -> data[1]));
+  private static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
+    {"buildToolsVersion", property, BUILD_TOOLS_VERSION, VAR},
+    {"buildToolsVersion", exactly(1), BUILD_TOOLS_VERSION, SET},
+    {"compileSdkVersion", property, COMPILE_SDK_VERSION, VAR}, // TODO(xof): type handling of this is tricky
+    {"compileSdkVersion", exactly(1), COMPILE_SDK_VERSION, SET},
+    {"defaultPublishConfig", property, DEFAULT_PUBLISH_CONFIG, VAR},
+    {"defaultPublishConfig", exactly(1), DEFAULT_PUBLISH_CONFIG, VAR},
+    {"dynamicFeatures", property, DYNAMIC_FEATURES, VAR},
+    {"flavorDimensions", atLeast(0), FLAVOR_DIMENSIONS, OTHER}, // SETN: sets the property to the list of varargs arguments
+    {"generatePureSplits", property, GENERATE_PURE_SPLITS, VAR},
+    {"generatePureSplits", exactly(1), GENERATE_PURE_SPLITS, SET},
+    {"ndkVersion", property, NDK_VERSION, VAR},
+    {"setPublishNonDefault", exactly(1), PUBLISH_NON_DEFAULT, SET},
+    {"resourcePrefix", property, RESOURCE_PREFIX, VAL}, // no setResourcePrefix: not a VAR
+    {"resourcePrefix", exactly(1), RESOURCE_PREFIX, SET}
+  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
+                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
 
   @NotNull
-  private static final ImmutableMap<String, String> groovyToModelNameMap = Stream.of(new String[][]{
-    {"buildToolsVersion", AndroidModelImpl.BUILD_TOOLS_VERSION},
-    {"compileSdkVersion", AndroidModelImpl.COMPILE_SDK_VERSION},
-    {"defaultPublishConfig", AndroidModelImpl.DEFAULT_PUBLISH_CONFIG},
-    {"dynamicFeatures", AndroidModelImpl.DYNAMIC_FEATURES},
-    {"flavorDimensions", AndroidModelImpl.FLAVOR_DIMENSIONS},
-    {"generatePureSplits", AndroidModelImpl.GENERATE_PURE_SPLITS},
-    {"ndkVersion", AndroidModelImpl.NDK_VERSION},
-    {"publishNonDefault", AndroidModelImpl.PUBLISH_NON_DEFAULT},
-    {"resourcePrefix", AndroidModelImpl.RESOURCE_PREFIX}
-  }).collect(toImmutableMap(data -> data[0], data -> data[1]));
+  private static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
+    {"buildToolsVersion", property, BUILD_TOOLS_VERSION, VAR},
+    {"buildToolsVersion", exactly(1), BUILD_TOOLS_VERSION, SET},
+    {"compileSdkVersion", property, COMPILE_SDK_VERSION, VAR},
+    {"compileSdkVersion", exactly(1), COMPILE_SDK_VERSION, SET},
+    {"defaultPublishConfig", property, DEFAULT_PUBLISH_CONFIG, VAR},
+    {"defaultPublishConfig", exactly(1), DEFAULT_PUBLISH_CONFIG, SET},
+    {"dynamicFeatures", property, DYNAMIC_FEATURES, VAR},
+    {"flavorDimensions", atLeast(0), FLAVOR_DIMENSIONS, OTHER},
+    {"generatePureSplits", property, GENERATE_PURE_SPLITS, VAR},
+    {"generatePureSplits", exactly(1), GENERATE_PURE_SPLITS, SET},
+    {"ndkVersion", property, NDK_VERSION, VAR},
+    {"ndkVersion", exactly(1), NDK_VERSION, SET},
+    {"publishNonDefault", property, PUBLISH_NON_DEFAULT, VAR},
+    {"publishNonDefault", exactly(1), PUBLISH_NON_DEFAULT, SET},
+    {"resourcePrefix", property, RESOURCE_PREFIX, VAL},
+    {"resourcePrefix", exactly(1), RESOURCE_PREFIX, SET}
+  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
+                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
 
   @Override
   @NotNull
-  public ImmutableMap<String, String> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }
@@ -81,7 +99,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
     if (element.getName().equals("flavorDimensions") && element instanceof GradleDslSimpleExpression) {
-      addAsParsedDslExpressionList(AndroidModelImpl.FLAVOR_DIMENSIONS, (GradleDslSimpleExpression)element);
+      addAsParsedDslExpressionList(FLAVOR_DIMENSIONS, (GradleDslSimpleExpression)element);
       return;
     }
     super.addParsedElement(element);

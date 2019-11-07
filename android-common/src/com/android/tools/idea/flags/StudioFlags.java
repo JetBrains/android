@@ -241,11 +241,6 @@ public final class StudioFlags {
     "Enable the continuous rendering of the surface when moving/resizing components unless the user disables it.",
     true);
 
-  public static final Flag<Boolean> NELE_SAMPLE_DATA_UI = Flag.create(
-    NELE, "widget.assistant", "Enable the new Sample Data UI components",
-    "Enable the Sample Data UI to setup tools attributes.",
-    true);
-
   public static final Flag<Boolean> NELE_CONVERT_VIEW = Flag.create(
     NELE, "convert.view", "Enable the Convert View action",
     "Enable the Convert View Action when right clicking on a component",
@@ -345,7 +340,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_NEW_INTERACTION_INTERFACE = Flag.create(
     NELE, "new.interaction.interface", "New Interaction Interface",
     "Enable new interaction interface in design surface.",
-    false);
+    true);
   //endregion
 
   //region Navigation Editor
@@ -354,6 +349,10 @@ public final class StudioFlags {
     NAV_EDITOR, "new.property", "Enable the new Property Panel",
     "Enable the new Property Panel",
     true);
+  public static final Flag<Boolean> NAV_NEW_COMPONENT_TREE = Flag.create(
+    NAV_EDITOR, "new.component", "Enable the new Component Tree",
+    "Enable the new Component Tree",
+    false);
   //endregion
 
   //region Run/Debug
@@ -430,17 +429,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> SINGLE_VARIANT_SYNC_ENABLED = Flag.create(
     GRADLE_IDE, "single.variant.sync", "Enable new \"Single-Variant Sync\"",
     "Turns on Single-Variant Sync.", false);
-  public static final Flag<Boolean> BUILD_AFTER_SYNC_ENABLED =
-    Flag.create(GRADLE_IDE, "build.after.sync", "Enable building after sync", "Turns on building after sync", false);
-  public static final Flag<Boolean> COMPOUND_SYNC_ENABLED = Flag.create(
-    GRADLE_IDE, "compound.sync", "Enable new \"Compound Sync\"",
-    "Turns on Compound Sync. Building after sync must be enabled for this to take effect.", true);
   public static final Flag<Boolean> USE_DEVELOPMENT_OFFLINE_REPOS = Flag.create(
     GRADLE_IDE, "development.offline.repos", "Enable development offline repositories",
     "Makes Gradle use development offline repositories such as /out/repo", isDevBuild());
   public static final Flag<Boolean> BUILD_ATTRIBUTION_ENABLED = Flag.create(
     GRADLE_IDE, "build.attribution", "Enable build attribution",
-    "Enable build attribution.", false);
+    "Enable build attribution.", true);
   public static final Flag<Boolean> KOTLIN_DSL_PARSING = Flag.create(
     GRADLE_IDE, "kotlin.dsl", "Enable parsing for Kotlin build files",
     "Enables parsing for Gradle build files written using Kotlin (.gradle.kts)", true);
@@ -459,6 +453,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> SQLITE_VIEWER_ENABLED = Flag.create(
     SQLITE_VIEWER, "enabled", "Enable the SQLite database viewer",
     "If enabled, SQLite files downloaded from Android devices or emulators are open in a custom SQLite editor window",
+    false);
+
+  public static final Flag<Boolean> SQLITE_APP_INSPECTOR_ENABLED = Flag.create(
+    SQLITE_VIEWER, "sqlite.app.inspector", "Enable experimental SQLite inspector",
+    "SQLite inspector runs and executes all operations in app process",
     false);
   //endregion
 
@@ -599,15 +598,6 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> TRANSITIVE_R_CLASSES = Flag.create(
-    EDITOR, "transitive.r.classes",
-    "Transitive R classes",
-    "If enabled, R classes for local modules contain resources from all dependencies (this has historically been the case). " +
-    "Otherwise they only contain fields for resources defined in the module itself. R classes for AARs are built based on R.txt and are " +
-    "not affected. This flag only affects non resource-namespace aware modules.",
-    true
-  );
-
   //endregion
 
   //region Analyzer
@@ -714,68 +704,17 @@ public final class StudioFlags {
     "If enabled, a visual preview will be available for Compose.",
     true);
 
-  public static final Flag<Boolean> COMPOSE_COMPLETION_ICONS = Flag.create(
-    COMPOSE, "completion.icons",
-    "Custom icons in completion for Compose",
-    "If enabled, code completion for composable functions uses different icons on the left.",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_HIDE_RETURN_TYPES = Flag.create(
-    COMPOSE, "completion.hide.return.types",
-    "Hide return types in completion for Compose",
-    "If enabled, code completion for composable functions that return Unit doesn't show return types.",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_LAYOUT_ICON = Flag.create(
-    COMPOSE, "completion.hide.layout.icon",
-    "Use a icon for Compose layouts on the right.",
-    "If enabled, code completion for composable functions uses a different icon on the right for layouts.",
-    false
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_BANNER = Flag.create(
-    COMPOSE, "completion.banner",
-    "Custom banner in completion for Compose",
-    "If enabled, code completion for composable functions uses a special banner (below all the suggestions). This seems to " +
-    "work only for explicitly invoked (using ctrl+space) completion for now.",
-    false
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_HIDE_SPECIAL_LOOKUP_ELEMENTS = Flag.create(
-    COMPOSE, "completion.hide.special",
-    "Hide special LookupElements for composable functions",
-    "If enabled, code completion for composable functions doesn't include duplicate suggestions for inserting lambdas.",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_REQUIRED_ONLY = Flag.create(
-    COMPOSE, "completion.required.only",
-    "Show only required parameters in completion",
-    "If enabled, code completion for composable functions shows only required parameters.",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_DOTS_FOR_OPTIONAL = Flag.create(
-    COMPOSE, "completion.dots",
-    "Show three dots when optional parameters are skipped in completion",
-    "If enabled, code completion for composable functions will show three dots after required parameters if there are optional " +
-    "parameters as well.",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_TRAILING_LAMBDA = Flag.create(
-    COMPOSE, "completion.lambda",
-    "Show trailing function parameter as lambda",
-    "If enabled, code completion for composable functions will use lambda syntax for trailing functional parameters.",
+  public static final Flag<Boolean> COMPOSE_COMPLETION_PRESENTATION = Flag.create(
+    COMPOSE, "completion.presentation",
+    "Custom presentation for code completion items for composable functions",
+    "If enabled, code completion items for composable functions use a custom presentation (icon, text).",
     true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_WEIGHER = Flag.create(
     COMPOSE, "completion.weigher",
     "Custom weigher for Compose",
-    "If enabled, code completion puts composable functions above other completion suggestions. For now in every context.",
+    "If enabled, code completion puts composable functions above other completion suggestions.",
     true
   );
 
@@ -783,13 +722,6 @@ public final class StudioFlags {
     COMPOSE, "completion.insert.handler",
     "Custom insert handler for composable functions",
     "If enabled, code completion for composable functions uses a custom InsertHandler that inserts required parameter names.",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_COMPLETION_INSERT_HANDLER_STOP_FOR_OPTIONAL = Flag.create(
-    COMPOSE, "completion.insert.handler.optional",
-    "Custom insert handler for composable functions adds a stop for optional parameters",
-    "If enabled, custom InsertHandler adds an extra 'stop' for optional parameters.",
     true
   );
 
@@ -804,13 +736,6 @@ public final class StudioFlags {
     COMPOSE, "completion.auto.documentation",
     "Show quick documentation automatically for Compose",
     "If enabled, during code completion popup with documentation shows automatically",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_GUTTER_ICON_COLOR = Flag.create(
-    COMPOSE, "completion.gutter.icon.color",
-    "Show color icon in the gutter when declaring colors",
-    "If enabled, in the editor, a color icon will be shown matching the color described.",
     true
   );
 

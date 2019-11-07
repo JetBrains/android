@@ -37,6 +37,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -191,7 +192,7 @@ public class AsyncDevicesGetter {
       return;
     }
 
-    Object platform = facet.getConfiguration().getAndroidPlatform();
+    Object platform = AndroidPlatform.getInstance(facet.getModule());
 
     if (platform == null) {
       myChecker = null;

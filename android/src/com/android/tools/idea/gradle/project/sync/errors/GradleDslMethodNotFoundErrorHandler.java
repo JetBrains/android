@@ -40,6 +40,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.playback.commands.ActionCommand;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.codeInsight.actions.AddGradleDslPluginAction;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
@@ -50,7 +51,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.utils.BuildScriptUtil.isDefaultGradleBuildFile;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.DSL_METHOD_NOT_FOUND;
 
 public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
@@ -91,7 +92,7 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
     String filePath = notification.getFilePath();
     VirtualFile file = filePath != null ? LocalFileSystem.getInstance().refreshAndFindFileByPath(filePath) : null;
-    if (file != null && FN_BUILD_GRADLE.equals(file.getName())) {
+    if (filePath != null && file != null && isDefaultGradleBuildFile(new File(filePath))) {
       updateNotificationWithBuildFile(project, file, notification, text);
       return;
     }

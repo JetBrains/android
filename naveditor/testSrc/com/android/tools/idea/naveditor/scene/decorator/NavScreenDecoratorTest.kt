@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator
 
+import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.HitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.inlineDrawRect
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.scene.RefinableImage
@@ -35,7 +37,7 @@ import java.awt.geom.Rectangle2D
 class NavScreenDecoratorTest : NavTestCase() {
   private val decorator = object : NavScreenDecorator() {
     override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
-      val rectangle = Coordinates.getSwingRectDip(SceneContext.get(), component.fillDrawRect2D(0, null))
+      val rectangle = component.inlineDrawRect(SceneContext.get())
       val image = buildImage(sceneContext, component, rectangle)!!
       list.add(DrawNavScreen(rectangle, image))
     }
@@ -64,15 +66,18 @@ class NavScreenDecoratorTest : NavTestCase() {
     val displayList = DisplayList()
 
     decorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), sceneComponent1)
-    assertEquals(listOf(Rectangle2D.Float(50f, 150f, 100f, 200f)), displayList.commands.map { (it as DrawNavScreen).rectangle })
+    assertEquals(listOf(SwingRectangle(Rectangle2D.Float(50f, 150f, 100f, 200f))),
+                 displayList.commands.map { (it as DrawNavScreen).rectangle })
 
     displayList.clear()
     decorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), sceneComponent2)
-    assertEquals(listOf(Rectangle2D.Float(5f, 15f, 10f, 20f)), displayList.commands.map { (it as DrawNavScreen).rectangle })
+    assertEquals(listOf(SwingRectangle(Rectangle2D.Float(5f, 15f, 10f, 20f))),
+                 displayList.commands.map { (it as DrawNavScreen).rectangle })
 
     displayList.clear()
     decorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), sceneComponent3)
-    assertEquals(listOf(Rectangle2D.Float(500f, 1500f, 1000f, 2000f)), displayList.commands.map { (it as DrawNavScreen).rectangle })
+    assertEquals(listOf(SwingRectangle(Rectangle2D.Float(500f, 1500f, 1000f, 2000f))),
+                 displayList.commands.map { (it as DrawNavScreen).rectangle })
   }
 
   fun testBuildImage() {

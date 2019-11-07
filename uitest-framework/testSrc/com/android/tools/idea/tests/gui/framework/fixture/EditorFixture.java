@@ -67,6 +67,7 @@ import com.intellij.openapi.fileEditor.SplitEditorToolbar;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -635,6 +636,10 @@ public class EditorFixture {
 
   @NotNull
   public EditorNotificationPanelFixture awaitNotification(@NotNull String text) {
+    // Notification panels can be updated/re-added on Dumb to Smart mode transitions (See EditorNotificationsImpl)
+    DumbService.getInstance(myFrame.getProject()).waitForSmartMode();
+    robot.waitForIdle();
+
     JLabel label = waitUntilShowing(robot, JLabelMatcher.withText(text));
     EditorNotificationPanel notificationPanel = (EditorNotificationPanel)label.getParent().getParent();
     return new EditorNotificationPanelFixture(myFrame, notificationPanel);

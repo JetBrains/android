@@ -46,6 +46,12 @@ public class ProguardR8TypeImpl extends ASTWrapperPsiElement implements Proguard
 
   @Override
   @Nullable
+  public ProguardR8AnyNotPrimitiveType getAnyNotPrimitiveType() {
+    return findChildByClass(ProguardR8AnyNotPrimitiveType.class);
+  }
+
+  @Override
+  @Nullable
   public ProguardR8AnyPrimitiveType getAnyPrimitiveType() {
     return findChildByClass(ProguardR8AnyPrimitiveType.class);
   }
@@ -54,6 +60,12 @@ public class ProguardR8TypeImpl extends ASTWrapperPsiElement implements Proguard
   @Nullable
   public ProguardR8AnyType getAnyType() {
     return findChildByClass(ProguardR8AnyType.class);
+  }
+
+  @Override
+  @Nullable
+  public ProguardR8ArrayType getArrayType() {
+    return findChildByClass(ProguardR8ArrayType.class);
   }
 
   @Override
@@ -71,11 +83,6 @@ public class ProguardR8TypeImpl extends ASTWrapperPsiElement implements Proguard
   @Override
   public boolean matchesPsiType(@NotNull PsiType other) {
     return ProguardR8PsiImplUtil.matchesPsiType(this, other);
-  }
-
-  @Override
-  public boolean isArray() {
-    return ProguardR8PsiImplUtil.isArray(this);
   }
 
 }

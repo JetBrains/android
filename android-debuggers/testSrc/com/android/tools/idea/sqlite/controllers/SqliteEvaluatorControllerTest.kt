@@ -23,13 +23,13 @@ import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.mocks.MockSqliteEvaluatorView
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteResultSet
+import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewListener
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.util.concurrency.EdtExecutorService
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
@@ -64,7 +64,7 @@ class SqliteEvaluatorControllerTest : UsefulTestCase() {
 
   fun testEvaluateSqlActionQuerySuccess() {
     // Prepare
-    val sqlStatement = "SELECT"
+    val sqlStatement = SqliteStatement("SELECT")
     `when`(sqliteService.executeQuery(sqlStatement)).thenReturn(Futures.immediateFuture(any(SqliteResultSet::class.java)))
 
     sqliteEvaluatorController.setUp()
@@ -78,7 +78,7 @@ class SqliteEvaluatorControllerTest : UsefulTestCase() {
 
   fun testEvaluateSqlActionQueryFailure() {
     // Prepare
-    val sqlStatement = "SELECT"
+    val sqlStatement = SqliteStatement("SELECT")
     val throwable = Throwable()
     `when`(sqliteService.executeQuery(sqlStatement)).thenReturn(Futures.immediateFailedFuture(throwable))
 
@@ -143,32 +143,32 @@ class SqliteEvaluatorControllerTest : UsefulTestCase() {
 
   private fun evaluateSqlActionSuccess(action: String) {
     // Prepare
-    `when`(sqliteService.executeUpdate(anyString())).thenReturn(Futures.immediateFuture(0))
+    `when`(sqliteService.executeUpdate(SqliteStatement(action))).thenReturn(Futures.immediateFuture(0))
 
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, action)
+    sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, SqliteStatement(action))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(sqliteService).executeUpdate(action)
+    verify(sqliteService).executeUpdate(SqliteStatement(action))
     verify(sqliteEvaluatorView.tableView).resetView()
   }
 
   private fun evaluateSqlActionFailure(action: String) {
     // Prepare
     val throwable = Throwable()
-    `when`(sqliteService.executeUpdate(anyString())).thenReturn(Futures.immediateFailedFuture(throwable))
+    `when`(sqliteService.executeUpdate(SqliteStatement(action))).thenReturn(Futures.immediateFailedFuture(throwable))
 
     sqliteEvaluatorController.setUp()
 
     // Act
-    sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, action)
+    sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, SqliteStatement(action))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(sqliteService).executeUpdate(action)
+    verify(sqliteService).executeUpdate(SqliteStatement(action))
     verify(sqliteEvaluatorView.tableView).reportError(eq("Error executing update"), refEq(throwable))
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.editor
 
+import TreePanelDefinition
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.Split
@@ -44,7 +45,13 @@ open class NavEditor(file: VirtualFile, project: Project) : DesignerEditor(file,
   override fun createEditorPanel() =
     DesignerEditorPanel(this, myProject, myFile, WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this, this),
                         { NavDesignSurface(myProject, it, this) })
-    { listOf(propertyPanelDefinition(it), StructurePanel.StructurePanelDefinition()) }
+    {
+      val list = mutableListOf(propertyPanelDefinition(it), StructurePanel.StructurePanelDefinition())
+      if(StudioFlags.NAV_NEW_COMPONENT_TREE.get()) {
+        list.add(TreePanelDefinition())
+      }
+      list
+    }
 
   private fun propertyPanelDefinition(facet: AndroidFacet): ToolWindowDefinition<DesignSurface> {
     return if (StudioFlags.NAV_NEW_PROPERTY_PANEL.get()) {

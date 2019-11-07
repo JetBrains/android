@@ -216,7 +216,16 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
     private fun FileContent.toManifestReader(): Reader {
       val inBinaryManifestFormat = Shorts.fromBytes(content[1], content[0]) == Chunk.Type.XML.code()
       return if (inBinaryManifestFormat) {
-        val decoded = BinaryXmlParser.decodeXml(fileName, content)
+        // There's an upstream IntelliJ issue where files in binary manifest format are
+        // mistyped as regular XML files instead of binary files. This causes other indices
+        // like DomFileIndex to access the file content in an unsupported way (i.e. using
+        // FileContentImpl#getContentAsText), which corrupts the bytes returned by
+        // FileContentImpl#getContent. As a workaround, we'll get the uncorrupted content
+        // through the VirtualFile. This may result in staleness issues, but it's better
+        // than nothing and we've only ever seen files in this format coming from compressed
+        // archives that don't change frequently.
+        // TODO(b/143528395): Go back to using FileContentImpl#getContent once the upstream issue has been resolved.
+        val decoded = BinaryXmlParser.decodeXml(fileName, file.contentsToByteArray())
         InputStreamReader(ByteArrayInputStream(decoded))
       }
       else {

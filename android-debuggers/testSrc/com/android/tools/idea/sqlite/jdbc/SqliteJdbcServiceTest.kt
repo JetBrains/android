@@ -21,6 +21,7 @@ import com.android.tools.idea.editors.sqlite.SqliteTestUtil
 import com.android.tools.idea.editors.sqlite.SqliteViewer
 import com.android.tools.idea.sqlite.SqliteService
 import com.android.tools.idea.sqlite.model.SqliteResultSet
+import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -109,7 +110,7 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery("SELECT * FROM Book"))
+    val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery(SqliteStatement("SELECT * FROM Book")))
 
     // Assert
     assertThat(resultSet.hasColumn("book_id", JDBCType.INTEGER)).isTrue()
@@ -135,7 +136,7 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery("SELECT book_id FROM Book"))
+    val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery(SqliteStatement("SELECT book_id FROM Book")))
 
     // Assert
     assertThat(resultSet.hasColumn("book_id", JDBCType.INTEGER)).isTrue()
@@ -161,8 +162,8 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    pumpEventsAndWaitForFuture(sqliteService.executeUpdate("DROP TABLE Book"))
-    val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery("SELECT * FROM Book"))
+    pumpEventsAndWaitForFuture(sqliteService.executeUpdate(SqliteStatement("DROP TABLE Book")))
+    val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery(SqliteStatement("SELECT * FROM Book")))
     val error = pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0, 1))
 
     // Assert
@@ -174,7 +175,7 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery("SELECT * FROM Book"))
+    val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery(SqliteStatement("SELECT * FROM Book")))
     Disposer.dispose(resultSet)
     val error = pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0,3))
 
@@ -187,7 +188,7 @@ class SqliteJdbcServiceTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(sqliteService.openDatabase())
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery("SELECTE * FROM IncorrectTableName"))
+    val resultSet = pumpEventsAndWaitForFuture(sqliteService.executeQuery(SqliteStatement("SELECTE * FROM IncorrectTableName")))
     val future = resultSet.getRowBatch(0, 1)
     val error = pumpEventsAndWaitForFutureException(future)
 

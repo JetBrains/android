@@ -22,12 +22,11 @@ import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VfsUtilCore;
-import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.List;
 import java.util.stream.Stream;
+import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Contains Android-Gradle related state necessary for finding a module's external library jars.
@@ -42,11 +41,15 @@ public class AndroidGradleClassJarProvider implements ClassJarProvider {
       return Lists.transform(AndroidRootUtil.getExternalLibraries(module), VfsUtilCore::virtualToIoFile);
     }
 
-    return Stream.concat(model.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries().stream()
-                           .flatMap(library -> Stream.concat(Stream.of(library.getJarFile()), library.getLocalJars().stream()))
-                           .map(jar -> new File(jar)),
-                         model.getSelectedMainCompileLevel2Dependencies().getJavaLibraries().stream()
-                           .map(Library::getArtifact))
+    return Stream.of(model.getSelectedMainCompileLevel2Dependencies().getRuntimeOnlyClasses().stream(),
+                     model.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries().stream()
+                       .flatMap(
+                         library -> Stream.concat(Stream.of(library.getJarFile()), library.getLocalJars().stream()))
+                       .map(jar -> new File(jar)),
+                     model.getSelectedMainCompileLevel2Dependencies().getJavaLibraries().stream()
+                       .map(Library::getArtifact))
+      // Flat map the concatenated streams
+      .flatMap(s -> s)
       .collect(ImmutableCollectors.toImmutableList());
   }
 }

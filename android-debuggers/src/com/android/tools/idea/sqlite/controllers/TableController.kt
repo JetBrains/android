@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.SqliteService
+import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.ui.tableView.TableView
@@ -45,7 +46,7 @@ class TableController(
   private val view: TableView,
   private val tableName: String?,
   private val sqliteService: SqliteService,
-  private val query: String,
+  private val sqliteStatement: SqliteStatement,
   private val edtExecutor: FutureCallbackExecutor
 ) : Disposable {
   private val listener = TableViewListenerImpl()
@@ -62,7 +63,7 @@ class TableController(
 
     view.startTableLoading()
 
-    return edtExecutor.transform(sqliteService.executeQuery(query)) { newResultSet ->
+    return edtExecutor.transform(sqliteService.executeQuery(sqliteStatement)) { newResultSet ->
       if (Disposer.isDisposed(this)) {
         newResultSet.dispose()
         throw ProcessCanceledException()
@@ -149,12 +150,13 @@ class TableController(
       }
 
       val order = if (orderBy!!.asc) "ASC" else "DESC"
-      val newQuery = "SELECT * FROM ($query) ORDER BY ${AndroidSqlLexer.getValidName(orderBy!!.column.name)} $order"
+      val newQuery =
+        "SELECT * FROM (${sqliteStatement.sqliteStatementText}) ORDER BY ${AndroidSqlLexer.getValidName(orderBy!!.column.name)} $order"
 
       view.startTableLoading()
       Disposer.dispose(resultSet)
 
-      edtExecutor.transform(sqliteService.executeQuery(newQuery)) { newResultSet ->
+      edtExecutor.transform(sqliteService.executeQuery(SqliteStatement(newQuery, sqliteStatement.parametersValues))) { newResultSet ->
         if (Disposer.isDisposed(this@TableController)) {
           newResultSet.dispose()
           throw ProcessCanceledException()

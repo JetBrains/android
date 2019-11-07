@@ -121,7 +121,8 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
           addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false, false);
           break;
       }
-      addCustomAttributes(inspector, selection, myModel);
+      boolean showDefaultValues = selection.getType() == MotionEditorSelector.Type.CONSTRAINT;
+      addCustomAttributes(inspector, selection, myModel, showDefaultValues);
     }
 
     private void addSubTagSections(@NotNull InspectorPanel inspector,
@@ -145,12 +146,15 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
     private void addCustomAttributes(@NotNull InspectorPanel inspector,
                                      @NotNull MotionSelection selection,
-                                     @NotNull MotionLayoutAttributesModel model) {
+                                     @NotNull MotionLayoutAttributesModel model,
+                                     boolean showDefaultValues) {
       if (!shouldDisplaySection(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, selection)) {
         return;
       }
       SubTagAttributesModel customModel = new SubTagAttributesModel(model, MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
-      Function1<NelePropertyItem, Boolean> filter = (item) -> item.getNamespace().isEmpty() && item.getRawValue() != null;
+      Function1<NelePropertyItem, Boolean> filter =
+        (item) -> item.getNamespace().isEmpty() &&
+                  (item.getRawValue() != null || (showDefaultValues && item.getDefaultValue() != null));
       Function1<NelePropertyItem, Unit> deleteOp = (item) -> null;
 
       FilteredPTableModel<NelePropertyItem> tableModel = PTableModelFactory.create(

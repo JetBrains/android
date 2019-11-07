@@ -43,6 +43,7 @@ import com.intellij.reference.SoftReference;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
@@ -308,6 +309,12 @@ public class CanvasResizeInteraction extends Interaction {
   public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     myPerfDebugHelper.start("[Simple Resize] - end");
     myConfiguration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);
+  }
+
+  @Nullable
+  @Override
+  public Cursor getCursor() {
+    return Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR);
   }
 
   @NotNull

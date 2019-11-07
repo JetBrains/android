@@ -15,6 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
+import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
+import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
+import static com.android.tools.idea.testing.TestProjectPaths.LOCAL_AARS_AS_MODULES;
+import static com.android.tools.idea.testing.TestProjectPaths.LOCAL_JARS_AS_MODULES;
+import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.roots.DependencyScope.PROVIDED;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
@@ -24,29 +39,14 @@ import com.android.tools.idea.testing.Modules;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.LeakHunter;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
-import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
-import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
-import static com.android.tools.idea.testing.TestProjectPaths.*;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.roots.DependencyScope.PROVIDED;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 /**
  * Tests dependency configuration during Gradle Sync.
@@ -76,11 +76,6 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
   @Override
   protected boolean useSingleVariantSyncInfrastructure() {
-    return false;
-  }
-
-  @Override
-  protected boolean useCompoundSyncInfrastructure() {
     return false;
   }
 

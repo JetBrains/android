@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator
 
+import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
@@ -56,8 +57,8 @@ class ActionDecoratorTest : NavTestCase() {
 
     ActionDecorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), f1_to_f2)
 
-    assertDrawCommandsEqual(DrawAction(Rectangle2D.Float(419f, 619f, 50f, 100f),
-                                       Rectangle2D.Float(526.5f, 400f, 76.5f, 128f),
+    assertDrawCommandsEqual(DrawAction(SwingRectangle(Rectangle2D.Float(419f, 619f, 50f, 100f)),
+                                       SwingRectangle(Rectangle2D.Float(526.5f, 400f, 76.5f, 128f)),
                                        SCALE, ACTION, true), displayList.commands[0])
   }
 
@@ -81,7 +82,7 @@ class ActionDecoratorTest : NavTestCase() {
 
     ActionDecorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), f1_to_f1)
 
-    assertDrawCommandsEqual(DrawSelfAction(Rectangle2D.Float(409f, 469.0f, 50.0f, 100.0f), SCALE, ACTION, true),
+    assertDrawCommandsEqual(DrawSelfAction(SwingRectangle(Rectangle2D.Float(409f, 469.0f, 50.0f, 100.0f)), SCALE, ACTION, true),
                             displayList.commands[0])
   }
 

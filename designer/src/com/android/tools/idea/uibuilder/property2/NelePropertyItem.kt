@@ -61,7 +61,6 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.pom.Navigatable
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.scale.JBUIScale
@@ -192,7 +191,7 @@ open class NelePropertyItem(
   override val helpSupport = object : HelpSupport {
     override val help = HelpActions.help
     override val secondaryHelp = HelpActions.secondaryHelp
-    override fun browse() { browseToValue() }
+    override fun browse() { model.browseToValue(this@NelePropertyItem) }
   }
 
   override val editingSupport = object : EditingSupport {
@@ -200,18 +199,6 @@ open class NelePropertyItem(
     override val validation = { text: String? -> validate(text) }
     override val execution = { runnable: Runnable -> ApplicationManager.getApplication().executeOnPooledThread(runnable) }
     override val uiExecution = { runnable: Runnable -> ApplicationManager.getApplication().invokeLater(runnable) }
-  }
-
-  private fun browseToValue() {
-    val tag = firstTag ?: return
-    val attribute = tag.getAttribute(name, namespace) ?: return
-    val attributeValue = attribute.valueElement ?: return
-    val file = tag.containingFile
-    val ref = file.findReferenceAt(attributeValue.textOffset)
-    val navigable = ref?.resolve() as? Navigatable ?: return
-    if (navigable != attributeValue) {
-      navigable.navigate(true)
-    }
   }
 
   val designProperty: NelePropertyItem
@@ -300,7 +287,7 @@ open class NelePropertyItem(
   val project: Project
     get() = model.facet.module.project
 
-  protected val firstTag: XmlTag?
+  internal val firstTag: XmlTag?
     get() = ReadAction.compute<XmlTag?, RuntimeException> { firstComponent?.backend?.tag }
 
   private val nlModel: NlModel?

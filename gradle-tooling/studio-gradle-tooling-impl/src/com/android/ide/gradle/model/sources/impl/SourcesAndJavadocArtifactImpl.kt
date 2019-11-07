@@ -23,9 +23,11 @@ import java.io.Serializable
 data class SourcesAndJavadocArtifactImpl(
   private val id: SourcesAndJavadocArtifactIdentifier,
   private val sources: File?,
-  private val javadoc: File?
+  private val javadoc: File?,
+  private val mavenPom: File?
 ) : SourcesAndJavadocArtifact, Serializable {
   override fun getId() = id
   override fun getSources() = sources
   override fun getJavadoc() = javadoc
+  override fun getMavenPom() = mavenPom
 }

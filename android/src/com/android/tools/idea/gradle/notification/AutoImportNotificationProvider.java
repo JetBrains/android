@@ -24,13 +24,15 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
+import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
 import static com.intellij.ide.BrowserUtil.browse;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
  * Notifies users that Gradle "auto-import" feature is enabled, explains the issues with this feature and offers a way to disable it. This
@@ -59,8 +61,8 @@ public class AutoImportNotificationProvider extends EditorNotifications.Provider
     if (!GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
       return null;
     }
-    String name = file.getName();
-    if (FN_BUILD_GRADLE.equals(name) || FN_SETTINGS_GRADLE.equals(name)) {
+    File path = virtualToIoFile(file);
+    if (findGradleBuildFile(path).isFile() || findGradleSettingsFile(path).isFile()) {
       GradleProjectSettings settings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(myProject);
       if (IdeInfo.getInstance().isAndroidStudio() && settings != null && settings.isUseAutoImport()) {
         return new DisableAutoImportNotificationPanel(settings);

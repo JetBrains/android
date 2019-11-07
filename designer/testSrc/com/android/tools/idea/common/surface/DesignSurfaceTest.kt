@@ -53,9 +53,11 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertEquals(2, surface.models.size)
 
     surface.removeModel(model2)
+    surface.zoomToFit()
     assertEquals(1, surface.models.size)
 
     surface.removeModel(model1)
+    surface.zoomToFit()
     assertEquals(0, surface.models.size)
   }
 
@@ -81,6 +83,7 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertEquals(0, surface.models.size)
 
     surface.removeModel(model1)
+    surface.zoomToFit()
     // do nothing and the callback should not be triggered.
     assertEquals(0, surface.models.size)
 
@@ -88,6 +91,7 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertEquals(1, surface.models.size)
 
     surface.removeModel(model2)
+    surface.zoomToFit()
     assertEquals(1, surface.models.size)
   }
 

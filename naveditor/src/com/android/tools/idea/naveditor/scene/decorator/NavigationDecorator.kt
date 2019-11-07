@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator
 
-import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.common.scene.inlineDrawRect
 import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.naveditor.model.effectiveDestination
 import com.android.tools.idea.naveditor.model.getEffectiveSource
@@ -42,7 +41,7 @@ object NavigationDecorator : NavBaseDecorator() {
     }
 
     val sceneView = sceneContext.surface?.focusedSceneView ?: return
-    @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
+    val drawRectangle = component.inlineDrawRect(sceneView)
     addHeader(list, sceneContext, drawRectangle, component)
 
     val scale = sceneContext.inlineScale

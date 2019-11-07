@@ -21,15 +21,16 @@ import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
+import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.SqliteServiceFactory
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
+import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.SqliteEditorViewFactory
 import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.mainView.SqliteView
 import com.android.tools.idea.sqlite.ui.mainView.SqliteViewListener
-import com.android.tools.idea.sqliteExplorer.SqliteExplorerProjectService
 import com.google.common.util.concurrent.FutureCallback
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -41,8 +42,9 @@ import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.text.trimMiddle
 import org.jetbrains.ide.PooledThreadExecutor
-import java.nio.file.Path
+import java.util.TreeMap
 import java.util.concurrent.Executor
 import java.util.function.Consumer
 
@@ -54,7 +56,7 @@ import java.util.function.Consumer
 @UiThread
 class SqliteController(
   private val project: Project,
-  private val sqliteExplorerProjectService: SqliteExplorerProjectService,
+  private val model: Model,
   private val sqliteServiceFactory: SqliteServiceFactory,
   private val viewFactory: SqliteEditorViewFactory,
   val sqliteView: SqliteView,
@@ -82,7 +84,7 @@ class SqliteController(
 
     virtualFileListener = object : BulkFileListener {
       override fun before(events: MutableList<out VFileEvent>) {
-        val openDatabases = sqliteExplorerProjectService.getOpenDatabases()
+        val openDatabases = model.openDatabases.keys
 
         if (openDatabases.isEmpty()) return
 
@@ -132,9 +134,9 @@ class SqliteController(
     })
   }
 
-  fun runSqlStatement(database: SqliteDatabase, query: String) {
+  fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
     val sqliteEvaluatorController = openNewEvaluatorTab()
-    sqliteEvaluatorController.evaluateSqlStatement(database, query)
+    sqliteEvaluatorController.evaluateSqlStatement(database, sqliteStatement)
   }
 
   override fun dispose() {
@@ -170,14 +172,14 @@ class SqliteController(
 
   private fun addNewDatabaseSchema(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
     if (Disposer.isDisposed(this)) return
-    val index = sqliteExplorerProjectService.getSortedIndexOf(database)
+    val index = model.getSortedIndexOf(database)
     sqliteView.addDatabaseSchema(database, sqliteSchema, index)
 
     resultSetControllers.values
       .asSequence()
       .filterIsInstance<SqliteEvaluatorController>()
       .forEach { it.addDatabase(database, index) }
-    sqliteExplorerProjectService.add(database, sqliteSchema)
+    model.add(database, sqliteSchema)
   }
 
   private fun closeDatabase(database: SqliteDatabase) {
@@ -187,7 +189,7 @@ class SqliteController(
 
     tabsToClose.forEach { closeTab(it) }
 
-    val index = sqliteExplorerProjectService.getSortedIndexOf(database)
+    val index = model.getSortedIndexOf(database)
     resultSetControllers.values
       .asSequence()
       .filterIsInstance<SqliteEvaluatorController>()
@@ -195,7 +197,7 @@ class SqliteController(
 
     sqliteView.removeDatabaseSchema(database)
 
-    sqliteExplorerProjectService.remove(database)
+    model.remove(database)
     Disposer.dispose(database)
   }
 
@@ -206,10 +208,10 @@ class SqliteController(
   }
 
   private fun updateDatabaseSchema(database: SqliteDatabase) {
-    val oldSchema = sqliteExplorerProjectService.getSchema(database) ?: return
+    val oldSchema = model.openDatabases[database] ?: return
     readDatabaseSchema(database) { newSchema ->
       updateExistingDatabaseSchemaView(database, oldSchema, newSchema)
-      sqliteExplorerProjectService.add(database, newSchema)
+      model.add(database, newSchema)
     }
   }
 
@@ -227,7 +229,7 @@ class SqliteController(
 
     val sqliteEvaluatorView = viewFactory.createEvaluatorView(
       project,
-      sqliteExplorerProjectService,
+      object : SchemaProvider { override fun getSchema(database: SqliteDatabase) = model.openDatabases[database] },
       viewFactory.createTableView()
     )
 
@@ -243,7 +245,7 @@ class SqliteController(
 
     resultSetControllers[tabId] = sqliteEvaluatorController
 
-    sqliteExplorerProjectService.getOpenDatabases().forEachIndexed { index, sqliteDatabase ->
+    model.openDatabases.keys.forEachIndexed { index, sqliteDatabase ->
       sqliteEvaluatorController.addDatabase(sqliteDatabase, index)
     }
 
@@ -267,8 +269,8 @@ class SqliteController(
         parentDisposable = this@SqliteController,
         view = tableView,
         tableName = table.name,
-        query = "SELECT * FROM ${AndroidSqlLexer.getValidName(table.name)}",
         sqliteService = sqliteService,
+        sqliteStatement = SqliteStatement("SELECT * FROM ${AndroidSqlLexer.getValidName(table.name)}"),
         edtExecutor = edtExecutor
       )
 
@@ -302,15 +304,15 @@ class SqliteController(
           get() = false
 
         override fun onStarting(entryFullPath: String) {
-          sqliteView.reportSyncProgress("${entryFullPath}: start sync")
+          sqliteView.reportSyncProgress("${entryFullPath.trimMiddle(20, true)}: start sync")
         }
 
         override fun onProgress(entryFullPath: String, currentBytes: Long, totalBytes: Long) {
-          sqliteView.reportSyncProgress("${entryFullPath}: sync progress $currentBytes/$totalBytes")
+          sqliteView.reportSyncProgress("${entryFullPath.trimMiddle(20, true)}: sync progress $currentBytes/$totalBytes")
         }
 
         override fun onCompleted(entryFullPath: String) {
-          sqliteView.reportSyncProgress("${entryFullPath}: sync completed")
+          sqliteView.reportSyncProgress("${entryFullPath.trimMiddle(20, true)}: sync completed")
         }
       })
 
@@ -325,6 +327,20 @@ class SqliteController(
     override fun onSchemaUpdated(database: SqliteDatabase) {
       updateDatabaseSchema(database)
     }
+  }
+
+  /**
+   * Thread safe model for Database Inspector. Used to store and access currently open [SqliteDatabase]s and their [SqliteSchema]s.
+   */
+  interface Model {
+    /**
+     * A set of open databases sorted in alphabetical order by the name of the database.
+     */
+    val openDatabases: TreeMap<SqliteDatabase, SqliteSchema>
+
+    fun getSortedIndexOf(database: SqliteDatabase): Int
+    fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema)
+    fun remove(database: SqliteDatabase)
   }
 }
 

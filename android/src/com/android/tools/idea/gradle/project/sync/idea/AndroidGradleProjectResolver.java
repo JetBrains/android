@@ -32,6 +32,7 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_N
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
@@ -182,57 +183,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     return nextResolver.createModule(gradleModule, projectDataNode);
   }
 
-  @Override
-  public boolean requiresTaskRunning() {
-    Project project = myProjectFinder.findProject(resolverCtx);
-    // This tells IDEAs infrastructure to allow AGP to run tasks if we are running compound sync.
-    return project != null && shouldGenerateSources(project);
-  }
-
-  @Override
-  public void buildFinished(@Nullable GradleConnectionException exception) {
-    if (exception != null) {
-      // We don't actually want to report the errors that are coming from the task running phase of the Gradle process, these will be
-      // reporting during a build. This may result in extra red symbols in the IDE however since we can already get in to a state with
-      // red symbols (via generated source) this is something that we can accept.
-      // This this allows us to make sync only fail if configuration or model building has failed. So configured project iff Setup IDE.
-      LOG.info("Exception thrown during task execution", exception);
-    }
-
-    Project project = myProjectFinder.findProject(resolverCtx);
-    if (project == null) {
-      return;
-    }
-
-    // We only want to notify the sourceGeneration listeners if source generation has been requested.
-    if (!shouldGenerateSources(project)) {
-      return;
-    }
-
-    // Since this is running in the Gradle connection thread we need to pass back to the UI thread to call the listeners as they may
-    // require reading or writing and we want to provide the same context as the other listeners.
-    // If we start these from the connection thread deadlocks can occur.
-    Runnable runnable = () -> {
-      // Since this is run on the UI thread we need to check whether the project has been disposed.
-      if (!project.isDisposed()) {
-        GradleSyncState.getInstance(project).sourceGenerationFinished();
-
-        GradleSyncListener syncListener = project.getUserData(GradleSyncExecutor.LISTENER_KEY);
-        if (syncListener == null) {
-          return;
-        }
-
-        syncListener.sourceGenerationFinished(project);
-      }
-    };
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      runnable.run();
-    }
-    else {
-      ApplicationManager.getApplication().invokeAndWait(runnable, myModality);
-    }
-  }
-
   private void populateSourcesAndJavadocModel(@NotNull IdeaModule gradleModule) {
     Project project = myProjectFinder.findProject(resolverCtx);
     SourcesAndJavadocArtifacts artifacts = resolverCtx.getExtraProject(gradleModule, SourcesAndJavadocArtifacts.class);
@@ -309,7 +259,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       ideModule.createChild(NDK_MODEL, ndkModuleModel);
     }
 
-    File gradleSettingsFile = new File(moduleRootDirPath, FN_SETTINGS_GRADLE);
+    File gradleSettingsFile = findGradleSettingsFile(moduleRootDirPath);
     if (gradleSettingsFile.isFile() && androidProject == null && nativeAndroidProject == null &&
         // if the module has artifacts, it is a Java library module.
         // https://code.google.com/p/android/issues/detail?id=226802
@@ -636,7 +586,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     if (project != null) {
       isSingleVariantSync = shouldOnlySyncSingleVariant(project);
-      shouldGenerateSources = shouldGenerateSources(project);
       if (isSingleVariantSync) {
         SelectedVariantCollector variantCollector = new SelectedVariantCollector(project);
         selectedVariants = variantCollector.collectSelectedVariants();
@@ -649,15 +598,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     SyncActionOptions options = new SyncActionOptions();
     options.setModuleIdWithVariantSwitched(moduleWithVariantSwitched);
     options.setSingleVariantSyncEnabled(isSingleVariantSync);
-    options.setShouldGenerateSources(shouldGenerateSources);
     options.setSelectedVariants(selectedVariants);
     options.setCachedSourcesAndJavadoc(cachedSourcesAndJavadoc);
     return new AndroidExtraModelProvider(options);
-  }
-
-  private static boolean shouldGenerateSources(@NotNull Project project) {
-    Boolean generateSourcesRequested = project.getUserData(GradleSyncExecutor.SOURCE_GENERATION_KEY);
-    return generateSourcesRequested != null && generateSourcesRequested;
   }
 
   private static boolean shouldOnlySyncSingleVariant(@NotNull Project project) {

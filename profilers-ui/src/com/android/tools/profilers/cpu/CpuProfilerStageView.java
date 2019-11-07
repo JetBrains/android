@@ -152,9 +152,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
 
     ProfilerTimeline timeline = getTimeline();
-    myTooltipComponent = new RangeTooltipComponent(timeline.getTooltipRange(),
-                                                   timeline.getViewRange(),
-                                                   timeline.getDataRange(),
+    myTooltipComponent = new RangeTooltipComponent(timeline,
                                                    getTooltipPanel(),
                                                    getProfilersView().getComponent(),
                                                    this::shouldShowTooltipSeekComponent);

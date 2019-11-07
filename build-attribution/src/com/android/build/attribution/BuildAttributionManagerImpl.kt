@@ -15,45 +15,59 @@
  */
 package com.android.build.attribution
 
+import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersWrapper
 import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
+import com.android.build.attribution.ui.BuildAttributionTreeView
+import com.android.build.attribution.ui.data.BuildAttributionReportUiData
+import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
+import com.android.build.attribution.ui.filters.BuildAttributionOutputLinkFilter
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.ui.content.Content
+import com.intellij.ui.content.impl.ContentImpl
 import org.gradle.tooling.events.ProgressEvent
 import java.io.File
 import java.time.Duration
 
 class BuildAttributionManagerImpl(
-  private val myProject: Project,
-  private val myBuildContentManager: BuildContentManager
+  private val project: Project,
+  private val buildContentManager: BuildContentManager
 ) : BuildAttributionManager {
   private val taskContainer = TaskContainer()
   private val pluginContainer = PluginContainer()
 
   @get:VisibleForTesting
-  val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter.getInstance(myProject), taskContainer, pluginContainer)
+  val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter.getInstance(project), taskContainer, pluginContainer)
   private val analyzersWrapper = BuildEventsAnalyzersWrapper(analyzersProxy.getBuildEventsAnalyzers(),
                                                              analyzersProxy.getBuildAttributionReportAnalyzers())
+
+  private var buildContent: Content? = null
+  private var reportUiData: BuildAttributionReportUiData? = null
 
   override fun onBuildStart() {
     analyzersWrapper.onBuildStart()
   }
 
   override fun onBuildSuccess(attributionFilePath: String) {
+    val buildFinishedTimestamp = System.currentTimeMillis()
     val attributionData = AndroidGradlePluginAttributionData.load(File(attributionFilePath))
     if (attributionData != null) {
       taskContainer.updateTasksData(attributionData)
     }
     analyzersWrapper.onBuildSuccess(attributionData)
 
-    // TODO: add proper UI
     logBuildAttributionResults()
+
+    reportUiData = BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp).build()
+    ApplicationManager.getApplication().invokeLater { createUiTab() }
   }
 
   override fun onBuildFailure() {
@@ -66,6 +80,35 @@ class BuildAttributionManagerImpl(
     analyzersWrapper.receiveEvent(event)
   }
 
+  @UiThread
+  private fun createUiTab() {
+    reportUiData?.let {
+      val view = BuildAttributionTreeView(project, it)
+      val content = buildContent
+      if (content != null && content.isValid) {
+        content.component = view.component
+      }
+      else {
+        buildContent = ContentImpl(view.component, "Build Speed", true)
+        buildContentManager.addContent(buildContent)
+      }
+      view.setInitialSelection()
+    }
+  }
+
+  override fun openResultsTab() {
+    ApplicationManager.getApplication().invokeLater {
+      if (buildContent?.isValid != true) {
+        createUiTab()
+      }
+      ApplicationManager.getApplication().invokeLater {
+        buildContentManager.setSelectedContent(buildContent, true, true, false) {}
+      }
+    }
+  }
+
+  override fun buildOutputLine(): String = BuildAttributionOutputLinkFilter.INSIGHTS_AVAILABLE_LINE
+
   private fun logBuildAttributionResults() {
     val stringBuilder = StringBuilder()
 
@@ -76,22 +119,22 @@ class BuildAttributionManagerImpl(
       }
     }
 
-    analyzersProxy.getTasksCriticalPath().let {
+    analyzersProxy.getCriticalPathTasks().let {
       if (it.isNotEmpty()) {
         stringBuilder.appendln("Tasks critical path:")
         it.forEach { taskData ->
-          val percentage = taskData.executionTime * 100 / analyzersProxy.getTotalBuildTime()
+          val percentage = taskData.executionTime * 100 / analyzersProxy.getTotalBuildTimeMs()
           stringBuilder.append("Task ${taskData.getTaskPath()} from ${taskData.originPlugin}")
             .appendln(", time ${Duration.ofMillis(taskData.executionTime)} ($percentage%)")
         }
       }
     }
 
-    analyzersProxy.getPluginsCriticalPath().let {
+    analyzersProxy.getCriticalPathPlugins().let {
       if (it.isNotEmpty()) {
         stringBuilder.appendln("Plugins determining build duration:")
         it.forEach { pluginBuildData ->
-          val percentage = pluginBuildData.buildDuration * 100 / analyzersProxy.getTotalBuildTime()
+          val percentage = pluginBuildData.buildDuration * 100 / analyzersProxy.getTotalBuildTimeMs()
           stringBuilder.append("${pluginBuildData.plugin}, time ${Duration.ofMillis(pluginBuildData.buildDuration)}")
             .appendln(" ($percentage%)")
         }
@@ -137,7 +180,7 @@ class BuildAttributionManagerImpl(
       }
     }
 
-    analyzersProxy.getNoncacheableTasks().let {
+    analyzersProxy.getNonCacheableTasks().let {
       if (it.isNotEmpty()) {
         stringBuilder.appendln("Non-cacheable tasks:")
         it.forEach { taskData ->

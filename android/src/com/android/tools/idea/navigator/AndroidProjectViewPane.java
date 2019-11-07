@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.navigator;
 
-import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.PSI_ELEMENT;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE;
@@ -25,6 +24,7 @@ import static com.intellij.openapi.actionSystem.PlatformDataKeys.DELETE_ELEMENT_
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 
 import com.android.tools.idea.Projects;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
@@ -32,6 +32,7 @@ import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.SourceProviders;
 import com.google.common.collect.Iterables;
 import com.intellij.facet.Facet;
 import com.intellij.facet.ProjectWideFacetAdapter;
@@ -162,7 +163,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
   @NotNull
   public static Iterable<IdeaSourceProvider> getSourceProviders(@NotNull AndroidFacet facet) {
-    SourceProviderManager sourceProviderManager = SourceProviderManager.getInstance(facet);
+    SourceProviders sourceProviderManager = SourceProviderManager.getInstance(facet);
     return Iterables.concat(
       sourceProviderManager.getCurrentSourceProviders(),
       sourceProviderManager.getCurrentTestSourceProviders());

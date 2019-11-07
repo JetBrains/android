@@ -29,7 +29,12 @@ import com.android.tools.profilers.energy.EnergyMonitor;
 import com.android.tools.profilers.energy.EnergyMonitorTooltip;
 import com.android.tools.profilers.energy.EnergyMonitorTooltipView;
 import com.android.tools.profilers.energy.EnergyMonitorView;
-import com.android.tools.profilers.event.*;
+import com.android.tools.profilers.event.EventMonitor;
+import com.android.tools.profilers.event.EventMonitorView;
+import com.android.tools.profilers.event.LifecycleTooltip;
+import com.android.tools.profilers.event.LifecycleTooltipView;
+import com.android.tools.profilers.event.UserEventTooltip;
+import com.android.tools.profilers.event.UserEventTooltipView;
 import com.android.tools.profilers.memory.MemoryMonitor;
 import com.android.tools.profilers.memory.MemoryMonitorTooltip;
 import com.android.tools.profilers.memory.MemoryMonitorTooltipView;
@@ -39,16 +44,19 @@ import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkMonitorTooltipView;
 import com.android.tools.profilers.network.NetworkMonitorView;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Bird eye view displaying high-level information across all profilers.
@@ -91,14 +99,11 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     TabularLayout layout = new TabularLayout("*");
     JPanel monitors = new JPanel(layout);
 
-    ProfilerTimeline timeline = stage.getStudioProfilers().getTimeline();
-
     // Use FlowLayout instead of the usual BorderLayout since BorderLayout doesn't respect min/preferred sizes.
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
-    RangeTooltipComponent
-      tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(), getTooltipPanel(),
-                                          getProfilersView().getComponent(), () -> true);
+    RangeTooltipComponent tooltip =
+      new RangeTooltipComponent(getTimeline(), getTooltipPanel(), getProfilersView().getComponent(), () -> true);
 
     getTooltipBinder().bind(NetworkMonitorTooltip.class, NetworkMonitorTooltipView::new);
     getTooltipBinder().bind(CpuMonitorTooltip.class, CpuMonitorTooltipView::new);

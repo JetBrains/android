@@ -25,7 +25,6 @@ import static com.android.SdkConstants.ATTR_SCROLLBARS;
 import static com.android.SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT;
 import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.tools.idea.flags.StudioFlags.NELE_SAMPLE_DATA_UI;
 
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.common.model.NlComponent;
@@ -90,10 +89,6 @@ public class RecyclerViewHandler extends ViewGroupHandler {
 
   @Nullable
   private static ComponentAssistantFactory getComponentAssistant(@NotNull NlComponent component) {
-    if (!NELE_SAMPLE_DATA_UI.get()) {
-      return null;
-    }
-
     AndroidFacet facet = AndroidFacet.getInstance(component.getModel().getModule());
     if (facet == null) {
       return null;

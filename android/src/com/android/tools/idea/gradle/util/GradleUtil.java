@@ -86,6 +86,7 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.utils.BuildScriptUtil;
 import com.android.utils.FileUtils;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -308,6 +309,49 @@ public final class GradleUtil {
     return moduleRoot != null ? getGradleBuildFile(moduleRoot) : null;
   }
 
+  /**
+   * Returns the virtual file representing a build.gradle or build.gradle.kts file in the directory at the given
+   * parentDir. build.gradle.kts is only returned when build.gradle doesn't exist and build.gradle.kts exists.
+   *
+   * __Note__: Do __not__ use this method unless you have to, use {@link #getGradleBuildFile(Module)} instead.
+   * This will return the actual build script that is used by Gradle rather than just guessing its location.
+   *
+   * __Note__: There is a {@link File} implementation of this method {@link BuildScriptUtil#findGradleBuildFile(File)}.
+   * Prefer working with {@link VirtualFile}s if possible as these are more compatible with IDEAs testing infrastructure.
+   *
+   */
+  @Nullable
+  public static VirtualFile findGradleBuildFile(@NotNull VirtualFile parentDir) {
+    return findFileWithNames(parentDir, FN_BUILD_GRADLE, FN_BUILD_GRADLE_KTS);
+  }
+
+  /**
+   * Returns the virtual file representing a settings.gradle or settings.gradle.kts file in the directory at the given
+   * parentDir. settings.gradle.kts is only returned when settings.gradle doesn't exist and settings.gradle.kts exists.
+   *
+   * __Note__: There is a {@link File} implementation of this method {@link BuildScriptUtil#findGradleSettingsFile(File)}.
+   * Prefer working with {@link VirtualFile}s if possible as these are more compatible with IDEAs testing infrastructure.
+   */
+  @Nullable
+  public static VirtualFile findGradleSettingsFile(@NotNull VirtualFile parentDir) {
+    return findFileWithNames(parentDir, FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS);
+  }
+
+  /**
+   * Finds and returns a file that exists as a child of the parentDir with one of the given names. This method will search for the
+   * names in order and will return as soon as one is found.
+   */
+  @Nullable
+  private static VirtualFile findFileWithNames(@NotNull VirtualFile parentDir, @NotNull String...names) {
+    for (String name : names) {
+      VirtualFile file = parentDir.findChild(name);
+      if (file != null && !file.isDirectory()) {
+        return file;
+      }
+    }
+    return null;
+  }
+
   @Nullable
   private static GradleModuleModel getGradleModuleModel(Module module) {
     GradleFacet gradleFacet = GradleFacet.getInstance(module);
@@ -332,40 +376,16 @@ public final class GradleUtil {
    */
   @Nullable
   public static VirtualFile getGradleBuildFile(@NotNull File dirPath) {
-    File gradleBuildFilePath = getGradleBuildFilePath(dirPath);
+    File gradleBuildFilePath = BuildScriptUtil.findGradleBuildFile(dirPath);
     VirtualFile result = findFileByIoFile(gradleBuildFilePath, false);
     return (result != null && result.isValid()) ? result : null;
   }
 
   /**
-   * Returns the path of a build.gradle or build.gradle.kts file in the directory at the given path.
-   * build.gradle.kts is only returned when build.gradle doesn't exist and build.gradle.kts exists.
-   * <p>
-   * Please note that the build.gradle file may not exist at the returned path.
-   * <p>
-   * <b>Note:</b> Only use this method if you do <b>not</b> have a reference to a {@link Module}. Otherwise use
-   * {@link #getGradleBuildFile(Module)}.
-   * </p>
-   *
-   * @param dirPath the given directory path.
-   * @return the path of a build.gradle or build.gradle.kts file in the directory at the given path.
-   */
-  @NotNull
-  public static File getGradleBuildFilePath(@NotNull File dirPath) {
-    File defaultBuildFile = new File(dirPath, FN_BUILD_GRADLE);
-    if (!defaultBuildFile.isFile()) {
-      File ktsBuildFile = new File(dirPath, FN_BUILD_GRADLE_KTS);
-      if (ktsBuildFile.isFile()) {
-        return ktsBuildFile;
-      }
-    }
-    return defaultBuildFile;
-  }
-
-  /**
    * Returns the VirtualFile corresponding to the Gradle settings file for the given directory, this method will not attempt to refresh the
    * file system which means it is safe to be called from a read action. If the most up to date information is needed then the caller
-   * should use {@link #getGradleSettingsFilePath(File)} along with {@link com.intellij.openapi.vfs.VfsUtil#findFileByIoFile(File, boolean)}
+   * should use {@link BuildScriptUtil#findGradleSettingsFile(File)} along with
+   * {@link com.intellij.openapi.vfs.VfsUtil#findFileByIoFile(File, boolean)}
    * to ensure a refresh occurs.
    *
    * @param dirPath the path to find the Gradle settings file for.
@@ -373,21 +393,9 @@ public final class GradleUtil {
    */
   @Nullable
   public static VirtualFile getGradleSettingsFile(@NotNull File dirPath) {
-    File gradleSettingsFilePath = getGradleSettingsFilePath(dirPath);
+    File gradleSettingsFilePath = BuildScriptUtil.findGradleSettingsFile(dirPath);
     VirtualFile result = findFileByIoFile(gradleSettingsFilePath, false);
     return (result != null && result.isValid()) ? result : null;
-  }
-
-  @NotNull
-  public static File getGradleSettingsFilePath(@NotNull File dirPath) {
-    File defaultSettingsFile = new File(dirPath, FN_SETTINGS_GRADLE);
-    if (!defaultSettingsFile.isFile()) {
-      File ktsSettingsFile = new File(dirPath, FN_SETTINGS_GRADLE_KTS);
-      if (ktsSettingsFile.isFile()) {
-        return ktsSettingsFile;
-      }
-    }
-    return defaultSettingsFile;
   }
 
   @NotNull

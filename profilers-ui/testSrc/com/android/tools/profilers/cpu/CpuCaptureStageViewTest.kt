@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
@@ -27,10 +28,13 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ui.JBSplitter
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Point
 import javax.swing.JLabel
+import javax.swing.SwingUtilities
 
 class CpuCaptureStageViewTest {
   private val cpuService = FakeCpuService()
@@ -86,5 +90,21 @@ class CpuCaptureStageViewTest {
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()
     assertThat(stageView.analysisPanel.component.size).isNotSameAs(0)
+  }
+
+  @Test
+  fun tooltipIsUsageWhenMouseIsOverMinimap() {
+    val stageView = CpuCaptureStageView(profilersView, stage)
+    stage.enter()
+    stageView.component.setBounds(0, 0, 500, 500)
+    val ui = FakeUi(stageView.component)
+    val splitter = TreeWalker(stageView.component).descendants().filterIsInstance<JBSplitter>().first()
+    val minimap = TreeWalker(splitter.firstComponent).descendants().elementAt(2)
+    val minimapOrigin = SwingUtilities.convertPoint(minimap, Point(0, 0), stageView.component)
+
+    assertThat(stage.tooltip).isNull()
+    // Move into minimap
+    ui.mouse.moveTo(minimapOrigin.x, minimapOrigin.y)
+    assertThat(stage.tooltip).isInstanceOf(CaptureCpuUsageTooltip::class.java)
   }
 }

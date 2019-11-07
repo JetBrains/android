@@ -92,6 +92,16 @@ public class MotionAttributes {
       return nameSpace;
     }
 
+    @Nullable
+    public String getSourceId() {
+      return source_id;
+    }
+
+    @Nullable
+    public String getCustomType() {
+      return customType;
+    }
+
     public boolean isLayoutAttribute() {
       return MotionSceneAttrs.layout_tags.contains(name);
     }
@@ -107,6 +117,8 @@ public class MotionAttributes {
     public boolean isMotionAttribute() {
       return MotionSceneAttrs.ourMotion_tags.contains(name);
     }
+
+    public boolean isCustomAttribute() { return customType != null; }
   }
 
   public MTag getConstraintSet() {

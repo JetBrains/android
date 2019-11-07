@@ -35,7 +35,6 @@ import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -87,7 +86,6 @@ public class GradleSyncExecutor {
   @NotNull private final Project myProject;
 
   @NotNull public static final Key<GradleSyncListener> LISTENER_KEY = new Key<>("GradleSyncListener");
-  @NotNull public static final Key<Boolean> SOURCE_GENERATION_KEY = new Key<>("android.sourcegeneration.enabled");
   @NotNull public static final Key<Boolean> SINGLE_VARIANT_KEY = new Key<>("android.singlevariant.enabled");
 
   public GradleSyncExecutor(@NotNull Project project) {
@@ -96,7 +94,6 @@ public class GradleSyncExecutor {
 
   @WorkerThread
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
-    boolean shouldBuildAfterSync = StudioFlags.BUILD_AFTER_SYNC_ENABLED.get();
     if (SYNC_WITH_CACHED_MODEL_ONLY || request.useCachedGradleModels) {
       ProjectBuildFileChecksums buildFileChecksums = ProjectBuildFileChecksums.findFor((myProject));
       if (buildFileChecksums != null && buildFileChecksums.canUseCachedData()) {
@@ -105,7 +102,6 @@ public class GradleSyncExecutor {
         if (cache != null && !dataNodeCaches.isCacheMissingModels(cache) && !areCachedFilesMissing(myProject)) {
           PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
           setupRequest.usingCachedGradleModels = true;
-          setupRequest.generateSourcesAfterSync = shouldBuildAfterSync;
           setupRequest.lastSyncTimestamp = buildFileChecksums.getLastGradleSyncTimestamp();
 
           setSkipAndroidPluginUpgrade(request, setupRequest);
@@ -127,17 +123,14 @@ public class GradleSyncExecutor {
 
     // Setup the settings for setup.
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.generateSourcesAfterSync = shouldBuildAfterSync && !GradleSyncState.isCompoundSync();
     setupRequest.cleanProjectAfterSync = request.cleanProject;
     setupRequest.usingCachedGradleModels = false;
 
     // Setup the settings for the resolver.
-    // We enable compound sync if we have been requested to generate sources and compound sync is enabled.
-    boolean shouldUseCompoundSync = shouldBuildAfterSync && GradleSyncState.isCompoundSync();
     // We also pass through whether single variant sync should be enabled on the resolver, this allows fetchGradleModels to turn this off
     boolean shouldUseSingleVariantSync = !request.forceFullVariantsSync && GradleSyncState.isSingleVariantSync();
     // We also need to pass the listener so that the callbacks can be used
-    setProjectUserDataForAndroidGradleProjectResolver(shouldUseCompoundSync, shouldUseSingleVariantSync, listener);
+    setProjectUserDataForAndroidGradleProjectResolver(shouldUseSingleVariantSync, listener);
 
     setSkipAndroidPluginUpgrade(request, setupRequest);
 
@@ -220,14 +213,11 @@ public class GradleSyncExecutor {
    * We use the projects user data as a way of passing this information across since the resolver is create by the
    * external system infrastructure.
    *
-   * @param shouldGenerateSources whether or not sources should be generated
    * @param singleVariant         whether or not only a single variant should be synced
    * @param listener              the listener that is being used for the current sync.
    */
-  private void setProjectUserDataForAndroidGradleProjectResolver(boolean shouldGenerateSources,
-                                                                 boolean singleVariant,
+  private void setProjectUserDataForAndroidGradleProjectResolver(boolean singleVariant,
                                                                  @Nullable GradleSyncListener listener) {
-    myProject.putUserData(SOURCE_GENERATION_KEY, shouldGenerateSources);
     myProject.putUserData(SINGLE_VARIANT_KEY, singleVariant);
     myProject.putUserData(LISTENER_KEY, listener);
   }
@@ -239,7 +229,7 @@ public class GradleSyncExecutor {
     String projectPath = myProject.getBasePath();
     assert projectPath != null;
 
-    setProjectUserDataForAndroidGradleProjectResolver(false, false, null);
+    setProjectUserDataForAndroidGradleProjectResolver(false, null);
 
     GradleProjectResolver projectResolver = new GradleProjectResolver();
     DataNode<ProjectData> projectDataNode = projectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);

@@ -54,3 +54,36 @@ data class SqliteColumnValue(val column: SqliteColumn, val value: Any?)
 
 /** Representation of a Sqlite table column */
 data class SqliteColumn(val name: String, val type: JDBCType)
+
+/**
+ *  Representation of a SQLite statement that may contain positional parameters.
+ *
+ *  If the statement doesn't contain parameters, [parametersValues] is an empty list.
+ *  If it does contain parameters, [parametersValues] contains their values, assigned by order.
+ */
+data class SqliteStatement(val sqliteStatementText: String, val parametersValues: List<Any>) {
+  constructor(sqliteStatement: String) : this(sqliteStatement, emptyList<Any>())
+
+  fun isUpdateStatement(): Boolean {
+    // TODO(b/137259344) after introducing the SQL parser this bit should become a bit nicer
+    return when {
+      sqliteStatementText.startsWith("CREATE", ignoreCase = true) or
+        sqliteStatementText.startsWith("DROP", ignoreCase = true) or
+        sqliteStatementText.startsWith("ALTER", ignoreCase = true) or
+        sqliteStatementText.startsWith("INSERT", ignoreCase = true) or
+        sqliteStatementText.startsWith("UPDATE", ignoreCase = true) or
+        sqliteStatementText.startsWith("DELETE", ignoreCase = true) -> true
+      else -> false
+    }
+  }
+
+  override fun toString(): String {
+    var renderedStatement = sqliteStatementText
+    parametersValues.forEach {
+      // TODO(b/143946270) doesn't handle statements like: `SELECT * FROM comments WHERE text LIKE "?" AND id > ?`
+      renderedStatement = renderedStatement.replaceFirst("?", it.toString())
+    }
+
+    return  renderedStatement
+  }
+}

@@ -34,16 +34,23 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.Processor;
 import com.intellij.util.SingleAlarm;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.importDependencies.ImportDependenciesUtil;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.event.HyperlinkEvent;
-import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -210,7 +217,8 @@ public class AndroidPropertyFilesUpdater implements BaseComponent {
       AndroidRootUtil.readPropertyFile(module, SdkConstants.FN_LOCAL_PROPERTIES);
     final List<Runnable> changes = new ArrayList<>();
 
-    final IAndroidTarget androidTarget = facet.getConfiguration().getAndroidTarget();
+    final AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
+    final IAndroidTarget androidTarget = androidPlatform == null ? null : androidPlatform.getTarget();
     final String androidTargetHashString = androidTarget != null ? androidTarget.hashString() : null;
     final VirtualFile[] dependencies = collectDependencies(module);
     final String[] dependencyPaths = toSortedPaths(dependencies);
@@ -303,7 +311,8 @@ public class AndroidPropertyFilesUpdater implements BaseComponent {
                                            @NotNull final PropertiesFile propertiesFile,
                                            @NotNull List<Runnable> changes) {
     final Project project = facet.getModule().getProject();
-    final IAndroidTarget androidTarget = facet.getConfiguration().getAndroidTarget();
+    final AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
+    final IAndroidTarget androidTarget = androidPlatform == null ? null : androidPlatform.getTarget();
 
     if (androidTarget != null) {
       final String targetPropertyValue = androidTarget.hashString();

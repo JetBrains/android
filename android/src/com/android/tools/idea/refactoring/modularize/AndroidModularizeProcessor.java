@@ -385,6 +385,7 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
 
   @Nullable
   private PsiFile getOrCreateTargetManifestFile(AndroidFacet facet) {
+    if (facet.isDisposed()) return null;
     PsiManager manager = PsiManager.getInstance(myProject);
 
     VirtualFile manifestFile = SourceProviderManager.getInstance(facet).getMainManifestFile();

@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.MouseWheelEvent;
 import java.util.EventObject;
@@ -180,6 +181,12 @@ public class ScrollInteraction extends Interaction {
     // Make sure we reset the scroll to where it was
     myHandler.update(0);
     mySceneView.getSceneManager().requestLayoutAndRender(false);
+  }
+
+  @Nullable
+  @Override
+  public Cursor getCursor() {
+    return null;
   }
 
   public boolean canScroll(int scrollAmount) {

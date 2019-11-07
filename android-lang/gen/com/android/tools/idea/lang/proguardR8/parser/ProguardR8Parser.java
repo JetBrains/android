@@ -100,6 +100,18 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // DOUBLE_ASTERISK
+  public static boolean any_not_primitive_type(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "any_not_primitive_type")) return false;
+    if (!nextTokenIs(builder, DOUBLE_ASTERISK)) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeToken(builder, DOUBLE_ASTERISK);
+    exit_section_(builder, marker, ANY_NOT_PRIMITIVE_TYPE, result);
+    return result;
+  }
+
+  /* ********************************************************** */
   // ANY_PRIMITIVE_TYPE_
   public static boolean any_primitive_type(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "any_primitive_type")) return false;
@@ -120,6 +132,23 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     Marker marker = enter_section_(builder);
     result = consumeToken(builder, ANY_TYPE_);
     exit_section_(builder, marker, ANY_TYPE, result);
+    return result;
+  }
+
+  /* ********************************************************** */
+  // "[]"+
+  public static boolean array_type(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "array_type")) return false;
+    if (!nextTokenIs(builder, ARRAY)) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeToken(builder, ARRAY);
+    while (result) {
+      int pos = current_position_(builder);
+      if (!consumeToken(builder, ARRAY)) break;
+      if (!empty_element_parsed_guard_(builder, "array_type", pos)) break;
+    }
+    exit_section_(builder, marker, ARRAY_TYPE, result);
     return result;
   }
 
@@ -239,14 +268,22 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // qualifiedName
+  // "!"? qualifiedName
   public static boolean class_name(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "class_name")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, CLASS_NAME, "<class name>");
-    result = qualifiedName(builder, level + 1);
+    result = class_name_0(builder, level + 1);
+    result = result && qualifiedName(builder, level + 1);
     exit_section_(builder, level, marker, result, false, null);
     return result;
+  }
+
+  // "!"?
+  private static boolean class_name_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "class_name_0")) return false;
+    consumeToken(builder, EM);
+    return true;
   }
 
   /* ********************************************************** */
@@ -813,13 +850,14 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // JAVA_IDENTIFIER|JAVA_IDENTIFIER_WITH_WILDCARDS|ASTERISK|java_keywords_
+  // JAVA_IDENTIFIER|JAVA_IDENTIFIER_WITH_WILDCARDS|ASTERISK|DOUBLE_ASTERISK|java_keywords_
   static boolean java_identifier_(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "java_identifier_")) return false;
     boolean result;
     result = consumeToken(builder, JAVA_IDENTIFIER);
     if (!result) result = consumeToken(builder, JAVA_IDENTIFIER_WITH_WILDCARDS);
     if (!result) result = consumeToken(builder, ASTERISK);
+    if (!result) result = consumeToken(builder, DOUBLE_ASTERISK);
     if (!result) result = java_keywords_(builder, level + 1);
     return result;
   }
@@ -1407,42 +1445,43 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // any_type|any_primitive_type|((java_primitive|qualifiedName) "[]"?)
+  // any_type|(any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName)array_type?
   public static boolean type(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "type")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, TYPE, "<type>");
     result = any_type(builder, level + 1);
-    if (!result) result = any_primitive_type(builder, level + 1);
-    if (!result) result = type_2(builder, level + 1);
+    if (!result) result = type_1(builder, level + 1);
     exit_section_(builder, level, marker, result, false, null);
     return result;
   }
 
-  // (java_primitive|qualifiedName) "[]"?
-  private static boolean type_2(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "type_2")) return false;
+  // (any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName)array_type?
+  private static boolean type_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "type_1")) return false;
     boolean result;
     Marker marker = enter_section_(builder);
-    result = type_2_0(builder, level + 1);
-    result = result && type_2_1(builder, level + 1);
+    result = type_1_0(builder, level + 1);
+    result = result && type_1_1(builder, level + 1);
     exit_section_(builder, marker, null, result);
     return result;
   }
 
-  // java_primitive|qualifiedName
-  private static boolean type_2_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "type_2_0")) return false;
+  // any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName
+  private static boolean type_1_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "type_1_0")) return false;
     boolean result;
-    result = java_primitive(builder, level + 1);
+    result = any_primitive_type(builder, level + 1);
+    if (!result) result = any_not_primitive_type(builder, level + 1);
+    if (!result) result = java_primitive(builder, level + 1);
     if (!result) result = qualifiedName(builder, level + 1);
     return result;
   }
 
-  // "[]"?
-  private static boolean type_2_1(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "type_2_1")) return false;
-    consumeToken(builder, ARRAY);
+  // array_type?
+  private static boolean type_1_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "type_1_1")) return false;
+    array_type(builder, level + 1);
     return true;
   }
 

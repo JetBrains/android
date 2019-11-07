@@ -334,8 +334,9 @@ internal fun maybeDeleteIfEmpty(psiElement: PsiElement, dslElement: GradleDslEle
   // We don't want to delete lists and maps if they are empty.
   // For maps, we want to allow deleting a map inside another map, which means that if a map is empty but is inside another map,
   // we should allow deleting it
-  if ((parentDslElement is GradleDslExpressionList && !parentDslElement.shouldBeDeleted()) ||
-      (parentDslElement is GradleDslExpressionMap && !parentDslElement.shouldBeDeleted()) && parentDslElement.psiElement == psiElement) {
+  if (((parentDslElement is GradleDslExpressionList && !parentDslElement.shouldBeDeleted()) ||
+       (parentDslElement is GradleDslExpressionMap && !parentDslElement.shouldBeDeleted()))
+      && parentDslElement.psiElement == psiElement) {
     return
   }
   deleteIfEmpty(psiElement, dslElement)

@@ -504,10 +504,8 @@ public class BuildVariantUpdater {
         variantName = ndkModuleModel.getVariantName(buildVariantName);
         abiName = ndkModuleModel.getAbiName(buildVariantName);
       }
-      boolean isCompoundSyncEnabled = GradleSyncState.isCompoundSync();
       request.variantOnlySyncOptions =
-        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName, abiName,
-                                   isCompoundSyncEnabled);
+        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName, abiName);
       GradleSyncInvoker.getInstance().requestProjectSync(project, request, getSyncListener(variantSelectionChangeListeners));
     }
   }
@@ -580,7 +578,6 @@ public class BuildVariantUpdater {
         indicator.setText("Setting up project");
         indicator.setFraction(PROGRESS_SETUP_PROJECT_START);
         PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-        setupRequest.generateSourcesAfterSync = false;
         setupRequest.cleanProjectAfterSync = false;
         PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, null, null);
       }

@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
@@ -27,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * A helper object that manages the current view and selection ranges for the Studio Profilers.
  */
-public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect> implements Updatable {
+public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect> implements Updatable, Timeline {
 
   public enum Aspect {
     STREAMING
@@ -169,21 +170,25 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   }
 
   @NotNull
+  @Override
   public Range getDataRange() {
     return myDataRangeUs;
   }
 
   @NotNull
+  @Override
   public Range getViewRange() {
     return myViewRangeUs;
   }
 
   @NotNull
+  @Override
   public Range getSelectionRange() {
     return mySelectionRangeUs;
   }
 
   @NotNull
+  @Override
   public Range getTooltipRange() {
     return myTooltipRangeUs;
   }
@@ -376,7 +381,7 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   }
 
   /**
-   * Zooms out by {@link DEFAULT_ZOOM_PERCENT} of the current view range length.
+   * Zooms out by {@link ProfilerTimeline#DEFAULT_ZOOM_PERCENT} of the current view range length.
    */
   public void zoomOut() {
     zoom(myViewRangeUs.getLength() * DEFAULT_ZOOM_PERCENT);
@@ -390,7 +395,7 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   }
 
   /**
-   * Zooms in by {@link DEFAULT_ZOOM_PERCENT} of the current view range length.
+   * Zooms in by {@link ProfilerTimeline#DEFAULT_ZOOM_PERCENT} of the current view range length.
    */
   public void zoomIn() {
     zoom(-myViewRangeUs.getLength() * DEFAULT_ZOOM_PERCENT);

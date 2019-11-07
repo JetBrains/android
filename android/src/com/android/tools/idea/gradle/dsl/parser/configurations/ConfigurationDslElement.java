@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.configurations;
 
+import static com.android.tools.idea.gradle.dsl.model.configurations.ConfigurationModelImpl.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-import com.android.tools.idea.gradle.dsl.model.configurations.ConfigurationModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -25,28 +28,34 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainEle
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
 import java.util.stream.Stream;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ConfigurationDslElement extends GradleDslBlockElement implements GradleDslNamedDomainElement {
   @NotNull
-  public static final ImmutableMap<String, String> ktsToModelNameMap = Stream.of(new String[][]{
-    {"isTransitive", ConfigurationModelImpl.TRANSITIVE},
-    {"isVisible", ConfigurationModelImpl.VISIBLE}
-  }).collect(toImmutableMap(data -> data[0], data -> data[1]));
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
+    {"isTransitive", property, TRANSITIVE, VAR},
+    {"isVisible", property, VISIBLE, VAR}
+  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
+                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
 
   @NotNull
-  public static final ImmutableMap<String, String> groovyToModelNameMap = Stream.of(new String[][]{
-    {"transitive", ConfigurationModelImpl.TRANSITIVE},
-    {"visible", ConfigurationModelImpl.VISIBLE}
-  }).collect(toImmutableMap(data -> data[0], data -> data[1]));
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
+    {"transitive", property, TRANSITIVE, VAR},
+    {"transitive", exactly(1), TRANSITIVE, SET},
+    {"visible", property, VISIBLE, VAR},
+    {"visible", exactly(1), VISIBLE, SET}
+  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
+                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
 
   @Override
   @NotNull
-  public ImmutableMap<String, String> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }

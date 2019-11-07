@@ -67,11 +67,6 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     return false;
   }
 
-  @Override
-  protected boolean useCompoundSyncInfrastructure() {
-    return false;
-  }
-
   public void loadProjectWithOlderPlugin(@NotNull String relativePath) throws Exception {
     loadProject(relativePath, null, myGradleVersion, myPluginVersion);
   }

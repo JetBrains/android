@@ -32,15 +32,11 @@ public class SimulatedSyncErrors {
   }
 
   public static void registerNullMessageSyncErrorToSimulate() {
-    verifyIsTestMode();
-    ExternalSystemException exception = new ExternalSystemException((String)null);
-    store(exception);
+    registerSyncErrorToSimulate(new Throwable());
   }
 
   public static void registerSyncErrorToSimulate(@NotNull String errorMessage) {
-    verifyIsTestMode();
-    ExternalSystemException exception = new ExternalSystemException(errorMessage);
-    store(exception);
+    registerSyncErrorToSimulate(new Throwable(errorMessage));
   }
 
   public static void registerSyncErrorToSimulate(@NotNull Throwable cause) {
@@ -51,9 +47,7 @@ public class SimulatedSyncErrors {
   }
 
   public static void registerSyncErrorToSimulate(@NotNull String errorMessage, @NotNull File errorFile) {
-    verifyIsTestMode();
-    LocationAwareExternalSystemException exception = new LocationAwareExternalSystemException(errorMessage, errorFile.getPath());
-    store(exception);
+    registerSyncErrorToSimulate(new Throwable(errorMessage), errorFile);
   }
 
   public static void registerSyncErrorToSimulate(@NotNull Throwable cause, @NotNull File errorFile) {

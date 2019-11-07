@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.EXT_GRADLE;
+import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
@@ -401,18 +402,13 @@ public class GradleFiles {
   }
 
   public boolean isGradleFile(@NotNull PsiFile psiFile) {
-    if (psiFile.getFileType() == GroovyFileType.GROOVY_FILE_TYPE) {
-      if (psiFile.getName().endsWith(EXT_GRADLE)) {
+    if (psiFile.getFileType() == GroovyFileType.GROOVY_FILE_TYPE || psiFile.getFileType().getName().equals("Kotlin")) {
+      if (psiFile.getName().endsWith(EXT_GRADLE) || psiFile.getName().endsWith(EXT_GRADLE_KTS)) {
         return true;
       }
     }
     if (psiFile.getFileType() == PropertiesFileType.INSTANCE) {
       if (FN_GRADLE_PROPERTIES.equals(psiFile.getName()) || FN_GRADLE_WRAPPER_PROPERTIES.equals(psiFile.getName())) {
-        return true;
-      }
-    }
-    if (psiFile.getFileType().getName().equals("Kotlin")) {
-      if (FN_BUILD_GRADLE_KTS.equals(psiFile.getName()) || FN_SETTINGS_GRADLE_KTS.equals(psiFile.getName())) {
         return true;
       }
     }

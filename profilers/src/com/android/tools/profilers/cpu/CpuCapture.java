@@ -17,7 +17,9 @@ package com.android.tools.profilers.cpu;
 
 
 import com.android.tools.adtui.model.ConfigurableDurationData;
+import com.android.tools.adtui.model.DefaultTimeline;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Cpu;
 import java.util.Collection;
@@ -36,8 +38,11 @@ public class CpuCapture implements ConfigurableDurationData {
   @NotNull
   private final Map<CpuThreadInfo, CaptureNode> myCaptureTrees;
 
+  /**
+   * The CPU capture has its own {@link Timeline} for the purpose of exposing a variety of {@link Range}s.
+   */
   @NotNull
-  private final Range myCaptureRange;
+  private final Timeline myTimeline = new DefaultTimeline();
 
   private final boolean myCaptureSupportsDualClock;
 
@@ -54,8 +59,8 @@ public class CpuCapture implements ConfigurableDurationData {
   public CpuCapture(@NotNull TraceParser parser, long traceId, Cpu.CpuTraceType type) {
     myTraceId = traceId;
     myType = type;
-
-    myCaptureRange = parser.getRange();
+    myTimeline.getDataRange().set(parser.getRange());
+    myTimeline.getViewRange().set(parser.getRange());
     myCaptureSupportsDualClock = parser.supportsDualClock();
 
     // Sometimes a capture may fail and return a file that is incomplete. This results in the parser not having any capture trees.
@@ -91,9 +96,17 @@ public class CpuCapture implements ConfigurableDurationData {
     return myMainThreadId;
   }
 
+  /**
+   * @return a timeline that uses the capture range as its data & view range.
+   */
+  @NotNull
+  public Timeline getTimeline() {
+    return myTimeline;
+  }
+
   @NotNull
   public Range getRange() {
-    return myCaptureRange;
+    return myTimeline.getDataRange();
   }
 
   @Nullable

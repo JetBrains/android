@@ -18,6 +18,7 @@ package com.android.tools.idea.lang.databinding.model
 import android.databinding.tool.util.StringUtils
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
+import com.android.utils.usLocaleCapitalize
 import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassType
@@ -147,7 +148,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    * Returns true if this is an ObservableField, or any of the primitive versions
    * such as ObservableBoolean and ObservableInt
    */
-  private val isObservableField
+  val isObservableField
     get() =
       psiClass?.let { resolvedClass ->
         mode.observableFields.any { className ->
@@ -159,7 +160,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
   /**
    * Returns true if this is a LiveData
    */
-  private val isLiveData
+  val isLiveData
     get() = psiClass?.let { resolvedClass ->
       val liveDataClass = PsiModelClass(LayoutBindingTypeUtil.parsePsiType(mode.liveData, resolvedClass)!!, mode)
       liveDataClass.isAssignableFrom(erasure())
@@ -239,8 +240,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    * @return An array containing all public methods with the name `name` and taking
    * `args` parameters.
    */
-  private fun getMethods(name: String, args: List<PsiModelClass>, staticOnly: Boolean,
-                         allowProtected: Boolean, unwrapObservableFields: Boolean): List<PsiModelMethod> {
+  private fun getMethods(name: String, args: List<PsiModelClass>, staticOnly: Boolean, allowProtected: Boolean): List<PsiModelMethod> {
     return allMethods.filter { method ->
       (method.isPublic || (allowProtected && method.isProtected))
       && (!staticOnly || method.isStatic)
@@ -265,14 +265,12 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
   fun getMethod(name: String,
                 args: List<PsiModelClass>,
                 staticOnly: Boolean,
-                allowProtected: Boolean,
-                unwrapObservableFields: Boolean = false
+                allowProtected: Boolean
   ): PsiModelMethod? {
     val methods = getMethods(name = name,
                              args = args,
                              staticOnly = staticOnly,
-                             allowProtected = allowProtected,
-                             unwrapObservableFields = unwrapObservableFields)
+                             allowProtected = allowProtected)
     if (methods.isEmpty()) {
       return null
     }
@@ -283,11 +281,11 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
     return bestMethod
   }
 
-  private fun getField(name: String, allowPrivate: Boolean, isStatic: Boolean): PsiModelField? {
+  private fun getField(name: String, staticOnly: Boolean): PsiModelField? {
     return allFields.firstOrNull { field ->
-      (name == field.name || name == PsiModelClass.stripFieldName(field.name))
-      && field.isStatic == isStatic
-      && (allowPrivate || field.isPublic)
+      (name == field.name || name == stripFieldName(field.name))
+      && (!staticOnly || field.isStatic)
+      && field.isPublic
     }
   }
 
@@ -299,29 +297,29 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    * versions
    * @return the getter method or field that the name refers to or null if none can be found.
    */
-  fun findGetterOrField(name: String, staticOnly: Boolean): PsiCallable? {
+  fun findGetterOrField(name: String, staticOnly: Boolean): PsiModelMember? {
     if ("length" == name && isArray) {
       // TODO b/129771951 implement length with Observable
       return null
     }
     val capitalized = StringUtils.capitalize(name)!!
     val methodNames = arrayOf("get$capitalized", "is$capitalized")
-    for (methodName in methodNames) {
-      val methods = getMethods(methodName, ArrayList(), staticOnly, allowProtected = false, unwrapObservableFields = false)
-      for (method in methods) {
-        if (method.isPublic && (!staticOnly || method.isStatic) &&
-            method.returnType?.isVoid != true) {
-          return PsiCallable(PsiCallable.Type.METHOD, methodName)
-        }
-      }
-    }
-
+    val method = methodNames
+      .flatMap { methodName -> getMethods(methodName, ArrayList(), staticOnly, allowProtected = false) }
+      .firstOrNull { method -> method.returnType?.isVoid == false }
     // could not find a method. Look for a public field
-    return if (getField(name, allowPrivate = false, isStatic = true) != null
-               || (!staticOnly && getField(name, allowPrivate = false, isStatic = false) != null)) {
-      PsiCallable(PsiCallable.Type.FIELD, name)
+    return method ?: getField(name, staticOnly)
+  }
+
+  fun findSetter(fieldName: String, staticOnly: Boolean, parameterType: PsiModelClass): PsiModelMethod? {
+    val setterName = "set${fieldName.usLocaleCapitalize()}"
+    return allMethods.firstOrNull { method ->
+      method.isPublic
+      && (!staticOnly || method.isStatic)
+      && setterName == method.name
+      && method.parameterTypes.size == 1
+      && method.parameterTypes[0] == parameterType
     }
-    else null
   }
 
   override fun equals(other: Any?): Boolean {

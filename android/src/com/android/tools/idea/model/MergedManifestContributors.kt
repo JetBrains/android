@@ -45,11 +45,11 @@ data class MergedManifestContributors(
   @JvmField val flavorAndBuildTypeManifestsOfLibs: List<VirtualFile>) {
 
   @JvmField
-  val allFiles = listOfNotNull(primaryManifest) +
-    flavorAndBuildTypeManifests +
-    libraryManifests +
-    navigationFiles +
-    flavorAndBuildTypeManifestsOfLibs
+  val allFiles = flavorAndBuildTypeManifests +
+                 listOfNotNull(primaryManifest) +
+                 libraryManifests +
+                 navigationFiles +
+                 flavorAndBuildTypeManifestsOfLibs
 
   companion object {
     @JvmStatic
@@ -80,6 +80,7 @@ private fun AndroidFacet.getFlavorAndBuildTypeManifestsOfLibs(dependencies: List
 }
 
 private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): List<VirtualFile> {
+  if (isDisposed) return emptyList()
   val localLibManifests = dependencies.mapNotNull { SourceProviderManager.getInstance(it).mainManifestFile }
 
   val aarManifests = hashSetOf<File>()

@@ -99,7 +99,8 @@ public class EmulatorTargetChooser {
 
   @Nullable
   private String chooseAvd() {
-    IAndroidTarget buildTarget = myFacet.getConfiguration().getAndroidTarget();
+    AndroidPlatform androidPlatform = AndroidPlatform.getInstance(myFacet.getModule());
+    IAndroidTarget buildTarget = androidPlatform == null ? null : androidPlatform.getTarget();
     assert buildTarget != null;
     List<AvdInfo> avds = getValidCompatibleAvds(myFacet);
     if (!avds.isEmpty()) {
@@ -150,7 +151,7 @@ public class EmulatorTargetChooser {
     }
 
     AndroidVersion minSdk = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersionSynchronously();
-    AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
+    AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
     if (platform == null) {
       Logger.getInstance(EmulatorTargetChooser.class).error("Android Platform not set for module: " + facet.getModule().getName());
       return ImmutableList.of();

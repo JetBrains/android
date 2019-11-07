@@ -61,16 +61,15 @@ class LightViewBindingClassTest {
 
   @Test
   fun lightClassGeneratedForViewBindingLayout() {
-    val file = fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
+    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
       <?xml version="1.0" encoding="utf-8"?>
-      <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <LinearLayout
-            android:id="@+id/test_id"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-        </LinearLayout>
-      </layout>
+      <LinearLayout
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          android:id="@+id/test_id"
+          android:orientation="vertical"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent">
+      </LinearLayout>
     """.trimIndent())
     val context = fixture.addClass("public class MainActivity {}")
 
@@ -80,18 +79,17 @@ class LightViewBindingClassTest {
 
   @Test
   fun avoidGeneratingBindingForViewBindingIgnoreLayout() {
-    val file = fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
+    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
       <?xml version="1.0" encoding="utf-8"?>
-      <layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        tools:viewBindingIgnore="true">
-        <LinearLayout
-            android:id="@+id/test_id"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-        </LinearLayout>
-      </layout>
+      <LinearLayout
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
+          tools:viewBindingIgnore="true" />
+          android:id="@+id/test_id"
+          android:orientation="vertical"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent">
+      </LinearLayout>
     """.trimIndent())
     val context = fixture.addClass("public class MainActivity {}")
 
@@ -132,15 +130,14 @@ class LightViewBindingClassTest {
   // ViewBinding logic breaks from DataBinding logic around view stubs. See also: b/142533358
   @Test
   fun correctTypeGeneratedForViewStubs() {
-    val file = fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
+    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
       <?xml version="1.0" encoding="utf-8"?>
-      <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <ViewStub
-            android:id="@+id/test_id"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-        </ViewStub>
-      </layout>
+      <ViewStub
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          android:id="@+id/test_id"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent">
+      </ViewStub>
     """.trimIndent())
     val context = fixture.addClass("public class MainActivity {}")
 

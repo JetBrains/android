@@ -744,13 +744,7 @@ public class NavDesignSurface extends DesignSurface {
       result = ref.get();
     }
     if (result == null) {
-      result = new ConfigurationManager(facet.getModule()) {
-        @Override
-        public ConfigurationStateManager getStateManager() {
-          // Nav editor doesn't want persistent configuration state
-          return new ConfigurationStateManager();
-        }
-      };
+      result = new MyConfigurationManager(facet.getModule());
       ourConfigurationManagers.put(facet, new SoftReference<>(result));
     }
     return result;
@@ -812,6 +806,18 @@ public class NavDesignSurface extends DesignSurface {
 
     if (next != null) {
       setCurrentNavigation(next);
+    }
+  }
+
+  private static class MyConfigurationManager extends ConfigurationManager {
+    MyConfigurationManager(@NotNull Module module) {
+      super(module);
+    }
+
+    @Override
+    public ConfigurationStateManager getStateManager() {
+      // Nav editor doesn't want persistent configuration state.
+      return new ConfigurationStateManager();
     }
   }
 }

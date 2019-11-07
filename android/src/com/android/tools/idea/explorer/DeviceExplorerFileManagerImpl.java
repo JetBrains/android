@@ -31,11 +31,11 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtilRt;
@@ -125,9 +125,11 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     myEdtExecutor.addCallback(getVirtualFile, new FutureCallback<VirtualFile>() {
       @Override
       public void onSuccess(VirtualFile virtualFile) {
-        ApplicationManager.getApplication().runWriteAction(() -> {
-          deleteVirtualFile(futureResult, virtualFile);
-          downloadFileAndAdditionalFiles(futureResult, entry, localPath, progress);
+        TransactionGuard.submitTransaction(myProject, () -> {
+          ApplicationManager.getApplication().runWriteAction(() -> {
+            deleteVirtualFile(futureResult, virtualFile);
+            downloadFileAndAdditionalFiles(futureResult, entry, localPath, progress);
+          });
         });
       }
 

@@ -189,6 +189,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
   }
 
   private void invokeGradleTasks() {
+
     Project project = myRequest.getProject();
     GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(project);
 
@@ -220,6 +221,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       buildState.buildStarted(new BuildContext(project, gradleTasks, buildMode));
 
       BuildAttributionManager buildAttributionManager = null;
+      boolean enableBuildAttribution = GradleBuildInvoker.isBuildAttributionEnabledForProject(myProject);
 
       try {
         AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
@@ -232,7 +234,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
         commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
         String attributionFilePath = FileUtils.join(project.getBasePath(), GradleUtil.BUILD_DIR_DEFAULT_NAME);
-        if (StudioFlags.BUILD_ATTRIBUTION_ENABLED.get()) {
+        if (enableBuildAttribution) {
           commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_ATTRIBUTION_FILE_LOCATION,
                                                          attributionFilePath));
         }
@@ -286,7 +288,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           }
         }, connection);
 
-        if (StudioFlags.BUILD_ATTRIBUTION_ENABLED.get()) {
+        if (enableBuildAttribution) {
           buildAttributionManager = ServiceManager.getService(myProject, BuildAttributionManager.class);
           // Don't listen to transform events due to b/136194724
           operation

@@ -115,6 +115,7 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -327,7 +328,8 @@ public class SdkUpdaterConfigPanel implements Disposable {
       List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
 
       for (AndroidFacet facet : facets) {
-        AndroidSdkData sdkData = facet.getConfiguration().getAndroidSdk();
+        AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
+        AndroidSdkData sdkData = androidPlatform == null ? null : androidPlatform.getSdkData();
         if (sdkData != null) {
           locations.add(sdkData.getLocation());
         }

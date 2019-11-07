@@ -28,7 +28,8 @@ public class NlConstants {
   public static final int DEFAULT_SCREEN_OFFSET_X = 50;
   public static final int DEFAULT_SCREEN_OFFSET_Y = 50;
   /** Distance between blueprint screen and regular screen */
-  public static final int SCREEN_DELTA = 10;
+  @SwingCoordinate
+  public static final int SCREEN_DELTA = 48;
 
   /**
    * Distance between the bottom bound of model name and top bound of SceneView.

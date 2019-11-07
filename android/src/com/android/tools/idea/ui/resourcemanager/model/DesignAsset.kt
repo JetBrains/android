@@ -25,10 +25,13 @@ import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.ResourceQualifier
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
+import com.android.tools.idea.res.SampleDataResourceItem
+import com.android.tools.idea.res.getDrawableResources
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.ui.resourcemanager.importer.QualifierMatcher
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -73,6 +76,17 @@ interface Asset {
      *  represent resources of a different [ResourceType]. Eg: Theme attributes and sample data.
      */
     fun fromResourceItem(resourceItem: ResourceItem, resourceType: ResourceType = resourceItem.type): Asset {
+      if (resourceItem is SampleDataResourceItem) {
+        val imageFile = resourceItem.getDrawableResources().getOrNull(0)?.value?.let { drawablePath ->
+          LocalFileSystem.getInstance().findFileByPath(drawablePath)
+        } ?: return BaseAsset(resourceType, resourceItem.name, resourceItem)
+        return DesignAsset(
+          file = imageFile,
+          qualifiers = resourceItem.configuration.qualifiers.toList(),
+          type = ResourceType.DRAWABLE,
+          name = resourceItem.name,
+          resourceItem = resourceItem)
+      }
       val file = resourceItem.getSourceAsVirtualFile() ?: return BaseAsset(resourceType, resourceItem.name, resourceItem)
       return DesignAsset(
         file = file,

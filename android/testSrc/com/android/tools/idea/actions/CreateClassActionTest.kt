@@ -52,8 +52,6 @@ class CreateClassActionTest {
 
   @Test
   fun testGetDestinationDirectoryIdeDoesntHaveOneDirectory() {
-    val oldModel = AndroidModel.get(facet)
-
     val psiDirectories = SourceProviderManager.getInstance(facet)
       .currentSourceProviders
       .flatMap { it.javaDirectoryUrls }
@@ -62,13 +60,8 @@ class CreateClassActionTest {
 
     val ide = mockIdeView(psiDirectories)
 
-    try {
-      val directory = CreateClassAction.getDestinationDirectory(ide, projectRule.module)!!
-      Assert.assertEquals(psiDirectories.first().virtualFile.path, directory.virtualFile.path)
-    }
-    finally {
-      AndroidModel.set(facet, oldModel)
-    }
+    val directory = CreateClassAction.getDestinationDirectory(ide, projectRule.module)!!
+    Assert.assertEquals(psiDirectories.first().virtualFile.path, directory.virtualFile.path)
   }
 
   private fun mockIdeView(directories: Collection<PsiDirectory>): IdeView {
