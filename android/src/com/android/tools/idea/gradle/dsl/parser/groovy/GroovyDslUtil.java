@@ -464,7 +464,13 @@ public final class GroovyDslUtil {
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(newLiteral.getProject());
     GrNamedArgument namedArgument = factory.createNamedArgument(expression.getName(), newLiteral);
     PsiElement added;
-    if (parentPsiElement instanceof GrArgumentList) {
+    if (parentPsiElement instanceof GrCommandArgumentList) {
+      // addNamedArgument() on a GrCommandArgumentList adds the argument before the last existing argument, if any.  Although it doesn't
+      // directly affect the semantics, we want to add new elements at the end of the argument list.  (This doesn't work for general
+      // GrArgumentLists because the last child of the Psi might be the closing bracket of an explicit method call.)
+      added = parentPsiElement.addAfter(namedArgument, parentPsiElement.getLastChild());
+    }
+    else if (parentPsiElement instanceof GrArgumentList) {
       added = ((GrArgumentList)parentPsiElement).addNamedArgument(namedArgument);
     }
     else if (parentPsiElement instanceof GrListOrMap) {
