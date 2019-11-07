@@ -25,12 +25,14 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.NullableNotNullManager
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiModifier
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlElement
@@ -289,6 +291,13 @@ class LightBindingClassTest {
     val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val fields = binding.fields
     assertThat(fields).hasLength(1)
+    fields[0].let { field ->
+      val modifierList = field.modifierList!!
+      val nullabilityManager = NullableNotNullManager.getInstance(project)
+      assertThat(nullabilityManager.isNotNull(field, false)).isTrue()
+      assertThat(modifierList.hasExplicitModifier(PsiModifier.PUBLIC)).isTrue()
+      assertThat(modifierList.hasExplicitModifier(PsiModifier.FINAL)).isTrue()
+    }
     val tags = findChild(file, XmlTag::class.java) { it.localName == "view" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
 
@@ -433,5 +442,54 @@ class LightBindingClassTest {
 
     assertThat(fixture.findClass("test.db.databinding.ActivityViewBinding", context) as? LightBindingClass).isNotNull()
     assertThat(fixture.findClass("test.db.databinding.PlainViewBinding", context) as? LightBindingClass).isNull()
+  }
+
+  @Test
+  fun fieldsAreAnnotatedNonNullAndNullableCorrectly() {
+    fixture.addFileToProject("res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout android:id="@+id/always_present">
+          <TextView android:id="@+id/sometimes_present" />
+        </LinearLayout>
+      </layout>
+    """.trimIndent())
+
+    fixture.addFileToProject("res/layout-land/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout android:id="@+id/always_present">
+        </LinearLayout>
+      </layout>
+    """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
+
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    assertThat(binding.fields).hasLength(2)
+    val alwaysPresentField = binding.fields.first { it.name == "alwaysPresent" }
+    val sometimesPresentField = binding.fields.first { it.name == "sometimesPresent" }
+
+    val nullabilityManager = NullableNotNullManager.getInstance(project)
+    assertThat(nullabilityManager.isNotNull(alwaysPresentField, false)).isTrue()
+    assertThat(nullabilityManager.isNullable(sometimesPresentField, false)).isTrue()
+  }
+
+  @Test
+  fun viewProxyClassGeneratedForViewStubs() {
+    fixture.addFileToProject("res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <ViewStub
+            android:id="@+id/test_id"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+        </ViewStub>
+      </layout>
+    """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
+
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context)!!
+    assertThat(binding.findFieldByName("testId", false)!!.type.canonicalText)
+      .isEqualTo(ModuleDataBinding.getInstance(facet).dataBindingMode.viewStubProxy)
   }
 }
