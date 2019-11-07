@@ -50,10 +50,14 @@ public class LibraryFilePathsTest extends AndroidGradleTestCase {
       .isEqualTo("/cache/junit-javadoc.jar");
     assertThat(libraryFilePaths.findSourceJarPath("Gradle: junit:junit:4.12@jar", new File("dummy")).getPath())
       .isEqualTo("/cache/junit-sources.jar");
+    assertThat(libraryFilePaths.findPomPathForLibrary("Gradle: junit:junit:4.12@jar", new File("dummy")).getPath())
+      .isEqualTo("/cache/junit.pom");
     assertThat(libraryFilePaths.findJavadocJarPath("Gradle: androidx.fragment:fragment:1.0.0@aar", new File("dummy")).getPath())
       .isEqualTo("/cache/fragment-javadoc.jar");
     assertThat(libraryFilePaths.findSourceJarPath("Gradle: androidx.fragment:fragment:1.0.0@aar", new File("dummy")).getPath())
       .isEqualTo("/cache/fragment-sources.jar");
+    assertThat(libraryFilePaths.findPomPathForLibrary("Gradle: androidx.fragment:fragment:1.0.0@aar", new File("dummy")).getPath())
+      .isEqualTo("/cache/fragment.pom");
   }
 
   @NotNull
@@ -62,9 +66,10 @@ public class LibraryFilePathsTest extends AndroidGradleTestCase {
       @NotNull
       @Override
       public Collection<SourcesAndJavadocArtifact> getArtifacts() {
-        return Arrays.asList(createArtifact("junit", "junit", "4.12", "/cache/junit-javadoc.jar", "/cache/junit-sources.jar", "/cache/junit.pom"),
-                             createArtifact("androidx.fragment", "fragment", "1.0.0", "/cache/fragment-javadoc.jar",
-                                            "/cache/fragment-sources.jar", "/cache/fragment.pom"));
+        return Arrays
+          .asList(createArtifact("junit", "junit", "4.12", "/cache/junit-javadoc.jar", "/cache/junit-sources.jar", "/cache/junit.pom"),
+                  createArtifact("androidx.fragment", "fragment", "1.0.0", "/cache/fragment-javadoc.jar",
+                                 "/cache/fragment-sources.jar", "/cache/fragment.pom"));
       }
 
       @Nullable

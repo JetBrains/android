@@ -41,7 +41,7 @@ class PsProjectImpl(
   final override val buildScriptVariables: PsVariables
   @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
   final override val variables: PsVariables
-  override val pomDependencyCache: PsPomDependencyCache = PsPomDependencies()
+  override val pomDependencyCache: PsPomDependencyCache = PsPomDependencies(ideProject)
   private var internalResolvedModuleModels: Map<String, PsResolvedModuleModel>? = null
   private val moduleCollection: PsModuleCollection
   val buildScript : PsBuildScript = PsBuildScript(this)
