@@ -407,7 +407,18 @@
 
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
 
-    <fileTypeFactory implementation="org.jetbrains.android.fileTypes.AndroidFileTypeFactory"/>
+    <applicationInitializedListener implementation="com.android.tools.adtui.webp.WebpMetadata"/>
+    <fileType name="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlFileType" fieldName="INSTANCE"
+              extensions="aidl" language="AIDL"/>
+    <fileType name="Android RenderScript" implementationClass="com.android.tools.idea.lang.rs.AndroidRenderscriptFileType"
+              fieldName="INSTANCE" extensions="rs;fs;rsh" language="Renderscript"/>
+    <fileType name="Android Nine-Patch" implementationClass="com.android.tools.idea.fileTypes.AndroidNinePatchFileType"
+              fieldName="INSTANCE" extensions="9.png"/>
+    <fileType name="Adobe Photoshop" implementationClass="com.android.tools.idea.fileTypes.PhotoshopFileType" fieldName="INSTANCE"
+              extensions="psd"/>
+    <fileType name="APK" implementationClass="com.android.tools.idea.apk.ApkFileType" fieldName="INSTANCE" extensions="apk"/>
+    <fileType name="Font" implementationClass="com.android.tools.idea.fileTypes.FontFileType" fieldName="INSTANCE" extensions="ttf;otf"/>
+    <fileType name="Image" extensions="webp"/>
 
     <fileEditorProvider implementation="com.android.tools.idea.editors.NinePatchEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorProvider"/>

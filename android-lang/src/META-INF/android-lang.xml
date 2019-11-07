@@ -26,7 +26,8 @@
     <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
 
     <!-- Proguard support -->
-    <fileTypeFactory implementation="com.android.tools.idea.lang.proguard.ProguardFileTypeFactory"/>
+    <fileType name="ProGuard File" implementationClass="com.android.tools.idea.lang.proguard.ProguardFileType" language="PROGUARD"
+              patterns="*.pro;proguard-*.txt;proguard.cfg"/>
     <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition"/>
     <lang.syntaxHighlighter language="PROGUARD"
                                    implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighter"/>
@@ -40,7 +41,8 @@
                                    implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighter"/>
 
     <!-- Room SQL support -->
-    <fileTypeFactory implementation="com.android.tools.idea.lang.roomSql.RoomSqlFileTypeFactory"/>
+    <fileType name="Android Room SQL" implementationClass="com.android.tools.idea.lang.roomSql.ROOM_SQL_FILE_TYPE"
+              fieldName="INSTANCE" language="RoomSql"/>
     <lang.parserDefinition language="RoomSql"
                            implementationClass="com.android.tools.idea.lang.roomSql.parser.RoomSqlParserDefinition"/>
     <lang.syntaxHighlighterFactory language="RoomSql"
