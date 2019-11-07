@@ -30,8 +30,8 @@ import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.hasClassesExtending
+import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -72,7 +72,7 @@ internal class CustomViewLightVirtualFile(name: String, content: String) : Light
   override fun getParent() = FAKE_LAYOUT_RES_DIR
 }
 
-private fun VirtualFile.hasSourceFileExtension() = when (extension) {
+internal fun VirtualFile.hasSourceFileExtension() = when (extension) {
   KotlinFileType.INSTANCE.defaultExtension, JavaFileType.INSTANCE.defaultExtension -> true
   else -> false
 }
@@ -104,7 +104,7 @@ private val SUPPORTED_WIDGETS_FQCN = setOf(
 
 private fun PsiFile.hasClassesExtendingWidget() = node.hasClassesExtending(SUPPORTED_WIDGETS_FQCN)
 
-private fun PsiFile.hasViewSuccessor() =
+internal fun PsiFile.hasViewSuccessor() =
   when (this) {
     is PsiClassOwner -> {
       if (DumbService.isDumb(this.project)) {
@@ -156,7 +156,8 @@ class CustomViewEditorProvider : FileEditorProvider, DumbAware {
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
     val textEditor = TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
-    val designEditor = CustomViewPreview(psiFile) { p -> PropertiesComponent.getInstance(p) }
+    val previewRepresentation = CustomViewPreviewRepresentation(psiFile)
+    val designEditor = CustomViewPreview(psiFile, previewRepresentation)
     val editorWithPreview = TextEditorWithCustomViewPreview(textEditor, designEditor)
 
     // Queue to avoid refreshing notifications on every key stroke
@@ -191,6 +192,7 @@ class CustomViewEditorProvider : FileEditorProvider, DumbAware {
 
 internal fun FileEditor.getCustomViewPreviewManager(): CustomViewPreviewManager? = when(this) {
   is CustomViewPreview -> this
+  is MultiRepresentationPreview -> this.currentRepresentation as? CustomViewPreviewManager
   else -> null
 }
 /**

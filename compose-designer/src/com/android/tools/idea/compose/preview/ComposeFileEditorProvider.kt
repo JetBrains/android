@@ -25,6 +25,9 @@ import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
 import com.android.tools.idea.rendering.RenderSettings
+import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
+import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -48,12 +51,14 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import icons.StudioIcons
 
+/**
+ * Returns a list of all [ComposePreviewManager]s related to the current context (which is implied to be bound to a particular file).
+ * The search is done among the open preview parts and [PreviewRepresentation]s (if any) of open file editors.
+ */
 internal fun findComposePreviewManagersForContext(context: DataContext): List<ComposePreviewManager> {
   val project = context.getData(CommonDataKeys.PROJECT) ?: return emptyList()
   val file = context.getData(CommonDataKeys.VIRTUAL_FILE) ?: return emptyList()
-  return FileEditorManager.getInstance(project)?.getEditors(file)
-    ?.filterIsInstance<ComposeTextEditorWithPreview>()
-    ?.map { it.preview } ?: emptyList()
+  return FileEditorManager.getInstance(project)?.getEditors(file)?.mapNotNull { it.getComposePreviewManager() } ?: emptyList()
 }
 
 /**
@@ -126,7 +131,11 @@ internal class ComposeTextEditorWithPreview constructor(
  */
 fun FileEditor.getComposePreviewManager(): ComposePreviewManager? = when (this) {
   is PreviewEditor -> this
-  else -> (this as? ComposeTextEditorWithPreview)?.preview
+  is MultiRepresentationPreview -> this.currentRepresentation as? ComposePreviewManager
+  is ComposeTextEditorWithPreview -> this.preview
+  is TextEditorWithMultiRepresentationPreview<out MultiRepresentationPreview> ->
+    this.preview.currentRepresentation as? ComposePreviewManager
+  else -> null
 }
 
 /**
@@ -178,11 +187,12 @@ class ComposeFileEditorProvider @JvmOverloads constructor(
       override val previewElements: List<PreviewElement>
         get() = if (DumbService.isDumb(project)) emptyList() else filePreviewElementProvider().findPreviewMethods(project, file)
     }
-    val previewEditor = PreviewEditor(psiFile = psiFile, previewProvider = previewProvider)
+    val previewRepresentation = ComposePreviewRepresentation(psiFile, previewProvider)
+    val previewEditor = PreviewEditor(psiFile, previewRepresentation)
     val composeEditorWithPreview = ComposeTextEditorWithPreview(textEditor, previewEditor)
 
     previewEditor.onRefresh = {
-      composeEditorWithPreview.isPureTextEditor = previewEditor.previewElements.isEmpty()
+      composeEditorWithPreview.isPureTextEditor = previewEditor.representation.previewElements.isEmpty()
     }
 
     return composeEditorWithPreview

@@ -27,13 +27,14 @@ import com.android.tools.idea.common.util.setupBuildListener
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
@@ -60,7 +61,11 @@ private fun getXmlLayout(qualifiedName: String, shrinkWidth: Boolean, shrinkHeig
  * A preview for a file containing custom android view classes. Allows selecting between the classes if multiple custom view classes are
  * present in the file.
  */
-internal class CustomViewPreview(private val psiFile: PsiFile, persistenceProvider: (Project) -> PropertiesComponent) : Disposable, CustomViewPreviewManager, DesignFileEditor(psiFile.virtualFile!!) {
+internal class CustomViewPreviewRepresentation(
+  private val psiFile: PsiFile,
+  persistenceProvider: (Project) -> PropertiesComponent = { p -> PropertiesComponent.getInstance(p)}) :
+  PreviewRepresentation, CustomViewPreviewManager {
+
   private val project = psiFile.project
   private val virtualFile = psiFile.virtualFile!!
   private val persistenceManager = persistenceProvider(project)
@@ -127,7 +132,7 @@ internal class CustomViewPreview(private val psiFile: PsiFile, persistenceProvid
       setScreenMode(SceneMode.RESIZABLE_PREVIEW, false)
     }
 
-  private val actionsToolbar = ActionsToolbar(this@CustomViewPreview, surface)
+  private val actionsToolbar = ActionsToolbar(this@CustomViewPreviewRepresentation, surface)
 
   private val editorPanel = JPanel(BorderLayout()).apply {
     add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
@@ -137,14 +142,12 @@ internal class CustomViewPreview(private val psiFile: PsiFile, persistenceProvid
   /**
    * [WorkBench] used to contain all the preview elements.
    */
-  val workbench = WorkBench<DesignSurface>(project, "Main Preview", this, this).apply {
+  val workbench = WorkBench<DesignSurface>(project, "Main Preview", null, this).apply {
     init(editorPanel, surface, listOf(), false)
     showLoading("Waiting for build to finish...")
   }
 
   init {
-    component.add(workbench)
-
     setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
         EditorNotifications.getInstance(project).updateNotifications(virtualFile)
@@ -157,6 +160,10 @@ internal class CustomViewPreview(private val psiFile: PsiFile, persistenceProvid
       }
     }, this)
   }
+
+  override val component = workbench
+
+  override fun dispose() { }
 
   /**
    * Refresh the preview surfaces
@@ -189,7 +196,7 @@ internal class CustomViewPreview(private val psiFile: PsiFile, persistenceProvid
         updateConfigurationScreenSize(configuration, previewDimensions[0].toInt(), previewDimensions[1].toInt(), configuration.device)
       }
 
-      val model = NlModel.create(this@CustomViewPreview,
+      val model = NlModel.create(this@CustomViewPreviewRepresentation,
                                  className,
                                  facet,
                                  virtualFile,
@@ -209,14 +216,34 @@ internal class CustomViewPreview(private val psiFile: PsiFile, persistenceProvid
         }
         workbench.hideLoading()
         if (ex != null) {
-          Logger.getInstance(CustomViewPreview::class.java).warn(ex)
+          Logger.getInstance(CustomViewPreviewRepresentation::class.java).warn(ex)
         }
       }
     }
     editorWithPreview?.isPureTextEditor = selectedClass == null
   }
+  var editorWithPreview: TextEditorWithCustomViewPreview? = null
+}
 
-  override fun getName(): String = "Custom View Preview"
+/**
+ * A thin [FileEditor] wrapper around [CustomViewPreviewRepresentation]
+ *
+ * @param psiFile [PsiFile] pointing to the source code containing custom views to preview.
+ * @param representation a custom view [PreviewRepresentation] of the [psiFile].
+ */
+internal class CustomViewPreview(psiFile: PsiFile, private val representation: CustomViewPreviewRepresentation) :
+  CustomViewPreviewManager by representation, DesignFileEditor(psiFile.virtualFile!!) {
 
   var editorWithPreview: TextEditorWithCustomViewPreview? = null
+    set(value) {
+      field = value
+      representation.editorWithPreview = value
+    }
+
+  init {
+    Disposer.register(this, representation)
+    component.add(representation.component, BorderLayout.CENTER)
+  }
+
+  override fun getName(): String = "Custom View Preview"
 }
