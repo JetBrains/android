@@ -32,6 +32,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.application.TransactionGuardImpl;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
@@ -146,6 +147,9 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     // Using VFS to delete files has the advantage of throwing VFS events,
     // so listeners can react to actions on the files - for example by closing a file before it being deleted.
     try {
+      // This assertions prevent regressions for b/141649841.
+      // We need to add this assertion because in tests the deletion of a file doesn't trigger some PSI events that call the assertion.
+      ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
       virtualFile.delete(this);
     }
     catch (IOException e) {
