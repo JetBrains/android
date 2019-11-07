@@ -86,9 +86,9 @@ public final class StudioFlags {
     "Use the new Kotlin-based template system for module templates over the old Freemarker system when it is available.",
     true);
 
-  public static final Flag<Boolean> NPW_EXPERIMENTAL_ACTIVITY_GALLERY = Flag.create(
-    NPW, "experimental.activity.gallery", "Show experimental activity gallery",
-    "Show experimental activity gallery which contains Kotlin templates passed through plugin in addition to the normal gallery",
+  public static final Flag<Boolean> NPW_NEW_ACTIVITY_TEMPLATES = Flag.create(
+    NPW, "new.activity.templates", "Use new activity templates",
+    "Use the new Kotlin-based template system for activity templates over the old Freemarker system when it is available .",
     true);
 
   public static final Flag<Boolean> NPW_SHOW_FRAGMENT_GALLERY = Flag.create(

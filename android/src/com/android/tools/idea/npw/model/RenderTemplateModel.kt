@@ -20,7 +20,6 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.assetstudio.IconGenerator
 import com.android.tools.idea.npw.module.NewAndroidModuleRecipe
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
@@ -46,7 +45,6 @@ import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.model.WizardModel
-import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.WizardParameterData
 import com.intellij.ide.scratch.ScratchFileService
 import com.intellij.ide.scratch.ScratchRootType
@@ -148,7 +146,7 @@ class RenderTemplateModel private constructor(
 
       templateValues.putAll(moduleTemplateValues)
 
-      if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get() && isNew) {
+      if (StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get() && isNew) {
         moduleTemplateDataBuilder.apply {
           // sourceProviderName = template.get().name TODO(qumeric) there is no sourcesProvider (yet?)
           projectTemplateDataBuilder.setProjectDefaults(project.value)
@@ -228,7 +226,7 @@ class RenderTemplateModel private constructor(
     ): Boolean {
       paths.moduleRoot ?: return false
 
-      if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get() && isNew) {
+      if (StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get() && isNew) {
         val context = RenderingContext2(
           project = project,
           module = module,

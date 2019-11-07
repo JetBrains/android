@@ -53,7 +53,7 @@ class ChooseActivityTypeStep(
       yieldAll(TemplateManager.getInstance().getTemplateList(formFactor).map(::OldTemplateRenderer))
     }
     val newTemplateRenderers = sequence {
-      if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get()) {
+      if (StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get()) {
         if (isNewModule) {
           yield(NewTemplateRenderer(Template.NoActivity))
         }
@@ -62,7 +62,7 @@ class ChooseActivityTypeStep(
                    .map(::NewTemplateRenderer))
       }
     }
-    templateRenders = if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get() && !isNewModule) {
+    templateRenders = if (StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get() && !isNewModule) {
       val newTemplateNames = newTemplateRenderers.map { it.template.name }
       val unsortedRenderers = (oldTemplateRenderers.filter { it.template?.metadata?.title !in newTemplateNames } + newTemplateRenderers).toList()
       unsortedRenderers.sortedBy { r -> r.label.takeUnless { it == "No Activity" } ?: "0" } // No Activity should always be first
