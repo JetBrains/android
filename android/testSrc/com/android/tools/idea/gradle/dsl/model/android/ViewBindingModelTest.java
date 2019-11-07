@@ -51,6 +51,8 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
     viewBinding.enabled().setValue(true);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFileName.VIEW_BINDING_MODEL_EDIT_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -72,6 +74,8 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
     viewBinding.enabled().setValue(false);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFileName.VIEW_BINDING_MODEL_ADD_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -93,6 +97,8 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
     viewBinding.enabled().setValue(false);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFileName.VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -115,6 +121,8 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
     viewBinding.enabled().delete();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     android = buildModel.android();
     assertNotNull(android);
 
