@@ -29,6 +29,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import icons.StudioIcons
+import icons.StudioIcons.LayoutInspector.MODE_3D
+import icons.StudioIcons.LayoutInspector.RESET_VIEW
 
 /** Creates the actions toolbar used on the [DeviceViewPanel] */
 class DeviceViewPanelActionsToolbar(
@@ -43,15 +45,21 @@ class DeviceViewPanelActionsToolbar(
   override fun getActionGroups() = LayoutInspectorToolbarGroups
 }
 
-object RecenterAction : AnAction(StudioIcons.LayoutInspector.RESET_VIEW) {
+object Toggle3dAction : AnAction(MODE_3D) {
   override fun actionPerformed(event: AnActionEvent) {
-    event.getData(DEVICE_VIEW_MODEL_KEY)?.resetRotation()
+    val model = event.getData(DEVICE_VIEW_MODEL_KEY) ?: return
+    if (model.isRotated) {
+      model.resetRotation()
+    }
+    else {
+      model.rotate(0.45, 0.06)
+    }
   }
 
   override fun update(event: AnActionEvent) {
     super.update(event)
     val model = event.getData(DEVICE_VIEW_MODEL_KEY)
-    event.presentation.isEnabled = model?.isRotated ?: false
+    event.presentation.icon = if (model?.isRotated == true) RESET_VIEW else MODE_3D
     event.presentation.isVisible = model?.model?.hasSubImages == true
   }
 }
@@ -63,7 +71,7 @@ object LayoutInspectorToolbarGroups : EditorActionsToolbarActionGroups {
   }
 
   override val otherGroups: List<ActionGroup> = listOf(DefaultActionGroup().apply { add(PanSurfaceAction) },
-                                                       DefaultActionGroup().apply { add(RecenterAction) })
+                                                       DefaultActionGroup().apply { add(Toggle3dAction) })
 
   override val zoomControlsGroup = DefaultActionGroup().apply {
     add(ZoomOutAction)
