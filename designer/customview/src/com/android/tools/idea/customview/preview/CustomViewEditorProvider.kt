@@ -187,7 +187,7 @@ class CustomViewEditorProvider : FileEditorProvider, DumbAware {
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
     val textEditor = TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
-    val designEditor = CustomViewPreview(psiFile)
+    val designEditor = CustomViewPreview(psiFile) { p -> PropertiesComponent.getInstance(p) }
     val editorWithPreview = TextEditorWithCustomViewPreview(textEditor, designEditor)
 
     // Queue to avoid refreshing notifications on every key stroke
@@ -278,9 +278,10 @@ private class CustomViewPreviewActionManager(
  * A preview for a file containing custom android view classes. Allows selecting between the classes if multiple custom view classes are
  * present in the file.
  */
-private class CustomViewPreview(private val psiFile: PsiFile) : Disposable, DesignFileEditor(psiFile.virtualFile!!) {
+private class CustomViewPreview(private val psiFile: PsiFile, persistenceProvider: (Project) -> PropertiesComponent) : Disposable, DesignFileEditor(psiFile.virtualFile!!) {
   private val project = psiFile.project
   private val virtualFile = psiFile.virtualFile!!
+  private val persistenceManager = persistenceProvider(project)
 
   private val previewId = "$CUSTOM_VIEW_PREVIEW_ID${virtualFile.path}"
   private val currentStatePropertyName = "${previewId}_SELECTED"
@@ -307,29 +308,29 @@ private class CustomViewPreview(private val psiFile: PsiFile) : Disposable, Desi
       return classes.map { fqcn2name(it) }
     }
 
-  var currentState: String = PropertiesComponent.getInstance(project).getValue(currentStatePropertyName, "")
+  var currentState: String = persistenceManager.getValue(currentStatePropertyName, "")
     set(value) {
       if (field != value) {
         field = value
-        PropertiesComponent.getInstance(project).setValue(currentStatePropertyName, value)
+        persistenceManager.setValue(currentStatePropertyName, value)
         updateModel()
       }
     }
 
-  var shrinkHeight = PropertiesComponent.getInstance(project).getValue(wrapContentHeightPropertyNameForClass(currentState), "false").toBoolean()
+  var shrinkHeight = persistenceManager.getValue(wrapContentHeightPropertyNameForClass(currentState), "false").toBoolean()
     set(value) {
       if (field != value) {
         field = value
-        PropertiesComponent.getInstance(project).setValue(wrapContentHeightPropertyNameForClass(currentState), value)
+        persistenceManager.setValue(wrapContentHeightPropertyNameForClass(currentState), value)
         updateModel()
       }
     }
 
-  var shrinkWidth = PropertiesComponent.getInstance(project).getValue(wrapContentWidthPropertyNameForClass(currentState), "false").toBoolean()
+  var shrinkWidth = persistenceManager.getValue(wrapContentWidthPropertyNameForClass(currentState), "false").toBoolean()
     set(value) {
       if (field != value) {
         field = value
-        PropertiesComponent.getInstance(project).setValue(wrapContentWidthPropertyNameForClass(currentState), value)
+        persistenceManager.setValue(wrapContentWidthPropertyNameForClass(currentState), value)
         updateModel()
       }
     }
@@ -400,7 +401,7 @@ private class CustomViewPreview(private val psiFile: PsiFile) : Disposable, Desi
       val className = fqcn2name(selectedClass)
 
       // Load and set preview size if exists for this custom view
-      PropertiesComponent.getInstance(project).getValues(dimensionsPropertyNameForClass(className))?.let { previewDimensions ->
+      persistenceManager.getValues(dimensionsPropertyNameForClass(className))?.let { previewDimensions ->
         updateConfigurationScreenSize(configuration, previewDimensions[0].toInt(), previewDimensions[1].toInt(), configuration.device)
       }
 
@@ -417,7 +418,7 @@ private class CustomViewPreview(private val psiFile: PsiFile) : Disposable, Desi
         configuration.addListener { flags ->
           if ((flags and ConfigurationListener.CFG_DEVICE_STATE) == ConfigurationListener.CFG_DEVICE_STATE) {
             val screen = configuration.device!!.defaultHardware.screen
-            PropertiesComponent.getInstance(project).setValues(
+            persistenceManager.setValues(
               dimensionsPropertyNameForClass(className), arrayOf("${screen.xDimension}", "${screen.yDimension}"))
           }
           true
