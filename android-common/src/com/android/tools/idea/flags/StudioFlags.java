@@ -81,6 +81,11 @@ public final class StudioFlags {
     "Show JDK Setup Step in Welcome Wizard",
     true);
 
+  public static final Flag<Boolean> NPW_NEW_MODULE_TEMPLATES = Flag.create(
+    NPW, "new.module.templates", "Use new module templates",
+    "Use the new Kotlin-based template system for module templates over the old Freemarker system when it is available.",
+    true);
+
   public static final Flag<Boolean> NPW_EXPERIMENTAL_ACTIVITY_GALLERY = Flag.create(
     NPW, "experimental.activity.gallery", "Show experimental activity gallery",
     "Show experimental activity gallery which contains Kotlin templates passed through plugin in addition to the normal gallery",

@@ -49,7 +49,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
 
         fun File.getIcon(): Icon = getTemplateIcon(TemplateHandle(this))!!
         fun createTemplateEntry(isLibrary: Boolean, icon: Icon, title: String = metadata.title!!) =
-          if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get() && title == message("android.wizard.module.new.mobile"))
+          if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get() && title == message("android.wizard.module.new.mobile"))
             AndroidModuleTemplateGalleryEntry(
               null,
               { appTitle: String? ->
