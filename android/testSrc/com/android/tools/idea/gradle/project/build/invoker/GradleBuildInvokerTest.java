@@ -92,8 +92,7 @@ public class GradleBuildInvokerTest extends JavaProjectTestCase {
 
   public void testCleanUpWithSourceGenerationEnabled() {
     // Simulate the case when source generation is enabled.
-    GradleProjectBuilder builderMock = new IdeComponents(getProject(),getTestRootDisposable())
-            .mockProjectService(getProject(), GradleProjectBuilder.class, getTestRootDisposable());
+    GradleProjectBuilder builderMock = IdeComponents.mockProjectService(getProject(), GradleProjectBuilder.class, getTestRootDisposable());
     when(builderMock.isSourceGenerationEnabled()).thenReturn(true);
 
     // Invoke method to test.
@@ -111,8 +110,7 @@ public class GradleBuildInvokerTest extends JavaProjectTestCase {
 
   public void testCleanUpWithSourceGenerationDisabled() {
     // Simulate the case when source generation is disabled.
-    GradleProjectBuilder builderMock = new IdeComponents(getProject(), getTestRootDisposable())
-            .mockProjectService(getProject(), GradleProjectBuilder.class, getTestRootDisposable());
+    GradleProjectBuilder builderMock = IdeComponents.mockProjectService(getProject(), GradleProjectBuilder.class, getTestRootDisposable());
     when(builderMock.isSourceGenerationEnabled()).thenReturn(false);
 
     // Invoke method to test.

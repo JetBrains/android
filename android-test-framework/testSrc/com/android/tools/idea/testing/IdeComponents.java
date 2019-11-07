@@ -26,14 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class IdeComponents {
-  public IdeComponents(@Nullable Project project, @NotNull Disposable disposable) {
-    if (project instanceof ProjectEx) {
-      if (((ProjectEx)project).isLight() && disposable == project) {
-        throw new AssertionError("Light (in-memory) projects are not disposed between tests, please use other IdeComponents " +
-                                 "constructor when using light fixtures.");
-      }
-    }
-  }
 
   @NotNull
   public static <T> T mockApplicationService(@NotNull Class<T> serviceType, @NotNull Disposable parentDisposable) {
@@ -43,7 +35,7 @@ public final class IdeComponents {
   }
 
   @NotNull
-  public static <T> T mockProjectService(@NotNull Project project, @NotNull Class<T> serviceType, @NotNull Disposable parentDisposable) { // FIXME-ank:
+  public static <T> T mockProjectService(@NotNull Project project, @NotNull Class<T> serviceType, @NotNull Disposable parentDisposable) {
     T mock = mock(serviceType);
     ServiceContainerUtil.replaceService(project, serviceType, mock, parentDisposable);
     return mock;

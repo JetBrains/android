@@ -56,7 +56,6 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);
-    new IdeComponents(null, getTestRootDisposable());
     instantAppSdks = IdeComponents.mockApplicationService(InstantAppSdks.class, getTestRootDisposable());
     when(instantAppSdks.loadLibrary()).thenReturn(sdkLib);
     when(sdkLib.getRunHandler()).thenReturn(runHandler);
