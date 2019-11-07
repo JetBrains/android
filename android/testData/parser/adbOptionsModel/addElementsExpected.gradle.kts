@@ -1,6 +1,6 @@
 android {
   adbOptions {
     installOptions("abcd")
-    timeOutInMs(100)
+    timeOutInMs = 100
   }
 }

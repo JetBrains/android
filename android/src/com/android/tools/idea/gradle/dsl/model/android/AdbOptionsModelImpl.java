@@ -24,8 +24,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class AdbOptionsModelImpl extends GradleDslBlockModel implements AdbOptionsModel {
-  @NonNls private static final String INSTALL_OPTIONS = "installOptions";
-  @NonNls private static final String TIME_OUT_IN_MS = "timeOutInMs";
+  @NonNls public static final String INSTALL_OPTIONS = "mInstallOptions";
+  @NonNls public static final String TIME_OUT_IN_MS = "mTimeOutInMs";
 
   public AdbOptionsModelImpl(@NotNull AdbOptionsDslElement dslElement) {
     super(dslElement);
