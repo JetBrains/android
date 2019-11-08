@@ -22,6 +22,7 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Type
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8TypeList
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionInitializationContext
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -94,7 +95,8 @@ class ProguardR8CompletionContributor : CompletionContributor() {
         processingContext: ProcessingContext,
         resultSet: CompletionResultSet
       ) {
-        resultSet.addAllElements(PROGUARD_FLAGS.map { LookupElementBuilder.create(it) })
+        val flags = getShrinkerFlagSet(parameters.position.getModuleSystem()?.codeShrinker)
+        resultSet.addAllElements(flags.map { LookupElementBuilder.create(it) })
       }
     }
 
