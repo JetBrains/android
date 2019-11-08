@@ -22,18 +22,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface ProguardR8RuleWithClassSpecification extends PsiElement {
-
-  @Nullable
-  ProguardR8ClassSpecificationBody getClassSpecificationBody();
+public interface ProguardR8Flag extends PsiElement {
 
   @NotNull
-  ProguardR8ClassSpecificationHeader getClassSpecificationHeader();
-
-  @NotNull
-  ProguardR8Flag getFlag();
-
-  @NotNull
-  List<ProguardR8KeepOptionModifier> getKeepOptionModifierList();
+  PsiElement getFlagToken();
 
 }

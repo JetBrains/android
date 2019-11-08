@@ -28,14 +28,14 @@ import static com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.proguardR8.psi.*;
 
-public class ProguardR8RuleWithClassSpecificationImpl extends ASTWrapperPsiElement implements ProguardR8RuleWithClassSpecification {
+public class ProguardR8FlagImpl extends ASTWrapperPsiElement implements ProguardR8Flag {
 
-  public ProguardR8RuleWithClassSpecificationImpl(@NotNull ASTNode node) {
+  public ProguardR8FlagImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull ProguardR8Visitor visitor) {
-    visitor.visitRuleWithClassSpecification(this);
+    visitor.visitFlag(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -44,27 +44,9 @@ public class ProguardR8RuleWithClassSpecificationImpl extends ASTWrapperPsiEleme
   }
 
   @Override
-  @Nullable
-  public ProguardR8ClassSpecificationBody getClassSpecificationBody() {
-    return findChildByClass(ProguardR8ClassSpecificationBody.class);
-  }
-
-  @Override
   @NotNull
-  public ProguardR8ClassSpecificationHeader getClassSpecificationHeader() {
-    return findNotNullChildByClass(ProguardR8ClassSpecificationHeader.class);
-  }
-
-  @Override
-  @NotNull
-  public ProguardR8Flag getFlag() {
-    return findNotNullChildByClass(ProguardR8Flag.class);
-  }
-
-  @Override
-  @NotNull
-  public List<ProguardR8KeepOptionModifier> getKeepOptionModifierList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8KeepOptionModifier.class);
+  public PsiElement getFlagToken() {
+    return findNotNullChildByType(FLAG_TOKEN);
   }
 
 }

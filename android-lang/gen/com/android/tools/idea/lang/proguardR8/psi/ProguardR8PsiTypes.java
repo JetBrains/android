@@ -41,6 +41,7 @@ public interface ProguardR8PsiTypes {
   IElementType FIELD = new ProguardR8AstNodeType("FIELD");
   IElementType FIELDS_SPECIFICATION = new ProguardR8AstNodeType("FIELDS_SPECIFICATION");
   IElementType FILE_FILTER = new ProguardR8AstNodeType("FILE_FILTER");
+  IElementType FLAG = new ProguardR8AstNodeType("FLAG");
   IElementType FLAG_ARGUMENT = new ProguardR8AstNodeType("FLAG_ARGUMENT");
   IElementType FULLY_QUALIFIED_NAME_CONSTRUCTOR = new ProguardR8AstNodeType("FULLY_QUALIFIED_NAME_CONSTRUCTOR");
   IElementType INCLUDE_FILE = new ProguardR8AstNodeType("INCLUDE_FILE");
@@ -85,7 +86,7 @@ public interface ProguardR8PsiTypes {
   IElementType EXTENDS = new ProguardR8TokenType("extends");
   IElementType FILE_NAME = new ProguardR8TokenType("FILE_NAME");
   IElementType FINAL = new ProguardR8TokenType("final");
-  IElementType FLAG = new ProguardR8TokenType("FLAG");
+  IElementType FLAG_TOKEN = new ProguardR8TokenType("FLAG_TOKEN");
   IElementType FLOAT = new ProguardR8TokenType("float");
   IElementType IMPLEMENTS = new ProguardR8TokenType("implements");
   IElementType INCLUDECODE = new ProguardR8TokenType("includecode");
@@ -175,6 +176,9 @@ public interface ProguardR8PsiTypes {
       }
       else if (type == FILE_FILTER) {
         return new ProguardR8FileFilterImpl(node);
+      }
+      else if (type == FLAG) {
+        return new ProguardR8FlagImpl(node);
       }
       else if (type == FLAG_ARGUMENT) {
         return new ProguardR8FlagArgumentImpl(node);
