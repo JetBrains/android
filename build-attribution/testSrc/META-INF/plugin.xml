@@ -22,6 +22,7 @@
   -->
   <name>Build Attribution Tests</name>
   <id>com.android.build.com.android.build.attribution.analyzers.tests</id>
+  <xi:include href="/META-INF/build-attribution.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

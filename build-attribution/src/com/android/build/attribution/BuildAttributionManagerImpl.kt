@@ -24,8 +24,8 @@ import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.ui.BuildAttributionTreeView
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
-import com.android.build.attribution.ui.filters.BuildAttributionOutputLinkFilter
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
+import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
 import com.intellij.openapi.application.ApplicationManager
@@ -56,9 +56,9 @@ class BuildAttributionManagerImpl(
     analyzersWrapper.onBuildStart()
   }
 
-  override fun onBuildSuccess(attributionFilePath: String) {
+  override fun onBuildSuccess(attributionFileDir: File) {
     val buildFinishedTimestamp = System.currentTimeMillis()
-    val attributionData = AndroidGradlePluginAttributionData.load(File(attributionFilePath))
+    val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
     if (attributionData != null) {
       taskContainer.updateTasksData(attributionData)
     }
@@ -106,8 +106,6 @@ class BuildAttributionManagerImpl(
       }
     }
   }
-
-  override fun buildOutputLine(): String = BuildAttributionOutputLinkFilter.INSIGHTS_AVAILABLE_LINE
 
   private fun logBuildAttributionResults() {
     val stringBuilder = StringBuilder()
