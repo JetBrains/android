@@ -59,6 +59,10 @@ private class ProguardR8JavaClassReferenceProvider(
   }
 }
 
+fun containsWildcards(className: ProguardR8QualifiedName): Boolean {
+  return className.node.findChildByType(ProguardR8Lexer.wildcardsTokenSet) != null
+}
+
 fun getReferences(className: ProguardR8QualifiedName): Array<PsiReference> {
   val provider = ProguardR8JavaClassReferenceProvider(className.resolveScope, true)
   var referenceSet = provider.getReferencesByElement(className)

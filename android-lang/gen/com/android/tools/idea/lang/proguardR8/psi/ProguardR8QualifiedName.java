@@ -32,4 +32,6 @@ public interface ProguardR8QualifiedName extends PsiElement {
   @Nullable
   PsiClass resolveToPsiClass();
 
+  boolean containsWildcards();
+
 }
