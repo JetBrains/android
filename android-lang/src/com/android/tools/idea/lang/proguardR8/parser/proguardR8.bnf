@@ -85,7 +85,7 @@ private java_keywords_ ::= interface|class|enum|public|final|abstract|static|vol
 private java_identifier_ ::= (JAVA_IDENTIFIER|JAVA_IDENTIFIER_WITH_WILDCARDS|ASTERISK|DOUBLE_ASTERISK|java_keywords_)
 
 qualifiedName ::= java_identifier_ ("." java_identifier_)* {
-  methods=[getReferences resolveToPsiClass]
+  methods=[getReferences resolveToPsiClass containsWildcards]
   extraRoot=true
 }
 
