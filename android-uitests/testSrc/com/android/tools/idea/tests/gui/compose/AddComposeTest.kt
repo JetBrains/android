@@ -51,31 +51,6 @@ class AddComposeTest {
    * new project wizard.
    *
    * Test steps:
-   * 1. Create new default "Empty Compose Activity" Project
-   * Verify:
-   * 1. Check that app/build.gradle has dependencies for "androidx.ui:ui-framework" and "androidx.ui:ui-tooling"
-   * 2. Check that the main activity has functions annotated with @Composable and @Preview
-   */
-  @Test
-  fun newComposeProject() {
-    createNewProject(guiTest, "Empty Compose Activity", KOTLIN)
-
-    guiTest.getProjectFileText("app/build.gradle").run {
-      assertThat(this).contains("implementation 'androidx.ui:ui-layout:")
-      assertThat(this).contains("implementation 'androidx.ui:ui-material:")
-      assertThat(this).contains("implementation 'androidx.ui:ui-tooling:")
-    }
-    guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/MainActivity.kt").run {
-      assertThat(this).contains("@Composable")
-      assertThat(this).contains("@Preview")
-    }
-  }
-
-  /**
-   * Verifies that user is able to create a new Compose Activity Project through the
-   * new project wizard.
-   *
-   * Test steps:
    * 1. Create new default "Empty Activity" Project
    * 2. Add new "Empty Compose Activity" Module, with name: "compose"
    * Verify:
