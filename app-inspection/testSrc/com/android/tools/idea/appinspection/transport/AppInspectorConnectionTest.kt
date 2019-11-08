@@ -28,6 +28,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common.Event
+import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION
 import com.android.tools.profiler.proto.Common.Event.Kind.PROCESS
 import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase.fail
@@ -321,5 +322,48 @@ class AppInspectorConnectionTest {
       assertThat(e.cause).isInstanceOf(RuntimeException::class.java)
       assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_NAME has crashed.")
     }
+  }
+
+  @Test
+  fun receiveEventsInChronologicalOrder() {
+    fun createRawEvent(data: ByteString, ts: Long) =
+      Event.newBuilder()
+        .setKind(APP_INSPECTION)
+        .setTimestamp(ts)
+        .setIsEnded(true)
+        .setAppInspectionEvent(AppInspectionEvent.newBuilder()
+                                 .setRawEvent(RawEvent.newBuilder()
+                                                .setInspectorId("test.inspector")
+                                                .setContent(data)
+                                                .build())
+                                 .build())
+        .build()
+
+    val latch = CountDownLatch(2)
+    val listener = object : AppInspectionServiceRule.TestInspectorEventListener() {
+      override fun onRawEvent(eventData: ByteArray) {
+        super.onRawEvent(eventData)
+        latch.countDown()
+      }
+    }
+
+    appInspectionRule.addEvent(createRawEvent(ByteString.copyFromUtf8("second"), 3))
+    appInspectionRule.addEvent(createRawEvent(ByteString.copyFromUtf8("first"), 2))
+
+    appInspectionRule.launchInspectorConnection(
+      inspectorId = "test.inspector",
+      eventListener = listener
+    )
+
+    try {
+      assertThat(latch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
+    }
+    catch (e: InterruptedException) {
+      e.printStackTrace()
+      fail("Test interrupted")
+    }
+
+    assertThat(String(listener.rawEvents[0])).isEqualTo("first")
+    assertThat(String(listener.rawEvents[1])).isEqualTo("second")
   }
 }
