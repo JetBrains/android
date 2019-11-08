@@ -47,7 +47,6 @@ iml_module(
     runtime_deps = [
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
-        "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
@@ -78,5 +77,6 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:truth[test]",
+        "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
     ],
 )

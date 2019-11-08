@@ -300,6 +300,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareSettingsActivity() {
+    checkCreateTemplate("activities", "SettingsActivity", false, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareSettingsActivityWithKotlin() {
+    checkCreateTemplate("activities", "SettingsActivity", false, true, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testBottomNavigationActivity() {
     checkCreateTemplate("activities", "BottomNavigationActivity", false, true)
   }

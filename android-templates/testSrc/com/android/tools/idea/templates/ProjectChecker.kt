@@ -271,6 +271,11 @@ data class ProjectChecker(
     (newTemplate.parameters.find { it.name == "Package name" } as StringParameter?)?.value = packageName
     (newTemplate.parameters.find { it.name == "Generate a Layout File" } as BooleanParameter?)?.value = generateLayout!!
     (newTemplate.parameters.find { it.name == "Launcher Activity" } as BooleanParameter?)?.value = isLauncher!!
+    // TODO: More generalized way of overriding the parameters
+    activityState["multipleScreens"]?.let {multipleScreens ->
+      (newTemplate.parameters.find { it.name == "Split settings hierarchy into separate sub-screens" } as BooleanParameter?)?.value =
+        multipleScreens as Boolean
+    }
     runWriteAction {
       newTemplate.render(context, executor)
     }
