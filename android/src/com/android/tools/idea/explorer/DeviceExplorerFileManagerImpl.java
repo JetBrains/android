@@ -37,6 +37,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtilRt;
@@ -119,31 +120,27 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
                                                                 @NotNull Path localPath,
                                                                 @NotNull DownloadProgress progress) {
     SettableFuture<DownloadedFileData> futureResult = SettableFuture.create();
-
     FileUtils.mkdirs(localPath.getParent().toFile());
-    ListenableFuture<VirtualFile> getVirtualFile = DeviceExplorerFilesUtils.findFile(localPath);
 
-    myEdtExecutor.addCallback(getVirtualFile, new FutureCallback<VirtualFile>() {
-      @Override
-      public void onSuccess(VirtualFile virtualFile) {
-        TransactionGuard.submitTransaction(myProject, () -> {
-          ApplicationManager.getApplication().runWriteAction(() -> {
-            deleteVirtualFile(futureResult, virtualFile);
-            downloadFileAndAdditionalFiles(futureResult, entry, localPath, progress);
-          });
-        });
-      }
+    TransactionGuard.submitTransaction(myProject, () -> {
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        // this must be done inside a transaction, see DeviceExplorerFilesUtils.findFile
+        VirtualFile virtualFile = VfsUtil.findFileByIoFile(localPath.toFile(), true);
+        if (virtualFile != null) {
+          boolean isOperationSuccessful = deleteVirtualFile(futureResult, virtualFile);
+          if (!isOperationSuccessful) {
+            return;
+          }
+        }
 
-      @Override
-      public void onFailure(@NotNull Throwable t) {
         downloadFileAndAdditionalFiles(futureResult, entry, localPath, progress);
-      }
+      });
     });
 
     return futureResult;
   }
 
-  private void deleteVirtualFile(@NotNull SettableFuture<DownloadedFileData> futureResult, @NotNull VirtualFile virtualFile) {
+  private boolean deleteVirtualFile(@NotNull SettableFuture<DownloadedFileData> futureResult, @NotNull VirtualFile virtualFile) {
     // Using VFS to delete files has the advantage of throwing VFS events,
     // so listeners can react to actions on the files - for example by closing a file before it being deleted.
     try {
@@ -151,9 +148,11 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
       // We need to add this assertion because in tests the deletion of a file doesn't trigger some PSI events that call the assertion.
       ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
       virtualFile.delete(this);
+      return true;
     }
     catch (IOException e) {
       futureResult.setException(e);
+      return false;
     }
   }
 
