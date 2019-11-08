@@ -323,6 +323,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(variant: String): AndroidArt
     null,
     null,
     null,
+    null,
     false
   )
 }
