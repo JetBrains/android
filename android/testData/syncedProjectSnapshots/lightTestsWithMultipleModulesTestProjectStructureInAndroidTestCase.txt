@@ -23,7 +23,7 @@ PROJECT             : testLightTestsWithMultipleModulesTestProjectStructureInAnd
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
             UseCustomCompilerManifest     : false
-            ProjectType         : 2
+            ProjectType         : 0
             RunProcessResourcesMavenTask  : true
             PackTestCode        : false
             RunProguard         : false
@@ -96,7 +96,7 @@ PROJECT             : testLightTestsWithMultipleModulesTestProjectStructureInAnd
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
             UseCustomCompilerManifest     : false
-            ProjectType         : 2
+            ProjectType         : 0
             RunProcessResourcesMavenTask  : true
             PackTestCode        : false
             RunProguard         : false
