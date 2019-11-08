@@ -223,6 +223,7 @@ object AndroidStudioUsageTracker {
                        .setJavaProcessStats(CommonMetricsData.javaProcessStats))
 
     TypingLatencyTracker.reportTypingLatency()
+    CompletionStats.reportCompletionStats()
   }
 
   /**
