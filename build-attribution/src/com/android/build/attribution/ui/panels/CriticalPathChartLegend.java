@@ -27,6 +27,7 @@ import javax.swing.SwingConstants;
 public interface CriticalPathChartLegend {
   ChartColor MISC_COLOR = new ChartColor(new Color(0xBDBDBD));
   ChartColor OTHER_TASKS_COLOR = new ChartColor(new Color(0xA2DFFE));
+  Color OTHER_TASKS_TEXT_COLOR = Color.BLACK;
   ChartColor androidPluginColor = new ChartColor(new Color(0xE66F9A));
   ChartColor externalPluginColor = new ChartColor(new Color(0x1A7AFF));
   ChartColor buildsrcPluginColor = new ChartColor(new Color(0xA78BD9));
