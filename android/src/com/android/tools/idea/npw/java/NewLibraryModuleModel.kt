@@ -50,6 +50,7 @@ class NewLibraryModuleModel(
       )
 
       TemplateValueInjector(newValues)
+        .setProjectDefaults(project, false)
         .setModuleRoots(modulePaths, project.basePath!!, moduleName.get(), packageName.get())
         .setJavaVersion(project)
         .setLanguage(language.value)
