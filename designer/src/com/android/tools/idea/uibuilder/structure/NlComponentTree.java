@@ -666,11 +666,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     super.setExpandedState(path, isRoot || state);
   }
 
-  @Override
-  protected boolean isCustomUI() {
-    return true;
-  }
-
   private static class MyUI extends DarculaTreeUI {
     public void invalidateNodeSize() {
       treeState.invalidateSizes();
