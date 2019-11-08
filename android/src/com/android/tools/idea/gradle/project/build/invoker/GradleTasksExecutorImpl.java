@@ -36,7 +36,6 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
-import com.android.build.attribution.BuildAttributionManager;
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFilePosition;
@@ -46,14 +45,14 @@ import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.BuildSummary;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
+import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager;
+import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionUtil;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.ui.GuiTestingService;
-import com.android.utils.FileUtils;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.CompilerManagerImpl;
@@ -188,6 +187,19 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     }
   }
 
+  private static void setUpBuildAttributionManager(LongRunningOperation operation,
+                                                   BuildAttributionManager buildAttributionManager,
+                                                   boolean skipIfNull) {
+    if (skipIfNull && buildAttributionManager == null) {
+      return;
+    }
+    // Don't listen to transform events due to b/136194724
+    operation
+      .addProgressListener(buildAttributionManager, OperationType.GENERIC, OperationType.PROJECT_CONFIGURATION, OperationType.TASK,
+                           OperationType.TEST);
+    buildAttributionManager.onBuildStart();
+  }
+
   private void invokeGradleTasks() {
 
     Project project = myRequest.getProject();
@@ -221,7 +233,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       buildState.buildStarted(new BuildContext(project, gradleTasks, buildMode));
 
       BuildAttributionManager buildAttributionManager = null;
-      boolean enableBuildAttribution = GradleBuildInvoker.isBuildAttributionEnabledForProject(myProject);
+      boolean enableBuildAttribution = BuildAttributionUtil.isBuildAttributionEnabledForProject(myProject);
 
       try {
         AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
@@ -233,10 +245,10 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         }
 
         commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
-        String attributionFilePath = FileUtils.join(project.getBasePath(), GradleUtil.BUILD_DIR_DEFAULT_NAME);
+        File attributionFileDir = BuildAttributionUtil.getAgpAttributionFileDir(myRequest.getBuildFilePath());
         if (enableBuildAttribution) {
           commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_ATTRIBUTION_FILE_LOCATION,
-                                                         attributionFilePath));
+                                                         attributionFileDir.getAbsolutePath()));
         }
         commandLineArguments.addAll(myRequest.getCommandLineArguments());
 
@@ -290,11 +302,9 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
         if (enableBuildAttribution) {
           buildAttributionManager = ServiceManager.getService(myProject, BuildAttributionManager.class);
-          // Don't listen to transform events due to b/136194724
-          operation
-            .addProgressListener(buildAttributionManager, OperationType.GENERIC, OperationType.PROJECT_CONFIGURATION, OperationType.TASK,
-                                 OperationType.TEST);
-          buildAttributionManager.onBuildStart();
+          setUpBuildAttributionManager(operation, buildAttributionManager,
+                                       // In some tests we don't care about build attribution being setup
+                                       ApplicationManager.getApplication().isUnitTestMode());
         }
 
         File javaHome = IdeSdks.getInstance().getJdkPath();
@@ -321,7 +331,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         buildState.buildFinished(SUCCESS);
         taskListener.onSuccess(id);
         if (buildAttributionManager != null) {
-          buildAttributionManager.onBuildSuccess(attributionFilePath);
+          buildAttributionManager.onBuildSuccess(attributionFileDir);
         }
       }
       catch (BuildException e) {

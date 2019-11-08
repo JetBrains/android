@@ -13,26 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.build.attribution
+package com.android.tools.idea.gradle.project.build.attribution
 
-import com.android.ide.common.repository.GradleVersion
 import org.gradle.tooling.events.ProgressListener
+import java.io.File
 
 interface BuildAttributionManager : ProgressListener {
-  companion object {
-    val minimumSupportedAgpVersion = GradleVersion.tryParseAndroidGradlePluginVersion("4.0.0-alpha03")!!
-  }
-
   fun onBuildStart()
 
-  fun onBuildSuccess(attributionFilePath: String)
+  fun onBuildSuccess(attributionFileDir: File)
 
   fun onBuildFailure()
 
   fun openResultsTab()
-
-  /**
-   * Provides the line to be added to the end of build output to advertise the feature.
-   */
-  fun buildOutputLine(): String
 }

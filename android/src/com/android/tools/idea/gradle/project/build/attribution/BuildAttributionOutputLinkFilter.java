@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.build.attribution.ui.filters;
+package com.android.tools.idea.gradle.project.build.attribution;
 
-import com.android.build.attribution.BuildAttributionManager;
 import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.openapi.components.ServiceManager;
