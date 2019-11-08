@@ -22,8 +22,6 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.editor.DesignFileEditor
 import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
-import com.android.tools.idea.common.editor.SmartAutoBuildRefresher
-import com.android.tools.idea.common.editor.SmartBuildable
 import com.android.tools.idea.common.editor.SourceCodeChangeListener
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
@@ -31,6 +29,8 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
+import com.android.tools.idea.common.util.BuildListener
+import com.android.tools.idea.common.util.setupBuildListener
 import com.android.tools.idea.compose.preview.ComposeFileEditorProvider
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationListener
@@ -375,7 +375,7 @@ private class CustomViewPreview(private val psiFile: PsiFile, persistenceProvide
   init {
     component.add(workbench)
 
-    SmartAutoBuildRefresher(project, object : SmartBuildable {
+    setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
         EditorNotifications.getInstance(project).updateNotifications(virtualFile)
         refresh()
@@ -385,7 +385,7 @@ private class CustomViewPreview(private val psiFile: PsiFile, persistenceProvide
         EditorNotifications.getInstance(project).updateNotifications(virtualFile)
         workbench.loadingStopped("Preview is unavailable until after a successful project sync")
       }
-    }, this)  
+    }, this)
   }
 
   /**

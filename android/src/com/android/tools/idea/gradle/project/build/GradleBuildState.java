@@ -118,7 +118,7 @@ public class GradleBuildState {
   }
 
   @TestOnly
-  void clear() {
+  public void clear() {
     synchronized (myLock) {
       myCurrentContext = null;
       mySummary = null;
