@@ -24,10 +24,11 @@ import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ThreeState;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileSystem;
@@ -61,6 +62,11 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
   @NotNull
   @Override
   public ListenableFuture<Collection<VirtualDevice>> get() {
+    return MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()).submit(this::getVirtualDevices);
+  }
+
+  @NotNull
+  private Collection<VirtualDevice> getVirtualDevices() {
     Collection<VirtualDevice> devices;
     Stream<AvdInfo> avds = AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false).stream();
 
@@ -75,8 +81,7 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
         .collect(Collectors.toList());
     }
 
-    // noinspection UnstableApiUsage
-    return Futures.immediateFuture(devices);
+    return devices;
   }
 
   @NotNull
