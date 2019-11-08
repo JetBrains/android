@@ -234,7 +234,9 @@ public class TimeDistributionChart<T> extends JPanel {
       String boxText = myDataItem.chartBoxText();
       Box box = new Box(myDataItem.getLegendColor().baseColor, BOX_WIDTH, heightPx);
       if (boxText != null) {
-        box.add(new JBLabel(boxText, SwingConstants.CENTER).withFont(JBUI.Fonts.smallFont()), BorderLayout.CENTER);
+        JBLabel label = new JBLabel(boxText, SwingConstants.CENTER).withFont(JBUI.Fonts.smallFont());
+        label.setForeground(CriticalPathChartLegend.OTHER_TASKS_TEXT_COLOR);
+        box.add(label, BorderLayout.CENTER);
       }
 
       Color borderColor = isSelected() ? myDataItem.getLegendColor().selectionColor : myDataItem.getLegendColor().baseColor;
