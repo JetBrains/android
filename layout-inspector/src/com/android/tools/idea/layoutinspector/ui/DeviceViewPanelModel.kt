@@ -19,6 +19,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataKey
+import java.awt.Image
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
@@ -35,7 +36,7 @@ val DEVICE_VIEW_MODEL_KEY = DataKey.create<DeviceViewPanelModel>(DeviceViewPanel
 
 data class ViewDrawInfo(val bounds: Shape, val transform: AffineTransform, val node: ViewNode, val clip: Rectangle)
 
-class DeviceViewPanelModel(val model: InspectorModel) {
+class DeviceViewPanelModel(private val model: InspectorModel) {
   @VisibleForTesting
   var xOff = 0.0
   @VisibleForTesting
@@ -58,9 +59,24 @@ class DeviceViewPanelModel(val model: InspectorModel) {
 
   val modificationListeners = mutableListOf<() -> Unit>()
 
+  var overlay: Image? = null
+    set(value) {
+      if (value != null) {
+        resetRotation()
+      }
+      field = value
+      modificationListeners.forEach { it() }
+    }
+
   init {
     refresh()
   }
+
+  val rotatable
+    get() = model.hasSubImages && overlay == null
+
+  val isActive
+    get() = model.root != null
 
   fun findTopRect(x: Double, y: Double): ViewNode? {
     return hitRects.findLast {

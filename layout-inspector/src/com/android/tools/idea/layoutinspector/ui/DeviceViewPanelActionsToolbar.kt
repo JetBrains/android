@@ -28,7 +28,6 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import icons.StudioIcons
 import icons.StudioIcons.LayoutInspector.MODE_3D
 import icons.StudioIcons.LayoutInspector.RESET_VIEW
 
@@ -60,7 +59,7 @@ object Toggle3dAction : AnAction(MODE_3D) {
     super.update(event)
     val model = event.getData(DEVICE_VIEW_MODEL_KEY)
     event.presentation.icon = if (model?.isRotated == true) RESET_VIEW else MODE_3D
-    event.presentation.isVisible = model?.model?.hasSubImages == true
+    event.presentation.isVisible = model?.rotatable == true
   }
 }
 

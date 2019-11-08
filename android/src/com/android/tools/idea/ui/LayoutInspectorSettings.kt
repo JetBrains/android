@@ -48,7 +48,9 @@ var enableLiveLayoutInspector
                 windowManager.initToolWindow(windowEp)
               }
               window = windowManager.getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
-              window!!.activate(null)
+              window?.setAvailable(true, null)
+              window?.show(null)
+              window?.activate(null)
             }
           }
         }
@@ -65,8 +67,8 @@ var enableLiveLayoutInspector
         for (project in ProjectManager.getInstance().openProjects) {
           val windowManager = ToolWindowManager.getInstance(project) as ToolWindowManagerEx
           val window = windowManager.getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
-          window.setAvailable(false, null)
-          window.hide(null)
+          window?.setAvailable(false, null)
+          window?.hide(null)
         }
       }
     }
