@@ -15,28 +15,22 @@
  */
 package com.android.tools.idea.testartifacts.scopes
 
-import com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST
-import com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST
-import com.android.builder.model.BaseArtifact
-import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
 import com.android.testutils.TestUtils.getLatestAndroidPlatform
 import com.android.testutils.TestUtils.getPlatformFile
-import com.android.tools.idea.gradle.TestProjects
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub
-import com.android.tools.idea.gradle.stubs.android.JavaArtifactStub
-import com.android.tools.idea.gradle.stubs.android.VariantStub
-import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.testing.Facets.createAndAddGradleFacet
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
+import com.android.tools.idea.testing.buildDependenciesStub
+import com.android.tools.idea.testing.buildMainArtifactStub
+import com.android.tools.idea.testing.buildUnitTestArtifactStub
+import com.android.tools.idea.testing.createAndroidProjectBuilder
+import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.collect.Iterables
 import com.google.common.collect.Sets
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.JavaParameters
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil.normalize
 import com.intellij.testFramework.UsefulTestCase
-import com.intellij.util.ArrayUtil.contains
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.sdk.AndroidPlatform
@@ -56,13 +50,11 @@ class AndroidJunitPatcherTest : AndroidTestCase() {
 
   private lateinit var patcher: AndroidJunitPatcher
   private lateinit var javaParameters: JavaParameters
-  private lateinit var androidProject: AndroidProjectStub
   private lateinit var root: String
-  private lateinit var selectedVariant: VariantStub
 
   private // Sanity check. These should be fixed by the patcher.
   fun getExampleClasspath(): List<String> {
-    root = normalize(androidProject.rootDir.path)
+    root = project.basePath!!
     val exampleClassPath = mutableListOf(
       root + "/build/intermediates/classes/debug",
       root + "/build/intermediates/classes/test/debug",
@@ -81,8 +73,8 @@ class AndroidJunitPatcherTest : AndroidTestCase() {
     TestCase.assertNotNull(androidPlatform)
     realAndroidJar = getPlatformFile("android.jar").toString()
     resourcesDirs = listOf(
-      root + "/build/intermediates/javaResources/debug",
-      root + "/build/intermediates/javaResources/test/debug"
+      root + "/build/intermediates/java_res/debug/out",
+      root + "/build/intermediates/java_res/debugUnitTest/out"
     )
 
     exampleClassPath.add(0, mockableAndroidJar)
@@ -96,38 +88,24 @@ class AndroidJunitPatcherTest : AndroidTestCase() {
     return exampleClassPath
   }
 
-  fun getUnitTestArtifact(): JavaArtifactStub? {
-    for (artifact in selectedVariant.extraJavaArtifacts) {
-      val stub = artifact as JavaArtifactStub
-      if (isTestArtifact(stub)) {
-        return stub
-      }
-    }
-    return null
-  }
-
   @Throws(Exception::class)
   public override fun setUp() {
     super.setUp()
-    setUpIdeaAndroidProject()
-
     patcher = AndroidJunitPatcher()
     javaParameters = JavaParameters()
     javaParameters.classPath.addAll(getExampleClasspath())
-
-    // Adding the facet makes Projects#isBuildWithGradle return 'true'.
-    createAndAddGradleFacet(myModule)
   }
 
-  private fun setUpIdeaAndroidProject() {
-    androidProject = TestProjects.createBasicProject()
-    createAndSetAndroidModel()
-    for (module in ModuleManager.getInstance(project).modules) {
-      GradleTestArtifactSearchScopes.initializeScope(module)
-    }
+  private fun setUpProject(builder: AndroidProjectBuilder) {
+    setupTestProjectFromAndroidModel(
+      project,
+      File(root),
+      AndroidModuleModelBuilder(":", "debug", builder)
+    )
   }
 
   fun testPathChanges() {
+    setUpProject(createAndroidProjectBuilder())
     patcher.patchJavaParameters(myModule, javaParameters)
     val result = javaParameters.classPath.pathList.map { normalize(it) }
     val resultSet = result.toSet()
@@ -142,6 +120,7 @@ class AndroidJunitPatcherTest : AndroidTestCase() {
   }
 
   fun testCaseInsensitivity() {
+    setUpProject(createAndroidProjectBuilder())
     if (!SystemInfo.isWindows) {
       // This test only makes sense on Windows.
       println("Skipping AndroidJunitPatcherTest#testCaseInsensitivity: not running on Windows.")
@@ -159,6 +138,7 @@ class AndroidJunitPatcherTest : AndroidTestCase() {
   }
 
   fun testMultipleMockableJars_oldModel() {
+    setUpProject(createAndroidProjectBuilder())
     val jar22 = root + "lib1/build/intermediates/mockable-android-22.jar"
     val jar15 = root + "lib2/build/intermediates/mockable-android-15.jar"
     val classPath = javaParameters.classPath
@@ -173,11 +153,10 @@ class AndroidJunitPatcherTest : AndroidTestCase() {
   }
 
   fun testMultipleMockableJars_newModel() {
+    setUpProject(createAndroidProjectBuilder(
+      unitTestArtifactStub = { buildUnitTestArtifactStub(it, mockablePlatformJar = File(mockableAndroidJar)) }
+    ))
     javaParameters.classPath.remove(mockableAndroidJar)
-
-    val testArtifact = getUnitTestArtifact()!!
-    testArtifact.mockablePlatformJar = File(mockableAndroidJar)
-    createAndSetAndroidModel()
 
     patcher.patchJavaParameters(myModule, javaParameters)
 
@@ -185,14 +164,12 @@ class AndroidJunitPatcherTest : AndroidTestCase() {
   }
 
   fun testKotlinClasses() {
-    javaParameters.classPath.remove(mockableAndroidJar)
-
-    val artifact = selectedVariant.mainArtifact
-    artifact.addAdditionalClassesFolder(File(kotlinClasses))
-    val testArtifact = getUnitTestArtifact()!!
     val testKotlinClassesDir = File(testKotlinClasses)
-    testArtifact.addAdditionalClassesFolder(testKotlinClassesDir)
-    createAndSetAndroidModel()
+    setUpProject(createAndroidProjectBuilder(
+      mainArtifactStub = { buildMainArtifactStub(it, classFolders = setOf(File(kotlinClasses))) },
+      unitTestArtifactStub = { buildUnitTestArtifactStub(it, classFolders = setOf(testKotlinClassesDir)) }
+    ))
+    javaParameters.classPath.remove(mockableAndroidJar)
 
     patcher.patchJavaParameters(myModule, javaParameters)
 
@@ -201,30 +178,13 @@ class AndroidJunitPatcherTest : AndroidTestCase() {
 
   fun testRuntimeClasspath() {
     val runtimeJar = "/tmp/runtime.jar"
-    val testArtifact = getUnitTestArtifact()!!
-    testArtifact.dependencies.runtimeOnlyClasses.add(File(runtimeJar))
-    createAndSetAndroidModel()
+    setUpProject(createAndroidProjectBuilder(
+      unitTestArtifactStub = {
+        buildUnitTestArtifactStub(it, dependencies = buildDependenciesStub(runtimeOnlyClasses = listOf(File(runtimeJar))))
+      }
+    ))
     patcher.patchJavaParameters(myModule, javaParameters)
     val result = javaParameters.classPath.pathList.map { normalize(it) }
     assertThat(result).contains(runtimeJar)
   }
-
-  private fun createAndSetAndroidModel() {
-    selectedVariant = androidProject.firstVariant!!
-    TestCase.assertNotNull(selectedVariant)
-    val model = AndroidModuleModel
-      .create(androidProject.name, androidProject.rootDir, androidProject, selectedVariant.name, IdeDependenciesFactory())
-    AndroidModel.set(myFacet, model)
-  }
-}
-
-private val TEST_ARTIFACT_NAMES = arrayOf(ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST)
-
-private fun isTestArtifact(artifact: BaseArtifact): Boolean {
-  val artifactName = artifact.name
-  return isTestArtifact(artifactName)
-}
-
-private fun isTestArtifact(artifactName: String?): Boolean {
-  return contains(artifactName, *TEST_ARTIFACT_NAMES)
 }
