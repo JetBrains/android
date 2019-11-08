@@ -15,9 +15,15 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.AndroidProjectTypes
 import com.android.builder.model.AndroidArtifact
+import com.android.builder.model.AndroidArtifactOutput
+import com.android.builder.model.AndroidLibrary
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.BuildTypeContainer
+import com.android.builder.model.Dependencies
+import com.android.builder.model.JavaArtifact
+import com.android.builder.model.JavaLibrary
 import com.android.builder.model.ProductFlavorContainer
 import com.android.builder.model.SourceProvider
 import com.android.builder.model.SourceProviderContainer
@@ -35,6 +41,7 @@ import com.android.ide.common.gradle.model.stubs.BuildTypeStub
 import com.android.ide.common.gradle.model.stubs.DependenciesStub
 import com.android.ide.common.gradle.model.stubs.DependencyGraphsStub
 import com.android.ide.common.gradle.model.stubs.InstantRunStub
+import com.android.ide.common.gradle.model.stubs.JavaArtifactStub
 import com.android.ide.common.gradle.model.stubs.JavaCompileOptionsStub
 import com.android.ide.common.gradle.model.stubs.LintOptionsStub
 import com.android.ide.common.gradle.model.stubs.MavenCoordinatesStub
@@ -112,6 +119,7 @@ interface AndroidProjectStubBuilder {
   val projectName: String
   val basePath: File
   val buildPath: File
+  val projectType: Int
   val minSdk: Int
   val targetSdk: Int
   val mainSourceProvider: SourceProvider
@@ -125,6 +133,8 @@ interface AndroidProjectStubBuilder {
   val viewBindingOptions: ViewBindingOptions
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
   fun mainArtifact(variant: String): AndroidArtifact
+  fun androidTestArtifact(variant: String): AndroidArtifact
+  fun unitTestArtifact(variant: String): JavaArtifact
   val androidProject: AndroidProject
 }
 
@@ -136,6 +146,7 @@ interface AndroidProjectStubBuilder {
  */
 fun createAndroidProjectBuilder(
   buildId: AndroidProjectStubBuilder.() -> String = { "/tmp/buildId" }, //  buildId should not be assumed to be a path.
+  projectType: AndroidProjectStubBuilder.() -> Int = { AndroidProjectTypes.PROJECT_TYPE_APP},
   minSdk: AndroidProjectStubBuilder.() -> Int = { 16 },
   targetSdk: AndroidProjectStubBuilder.() -> Int = { 22 },
   defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub = { buildDefaultConfigStub() },
@@ -148,6 +159,8 @@ fun createAndroidProjectBuilder(
   releaseBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildReleaseBuildTypeStub() },
   viewBindingOptions: AndroidProjectStubBuilder.() -> ViewBindingOptionsStub = { buildViewBindingOptions() },
   mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub = { variant -> buildMainArtifactStub(variant) },
+  androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub = { variant -> buildAndroidTestArtifactStub(variant) },
+  unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> JavaArtifactStub = { variant -> buildUnitTestArtifactStub(variant) },
   androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
   androidProject: AndroidProjectStubBuilder.() -> AndroidProject = { buildAndroidProjectStub() }
 ): AndroidProjectBuilder {
@@ -157,6 +170,7 @@ fun createAndroidProjectBuilder(
       override val projectName: String = projectName
       override val basePath: File = basePath
       override val buildPath: File get() = basePath.resolve("build")
+      override val projectType: Int get() = projectType()
       override val minSdk: Int get() = minSdk()
       override val targetSdk: Int get() = targetSdk()
       override val mainSourceProvider: SourceProvider get() = mainSourceProvider()
@@ -170,6 +184,8 @@ fun createAndroidProjectBuilder(
       override val viewBindingOptions: ViewBindingOptions = viewBindingOptions()
       override fun androidModuleDependencies(variant: String): List<AndroidModuleDependency> = androidModuleDependencyList(variant)
       override fun mainArtifact(variant: String): AndroidArtifact = mainArtifactStub(variant)
+      override fun androidTestArtifact(variant: String): AndroidArtifact = androidTestArtifactStub(variant)
+      override fun unitTestArtifact(variant: String): JavaArtifact = unitTestArtifactStub(variant)
       override val androidProject: AndroidProject = androidProject()
     }
     builder.androidProject
@@ -266,10 +282,13 @@ fun AndroidProjectStubBuilder.buildReleaseBuildTypeStub() = releaseSourceProvide
 
 fun AndroidProjectStubBuilder.buildViewBindingOptions() = ViewBindingOptionsStub()
 
-fun AndroidProjectStubBuilder.buildMainArtifactStub(variant: String): AndroidArtifactStub {
+fun AndroidProjectStubBuilder.buildMainArtifactStub(
+  variant: String,
+  classFolders: Set<File> = setOf()
+): AndroidArtifactStub {
   val androidModuleDependencies = this.androidModuleDependencies(variant).orEmpty()
-  val dependenciesStub = DependenciesStub(
-    androidModuleDependencies.map {
+  val dependenciesStub = buildDependenciesStub(
+    libraries = androidModuleDependencies.map {
       AndroidLibraryStub(
         MavenCoordinatesStub("artifacts", it.moduleGradlePath, "unspecificed", "jar"),
         this.buildId,
@@ -293,15 +312,53 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(variant: String): AndroidArt
         File("stub_lintJar.jar"),
         File("stub_publicResources")
       )
-    },
-    listOf(), listOf(), listOf(), listOf())
+    }
+  )
   return AndroidArtifactStub(
     ARTIFACT_NAME_MAIN,
     "compile",
     "assemble",
-    buildPath.resolve("classes"),
+    buildPath.resolve("intermediates/javac/$variant/classes"),
+    classFolders,
+    buildPath.resolve("intermediates/java_res/$variant/out"),
+    dependenciesStub,
+    dependenciesStub,
+    DependencyGraphsStub(listOf(), listOf(), listOf(), listOf()),
     setOf(),
-    buildPath.resolve("res"),
+    setOf(),
+    null,
+    null,
+    listOf<AndroidArtifactOutput>(),
+    "applicationId",
+    "sourceGenTaskName",
+    mapOf(),
+    mapOf(),
+    InstantRunStub(),
+    "defaultConfig",
+    null,
+    null,
+    listOf(),
+    null,
+    null,
+    null,
+    null,
+    null,
+    false
+  )
+}
+
+fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
+  variant: String,
+  classFolders: Set<File> = setOf()
+): AndroidArtifactStub {
+  val dependenciesStub = buildDependenciesStub()
+  return AndroidArtifactStub(
+    ARTIFACT_NAME_ANDROID_TEST,
+    "compile",
+    "assemble",
+    buildPath.resolve("intermediates/javac/${variant}AndroidTest/classes"),
+    classFolders,
+    buildPath.resolve("intermediates/java_res/${variant}AndroidTest/out"),
     dependenciesStub,
     dependenciesStub,
     DependencyGraphsStub(listOf(), listOf(), listOf(), listOf()),
@@ -328,6 +385,30 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(variant: String): AndroidArt
   )
 }
 
+fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
+  variant: String,
+  classFolders: Set<File> = setOf(),
+  dependencies: Dependencies = buildDependenciesStub(),
+  mockablePlatformJar: File? = null
+): JavaArtifactStub {
+  return JavaArtifactStub(
+    ARTIFACT_NAME_UNIT_TEST,
+    "compile",
+    "assemble",
+    buildPath.resolve("intermediates/javac/${variant}UnitTest/classes"),
+    classFolders,
+    buildPath.resolve("intermediates/java_res/${variant}UnitTest/out"),
+    dependencies,
+    dependencies,
+    DependencyGraphsStub(listOf(), listOf(), listOf(), listOf()),
+    setOf(),
+    setOf(),
+    null,
+    null,
+    mockablePlatformJar
+  )
+}
+
 fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
   val debugBuildType = this.debugBuildType
   val releaseBuildType = this.releaseBuildType
@@ -348,8 +429,8 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
           variant,
           variant,
           mainArtifact(variant),
-          listOf(),
-          listOf(),
+          listOf(androidTestArtifact(variant)),
+          listOf(unitTestArtifact(variant)),
           variant,
           listOf(),
           defaultConfig.productFlavor,
@@ -373,12 +454,19 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     null,
     1,
     true,
-    2,
+    projectType,
     true,
     AndroidGradlePluginProjectFlagsStub()
   )
 }
 
+fun AndroidProjectStubBuilder.buildDependenciesStub(
+  libraries: List<AndroidLibrary> = listOf(),
+  javaLibraries: List<JavaLibrary> = listOf(),
+  projects: List<String> = listOf(),
+  javaModules: List<Dependencies.ProjectIdentifier> = listOf(),
+  runtimeOnlyClasses: List<File> = listOf()
+): DependenciesStub = DependenciesStub(libraries, javaLibraries, projects, javaModules, runtimeOnlyClasses)
 
 /**
  * Sets up [project] as a one module project configured in the same way sync would conigure it from the same model.
@@ -601,4 +689,3 @@ private fun createGradleModuleDataNode(
   )
   return moduleDataNode
 }
-

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.conflict
 
+import com.android.AndroidProjectTypes
 import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidModuleDependency
@@ -30,7 +31,11 @@ abstract class ConflictsTestCase : AndroidTestCase() {
   )
 
   protected fun libModuleBuilder(selectedVariant: String = "debug") =
-    AndroidModuleModelBuilder(":lib", selectedVariant, createAndroidProjectBuilder())
+    AndroidModuleModelBuilder(
+      ":lib",
+      selectedVariant,
+      createAndroidProjectBuilder(projectType = { AndroidProjectTypes.PROJECT_TYPE_LIBRARY })
+    )
 
   override fun setUp() {
     super.setUp()
