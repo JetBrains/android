@@ -21,10 +21,17 @@ import org.jetbrains.annotations.NotNull;
  * A default implementation of {@link Timeline}.
  */
 public class DefaultTimeline implements Timeline {
+  private static final double DEFAULT_ZOOM_RATIO = 0.5;
+
   private final Range myDataRange = new Range();
   private final Range myViewRange = new Range();
   private final Range myTooltipRange = new Range();
   private final Range mySelectionRange = new Range();
+
+  /**
+   * Ratio to multiply when zooming in and to divide by when zooming out.
+   */
+  private double myZoomRatio = DEFAULT_ZOOM_RATIO;
 
   @NotNull
   @Override
@@ -48,5 +55,39 @@ public class DefaultTimeline implements Timeline {
   @Override
   public Range getSelectionRange() {
     return mySelectionRange;
+  }
+
+  public void setZoomRatio(double zoomRatio) {
+    myZoomRatio = zoomRatio;
+  }
+
+  @Override
+  public void zoomIn() {
+    double min = myViewRange.getMin();
+    double max = myViewRange.getMax();
+    double mid = min + (max - min) / 2;
+    double newMin = mid - (mid - min) * myZoomRatio;
+    double newMax = mid + (max - mid) * myZoomRatio;
+    myViewRange.set(newMin, newMax);
+  }
+
+  @Override
+  public void zoomOut() {
+    double min = myViewRange.getMin();
+    double max = myViewRange.getMax();
+    double mid = min + (max - min) / 2;
+    double newMin = mid - (mid - min) / myZoomRatio;
+    double newMax = mid + (max - mid) / myZoomRatio;
+    myViewRange.set(new Range(newMin, newMax).getIntersection(myDataRange));
+  }
+
+  @Override
+  public void resetZoom() {
+    myViewRange.set(myDataRange);
+  }
+
+  @Override
+  public void frameViewToRange(@NotNull Range targetRange) {
+    myViewRange.set(targetRange.getIntersection(myDataRange));
   }
 }
