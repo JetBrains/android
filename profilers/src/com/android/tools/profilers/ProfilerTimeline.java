@@ -383,6 +383,7 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   /**
    * Zooms out by {@link ProfilerTimeline#DEFAULT_ZOOM_PERCENT} of the current view range length.
    */
+  @Override
   public void zoomOut() {
     zoom(myViewRangeUs.getLength() * DEFAULT_ZOOM_PERCENT);
   }
@@ -397,10 +398,12 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   /**
    * Zooms in by {@link ProfilerTimeline#DEFAULT_ZOOM_PERCENT} of the current view range length.
    */
+  @Override
   public void zoomIn() {
     zoom(-myViewRangeUs.getLength() * DEFAULT_ZOOM_PERCENT);
   }
 
+  @Override
   public void resetZoom() {
     // If we are streaming we reset the default zoom keeping our max view aligned with our data max.
     // Otherwise we reset the view using the middle of the current view.
@@ -410,6 +413,7 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   /**
    * Zoom and pans the view range to the specified target range. See {@link #frameViewToRange(Range, double)}.
    */
+  @Override
   public void frameViewToRange(Range targetRangeUs) {
     frameViewToRange(targetRangeUs, 0.1);
   }
