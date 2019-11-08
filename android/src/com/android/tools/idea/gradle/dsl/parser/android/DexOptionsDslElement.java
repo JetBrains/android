@@ -15,24 +15,93 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
+import com.google.common.collect.ImmutableMap;
+import java.util.stream.Stream;
+import kotlin.Pair;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class DexOptionsDslElement extends GradlePropertiesDslElement {
+public class DexOptionsDslElement extends GradleDslBlockElement {
   @NonNls public static final String DEX_OPTIONS_BLOCK_NAME = "dexOptions";
 
+  @NotNull
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
+    {"additionalParameters", property, ADDITIONAL_PARAMETERS, VAR},
+    {"additionalParameters", atLeast(0), ADDITIONAL_PARAMETERS, OTHER},
+    {"javaMaxHeapSize", property, JAVA_MAX_HEAP_SIZE, VAR},
+    {"setJavaMaxHeapSize", exactly(1), JAVA_MAX_HEAP_SIZE, SET},
+    {"jumboMode", property, JUMBO_MODE, VAR},
+    {"setJumboMode", exactly(1), JUMBO_MODE, SET},
+    {"keepRuntimeAnnotatedClasses", property, KEEP_RUNTIME_ANNOTATED_CLASSES, VAR},
+    {"setKeepRuntimeAnnotatedClasses", exactly(1), KEEP_RUNTIME_ANNOTATED_CLASSES, SET},
+    {"maxProcessCount", property, MAX_PROCESS_COUNT, VAR},
+    {"setMaxProcessCount", exactly(1), MAX_PROCESS_COUNT, SET},
+    {"optimize", property, OPTIMIZE, VAR},
+    {"setOptimize", exactly(1), OPTIMIZE, VAR},
+    {"preDexLibraries", property, PRE_DEX_LIBRARIES, VAR},
+    {"setPreDexLibraries", exactly(1), PRE_DEX_LIBRARIES, SET},
+    {"threadCount", property, THREAD_COUNT, VAR},
+    {"setThreadCount", exactly(1), THREAD_COUNT, SET}
+  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
+                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+
+  @NotNull
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
+    {"additionalParameters", property, ADDITIONAL_PARAMETERS, VAR},
+    {"additionalParameters", atLeast(0), ADDITIONAL_PARAMETERS, OTHER},
+    {"javaMaxHeapSize", property, JAVA_MAX_HEAP_SIZE, VAR},
+    {"javaMaxHeapSize", exactly(1), JAVA_MAX_HEAP_SIZE, SET},
+    {"jumboMode", property, JUMBO_MODE, VAR},
+    {"jumboMode", exactly(1), JUMBO_MODE, SET},
+    {"keepRuntimeAnnotatedClasses", property, KEEP_RUNTIME_ANNOTATED_CLASSES, VAR},
+    {"keepRuntimeAnnotatedClasses", exactly(1), KEEP_RUNTIME_ANNOTATED_CLASSES, SET},
+    {"maxProcessCount", property, MAX_PROCESS_COUNT, VAR},
+    {"maxProcessCount", exactly(1), MAX_PROCESS_COUNT, SET},
+    {"optimize", property, OPTIMIZE, VAR},
+    {"optimize", exactly(1), OPTIMIZE, SET},
+    {"preDexLibraries", property, PRE_DEX_LIBRARIES, VAR},
+    {"preDexLibraries", exactly(1), PRE_DEX_LIBRARIES, SET},
+    {"threadCount", property, THREAD_COUNT, VAR},
+    {"threadCount", exactly(1), THREAD_COUNT, SET}
+  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
+                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+
+  @Override
+  @NotNull
+  public ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+    if (converter instanceof KotlinDslNameConverter) {
+      return ktsToModelNameMap;
+    }
+    else if (converter instanceof GroovyDslNameConverter) {
+      return groovyToModelNameMap;
+    }
+    else {
+      return super.getExternalToModelMap(converter);
+    }
+  }
+
   public DexOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, null, GradleNameElement.create(DEX_OPTIONS_BLOCK_NAME));
+    super(parent, GradleNameElement.create(DEX_OPTIONS_BLOCK_NAME));
   }
 
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
     if (element instanceof GradleDslSimpleExpression && (element.getName().equals("additionalParameters"))) {
-      addAsParsedDslExpressionList(element.getName(), (GradleDslSimpleExpression)element);
+      addAsParsedDslExpressionList(ADDITIONAL_PARAMETERS, (GradleDslSimpleExpression)element);
       return;
     }
     super.addParsedElement(element);
