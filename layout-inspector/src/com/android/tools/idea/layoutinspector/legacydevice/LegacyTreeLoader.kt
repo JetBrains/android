@@ -37,6 +37,9 @@ import java.util.function.Supplier
 import java.util.stream.Collector
 import javax.imageio.ImageIO
 
+/**
+ * A [TreeLoader] that can handle pre-api 29 devices. Loads the view hierarchy and screenshot using DDM, and parses it into [ViewNode]s
+ */
 object LegacyTreeLoader : TreeLoader {
   override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient): ViewNode? {
     val legacyClient = client as? LegacyClient ?: return null
@@ -49,10 +52,10 @@ object LegacyTreeLoader : TreeLoader {
     val hierarchyHandler = CaptureByteArrayHandler(HandleViewDebug.CHUNK_VURT)
     HandleViewDebug.dumpViewHierarchy(client, window, false, true, false, hierarchyHandler)
     val hierarchyData = hierarchyHandler.getData() ?: return null
-    val rootNode = parse(hierarchyData) ?: return null
+    val (rootNode, hash) = parseLiveViewNode(hierarchyData) ?: return null
 
     val imageHandler = CaptureByteArrayHandler(HandleViewDebug.CHUNK_VUOP)
-    HandleViewDebug.captureView(client, window, rootNode.hash, imageHandler)
+    HandleViewDebug.captureView(client, window, hash, imageHandler)
     try {
       val imageData = imageHandler.getData()
       rootNode.imageBottom = ImageIO.read(ByteArrayInputStream(imageData))
@@ -81,11 +84,9 @@ object LegacyTreeLoader : TreeLoader {
 
 
   /** Parses the flat string representation of a view node and returns the root node.  */
-  private fun parse(bytes: ByteArray) = parseLiveViewNode(bytes)
-
-  private fun parseLiveViewNode(bytes: ByteArray): ViewNode? {
-    var root: ViewNode? = null
-    var lastNode: ViewNode? = null
+  private fun parseLiveViewNode(bytes: ByteArray): Pair<ViewNode, String>?  {
+    var rootNodeAndHash: Pair<ViewNode, String>? = null
+    var lastNodeAndHash: Pair<ViewNode, String>? = null
     var lastWhitespaceCount = Integer.MIN_VALUE
     val stack = Stack<ViewNode>()
 
@@ -104,7 +105,7 @@ object LegacyTreeLoader : TreeLoader {
       }
 
       if (lastWhitespaceCount < whitespaceCount) {
-        stack.push(lastNode)
+        stack.push(lastNodeAndHash?.first)
       }
       else if (!stack.isEmpty()) {
         val count = lastWhitespaceCount - whitespaceCount
@@ -118,16 +119,16 @@ object LegacyTreeLoader : TreeLoader {
       if (!stack.isEmpty()) {
         parent = stack.peek()
       }
-      lastNode = createViewNode(parent, line.trim())
-      if (root == null) {
-        root = lastNode
+      lastNodeAndHash = createViewNode(parent, line.trim())
+      if (rootNodeAndHash == null) {
+        rootNodeAndHash = lastNodeAndHash
       }
     }
 
-    return root
+    return rootNodeAndHash
   }
 
-  private fun createViewNode(parent: ViewNode?, data: String): ViewNode {
+  private fun createViewNode(parent: ViewNode?, data: String): Pair<ViewNode, String> {
     var delimIndex = data.indexOf('@')
     if (delimIndex < 0) {
       throw IllegalArgumentException("Invalid format for ViewNode, missing @: $data")
@@ -144,10 +145,8 @@ object LegacyTreeLoader : TreeLoader {
                         properties["getWidth()"]?.toInt() ?: 0, properties["getHeight()"]?.toInt() ?: 0, null,
                         properties["text:mText"] ?: "")
 
-    node.hash = "$name@$hash"
-
     parent?.children?.add(node)
-    return node
+    return node to "$name@$hash"
   }
 
   private fun parseProperties(data: String): Map<String, String> {

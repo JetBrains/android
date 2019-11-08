@@ -74,5 +74,3 @@ var enableLiveLayoutInspector
     }
     PropertiesComponent.getInstance().setValue(PREFERENCE_KEY, value)
   }
-
-

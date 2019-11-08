@@ -18,6 +18,9 @@ package com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 
+/**
+ * A mechanism for using an [InspectorClient] and some data (dependant on the type of client) to create a [ViewNode] tree.
+ */
 interface TreeLoader {
   fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient): ViewNode?
 }

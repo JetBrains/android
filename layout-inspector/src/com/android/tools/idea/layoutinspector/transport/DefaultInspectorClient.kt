@@ -185,7 +185,7 @@ class DefaultInspectorClient(private val project: Project) : InspectorClient {
     }
   }
 
-  override fun getPayload(id: Int): ByteArray {
+  fun getPayload(id: Int): ByteArray {
     val bytesRequest = Transport.BytesRequest.newBuilder()
       .setStreamId(selectedStream.streamId)
       .setId(id.toString())

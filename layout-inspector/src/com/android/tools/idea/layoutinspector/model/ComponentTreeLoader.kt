@@ -32,6 +32,9 @@ import java.util.concurrent.atomic.AtomicLong
 
 private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
 
+/**
+ * A [TreeLoader] that uses a [DefaultClient] to fetch a view tree from an API 29+ device, and parses it into [ViewNode]s
+ */
 object ComponentTreeLoader : TreeLoader {
   override fun loadComponentTree(
     maybeEvent: Any?, resourceLookup: ResourceLookup, client: InspectorClient
@@ -48,13 +51,15 @@ private class ComponentTreeLoaderImpl(
   private val stringTable = StringTable(tree.stringList)
 
   fun loadComponentTree(client: InspectorClient): ViewNode? {
+    val defaultClient = client as? DefaultInspectorClient ?:
+                        throw UnsupportedOperationException("ComponentTreeLoaderImpl requires a DefaultClient")
     val time = System.currentTimeMillis()
     if (time - loadStartTime.get() < LOAD_TIMEOUT) {
       return null
     }
     return try {
       val rootView = loadRootView()
-      val bytes = client.getPayload(tree.payloadId)
+      val bytes = defaultClient.getPayload(tree.payloadId)
       var viewRoot: InspectorView? = null
       if (bytes.isNotEmpty()) {
         try {
@@ -63,7 +68,7 @@ private class ComponentTreeLoaderImpl(
             // We were unable to parse the skia image. Allow the user to interact with the component tree.
             viewRoot = null
           }
-          (client as? DefaultInspectorClient)?.logInitialRender(viewRoot != null)
+          defaultClient.logInitialRender(viewRoot != null)
         }
         catch (ex: Exception) {
           Logger.getInstance(LayoutInspector::class.java).warn(ex)
