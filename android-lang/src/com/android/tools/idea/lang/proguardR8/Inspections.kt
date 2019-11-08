@@ -18,6 +18,7 @@ package com.android.tools.idea.lang.proguardR8
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8ArrayType
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMember
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMemberName
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Visitor
 import com.android.tools.idea.lang.proguardR8.psi.isParentClassKnown
 import com.intellij.codeInspection.LocalInspectionTool
@@ -47,6 +48,13 @@ class ProguardR8ClassMemberInspection : LocalInspectionTool() {
         super.visitArrayType(o)
         if (o.textContains(' ')) {
           holder.registerProblem(o, "White space is not allowed")
+        }
+      }
+
+      override fun visitQualifiedName(name: ProguardR8QualifiedName) {
+        super.visitQualifiedName(name)
+        if (!name.containsWildcards() && name.resolveToPsiClass() == null) {
+          holder.registerProblem(name, "Unresolved class name", ProblemHighlightType.LIKE_UNUSED_SYMBOL)
         }
       }
     }
