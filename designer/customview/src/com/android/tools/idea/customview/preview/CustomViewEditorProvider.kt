@@ -375,12 +375,14 @@ private class CustomViewPreview(private val psiFile: PsiFile, persistenceProvide
   init {
     component.add(workbench)
 
-    SmartAutoBuildRefresher(psiFile, object : SmartBuildable {
+    SmartAutoBuildRefresher(project, object : SmartBuildable {
       override fun buildSucceeded() {
+        EditorNotifications.getInstance(project).updateNotifications(virtualFile)
         refresh()
       }
 
       override fun buildFailed() {
+        EditorNotifications.getInstance(project).updateNotifications(virtualFile)
         workbench.loadingStopped("Preview is unavailable until after a successful project sync")
       }
     }, this)  

@@ -24,9 +24,8 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.psi.PsiFile
-import com.intellij.ui.EditorNotifications
 import java.util.function.Consumer
 
 interface SmartBuildable {
@@ -46,9 +45,7 @@ interface SmartBuildable {
  * build changes. This component should be created the last, so that all other members are initialized as it could call
  * [SmartBuildable.buildSucceeded] method straight away.
  */
-class SmartAutoBuildRefresher(psiFile: PsiFile, private val buildable: SmartBuildable, private val parentDisposable: Disposable) {
-  private val project = psiFile.project
-  private val virtualFile = psiFile.virtualFile!!
+class SmartAutoBuildRefresher(private val project: Project, private val buildable: SmartBuildable, private val parentDisposable: Disposable) {
 
   private fun BuildStatus?.isSuccess(): Boolean =
     this == BuildStatus.SKIPPED || this == BuildStatus.SUCCESS
@@ -70,11 +67,9 @@ class SmartAutoBuildRefresher(psiFile: PsiFile, private val buildable: SmartBuil
         if (context.buildMode == BuildMode.CLEAN) return
 
         buildable.buildStarted()
-        EditorNotifications.getInstance(project).updateNotifications(virtualFile)
       }
 
       override fun buildFinished(status: BuildStatus, context: BuildContext?) {
-        EditorNotifications.getInstance(project).updateNotifications(virtualFile)
         if (status.isSuccess() && context?.buildMode != BuildMode.CLEAN) {
           // We do not call refresh if the build was not successful or if it was simply a clean build.
           buildable.buildSucceeded()
