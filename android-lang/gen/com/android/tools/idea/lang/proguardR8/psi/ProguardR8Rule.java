@@ -25,9 +25,9 @@ import com.intellij.psi.PsiElement;
 public interface ProguardR8Rule extends PsiElement {
 
   @NotNull
-  List<ProguardR8FlagArgument> getFlagArgumentList();
+  ProguardR8Flag getFlag();
 
   @NotNull
-  PsiElement getFlag();
+  List<ProguardR8FlagArgument> getFlagArgumentList();
 
 }

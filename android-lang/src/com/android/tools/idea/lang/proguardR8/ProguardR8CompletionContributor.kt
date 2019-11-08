@@ -187,7 +187,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
     // Add completion for "flag names".
     extend(
       CompletionType.BASIC,
-      psiElement(ProguardR8PsiTypes.FLAG),
+      psiElement(ProguardR8PsiTypes.FLAG_TOKEN),
       flagCompletionProvider
     )
 
@@ -230,8 +230,8 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       and(
         anyProguardElement.afterLeaf(
           or(
-            psiElement(ProguardR8PsiTypes.FLAG).withText(string().contains("keep")),
-            psiElement(ProguardR8PsiTypes.FLAG).withText(string().contains("if"))
+            psiElement(ProguardR8PsiTypes.FLAG_TOKEN).withText(string().contains("keep")),
+            psiElement(ProguardR8PsiTypes.FLAG_TOKEN).withText(string().contains("if"))
           )
         )
       ),

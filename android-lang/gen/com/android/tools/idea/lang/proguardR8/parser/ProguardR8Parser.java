@@ -746,6 +746,18 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // FLAG_TOKEN
+  public static boolean flag(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "flag")) return false;
+    if (!nextTokenIs(builder, FLAG_TOKEN)) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeToken(builder, FLAG_TOKEN);
+    exit_section_(builder, marker, FLAG, result);
+    return result;
+  }
+
+  /* ********************************************************** */
   // file_list ('(' file_filter ')')?
   public static boolean flag_argument(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "flag_argument")) return false;
@@ -805,13 +817,12 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   // '@' file_
   public static boolean include_file(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "include_file")) return false;
-    if (!nextTokenIs(builder, AT)) return false;
     boolean result, pinned;
-    Marker marker = enter_section_(builder, level, _NONE_, INCLUDE_FILE, null);
+    Marker marker = enter_section_(builder, level, _NONE_, INCLUDE_FILE, "<include file>");
     result = consumeToken(builder, AT);
     pinned = result; // pin = 1
     result = result && file_(builder, level + 1);
-    exit_section_(builder, level, marker, result, pinned, null);
+    exit_section_(builder, level, marker, result, pinned, ProguardR8Parser::not_flag);
     return result || pinned;
   }
 
@@ -1203,18 +1214,18 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // !FLAG
+  // !FLAG_TOKEN
   static boolean not_flag(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "not_flag")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NOT_);
-    result = !consumeToken(builder, FLAG);
+    result = !consumeToken(builder, FLAG_TOKEN);
     exit_section_(builder, level, marker, result, false, null);
     return result;
   }
 
   /* ********************************************************** */
-  // !(OPEN_BRACE|FLAG)
+  // !(OPEN_BRACE|FLAG_TOKEN)
   static boolean not_open_brace_or_new_flag(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "not_open_brace_or_new_flag")) return false;
     boolean result;
@@ -1224,12 +1235,12 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // OPEN_BRACE|FLAG
+  // OPEN_BRACE|FLAG_TOKEN
   private static boolean not_open_brace_or_new_flag_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "not_open_brace_or_new_flag_0")) return false;
     boolean result;
     result = consumeToken(builder, OPEN_BRACE);
-    if (!result) result = consumeToken(builder, FLAG);
+    if (!result) result = consumeToken(builder, FLAG_TOKEN);
     return result;
   }
 
@@ -1360,13 +1371,13 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // FLAG (flag_argument ("," flag_argument)*)?
+  // flag (flag_argument ("," flag_argument)*)?
   public static boolean rule(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "rule")) return false;
-    if (!nextTokenIs(builder, FLAG)) return false;
+    if (!nextTokenIs(builder, FLAG_TOKEN)) return false;
     boolean result;
     Marker marker = enter_section_(builder);
-    result = consumeToken(builder, FLAG);
+    result = flag(builder, level + 1);
     result = result && rule_1(builder, level + 1);
     exit_section_(builder, marker, RULE, result);
     return result;
@@ -1425,13 +1436,13 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // FLAG  ("," keep_option_modifier)* class_specification_header class_specification_body?
+  // flag  ("," keep_option_modifier)* class_specification_header class_specification_body?
   public static boolean rule_with_class_specification(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "rule_with_class_specification")) return false;
-    if (!nextTokenIs(builder, FLAG)) return false;
+    if (!nextTokenIs(builder, FLAG_TOKEN)) return false;
     boolean result;
     Marker marker = enter_section_(builder);
-    result = consumeToken(builder, FLAG);
+    result = flag(builder, level + 1);
     result = result && rule_with_class_specification_1(builder, level + 1);
     result = result && class_specification_header(builder, level + 1);
     result = result && rule_with_class_specification_3(builder, level + 1);
