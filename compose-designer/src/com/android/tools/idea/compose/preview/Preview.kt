@@ -25,8 +25,6 @@ import com.android.tools.idea.common.actions.IssueNotificationAction
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.editor.DesignFileEditor
 import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
-import com.android.tools.idea.common.editor.SmartAutoBuildRefresher
-import com.android.tools.idea.common.editor.SmartBuildable
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.DefaultModelUpdater
@@ -34,6 +32,8 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
+import com.android.tools.idea.common.util.BuildListener
+import com.android.tools.idea.common.util.setupBuildListener
 import com.android.tools.idea.common.util.setupChangeListener
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -398,10 +398,8 @@ private class PreviewEditor(private val psiFile: PsiFile,
 
   init {
     component.add(workbench, BorderLayout.CENTER)
-    /**
-     * Calls refresh method on the successful gradle build
-     */
-    SmartAutoBuildRefresher(project, object : SmartBuildable {
+
+    setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
         EditorNotifications.getInstance(project).updateNotifications(psiFile.virtualFile!!)
         refresh()
