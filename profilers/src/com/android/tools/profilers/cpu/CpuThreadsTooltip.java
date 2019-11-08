@@ -41,13 +41,13 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
 
   CpuThreadsTooltip(@NotNull CpuProfilerStage stage) {
     myStage = stage;
-    Range tooltipRange = stage.getStudioProfilers().getTimeline().getTooltipRange();
+    Range tooltipRange = stage.getTimeline().getTooltipRange();
     tooltipRange.addDependency(this).onChange(Range.Aspect.RANGE, this::updateThreadState);
   }
 
   @Override
   public void dispose() {
-    myStage.getStudioProfilers().getTimeline().getTooltipRange().removeDependencies(this);
+    myStage.getTimeline().getTooltipRange().removeDependencies(this);
   }
 
   private void updateThreadState() {
@@ -58,12 +58,11 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
       return;
     }
 
-    Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
+    Range tooltipRange = myStage.getTimeline().getTooltipRange();
     // We could get data for [tooltipRange.getMin() - buffer, tooltipRange.getMin() - buffer],
     // However it is tricky to come up with the buffer duration, a thread state can be longer than any buffer.
     // So, lets get data what the user sees and extract the hovered state.
-    List<SeriesData<CpuProfilerStage.ThreadState>> series =
-      mySeries.getDataForRange(myStage.getStudioProfilers().getTimeline().getViewRange());
+    List<SeriesData<CpuProfilerStage.ThreadState>> series = mySeries.getDataForRange(myStage.getTimeline().getViewRange());
 
     int threadStateIndex = Collections.binarySearch(
       series,

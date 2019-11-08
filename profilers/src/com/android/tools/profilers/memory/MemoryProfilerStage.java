@@ -25,7 +25,6 @@ import com.android.tools.adtui.model.RangeSelectionListener;
 import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.filter.Filter;
@@ -55,7 +54,7 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.Stage;
+import com.android.tools.profilers.StreamingStage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -74,11 +73,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.containers.hash.HashMap;
 import io.grpc.StatusRuntimeException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -91,7 +90,7 @@ import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener {
+public class MemoryProfilerStage extends StreamingStage implements CodeNavigator.Listener {
   private static final String HAS_USED_MEMORY_CAPTURE = "memory.used.capture";
   public static final String LIVE_ALLOCATION_SAMPLING_PREF = "memory.live.allocation.mode";
   public static final LiveAllocationSamplingMode DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE = LiveAllocationSamplingMode.SAMPLED;
@@ -165,7 +164,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       new AllocationInfosDataSeries(profilers.getClient(), mySessionData, getStudioProfilers().getIdeServices().getFeatureTracker(), this);
     myLoader = loader;
 
-    Range viewRange = profilers.getTimeline().getViewRange();
+    Range viewRange = getTimeline().getViewRange();
     // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
     myHeapDumpDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, heapDumpSeries));
     myAllocationDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, allocationSeries));
@@ -222,14 +221,14 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myMemoryAxis = new ClampedAxisComponentModel.Builder(myDetailedMemoryUsage.getMemoryRange(), MEMORY_AXIS_FORMATTER).build();
     myObjectsAxis = new ClampedAxisComponentModel.Builder(myDetailedMemoryUsage.getObjectsRange(), OBJECT_COUNT_AXIS_FORMATTER).build();
 
-    myLegends = new MemoryStageLegends(this, profilers.getTimeline().getDataRange(), false);
-    myTooltipLegends = new MemoryStageLegends(this, profilers.getTimeline().getTooltipRange(), true);
+    myLegends = new MemoryStageLegends(this, getTimeline().getDataRange(), false);
+    myTooltipLegends = new MemoryStageLegends(this, getTimeline().getTooltipRange(), true);
 
     myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
 
     myEventMonitor = new EventMonitor(profilers);
 
-    myRangeSelectionModel = new RangeSelectionModel(profilers.getTimeline().getSelectionRange());
+    myRangeSelectionModel = new RangeSelectionModel(getTimeline().getSelectionRange());
     myRangeSelectionModel.addConstraint(myAllocationDurations);
     myRangeSelectionModel.addConstraint(myHeapDumpDurations);
     myRangeSelectionModel.addListener(new RangeSelectionListener() {
@@ -340,7 +339,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     }
 
     myUpdateCaptureOnSelection = false;
-    Range selectionRange = getStudioProfilers().getTimeline().getSelectionRange();
+    Range selectionRange = getTimeline().getSelectionRange();
     selectCaptureDuration(getIntersectingCaptureDuration(selectionRange), SwingUtilities::invokeLater);
     myUpdateCaptureOnSelection = true;
   }
@@ -349,19 +348,18 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
    * Toggle a behavior where if there is currently no CaptureObject selected, the model will attempt to select the next CaptureObject
    * that has been created either through {@link #trackAllocations(boolean)} or {@link #requestHeapDump()}.
    *
-   * @param loadJoiner if specified, the joiner executor will be passed down to {@link #loadCaptureObject(CaptureObject, Executor)} so
-   *                   that the load operation of the CaptureObject will be joined and the CURRENT_LOAD_CAPTURE aspect would be
-   *                   fired via the desired executor.
+   * @param loadJoiner if specified, the joiner executor will be passed down to {@link CaptureObjectLoader#loadCapture(CaptureObject, Range,
+   *                   Executor)} so that the load operation of the CaptureObject will be joined and the CURRENT_LOAD_CAPTURE aspect would
+   *                   be fired via the desired executor.
    */
   public void enableSelectLatestCapture(boolean enable, @Nullable Executor loadJoiner) {
-    StreamingTimeline timeline = getStudioProfilers().getTimeline();
     if (enable) {
-      timeline.getDataRange().addDependency(this)
+      getTimeline().getDataRange().addDependency(this)
         .onChange(Range.Aspect.RANGE, () -> queryAndSelectCaptureObject(loadJoiner == null ? MoreExecutors.directExecutor() : loadJoiner));
     }
     else {
       // Removing the aspect observers on Ranges.
-      timeline.getDataRange().removeDependencies(this);
+      getTimeline().getDataRange().removeDependencies(this);
     }
   }
 
@@ -374,7 +372,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
    * Selection range will also be updated to match if the capture isn't ongoing.
    */
   private void queryAndSelectCaptureObject(@NotNull Executor loadJoiner) {
-    Range dataRange = getStudioProfilers().getTimeline().getDataRange();
+    Range dataRange = getTimeline().getDataRange();
     if (myPendingCaptureStartTime != INVALID_START_TIME) {
       List<SeriesData<CaptureDurationData<CaptureObject>>> series =
         new ArrayList<>(getAllocationInfosDurations().getSeries().getSeriesForRange(dataRange));
@@ -436,7 +434,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       handleHeapDumpStart(response.getStatus());
     }
 
-    getStudioProfilers().getTimeline().setStreaming(true);
+    getTimeline().setStreaming(true);
     getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
     myInstructionsEaseOutModel.setCurrentPercentage(1);
   }
@@ -503,7 +501,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       myAspect.changed(MemoryProfilerAspect.TRACKING_ENABLED);
 
       if (myTrackingAllocations) {
-        getStudioProfilers().getTimeline().setStreaming(true);
+        getTimeline().setStreaming(true);
         getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_MEMORY_CAPTURE, true);
         myInstructionsEaseOutModel.setCurrentPercentage(1);
       }
@@ -667,12 +665,11 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     }
 
     myUpdateCaptureOnSelection = false;
-    StreamingTimeline timeline = getStudioProfilers().getTimeline();
     CaptureObject captureObject = mySelection.getCaptureObject();
     if (captureObject == null) {
       // Loading a capture can fail, in which case we reset everything.
       mySelection.selectCaptureEntry(null);
-      timeline.getSelectionRange().clear();
+      getTimeline().getSelectionRange().clear();
       myAspect.changed(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE);
       setProfilerMode(ProfilerMode.NORMAL);
       return;
@@ -683,15 +680,15 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       // TODO: (revisit) we have an special case in interacting with RangeSelectionModel where if the user tries to select a heap dump that is on
       // top of an ongoing live allocation capture (duration == Long.MAX_VALUE), the live capture would take precedence given it always
       // intersects with the previous selection. Here we clear the previous selection first to avoid said interaction.
-      timeline.getSelectionRange().clear();
+      getTimeline().getSelectionRange().clear();
       long startTimeUs = TimeUnit.NANOSECONDS.toMicros(captureObject.getStartTimeNs());
       long endTimeUs = TimeUnit.NANOSECONDS.toMicros(captureObject.getEndTimeNs());
-      timeline.getSelectionRange().set(startTimeUs, endTimeUs);
+      getTimeline().getSelectionRange().set(startTimeUs, endTimeUs);
     }
     myUpdateCaptureOnSelection = true;
 
     // TODO: (revisit) - do we want to pass in data range to loadCapture as well?
-    ListenableFuture<CaptureObject> future = myLoader.loadCapture(captureObject, timeline.getSelectionRange(), joiner);
+    ListenableFuture<CaptureObject> future = myLoader.loadCapture(captureObject, getTimeline().getSelectionRange(), joiner);
     future.addListener(
       () -> {
         try {
@@ -990,7 +987,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       }
 
       // Find the last sampling info and see if it is different from the current, if so,
-      double dataRangeMaxUs = getStudioProfilers().getTimeline().getDataRange().getMax();
+      double dataRangeMaxUs = getTimeline().getDataRange().getMax();
       List<SeriesData<AllocationSamplingRateDurationData>> data =
         myAllocationSamplingRateDataSeries.getDataForRange(new Range(dataRangeMaxUs, dataRangeMaxUs));
 

@@ -87,7 +87,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
-    ProfilerScrollbar sb = new ProfilerScrollbar(getTimeline(), getComponent());
+    ProfilerScrollbar sb = new ProfilerScrollbar(getStage().getTimeline(), getComponent());
     getComponent().add(sb, BorderLayout.SOUTH);
 
     // Create a 2-row panel. First row, all monitors; second row, the timeline. This way, the
@@ -103,7 +103,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
     RangeTooltipComponent tooltip =
-      new RangeTooltipComponent(getTimeline(), getTooltipPanel(), getProfilersView().getComponent(), () -> true);
+      new RangeTooltipComponent(getStage().getTimeline(), getTooltipPanel(), getProfilersView().getComponent(), () -> true);
 
     getTooltipBinder().bind(NetworkMonitorTooltip.class, NetworkMonitorTooltipView::new);
     getTooltipBinder().bind(CpuMonitorTooltip.class, CpuMonitorTooltipView::new);

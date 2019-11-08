@@ -28,6 +28,7 @@ import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StreamingTimeline;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.profiler.proto.Common;
@@ -307,11 +308,10 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myToolbar.add(rightToolbar, BorderLayout.EAST);
     rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
 
-    StreamingTimeline timeline = myProfiler.getTimeline();
     myZoomOut = new CommonButton(AllIcons.General.ZoomOut);
     myZoomOut.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.General.ZoomOut));
     myZoomOut.addActionListener(event -> {
-      timeline.zoomOut();
+      myStageView.getStage().getTimeline().zoomOut();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomOut();
     });
     ProfilerAction zoomOutAction =
@@ -326,7 +326,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myZoomIn = new CommonButton(AllIcons.General.ZoomIn);
     myZoomIn.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.General.ZoomIn));
     myZoomIn.addActionListener(event -> {
-      timeline.zoomIn();
+      myStageView.getStage().getTimeline().zoomIn();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomIn();
     });
     ProfilerAction zoomInAction =
@@ -341,7 +341,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myResetZoom = new CommonButton(StudioIcons.Common.RESET_ZOOM);
     myResetZoom.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.RESET_ZOOM));
     myResetZoom.addActionListener(event -> {
-      timeline.resetZoom();
+      myStageView.getStage().getTimeline().resetZoom();
       myProfiler.getIdeServices().getFeatureTracker().trackResetZoom();
     });
     ProfilerAction resetZoomAction =
@@ -354,18 +354,16 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
     myFrameSelection = new CommonButton(StudioIcons.Common.ZOOM_SELECT);
     myFrameSelection.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_SELECT));
-    myFrameSelection.addActionListener(event -> {
-      timeline.frameViewToRange(timeline.getSelectionRange());
-    });
+    myFrameSelection.addActionListener(
+      event -> myStageView.getStage().getTimeline().frameViewToRange(myStageView.getStage().getTimeline().getSelectionRange())
+    );
     myFrameSelectionAction = new ProfilerAction.Builder("Zoom to Selection")
       .setContainerComponent(mySplitter)
       .setActionRunnable(() -> myFrameSelection.doClick(0))
-      .setEnableBooleanSupplier(() -> !timeline.getSelectionRange().isEmpty())
+      .setEnableBooleanSupplier(() -> myStageView != null && !myStageView.getStage().getTimeline().getSelectionRange().isEmpty())
       .build();
     myFrameSelection.setToolTipText(myFrameSelectionAction.getDefaultToolTipText());
     rightToolbar.add(myFrameSelection);
-    timeline.getSelectionRange().addDependency(this)
-      .onChange(Range.Aspect.RANGE, () -> myFrameSelection.setEnabled(myFrameSelectionAction.isEnabled()));
 
     myGoLiveToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myGoLiveToolbar.add(new FlatSeparator());
@@ -397,7 +395,9 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
     myGoLive.setToolTipText(detachAction.getDefaultToolTipText());
     myGoLive.addActionListener(event -> {
-      timeline.toggleStreaming();
+      Timeline currentStageTimeline = myStageView.getStage().getTimeline();
+      assert currentStageTimeline instanceof StreamingTimeline;
+      ((StreamingTimeline)currentStageTimeline).toggleStreaming();
       myProfiler.getIdeServices().getFeatureTracker().trackToggleStreaming();
     });
     myGoLive.addChangeListener(e -> {
@@ -405,7 +405,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myGoLive.setIcon(isSelected ? StudioIcons.Profiler.Toolbar.PAUSE_LIVE : StudioIcons.Profiler.Toolbar.GOTO_LIVE);
       myGoLive.setToolTipText(isSelected ? detachAction.getDefaultToolTipText() : attachAction.getDefaultToolTipText());
     });
-    timeline.addDependency(this).onChange(StreamingTimeline.Aspect.STREAMING, this::updateStreaming);
+    myProfiler.getTimeline().addDependency(this).onChange(StreamingTimeline.Aspect.STREAMING, this::updateStreaming);
     myGoLiveToolbar.add(myGoLive);
     rightToolbar.add(myGoLiveToolbar);
 
@@ -460,13 +460,13 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   private void toggleSessionsPanel(boolean isCollapsed) {
     if (isCollapsed) {
       mySplitter.setDividerMouseZoneSize(-1);
-      mySessionsView.getComponent().setMinimumSize(mySessionsView.getComponentMinimizeSize(false));
+      mySessionsView.getComponent().setMinimumSize(SessionsView.getComponentMinimizeSize(false));
       // Let the Sessions panel min size govern how much space to reserve on the left.
       mySplitter.setFirstSize(0);
     }
     else {
       mySplitter.setDividerMouseZoneSize(JBUI.scale(10));
-      mySessionsView.getComponent().setMinimumSize(mySessionsView.getComponentMinimizeSize(true));
+      mySessionsView.getComponent().setMinimumSize(SessionsView.getComponentMinimizeSize(true));
       mySplitter
         .setFirstSize(myProfiler.getIdeServices().getPersistentProfilerPreferences().getInt(SESSION_EXPANDED_WIDTH, 0));
     }
@@ -485,7 +485,12 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       return;
     }
 
+    if (myStageView != null) {
+      myStageView.getStage().getTimeline().getSelectionRange().removeDependencies(this);
+    }
     myStageView = myBinder.build(this, stage);
+    myStageView.getStage().getTimeline().getSelectionRange().addDependency(this)
+      .onChange(Range.Aspect.RANGE, () -> myFrameSelection.setEnabled(myFrameSelectionAction.isEnabled()));
     SwingUtilities.invokeLater(() -> {
       Component focussed = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
       if (focussed == null || !SwingUtilities.isDescendingFrom(focussed, mySplitter)) {

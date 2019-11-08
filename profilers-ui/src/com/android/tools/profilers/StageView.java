@@ -21,6 +21,7 @@ import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StreamingTimeline;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.intellij.ui.components.JBPanel;
@@ -78,7 +79,7 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
 
     mySelectionTimeLabel = createSelectionTimeLabel();
     stage.getStudioProfilers().addDependency(this).onChange(ProfilerAspect.TOOLTIP, this::tooltipChanged);
-    stage.getStudioProfilers().getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, this::selectionChanged);
+    stage.getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, this::selectionChanged);
     selectionChanged();
   }
 
@@ -100,11 +101,6 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
   @NotNull
   public final JComponent getComponent() {
     return myComponent;
-  }
-
-  @NotNull
-  public final StreamingTimeline getTimeline() {
-    return myStage.getStudioProfilers().getTimeline();
   }
 
   public ViewBinder<StageView, TooltipModel, ProfilerTooltipView> getTooltipBinder() {
@@ -201,7 +197,7 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
     selectionTimeLabel.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        StreamingTimeline timeline = getStage().getStudioProfilers().getTimeline();
+        Timeline timeline = getStage().getTimeline();
         timeline.frameViewToRange(timeline.getSelectionRange());
       }
     });

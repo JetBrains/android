@@ -27,7 +27,7 @@ public final class NetworkTrafficTooltipView extends ProfilerTooltipView {
   @NotNull private final NetworkTrafficTooltip myTooltip;
 
   NetworkTrafficTooltipView(@NotNull StageView view, @NotNull NetworkTrafficTooltip tooltip) {
-    super(view.getTimeline());
+    super(view.getStage().getTimeline());
     myTooltip = tooltip;
   }
 

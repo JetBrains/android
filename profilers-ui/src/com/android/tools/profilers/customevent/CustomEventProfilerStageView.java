@@ -43,7 +43,6 @@ public class CustomEventProfilerStageView extends StageView<CustomEventProfilerS
 
   @NotNull
   private final TrackGroupListPanel myTrackGroupList;
-  @NotNull private final StudioProfilers myStudioProfilers;
 
   public CustomEventProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CustomEventProfilerStage stage) {
     super(profilersView, stage);
@@ -51,15 +50,13 @@ public class CustomEventProfilerStageView extends StageView<CustomEventProfilerS
     myTrackGroupList = new TrackGroupListPanel(TRACK_RENDERER_FACTORY);
     myTrackGroupList.loadTrackGroups(getStage().getTrackGroupModels());
 
-    myStudioProfilers = stage.getStudioProfilers();
-
     // Add a dependency for when the range changes so the track group list has to be repainted as the timeline moves.
-    myStudioProfilers.getTimeline().getViewRange().addDependency(this).onChange(Range.Aspect.RANGE, this::updateTrackGroupList);
+    getStage().getTimeline().getViewRange().addDependency(this).onChange(Range.Aspect.RANGE, this::updateTrackGroupList);
 
     // Add a dependency for when an event has been added so the track group list can be updated
     stage.getUserCounterAspectModel().addDependency(this).onChange(UserCounterAspectModel.Aspect.USER_COUNTER, this::reloadTrackGroup);
 
-    buildUI();
+    buildUI(stage.getStudioProfilers());
   }
 
   @Override
@@ -77,8 +74,8 @@ public class CustomEventProfilerStageView extends StageView<CustomEventProfilerS
     return myTrackGroupList;
   }
 
-  private void buildUI() {
-    StreamingTimeline timeline = myStudioProfilers.getTimeline();
+  private void buildUI(StudioProfilers profilers) {
+    StreamingTimeline timeline = getStage().getTimeline();
 
     // The scrollbar can modify the view range of timeline and the tracks.
     getComponent().add(new ProfilerScrollbar(timeline, getComponent()), BorderLayout.SOUTH);
@@ -94,7 +91,7 @@ public class CustomEventProfilerStageView extends StageView<CustomEventProfilerS
     mainPanel.add(myTrackGroupList.getComponent(), new TabularLayout.Constraint(1, 0));
     container.add(new JBScrollPane(mainPanel), new TabularLayout.Constraint(0, 0));
 
-    JComponent timeAxis = buildTimeAxis(myStudioProfilers);
+    JComponent timeAxis = buildTimeAxis(profilers);
     container.add(timeAxis, new TabularLayout.Constraint(1, 0));
 
     getComponent().add(container, BorderLayout.CENTER);

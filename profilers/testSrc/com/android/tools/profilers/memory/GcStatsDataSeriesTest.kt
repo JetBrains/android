@@ -62,7 +62,7 @@ class GcStatsDataSeriesTest {
   @Test
   fun testGetData() {
     val model = myStage.gcStatsModel
-    val viewRange = myStage.studioProfilers.timeline.viewRange
+    val viewRange = myStage.timeline.viewRange
 
     // Request full range
     viewRange.set(0.0, TimeUnit.SECONDS.toMicros(10).toDouble())

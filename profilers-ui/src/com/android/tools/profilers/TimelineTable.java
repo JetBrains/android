@@ -21,7 +21,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.StreamingTimeline;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
@@ -59,7 +59,7 @@ import org.jetbrains.annotations.NotNull;
  * this class also provides {@link CellRenderer}, which handles rendering the timeline markers at
  * appropriate intervals.
  *
- * Use {@link #create(TableModel, StreamingTimeline, int)} to create a table, and then set the
+ * Use {@link #create(TableModel, Timeline, int)} to create a table, and then set the
  * appropriate column's renderer by extending {@link CellRenderer} and setting it using
  * {@link TableColumn#setCellRenderer(TableCellRenderer)}.
  */
@@ -72,7 +72,7 @@ public final class TimelineTable {
    * in, as all other columns will be left blank.
    */
   @NotNull
-  public static JBTable create(@NotNull TableModel model, @NotNull StreamingTimeline timeline, int column) {
+  public static JBTable create(@NotNull TableModel model, @NotNull Timeline timeline, int column) {
     JBTable table = new HoverRowTable(model);
     table.getTableHeader().setDefaultRenderer(new HeaderRenderer(table, timeline, column));
 
@@ -110,7 +110,7 @@ public final class TimelineTable {
   }
 
   @NotNull
-  private static AxisComponent createAxis(@NotNull StreamingTimeline timeline) {
+  private static AxisComponent createAxis(@NotNull Timeline timeline) {
     AxisComponentModel model = new ResizingAxisComponentModel.Builder(timeline.getSelectionRange(), new TimeAxisFormatter(1, 5, 1))
       .setGlobalRange(timeline.getDataRange()).build();
 
@@ -128,10 +128,10 @@ public final class TimelineTable {
     @NotNull
     private final TableCellRenderer myDelegateRenderer;
     @NotNull
-    private final StreamingTimeline myTimeline;
+    private final Timeline myTimeline;
     private int myTimelineColumn;
 
-    private HeaderRenderer(@NotNull JTable table, @NotNull StreamingTimeline timeline, int timelineColumn) {
+    private HeaderRenderer(@NotNull JTable table, @NotNull Timeline timeline, int timelineColumn) {
       myDelegateRenderer = table.getTableHeader().getDefaultRenderer();
       myTimeline = timeline;
       myTimelineColumn = timelineColumn;
@@ -190,9 +190,9 @@ public final class TimelineTable {
    * worrying about lining up correctly with the parent timeline axis.
    */
   public static abstract class CellRenderer implements TableCellRenderer {
-    private StreamingTimeline myTimeline;
+    private Timeline myTimeline;
 
-    public CellRenderer(@NotNull StreamingTimeline timeline) {
+    public CellRenderer(@NotNull Timeline timeline) {
       myTimeline = timeline;
     }
 
@@ -217,7 +217,7 @@ public final class TimelineTable {
     }
 
     @NotNull
-    protected final StreamingTimeline getTimeline() {
+    protected final Timeline getTimeline() {
       return myTimeline;
     }
 
@@ -231,7 +231,7 @@ public final class TimelineTable {
   private static final class GridBorder implements Border {
     private final Color myColor;
 
-    public GridBorder(@NotNull JTable table) {
+    GridBorder(@NotNull JTable table) {
       myColor = table.getGridColor();
     }
 

@@ -41,7 +41,7 @@ class CpuProfilerStageCpuUsageTooltipView extends ProfilerTooltipView {
   @NotNull private final JLabel mySelectionLabel;
 
   CpuProfilerStageCpuUsageTooltipView(@NotNull StageView view, @NotNull CpuProfilerStageCpuUsageTooltip tooltip) {
-    super(view.getTimeline());
+    super(view.getStage().getTimeline());
     myTooltip = tooltip;
     mySelectionLabel = new JLabel();
   }

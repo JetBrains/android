@@ -40,7 +40,7 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
   @NotNull private final JPanel myUnavailableDetails;
 
   protected CpuThreadsTooltipView(@NotNull StageView view, @NotNull CpuThreadsTooltip tooltip) {
-    super(view.getTimeline());
+    super(view.getStage().getTimeline());
     myTooltip = tooltip;
     // TODO(b/109661512): Move vgap scale into TabularLayout
     myContent = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(8)));

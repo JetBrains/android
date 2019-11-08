@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.formatter.UserCounterAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
@@ -37,7 +38,7 @@ public class CustomEventMonitor extends ProfilerMonitor {
     super(profilers);
 
     UserCounterDataSeries myDataSeries = new UserCounterDataSeries(profilers.getClient().getTransportClient(), profilers);
-    myEventModel = createEventChartModel(profilers, myDataSeries);
+    myEventModel = createEventChartModel(getTimeline(), myDataSeries);
     myLegend = new CustomEventMonitorLegend(getTimeline().getDataRange(), getTimeline().getViewRange(), myDataSeries);
   }
 
@@ -75,13 +76,9 @@ public class CustomEventMonitor extends ProfilerMonitor {
     return myLegend;
   }
 
-  private static StateChartModel<Long> createEventChartModel(StudioProfilers profilers, UserCounterDataSeries dataSeries) {
+  private static StateChartModel<Long> createEventChartModel(Timeline timeline, UserCounterDataSeries dataSeries) {
     StateChartModel<Long> stateChartModel = new StateChartModel<>();
-    Range range = profilers.getTimeline().getViewRange();
-    Range dataRange = profilers.getTimeline().getDataRange();
-
-    stateChartModel.addSeries(new RangedSeries<>(range, dataSeries, dataRange));
-
+    stateChartModel.addSeries(new RangedSeries<>(timeline.getViewRange(), dataSeries, timeline.getDataRange()));
     return stateChartModel;
   }
 

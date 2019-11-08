@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.ui.HideablePanel;
@@ -164,7 +164,7 @@ public final class CpuKernelsView {
       return;
     }
     CpuKernelModel.CpuState state = cpuModel.getElementAt(selectedIndex);
-    Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
+    Range tooltipRange = myStage.getTimeline().getTooltipRange();
     List<SeriesData<CpuThreadSliceInfo>> process = state.getModel().getSeries().get(0).getSeriesForRange(tooltipRange);
     if (process.isEmpty()) {
       return;

@@ -43,7 +43,6 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.util.containers.HashMap;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.FocusAdapter;
@@ -52,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -105,9 +105,9 @@ final class MemoryClassSetView extends AspectObserver {
 
   @Nullable private List<FieldObject> myFieldObjectPath;
 
-  public MemoryClassSetView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
+  MemoryClassSetView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
-    myTimeline = myStage.getStudioProfilers().getTimeline();
+    myTimeline = myStage.getTimeline();
     myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
 
     myStage.getAspect().addDependency(this)
@@ -662,7 +662,6 @@ final class MemoryClassSetView extends AspectObserver {
     List<MemoryObjectTreeNode<MemoryObject>> results = new ArrayList<>(1);
     if (fieldPath.size() == 1) {
       // We reached the leaf node. Just find all children nodes with adapters matching the leaf FieldObject.
-      //noinspection ArraysAsListWithZeroOrOneArgument
       parentNode.getChildren().stream().filter(child -> child.getAdapter().equals(currentField)).forEach(results::add);
     }
     else {
@@ -675,7 +674,7 @@ final class MemoryClassSetView extends AspectObserver {
   }
 
   static class InstanceTreeNode extends LazyMemoryObjectTreeNode<ValueObject> {
-    public InstanceTreeNode(@NotNull InstanceObject adapter) {
+    InstanceTreeNode(@NotNull InstanceObject adapter) {
       super(adapter, true);
     }
 
@@ -701,7 +700,7 @@ final class MemoryClassSetView extends AspectObserver {
   }
 
   static class FieldTreeNode extends LazyMemoryObjectTreeNode<FieldObject> {
-    public FieldTreeNode(@NotNull FieldObject adapter) {
+    FieldTreeNode(@NotNull FieldObject adapter) {
       super(adapter, true);
     }
 

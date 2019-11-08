@@ -48,7 +48,7 @@ public class CpuKernelTooltipView extends ProfilerTooltipView {
   @NotNull private final JPanel myUnavailableDetails;
 
   protected CpuKernelTooltipView(@NotNull StageView view, @NotNull CpuKernelTooltip tooltip) {
-    super(view.getTimeline());
+    super(view.getStage().getTimeline());
     myTooltip = tooltip;
     // TODO(b/109661512): Move vgap scale into TabularLayout
     myContent = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(8)));
