@@ -316,12 +316,14 @@ class DeviceViewPanel(
         })
       }
     })
+    leftGroup.add(ToggleOverlayAction)
     leftGroup.add(PauseLayoutInspectorAction(layoutInspector::currentClient))
     if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get()) {
       leftGroup.add(CaptureAction(layoutInspector::currentClient, layoutInspector.layoutInspectorModel))
     }
-    leftPanel.add(ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true).component,
-                  BorderLayout.CENTER)
+    val actionToolbar = ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true)
+    actionToolbar.setTargetComponent(this)
+    leftPanel.add(actionToolbar.component, BorderLayout.CENTER)
     panel.add(leftPanel, BorderLayout.CENTER)
     return panel
   }

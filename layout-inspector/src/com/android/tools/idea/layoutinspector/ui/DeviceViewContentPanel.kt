@@ -83,7 +83,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
       }
 
       override fun mouseDragged(e: MouseEvent) {
-        if (!inspectorModel.hasSubImages) {
+        if (!model.rotatable) {
           // can't rotate
           return
         }
@@ -139,6 +139,12 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
     // ViewNode.imageTop are images that the parents draw on top of their
     // children. Therefore draw them in the reverse order (children first).
     model.hitRects.asReversed().forEach { drawView(g2d, it, it.node.imageTop) }
+
+    if (model.overlay != null) {
+      g2d.composite = AlphaComposite.SrcOver.derive(0.6f)
+      val bounds = model.hitRects[0].bounds.bounds
+      g2d.drawImage(model.overlay, bounds.x, bounds.y, bounds.width, bounds.height, null)
+    }
   }
 
   override fun getPreferredSize() =

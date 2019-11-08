@@ -23,8 +23,11 @@ class InspectorModel(val project: Project, initialRoot: ViewNode? = null) {
   val selectionListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
   val modificationListeners = mutableListOf<(ViewNode?, ViewNode?, Boolean) -> Unit>()
   val resourceLookup = ResourceLookup(project)
-  var hasSubImages = initialRoot?.flatten()?.minus(initialRoot)?.any { it.imageBottom != null || it.imageTop != null } == true
+  var hasSubImages = findSubimages(initialRoot)
     private set
+
+  private fun findSubimages(root: ViewNode?) =
+    root?.flatten()?.minus(root)?.any { it.imageBottom != null || it.imageTop != null } == true
 
   var selection: ViewNode? by Delegates.observable(null as ViewNode?) { _, old, new ->
     if (new != old) {
@@ -65,7 +68,7 @@ class InspectorModel(val project: Project, initialRoot: ViewNode? = null) {
         structuralChange = updater.update()
       }
     }
-    hasSubImages = root?.flatten()?.minus(root)?.any { it?.imageBottom != null || it?.imageTop != null } == true
+    hasSubImages = findSubimages(root)
     modificationListeners.forEach { it(oldRoot, root, structuralChange) }
   }
 
