@@ -16,7 +16,6 @@
 package com.android.tools.idea.lang.proguardR8.psi
 
 import com.android.tools.idea.lang.androidSql.referenceAtCaret
-import com.android.tools.idea.lang.proguardR8.ProguardR8ClassMemberInspection
 import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
 import com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.testing.caret
@@ -29,11 +28,6 @@ import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.parentOfType
 
 class ProguardR8FieldsTest : ProguardR8TestCase() {
-
-  override fun setUp() {
-    super.setUp()
-    myFixture.enableInspections(ProguardR8ClassMemberInspection::class.java)
-  }
 
   fun testReturnsCorrectType() {
     myFixture.addClass(
@@ -421,7 +415,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
       """
-      -keep class test.MyNotExistingClass {
+      -keep class ${"test.MyNotExistingClass".highlightedAs(WEAK_WARNING, "Unresolved class name")} {
         long myBoolean;
       }
       """.trimIndent())

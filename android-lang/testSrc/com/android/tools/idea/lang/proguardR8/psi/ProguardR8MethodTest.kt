@@ -16,7 +16,6 @@
 package com.android.tools.idea.lang.proguardR8.psi
 
 import com.android.tools.idea.lang.androidSql.referenceAtCaret
-import com.android.tools.idea.lang.proguardR8.ProguardR8ClassMemberInspection
 import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
 import com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.testing.caret
@@ -32,11 +31,6 @@ import com.intellij.util.IncorrectOperationException
 import org.junit.Assert
 
 class ProguardR8MethodTest : ProguardR8TestCase() {
-
-  override fun setUp() {
-    super.setUp()
-    myFixture.enableInspections(ProguardR8ClassMemberInspection::class.java)
-  }
 
   private fun getMethodsAtCaret(): List<PsiMethod> {
     val proguardMethod = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMemberName::class)
