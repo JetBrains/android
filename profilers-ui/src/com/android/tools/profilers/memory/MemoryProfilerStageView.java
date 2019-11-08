@@ -469,11 +469,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull
   private JPanel buildMonitorUi() {
     StudioProfilers profilers = getStage().getStudioProfilers();
-    StreamingTimeline timeline = profilers.getTimeline();
-    Range viewRange = getTimeline().getViewRange();
+    StreamingTimeline timeline = getStage().getTimeline();
+    Range viewRange = timeline.getViewRange();
     myRangeSelectionComponent = new RangeSelectionComponent(getStage().getRangeSelectionModel(), timeline.getViewRange());
     myRangeSelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
-    RangeTooltipComponent tooltip = new RangeTooltipComponent(getTimeline(),
+    RangeTooltipComponent tooltip = new RangeTooltipComponent(getStage().getTimeline(),
                                                               getTooltipPanel(),
                                                               getProfilersView().getComponent(),
                                                               () -> myRangeSelectionComponent.shouldShowSeekComponent());
@@ -740,7 +740,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @Nullable
   private CaptureObject getCaptureIntersectingWithMouseX(int mouseXLocation) {
     assert myRangeSelectionComponent != null;
-    Range range = getTimeline().getViewRange();
+    Range range = getStage().getTimeline().getViewRange();
     double pos = mouseXLocation / myRangeSelectionComponent.getSize().getWidth() * range.getLength() + range.getMin();
     CaptureDurationData<? extends CaptureObject> durationData = getStage().getIntersectingCaptureDuration(new Range(pos, pos));
     return durationData == null ? null : durationData.getCaptureEntry().getCaptureObject();

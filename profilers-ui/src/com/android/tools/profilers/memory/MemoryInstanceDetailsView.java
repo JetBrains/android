@@ -103,9 +103,9 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull private final List<InstanceViewer> myInstanceViewers = new ArrayList<>();
 
-  public MemoryInstanceDetailsView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
+  MemoryInstanceDetailsView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
-    myTimeline = myStage.getStudioProfilers().getTimeline();
+    myTimeline = myStage.getTimeline();
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged)
       .onChange(MemoryProfilerAspect.CURRENT_FIELD_PATH, this::instanceChanged);

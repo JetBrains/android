@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu.capturedetails;
 
-import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.perflib.vmtrace.ClockType;
@@ -25,14 +24,11 @@ import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.google.common.collect.ImmutableMap;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Manages states of the selected capture, such as current select thread, capture details (i.e top down tree, bottom up true, chart).
@@ -92,7 +88,7 @@ public class CaptureModel {
     myCaptureConvertedRange = new Range();
     myThread = NO_THREAD;
 
-    Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    Range selection = myStage.getTimeline().getSelectionRange();
     selection.addDependency(myStage.getAspect()).onChange(Range.Aspect.RANGE, this::updateCaptureConvertedRange);
     myCaptureConvertedRange.addDependency(myStage.getAspect()).onChange(Range.Aspect.RANGE, this::updateSelectionRange);
   }
@@ -196,7 +192,7 @@ public class CaptureModel {
    *
    * @param suggestedType The {@link CaptureDetails.Type} to change to. If suggestedType is not null the new type will be that type.
    *                      If suggestedType is null the last capture details type is used.
-   *                      If no last details type is set the {@link CaptureDetails.Type.CALL_CHART} is used by default.
+   *                      If no last details type is set the {@link CaptureDetails.Type#CALL_CHART} is used by default.
    */
   private void rebuildDetails(@Nullable CaptureDetails.Type suggestedType) {
     updateCaptureConvertedRange();
@@ -280,7 +276,7 @@ public class CaptureModel {
    */
   private void updateCaptureConvertedRange() {
     // TODO: improve performance of select range conversion.
-    Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    Range selection = myStage.getTimeline().getSelectionRange();
     ClockType clockType = getClockType();
     CpuCapture capture = getCapture();
     CaptureNode node;
@@ -320,7 +316,7 @@ public class CaptureModel {
    * This prevents from updating each other in a loop.
    */
   private void setSelectionRange(double min, double max) {
-    Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    Range selection = myStage.getTimeline().getSelectionRange();
     if (Math.abs(selection.getMin() - min) > EPSILON || Math.abs(selection.getMax() - max) > EPSILON) {
       selection.set(min, max);
     }

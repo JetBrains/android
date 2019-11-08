@@ -23,7 +23,9 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.idea.transport.TransportService;
-import com.android.tools.profiler.proto.Commands;
+import com.android.tools.profiler.proto.Commands.BeginSession;
+import com.android.tools.profiler.proto.Commands.Command;
+import com.android.tools.profiler.proto.Commands.EndSession;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.Device;
 import com.android.tools.profiler.proto.Common.Event;
@@ -36,9 +38,6 @@ import com.android.tools.profiler.proto.Profiler.EndSessionRequest;
 import com.android.tools.profiler.proto.Profiler.EndSessionResponse;
 import com.android.tools.profiler.proto.Profiler.GetSessionsRequest;
 import com.android.tools.profiler.proto.Profiler.GetSessionsResponse;
-import com.android.tools.profiler.proto.Commands.BeginSession;
-import com.android.tools.profiler.proto.Commands.Command;
-import com.android.tools.profiler.proto.Commands.EndSession;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.ExecuteRequest;
@@ -526,7 +525,6 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    * @param byteCacheMap          the byte cache for the session.
    * @param events                the list of events which can be queried for the session.
    */
-  @NotNull
   public void createImportedSession(@NotNull String sessionName,
                                     @NotNull SessionData.SessionStarted.SessionType sessionType,
                                     long startTimestampNs,

@@ -180,7 +180,7 @@ class CpuCaptureViewTest(newPipeline: Boolean) {
 
   @Test
   fun showsRecordingInitiatorPaneWhenSelectingRangeWithNoCapture() {
-    stageView.timeline.apply {
+    stageView.stage.timeline.apply {
       dataRange.set(0.0, 200.0)
       viewRange.set(0.0, 200.0)
     }

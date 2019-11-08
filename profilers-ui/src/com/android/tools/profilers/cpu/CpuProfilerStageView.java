@@ -22,7 +22,6 @@ import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
-import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
@@ -151,8 +150,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       myToolbar = new CpuProfilerToolbar.NormalMode(stage, getIdeComponents());
     }
 
-    StreamingTimeline timeline = getTimeline();
-    myTooltipComponent = new RangeTooltipComponent(timeline,
+    myTooltipComponent = new RangeTooltipComponent(getStage().getTimeline(),
                                                    getTooltipPanel(),
                                                    getProfilersView().getComponent(),
                                                    this::shouldShowTooltipSeekComponent);
@@ -203,7 +201,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     // Panel that represents all of L2
     details.add(mainPanel, new TabularLayout.Constraint(1, 0));
     details.add(buildTimeAxis(myStage.getStudioProfilers()), new TabularLayout.Constraint(3, 0));
-    details.add(new ProfilerScrollbar(timeline, details), new TabularLayout.Constraint(4, 0));
+    details.add(new ProfilerScrollbar(myStage.getTimeline(), details), new TabularLayout.Constraint(4, 0));
 
     // The first component in the splitter is the L2 components, the 2nd component is the L3 components.
     mySplitter = new JBSplitter(true);

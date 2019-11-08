@@ -135,7 +135,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
   @Test
   fun sparklineVisibilityChangesOnMouseStates() {
     val cpuProfilerStageView = CpuProfilerStageView(myProfilersView, myStage)
-    cpuProfilerStageView.timeline.tooltipRange.set(0.0, 0.0)
+    cpuProfilerStageView.stage.timeline.tooltipRange.set(0.0, 0.0)
     val treeWalker = TreeWalker(cpuProfilerStageView.component)
     // Grab the tooltip component and give it dimensions to be visible.
     val tooltipComponent = treeWalker.descendants().filterIsInstance<RangeTooltipComponent>()[0]
@@ -321,7 +321,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
     val selectionPos = ui.getPosition(selection)
 
     val w = selection.width.toDouble()
-    stageView.timeline.apply {
+    stageView.stage.timeline.apply {
       viewRange.set(0.0, w)
       selectionRange.set(w / 2, w)
     }

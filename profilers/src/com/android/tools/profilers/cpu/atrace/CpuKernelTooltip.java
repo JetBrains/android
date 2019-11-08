@@ -43,13 +43,13 @@ public class CpuKernelTooltip extends AspectModel<CpuKernelTooltip.Aspect> imple
   public CpuKernelTooltip(@NotNull CpuProfilerStage stage) {
     myStage = stage;
     myProcessId = stage.getStudioProfilers().getSession().getPid();
-    Range tooltipRange = stage.getStudioProfilers().getTimeline().getTooltipRange();
+    Range tooltipRange = stage.getTimeline().getTooltipRange();
     tooltipRange.addDependency(this).onChange(Range.Aspect.RANGE, this::updateState);
   }
 
   @Override
   public void dispose() {
-    myStage.getStudioProfilers().getTimeline().getTooltipRange().removeDependencies(this);
+    myStage.getTimeline().getTooltipRange().removeDependencies(this);
   }
 
   /**
@@ -62,7 +62,7 @@ public class CpuKernelTooltip extends AspectModel<CpuKernelTooltip.Aspect> imple
       return;
     }
 
-    Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
+    Range tooltipRange = myStage.getTimeline().getTooltipRange();
     List<SeriesData<CpuThreadSliceInfo>> series = mySeries.getDataForRange(tooltipRange);
     myCpuThreadSliceInfo = series.isEmpty() ? null : series.get(0).value;
     if (myCpuThreadSliceInfo == CpuThreadSliceInfo.NULL_THREAD) {

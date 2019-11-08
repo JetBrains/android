@@ -773,7 +773,7 @@ public class MemoryClassifierViewTest {
   @Test
   public void testCaptureChangedListener() {
     final int captureStartTime = 0;
-    Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    Range selectionRange = myStage.getTimeline().getSelectionRange();
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 
@@ -868,7 +868,7 @@ public class MemoryClassifierViewTest {
   @Test
   public void testCaptureFilter() {
     final int captureStartTime = 0;
-    Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    Range selectionRange = myStage.getTimeline().getSelectionRange();
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 
@@ -995,7 +995,7 @@ public class MemoryClassifierViewTest {
   @Test
   public void testSelectedClassSetAndInstance() {
     final int captureStartTime = 0;
-    Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    Range selectionRange = myStage.getTimeline().getSelectionRange();
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 

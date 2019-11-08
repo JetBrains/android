@@ -159,7 +159,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     myConnectionsPanel.setVisible(false);
     leftSplitter.setSecondComponent(myConnectionsPanel);
 
-    getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> {
+    getStage().getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> {
       CardLayout cardLayout = (CardLayout)connectionsPanel.getLayout();
       cardLayout.show(connectionsPanel, selectionHasTrafficUsageWithNoConnection() ? CARD_INFO : CARD_CONNECTIONS);
     });
@@ -183,10 +183,10 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   @NotNull
   private JPanel buildMonitorUi() {
     StudioProfilers profilers = getStage().getStudioProfilers();
-    StreamingTimeline timeline = profilers.getTimeline();
+    StreamingTimeline timeline = getStage().getTimeline();
     RangeSelectionComponent selection = new RangeSelectionComponent(getStage().getRangeSelectionModel(), timeline.getViewRange());
     selection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
-    RangeTooltipComponent tooltip = new RangeTooltipComponent(getTimeline(),
+    RangeTooltipComponent tooltip = new RangeTooltipComponent(getStage().getTimeline(),
                                                               getTooltipPanel(),
                                                               getProfilersView().getComponent(),
                                                               () -> selection.shouldShowSeekComponent());
@@ -319,7 +319,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   }
 
   private boolean selectionHasTrafficUsageWithNoConnection() {
-    Range range = getTimeline().getSelectionRange();
+    Range range = getStage().getTimeline().getSelectionRange();
     boolean hasNoConnection = !range.isEmpty() && getStage().getConnectionsModel().getData(range).isEmpty();
     if (hasNoConnection) {
       DetailedNetworkUsage detailedNetworkUsage = getStage().getDetailedNetworkUsage();

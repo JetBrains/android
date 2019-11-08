@@ -134,12 +134,12 @@ final class ConnectionsView {
   @NotNull
   private final AspectObserver myAspectObserver;
 
-  public ConnectionsView(@NotNull NetworkProfilerStageView stageView) {
+  ConnectionsView(@NotNull NetworkProfilerStageView stageView) {
     myStage = stageView.getStage();
 
     myTableModel = new ConnectionsTableModel(myStage.getHttpDataFetcher());
 
-    myConnectionsTable = TimelineTable.create(myTableModel, myStage.getStudioProfilers().getTimeline(), Column.TIMELINE.ordinal());
+    myConnectionsTable = TimelineTable.create(myTableModel, myStage.getTimeline(), Column.TIMELINE.ordinal());
     customizeConnectionsTable();
     createTooltip(stageView);
 
@@ -160,7 +160,7 @@ final class ConnectionsView {
     myConnectionsTable.getColumnModel().getColumn(Column.STATUS.ordinal()).setCellRenderer(new StatusRenderer());
     myConnectionsTable.getColumnModel().getColumn(Column.TIME.ordinal()).setCellRenderer(new TimeRenderer());
     myConnectionsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
-      new TimelineRenderer(myConnectionsTable, myStage.getStudioProfilers().getTimeline()));
+      new TimelineRenderer(myConnectionsTable, myStage.getTimeline()));
 
     myConnectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myConnectionsTable.getSelectionModel().addListSelectionListener(e -> {
@@ -244,7 +244,7 @@ final class ConnectionsView {
     }
   }
 
-  private final class ConnectionsTableModel extends AbstractTableModel {
+  private static final class ConnectionsTableModel extends AbstractTableModel {
     @NotNull private List<HttpData> myDataList = new ArrayList<>();
 
     private ConnectionsTableModel(HttpDataFetcher httpDataFetcher) {

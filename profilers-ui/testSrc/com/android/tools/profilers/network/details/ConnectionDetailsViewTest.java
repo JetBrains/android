@@ -22,12 +22,12 @@ import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.legend.Legend;
-import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMode;
@@ -319,7 +319,7 @@ public class ConnectionDetailsViewTest {
     assertThat(stackTrace.getCodeLocations()).hasSize(1);
 
     // Expands Profiler Mode
-    myStage.getStudioProfilers().getTimeline().getSelectionRange().set(0, 10);
+    myStage.getTimeline().getSelectionRange().set(0, 10);
 
     boolean[] modeChanged = {false};
     AspectObserver observer = new AspectObserver();

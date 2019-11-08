@@ -111,7 +111,7 @@ public class UserEventTooltipView extends ProfilerMonitorTooltipView<EventMonito
   // for the time over the event icon. Otherwise we check the event time and return the first event that we encounter.
   @Nullable
   private EventAction getEventAt(double time) {
-    double timePerPixel = getMonitor().getProfilers().getTimeline().getViewRange().getLength() / myComponent.getWidth();
+    double timePerPixel = getMonitor().getTimeline().getViewRange().getLength() / myComponent.getWidth();
     long hoverWidthAsTime = (long)timePerPixel * HOVER_OVER_WIDTH_PX;
     List<SeriesData<EventAction<UserEvent>>> userEventSeries = getMonitor().getUserEvents().getRangedSeries().getSeries();
     for (SeriesData<EventAction<UserEvent>> series : userEventSeries) {

@@ -194,7 +194,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void testJumpToLiveIfOngoingRecording() throws InterruptedException {
-    StreamingTimeline timeline = myStage.getStudioProfilers().getTimeline();
+    StreamingTimeline timeline = myStage.getTimeline();
     timeline.setStreaming(false);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     assertThat(timeline.isStreaming()).isFalse();
@@ -437,7 +437,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
     assertThat(captureNode.getClockType()).isEqualTo(ClockType.GLOBAL);
     myStage.setAndSelectCapture(capture);
-    StreamingTimeline timeline = myStage.getStudioProfilers().getTimeline();
+    StreamingTimeline timeline = myStage.getTimeline();
     double eps = 0.00001;
     // In GLOBAL clock type, selection should be the main node range
     assertThat(capture.getRange().getMin()).isWithin(eps).of(timeline.getSelectionRange().getMin());
@@ -470,7 +470,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myStage.setSelectedThread(myStage.getCapture().getMainThreadId());
     myStage.setCaptureDetails(CaptureDetails.Type.BOTTOM_UP);
 
-    Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    Range selection = myStage.getTimeline().getSelectionRange();
     double eps = 1e-5;
     assertThat(selection.getMin()).isWithin(eps).of(myStage.getCapture().getRange().getMin());
     assertThat(selection.getMax()).isWithin(eps).of(myStage.getCapture().getRange().getMax());
@@ -589,7 +589,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     double tooltipTime = TimeUnit.SECONDS.toMicros(0);
     myCpuService.setAppTimeMs(10);
     myCpuService.setSystemTimeMs(50);
-    myStage.getStudioProfilers().getTimeline().getTooltipRange().set(tooltipTime, tooltipTime);
+    myStage.getTimeline().getTooltipRange().set(tooltipTime, tooltipTime);
     assertThat(legends.getCpuLegend().getName()).isEqualTo("App");
     assertThat(legends.getOthersLegend().getName()).isEqualTo("Others");
     assertThat(legends.getThreadsLegend().getName()).isEqualTo("Threads");
@@ -603,8 +603,8 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // TODO b/119261457 handle test tooltip data in the new pipeline.
     Assume.assumeFalse(myServices.getFeatureConfig().isUnifiedPipelineEnabled());
 
-    Range viewRange = myStage.getStudioProfilers().getTimeline().getViewRange();
-    Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
+    Range viewRange = myStage.getTimeline().getViewRange();
+    Range tooltipRange = myStage.getTimeline().getTooltipRange();
 
     viewRange.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(11));
 
@@ -648,8 +648,8 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void testCpuKernelTooltip() throws IOException {
-    Range viewRange = myStage.getStudioProfilers().getTimeline().getViewRange();
-    Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
+    Range viewRange = myStage.getTimeline().getViewRange();
+    Range tooltipRange = myStage.getTimeline().getTooltipRange();
 
     viewRange.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(11));
     CpuCapture cpuCapture = new AtraceParser(1)
@@ -687,7 +687,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   public void testElapsedTime() throws InterruptedException, IOException {
     // Before we capture, elapsed time should be unset (default set to 0)
     assertThat(myStage.getCaptureElapsedTimeUs()).isEqualTo(0);
-    Range dataRange = myStage.getStudioProfilers().getTimeline().getDataRange();
+    Range dataRange = myStage.getTimeline().getDataRange();
 
     // Start capturing
     CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
@@ -715,7 +715,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void exitingAndReEnteringStageAgainShouldPreserveProfilingTime() throws InterruptedException {
     // Set a non-zero start time to test non-default values
-    Range dataRange = myStage.getStudioProfilers().getTimeline().getDataRange();
+    Range dataRange = myStage.getTimeline().getDataRange();
     double currentMax = dataRange.getMax() + TimeUnit.SECONDS.toMicros(10);
     dataRange.setMax(currentMax);
     myTimer.setCurrentTimeNs(TimeUnit.MICROSECONDS.toNanos((long)currentMax));
@@ -851,10 +851,10 @@ public final class CpuProfilerStageTest extends AspectObserver {
   public void setAndSelectCaptureShouldStopStreamingMode() throws IOException, ExecutionException, InterruptedException {
     // Capture has changed, keeps the same type of details
     CpuCapture capture = CpuProfilerTestUtils.getValidCapture();
-    myStage.getStudioProfilers().getTimeline().setIsPaused(false);
-    myStage.getStudioProfilers().getTimeline().setStreaming(true);
+    myStage.getTimeline().setIsPaused(false);
+    myStage.getTimeline().setStreaming(true);
     myStage.setAndSelectCapture(capture);
-    assertThat(myStage.getStudioProfilers().getTimeline().isStreaming()).isFalse();
+    assertThat(myStage.getTimeline().isStreaming()).isFalse();
   }
 
   @Test
@@ -924,7 +924,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getCapture()).isNotNull();
     CpuCapture capture = myStage.getCapture();
 
-    Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    Range selectionRange = myStage.getTimeline().getSelectionRange();
     // Select an area before the capture.
     selectionRange.set(capture.getRange().getMin() - 20, capture.getRange().getMin() - 10);
     // Last selected capture should remain selected.
@@ -1064,7 +1064,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     config.setProfilingBufferSizeInMb(15);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
 
-    long captureStartTime = (long)myStage.getStudioProfilers().getTimeline().getDataRange().getMax();
+    long captureStartTime = (long)myStage.getTimeline().getDataRange().getMax();
     CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
 
     // Increment 3 seconds on data range to simulate time has passed.
@@ -1082,13 +1082,13 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Capture duration is calculated from the elapsed time since recording has started.
     long captureDuration;
     if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      captureDuration = (long)myStage.getStudioProfilers().getTimeline().getDataRange().getMax() - captureStartTime;
+      captureDuration = (long)myStage.getTimeline().getDataRange().getMax() - captureStartTime;
     }
     else {
       // The legacy pipeline gets the error status from the StopProfilingApp rpc right away and does not wait for the extra tick to
       // process the metadata, hence we minus 1 second from the total amount of time passed on data range.
       captureDuration =
-        (long)myStage.getStudioProfilers().getTimeline().getDataRange().getMax() - captureStartTime - TimeUnit.SECONDS.toMicros(1);
+        (long)myStage.getTimeline().getDataRange().getMax() - captureStartTime - TimeUnit.SECONDS.toMicros(1);
     }
     assertThat(metadata.getCaptureDurationMs()).isEqualTo(TimeUnit.MICROSECONDS.toMillis(captureDuration));
     // Trace was not generated, so trace size, parsing time and recording duration should be 0 (unset)
@@ -1209,7 +1209,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void startCapturingJumpsToLiveData() throws InterruptedException, IOException {
-    StreamingTimeline timeline = myStage.getStudioProfilers().getTimeline();
+    StreamingTimeline timeline = myStage.getTimeline();
     timeline.setStreaming(false);
     assertThat(timeline.isStreaming()).isFalse();
 
@@ -1480,7 +1480,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
     // Import trace mode is enabled successfully
     assertThat(stage.isImportTraceMode()).isTrue();
-    StreamingTimeline timeline = stage.getStudioProfilers().getTimeline();
+    StreamingTimeline timeline = stage.getTimeline();
     Range captureRange = stage.getCapture().getRange();
     double expansionAmount = ((long)(captureRange.getLength() * CpuProfilerStage.IMPORTED_TRACE_VIEW_EXPAND_PERCENTAGE));
     assertThat(timeline.isPaused()).isTrue();
@@ -1529,12 +1529,12 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(stage.isImportTraceMode()).isTrue();
 
     CpuCapture capture = stage.getCapture();
-    assertThat(myStage.getStudioProfilers().getTimeline().getSelectionRange().getMin()).isEqualTo(capture.getRange().getMin());
-    assertThat(myStage.getStudioProfilers().getTimeline().getSelectionRange().getMax()).isEqualTo(capture.getRange().getMax());
+    assertThat(myStage.getTimeline().getSelectionRange().getMin()).isEqualTo(capture.getRange().getMin());
+    assertThat(myStage.getTimeline().getSelectionRange().getMax()).isEqualTo(capture.getRange().getMax());
     // Pretend to clear the selection from UI.
     myStage.getRangeSelectionModel().clear();
-    assertThat(myStage.getStudioProfilers().getTimeline().getSelectionRange().getMin()).isEqualTo(capture.getRange().getMin());
-    assertThat(myStage.getStudioProfilers().getTimeline().getSelectionRange().getMax()).isEqualTo(capture.getRange().getMax());
+    assertThat(myStage.getTimeline().getSelectionRange().getMin()).isEqualTo(capture.getRange().getMin());
+    assertThat(myStage.getTimeline().getSelectionRange().getMax()).isEqualTo(capture.getRange().getMax());
   }
 
   @Test
@@ -1746,7 +1746,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
     private boolean myAbortParsingCalled = false;
 
-    public FakeParserCancelParsing(@NotNull IdeProfilerServices services) {
+    FakeParserCancelParsing(@NotNull IdeProfilerServices services) {
       super(services);
     }
 

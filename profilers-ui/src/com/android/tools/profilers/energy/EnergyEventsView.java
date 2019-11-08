@@ -124,7 +124,7 @@ public final class EnergyEventsView {
     // Add a listener on model to update selection before construct table because otherwise it flickers. The table also adds a listener
     // on model that if the selection is set later then there is a clear and re-selection time gap on the view.
     myTableModel.addTableModelListener(e -> updateTableSelection());
-    myEventsTable = TimelineTable.create(myTableModel, myStage.getStudioProfilers().getTimeline(), Column.TIMELINE.ordinal());
+    myEventsTable = TimelineTable.create(myTableModel, myStage.getTimeline(), Column.TIMELINE.ordinal());
     buildEventsTable(stageView);
     myStage.getAspect().addDependency(myAspectObserver).onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateTableSelection)
            .onChange(EnergyProfilerAspect.SELECTED_ORIGIN_FILTER, myTableModel::updateTableByOrigin);
@@ -136,7 +136,7 @@ public final class EnergyEventsView {
     myEventsTable.getColumnModel().getColumn(Column.DESCRIPTION.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
     myEventsTable.getColumnModel().getColumn(Column.CALLED_BY.ordinal()).setCellRenderer(new CalledByRenderer());
     myEventsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
-      new TimelineRenderer(myEventsTable, myStage.getStudioProfilers().getTimeline()));
+      new TimelineRenderer(myEventsTable, myStage.getTimeline()));
 
     myEventsTable.getEmptyText().setText("No system events for the selected range or filter.");
     myEventsTable.getEmptyText().setShowAboveCenter(false).setFont(H2_FONT);
@@ -199,8 +199,7 @@ public final class EnergyEventsView {
   }
 
   private void createTooltip(@NotNull StageView stageView) {
-    EnergyEventsTableTooltipInfoModel tooltipModel =
-      new EnergyEventsTableTooltipInfoModel(myStage.getStudioProfilers().getTimeline().getDataRange());
+    EnergyEventsTableTooltipInfoModel tooltipModel = new EnergyEventsTableTooltipInfoModel(myStage.getTimeline().getDataRange());
     EnergyEventsTableTooltipInfoComponent tooltipInfoComponent = new EnergyEventsTableTooltipInfoComponent(tooltipModel);
     tooltipInfoComponent.setForeground(ProfilerColors.TOOLTIP_TEXT);
     tooltipInfoComponent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
@@ -225,7 +224,7 @@ public final class EnergyEventsView {
             position -= columnModel.getColumn(c).getWidth();
           }
           int width = columnModel.getColumn(Column.TIMELINE.ordinal()).getWidth();
-          Range range = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+          Range range = myStage.getTimeline().getSelectionRange();
           long timestampUs = (long)(range.getMin() + range.getLength() * position / width);
 
           // Calculate the tooltip range base on timestamp and event highlight width.

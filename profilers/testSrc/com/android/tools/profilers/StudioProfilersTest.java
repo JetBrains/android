@@ -1519,7 +1519,7 @@ public final class StudioProfilersTest {
     }
   }
 
-  private static class FakeStage extends Stage {
+  private static class FakeStage extends StreamingStage {
     private FakeStage(@NotNull StudioProfilers profilers) {
       super(profilers);
     }

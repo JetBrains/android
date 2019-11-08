@@ -155,11 +155,11 @@ class EnergyMonitorTest {
     assertThat(axisUpdated).isTrue() // This would change since it's first update.
     usageUpdated = false
 
-    profilers.timeline.viewRange.set(1.0, 2.0)
+    monitor.timeline.viewRange.set(1.0, 2.0)
     assertThat(usageUpdated).isTrue() // This should trigger a LINE_CHART aspect since the view range changed.
-    profilers.timeline.dataRange.set(1.0, 2.0)
+    monitor.timeline.dataRange.set(1.0, 2.0)
     assertThat(legendUpdated).isTrue()
-    profilers.timeline.tooltipRange.set(1.0, 1.0)
+    monitor.timeline.tooltipRange.set(1.0, 1.0)
     assertThat(tooltipLegendUpated).isTrue()
   }
 

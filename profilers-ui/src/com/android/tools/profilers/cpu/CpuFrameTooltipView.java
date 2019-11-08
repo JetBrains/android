@@ -43,7 +43,7 @@ public class CpuFrameTooltipView extends ProfilerTooltipView {
   @NotNull private final JLabel myTotalTimeText;
 
   protected CpuFrameTooltipView(@NotNull StageView view, @NotNull CpuFrameTooltip tooltip) {
-    super(view.getTimeline());
+    super(view.getStage().getTimeline());
     myTooltip = tooltip;
     myContent = new JPanel(new TabularLayout("*").setVGap(12));
 

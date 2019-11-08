@@ -24,7 +24,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
@@ -114,7 +113,7 @@ class CpuKernelsViewTest {
       cpuService,
       transportService,
       CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)))
-    stage.studioProfilers.timeline.viewRange.set(stage.capture!!.range)
+    stage.timeline.viewRange.set(stage.capture!!.range)
 
     val hideablePanel = TreeWalker(kernelsView.component).ancestors().filterIsInstance<HideablePanel>().first()
     TreeWalker(hideablePanel).descendants().filterIsInstance<JLabel>().first().let { panel ->

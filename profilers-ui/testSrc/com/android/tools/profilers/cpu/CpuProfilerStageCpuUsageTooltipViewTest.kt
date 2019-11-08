@@ -56,7 +56,7 @@ class CpuProfilerStageCpuUsageTooltipViewTest {
     usageTooltipView = FakeCpuUsageTooltipView(stageView, usageTooltip)
     cpuStage.tooltip = usageTooltip
     val tooltipTime = TimeUnit.SECONDS.toMicros(1)
-    stageView.timeline.apply {
+    stageView.stage.timeline.apply {
       dataRange.set(0.0, TimeUnit.SECONDS.toMicros(5).toDouble())
       tooltipRange.set(tooltipTime.toDouble(), tooltipTime.toDouble())
       viewRange.set(0.0, TimeUnit.SECONDS.toMicros(10).toDouble())
@@ -89,8 +89,8 @@ class CpuProfilerStageCpuUsageTooltipViewTest {
     assertThat(labels[0].text).isEqualTo("00:01.000")
     assertThat(labels[1].text).isEqualTo("Selection Unavailable")
 
-    cpuStage.studioProfilers.timeline.tooltipRange.set(TimeUnit.SECONDS.toMicros(3).toDouble(),
-                                                       TimeUnit.SECONDS.toMicros(3).toDouble())
+    cpuStage.timeline.tooltipRange.set(TimeUnit.SECONDS.toMicros(3).toDouble(),
+                                       TimeUnit.SECONDS.toMicros(3).toDouble())
     labels = TreeWalker(usageTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
     assertThat(labels).hasSize(2) // time, name, state, details unavailable
     assertThat(labels[0].text).isEqualTo("00:03.000")

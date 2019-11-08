@@ -28,7 +28,7 @@ class MemoryUsageTooltipView extends ProfilerTooltipView {
   @NotNull private final MemoryUsageTooltip myTooltip;
 
   MemoryUsageTooltipView(@NotNull StageView view, @NotNull MemoryUsageTooltip tooltip) {
-    super(view.getTimeline());
+    super(view.getStage().getTimeline());
     myTooltip = tooltip;
   }
 

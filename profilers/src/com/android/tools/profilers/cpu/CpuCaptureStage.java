@@ -54,7 +54,7 @@ import org.jetbrains.annotations.Nullable;
  * This class holds the models and capture data for the {@link com.android.tools.profilers.cpu.CpuCaptureStageView}.
  * This stage is set when a capture is selected from the {@link CpuProfilerStage}, or when a capture is imported.
  */
-public class CpuCaptureStage extends Stage {
+public class CpuCaptureStage extends Stage<Timeline> {
   public enum Aspect {
     /**
      * Triggered when the stage changes state from parsing to analyzing. This can also be viewed as capture parsing completed.
@@ -132,7 +132,6 @@ public class CpuCaptureStage extends Stage {
    * Tooltip range: all track groups share the same mouse-over range, different from the minimap or profilers;
    * Selection range: union of all selected trace events;
    *
-   * TODO(b/142553170): expose the timeline as the stage timeline, overriding {@link StudioProfilers#getTimeline()}.
    */
   private final Timeline myTrackGroupTimeline = new DefaultTimeline();
 
@@ -207,6 +206,15 @@ public class CpuCaptureStage extends Stage {
   @NotNull
   public Timeline getCaptureTimeline() {
     return getCapture().getTimeline();
+  }
+
+  /**
+   * @return the track group timeline specific to the capture stage.
+   */
+  @NotNull
+  @Override
+  public Timeline getTimeline() {
+    return myTrackGroupTimeline;
   }
 
   private void setState(State state) {

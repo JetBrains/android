@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers
+package com.android.tools.profilers;
 
-import com.android.tools.adtui.model.StreamingTimeline
+import com.android.tools.adtui.model.StreamingTimeline;
+import org.jetbrains.annotations.NotNull;
 
-internal class FakeStage(profilers: StudioProfilers) : Stage<StreamingTimeline>(profilers) {
-  override fun enter() {}
+/**
+ * A stage that uses a {@link StreamingTimeline}.
+ */
+public abstract class StreamingStage extends Stage<StreamingTimeline> {
+  public StreamingStage(@NotNull StudioProfilers profilers) {
+    super(profilers);
+  }
 
-  override fun exit() {}
-
-  override fun getTimeline(): StreamingTimeline {
-    return studioProfilers.timeline
+  @NotNull
+  @Override
+  public StreamingTimeline getTimeline() {
+    return getStudioProfilers().getTimeline();
   }
 }
