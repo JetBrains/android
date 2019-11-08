@@ -21,6 +21,9 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 
+/**
+ * Action to refresh the layout from a pre-api 29 device.
+ */
 class CaptureAction(
   private val client: () -> InspectorClient, private val model: InspectorModel
 ) : AnAction(StudioIcons.LayoutEditor.Toolbar.REFRESH) {

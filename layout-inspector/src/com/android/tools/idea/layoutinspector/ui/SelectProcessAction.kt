@@ -88,7 +88,7 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
 
   override fun displayTextInToolbar() = true
 
-  private inner class ConnectAction(val process: Common.Process, val stream: Common.Stream, val client: InspectorClient) :
+  private class ConnectAction(val process: Common.Process, val stream: Common.Stream, val client: InspectorClient) :
     ToggleAction("${process.name} (${process.pid})") {
     override fun isSelected(event: AnActionEvent): Boolean {
       return process == client.selectedProcess && stream == client.selectedStream
@@ -111,7 +111,7 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
     }
   }
 
-  private inner class DeviceAction(
+  private class DeviceAction(
     deviceName: String, processesMap: Map<Common.Stream, List<Common.Process>>, stream: Common.Stream, client: InspectorClient
   ) : DropDownAction(deviceName, null, null) {
     override fun displayTextInToolbar() = true

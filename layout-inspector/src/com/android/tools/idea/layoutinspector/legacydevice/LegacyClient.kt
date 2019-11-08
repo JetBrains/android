@@ -40,6 +40,10 @@ import java.util.concurrent.TimeUnit
 
 private const val MAX_RETRY_COUNT = 60
 
+/**
+ * [InspectorClient] that supports pre-api 28 devices.
+ * Since it doesn't use [TransportService], some relevant event listeners are manually fired.
+ */
 class LegacyClient(private val project: Project) : InspectorClient {
 
   var selectedWindow: String? = null
@@ -112,6 +116,10 @@ class LegacyClient(private val project: Project) : InspectorClient {
     return true
   }
 
+  // TODO: It might be possible for attach() to be successful here before the process is actually ready to be inspected, causing the later
+  // call to LegacyTreeLoader.capture to fail. If this is the case, this method should be changed to ensure the capture will work before
+  // declaring success.
+  // If it's not the case, this code is duplicated from DefaultClient and so should be factored out somewhere.
   private fun attachWithRetry(preferredProcess: LayoutInspectorPreferredProcess, timesAttempted: Int) {
     val processesMap = loadProcesses()
     for ((stream, processes) in processesMap) {
@@ -171,8 +179,6 @@ class LegacyClient(private val project: Project) : InspectorClient {
   }
 
   override fun execute(command: LayoutInspectorProto.LayoutInspectorCommand) {}
-
-  override fun getPayload(id: Int) = byteArrayOf()
 
   override fun register(groupId: Common.Event.EventGroupIds, callback: (Any) -> Unit) {
     eventListeners.getOrPut(groupId, { mutableListOf() }).add(callback)

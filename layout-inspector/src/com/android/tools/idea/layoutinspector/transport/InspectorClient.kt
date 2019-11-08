@@ -71,11 +71,6 @@ interface InspectorClient {
     execute(LayoutInspectorCommand.newBuilder().setType(commandType).build())
   }
 
-  /**
-   * Fetch the payload from a given payload [id].
-   */
-  fun getPayload(id: Int): ByteArray
-
   val treeLoader: TreeLoader
   /**
    * True, if a connection to a device is currently open.
@@ -122,7 +117,6 @@ object DisconnectedClient : InspectorClient {
   override fun attach(stream: Common.Stream, process: Common.Process) {}
   override fun disconnect() {}
   override fun execute(command: LayoutInspectorCommand) {}
-  override fun getPayload(id: Int): ByteArray = byteArrayOf()
   override val isConnected = false
   override val selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
   override val selectedProcess: Common.Process = Common.Process.getDefaultInstance()
