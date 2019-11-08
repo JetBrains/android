@@ -32,6 +32,6 @@ public class UnitTestsModelImpl extends GradleDslBlockModel implements UnitTests
   @Override
   @NotNull
   public ResolvedPropertyModel returnDefaultValues() {
-    return getModelForProperty(RETURN_DEFAULT_VALUES, true);
+    return getModelForProperty(RETURN_DEFAULT_VALUES);
   }
 }

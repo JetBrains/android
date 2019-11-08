@@ -40,13 +40,13 @@ public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOpt
   @Override
   @NotNull
   public ResolvedPropertyModel reportDir() {
-    return getModelForProperty(REPORT_DIR, true);
+    return getModelForProperty(REPORT_DIR);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel resultsDir() {
-    return getModelForProperty(RESULTS_DIR, true);
+    return getModelForProperty(RESULTS_DIR);
   }
 
   @Override
@@ -63,6 +63,6 @@ public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOpt
   @NotNull
   @Override
   public ResolvedPropertyModel execution() {
-    return getModelForProperty(EXECUTION, true);
+    return getModelForProperty(EXECUTION);
   }
 }

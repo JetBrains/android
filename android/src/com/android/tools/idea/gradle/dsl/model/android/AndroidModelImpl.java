@@ -220,7 +220,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public ResolvedPropertyModel dynamicFeatures() {
-    return getModelForProperty(DYNAMIC_FEATURES, false);
+    return getModelForProperty(DYNAMIC_FEATURES);
   }
 
   @NotNull
@@ -238,7 +238,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public ResolvedPropertyModel flavorDimensions() {
-    return getModelForProperty(FLAVOR_DIMENSIONS, true);
+    return getModelForProperty(FLAVOR_DIMENSIONS);
   }
 
   @Override
@@ -394,13 +394,13 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public ResolvedPropertyModel publishNonDefault() {
-    return getModelForProperty(PUBLISH_NON_DEFAULT, true);
+    return getModelForProperty(PUBLISH_NON_DEFAULT);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel resourcePrefix() {
-    return getModelForProperty(RESOURCE_PREFIX, true);
+    return getModelForProperty(RESOURCE_PREFIX);
   }
 
   @Override
