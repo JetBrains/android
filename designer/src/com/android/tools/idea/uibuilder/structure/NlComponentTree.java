@@ -15,14 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import static com.android.tools.idea.common.property.PropertiesManager.UPDATE_DELAY_MSECS;
-import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
-
-import com.android.tools.idea.common.model.ModelListener;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.SelectionListener;
-import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
@@ -35,17 +28,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTreeUI;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.CustomShortcutSet;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.actionSystem.MouseShortcut;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -61,34 +44,26 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Polygon;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
-import java.awt.dnd.DropTarget;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import javax.swing.ToolTipManager;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import java.awt.*;
+import java.awt.dnd.DropTarget;
+import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.android.tools.idea.common.property.PropertiesManager.UPDATE_DELAY_MSECS;
+import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
 public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
                                                      DataProvider {
@@ -660,11 +635,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     // We never want to collapse the root
     boolean isRoot = getRowForPath(path) == 0;
     super.setExpandedState(path, isRoot || state);
-  }
-
-  @Override
-  protected boolean isCustomUI() {
-    return true;
   }
 
   private static class MyUI extends DarculaTreeUI {
