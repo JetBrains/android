@@ -26,7 +26,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.compose.getNotificatio
 import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.runWithBleak
 import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import junit.framework.TestCase.assertFalse
@@ -141,7 +140,7 @@ class ComposePreviewTest {
   @Throws(Exception::class)
   fun testOpenAndClosePreviewWithBleak() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
-    runWithBleak { openAndClosePreview(fixture) }
+    guiTest.runWithBleak { openAndClosePreview(fixture) }
   }
 
   @Throws(Exception::class)

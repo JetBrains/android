@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Bleak;
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +45,7 @@ public class GradleSyncMemoryUseTest {
   @UseBleak
   public void changeCompileSdkVersion() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    Bleak.runWithBleak(() -> {
+    guiTest.runWithBleak(() -> {
       String currentVersion = String.valueOf(GradleImport.CURRENT_COMPILE_VERSION);
       String previousVersion = String.valueOf(GradleImport.CURRENT_COMPILE_VERSION-1);
       ideFrameFixture.getEditor()
@@ -69,7 +68,7 @@ public class GradleSyncMemoryUseTest {
   @UseBleak
   public void changeCompileSdkVersionFail() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    Bleak.runWithBleak(() -> {
+    guiTest.runWithBleak(() -> {
       String currentVersion = String.valueOf(GradleImport.CURRENT_COMPILE_VERSION);
       ideFrameFixture.getEditor()
         .open("app/build.gradle")
@@ -91,7 +90,7 @@ public class GradleSyncMemoryUseTest {
   @UseBleak
   public void changeDependency() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    Bleak.runWithBleak(() -> {
+    guiTest.runWithBleak(() -> {
       ideFrameFixture.getEditor()
         .open("app/build.gradle")
         .select("implementation ('com.google.guava.guava:18.0')")
@@ -112,7 +111,7 @@ public class GradleSyncMemoryUseTest {
   @UseBleak
   public void changeDependencyFailed() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    Bleak.runWithBleak(() -> {
+    guiTest.runWithBleak(() -> {
       ideFrameFixture.getEditor()
         .open("app/build.gradle")
         .select("implementation ('com.google.guava.guava:18.0')")
@@ -133,7 +132,7 @@ public class GradleSyncMemoryUseTest {
   @UseBleak
   public void rebuildProject() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    Bleak.runWithBleak(() -> {
+    guiTest.runWithBleak(() -> {
       ideFrameFixture.waitAndInvokeMenuPath("Build", "Rebuild Project")
         .waitForBuildToFinish(REBUILD);
     });

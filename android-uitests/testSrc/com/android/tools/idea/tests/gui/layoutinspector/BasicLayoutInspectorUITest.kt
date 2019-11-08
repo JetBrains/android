@@ -34,7 +34,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.inspector.LayoutInspec
 import com.android.tools.idea.tests.gui.framework.fixture.properties.PTableFixture
 import com.android.tools.idea.tests.gui.framework.fixture.properties.PropertiesPanelFixture
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.runWithBleak
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property
@@ -109,7 +108,7 @@ class BasicLayoutInspectorUITest {
     // Run once to create the layout inspector tool window outside of the Bleak run
     basicLayoutInspectorOperations(frame)
 
-    runWithBleak { basicLayoutInspectorOperations(frame) }
+    guiTest.runWithBleak { basicLayoutInspectorOperations(frame) }
   }
 
   private fun init(): IdeFrameFixture {

@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Bleak;
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.core.MouseButton;
@@ -44,7 +43,7 @@ public class AddResourceMemoryUseTest {
   @UseBleak
   public void addNavGraphResource() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    Bleak.runWithBleak(() -> {
+    guiTest.runWithBleak(() -> {
       ideFrameFixture.getProjectView()
         .selectAndroidPane()
         .clickPath(MouseButton.RIGHT_BUTTON, "app")
@@ -62,7 +61,7 @@ public class AddResourceMemoryUseTest {
   @UseBleak
   public void addLayoutResource() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    Bleak.runWithBleak(() -> {
+    guiTest.runWithBleak(() -> {
       ideFrameFixture.getProjectView()
         .selectAndroidPane()
         .clickPath(MouseButton.RIGHT_BUTTON, "app")
