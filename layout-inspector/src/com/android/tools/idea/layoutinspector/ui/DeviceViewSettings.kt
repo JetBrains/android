@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.intellij.openapi.actionSystem.DataKey
 import kotlin.properties.Delegates
+
+val DEVICE_VIEW_SETTINGS_KEY = DataKey.create<DeviceViewSettings>(DeviceViewSettings::class.qualifiedName!!)
 
 class DeviceViewSettings(
   scalePercent: Int = 100,
