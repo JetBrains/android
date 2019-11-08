@@ -110,13 +110,9 @@ private fun <T : AppInspectorClient> setupEventListener(creator: (AppInspectorCo
 @VisibleForTesting
 fun <T : AppInspectorClient> launchInspectorForTest(
   inspectorId: String,
-  client: TransportClient,
-  stream: Stream,
-  process: Process,
-  executorService: ExecutorService,
+  transport: AppInspectionTransport,
   creator: (AppInspectorClient.CommandMessenger) -> T
 ): T {
-  val transport = AppInspectionTransport(client, stream, process, executorService)
   val connection = AppInspectorConnection(transport, inspectorId)
   return setupEventListener(creator, connection)
 }

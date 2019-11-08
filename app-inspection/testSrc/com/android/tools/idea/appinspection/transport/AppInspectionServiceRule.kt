@@ -94,7 +94,7 @@ class AppInspectionServiceRule(
                                 eventListener: AppInspectorClient.EventListener = TestInspectorEventListener()
   ): AppInspectorClient.CommandMessenger {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    return launchInspectorForTest(inspectorId, client, stream, process, executorService) {
+    return launchInspectorForTest(inspectorId, transport) {
       TestInspectorClient(it, eventListener)
     }.messenger
   }
