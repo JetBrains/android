@@ -93,23 +93,21 @@ public abstract class BaseAction extends AnAction {
     KeymapManager manager = KeymapManager.getInstance();
     if (manager != null) {
       final Keymap keymap = manager.getActiveKeymap();
-      if (keymap != null) {
-        List<Shortcut> shortcuts = Arrays.asList(keymap.getShortcuts(id));
-        if (shortcuts.isEmpty()) {
-          // Add the shortcut for the first time.
-          // TODO: figure out how to not add it back if the user deliberately removes the action hotkey.
-          keymap.addShortcut(id, shortcut);
-          shortcuts = Collections.singletonList(shortcut);
-        }
+      List<Shortcut> shortcuts = Arrays.asList(keymap.getShortcuts(id));
+      if (shortcuts.isEmpty()) {
+        // Add the shortcut for the first time.
+        // TODO: figure out how to not add it back if the user deliberately removes the action hotkey.
+        keymap.addShortcut(id, shortcut);
+        shortcuts = Collections.singletonList(shortcut);
+      }
 
-        // Remove conflicting shortcuts stemming from UpdateRunningApplication only,
-        // and leave the remaining conflicts intact, since that's what the user intends.
-        final String updateRunningApplicationId = "UpdateRunningApplication";
-        Shortcut[] uraShortcuts = keymap.getShortcuts(updateRunningApplicationId);
-        for (Shortcut uraShortcut : uraShortcuts) {
-          if (shortcuts.contains(uraShortcut)) {
-            keymap.removeShortcut(updateRunningApplicationId, uraShortcut);
-          }
+      // Remove conflicting shortcuts stemming from UpdateRunningApplication only,
+      // and leave the remaining conflicts intact, since that's what the user intends.
+      final String updateRunningApplicationId = "UpdateRunningApplication";
+      Shortcut[] uraShortcuts = keymap.getShortcuts(updateRunningApplicationId);
+      for (Shortcut uraShortcut : uraShortcuts) {
+        if (shortcuts.contains(uraShortcut)) {
+          keymap.removeShortcut(updateRunningApplicationId, uraShortcut);
         }
       }
     }
