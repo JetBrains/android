@@ -32,6 +32,7 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityNotSupported
 import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.ClassFileFinder
+import com.android.tools.idea.projectsystem.CodeShrinker
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.ManifestOverrides
@@ -221,11 +222,14 @@ class DefaultModuleSystem(override val module: Module) :
   private companion object Keys {
     val usesCompose: Key<Boolean> = Key.create(::usesCompose.qualifiedName)
     val isRClassTransitive: Key<Boolean> = Key.create(::isRClassTransitive.qualifiedName)
+    val codeShrinker: Key<CodeShrinker?> = Key.create(::codeShrinker.qualifiedName)
   }
 
   override var usesCompose: Boolean by UserData(Keys.usesCompose, false)
 
   override var isRClassTransitive: Boolean by UserData(Keys.isRClassTransitive, true)
+
+  override var codeShrinker: CodeShrinker? by UserData(Keys.codeShrinker, null)
 }
 
 /**

@@ -15,8 +15,15 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.project.DefaultModuleSystem
+import com.android.tools.idea.projectsystem.CodeShrinker
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.highlightedAs
+import com.intellij.lang.annotation.HighlightSeverity.ERROR
+import com.intellij.lang.annotation.HighlightSeverity.WARNING
 import com.intellij.lang.annotation.HighlightSeverity.WEAK_WARNING
+import org.jetbrains.android.AndroidTestCase
 
 class InspectionTest : ProguardR8TestCase() {
   fun testUnresolvedClassName() {
@@ -48,6 +55,67 @@ class InspectionTest : ProguardR8TestCase() {
         ${"myVal".highlightedAs(WEAK_WARNING, "The rule matches no class members")};
       }
       """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
+  fun testInvalidFlag() {
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        ${"-invalidflag".highlightedAs(ERROR, "Invalid flag name")}
+      """.trimIndent()
+    )
+
+    myFixture.checkHighlighting()
+  }
+
+}
+
+class ProguardR8IgnoredFlagInspectionTest : AndroidTestCase() {
+  override fun setUp() {
+    StudioFlags.R8_SUPPORT_ENABLED.override(true)
+    super.setUp()
+    myFixture.enableInspections(ProguardR8IgnoredFlagInspection::class.java)
+  }
+
+  override fun tearDown() {
+    StudioFlags.R8_SUPPORT_ENABLED.clearOverride()
+    super.tearDown()
+  }
+
+  fun testIgnoredFlag() {
+    (myModule.getModuleSystem() as DefaultModuleSystem).codeShrinker = CodeShrinker.R8
+
+    val flag = PROGUARD_FLAGS.minus(R8_FLAGS).first()
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        ${"-${flag}".highlightedAs(WARNING, "Flag is ignored by R8")}
+      """.trimIndent()
+    )
+
+    myFixture.checkHighlighting()
+
+    (myModule.getModuleSystem() as DefaultModuleSystem).codeShrinker = CodeShrinker.PROGUARD
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -${flag}
+      """.trimIndent()
+    )
+
+    myFixture.checkHighlighting()
+
+    (myModule.getModuleSystem() as DefaultModuleSystem).codeShrinker = null
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -${flag}
+      """.trimIndent()
+    )
 
     myFixture.checkHighlighting()
   }

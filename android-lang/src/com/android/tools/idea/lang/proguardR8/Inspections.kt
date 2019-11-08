@@ -18,9 +18,12 @@ package com.android.tools.idea.lang.proguardR8
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8ArrayType
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMember
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMemberName
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Flag
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Visitor
 import com.android.tools.idea.lang.proguardR8.psi.isParentClassKnown
+import com.android.tools.idea.projectsystem.CodeShrinker
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
@@ -55,6 +58,42 @@ class ProguardR8ClassMemberInspection : LocalInspectionTool() {
         super.visitQualifiedName(name)
         if (!name.containsWildcards() && name.resolveToPsiClass() == null) {
           holder.registerProblem(name, "Unresolved class name", ProblemHighlightType.LIKE_UNUSED_SYMBOL)
+        }
+      }
+    }
+  }
+}
+
+/**
+ *  Reports invalid flag, flags that supported neither by R8 nor Proguard.
+ */
+class ProguardR8InvalidFlagInspection : LocalInspectionTool() {
+  override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
+    return object : ProguardR8Visitor() {
+      override fun visitFlag(flag: ProguardR8Flag) {
+        super.visitFlag(flag)
+        val flagText = flag.text.substring(1)
+        if (!R8_FLAGS.contains(flagText) && !PROGUARD_FLAGS.contains(flagText)) {
+          holder.registerProblem(flag, "Invalid flag name", ProblemHighlightType.ERROR)
+        }
+      }
+    }
+  }
+}
+
+/**
+ *  Reports flags supported by Proguard, but ignored by R8.
+ */
+class ProguardR8IgnoredFlagInspection : LocalInspectionTool() {
+  override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
+    return object : ProguardR8Visitor() {
+      override fun visitFlag(flag: ProguardR8Flag) {
+        super.visitFlag(flag)
+        if (flag.getModuleSystem()?.codeShrinker == CodeShrinker.R8) {
+          val flagText = flag.text.substring(1)
+          if (!R8_FLAGS.contains(flagText) && PROGUARD_FLAGS.contains(flagText)) {
+            holder.registerProblem(flag, "Flag is ignored by R8", ProblemHighlightType.WARNING)
+          }
         }
       }
     }
