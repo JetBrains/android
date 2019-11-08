@@ -24,7 +24,7 @@ import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
-import com.intellij.psi.PsiElement;
+import com.intellij.psi.EmptyResolveResult;
 import com.intellij.psi.ResolveResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,19 +47,8 @@ public class DynamicValueResourceItem implements ResourceItem, ResolvableResourc
   @Override
   @NotNull
   public ResolveResult createResolveResult() {
-    return new ResolveResult() {
-      @Override
-      @Nullable
-      public PsiElement getElement() {
-        // TODO: Try to find the item in the Gradle files
-        return null;
-      }
-
-      @Override
-      public boolean isValidResult() {
-        return false;
-      }
-    };
+    // TODO: Try to find the item in the Gradle files
+    return EmptyResolveResult.INSTANCE;
   }
 
   @Override
