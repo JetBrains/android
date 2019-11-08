@@ -19,7 +19,6 @@ import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
-import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.ui.AdtUiCursors
@@ -33,12 +32,10 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
-import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Cursor
 import java.awt.Point
@@ -64,7 +61,7 @@ private const val TOOLBAR_INSET = 14
  */
 class DeviceViewPanel(
   val layoutInspector: LayoutInspector,
-  val viewSettings: DeviceViewSettings,
+  private val viewSettings: DeviceViewSettings,
   disposableParent: Disposable
 ) : JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
 
@@ -269,6 +266,9 @@ class DeviceViewPanel(
     if (DEVICE_VIEW_MODEL_KEY.`is`(dataId)) {
       return contentPanel.model
     }
+    if (DEVICE_VIEW_SETTINGS_KEY.`is`(dataId)) {
+      return viewSettings
+    }
     return null
   }
 
@@ -282,40 +282,7 @@ class DeviceViewPanel(
     val leftPanel = AdtPrimaryPanel(BorderLayout())
     val leftGroup = DefaultActionGroup()
     leftGroup.add(SelectProcessAction(layoutInspector))
-    leftGroup.add(object : DropDownAction(null, "View options", StudioIcons.Common.VISIBILITY_INLINE) {
-      init {
-        add(object : ToggleAction("Show borders") {
-          override fun update(event: AnActionEvent) {
-            super.update(event)
-            event.presentation.isEnabled = layoutInspector.currentClient.isConnected == true
-          }
-
-          override fun isSelected(event: AnActionEvent): Boolean {
-            return viewSettings.drawBorders
-          }
-
-          override fun setSelected(event: AnActionEvent, state: Boolean) {
-            viewSettings.drawBorders = state
-            repaint()
-          }
-        })
-        add(object : ToggleAction("Show View Label") {
-          override fun update(event: AnActionEvent) {
-            super.update(event)
-            event.presentation.isEnabled = layoutInspector.currentClient.isConnected == true
-          }
-
-          override fun isSelected(event: AnActionEvent): Boolean {
-            return viewSettings.drawLabel
-          }
-
-          override fun setSelected(event: AnActionEvent, state: Boolean) {
-            viewSettings.drawLabel = state
-            repaint()
-          }
-        })
-      }
-    })
+    leftGroup.add(ViewMenuAction)
     leftGroup.add(ToggleOverlayAction)
     leftGroup.add(PauseLayoutInspectorAction(layoutInspector::currentClient))
     if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get()) {
