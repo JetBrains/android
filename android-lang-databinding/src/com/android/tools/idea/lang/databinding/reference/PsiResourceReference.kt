@@ -20,6 +20,7 @@ import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiType
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 import org.jetbrains.android.dom.resources.ResourceValue
 
 /**
@@ -53,4 +54,16 @@ internal class PsiResourceReference(element: PsiElement, resolveTo: PsiElement, 
   override val memberAccess = PsiModelClass.MemberAccess.ALL_MEMBERS
 
   private fun parseType(name: String) = LayoutBindingTypeUtil.parsePsiType(name, element)
+
+  override fun handleElementRename(newElementName: String): PsiElement? {
+    val identifier = element.findElementAt(rangeInElement.startOffset) as? LeafPsiElement ?: return null
+    val newResourceValue = ResourceValue.referenceTo(
+      resourceValue.prefix,
+      resourceValue.`package`,
+      resourceValue.resourceType,
+      newElementName
+    )
+    identifier.rawReplaceWithText(newResourceValue.toString())
+    return element
+  }
 }

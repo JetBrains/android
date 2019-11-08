@@ -21,15 +21,21 @@ import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.IntentionActionDelegate
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.ResolveScopeEnlarger
+import com.intellij.refactoring.rename.RenameHandler
+import com.intellij.refactoring.rename.inplace.MemberInplaceRenameHandler
 import com.intellij.testFramework.EditorTestUtil
 import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import org.jetbrains.android.AndroidRenameHandler
+import org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler
+import org.jetbrains.android.refactoring.renaming.ResourceRenameHandler
 import org.junit.Assert.assertTrue
 
 /**
@@ -66,6 +72,25 @@ fun CodeInsightTestFixture.moveCaret(window: String): PsiElement {
   editor.caretModel.moveToOffset(offset)
   // myFixture.elementAtCaret seems to do something else
   return file.findElementAt(offset)!!
+}
+
+/**
+ * Renames element at caret using injected [RenameHandler]s only when Android handler is available.
+ * Returns true if Android handler is available.
+ *
+ * We can either invoke the processor directly or go through the handler layer. Unfortunately [MemberInplaceRenameHandler] won't work in
+ * unit test mode, the default handler fails for light elements and some tests depend on the logic from AndroidRenameHandler. To handle
+ * that mess, rename the element only when Android handler is available.
+ */
+fun CodeInsightTestFixture.renameElementAtCaretUsingAndroidHandler(newName: String): Boolean {
+  val context = (editor as EditorEx).dataContext
+  if (AndroidRenameHandler().isAvailableOnDataContext(context) ||
+      ResourceRenameHandler().isAvailableOnDataContext(context) ||
+      KotlinResourceRenameHandler().isAvailableOnDataContext(context)) {
+    renameElementAtCaretUsingHandler(newName)
+    return true
+  }
+  return false
 }
 
 /**
