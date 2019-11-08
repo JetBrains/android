@@ -17,9 +17,10 @@ package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
 import java.util.IdentityHashMap
 
-class LeakInfo(val g: HeapGraph, val leakRoot: Node, val prevLeakRoot: Node) {
-  val leaktrace: Path = leakRoot.getPath()
-  val whitelisted = leaktrace.signature().isWhitelisted()
+class LeakInfo(val g: HeapGraph, options: BleakOptions, val leakRoot: Node, val prevLeakRoot: Node) {
+  val leaktrace: Leaktrace = leakRoot.getLeaktrace()
+  val whitelisted = options.whitelist.matches(this)
+  val isKnownIssue = options.knownIssues.matches(this)
   val childrenObjects = leakRoot.childObjects.uniqueByIdentity()
   val prevChildrenObjects = prevLeakRoot.childObjects.uniqueByIdentity()
   val addedChildrenObjects = childrenObjects.filter { c -> prevChildrenObjects.all { it !== c } }
@@ -28,7 +29,7 @@ class LeakInfo(val g: HeapGraph, val leakRoot: Node, val prevLeakRoot: Node) {
   val retainedByAllChildren = g.dominatedNodes(leakRoot.children.toSet())
 
   override fun toString() = buildString {
-    appendln(leaktrace.verboseSignature().joinToString(separator = "\n"))
+    appendln(leaktrace)
     appendln(" ${leakRoot.degree} child nodes (+${leakRoot.degree - prevLeakRoot.degree}) [${childrenObjects.size} distinct child objects (+${addedChildrenObjects.size})]. New child nodes: ${addedChildren.size}")
     addedChildren.take(20).forEach {
         appendln("   Added: ${it.objString()}")

@@ -15,22 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ArrayObjectIdentityExpander
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.BootstrapClassloaderPlaceholder
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ClassLoaderExpander
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ClassStaticsExpander
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.DefaultObjectExpander
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.Expander
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ExpanderChooser
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.Node
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.RootExpander
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.SmartFMapExpander
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.SmartListExpander
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ElidingExpander
 import java.lang.ref.Reference
 import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
-import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.ArrayDeque
 import java.util.IdentityHashMap
@@ -46,20 +38,11 @@ typealias Node = HeapGraph.Node
  * Each node corresponds to a single object, and edges represent references, either real, or
  * abstracted. [Expander]s are responsible for defining the nature of this abstraction.
  */
-class HeapGraph: DoNotTrace {
+class HeapGraph(val expanderChooser: ExpanderChooser): DoNotTrace {
 
-  private val expanderChooser: ExpanderChooser = ExpanderChooser(listOf(
-    RootExpander(),
-    ArrayObjectIdentityExpander(),
-    ClassLoaderExpander(jniHelper),
-    ClassStaticsExpander(),
-    SmartListExpander(),
-    SmartFMapExpander()) +
-    ElidingExpander.getExpanders() +
-    listOf(DefaultObjectExpander()))
 
   private val objToNode: MutableMap<Any, Node> = IdentityHashMap()
-  private val rootNodes: List<Node> = mutableListOf(Node(jniHelper, true)) //traversalRoots.map{Node(it, true)}
+  private val rootNodes: List<Node> = mutableListOf(Node(jniHelper, true))
   private val nodes: MutableCollection<Node>
     get() = objToNode.values
   val leakRoots: MutableList<Node> = mutableListOf()
@@ -117,6 +100,12 @@ class HeapGraph: DoNotTrace {
         e = e.previous()
       }
       return edges.reversed()
+    }
+
+    fun getLeaktrace(): Leaktrace {
+      val path = getPath()
+      if (path.isEmpty()) return Leaktrace(listOf(LeaktraceElement("ROOT", "", null)))
+      return Leaktrace(path.map { it.signature() }.plus(LeaktraceElement(path.tip().type.name, "", path.tip().obj)))
     }
 
     fun markAsGrowing() {
@@ -278,10 +267,10 @@ class HeapGraph: DoNotTrace {
     println("New graph has ${newGraph.leakRoots.size} potential leak roots")
   }
 
-  fun getLeaks(prevGraph: HeapGraph): List<LeakInfo> {
+  fun getLeaks(prevGraph: HeapGraph, options: BleakOptions): List<LeakInfo> {
     return leakRoots.map { root ->
       (prevGraph.getNodeForPath(root.getPath()) ?: prevGraph.leakRoots.find { it.obj === root.obj })?.let { prevRoot ->
-        LeakInfo(this, root, prevRoot)
+        LeakInfo(this, options, root, prevRoot)
       }
     }.filterNotNull()
   }
@@ -333,13 +322,13 @@ class Edge(val start: Node, val end: Node, val label: Expander.Label): DoNotTrac
     if (end.incomingEdge == null) end.incomingEdge = this
   }
   // the signature is only used for whitelisting
-  fun signature(): String =
+  fun signature(): LeaktraceElement =
     if (start.isRootNode) {
-      "ROOT#" + if (end.obj === BootstrapClassloaderPlaceholder) "BootstrapClassLoader" else end.type.simpleName
+      LeaktraceElement("ROOT", if (end.obj === BootstrapClassloaderPlaceholder) "BootstrapClassLoader" else end.type.simpleName, end.obj)
     } else if (label is Expander.FieldLabel && (label.field.modifiers and Modifier.STATIC) != 0) {
-      label.field.declaringClass.name + "#" + label.signature()
+      LeaktraceElement(label.field.declaringClass.name, label.signature(), end.obj)
     } else {
-      start.type.name + "#" + label.signature()
+      LeaktraceElement(start.type.name, label.signature(), end.obj)
     }
 
   fun previous(): Edge? = start.incomingEdge
@@ -354,29 +343,6 @@ class Edge(val start: Node, val end: Node, val label: Expander.Label): DoNotTrac
 
 private fun time (description: String, action: () -> Unit) = println("$description took ${measureTimeMillis(action)}ms")
 
-typealias Signature = List<String>
 typealias Path = List<Edge>
 fun Path.root() = first().start
 fun Path.tip() = last().end
-fun Path.signature() = if (isEmpty()) listOf("ROOT") else map{it.signature()}.plus(tip().type.name)
-fun Path.verboseSignature() = if (isEmpty()) listOf("ROOT") else map{"${it.signature()}: ${try {it.end.obj.toString().take(90)} catch (e: Exception) {"[EXCEPTION]"}}"}.plus(tip().type.name)
-
-private fun String.typePart(): String = substringBefore('#')
-private fun String.labelPart(): String = substringAfter('#')
-fun Signature.entry(i: Int): String {
-  val realIndex = if (i < 0) size + i else i
-  if (realIndex in 0 until size) return get(realIndex)
-  return ""
-}
-fun Signature.type(index: Int) = entry(index).typePart()
-fun Signature.label(index: Int) = entry(index).labelPart()
-fun Signature.penultimateType() = if (size <= 1) "" else type(size-2)
-fun Signature.firstLabel() = if (size == 0) "" else label(0)
-fun Signature.firstType() = if (size == 0) "" else type(0)
-fun Signature.lastLabel() = if (size <= 1) "" else label(size - 2)
-fun Signature.lastType() = if (size == 0) "" else type(size - 1)
-fun Signature.anyTypeIs(type: String) = any{ it.typePart() == type }
-fun Signature.anyTypeContains(typeFragment: String) = any{ it.typePart().contains(typeFragment) }
-fun Signature.anyLabelIs(label: String) = any{ it.typePart() == label }
-fun Signature.anyLabelContains(labelFragment: String) = any{ it.typePart().contains(labelFragment) }
-

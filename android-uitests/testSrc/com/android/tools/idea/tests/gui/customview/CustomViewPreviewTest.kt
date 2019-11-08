@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.runWithBleak
 import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Assert.assertFalse
@@ -51,7 +50,7 @@ class CustomViewPreviewTest {
   @RunIn(TestGroup.PERFORMANCE)
   fun testOpenBuildAndClosePreviewWithBleak() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
-    runWithBleak { openBuildAndClosePreview(fixture) }
+    guiTest.runWithBleak { openBuildAndClosePreview(fixture) }
   }
 
   @Throws(Exception::class)
