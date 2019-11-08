@@ -28,9 +28,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
@@ -129,7 +127,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @Override
   @NotNull
   public ResolvedPropertyModel consumerProguardFiles() {
-    return getModelForProperty(CONSUMER_PROGUARD_FILES, true);
+    return getModelForProperty(CONSUMER_PROGUARD_FILES);
   }
 
   @Override
@@ -153,20 +151,20 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @Override
   @NotNull
   public ResolvedPropertyModel multiDexKeepFile() {
-    return GradlePropertyModelBuilder.create(myDslElement, MULTI_DEX_KEEP_FILE).asMethod(true).addTransform(FILE_TRANSFORM).buildResolved();
+    return GradlePropertyModelBuilder.create(myDslElement, MULTI_DEX_KEEP_FILE).addTransform(FILE_TRANSFORM).buildResolved();
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel multiDexKeepProguard() {
-    return GradlePropertyModelBuilder.create(myDslElement, MULTI_DEX_KEEP_PROGUARD).asMethod(true).addTransform(FILE_TRANSFORM)
+    return GradlePropertyModelBuilder.create(myDslElement, MULTI_DEX_KEEP_PROGUARD).addTransform(FILE_TRANSFORM)
                                      .buildResolved();
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel proguardFiles() {
-    return getModelForProperty(PROGUARD_FILES, true);
+    return getModelForProperty(PROGUARD_FILES);
   }
 
   @Override
@@ -215,7 +213,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NotNull
   @Override
   public SigningConfigPropertyModel signingConfig() {
-    return GradlePropertyModelBuilder.create(myDslElement, SIGNING_CONFIG).asMethod(false).buildSigningConfig();
+    return GradlePropertyModelBuilder.create(myDslElement, SIGNING_CONFIG).buildSigningConfig();
   }
 
   @Override

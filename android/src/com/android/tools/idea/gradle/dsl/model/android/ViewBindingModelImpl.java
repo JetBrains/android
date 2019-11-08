@@ -32,6 +32,6 @@ public class ViewBindingModelImpl extends GradleDslBlockModel implements ViewBin
   @Override
   @NotNull
   public ResolvedPropertyModel enabled() {
-    return getModelForProperty(ENABLED, true);
+    return getModelForProperty(ENABLED);
   }
 }

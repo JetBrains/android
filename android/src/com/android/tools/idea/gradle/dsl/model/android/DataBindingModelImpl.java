@@ -35,18 +35,18 @@ public class DataBindingModelImpl extends GradleDslBlockModel implements DataBin
   @Override
   @NotNull
   public ResolvedPropertyModel addDefaultAdapters() {
-    return getModelForProperty(ADD_DEFAULT_ADAPTERS, true);
+    return getModelForProperty(ADD_DEFAULT_ADAPTERS);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel enabled() {
-    return getModelForProperty(ENABLED, true);
+    return getModelForProperty(ENABLED);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel version() {
-    return getModelForProperty(VERSION, true);
+    return getModelForProperty(VERSION);
   }
 }
