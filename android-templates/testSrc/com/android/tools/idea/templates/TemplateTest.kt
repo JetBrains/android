@@ -127,6 +127,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareViewModelActivity() {
+    checkCreateTemplate("activities", "ViewModelActivity", false, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareViewModelActivityWithKotlin() {
+    checkCreateTemplate("activities", "ViewModelActivity", false, true, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewProjectWithViewModelActivity() {
     checkCreateTemplate("activities", "ViewModelActivity", true, true)
   }
