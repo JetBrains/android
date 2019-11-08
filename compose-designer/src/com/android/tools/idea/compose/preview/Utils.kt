@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.SdkConstants
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
@@ -31,7 +30,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
-import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
@@ -47,34 +45,6 @@ const val UNDEFINED_DIMENSION = -1
 
 const val WIDTH_PARAMETER = "widthDp"
 const val HEIGHT_PARAMETER = "heightDp"
-
-/**
- * Generates the XML string wrapper for one [PreviewElement].
- * @param matchParent when true, the component will take the maximum available space at the parent.
- */
-internal fun PreviewElement.toPreviewXmlString(matchParent: Boolean = false) =
-  """
-    <$COMPOSE_VIEW_ADAPTER
-      xmlns:tools="http://schemas.android.com/tools"
-      xmlns:aapt="http://schemas.android.com/aapt"
-      xmlns:android="http://schemas.android.com/apk/res/android"
-      android:layout_width="${dimensionToString(configuration.width,
-                                                if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)}"
-      android:layout_height="${dimensionToString(configuration.height,
-                                                 if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)}"
-      $COMPOSABLE_NAME_ATTR="$composableMethodFqn" />
-  """.trimIndent()
-
-internal val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
-
-/**
- * A [LightVirtualFile] defined to allow quickly identifying the given file as an XML that is used as adapter
- * to be able to preview composable functions.
- * The contents of the file only reside in memory and contain some XML that will be passed to Layoutlib.
- */
-internal class ComposeAdapterLightVirtualFile(name: String, content: String) : LightVirtualFile(name, content) {
-  override fun getParent() = FAKE_LAYOUT_RES_DIR
-}
 
 /**
  * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the dimension is [UNDEFINED_DIMENSION], the value
