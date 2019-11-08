@@ -401,8 +401,9 @@ private class PreviewEditor(private val psiFile: PsiFile,
     /**
      * Calls refresh method on the successful gradle build
      */
-    SmartAutoBuildRefresher(psiFile, object : SmartBuildable {
+    SmartAutoBuildRefresher(project, object : SmartBuildable {
       override fun buildSucceeded() {
+        EditorNotifications.getInstance(project).updateNotifications(psiFile.virtualFile!!)
         refresh()
       }
 
@@ -418,6 +419,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
           workbench.showLoading(message("panel.building"))
           workbench.hideContent()
         }
+        EditorNotifications.getInstance(project).updateNotifications(psiFile.virtualFile!!)
       }
     }, this)
 
