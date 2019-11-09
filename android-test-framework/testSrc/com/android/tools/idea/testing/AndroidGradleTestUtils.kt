@@ -130,6 +130,7 @@ interface AndroidProjectStubBuilder {
   val defaultConfig: ProductFlavorContainer
   val debugBuildType: BuildTypeContainer?
   val releaseBuildType: BuildTypeContainer?
+  val dynamicFeatures: List<String>
   val viewBindingOptions: ViewBindingOptions
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
   fun mainArtifact(variant: String): AndroidArtifact
@@ -157,6 +158,7 @@ fun createAndroidProjectBuilder(
   releaseSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub? = { buildReleaseSourceProviderStub() },
   debugBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildDebugBuildTypeStub() },
   releaseBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildReleaseBuildTypeStub() },
+  dynamicFeatures: AndroidProjectStubBuilder.() -> List<String> = { emptyList() },
   viewBindingOptions: AndroidProjectStubBuilder.() -> ViewBindingOptionsStub = { buildViewBindingOptions() },
   mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub = { variant -> buildMainArtifactStub(variant) },
   androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub = { variant -> buildAndroidTestArtifactStub(variant) },
@@ -181,6 +183,7 @@ fun createAndroidProjectBuilder(
       override val defaultConfig: ProductFlavorContainer = defaultConfig()
       override val debugBuildType: BuildTypeContainer? = debugBuildType()
       override val releaseBuildType: BuildTypeContainer? = releaseBuildType()
+      override val dynamicFeatures: List<String> = dynamicFeatures()
       override val viewBindingOptions: ViewBindingOptions = viewBindingOptions()
       override fun androidModuleDependencies(variant: String): List<AndroidModuleDependency> = androidModuleDependencyList(variant)
       override fun mainArtifact(variant: String): AndroidArtifact = mainArtifactStub(variant)
@@ -449,6 +452,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     setOf(),
     JavaCompileOptionsStub(),
     AaptOptionsStub(),
+    dynamicFeatures,
     viewBindingOptions,
     buildPath,
     null,
