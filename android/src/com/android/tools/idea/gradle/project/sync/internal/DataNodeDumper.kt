@@ -19,6 +19,7 @@ package com.android.tools.idea.gradle.project.sync.internal
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
+import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -60,6 +61,18 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
       sourceSets = $sourceSets
       artifacts = ${artifacts.take(3)}...
       artifactsByConfiguration = ${artifactsByConfiguration.entries.take(3)}...
+      """.replaceIndent("    ")
+    is JavaModuleModel -> "\n" + """
+      isBuildable = ${isBuildable}
+      languageLevel = ${javaLanguageLevel}
+      buildFolderPath = ${buildFolderPath}
+      isAndroidModuleWithoutVariants = ${isAndroidModuleWithoutVariants}
+      contentRoots = ${contentRoots}
+      javaModuleDependencies = ${javaModuleDependencies}
+      jarLibraryDependencies = ${jarLibraryDependencies}
+      artifactsByConfiguration = ${artifactsByConfiguration}
+      syncIssues = ${syncIssues}
+      configurations = ${configurations}
       """.replaceIndent("    ")
     is AndroidModuleModel -> format()
     else -> toString()
