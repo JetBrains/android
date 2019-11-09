@@ -47,6 +47,7 @@ import com.android.tools.idea.sdk.Jdks;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.io.Files;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
@@ -360,7 +361,14 @@ public class AndroidGradleTests {
   }
 
   public static void setUpSdks(@NotNull CodeInsightTestFixture fixture, @NotNull File androidSdkPath) {
-    @NotNull Project project = fixture.getProject();
+    setUpSdks(fixture.getProject(), fixture.getProjectDisposable(), androidSdkPath);
+  }
+
+  public static void setUpSdks(
+    @NotNull Project project,
+    @NotNull Disposable projectDisposable,
+    @NotNull File androidSdkPath
+  ) {
     // We seem to have two different locations where the SDK needs to be specified.
     // One is whatever is already defined in the JDK Table, and the other is the global one as defined by IdeSdks.
     // Gradle import will fail if the global one isn't set.
@@ -372,9 +380,9 @@ public class AndroidGradleTests {
         LOG.info("Set JDK to " + ideSdks.getJdkPath());
       }
 
-      Sdks.allowAccessToSdk(fixture.getProjectDisposable());
+      Sdks.allowAccessToSdk(projectDisposable);
       ideSdks.setAndroidSdkPath(androidSdkPath, project);
-      IdeSdks.removeJdksOn(fixture.getProjectDisposable());
+      IdeSdks.removeJdksOn(projectDisposable);
 
       LOG.info("Set IDE Sdk Path to " + androidSdkPath);
     });
