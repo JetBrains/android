@@ -19,35 +19,38 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.adb.AdbService;
 import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.Executor;
 import org.jetbrains.annotations.NotNull;
 
 final class DdmlibAndroidDebugBridge implements AndroidDebugBridge {
   @NotNull
   private final File myAdb;
 
+  @NotNull
+  private final ListeningExecutorService myListeningExecutorService;
+
   DdmlibAndroidDebugBridge(@NotNull File adb) {
     myAdb = adb;
+    myListeningExecutorService = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
   }
 
   @NotNull
   @Override
   public ListenableFuture<Collection<IDevice>> getConnectedDevices() {
-    Executor executor = AppExecutorUtil.getAppExecutorService();
-
     // noinspection UnstableApiUsage
     return FluentFuture.from(AdbService.getInstance().getDebugBridge(myAdb))
-      .transform(com.android.ddmlib.AndroidDebugBridge::getDevices, executor)
-      .transform(Arrays::asList, executor);
+      .transform(com.android.ddmlib.AndroidDebugBridge::getDevices, myListeningExecutorService)
+      .transform(Arrays::asList, myListeningExecutorService);
   }
 
   @NotNull
   @Override
   public ListenableFuture<String> getVirtualDeviceId(@NotNull IDevice virtualDevice) {
-    return com.android.ddmlib.AndroidDebugBridge.getVirtualDeviceId(myAdb, virtualDevice);
+    return com.android.ddmlib.AndroidDebugBridge.getVirtualDeviceId(myListeningExecutorService, myAdb, virtualDevice);
   }
 }
