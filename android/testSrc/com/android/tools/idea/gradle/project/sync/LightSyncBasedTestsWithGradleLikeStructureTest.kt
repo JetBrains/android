@@ -113,11 +113,6 @@ class LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest : SnapshotC
 class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTest {
   override val snapshotDirectoryName: String = "syncedProjectSnapshots"
 
-  override fun setUp() {
-    super.setUp()
-    AndroidGradleTests.setUpSdks(myFixture, TestUtils.getSdk())
-  }
-
   @Test
   fun testLightTestsWithDefaultTestProjectStructureForAndroidTestCase() {
     setupTestProjectFromAndroidModel(

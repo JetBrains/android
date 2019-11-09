@@ -56,6 +56,7 @@ import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getLatestAndroidPlatform
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -483,6 +484,9 @@ fun setupTestProjectFromAndroidModel(
   basePath: File,
   vararg moduleBuilders: ModuleModelBuilder
 ) {
+  if (IdeSdks.getInstance().androidSdkPath === null) {
+    AndroidGradleTests.setUpSdks(project, project, TestUtils.getSdk())
+  }
 
   val moduleManager = ModuleManager.getInstance(project)
   if (moduleManager.modules.size == 1) {

@@ -20,14 +20,12 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
-import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.run.AndroidAppRunConfigurationBase
 import com.android.tools.idea.run.AndroidDevice
 import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.IdeComponents
@@ -65,7 +63,6 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
 
   override fun setUp() {
     super.setUp()
-    AndroidGradleTests.setUpSdks(project, testRootDisposable, TestUtils.getSdk())
     initMocks(this)
     `when`(myDevice.launchedDevice).thenReturn(Futures.immediateFuture(myLaunchedDevice))
     `when`(myLaunchedDevice.version).thenAnswer { myDevice.version }
