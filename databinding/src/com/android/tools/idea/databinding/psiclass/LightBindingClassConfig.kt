@@ -93,7 +93,7 @@ private fun BindingLayoutGroup.getAggregatedVariables(): List<Pair<VariableData,
   val aggregatedVariables = mutableListOf<Pair<VariableData, XmlTag>>()
   val alreadySeen = mutableSetOf<String>()
   for (layout in layouts) {
-    val xmlFile = layout.toXmlFile()
+    val xmlFile = layout.toXmlFile() ?: continue
     val layoutData = layout.data
     for (variable in layoutData.variables) {
       val variableTag = xmlFile.findVariableTag(variable.name)
@@ -152,7 +152,8 @@ class BindingClassConfig(override val facet: AndroidFacet, private val group: Bi
     get() {
       val viewIds = mutableMapOf<BindingLayout, Collection<ViewIdData>>()
       for (layout in group.layouts) {
-        val xmlData = BindingXmlIndex.getDataForFile(layout.toXmlFile()) ?: continue
+        val xmlFile = layout.toXmlFile() ?: continue
+        val xmlData = BindingXmlIndex.getDataForFile(xmlFile) ?: continue
         viewIds[layout] = xmlData.viewIds
       }
       return viewIds

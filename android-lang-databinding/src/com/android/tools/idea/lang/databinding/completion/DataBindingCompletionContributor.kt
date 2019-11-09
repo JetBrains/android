@@ -158,7 +158,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
     val indexEntry = getBindingIndexEntry(file) ?: return
 
     val project = file.project
-    val xmlFile = DataBindingUtil.findXmlFile(project, indexEntry.file)!!
+    val xmlFile = DataBindingUtil.findXmlFile(project, indexEntry.file) ?: return
     val variableTagNamePairs = indexEntry.data.variables.map { variable ->
       variable.name to xmlFile.findVariableTag(variable.name)
     }
