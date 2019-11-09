@@ -115,6 +115,7 @@ data class AndroidModuleDependency(val moduleGradlePath: String, val variant: St
  * An interface providing access to [AndroidProject] sub-model builders are used to build [AndroidProject] and its other sub-models.
  */
 interface AndroidProjectStubBuilder {
+  val agpVersion: String
   val buildId: String
   val projectName: String
   val basePath: File
@@ -146,8 +147,9 @@ interface AndroidProjectStubBuilder {
  * sub-model builders.
  */
 fun createAndroidProjectBuilder(
+  agpVersion: AndroidProjectStubBuilder.() -> String = { LatestKnownPluginVersionProvider.INSTANCE.get() },
   buildId: AndroidProjectStubBuilder.() -> String = { "/tmp/buildId" }, //  buildId should not be assumed to be a path.
-  projectType: AndroidProjectStubBuilder.() -> Int = { AndroidProjectTypes.PROJECT_TYPE_APP},
+  projectType: AndroidProjectStubBuilder.() -> Int = { AndroidProjectTypes.PROJECT_TYPE_APP },
   minSdk: AndroidProjectStubBuilder.() -> Int = { 16 },
   targetSdk: AndroidProjectStubBuilder.() -> Int = { 22 },
   defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub = { buildDefaultConfigStub() },
@@ -168,6 +170,7 @@ fun createAndroidProjectBuilder(
 ): AndroidProjectBuilder {
   return { projectName, basePath ->
     val builder = object : AndroidProjectStubBuilder {
+      override val agpVersion: String = agpVersion()
       override val buildId: String = buildId()
       override val projectName: String = projectName
       override val basePath: File = basePath
@@ -418,7 +421,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
   val defaultVariant = debugBuildType ?: releaseBuildType
   val defaultVariantName = defaultVariant?.sourceProvider?.name ?: "main"
   return AndroidProjectStub(
-    LatestKnownPluginVersionProvider.INSTANCE.get(),
+    agpVersion,
     projectName,
     null,
     defaultConfig,
