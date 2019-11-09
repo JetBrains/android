@@ -278,14 +278,9 @@ class ModuleDataBinding private constructor(private val module: Module) {
         // "Impl" classes are only necessary if we have more than a single configuration.
         if (group.layouts.size > 1 && isDataBinding) {
           for (layoutIndex in group.layouts.indices) {
-            val layout = group.layouts[layoutIndex]
             val bindingImplClass = LightBindingClass(psiManager, BindingImplClassConfig(facet, group, layoutIndex))
-            layout.psiClass = bindingImplClass
             bindingClasses.add(bindingImplClass)
           }
-        }
-        else {
-          group.mainLayout.psiClass = bindingClass
         }
 
         lightBindingClassesCache[cacheKey] = bindingClasses

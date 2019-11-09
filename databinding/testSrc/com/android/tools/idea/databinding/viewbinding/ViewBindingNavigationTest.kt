@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding.viewbinding
 
-import com.android.tools.idea.databinding.BindingLayout
+import com.android.tools.idea.databinding.BindingLayoutFile
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
@@ -86,7 +86,7 @@ class ViewBindingNavigationTest {
     // Additionally, let's verify the behavior of the LightBindingClass's navigation element, for
     // code coverage purposes.
     binding.navigationElement.let { navElement ->
-      assertThat(navElement).isInstanceOf(BindingLayout.BindingLayoutFile::class.java)
+      assertThat(navElement).isInstanceOf(BindingLayoutFile::class.java)
       assertThat(navElement.containingFile).isSameAs(navElement)
       // This next cast has to be true or else Java code coverage will crash. More details in
       // the header docs of BindingLayoutInfoFile.
