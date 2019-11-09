@@ -104,10 +104,11 @@ data class AndroidModuleModelBuilder(
 ) : ModuleModelBuilder()
 
 data class JavaModuleModelBuilder(
-  override val gradlePath: String
+  override val gradlePath: String,
+  val buildable: Boolean = true
 ) : ModuleModelBuilder() {
   companion object {
-    val rootModuleBuilder = JavaModuleModelBuilder(":")
+    val rootModuleBuilder = JavaModuleModelBuilder(":", buildable = false)
   }
 }
 
@@ -583,7 +584,8 @@ fun setupTestProjectFromAndroidModel(
         createJavaModuleDataNode(
           moduleName,
           gradlePath,
-          moduleBasePath
+          moduleBasePath,
+          moduleBuilder.buildable
         )
     }
     projectDataNode.addChild(moduleDataNode)
@@ -653,10 +655,31 @@ private fun createAndroidModuleDataNode(
 private fun createJavaModuleDataNode(
   moduleName: String,
   gradlePath: String,
-  moduleBasePath: File
+  moduleBasePath: File,
+  buildable: Boolean
 ): DataNode<ModuleData> {
 
   val moduleDataNode = createGradleModuleDataNode(gradlePath, moduleName, moduleBasePath)
+
+  if (buildable || gradlePath != ":") {
+    moduleDataNode.addChild(
+      DataNode<GradleModuleModel>(
+        AndroidProjectKeys.GRADLE_MODULE_MODEL,
+        GradleModuleModel(
+          moduleName,
+          listOf(),
+          gradlePath,
+          moduleBasePath,
+          emptyList(),
+          null,
+          null,
+          null,
+          false
+        ),
+        null
+      )
+    )
+  }
 
   moduleDataNode.addChild(
     DataNode<JavaModuleModel>(
@@ -671,7 +694,7 @@ private fun createJavaModuleDataNode(
         null,
         null,
         null,
-        false,
+        buildable,
         false
       ),
       null
