@@ -16,37 +16,33 @@
 package com.android.tools.idea.gradle.run
 
 import com.android.AndroidProjectTypes
-import com.android.SdkConstants
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
-import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
-import com.android.tools.idea.Projects
-import com.android.tools.idea.gradle.project.model.AndroidModelFeatures
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.model.GradleModuleModel
+import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.run.AndroidAppRunConfigurationBase
 import com.android.tools.idea.run.AndroidDevice
 import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.testing.Facets
+import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.testing.createAndroidProjectBuilder
+import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.base.Charsets
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.Sets
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.util.ThreeState
 import org.apache.commons.io.FileUtils
-import org.gradle.tooling.model.GradleProject
 import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.Mockito
@@ -55,38 +51,46 @@ import org.mockito.Mockito.doAnswer
 import org.mockito.MockitoAnnotations.initMocks
 import org.mockito.invocation.InvocationOnMock
 import java.io.File
+import java.nio.charset.Charset
 
 class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
-  @Mock
-  private lateinit var myAndroidModel: AndroidModuleModel
-  @Mock
-  private lateinit var myIdeAndroidProject: IdeAndroidProject
   @Mock
   private lateinit var myDevice: AndroidDevice
   @Mock
   private lateinit var myLaunchedDevice: IDevice
   @Mock
   private lateinit var myRunConfiguration: AndroidAppRunConfigurationBase
-  @Mock
-  private lateinit var myAndroidModel2: AndroidModuleModel
-  @Mock
-  private lateinit var myIdeAndroidProject2: IdeAndroidProject
 
   private lateinit var myModules: Array<Module>
 
   override fun setUp() {
     super.setUp()
+    AndroidGradleTests.setUpSdks(project, testRootDisposable, TestUtils.getSdk())
     initMocks(this)
     `when`(myDevice.launchedDevice).thenReturn(Futures.immediateFuture(myLaunchedDevice))
-    `when`(myLaunchedDevice.version).thenAnswer { invocation: InvocationOnMock? -> myDevice.version }
+    `when`(myLaunchedDevice.version).thenAnswer { myDevice.version }
     setupDeviceConfig(myLaunchedDevice,
                       "  config: mcc310-mnc410-es-rUS,fr-rFR-ldltr-sw411dp-w411dp-h746dp-normal-long-notround" +
                       "-lowdr-nowidecg-port-notnight-560dpi-finger-keysexposed-nokeys-navhidden-nonav-v27")
-    myModules = arrayOf(module)
-    setUpModuleAsAndroidModule()
+  }
+
+  private fun setUpTestProject(vararg modules: Pair<String, AndroidProjectBuilder> = arrayOf(":" to createAndroidProjectBuilder())) {
+    setupTestProjectFromAndroidModel(
+      project,
+      File(project.basePath!!),
+      *modules.map {
+        AndroidModuleModelBuilder(
+          it.first,
+          "debug",
+          it.second
+        )
+      }.toTypedArray()
+    )
+    myModules = ModuleManager.getInstance(project).modules
   }
 
   fun testDeviceSpecificArguments() {
+    setUpTestProject()
     `when`(myDevice.version).thenReturn(AndroidVersion(20, null))
     `when`(myDevice.density).thenReturn(640)
     `when`(myDevice.abis).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86))
@@ -102,6 +106,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
   }
 
   fun testPreviewDeviceArguments() {
+    setUpTestProject()
     `when`(myDevice.version).thenReturn(AndroidVersion(23, "N"))
     `when`(myDevice.density).thenReturn(640)
     `when`(myDevice.abis).thenReturn(ImmutableList.of(Abi.ARMEABI))
@@ -112,6 +117,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
   }
 
   fun testPreviewDeviceArgumentsForBundleConfiguration() {
+    setUpTestProject()
     myRunConfiguration = Mockito.mock(AndroidRunConfiguration::class.java)
     `when`(myDevice.version).thenReturn(AndroidVersion(23, "N"))
     `when`(myDevice.density).thenReturn(640)
@@ -130,15 +136,14 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
    * in using the "select apks from bundle" task (as opposed to the regular "assemble" task.
    */
   fun testDeviceArgumentsForPreLollipopDeviceWithDynamicFeature() { // Setup an additional Dynamic Feature module
-    val featureModule = createModule("feature1")
-    setUpModuleAsAndroidModule(featureModule, myAndroidModel2, myIdeAndroidProject2)
-    `when`(myIdeAndroidProject2.projectType).thenReturn(AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE)
-    `when`(myIdeAndroidProject.dynamicFeatures).thenReturn(ImmutableList.of(":feature1"))
+    setUpTestProject(
+      ":" to createAndroidProjectBuilder(dynamicFeatures = { listOf(":feature1") }),
+      ":feature1" to createAndroidProjectBuilder(projectType = { AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE })
+    )
     // Setup a pre-L device
     `when`(myDevice.version).thenReturn(AndroidVersion(20))
     `when`(myDevice.density).thenReturn(640)
     `when`(myDevice.abis).thenReturn(ImmutableList.of(Abi.ARMEABI))
-    myModules = arrayOf(module, featureModule)
     // Invoke method and check result matches arguments needed for invoking "select apks from bundle" task
     // (as opposed to the regular "assemble" task
     val arguments =
@@ -151,6 +156,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
    * in using the regular "assemble" task.
    */
   fun testDeviceArgumentsForPreLollipopDevice() { // Setup a pre-L device
+    setUpTestProject()
     `when`(myDevice.version).thenReturn(AndroidVersion(20))
     `when`(myDevice.density).thenReturn(640)
     `when`(myDevice.abis).thenReturn(ImmutableList.of(Abi.ARMEABI))
@@ -163,18 +169,15 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
   }
 
   fun testMultipleDeviceArguments() {
-    val device1 = Mockito.mock(
-      AndroidDevice::class.java)
-    val device2 = Mockito.mock(
-      AndroidDevice::class.java)
+    setUpTestProject()
+    val device1 = Mockito.mock(AndroidDevice::class.java)
+    val device2 = Mockito.mock(AndroidDevice::class.java)
     `when`(device1.version).thenReturn(AndroidVersion(23, null))
     `when`(device1.density).thenReturn(640)
-    `when`(device1.abis).thenReturn(
-      ImmutableList.of(Abi.ARMEABI, Abi.X86))
+    `when`(device1.abis).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86))
     `when`(device2.version).thenReturn(AndroidVersion(22, null))
     `when`(device2.density).thenReturn(480)
-    `when`(device2.abis).thenReturn(
-      ImmutableList.of(Abi.X86, Abi.X86_64))
+    `when`(device2.abis).thenReturn(ImmutableList.of(Abi.X86, Abi.X86_64))
     val arguments =
       MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, ImmutableList.of(device1, device2))
     assertTrue(arguments.contains("-Pandroid.injected.build.api=22"))
@@ -184,50 +187,11 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     }
   }
 
-  private fun setUpModuleAsAndroidModule() {
-    setUpModuleAsAndroidModule(module, myAndroidModel, myIdeAndroidProject)
-  }
-
-  private fun setUpModuleAsAndroidModule(module: Module,
-                                         androidModel: AndroidModuleModel?,
-                                         ideAndroidProject: IdeAndroidProject?) {
-    setUpModuleAsGradleModule(module)
-    `when`<IdeAndroidProject?>(androidModel!!.androidProject).thenReturn(ideAndroidProject)
-    val androidModelFeatures = Mockito.mock(AndroidModelFeatures::class.java)
-    `when`(androidModelFeatures.isTestedTargetVariantsSupported).thenReturn(false)
-    `when`(androidModel.features).thenReturn(androidModelFeatures)
-    val androidFacet = Facets.createAndAddAndroidFacet(module)
-    val state = androidFacet.configuration.state
-    assertNotNull(state)
-    state.ASSEMBLE_TASK_NAME = "assembleTask2"
-    state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet("afterSyncTask1", "afterSyncTask2")
-    state.COMPILE_JAVA_TASK_NAME = "compileTask2"
-    AndroidModel.set(androidFacet, androidModel)
-  }
-
-  private fun setUpModuleAsGradleModule(module: Module) {
-    val gradleFacet = Facets.createAndAddGradleFacet(module)
-    gradleFacet.configuration.GRADLE_PROJECT_PATH = SdkConstants.GRADLE_PATH_SEPARATOR + module.name
-    val gradleProjectStub: GradleProject =
-      GradleProjectStub(emptyList(),
-                        SdkConstants.GRADLE_PATH_SEPARATOR + module.name,
-                        Projects.getBaseDirPath(
-                          project))
-    val model = GradleModuleModel(module.name, gradleProjectStub, emptyList(), null, null, null,
-                                  null)
-    gradleFacet.setGradleModuleModel(model)
-  }
-
   fun testRunGradleSyncWithPostBuildSyncSupported() {
-    val app = createModule("app")
-    setUpModuleAsAndroidModule(app, myAndroidModel, myIdeAndroidProject)
-    `when`(myRunConfiguration.modules).thenReturn(arrayOf(app))
-    // Simulate the case when post build sync is supported.
-    `when`(myAndroidModel.features.isPostBuildSyncSupported).thenReturn(true)
+    setUpTestProject()
+    `when`(myRunConfiguration.modules).thenReturn(arrayOf(module))
     val syncInvoker = IdeComponents(myProject).mockApplicationService(GradleSyncInvoker::class.java)
-    val syncState = IdeComponents(
-      myProject).mockProjectService(
-      GradleSyncState::class.java)
+    val syncState = IdeComponents(myProject).mockProjectService(GradleSyncState::class.java)
     `when`(syncState.isSyncNeeded()).thenReturn(ThreeState.YES)
     val provider = MakeBeforeRunTaskProvider(myProject)
     // Invoke method to test.
@@ -239,17 +203,13 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
   }
 
   fun testRunGradleSyncWithPostBuildSyncNotSupported() {
-    val app = createModule("app")
-    setUpModuleAsAndroidModule(app, myAndroidModel, myIdeAndroidProject)
-    `when`(myRunConfiguration.modules).thenReturn(
-      arrayOf(app))
-    // Simulate the case when post build sync is NOT supported.
-    `when`(myAndroidModel.features.isPostBuildSyncSupported).thenReturn(false)
+    setUpTestProject(":" to createAndroidProjectBuilder(agpVersion = { "2.0.0" }))
     val syncInvoker = IdeComponents(myProject).mockApplicationService(GradleSyncInvoker::class.java)
     val syncState = IdeComponents(
       myProject).mockProjectService(
       GradleSyncState::class.java)
     `when`(syncState.isSyncNeeded()).thenReturn(ThreeState.YES)
+    `when`(myRunConfiguration.modules).thenReturn(myModules)
     val provider = MakeBeforeRunTaskProvider(myProject)
     // Invoke method to test.
     provider.runGradleSyncIfNeeded(myRunConfiguration, Mockito.mock(DataContext::class.java))
@@ -268,11 +228,11 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
       assertThat(path).isNotEmpty()
       val jsonFile = File(path)
       assertThat(jsonFile.exists()).isTrue()
-      assertThat(FileUtils.readFileToString(jsonFile)).isEqualTo(expectedJson)
+      assertThat(FileUtils.readFileToString(jsonFile, Charset.forName("UTF-8"))).isEqualTo(expectedJson)
       jsonFile.delete()
     }
 
-    private fun setupDeviceConfig(device: IDevice, config: String) {
+    private fun setupDeviceConfig(device: IDevice, @Suppress("SameParameterValue") config: String) {
       doAnswer { invocation: InvocationOnMock ->
         // get the 2nd arg (the receiver to feed it the lines).
         val receiver = invocation.getArgument<IShellOutputReceiver>(1)
