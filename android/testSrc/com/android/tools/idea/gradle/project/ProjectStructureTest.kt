@@ -15,42 +15,40 @@
  */
 package com.android.tools.idea.gradle.project
 
-import com.android.AndroidProjectTypes
-import com.android.ide.common.gradle.model.IdeAndroidProject
+import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
+import com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
+import com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP
+import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.testing.Facets
+import com.android.tools.idea.testing.AndroidModuleDependency
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.JavaModuleModelBuilder
+import com.android.tools.idea.testing.createAndroidProjectBuilder
+import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.truth.Truth
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.testFramework.PlatformTestCase
 import junit.framework.TestCase
-import org.mockito.Mockito
+import java.io.File
 
 /**
  * Tests for [ProjectStructure].
  */
 class ProjectStructureTest : PlatformTestCase() {
-  private lateinit var projectStructure: ProjectStructure
-
-  override fun setUp() {
-    super.setUp()
-    projectStructure = ProjectStructure(project)
-  }
 
   fun testAppModulesAndAgpVersionsAreRecorded() { // Set up modules in the project: 1 Android app, 1 Instant App, 1 Android library and 1 Java library.
-    val appModule = createAndroidModule("app", "3.0", AndroidProjectTypes.PROJECT_TYPE_APP)
-    val instantAppModule = createAndroidModule("instantApp", "3.1", AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP)
-    createAndroidModule("androidLib", "2.3.1", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
-    createJavaModule("javaLib", true /* buildable */)
-    // Method to test:
-    projectStructure.analyzeProjectStructure()
+    setupTestProjectFromAndroidModel(
+      project,
+      File(project.basePath!!),
+      JavaModuleModelBuilder(":"),
+      androidModule(":app", "3.0", PROJECT_TYPE_APP),
+      androidModule(":instantApp", "3.1", PROJECT_TYPE_INSTANTAPP),
+      androidModule(":androidLib", "2.3.1", PROJECT_TYPE_LIBRARY),
+      javaModule(":javaLib")
+    )
+    val projectStructure = ProjectStructure.getInstance(project)
     // Verify that the app modules where properly identified.
-    val appModules = projectStructure.appModules
-    Truth.assertThat(appModules).containsAllOf(appModule, instantAppModule)
+    val appModules = projectStructure.appModules.map { it.name }
+    Truth.assertThat(appModules).containsAllOf("app", "instantApp")
     val agpPluginVersions = projectStructure.androidPluginVersions
     TestCase.assertFalse(agpPluginVersions.isEmpty)
     // Verify that the AGP versions were recorded correctly.
@@ -62,98 +60,54 @@ class ProjectStructureTest : PlatformTestCase() {
   }
 
   fun testLeafModulesAreRecorded() {
-    val appModule = createAndroidModule("app", "3.0", AndroidProjectTypes.PROJECT_TYPE_APP)
-    val instantAppModule = createAndroidModule("instantApp", "3.0", AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP)
-    val androidLib = createAndroidModule("androidLib", "3.0", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
-    // Make appModule depend on androidLib
-    ApplicationManager.getApplication().runWriteAction(ThrowableComputable<Void?, Throwable?> {
-      val rootManager = ModuleRootManager.getInstance(appModule)
-      val modifiableModel = rootManager.modifiableModel
-      modifiableModel.addModuleOrderEntry(androidLib)
-      try {
-        modifiableModel.commit()
-      }
-      catch (e: Throwable) {
-        modifiableModel.dispose()
-        throw e
-      }
-      null
-    })
-    val leaf1 = createAndroidModule("leaf1", "3.0", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
-    val leaf2 = createJavaModule("leaf2", true /* buildable */)
-    // This module should not be considered a "leaf" since it is not buildable.
-    val leaf3 = createJavaModule("leaf3", false /* not buildable */)
-    // Method to test:
-    projectStructure.analyzeProjectStructure()
+    setupTestProjectFromAndroidModel(
+      project,
+      File(project.basePath!!),
+      JavaModuleModelBuilder.rootModuleBuilder,
+      androidModule(":app", "3.0", PROJECT_TYPE_APP, moduleDependencies = listOf(":androidLib")),
+      androidModule(":instantApp", "3.0", PROJECT_TYPE_INSTANTAPP),
+      androidModule(":androidLib", "3.0", PROJECT_TYPE_LIBRARY),
+      androidModule(":leaf1", "3.0", PROJECT_TYPE_LIBRARY),
+      javaModule(":leaf2"),
+      javaModule(":leaf3", buildable = false)
+    )
+
+    val projectStructure = ProjectStructure.getInstance(project)
     // Verify that app and leaf modules are returned.
-    val leafModules = projectStructure.leafModules
-    Truth.assertThat(leafModules).containsExactly(appModule, instantAppModule, leaf1, leaf2)
-    Truth.assertThat(leafModules).doesNotContain(leaf3)
+    val leafModules = projectStructure.leafModules.map { it.name }
+    Truth.assertThat(leafModules).containsExactly("app", "instantApp", "leaf1", "leaf2")
+    Truth.assertThat(leafModules).doesNotContain("leaf3")
   }
 
   fun testLeafModulesContainsBaseAndFeatureModules() {
-    val appModule = createAndroidModule("app", "3.2", AndroidProjectTypes.PROJECT_TYPE_APP)
-    val feature1Module = createAndroidModule("feature1", "3.2", AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE)
-    val feature2Module = createAndroidModule("feature2", "3.2", AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE)
-    // Make appModule depend on feature1Module and feature2Module
-    ApplicationManager.getApplication().runWriteAction(ThrowableComputable<Void?, Throwable?> {
-      val rootManager = ModuleRootManager.getInstance(appModule)
-      val modifiableModel = rootManager.modifiableModel
-      modifiableModel.addModuleOrderEntry(feature1Module)
-      modifiableModel.addModuleOrderEntry(feature2Module)
-      try {
-        modifiableModel.commit()
-      }
-      catch (e: Throwable) {
-        modifiableModel.dispose()
-        throw e
-      }
-      null
-    })
-    // Method to test:
-    projectStructure.analyzeProjectStructure()
+    setupTestProjectFromAndroidModel(
+      project,
+      File(project.basePath!!),
+      JavaModuleModelBuilder.rootModuleBuilder,
+      androidModule(":app", "3.2", PROJECT_TYPE_APP, moduleDependencies = listOf(":feature1", ":feature2")),
+      androidModule(":feature1", "3.2", PROJECT_TYPE_DYNAMIC_FEATURE),
+      androidModule(":feature2", "3.2", PROJECT_TYPE_DYNAMIC_FEATURE)
+    )
+
+    val projectStructure = ProjectStructure.getInstance(project)
     // Verify that the app modules where properly identified.
-    val appModules = projectStructure.appModules
-    Truth.assertThat(appModules).containsExactly(appModule)
+    val appModules = projectStructure.appModules.map { it.name }
+    Truth.assertThat(appModules).containsExactly("app")
     // Verify that app and leaf modules are returned.
-    val leafModules = projectStructure.leafModules
-    Truth.assertThat(leafModules).containsExactly(appModule, feature1Module, feature2Module)
+    val leafModules = projectStructure.leafModules.map { it.name }
+    Truth.assertThat(leafModules).containsExactly("app", "feature1", "feature2")
   }
 
-  private fun createAndroidModule(name: String, pluginVersion: String, projectType: Int): Module {
-    val module = createGradleModule(name)
-    setUpAsAndroidModule(module, pluginVersion, projectType)
-    return module
-  }
+  private fun javaModule(gradlePath: String, buildable: Boolean = true) = JavaModuleModelBuilder(gradlePath, buildable)
 
-  private fun createJavaModule(name: String, buildable: Boolean): Module {
-    val module = createGradleModule(name)
-    setUpAsJavaModule(module, buildable)
-    return module
-  }
-
-  private fun createGradleModule(name: String): Module {
-    val module = createModule(name)
-    val gradleFacet = Facets.createAndAddGradleFacet(module)
-    gradleFacet.configuration.GRADLE_PROJECT_PATH = ":$name"
-    return module
-  }
-
-  companion object {
-    private fun setUpAsAndroidModule(module: Module, pluginVersion: String, projectType: Int) {
-      val androidFacet = Facets.createAndAddAndroidFacet(module)
-      val androidModel = Mockito.mock(AndroidModuleModel::class.java)
-      AndroidModel.set(androidFacet, androidModel)
-      androidFacet.configuration.projectType = projectType
-      val androidProject = Mockito.mock(IdeAndroidProject::class.java)
-      Mockito.`when`(androidProject.projectType).thenReturn(projectType)
-      Mockito.`when`(androidModel.androidProject).thenReturn(androidProject)
-      Mockito.`when`(androidModel.modelVersion).thenReturn(GradleVersion.parse(pluginVersion))
-    }
-
-    private fun setUpAsJavaModule(module: Module, buildable: Boolean) {
-      val javaFacet = Facets.createAndAddJavaFacet(module)
-      javaFacet.configuration.BUILDABLE = buildable
-    }
-  }
+  private fun androidModule(gradlePath: String, agpVersion: String, projectType: Int, moduleDependencies: List<String> = emptyList()) =
+    AndroidModuleModelBuilder(
+      gradlePath,
+      "debug",
+      createAndroidProjectBuilder(
+        agpVersion = { agpVersion },
+        projectType = { projectType },
+        androidModuleDependencyList = { moduleDependencies.map { AndroidModuleDependency(it, "debug") } }
+      )
+    )
 }
