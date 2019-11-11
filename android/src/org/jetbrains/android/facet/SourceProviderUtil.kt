@@ -123,7 +123,7 @@ private class LegacyDelegate constructor(private val facet: AndroidFacet) : Idea
   override val resDirectories: Collection<VirtualFile>
     get() {
       val resRelPath = facet.properties.RES_FOLDER_RELATIVE_PATH
-      return listOfNotNull(AndroidRootUtil.getFileByRelativeModulePath(facet.run { module }, resRelPath, true))
+      return listOfNotNull(AndroidRootUtil.getFileByRelativeModulePath(facet.module, resRelPath, true))
     }
 
   override val assetsDirectoryUrls: Collection<String> get() = assetsDirectories.map { it.url }

@@ -30,6 +30,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -48,6 +49,7 @@ import java.util.List;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
@@ -120,6 +122,10 @@ public class GradleProjectInfo {
     return ReadAction.compute(() -> {
       if (myProject.isDisposed()) {
         return false;
+      }
+      if (Arrays.stream(ModuleManager.getInstance(myProject).getModules())
+        .anyMatch(it -> ExternalSystemApiUtil.isExternalSystemAwareModule(GRADLE_SYSTEM_ID, it))) {
+        return true;
       }
       if (myFacetManager.hasFacets(GradleFacet.getFacetTypeId())) {
         return true;

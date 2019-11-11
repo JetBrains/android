@@ -15,12 +15,13 @@
  */
 package org.jetbrains.android.facet
 
-import com.android.SdkConstants
 import com.android.builder.model.SourceProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
+import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.SourceProviders
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.utils.reflection.qualifiedName
 import com.intellij.ProjectTopics
 import com.intellij.facet.Facet
@@ -28,17 +29,14 @@ import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetManagerAdapter
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ProjectComponent
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
-import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
-import java.io.File
 
 interface SourceProviderManager {
   companion object {
@@ -141,8 +139,8 @@ class SourceProvidersImpl(
 private val KEY: Key<SourceProviders> = Key.create(::KEY.qualifiedName)
 
 private fun createSourceProviderFor(facet: AndroidFacet): SourceProviders {
-  val model = if (AndroidModel.isRequired(facet)) AndroidModel.get(facet) else null
-  return if (model != null) createSourceProvidersFromModel(model) else createSourceProvidersForLegacyModule(facet)
+  return facet.module.project.getProjectSystem().getSourceProvidersFactory().createSourceProvidersFor(facet)
+         ?: createSourceProvidersForLegacyModule(facet)
 }
 
 private fun onChanged(facet: AndroidFacet) {
@@ -171,21 +169,25 @@ private class SourceProviderManagerComponent(val project: Project) : ProjectComp
       }
     }
 
-    connection.subscribe(FacetManager.FACETS_TOPIC, object : FacetManagerAdapter() {
-      override fun facetConfigurationChanged(facet: Facet<*>) {
-        if (facet is AndroidFacet) {
-          ensureSubscribed()
-          onChanged(facet)
+    // Temporarily subscribe the component to notifications when the ProjectSystemService is available only.  Many tests are still
+    // configured to run without ProjectSystemService.
+    if (ServiceManager.getService(project, ProjectSystemService::class.java) != null) {
+      connection.subscribe(FacetManager.FACETS_TOPIC, object : FacetManagerAdapter() {
+        override fun facetConfigurationChanged(facet: Facet<*>) {
+          if (facet is AndroidFacet) {
+            ensureSubscribed()
+            onChanged(facet)
+          }
         }
-      }
 
-      override fun facetAdded(facet: Facet<*>) {
-        if (facet is AndroidFacet) {
-          ensureSubscribed()
-          onChanged(facet)
+        override fun facetAdded(facet: Facet<*>) {
+          if (facet is AndroidFacet) {
+            ensureSubscribed()
+            onChanged(facet)
+          }
         }
-      }
-    })
+      })
+    }
   }
 
   override fun projectClosed() {

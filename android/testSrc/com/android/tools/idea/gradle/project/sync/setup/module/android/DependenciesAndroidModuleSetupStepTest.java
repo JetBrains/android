@@ -29,6 +29,8 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.level2.IdeDependenciesImpl;
+import com.android.ide.common.gradle.model.stubs.SourceProviderStub;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
@@ -127,6 +129,8 @@ public class DependenciesAndroidModuleSetupStepTest extends PlatformTestCase {
     AndroidFacet androidFacet = createAndAddAndroidFacet(myModule);
     AndroidModuleModel moduleModel = mock(AndroidModuleModel.class);
     GradleVersion version = GradleVersion.parse(modelVersion);
+    when(moduleModel.getSelectedMainCompileLevel2Dependencies()).thenReturn(new IdeDependenciesImpl());
+    when(moduleModel.getDefaultSourceProvider()).thenReturn(new SourceProviderStub());
     when(moduleModel.getFeatures()).thenReturn(new AndroidModelFeatures(version));
     AndroidModel.set(androidFacet, moduleModel);
     when(moduleModel.getAndroidProject()).thenReturn(androidProject);

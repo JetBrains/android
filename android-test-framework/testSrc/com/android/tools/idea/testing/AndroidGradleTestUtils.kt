@@ -67,6 +67,8 @@ import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTa
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
+import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
@@ -531,7 +533,7 @@ fun setupTestProjectFromAndroidModel(
   else {
     assume().that(moduleManager.modules.size).isEqualTo(0)
   }
-
+  ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem (project))
   val gradlePlugins = listOf(
     "com.android.java.model.builder.JavaLibraryPlugin", "org.gradle.buildinit.plugins.BuildInitPlugin",
     "org.gradle.buildinit.plugins.WrapperPlugin", "org.gradle.api.plugins.HelpTasksPlugin",

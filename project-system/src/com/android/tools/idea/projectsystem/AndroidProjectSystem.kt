@@ -97,6 +97,12 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    * [LightResourceClassService] instance used by this project system (if used at all).
    */
   fun getLightResourceClassService(): LightResourceClassService
+
+  /**
+   * [SourceProvidersFactory] instance used by the project system internally to re-instantiate the cached instance
+   * when the structure of the project changes.
+   */
+  fun getSourceProvidersFactory(): SourceProvidersFactory
 }
 
 val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
