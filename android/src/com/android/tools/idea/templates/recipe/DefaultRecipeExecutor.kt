@@ -25,6 +25,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.Projects.getBaseDirPath
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
@@ -44,6 +45,7 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_BASE_FEATURE_DIR
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API_STRING
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_NAME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP
 import com.android.tools.idea.templates.TemplateUtils.hasExtension
@@ -368,6 +370,16 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     }
     catch (e: IOException) {
       throw RuntimeException(e)
+    }
+  }
+
+  /**
+   * Adds a module dependency to global settings.gradle[.kts] file.
+   */
+  override fun addIncludeToSettings(moduleName: String?) {
+    ProjectBuildModel.get(context.project).projectSettingsModel?.apply {
+      addModulePath(moduleName ?: context.paramMap[ATTR_MODULE_NAME] as String)
+      io.applyChanges(this)
     }
   }
 
