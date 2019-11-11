@@ -31,6 +31,6 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="library" exported="" scope="PROVIDED" name="org.jetbrains.kotlin:kotlin-plugin-ij193:1.3.60-eap-143" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlin-plugin-android-compile-deps" level="project" />
   </component>
 </module>
