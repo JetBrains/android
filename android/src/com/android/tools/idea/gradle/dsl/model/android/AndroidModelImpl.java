@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement.BUILD_FEATURES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement.DATA_BINDING_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement.DEX_OPTIONS_BLOCK_NAME;
@@ -34,6 +35,7 @@ import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptio
 import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AaptOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.BuildFeaturesModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.DataBindingModel;
@@ -52,6 +54,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement;
@@ -115,6 +118,17 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
       myDslElement.setNewElement(adbOptionsElement);
     }
     return new AdbOptionsModelImpl(adbOptionsElement);
+  }
+
+  @Override
+  @NotNull
+  public BuildFeaturesModel buildFeatures() {
+    BuildFeaturesDslElement buildFeaturesDslElement = myDslElement.getPropertyElement(BUILD_FEATURES_BLOCK_NAME, BuildFeaturesDslElement.class);
+    if (buildFeaturesDslElement == null) {
+      buildFeaturesDslElement = new BuildFeaturesDslElement(myDslElement);
+      myDslElement.setNewElement(buildFeaturesDslElement);
+    }
+    return new BuildFeaturesModelImpl(buildFeaturesDslElement);
   }
 
   @NotNull

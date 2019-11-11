@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME
+import com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement
+import com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement.BUILD_FEATURES_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME
@@ -178,6 +180,7 @@ fun GradleDslFile.getBlockElement(
       is AndroidDslElement -> when (nestedElementName) {
         "defaultConfig" -> DefaultConfigDslElement(resultElement, elementName)
         PRODUCT_FLAVORS_BLOCK_NAME -> ProductFlavorsDslElement(resultElement)
+        BUILD_FEATURES_BLOCK_NAME -> BuildFeaturesDslElement(resultElement)
         BUILD_TYPES_BLOCK_NAME -> BuildTypesDslElement(resultElement)
         COMPILE_OPTIONS_BLOCK_NAME -> CompileOptionsDslElement(resultElement)
         EXTERNAL_NATIVE_BUILD_BLOCK_NAME -> ExternalNativeBuildDslElement(resultElement)

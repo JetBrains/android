@@ -118,4 +118,7 @@ public interface AndroidModel extends GradleDslModel {
 
   @NotNull
   ViewBindingModel viewBinding();
+
+  @NotNull
+  BuildFeaturesModel buildFeatures();
 }
