@@ -15,7 +15,7 @@
  */
 package com.android.build.attribution.ui.data.builder
 
-import com.android.build.attribution.analyzers.CriticalPathAnalyzer
+import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.ui.data.TaskUiData
@@ -37,9 +37,9 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
       override fun getTotalBuildTimeMs(): Long = 1500
       override fun getCriticalPathDurationMs(): Long = 1000
       override fun getCriticalPathTasks(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
-      override fun getCriticalPathPlugins(): List<CriticalPathAnalyzer.PluginBuildData> = listOf(
-        CriticalPathAnalyzer.PluginBuildData(pluginA, 400),
-        CriticalPathAnalyzer.PluginBuildData(pluginB, 600)
+      override fun getCriticalPathPlugins(): List<PluginBuildData> = listOf(
+        PluginBuildData(pluginA, 400),
+        PluginBuildData(pluginB, 600)
       )
     }
 
@@ -68,9 +68,9 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
       override fun getTotalBuildTimeMs(): Long = 1500
       override fun getCriticalPathDurationMs(): Long = 1000
       override fun getCriticalPathTasks(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
-      override fun getCriticalPathPlugins(): List<CriticalPathAnalyzer.PluginBuildData> = listOf(
-        CriticalPathAnalyzer.PluginBuildData(pluginA, 400),
-        CriticalPathAnalyzer.PluginBuildData(pluginB, 600)
+      override fun getCriticalPathPlugins(): List<PluginBuildData> = listOf(
+        PluginBuildData(pluginA, 400),
+        PluginBuildData(pluginB, 600)
       )
     }
 
