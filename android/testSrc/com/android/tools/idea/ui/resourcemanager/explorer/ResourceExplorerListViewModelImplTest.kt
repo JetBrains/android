@@ -33,6 +33,7 @@ import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
+import com.android.tools.idea.ui.resourcemanager.model.TypeFilterKind
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth
@@ -278,6 +279,25 @@ class ResourceExplorerListViewModelImplTest {
     Truth.assertThat(values.flatMap { it.assets }
                        .map { it.resourceItem.resourceValue?.value })
       .containsExactly("#3F51B5", "#303F9F", "#9dff00")
+  }
+
+  @Test
+  fun filterVectorDrawables() {
+    projectRule.fixture.copyDirectoryToProject("res/drawable/", "res/drawable/")
+    val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
+
+    val unfilteredDrawables = viewModel.getCurrentModuleResourceLists().get()[0].assetSets
+    Truth.assertThat(unfilteredDrawables).hasSize(2)
+
+    val filterTypesModel =  viewModel.filterOptions.typeFiltersModel
+    val vectorDrawableFilterOption = filterTypesModel.getSupportedFilters(
+      ResourceType.DRAWABLE).first { it.kind == TypeFilterKind.XML_TAG && it.value == "vector" }
+
+    filterTypesModel.setEnabled(ResourceType.DRAWABLE, vectorDrawableFilterOption, true)
+
+    val filteredDrawables = viewModel.getCurrentModuleResourceLists().get()[0].assetSets
+    Truth.assertThat(filteredDrawables).hasSize(1)
+    Truth.assertThat(filteredDrawables[0].name).isEqualTo("vector_drawable")
   }
 
   private fun createViewModel(module: Module, resourceType: ResourceType): ResourceExplorerListViewModelImpl {
