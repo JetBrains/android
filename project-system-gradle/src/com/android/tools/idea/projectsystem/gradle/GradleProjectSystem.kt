@@ -21,9 +21,12 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.SourceProviders
+import com.android.tools.idea.projectsystem.SourceProvidersFactory
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
@@ -36,6 +39,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.createSourceProvidersForLegacyModule
+import org.jetbrains.android.facet.createSourceProvidersFromModel
 import java.nio.file.Path
 
 class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
@@ -87,4 +93,11 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
 
   override val submodules: Collection<Module>
     get() = moduleHierarchyProvider.forProject.submodules
+
+  override fun getSourceProvidersFactory(): SourceProvidersFactory = object : SourceProvidersFactory {
+    override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? {
+      val model = AndroidModuleModel.get(facet)
+      return if (model != null) createSourceProvidersFromModel(model) else createSourceProvidersForLegacyModule(facet)
+    }
+  }
 }
