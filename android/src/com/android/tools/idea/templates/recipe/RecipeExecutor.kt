@@ -112,4 +112,9 @@ interface RecipeExecutor {
    * Set variable in ext block of global build.gradle.
    */
   fun setExtVar(name: String, value: String)
+
+  /**
+   * Adds a new build feature to android block. For example, may enable compose.
+   */
+  fun setBuildFeature(name: String, value: String)
 }

@@ -369,6 +369,34 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
   }
 
   /**
+   * Adds a new build feature to android block. For example, may enable compose.
+   */
+  override fun setBuildFeature(name: String, value: String) {
+    val buildFile = getBuildFilePath(context)
+
+    // TODO(qumeric) handle it in a better way?
+    val buildModel = getBuildModel(buildFile, context.project) ?: return
+
+    val feature = when(name) {
+      "compose" -> buildModel.android().buildFeatures().compose()
+      else -> throw IllegalArgumentException("currently only compose build feature is supported")
+    }
+
+    if (feature.valueType != GradlePropertyModel.ValueType.NONE) {
+      return // we do not override value if it exists. TODO(qumeric): ask user?
+    }
+
+    val boolValue = when(value) {
+      "true" -> true
+      "false" -> false
+      else -> throw IllegalArgumentException("buildFeature may be 'true' or 'false' but '$value' was given")
+    }
+
+    feature.setValue(boolValue)
+    io.applyChanges(buildModel)
+  }
+
+  /**
    * Update the project's gradle build file and sync, if necessary. This should only be called
    * once and after all dependencies are already added.
    */
