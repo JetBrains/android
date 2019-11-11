@@ -283,8 +283,9 @@ class DeviceViewPanel(
     val leftGroup = DefaultActionGroup()
     leftGroup.add(SelectProcessAction(layoutInspector))
     leftGroup.add(ViewMenuAction)
-    leftGroup.add(ToggleOverlayAction)
     leftGroup.add(PauseLayoutInspectorAction(layoutInspector::currentClient))
+    leftGroup.add(ToggleOverlayAction)
+    leftGroup.add(AlphaSliderAction)
     if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get()) {
       leftGroup.add(CaptureAction(layoutInspector::currentClient, layoutInspector.layoutInspectorModel))
     }

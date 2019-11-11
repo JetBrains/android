@@ -36,6 +36,7 @@ import java.awt.Image
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
+import javax.imageio.ImageIO
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
@@ -115,6 +116,38 @@ class DeviceViewContentPanelTest {
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_hovered.png"), generatedImage, 0.05)
+  }
+
+  @Test
+  fun testOverlay() {
+    val model = model {
+      view(ROOT, 0, 0, 100, 200) {
+        view(VIEW1, 25, 30, 50, 50)
+      }
+    }
+
+    @Suppress("UndesirableClassUsage")
+    val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
+    var graphics = generatedImage.createGraphics()
+
+    val settings = DeviceViewSettings(scalePercent = 100)
+    val panel = DeviceViewContentPanel(model, settings)
+    panel.setSize(200, 300)
+
+    panel.model.overlay = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_hovered.png"))
+
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_overlay-60.png"), generatedImage, 0.05)
+
+    panel.model.overlayAlpha = 0.2f
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_overlay-20.png"), generatedImage, 0.05)
+
+    panel.model.overlayAlpha = 0.9f
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_overlay-90.png"), generatedImage, 0.05)
   }
 
   @Test
