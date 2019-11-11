@@ -50,6 +50,7 @@ import com.android.tools.adtui.instructions.RenderInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.CommonButton;
@@ -64,7 +65,6 @@ import com.android.tools.profilers.ProfilerComboboxCellRenderer;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerScrollbar;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilers;
@@ -469,7 +469,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull
   private JPanel buildMonitorUi() {
     StudioProfilers profilers = getStage().getStudioProfilers();
-    ProfilerTimeline timeline = profilers.getTimeline();
+    StreamingTimeline timeline = profilers.getTimeline();
     Range viewRange = getTimeline().getViewRange();
     myRangeSelectionComponent = new RangeSelectionComponent(getStage().getRangeSelectionModel(), timeline.getViewRange());
     myRangeSelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);

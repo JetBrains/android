@@ -15,31 +15,30 @@
  */
 package com.android.tools.profilers;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.updater.Updater;
-import com.google.common.truth.Truth;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
-
-public class ProfilerTimelineTest {
+public class StreamingTimelineTest {
 
   public static final double DELTA = 0.001;
 
   private Range myDataRange;
   private Range myViewRange;
-  private ProfilerTimeline myTimeline;
+  private StreamingTimeline myTimeline;
   private FakeTimer myTimer;
 
   @Before
   public void setup() {
     myTimer = new FakeTimer();
     Updater updater = new Updater(myTimer);
-    myTimeline = new ProfilerTimeline(updater);
+    myTimeline = new StreamingTimeline(updater);
     myDataRange = myTimeline.getDataRange();
     myViewRange = myTimeline.getViewRange();
   }
@@ -340,7 +339,7 @@ public class ProfilerTimelineTest {
     assertThat(myDataRange.getMax()).isWithin(0).of(TimeUnit.NANOSECONDS.toMicros(endTimeNs));
 
     // Timeline view range should be [endTimeNs - DEFAULT_VIEW_LENGTH_US, endTimeNs] after reset
-    assertThat(myViewRange.getMin()).isWithin(0).of(TimeUnit.NANOSECONDS.toMicros(endTimeNs) - ProfilerTimeline.DEFAULT_VIEW_LENGTH_US);
+    assertThat(myViewRange.getMin()).isWithin(0).of(TimeUnit.NANOSECONDS.toMicros(endTimeNs) - StreamingTimeline.DEFAULT_VIEW_LENGTH_US);
     assertThat(myViewRange.getMax()).isWithin(0).of(TimeUnit.NANOSECONDS.toMicros(endTimeNs));
 
     myTimer.setCurrentTimeNs(updateTimeNs);

@@ -27,6 +27,7 @@ import com.android.tools.adtui.model.RangeSelectionListener;
 import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
@@ -47,12 +48,10 @@ import com.android.tools.profiler.proto.Cpu.CpuTraceMode;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profiler.proto.Cpu.TraceInitiationType;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopRequest;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -187,7 +186,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   /**
    * Whether the stage was initiated in Import Trace mode. In this mode, some data might be missing (e.g. thread states and CPU usage in
-   * ART and simpleperf captures), the {@link ProfilerTimeline} is static and just big enough to display a {@link CpuCapture} entirely.
+   * ART and simpleperf captures), the {@link StreamingTimeline} is static and just big enough to display a {@link CpuCapture} entirely.
    * Import Trace mode is triggered when importing a CPU trace.
    */
   private final boolean myIsImportTraceMode;
@@ -635,7 +634,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     // TODO (b/79244375): extract callback to its own method
     Consumer<CpuCapture> parsingCallback = (parsedCapture) -> {
       if (parsedCapture != null) {
-        ProfilerTimeline timeline = getStudioProfilers().getTimeline();
+        StreamingTimeline timeline = getStudioProfilers().getTimeline();
         Range captureRangeNs = new Range(TimeUnit.MICROSECONDS.toNanos((long)parsedCapture.getRange().getMin()),
                                          TimeUnit.MICROSECONDS.toNanos((long)parsedCapture.getRange().getMax()));
         // Give some room to the end of the timeline, so we can properly use the handle to select the capture.
@@ -783,7 +782,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     assert capture != null;
 
     // Give a padding to the capture. 5% of the view range on each side.
-    ProfilerTimeline timeline = getStudioProfilers().getTimeline();
+    StreamingTimeline timeline = getStudioProfilers().getTimeline();
     double padding = timeline.getViewRange().getLength() * 0.05;
     // Now makes sure the capture range + padding is within view range and in the middle if possible.
     timeline.adjustRangeCloseToMiddleView(new Range(capture.getRange().getMin() - padding, capture.getRange().getMax() + padding));
@@ -832,7 +831,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myThreadsStates.updateTraceThreadsForCapture(capture);
 
     // Setting the selection range will cause the timeline to stop.
-    ProfilerTimeline timeline = getStudioProfilers().getTimeline();
+    StreamingTimeline timeline = getStudioProfilers().getTimeline();
     timeline.getSelectionRange().set(capture.getRange());
     setCapture(capture);
   }

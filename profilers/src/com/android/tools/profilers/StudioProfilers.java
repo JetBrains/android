@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.FpsTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StopwatchTimer;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
@@ -113,7 +114,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   @NotNull private final ProfilerClient myClient;
 
-  private final ProfilerTimeline myTimeline;
+  private final StreamingTimeline myTimeline;
 
   private final List<StudioProfiler> myProfilers;
 
@@ -218,7 +219,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
     myProfilers = profilersBuilder.build();
 
-    myTimeline = new ProfilerTimeline(myUpdater);
+    myTimeline = new StreamingTimeline(myUpdater);
 
     myProcesses = Maps.newHashMap();
     myDevice = null;
@@ -819,7 +820,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   @NotNull
-  public ProfilerTimeline getTimeline() {
+  public StreamingTimeline getTimeline() {
     return myTimeline;
   }
 

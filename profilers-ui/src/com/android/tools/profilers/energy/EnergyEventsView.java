@@ -23,12 +23,12 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.BorderlessTableCellRenderer;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.TimelineTable;
 import com.intellij.ui.table.JBTable;
@@ -323,7 +323,7 @@ public final class EnergyEventsView {
     @NotNull private final List<EnergyEventComponent> myEventComponents = new ArrayList<>();
     @NotNull private final JTable myTable;
 
-    TimelineRenderer(@NotNull JTable table, @NotNull ProfilerTimeline timeline) {
+    TimelineRenderer(@NotNull JTable table, @NotNull StreamingTimeline timeline) {
       super(timeline);
       myTable = table;
       myTable.getModel().addTableModelListener(this);

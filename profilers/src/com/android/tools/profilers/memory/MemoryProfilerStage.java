@@ -25,6 +25,7 @@ import com.android.tools.adtui.model.RangeSelectionListener;
 import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.filter.Filter;
@@ -54,7 +55,6 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
@@ -354,7 +354,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
    *                   fired via the desired executor.
    */
   public void enableSelectLatestCapture(boolean enable, @Nullable Executor loadJoiner) {
-    ProfilerTimeline timeline = getStudioProfilers().getTimeline();
+    StreamingTimeline timeline = getStudioProfilers().getTimeline();
     if (enable) {
       timeline.getDataRange().addDependency(this)
         .onChange(Range.Aspect.RANGE, () -> queryAndSelectCaptureObject(loadJoiner == null ? MoreExecutors.directExecutor() : loadJoiner));
@@ -667,7 +667,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     }
 
     myUpdateCaptureOnSelection = false;
-    ProfilerTimeline timeline = getStudioProfilers().getTimeline();
+    StreamingTimeline timeline = getStudioProfilers().getTimeline();
     CaptureObject captureObject = mySelection.getCaptureObject();
     if (captureObject == null) {
       // Loading a capture can fail, in which case we reset everything.

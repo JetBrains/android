@@ -15,20 +15,23 @@
  */
 package com.android.tools.profilers.network;
 
+import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.TOOLTIP_BORDER;
+
 import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.BorderlessTableCellRenderer;
+import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerFonts;
+import com.android.tools.profilers.StageView;
+import com.android.tools.profilers.TimelineTable;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.AbstractTableModel;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
@@ -37,9 +40,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
-import static com.android.tools.profilers.ProfilerLayout.TOOLTIP_BORDER;
+import javax.swing.JComponent;
+import javax.swing.JTable;
+import javax.swing.JTextPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class responsible for displaying table of connections information (e.g url, duration, timeline)
@@ -323,7 +332,7 @@ final class ConnectionsView {
     @NotNull private final List<ConnectionsStateChart> myConnectionsCharts = new ArrayList<>();
     @NotNull private final JTable myTable;
 
-    TimelineRenderer(@NotNull JTable table, @NotNull ProfilerTimeline timeline) {
+    TimelineRenderer(@NotNull JTable table, @NotNull StreamingTimeline timeline) {
       super(timeline);
       myTable = table;
       myTable.getModel().addTableModelListener(this);

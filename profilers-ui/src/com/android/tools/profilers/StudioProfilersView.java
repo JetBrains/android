@@ -27,6 +27,7 @@ import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.profiler.proto.Common;
@@ -306,7 +307,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myToolbar.add(rightToolbar, BorderLayout.EAST);
     rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
 
-    ProfilerTimeline timeline = myProfiler.getTimeline();
+    StreamingTimeline timeline = myProfiler.getTimeline();
     myZoomOut = new CommonButton(AllIcons.General.ZoomOut);
     myZoomOut.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.General.ZoomOut));
     myZoomOut.addActionListener(event -> {
@@ -404,7 +405,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myGoLive.setIcon(isSelected ? StudioIcons.Profiler.Toolbar.PAUSE_LIVE : StudioIcons.Profiler.Toolbar.GOTO_LIVE);
       myGoLive.setToolTipText(isSelected ? detachAction.getDefaultToolTipText() : attachAction.getDefaultToolTipText());
     });
-    timeline.addDependency(this).onChange(ProfilerTimeline.Aspect.STREAMING, this::updateStreaming);
+    timeline.addDependency(this).onChange(StreamingTimeline.Aspect.STREAMING, this::updateStreaming);
     myGoLiveToolbar.add(myGoLive);
     rightToolbar.add(myGoLiveToolbar);
 

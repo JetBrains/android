@@ -29,6 +29,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterModel;
 import com.android.tools.idea.protobuf.ByteString;
@@ -46,7 +47,6 @@ import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.StudioProfilers;
@@ -194,7 +194,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void testJumpToLiveIfOngoingRecording() throws InterruptedException {
-    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
+    StreamingTimeline timeline = myStage.getStudioProfilers().getTimeline();
     timeline.setStreaming(false);
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
     assertThat(timeline.isStreaming()).isFalse();
@@ -437,7 +437,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
     assertThat(captureNode.getClockType()).isEqualTo(ClockType.GLOBAL);
     myStage.setAndSelectCapture(capture);
-    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
+    StreamingTimeline timeline = myStage.getStudioProfilers().getTimeline();
     double eps = 0.00001;
     // In GLOBAL clock type, selection should be the main node range
     assertThat(capture.getRange().getMin()).isWithin(eps).of(timeline.getSelectionRange().getMin());
@@ -1209,7 +1209,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void startCapturingJumpsToLiveData() throws InterruptedException, IOException {
-    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
+    StreamingTimeline timeline = myStage.getStudioProfilers().getTimeline();
     timeline.setStreaming(false);
     assertThat(timeline.isStreaming()).isFalse();
 
@@ -1480,7 +1480,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
     // Import trace mode is enabled successfully
     assertThat(stage.isImportTraceMode()).isTrue();
-    ProfilerTimeline timeline = stage.getStudioProfilers().getTimeline();
+    StreamingTimeline timeline = stage.getStudioProfilers().getTimeline();
     Range captureRange = stage.getCapture().getRange();
     double expansionAmount = ((long)(captureRange.getLength() * CpuProfilerStage.IMPORTED_TRACE_VIEW_EXPAND_PERCENTAGE));
     assertThat(timeline.isPaused()).isTrue();

@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
@@ -31,7 +32,6 @@ import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.atrace.AtraceExporter;
@@ -80,7 +80,7 @@ public class CpuProfiler extends StudioProfiler {
   private void run() {
     Common.Session session = myProfilers.getSession();
     // Make sure the timeline is paused when the stage is opened for the first time, and its bounds are within the session.
-    ProfilerTimeline timeline = myProfilers.getTimeline();
+    StreamingTimeline timeline = myProfilers.getTimeline();
     timeline.reset(session.getStartTimestamp(), session.getEndTimestamp());
     timeline.setIsPaused(true);
 

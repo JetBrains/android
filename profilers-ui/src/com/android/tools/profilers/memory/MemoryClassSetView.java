@@ -22,6 +22,7 @@ import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.StandardColors;
@@ -29,7 +30,6 @@ import com.android.tools.profilers.CloseButton;
 import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
 import com.android.tools.profilers.memory.adapters.ClassSet;
@@ -79,7 +79,7 @@ final class MemoryClassSetView extends AspectObserver {
 
   @NotNull private final MemoryProfilerStage myStage;
 
-  @NotNull private final ProfilerTimeline myTimeline;
+  @NotNull private final StreamingTimeline myTimeline;
 
   @NotNull private final ContextMenuInstaller myContextMenuInstaller;
 
