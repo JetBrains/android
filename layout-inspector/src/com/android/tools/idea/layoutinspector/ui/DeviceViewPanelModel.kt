@@ -67,8 +67,18 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
       field = value
       modificationListeners.forEach { it() }
     }
+  var overlayAlpha: Float = INITIAL_ALPHA_PERCENT / 100f
+    set(value) {
+      field = value
+      modificationListeners.forEach { it() }
+    }
 
   init {
+    model.modificationListeners.add { _, new, _ ->
+      if (new == null) {
+        overlay = null
+      }
+    }
     refresh()
   }
 

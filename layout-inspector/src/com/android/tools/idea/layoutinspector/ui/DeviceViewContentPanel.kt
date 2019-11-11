@@ -141,7 +141,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
     model.hitRects.asReversed().forEach { drawView(g2d, it, it.node.imageTop) }
 
     if (model.overlay != null) {
-      g2d.composite = AlphaComposite.SrcOver.derive(0.6f)
+      g2d.composite = AlphaComposite.SrcOver.derive(model.overlayAlpha)
       val bounds = model.hitRects[0].bounds.bounds
       g2d.drawImage(model.overlay, bounds.x, bounds.y, bounds.width, bounds.height, null)
     }
