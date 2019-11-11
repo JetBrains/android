@@ -25,6 +25,7 @@ import kotlin.jvm.JvmDefault
 
 import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*
+import com.intellij.openapi.application.runReadAction
 
 interface KotlinDslNameConverter: GradleDslNameConverter {
   @JvmDefault
@@ -37,8 +38,12 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
 
   @JvmDefault
   override fun convertReferenceText(context: GradleDslElement, referenceText: String): String {
-    val referencePsi = KtPsiFactory(context.dslFile.project).createExpression(referenceText)
-    return gradleNameFor(referencePsi) ?: referenceText
+    var result : String? = null
+    runReadAction {
+      val referencePsi = KtPsiFactory(context.dslFile.project, false).createExpression(referenceText)
+      result = gradleNameFor(referencePsi)
+    }
+    return result ?: referenceText
   }
 
   @JvmDefault
