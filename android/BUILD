@@ -260,7 +260,6 @@ iml_module(
             "com.android.tools.idea.templates",
             "com.android.tools.idea.testartifacts",
             "com.android.tools.idea.ui",
-            "com.android.tools.idea.util",
             "com.android.tools.idea.welcome",
             "com.android.tools.idea.wizard",
             "org.jetbrains.android",
