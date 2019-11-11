@@ -152,9 +152,8 @@ final class VirtualDevice extends Device {
     return DeploymentApplicationService.getInstance().getVersion(ddmlibDevice);
   }
 
-  // TODO Delete the snapshot parameter
   @Override
-  void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable Snapshot snapshot) {
+  void addTo(@NotNull DeviceFutures futures, @NotNull Project project) {
     AndroidDevice device = getAndroidDevice();
 
     if (!isConnected()) {
