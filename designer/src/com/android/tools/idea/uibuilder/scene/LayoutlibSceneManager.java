@@ -787,6 +787,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @returns whether the model was inflated in this call or not
    */
   private CompletableFuture<Boolean> inflate(boolean force) {
+    long startInflateTimeMs = System.currentTimeMillis();
     Configuration configuration = getModel().getConfiguration();
 
     Project project = getModel().getProject();
@@ -839,7 +840,14 @@ public class LayoutlibSceneManager extends SceneManager {
               }
             }
           })
-            .thenApply(result -> result != null ? result : RenderResult.createBlank(getModel().getFile()))
+            .thenApply(result -> {
+              if (result != null) {
+                CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(null, result, System.currentTimeMillis() - startInflateTimeMs, true);
+                return result;
+              } else {
+                return RenderResult.createBlank(getModel().getFile());
+              }
+            })
             .thenApply(result -> {
               if (project.isDisposed()) {
                 return false;
@@ -962,7 +970,7 @@ public class LayoutlibSceneManager extends SceneManager {
       getModel().resetLastChange();
 
       long renderStartTimeMs = System.currentTimeMillis();
-      return renderImpl()
+      return renderImpl(trigger)
         .thenApply(result -> {
           if (result == null) {
             completeRender();
@@ -986,7 +994,6 @@ public class LayoutlibSceneManager extends SceneManager {
             long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
             NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
                                                                         myRenderResult.getRenderedImage().getWidth() * myRenderResult.getRenderedImage().getHeight() * 4);
-            CommonUsageTracker.Companion.getInstance(surface).logRenderResult(trigger, myRenderResult, renderTimeMs);
           }
           finally {
             myRenderResultLock.readLock().unlock();
@@ -1028,7 +1035,7 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   @NotNull
-  private CompletableFuture<RenderResult> renderImpl() {
+  private CompletableFuture<RenderResult> renderImpl(@Nullable LayoutEditorRenderResult.Trigger trigger) {
     return inflate(myForceInflate.getAndSet(false))
       .whenCompleteAsync((result, ex) -> {
         if (result) {
@@ -1043,6 +1050,7 @@ public class LayoutlibSceneManager extends SceneManager {
             getDesignSurface().updateErrorDisplay();
             return CompletableFuture.completedFuture(null);
           }
+          long startRenderTimeMs = System.currentTimeMillis();
           if (elapsedFrameTimeMs != -1) {
             myRenderTask.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(elapsedFrameTimeMs));
           }
@@ -1051,7 +1059,9 @@ public class LayoutlibSceneManager extends SceneManager {
             if (result != null && !inflated) {
               updateHierarchy(result);
             }
-
+            if (result != null) {
+              CommonUsageTracker.Companion.getInstance(getDesignSurface()).logRenderResult(trigger, result, System.currentTimeMillis() - startRenderTimeMs, false);
+            }
             return result;
           });
         }
