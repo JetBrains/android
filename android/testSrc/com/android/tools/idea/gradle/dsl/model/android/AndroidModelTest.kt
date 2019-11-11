@@ -88,15 +88,10 @@ import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REPLACE_AND_
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REPLACE_AND_RESET_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.LIST
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl
-import com.android.tools.idea.gradle.editor.parser.GradleEditorModelParseContext
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
