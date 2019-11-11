@@ -114,6 +114,11 @@ interface RecipeExecutor {
   fun setExtVar(name: String, value: String)
 
   /**
+   * Adds a module dependency to global settings.gradle[.kts] file.
+   */
+  fun addIncludeToSettings(moduleName: String?)
+
+  /**
    * Adds a new build feature to android block. For example, may enable compose.
    */
   fun setBuildFeature(name: String, value: String)

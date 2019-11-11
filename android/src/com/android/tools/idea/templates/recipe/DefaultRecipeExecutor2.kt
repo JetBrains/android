@@ -31,6 +31,7 @@ import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
@@ -559,6 +560,10 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
       buildModel.applyChanges()
     }
 
+    open fun applyChanges(settingsModel: GradleSettingsModel) {
+      settingsModel.applyChanges()
+    }
+
     open fun mergeBuildFiles(
       dependencies: String, destinationContents: String, project: Project, supportLibVersionFilter: String?
     ): String = project.getProjectSystem().mergeBuildFiles(dependencies, destinationContents, supportLibVersionFilter)
@@ -583,6 +588,8 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     }
 
     override fun applyChanges(buildModel: GradleBuildModel) {}
+
+    override fun applyChanges(settingsModel: GradleSettingsModel) {}
 
     override fun mergeBuildFiles(
       dependencies: String, destinationContents: String, project: Project, supportLibVersionFilter: String?

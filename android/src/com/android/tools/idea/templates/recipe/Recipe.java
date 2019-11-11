@@ -57,6 +57,7 @@ public class Recipe implements RecipeInstruction {
     @XmlElement(name = "moduleDependency", type = ModuleDependencyInstruction.class),
     @XmlElement(name = "sourceSet", type =  SourceSetInstruction.class),
     @XmlElement(name = "setExtVar", type = SetExtVarInstruction.class),
+    @XmlElement(name = "addIncludeToSettings", type = AddIncludeToSettingsInstruction.class),
     @XmlElement(name = "setBuildFeature", type = SetBuildFeatureInstruction.class),
     @XmlElement(name = "requireJavaVersion", type = RequireJavaVersionInstruction.class),
   })
@@ -219,6 +220,18 @@ public class Recipe implements RecipeInstruction {
     @Override
     public void execute(@NotNull RecipeExecutor executor) {
       executor.mkDir(at);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  private static final class AddIncludeToSettingsInstruction implements RecipeInstruction {
+    @XmlAttribute
+    @Nullable
+    private String moduleName;
+
+    @Override
+    public void execute(@NotNull RecipeExecutor executor) {
+      executor.addIncludeToSettings(moduleName);
     }
   }
 
