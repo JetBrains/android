@@ -69,6 +69,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetu
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.utils.FileUtils
+import com.android.utils.appendCapitalized
 import com.google.common.truth.TruthJUnit.assume
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -324,21 +325,21 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
   )
   return AndroidArtifactStub(
     ARTIFACT_NAME_MAIN,
-    "compile",
-    "assemble",
+    "compile".appendCapitalized(variant).appendCapitalized("sources"),
+    "assemble".appendCapitalized(variant),
     buildPath.resolve("intermediates/javac/$variant/classes"),
     classFolders,
     buildPath.resolve("intermediates/java_res/$variant/out"),
     dependenciesStub,
     dependenciesStub,
     DependencyGraphsStub(listOf(), listOf(), listOf(), listOf()),
-    setOf(),
+    setOf("ideSetupTask1", "ideSetupTask2"),
     setOf(),
     null,
     null,
     listOf<AndroidArtifactOutput>(),
     "applicationId",
-    "sourceGenTaskName",
+    "generate".appendCapitalized(variant).appendCapitalized("sources"),
     mapOf(),
     mapOf(),
     InstantRunStub(),
@@ -362,21 +363,21 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
   val dependenciesStub = buildDependenciesStub()
   return AndroidArtifactStub(
     ARTIFACT_NAME_ANDROID_TEST,
-    "compile",
-    "assemble",
+    "compile".appendCapitalized(variant).appendCapitalized("androidTestSources"),
+    "assemble".appendCapitalized(variant).appendCapitalized("androidTest"),
     buildPath.resolve("intermediates/javac/${variant}AndroidTest/classes"),
     classFolders,
     buildPath.resolve("intermediates/java_res/${variant}AndroidTest/out"),
     dependenciesStub,
     dependenciesStub,
     DependencyGraphsStub(listOf(), listOf(), listOf(), listOf()),
-    setOf(),
+    setOf("ideAndroidTestSetupTask1", "ideAndroidTestSetupTask2"),
     setOf(),
     null,
     null,
     listOf(),
     "applicationId",
-    "sourceGenTaskName",
+    "generate".appendCapitalized(variant).appendCapitalized("androidTestSources"),
     mapOf(),
     mapOf(),
     InstantRunStub(),
@@ -401,15 +402,15 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
 ): JavaArtifactStub {
   return JavaArtifactStub(
     ARTIFACT_NAME_UNIT_TEST,
-    "compile",
-    "assemble",
+    "compile".appendCapitalized(variant).appendCapitalized("unitTestSources"),
+    "assemble".appendCapitalized(variant).appendCapitalized("unitTest"),
     buildPath.resolve("intermediates/javac/${variant}UnitTest/classes"),
     classFolders,
     buildPath.resolve("intermediates/java_res/${variant}UnitTest/out"),
     dependencies,
     dependencies,
     DependencyGraphsStub(listOf(), listOf(), listOf(), listOf()),
-    setOf(),
+    setOf("ideUnitTestSetupTask1", "ideUnitTestSetupTask2"),
     setOf(),
     null,
     null,
