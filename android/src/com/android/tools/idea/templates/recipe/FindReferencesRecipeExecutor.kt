@@ -74,6 +74,8 @@ internal class FindReferencesRecipeExecutor(private val myContext: RenderingCont
 
   override fun popFolder() {}
 
+  override fun setBuildFeature(name: String, value: String) {}
+
   fun addSourceFile(file: File) {
     myContext.sourceFiles.add(resolveSourceFile(file))
   }
