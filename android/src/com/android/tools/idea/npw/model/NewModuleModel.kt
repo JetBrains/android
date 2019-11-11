@@ -149,7 +149,6 @@ class NewModuleModel(
       projectTemplateValues.also {
         it[formFactor.get().id + ATTR_INCLUDE_FORM_FACTOR] = true
         it[formFactor.get().id + ATTR_MODULE_NAME] = moduleName.get()
-        moduleTemplateValues.putAll(projectTemplateValues)
       }
 
       moduleTemplateValues[ATTR_APP_TITLE] = applicationName.get()
