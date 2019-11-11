@@ -52,7 +52,6 @@ import com.android.tools.idea.templates.TemplateMetadata.ATTR_DEPENDENCIES_MULTI
 import com.android.tools.idea.templates.TemplateUtils.hasExtension
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
-import com.android.tools.idea.templates.mergeGradleSettingsFile
 import com.android.tools.idea.templates.mergeXml
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2.DryRunRecipeIO
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2.RecipeIO
@@ -339,7 +338,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
         readTextFromDisk(sourceFile) ?: return
 
       val contents: String = when {
-        targetFile.name == GRADLE_PROJECT_SETTINGS_FILE -> mergeGradleSettingsFile(sourceText, targetText)
         targetFile.name == FN_BUILD_GRADLE -> {
           val compileSdkVersion = paramMap[ATTR_BUILD_API_STRING] as String
           io.mergeBuildFiles(sourceText, targetText, context.project, compileSdkVersion)

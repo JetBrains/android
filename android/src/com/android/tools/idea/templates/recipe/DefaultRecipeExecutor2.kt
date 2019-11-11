@@ -581,12 +581,6 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
 }
 
 /**
- * The settings.gradle lives at project root and points gradle at the build files for individual modules in their subdirectories
- */
-// TODO(qumeric): make private
-const val GRADLE_PROJECT_SETTINGS_FILE = "settings.gradle"
-
-/**
  * 'classpath' is the configuration name used to specify buildscript dependencies.
  */
 // TODO(qumeric): make private
