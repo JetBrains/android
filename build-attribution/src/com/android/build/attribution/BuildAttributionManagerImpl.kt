@@ -15,9 +15,9 @@
  */
 package com.android.build.attribution
 
+import com.android.build.attribution.analytics.BuildAttributionAnalyticsManager
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersWrapper
-import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.ui.BuildAttributionUiManager
@@ -25,15 +25,12 @@ import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuild
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.build.BuildContentManager
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
 import java.io.File
-import java.time.Duration
 
 class BuildAttributionManagerImpl(
-  project: Project
+  val project: Project
 ) : BuildAttributionManager {
   private val taskContainer = TaskContainer()
   private val pluginContainer = PluginContainer()
@@ -51,15 +48,20 @@ class BuildAttributionManagerImpl(
 
   override fun onBuildSuccess(attributionFileDir: File) {
     val buildFinishedTimestamp = System.currentTimeMillis()
-    val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
-    if (attributionData != null) {
-      taskContainer.updateTasksData(attributionData)
+
+    BuildAttributionAnalyticsManager(project).use { analyticsManager ->
+      analyticsManager.recordPostBuildAnalysis {
+        val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
+        if (attributionData != null) {
+          taskContainer.updateTasksData(attributionData)
+        }
+        analyzersWrapper.onBuildSuccess(attributionData)
+      }
+
+      analyticsManager.logAnalyzersData(analyzersProxy)
+
+      uiManager.showNewReport(BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp).build())
     }
-    analyzersWrapper.onBuildSuccess(attributionData)
-
-    logBuildAttributionResults()
-
-    uiManager.showNewReport(BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp).build())
   }
 
   override fun onBuildFailure() {
@@ -73,108 +75,4 @@ class BuildAttributionManagerImpl(
   }
 
   override fun openResultsTab() = uiManager.openTab()
-
-  private fun logBuildAttributionResults() {
-    val stringBuilder = StringBuilder()
-
-    analyzersProxy.getNonIncrementalAnnotationProcessorsData().let {
-      if (it.isNotEmpty()) {
-        stringBuilder.appendln("Non incremental annotation processors:")
-        it.forEach { processor -> stringBuilder.appendln(processor.className + " " + processor.compilationDuration) }
-      }
-    }
-
-    analyzersProxy.getCriticalPathTasks().let {
-      if (it.isNotEmpty()) {
-        stringBuilder.appendln("Tasks critical path:")
-        it.forEach { taskData ->
-          val percentage = taskData.executionTime * 100 / analyzersProxy.getTotalBuildTimeMs()
-          stringBuilder.append("Task ${taskData.getTaskPath()} from ${taskData.originPlugin}")
-            .appendln(", time ${Duration.ofMillis(taskData.executionTime)} ($percentage%)")
-        }
-      }
-    }
-
-    analyzersProxy.getCriticalPathPlugins().let {
-      if (it.isNotEmpty()) {
-        stringBuilder.appendln("Plugins determining build duration:")
-        it.forEach { pluginBuildData ->
-          val percentage = pluginBuildData.buildDuration * 100 / analyzersProxy.getTotalBuildTimeMs()
-          stringBuilder.append("${pluginBuildData.plugin}, time ${Duration.ofMillis(pluginBuildData.buildDuration)}")
-            .appendln(" ($percentage%)")
-        }
-      }
-    }
-
-    fun printPluginConfigurationData(pluginConfigurationData: PluginConfigurationData, stringBuilder: StringBuilder, prefix: String) {
-      stringBuilder.append(prefix + "${pluginConfigurationData.plugin} (${pluginConfigurationData.configurationDuration})")
-      if (pluginConfigurationData.isSlowingConfiguration) {
-        stringBuilder.append(" *SLOW*")
-      }
-      if (pluginConfigurationData.nestedPluginsConfigurationData.isEmpty()) {
-        stringBuilder.appendln()
-      }
-      else {
-        stringBuilder.appendln(" {")
-        pluginConfigurationData.nestedPluginsConfigurationData.forEach { printPluginConfigurationData(it, stringBuilder, "$prefix  ") }
-        stringBuilder.appendln("$prefix}")
-      }
-    }
-
-    analyzersProxy.getProjectsConfigurationData().let {
-      if (it.isNotEmpty()) {
-        stringBuilder.appendln("Project configuration:")
-        it.forEach { projectConfigurationData ->
-          stringBuilder.appendln("project ${projectConfigurationData.project} (${projectConfigurationData.totalConfigurationTime}):")
-
-          projectConfigurationData.pluginsConfigurationData.forEach { pluginConfigurationData ->
-            printPluginConfigurationData(pluginConfigurationData, stringBuilder, " ")
-          }
-        }
-      }
-    }
-
-    analyzersProxy.getAlwaysRunTasks().let {
-      if (it.isNotEmpty()) {
-        stringBuilder.appendln("Always-run tasks:")
-        it.forEach { alwaysRunTaskData ->
-          stringBuilder.append(
-            "Task ${alwaysRunTaskData.taskData.getTaskPath()} from ${alwaysRunTaskData.taskData.originPlugin} ")
-            .appendln("runs on every build because ${alwaysRunTaskData.rerunReason.message}")
-        }
-      }
-    }
-
-    analyzersProxy.getNonCacheableTasks().let {
-      if (it.isNotEmpty()) {
-        stringBuilder.appendln("Non-cacheable tasks:")
-        it.forEach { taskData ->
-          stringBuilder.appendln(
-            "Task ${taskData.getTaskPath()} from ${taskData.originPlugin} is not cacheable and will run even if its inputs are unchanged")
-        }
-      }
-    }
-
-    analyzersProxy.getTasksSharingOutput().let {
-      if (it.isNotEmpty()) {
-        stringBuilder.appendln("Configuration Issues:")
-        it.forEach { entry ->
-          stringBuilder.append("Tasks ")
-          entry.taskList.forEachIndexed { index, taskData ->
-            if (index != 0) {
-              stringBuilder.append(", ")
-            }
-            stringBuilder.append("${taskData.getTaskPath()} from ${taskData.originPlugin}")
-          }
-          stringBuilder.appendln(
-            " declare the same output ${entry.outputFilePath}")
-        }
-      }
-    }
-
-    if (stringBuilder.isNotEmpty()) {
-      Logger.getInstance(this::class.java).warn("Build attribution analysis results:\n$stringBuilder")
-    }
-  }
-
 }

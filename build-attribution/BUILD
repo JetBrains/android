@@ -33,11 +33,14 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/.idea/libraries:Gradle",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
     ],
 )
 
@@ -95,6 +98,8 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
@@ -105,5 +110,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
+        "//tools/analytics-library/tracker:analytics-tracker[module, test]",
     ],
 )

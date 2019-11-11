@@ -15,7 +15,7 @@
  */
 package com.android.build.attribution.ui.data.builder
 
-import com.android.build.attribution.analyzers.AnnotationProcessorsAnalyzer.AnnotationProcessorData
+import com.android.build.attribution.data.AnnotationProcessorData
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.time.Duration

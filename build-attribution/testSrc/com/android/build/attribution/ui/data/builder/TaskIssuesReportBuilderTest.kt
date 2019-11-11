@@ -15,8 +15,8 @@
  */
 package com.android.build.attribution.ui.data.builder
 
-import com.android.build.attribution.analyzers.CriticalPathAnalyzer
 import com.android.build.attribution.data.AlwaysRunTaskData
+import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.build.attribution.ui.data.CriticalPathPluginTasksUiData
@@ -43,9 +43,9 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
       override fun getTotalBuildTimeMs(): Long = 1500
       override fun getCriticalPathDurationMs(): Long = 1000
       override fun getCriticalPathTasks(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
-      override fun getCriticalPathPlugins(): List<CriticalPathAnalyzer.PluginBuildData> = listOf(
-        CriticalPathAnalyzer.PluginBuildData(pluginA, 400),
-        CriticalPathAnalyzer.PluginBuildData(pluginB, 600)
+      override fun getCriticalPathPlugins(): List<PluginBuildData> = listOf(
+        PluginBuildData(pluginA, 400),
+        PluginBuildData(pluginB, 600)
       )
 
       override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> = listOf(
@@ -84,9 +84,9 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
       override fun getTotalBuildTimeMs(): Long = 1500
       override fun getCriticalPathDurationMs(): Long = 1000
       override fun getCriticalPathTasks(): List<TaskData> = listOf(taskA, taskB)
-      override fun getCriticalPathPlugins(): List<CriticalPathAnalyzer.PluginBuildData> = listOf(
-        CriticalPathAnalyzer.PluginBuildData(pluginA, 400),
-        CriticalPathAnalyzer.PluginBuildData(pluginB, 300)
+      override fun getCriticalPathPlugins(): List<PluginBuildData> = listOf(
+        PluginBuildData(pluginA, 400),
+        PluginBuildData(pluginB, 300)
       )
 
       override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> = listOf(
@@ -131,9 +131,9 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
       override fun getTotalBuildTimeMs(): Long = 1500
       override fun getCriticalPathDurationMs(): Long = 1000
       override fun getCriticalPathTasks(): List<TaskData> = listOf(taskA, taskB)
-      override fun getCriticalPathPlugins(): List<CriticalPathAnalyzer.PluginBuildData> = listOf(
-        CriticalPathAnalyzer.PluginBuildData(pluginA, 400),
-        CriticalPathAnalyzer.PluginBuildData(pluginB, 600)
+      override fun getCriticalPathPlugins(): List<PluginBuildData> = listOf(
+        PluginBuildData(pluginA, 400),
+        PluginBuildData(pluginB, 600)
       )
 
       override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> = listOf(
