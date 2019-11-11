@@ -99,7 +99,7 @@ final class ConnectedDevice extends Device {
   }
 
   @Override
-  void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable Snapshot snapshot) {
+  void addTo(@NotNull DeviceFutures futures, @NotNull Project project) {
     throw new UnsupportedOperationException();
   }
 }

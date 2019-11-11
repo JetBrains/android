@@ -137,7 +137,7 @@ final class PhysicalDevice extends Device {
   }
 
   @Override
-  void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable Snapshot snapshot) {
+  void addTo(@NotNull DeviceFutures futures, @NotNull Project project) {
     futures.getDevices().add(getAndroidDevice());
   }
 
