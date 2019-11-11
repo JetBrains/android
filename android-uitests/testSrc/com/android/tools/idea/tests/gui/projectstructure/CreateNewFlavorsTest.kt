@@ -25,18 +25,20 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectBuildVari
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import org.fest.swing.timing.Wait
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
 class CreateNewFlavorsTest {
 
   @Rule
   @JvmField
-  val guiTest = GuiTestRule()
+  val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
 
   @Before
   fun setUp() {
@@ -70,7 +72,7 @@ class CreateNewFlavorsTest {
    *   set in the project structure flavor dialog
    * </pre>
    */
-  @RunIn(TestGroup.FAST_BAZEL)
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   @Throws(Exception::class)
   fun createNewFlavors() {
@@ -121,7 +123,7 @@ class CreateNewFlavorsTest {
       .setTargetSourceSet(FLAVOR1)
       .wizard()
       .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+      .waitForGradleProjectSyncToFinish(Wait.seconds(120))
   }
 }
 
