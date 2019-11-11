@@ -28,9 +28,7 @@ import com.android.build.attribution.ui.tree.CriticalPathTasksRoot
 import com.android.build.attribution.ui.tree.PluginConfigurationTimeRoot
 import com.android.build.attribution.ui.tree.TaskIssuesRoot
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComponentContainer
-import com.intellij.openapi.util.Disposer
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
@@ -59,10 +57,7 @@ import javax.swing.tree.TreePath
 @NonNls
 private const val SPLITTER_PROPERTY = "BuildAttribution.Splitter.Proportion"
 
-class BuildAttributionTreeView(
-  project: Project,
-  private val reportData: BuildAttributionReportUiData
-) : ComponentContainer, TreeNodeSelector {
+class BuildAttributionTreeView(private val reportData: BuildAttributionReportUiData) : ComponentContainer, TreeNodeSelector {
 
   private val disposed = AtomicBoolean()
   private val rootNode = RootNode()
@@ -75,8 +70,6 @@ class BuildAttributionTreeView(
     get() = disposed.get()
 
   init {
-    Disposer.register(project, this)
-
     val treeStructure = SimpleTreeStructure.Impl(rootNode)
     treeModel = StructureTreeModel(treeStructure, this)
     tree = initTree(AsyncTreeModel(treeModel, this))

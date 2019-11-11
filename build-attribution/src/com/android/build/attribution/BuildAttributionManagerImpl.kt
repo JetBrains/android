@@ -31,6 +31,7 @@ import com.intellij.build.BuildContentManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.impl.ContentImpl
 import org.gradle.tooling.events.ProgressEvent
@@ -50,6 +51,7 @@ class BuildAttributionManagerImpl(
                                                              analyzersProxy.getBuildAttributionReportAnalyzers())
 
   private var buildContent: Content? = null
+  private var buildAttributionTreeView: BuildAttributionTreeView? = null
   private var reportUiData: BuildAttributionReportUiData? = null
 
   override fun onBuildStart() {
@@ -83,16 +85,20 @@ class BuildAttributionManagerImpl(
   @UiThread
   private fun createUiTab() {
     reportUiData?.let {
-      val view = BuildAttributionTreeView(project, it)
-      val content = buildContent
-      if (content != null && content.isValid) {
-        content.component = view.component
+      buildAttributionTreeView?.let { treeView -> Disposer.dispose(treeView) }
+      buildAttributionTreeView = BuildAttributionTreeView(it).also { view ->
+        buildContent?.takeIf { content -> content.isValid }?.also { content ->
+          content.component = view.component
+          Disposer.register(content, view)
+        } ?: run {
+          buildContent = ContentImpl(view.component, "Build Speed", true).also { disposableContent ->
+            Disposer.register(project, disposableContent)
+            Disposer.register(disposableContent, view)
+          }
+          buildContentManager.addContent(buildContent)
+        }
+        view.setInitialSelection()
       }
-      else {
-        buildContent = ContentImpl(view.component, "Build Speed", true)
-        buildContentManager.addContent(buildContent)
-      }
-      view.setInitialSelection()
     }
   }
 
