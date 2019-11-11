@@ -18,9 +18,12 @@ package com.android.tools.idea.util
 import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.ex.temp.TempFileSystem
+import com.intellij.util.io.URLUtil
 import org.jetbrains.android.AndroidTestCase
 import java.io.File
 
@@ -40,7 +43,7 @@ class FileExtensionsTest : AndroidTestCase() {
   fun testApk() {
     val ioFile = File(getTestDataPath()).resolve("design_aar").resolve("res.apk").canonicalFile
     assertTrue(ioFile.exists())
-    val entryPath = ioFile.absolutePath + ApkFileSystem.APK_SEPARATOR + "res/drawable-mdpi-v4/design_ic_visibility.png"
+    val entryPath = FileUtilRt.toSystemIndependentName(ioFile.absolutePath) + ApkFileSystem.APK_SEPARATOR + "res/drawable-mdpi-v4/design_ic_visibility.png"
     val apkFsUrl = ApkFileSystem.PROTOCOL + "://" + entryPath
 
     val vfsFile = VirtualFileManager.getInstance().refreshAndFindFileByUrl(apkFsUrl)!!
@@ -65,13 +68,14 @@ class FileExtensionsTest : AndroidTestCase() {
   private fun checkPathStringFromVirtualFile(vfsFile: VirtualFile) {
     assertTrue(vfsFile.exists())
 
-    // VFS uses three slashes in its URLs and won't recognize URLs like `file:/foo` or `temp:/foo`. Make sure we're compatible with that.
-    val threeSlashes = ":///"
+    // VFS uses three slashes in its URLs (two on Windows) and won't recognize URLs like `file:/foo` or `temp:/foo`. Make sure we're compatible with that.
+    val urlRootSlashes = if (SystemInfo.isWindows) "://" else ":///"
 
-    assertTrue(vfsFile.url.contains(threeSlashes))
+    assertTrue(vfsFile.url.contains(urlRootSlashes))
 
     val pathString = vfsFile.toPathString()
-    assertThat(pathString.filesystemUri.path).isEqualTo(File.separator)
+    val pathRegex = if (SystemInfo.isWindows && pathString.filesystemUri.scheme.startsWith(URLUtil.FILE_PROTOCOL)) "/[A-Z]:/" else "/"
+    assertThat(pathString.filesystemUri.path).matches(pathRegex)
 
     assertEquals(vfsFile, pathString.toVirtualFile())
     assertEquals(vfsFile, VirtualFileManager.getInstance().refreshAndFindFileByUrl(pathString.toString()))
