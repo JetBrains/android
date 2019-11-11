@@ -298,7 +298,7 @@ public class TutorialCard extends CardViewPanel {
       super(label, TutorialChooser.NAVIGATION_KEY, listener);
       myDirection = direction;
       if (Direction.NEXT == direction) {
-        setIcon(AllIcons.Diff.CurrentLine);
+        setIcon(AllIcons.Actions.Forward);
         setHorizontalTextPosition(LEFT);
       }
       else {
