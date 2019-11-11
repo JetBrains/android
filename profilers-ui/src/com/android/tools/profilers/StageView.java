@@ -20,6 +20,7 @@ import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.intellij.ui.components.JBPanel;
@@ -102,7 +103,7 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
   }
 
   @NotNull
-  public final ProfilerTimeline getTimeline() {
+  public final StreamingTimeline getTimeline() {
     return myStage.getStudioProfilers().getTimeline();
   }
 
@@ -170,7 +171,7 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
   }
 
   private void selectionChanged() {
-    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
+    StreamingTimeline timeline = myStage.getStudioProfilers().getTimeline();
     Range selectionRange = timeline.getSelectionRange();
     if (selectionRange.isEmpty()) {
       mySelectionTimeLabel.setIcon(null);
@@ -200,7 +201,7 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
     selectionTimeLabel.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        ProfilerTimeline timeline = getStage().getStudioProfilers().getTimeline();
+        StreamingTimeline timeline = getStage().getStudioProfilers().getTimeline();
         timeline.frameViewToRange(timeline.getSelectionRange());
       }
     });

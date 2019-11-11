@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.adtui.model;
 
-import com.android.tools.adtui.model.AspectModel;
-import com.android.tools.adtui.model.Timeline;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import com.google.common.annotations.VisibleForTesting;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.TimeUnit;
-
 /**
- * A helper object that manages the current view and selection ranges for the Studio Profilers.
+ * An implementation of {@link Timeline} that supports moving ranges, e.g. the Studio Profilers.
  */
-public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect> implements Updatable, Timeline {
+public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspect> implements Updatable, Timeline {
 
   public enum Aspect {
     STREAMING
@@ -101,7 +97,7 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
    */
   private float myJumpFactor;
 
-  public ProfilerTimeline(@NotNull Updater updater) {
+  public StreamingTimeline(@NotNull Updater updater) {
     myDataRangeUs = new Range(0, 0);
     myViewRangeUs = new Range(0, 0);
     myZoomLeft = new Range(0, 0);
@@ -381,7 +377,7 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   }
 
   /**
-   * Zooms out by {@link ProfilerTimeline#DEFAULT_ZOOM_PERCENT} of the current view range length.
+   * Zooms out by {@link StreamingTimeline#DEFAULT_ZOOM_PERCENT} of the current view range length.
    */
   @Override
   public void zoomOut() {
@@ -396,7 +392,7 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   }
 
   /**
-   * Zooms in by {@link ProfilerTimeline#DEFAULT_ZOOM_PERCENT} of the current view range length.
+   * Zooms in by {@link StreamingTimeline#DEFAULT_ZOOM_PERCENT} of the current view range length.
    */
   @Override
   public void zoomIn() {

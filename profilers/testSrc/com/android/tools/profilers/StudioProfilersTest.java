@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
@@ -612,7 +613,7 @@ public final class StudioProfilersTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    ProfilerTimeline timeline = profilers.getTimeline();
+    StreamingTimeline timeline = profilers.getTimeline();
     assertTrue(timeline.isStreaming());
     timeline.getDataRange().set(0, FakeTimer.ONE_SECOND_IN_NS);
     timeline.getSelectionRange().set(0, 0);
@@ -1409,7 +1410,7 @@ public final class StudioProfilersTest {
 
     // selecting an ongoing session should use the default zoom with streaming enabled
     profilers.getSessionsManager().setSession(profilers.getSessionsManager().getSessionArtifacts().get(0).getSession());
-    assertThat(profilers.getTimeline().getViewRange().getMin()).isWithin(0).of(-ProfilerTimeline.DEFAULT_VIEW_LENGTH_US);
+    assertThat(profilers.getTimeline().getViewRange().getMin()).isWithin(0).of(-StreamingTimeline.DEFAULT_VIEW_LENGTH_US);
     assertThat(profilers.getTimeline().getViewRange().getMax()).isWithin(0).of(0);
     assertThat(profilers.getTimeline().isStreaming()).isTrue();
     assertThat(profilers.getTimeline().isPaused()).isFalse();
@@ -1425,7 +1426,7 @@ public final class StudioProfilersTest {
 
     // Navigate back to the ongoing session should still use the default zoom
     profilers.getSessionsManager().setSession(profilers.getSessionsManager().getSessionArtifacts().get(0).getSession());
-    assertThat(profilers.getTimeline().getViewRange().getMin()).isWithin(0).of(-ProfilerTimeline.DEFAULT_VIEW_LENGTH_US);
+    assertThat(profilers.getTimeline().getViewRange().getMin()).isWithin(0).of(-StreamingTimeline.DEFAULT_VIEW_LENGTH_US);
     assertThat(profilers.getTimeline().getViewRange().getMax()).isWithin(0).of(0);
     assertThat(profilers.getTimeline().isStreaming()).isTrue();
     assertThat(profilers.getTimeline().isPaused()).isFalse();

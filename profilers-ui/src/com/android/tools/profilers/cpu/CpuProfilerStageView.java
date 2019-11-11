@@ -22,12 +22,12 @@ import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilerScrollbar;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilersView;
@@ -151,7 +151,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       myToolbar = new CpuProfilerToolbar.NormalMode(stage, getIdeComponents());
     }
 
-    ProfilerTimeline timeline = getTimeline();
+    StreamingTimeline timeline = getTimeline();
     myTooltipComponent = new RangeTooltipComponent(timeline,
                                                    getTooltipPanel(),
                                                    getProfilersView().getComponent(),

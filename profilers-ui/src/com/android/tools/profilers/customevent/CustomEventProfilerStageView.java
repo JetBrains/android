@@ -20,10 +20,10 @@ import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.trackgroup.TrackGroupListPanel;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerScrollbar;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTrackRendererFactory;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilers;
@@ -78,7 +78,7 @@ public class CustomEventProfilerStageView extends StageView<CustomEventProfilerS
   }
 
   private void buildUI() {
-    ProfilerTimeline timeline = myStudioProfilers.getTimeline();
+    StreamingTimeline timeline = myStudioProfilers.getTimeline();
 
     // The scrollbar can modify the view range of timeline and the tracks.
     getComponent().add(new ProfilerScrollbar(timeline, getComponent()), BorderLayout.SOUTH);

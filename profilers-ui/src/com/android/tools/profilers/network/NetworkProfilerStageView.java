@@ -41,12 +41,12 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionListener;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerScrollbar;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilers;
@@ -183,7 +183,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   @NotNull
   private JPanel buildMonitorUi() {
     StudioProfilers profilers = getStage().getStudioProfilers();
-    ProfilerTimeline timeline = profilers.getTimeline();
+    StreamingTimeline timeline = profilers.getTimeline();
     RangeSelectionComponent selection = new RangeSelectionComponent(getStage().getRangeSelectionModel(), timeline.getViewRange());
     selection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     RangeTooltipComponent tooltip = new RangeTooltipComponent(getTimeline(),

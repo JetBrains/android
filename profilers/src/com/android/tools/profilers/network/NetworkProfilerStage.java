@@ -25,6 +25,7 @@ import com.android.tools.adtui.model.Interpolatable;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionListener;
 import com.android.tools.adtui.model.RangeSelectionModel;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
@@ -34,7 +35,6 @@ import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.EventMonitor;
@@ -76,7 +76,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   public NetworkProfilerStage(StudioProfilers profilers) {
     super(profilers);
 
-    ProfilerTimeline timeline = profilers.getTimeline();
+    StreamingTimeline timeline = profilers.getTimeline();
 
     myDetailedNetworkUsage = new DetailedNetworkUsage(profilers);
 
