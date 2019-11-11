@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSc
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.StringMTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
+import com.intellij.ide.plugins.IdeaVersionBean;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -60,6 +61,7 @@ import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 
 /**
  * This displays the constraint panel
@@ -109,7 +111,6 @@ class ConstraintSetPanel extends JPanel {
   AbstractAction createSectionedConstraint = new AbstractAction("Create Sectioned Constraint") {
     @Override
     public void actionPerformed(ActionEvent e) {
-      System.out.println(mSelectedTag == null ? "null" : mSelectedTag.getTagName());
       ConstraintSetPanelCommands.createSectionedConstraint(mMultiSelectedTag, mConstraintSet);
       buildTable();
     }
@@ -149,6 +150,33 @@ class ConstraintSetPanel extends JPanel {
     mConstraintSetTable.setRowHeight(MEUI.scale(18));
     mConstraintSetTable.setShowHorizontalLines(false);
     mConstraintSetTable.setAlignmentY(0.0f);
+    mConstraintSetTable.setDefaultRenderer(Icon.class, new TableCellRenderer() {
+      JLabel myLabel = new JLabel();
+      @Override
+      public Component getTableCellRendererComponent(JTable table,
+                                                     Object value,
+                                                     boolean isSelected,
+                                                     boolean hasFocus,
+                                                     int row,
+                                                     int column) {
+        myLabel.setIcon((Icon) value);
+        myLabel.setSize(new Dimension(MEUI.scale(18),MEUI.scale(12)));
+        if (isSelected) {
+          if (value ==  MEIcons.LIST_STATE_DERIVED) {
+            myLabel.setIcon( MEIcons.LIST_STATE_DERIVED_SELECTED);
+          } else  if (value == MEIcons.LIST_STATE) {
+            myLabel.setIcon( MEIcons.LIST_STATE_SELECTED);
+
+          }
+          myLabel.setBackground(table.hasFocus() ? MEUI.CSPanel.our_SelectedFocusBackground : MEUI.CSPanel.our_SelectedBackground  );
+          myLabel.setOpaque(true);
+        } else {
+          myLabel.setOpaque(false);
+          myLabel.setBackground(MEUI.ourPrimaryPanelBackground);
+        }
+        return myLabel;
+      }
+    });
     top.setPreferredSize(new Dimension(0, MEUI.scale(32)));
 
     JCheckBox cbox = new JCheckBox("All");
@@ -405,7 +433,7 @@ class ConstraintSetPanel extends JPanel {
             row[1] = layoutId;
             //row[2] = "";
             row[2] = row[3] = (derived == null) ? "layout" : findFirstDefOfView(layoutId, mConstraintSet);
-            row[0] = ("layout".equals(row[3])) ? null : Utils.computeLiteIcon(MEIcons.LIST_STATE);
+            row[0] = ("layout".equals(row[3])) ? null : MEIcons.LIST_STATE_DERIVED;
             mDisplayedRows.add(view);
             mConstraintSetModel.addRow(row);
           }
