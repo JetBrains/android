@@ -37,6 +37,8 @@ import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListVi
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
+import com.android.tools.idea.ui.resourcemanager.model.TypeFilter
+import com.android.tools.idea.ui.resourcemanager.model.TypeFilterKind
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManager
 import com.android.tools.idea.ui.resourcemanager.model.resolveValue
@@ -54,6 +56,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.psi.PsiBinaryFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.xml.XmlFileImpl
+import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.speedSearch.SpeedSearch
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -147,47 +150,44 @@ class ResourceExplorerListViewModelImpl(
     facetUpdaterCallback?.invoke(newFacet)
   }
 
-  private fun getModuleResources(forFacet: AndroidFacet, type: ResourceType): ResourceSection {
+  private fun getModuleResources(forFacet: AndroidFacet, type: ResourceType, typeFilters: List<TypeFilter>): ResourceSection {
     val moduleRepository = ResourceRepositoryManager.getModuleResources(forFacet)
-    val sortedResources = moduleRepository.namespaces
-      .flatMap { namespace -> moduleRepository.getResources(namespace, type).values() }
-      .sortedBy { it.name }
+    val sortedResources = moduleRepository.namespaces.flatMap { namespace ->
+      moduleRepository.getResourcesAndApplyFilters(namespace, type, true, typeFilters)
+    }.sortedBy { it.name }
+
     return createResourceSection(forFacet.module.name, sortedResources)
   }
 
   /**
    * Returns a list of local module and their resources that the current module depends on.
    */
-  private fun getDependentModuleResources(forFacet: AndroidFacet, type: ResourceType): List<ResourceSection> {
+  private fun getDependentModuleResources(forFacet: AndroidFacet,
+                                          type: ResourceType,
+                                          typeFilters: List<TypeFilter>): List<ResourceSection> {
     return AndroidUtils.getAndroidResourceDependencies(forFacet.module).asSequence()
       .flatMap { dependentFacet ->
         val moduleRepository = ResourceRepositoryManager.getModuleResources(dependentFacet)
         moduleRepository.namespaces.asSequence()
-          .map { namespace -> moduleRepository.getResources(namespace, type).values() }
+          .map { namespace -> moduleRepository.getResourcesAndApplyFilters(namespace, type, true, typeFilters) }
           .filter { it.isNotEmpty() }
-          .map {
-            createResourceSection(dependentFacet.module.name, it.sortedBy(ResourceItem::getName))
-          }
+          .map { createResourceSection(dependentFacet.module.name, it.sortedBy(ResourceItem::getName)) }
       }.toList()
   }
 
   /**
    * Returns a map from the library name to its resource items
    */
-  private fun getLibraryResources(forFacet: AndroidFacet, type: ResourceType): List<ResourceSection> {
+  private fun getLibraryResources(forFacet: AndroidFacet, type: ResourceType, typeFilters: List<TypeFilter>): List<ResourceSection> {
     val repoManager = ResourceRepositoryManager.getInstance(forFacet)
-    return repoManager.libraryResources.asSequence()
+    return repoManager.libraryResources
       .flatMap { lib ->
         // Create a section for each library
         lib.namespaces.asSequence()
-          .map { namespace -> lib.getPublicResources(namespace, type) }
+          .map { namespace -> return@map lib.getResourcesAndApplyFilters(namespace, type, false, typeFilters) }
           .filter { it.isNotEmpty() }
-          .map {
-            createResourceSection(
-              userReadableLibraryName(lib), it.sortedBy(ResourceItem::getName))
-          }
+          .map { createResourceSection(userReadableLibraryName(lib), it.sortedBy(ResourceItem::getName)) }.toList()
       }
-      .toList()
   }
 
   /** Returns [ResourceType.SAMPLE_DATA] resources that match the content type of the requested [type]. E.g: Images for Drawables. */
@@ -212,12 +212,12 @@ class ResourceExplorerListViewModelImpl(
   /**
    * Returns a [ResourceSection] of the Android Framework resources.
    */
-  private fun getAndroidResources(forFacet: AndroidFacet, type: ResourceType): ResourceSection? {
+  private fun getAndroidResources(forFacet: AndroidFacet, type: ResourceType, typeFilters: List<TypeFilter>): ResourceSection? {
     val repoManager = ResourceRepositoryManager.getInstance(forFacet)
     val languages = if (type == ResourceType.STRING) repoManager.languagesInProject else emptySet<String>()
-    val frameworkRepo = repoManager.getFrameworkResources(languages)?: return null
+    val frameworkRepo = repoManager.getFrameworkResources(languages) ?: return null
     val resources = frameworkRepo.namespaces.flatMap { namespace ->
-      frameworkRepo.getPublicResources(namespace, type)
+      return@flatMap frameworkRepo.getResourcesAndApplyFilters(namespace, type, false, typeFilters)
     }.sortedBy { it.name }
     return createResourceSection(SdkConstants.ANDROID_NS_NAME, resources)
   }
@@ -267,7 +267,8 @@ class ResourceExplorerListViewModelImpl(
                         showLibraries = filterOptions.isShowLibraries,
                         showSampleData = filterOptions.isShowSampleData,
                         showAndroidResources = filterOptions.isShowFramework,
-                        showThemeAttributes = filterOptions.isShowThemeAttributes)
+                        showThemeAttributes = filterOptions.isShowThemeAttributes,
+                        typeFilters = filterOptions.currentResourceTypeActiveOptions)
   }
 
   override fun getOtherModulesResourceLists(): CompletableFuture<List<ResourceSection>> = resourceExplorerSupplyAsync {
@@ -286,7 +287,8 @@ class ResourceExplorerListViewModelImpl(
                             showLibraries = false,
                             showSampleData = false,
                             showAndroidResources = false,
-                            showThemeAttributes = false)
+                            showThemeAttributes = false,
+                            typeFilters = filterOptions.currentResourceTypeActiveOptions)
       } ?: emptyList()
     }
   }
@@ -297,23 +299,27 @@ class ResourceExplorerListViewModelImpl(
                                   showLibraries: Boolean,
                                   showSampleData: Boolean,
                                   showAndroidResources: Boolean,
-                                  showThemeAttributes: Boolean): List<ResourceSection> {
+                                  showThemeAttributes: Boolean,
+                                  typeFilters: List<TypeFilter> = emptyList()): List<ResourceSection> {
     val resourceType = currentResourceType
     val resources = mutableListOf<ResourceSection>()
     if (showSampleData) {
       resources.add(getSampleDataResources(forFacet, resourceType))
     }
-    resources.add(getModuleResources(forFacet, resourceType))
+    resources.add(getModuleResources(forFacet, resourceType, typeFilters))
     if (showModuleDependencies) {
-      resources.addAll(getDependentModuleResources(forFacet, resourceType))
+      resources.addAll(getDependentModuleResources(forFacet, resourceType, typeFilters))
     }
     if (showLibraries) {
-      resources.addAll(getLibraryResources(forFacet, resourceType))
+      resources.addAll(getLibraryResources(forFacet, resourceType, typeFilters))
     }
     if (showAndroidResources) {
-      getAndroidResources(forFacet, resourceType)?.let { resources.add(it) }
+      getAndroidResources(forFacet, resourceType, typeFilters)?.let { resources.add(it) }
     }
     if (showThemeAttributes) {
+      // TODO: Consider supporting filterTypeOptions in Theme attributes. Theme attributes are weird, in the sense that it could represent
+      //  different resources depending on the context, so applying (or not) these filters might be confusing. Might even be best to not
+      //  show theme attributes when these filters are in use.
       getThemeAttributes(forFacet, resourceType)?.let { resources.add(it) }
     }
     return resources
@@ -385,6 +391,58 @@ class ResourceExplorerListViewModelImpl(
   override val updateSelectedAssetSet: (assetSet: ResourceAssetSet) -> Unit = {
     updateSelectedAssetSetCallback?.invoke(it)
   }
+
+  private fun ResourceRepository.getResourcesAndApplyFilters(namespace: ResourceNamespace,
+                                                             type: ResourceType,
+                                                             isLocalRepo: Boolean,
+                                                             typeFilters: List<TypeFilter>): Collection<ResourceItem> {
+    if (isLocalRepo) {
+      if (typeFilters.isEmpty()) {
+        return getResources(namespace, type).values()
+      }
+      else {
+        return getResources(namespace, type) { resourceItem -> resourceItem.isValidForFilters(typeFilters) }
+      }
+    }
+    else {
+      // Only public resources for external resources.
+      val publicResources = getPublicResources(namespace, type)
+      if (typeFilters.isEmpty()) {
+        return publicResources
+      }
+      else {
+        return publicResources.filter { resourceItem -> resourceItem.isValidForFilters(typeFilters) }
+      }
+    }
+  }
+
+  private fun ResourceItem.isValidForFilters(typeFilters: List<TypeFilter>): Boolean {
+    val psiElement = runReadAction { dataManager.findPsiElement(this) } ?: return false
+    when(psiElement) {
+      is XmlFile -> {
+        val tag = runReadAction { psiElement.rootTag } ?: return false
+        typeFilters.forEach { filter ->
+          if (filter.kind == TypeFilterKind.XML_TAG && tag.name == filter.value ) {
+            return true
+          }
+        }
+        return false
+      }
+      is PsiBinaryFile -> {
+        val name = psiElement.name
+        typeFilters.forEach { filter ->
+          if (filter.kind == TypeFilterKind.FILE && name.endsWith(filter.value, ignoreCase = true) ) {
+            // TODO: This can't differentiate between 9-Patch and PNG, consider using substring at first '.'
+            return true
+          }
+        }
+        return false
+      }
+      else -> return false
+    }
+  }
+
+  private val FilterOptions.currentResourceTypeActiveOptions get () = typeFiltersModel.getActiveFilters(currentResourceType)
 }
 
 /**
