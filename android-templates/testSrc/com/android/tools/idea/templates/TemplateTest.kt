@@ -247,6 +247,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareLoginActivity() {
+    checkCreateTemplate("activities", "LoginActivity", false, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareLoginActivityWithKotlin() {
+    checkCreateTemplate("activities", "LoginActivity", false, true, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewScrollActivity() {
     checkCreateTemplate("activities", "ScrollActivity", false, true)
   }
