@@ -144,6 +144,7 @@ object LegacyTreeLoader : TreeLoader {
                         properties["mScrollX"]?.toInt() ?: 0, properties["mScrollY"]?.toInt() ?: 0,
                         properties["getWidth()"]?.toInt() ?: 0, properties["getHeight()"]?.toInt() ?: 0, null,
                         properties["text:mText"] ?: "")
+    node.parent = parent
 
     parent?.children?.add(node)
     return node to "$name@$hash"
