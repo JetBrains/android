@@ -2,9 +2,9 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "intellij.android.app-inspection",
+    name = "intellij.android.app-inspection.api",
     srcs = ["src"],
-    iml_files = ["intellij.android.app-inspection.iml"],
+    iml_files = ["intellij.android.app-inspection.api.iml"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
@@ -47,8 +47,8 @@ iml_module(
 
 # managed by go/iml_to_build
 iml_module(
-    name = "intellij.android.app-inspection.tests",
-    iml_files = ["intellij.android.app-inspection.tests.iml"],
+    name = "intellij.android.app-inspection.api.tests",
+    iml_files = ["intellij.android.app-inspection.api.tests.iml"],
     test_class = "com.android.tools.idea.appinspection.AppInspectionTestSuite",
     test_coverage = True,
     test_data = [
@@ -79,7 +79,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8[test]",
-        "//tools/adt/idea/app-inspection:intellij.android.app-inspection[module, test]",
+        "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module, test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",

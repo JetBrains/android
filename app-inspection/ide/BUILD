@@ -2,9 +2,9 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "intellij.android.app-inspectionAndroid",
+    name = "intellij.android.app-inspection.ide",
     srcs = ["src"],
-    iml_files = ["intellij.android.app-inspectionAndroid.iml"],
+    iml_files = ["intellij.android.app-inspection.ide.iml"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
@@ -36,7 +36,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
-        "//tools/adt/idea/app-inspection:intellij.android.app-inspection[module]",
+        "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
