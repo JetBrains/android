@@ -19,8 +19,12 @@ import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.compose.getNotificationsFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEditorFixture
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.runWithBleak
 import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import junit.framework.TestCase.assertFalse
@@ -40,14 +44,27 @@ class ComposePreviewTest {
 
   @Test
   @Throws(Exception::class)
-  fun testOpenPreview() {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+  fun testOpenAndClosePreview() {
+    openAndClosePreview(guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication"))
+  }
 
+  @Test
+  @UseBleak
+  @RunIn(TestGroup.PERFORMANCE)
+  @Throws(Exception::class)
+  fun testOpenAndClosePreviewWithBleak() {
+    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    runWithBleak { openAndClosePreview(fixture) }
+  }
+
+  @Throws(Exception::class)
+  private fun openAndClosePreview(fixture: IdeFrameFixture) {
     // Open the main compose activity and check that the preview is present
-    val editor = guiTest.ideFrame().editor
-    editor.open("app/src/main/java/google/simpleapplication/MainActivity.kt")
+    val editor = fixture.editor
+    val file = "app/src/main/java/google/simpleapplication/MainActivity.kt"
+    editor.open(file)
 
-    guiTest.ideFrame().invokeMenuPath("Build", "Make Project")
+    fixture.invokeMenuPath("Build", "Make Project")
       .waitForBuildToFinish(BuildMode.ASSEMBLE)
     val composePreview = editor.getSplitEditorFixture()
 
@@ -59,12 +76,18 @@ class ComposePreviewTest {
     assertFalse(composePreview.hasRenderErrors())
 
     // Now let's make a change on the source code and check that the notification displays
-    editor.typeText("Random modification")
+    val modification = "Random modification"
+    editor.typeText(modification)
 
     guiTest.robot().waitForIdle()
 
     composePreview
       .getNotificationsFixture()
       .waitForNotificationContains("out of date")
+
+    // Undo modifications and close editor to return to the initial state
+    editor.select("(${modification})")
+    editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE)
+    editor.closeFile(file)
   }
 }
