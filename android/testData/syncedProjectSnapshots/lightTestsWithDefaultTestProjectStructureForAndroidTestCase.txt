@@ -8,8 +8,10 @@ PROJECT             : testLightTestsWithDefaultTestProjectStructureForAndroidTes
         FACET               : Android
             TypeId              : android
             SelectedBuildVariant          : debug
-            AssembleTaskName    : assemble
-            CompileJavaTaskName : compile
+            AssembleTaskName    : assembleDebug
+            CompileJavaTaskName : compileDebugSources
+            - AfterSyncTask     : ideSetupTask1
+            - AfterSyncTask     : ideSetupTask2
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
