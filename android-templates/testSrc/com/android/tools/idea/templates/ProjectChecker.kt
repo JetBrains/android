@@ -184,19 +184,20 @@ data class ProjectChecker(
   private infix fun String.compareFilesBetweenNewAndOldRenderingContexts(projectBaseNew: String) {
     // File names except for the baseDirectory for the old RenderingContext
     val oldGeneratedFiles = File(this).walk().filter { it.isFile }.map {
-      val fileName = it.absolutePath.split(this + File.separatorChar)[1]
-      if (!comparisonExcludedPaths.contains(fileName)) {
+      // substring(1) removes the first separatorChar
+      val relativePath = it.path.removePrefix(this).substring(1)
+      if (!comparisonExcludedPaths.contains(relativePath.replace(File.separatorChar, '/'))) {
         // Assert the contents of each file between the new and old RenderingContext
         val expected = FileUtil.loadFile(it).trimAllWhitespace()
-        val actual = FileUtil.loadFile(File(projectBaseNew + File.separatorChar + fileName)).trimAllWhitespace()
-        assertEquals(expected, actual)
+        val actual = FileUtil.loadFile(File(projectBaseNew + File.separatorChar + relativePath)).trimAllWhitespace()
+        assertEquals("Contents of $relativePath are different", expected, actual)
       }
-      fileName
+      relativePath
     }.toSet()
 
     // File names except for the baseDirectory for the new RenderingContext
     val newGeneratedFiles = File(projectBaseNew).walk().filter { it.isFile }.map {
-      it.absolutePath.split(projectBaseNew + File.separatorChar)[1]
+      it.path.removePrefix(projectBaseNew).substring(1)
     }.toSet()
 
     // Assert the generated set of files are equivalent
