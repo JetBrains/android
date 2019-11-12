@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection
+package com.android.tools.idea.appinspection.ide
 
-import com.android.tools.idea.appinspection.transport.AppInspectionDiscovery
-import com.android.tools.idea.appinspection.transport.AppInspectionDiscoveryHost
+import com.android.tools.idea.appinspection.api.AppInspectionDiscovery
+import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.transport.TransportService
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -27,7 +27,8 @@ internal class AppInspectionHostService {
     override val channelName = TransportService.getInstance().channelName
   }
 
-  val discoveryHost = AppInspectionDiscoveryHost(AppExecutorUtil.getAppScheduledExecutorService(), transportChannel)
+  val discoveryHost = AppInspectionDiscoveryHost(
+    AppExecutorUtil.getAppScheduledExecutorService(), transportChannel)
 
   companion object {
     val instance: AppInspectionHostService

@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.transport
+package com.android.tools.idea.appinspection.api
 
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
 import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
 import com.android.tools.app.inspection.AppInspection.ServiceResponse.Status.SUCCESS
-import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.Command
@@ -35,7 +34,6 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import java.nio.file.Path
-import java.util.concurrent.ExecutorService
 
 /**
  * Sends ATTACH command to transport daemon, that makes sure perfa is running and is ready to receive
@@ -90,14 +88,17 @@ private class DefaultAppInspectionPipelineConnection(val processTransport: AppIn
       filter = { it.appInspectionEvent.commandId == commandId }
     ) {
       if (it.appInspectionEvent.response.status == SUCCESS) {
-        connectionFuture.set(AppInspectorConnection(processTransport, inspectorId))
+        connectionFuture.set(
+          AppInspectorConnection(processTransport, inspectorId))
       }
       else {
         connectionFuture.setException(RuntimeException("Could not launch inspector $inspectorId"))
       }
       true
     }
-    return Futures.transform(connectionFuture, Function { setupEventListener(creator, it!!) }, processTransport.executorService)
+    return Futures.transform(connectionFuture, Function {
+      setupEventListener(creator, it!!)
+    }, processTransport.executorService)
   }
 }
 

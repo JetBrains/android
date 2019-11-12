@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.transport
+package com.android.tools.idea.appinspection.api
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.transport.TransportClient
@@ -55,7 +55,9 @@ interface AppInspectionPipelineConnection {
       process: Process,
       channelName: String,
       executorService: ExecutorService,
-      transport: AppInspectionTransport = AppInspectionTransport(TransportClient(channelName), stream, process, executorService)
-    ): ListenableFuture<AppInspectionPipelineConnection> = attachAppInspectionPipelineConnection(stream, process, transport)
+      transport: AppInspectionTransport = AppInspectionTransport(
+        TransportClient(channelName), stream, process, executorService)
+    ): ListenableFuture<AppInspectionPipelineConnection> = attachAppInspectionPipelineConnection(
+      stream, process, transport)
   }
 }

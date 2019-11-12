@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.transport
+package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
@@ -48,7 +48,9 @@ class AppInspectionPipelineConnectionTest {
   private val transportService = FakeTransportService(timer)
 
   private val gRpcServerRule = FakeGrpcServer.createFakeGrpcServer("InspectorPipelineConnectionTest", transportService, transportService)!!
-  private val appInspectionRule = AppInspectionServiceRule(timer, transportService, gRpcServerRule)
+  private val appInspectionRule = AppInspectionServiceRule(timer,
+                                                                                                                       transportService,
+                                                                                                                       gRpcServerRule)
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(gRpcServerRule).around(appInspectionRule)!!
@@ -111,7 +113,8 @@ class AppInspectionPipelineConnectionTest {
     assertThat(appInspectionRule.executorService.activeCount).isEqualTo(0)
     assertThat(inspectorConnection.isDone).isFalse()
 
-    appInspectionRule.addAppInspectionEvent(createEventWithCommandId(AppInspectionTransport.lastGeneratedCommandId()))
+    appInspectionRule.addAppInspectionEvent(createEventWithCommandId(
+      AppInspectionTransport.lastGeneratedCommandId()))
 
     assertThat(inspectorConnection.get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isNotNull()
   }

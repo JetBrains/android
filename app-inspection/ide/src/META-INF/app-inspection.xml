@@ -16,9 +16,9 @@
 <idea-plugin>
   <depends>org.intellij.intelliLang</depends>
   <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceImplementation="com.android.tools.idea.appinspection.AppInspectionHostService"/>
+    <applicationService serviceImplementation="com.android.tools.idea.appinspection.ide.AppInspectionHostService"/>
   </extensions>>
   <extensions defaultExtensionNs="com.android.run">
-    <androidLaunchTaskContributor implementation="com.android.tools.idea.appinspection.AppInspectionLaunchTaskContributor"/>
+    <androidLaunchTaskContributor implementation="com.android.tools.idea.appinspection.ide.AppInspectionLaunchTaskContributor"/>
   </extensions>
 </idea-plugin>

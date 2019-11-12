@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection
+package com.android.tools.idea.appinspection.ide
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.appinspection.transport.AutoPreferredProcess
+import com.android.tools.idea.appinspection.api.AutoPreferredProcess
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
@@ -51,7 +51,10 @@ private class AppInspectionLaunchTask(private val module: Module) : LaunchTask {
 
   override fun run(executor: Executor, device: IDevice, launchStatus: LaunchStatus, printer: ConsolePrinter): LaunchResult {
     val packageName = AndroidModuleInfo.getInstance(module)?.`package`
-    AppInspectionHostService.instance.discoveryHost.connect(device, AutoPreferredProcess(device, packageName))
+    AppInspectionHostService.instance.discoveryHost.connect(device,
+                                                            AutoPreferredProcess(
+                                                              device,
+                                                              packageName))
     return LaunchResult.success()
   }
 
