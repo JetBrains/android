@@ -251,11 +251,11 @@ public class MotionEditor extends JPanel {
     toolbar.add(toolbarLeft, BorderLayout.WEST);
     toolbar.add(toolbarRight, BorderLayout.EAST);
 
-    JButton create_constraintSet = MEUI.createToolBarButton(MEIcons.CREATE_MENU, "Create MotionScene Objects");
+    JButton create_constraintSet = MEUI.createToolBarButton(MEIcons.CREATE_MENU, "Create ConstraintSet");
     toolbarLeft.add(create_constraintSet);
-    JButton create_transition = MEUI.createToolBarButton(MEIcons.CREATE_TRANSITION, "Create MotionScene Objects");
+    JButton create_transition = MEUI.createToolBarButton(MEIcons.CREATE_TRANSITION, "Create Transition between ConstraintSets");
     toolbarLeft.add(create_transition);
-    JButton create_touch = MEUI.createToolBarButton(MEIcons.CREATE_ON_STAR, "Create MotionScene Objects");
+    JButton create_touch = MEUI.createToolBarButton(MEIcons.CREATE_ON_STAR, "Create click or swipe handler");
     toolbarLeft.add(create_touch);
     create_constraintSet.setAction(mCreateConstraintSet.getAction(create_constraintSet, this));
     create_transition.setAction(mCreateTransition.getAction(create_transition, this));
@@ -271,7 +271,7 @@ public class MotionEditor extends JPanel {
       myPopupMenu.show(create_constraintSet, 0, 0);
     });
 
-    JButton cycle = MEUI.createToolBarButton(MEIcons.CYCLE_LAYOUT, "Vertical view");
+    JButton cycle = MEUI.createToolBarButton(MEIcons.CYCLE_LAYOUT, "Cycle between layouts");
 
     toolbarRight.add(cycle);
 
