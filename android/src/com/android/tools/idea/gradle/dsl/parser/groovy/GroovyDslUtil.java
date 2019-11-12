@@ -519,7 +519,22 @@ public final class GroovyDslUtil {
     }
     else {
       // This element has just been created and will currently look like "propertyName =" or "propertyName ". Here we add the value.
-      PsiElement added = psiElement.addAfter(newLiteral, psiElement.getLastChild());
+      PsiElement added;
+      // This element will look like "propertyName propertyValue" and we need to create an intermediate psiElement (commandArgumentList)
+      // to prevent breaking the psiTree of a GrApplicationStatement.
+      if (psiElement instanceof GrApplicationStatement) {
+        GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(psiElement.getProject());
+        // Create a fake applicationStatement element.
+        GrApplicationStatement fakeStatement = (GrApplicationStatement)(factory.createStatementFromText("a 'a'"));
+        GrCommandArgumentList arguments = fakeStatement.getArgumentList();
+        // Empty the arguments list so we can use it for psiElement.
+        arguments.getFirstChild().delete();
+        psiElement.addAfter(arguments, psiElement.getLastChild());
+        added = ((GrApplicationStatement)psiElement).getArgumentList().add(newLiteral);
+      }
+      else {
+        added = psiElement.addAfter(newLiteral, psiElement.getLastChild());
+      }
       expression.setExpression(added);
 
       if (expression.getUnsavedConfigBlock() != null) {
