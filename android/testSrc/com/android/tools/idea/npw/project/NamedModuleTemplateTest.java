@@ -44,6 +44,7 @@ public class NamedModuleTemplateTest {
       @Nullable @Override public File getModuleRoot() { return null; }
       @Nullable @Override public File getSrcDirectory(@Nullable String packageName) { return javaDirectory; }
       @Nullable @Override public File getTestDirectory(@Nullable String packageName) { return null; }
+      @Nullable @Override public File getUnitTestDirectory(@Nullable String packageName) { return null; }
       @NotNull
       @Override public List<File> getResDirectories() { return resDirectories; }
       @Nullable @Override public File getAidlDirectory(@Nullable String packageName) { return aidlDirectory; }
@@ -72,6 +73,7 @@ public class NamedModuleTemplateTest {
       @Nullable @Override public File getModuleRoot() { return null; }
       @Nullable @Override public File getSrcDirectory(@Nullable String packageName) { return null; }
       @Nullable @Override public File getTestDirectory(@Nullable String packageName) { return null; }
+      @Nullable @Override public File getUnitTestDirectory(@Nullable String packageName) { return null; }
       @NotNull @Override public List<File> getResDirectories() { return Collections.emptyList(); }
       @Nullable @Override public File getAidlDirectory(@Nullable String packageName) { return null; }
       @Nullable @Override public File getManifestDirectory() { return null; }

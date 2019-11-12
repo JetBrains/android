@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import static com.android.SdkConstants.FD_TEST;
+import static com.android.SdkConstants.FD_UNIT_TEST;
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -70,7 +72,13 @@ public class TvBannerGeneratorTest extends AndroidTestCase {
     @Override
     @Nullable
     public File getTestDirectory(@Nullable String packageName) {
-      return new File(getModuleRoot(), "test");
+      return new File(getModuleRoot(), FD_TEST);
+    }
+
+    @Nullable
+    @Override
+    public File getUnitTestDirectory(@Nullable String packageName) {
+      return new File(getModuleRoot(), FD_UNIT_TEST);
     }
 
     @Override

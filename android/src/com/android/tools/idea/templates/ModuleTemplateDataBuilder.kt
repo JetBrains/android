@@ -62,6 +62,7 @@ class ModuleTemplateDataBuilder(private val isNewProject: Boolean) {
   var resDir: File? = null
   var manifestDir: File? = null
   var testDir: File? = null
+  var unitTestDir: File? = null
   var aidlDir: File? = null
   var projectOut: File? = null
   var themeExists: Boolean = false
@@ -75,7 +76,7 @@ class ModuleTemplateDataBuilder(private val isNewProject: Boolean) {
   var baseFeature: BaseFeature? = null
 
   /**
-   * Adds common module roots template values like [projectOut], [srcDir], etc.
+   * Adds common module roots template values like [projectOut], [srcDir], etc
    *
    * @param paths       Project paths
    * @param packageName Package Name for the module
@@ -88,6 +89,7 @@ class ModuleTemplateDataBuilder(private val isNewProject: Boolean) {
 
     srcDir = paths.getSrcDirectory(packageName)
     testDir = paths.getTestDirectory(packageName)
+    unitTestDir = paths.getUnitTestDirectory(packageName)
     resDir = paths.resDirectories.firstOrNull()
     manifestDir = paths.manifestDirectory
     aidlDir = paths.getAidlDirectory(packageName)
@@ -190,6 +192,7 @@ class ModuleTemplateDataBuilder(private val isNewProject: Boolean) {
     resDir!!,
     manifestDir!!,
     testDir!!,
+    unitTestDir!!,
     aidlDir!!,
     projectOut!!,
     themeExists,
