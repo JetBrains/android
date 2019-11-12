@@ -36,19 +36,17 @@ public class WebpMetadata extends IIOMetadata implements ApplicationInitializedL
   public static final float DEFAULT_ENCODING_QUALITY = 0.75f;
   public static final boolean DEFAULT_LOSSLESS = true;
 
-  static {
-    IIORegistry.getDefaultInstance().registerServiceProvider(new WebpImageReaderSpi(), ImageReaderSpi.class);
-    IIORegistry.getDefaultInstance().registerServiceProvider(new WebpImageWriterSpi(), ImageWriterSpi.class);
-  }
-
   @Override
   public void componentsInitialized() {
+    ensureWebpRegistered();
   }
 
   /**
-   * Ensures that the static initializer of the class has been run and it's registered as a service provider.
+   * Ensures that service providers are registered.
    */
   public static void ensureWebpRegistered() {
+    IIORegistry.getDefaultInstance().registerServiceProvider(new WebpImageReaderSpi(), ImageReaderSpi.class);
+    IIORegistry.getDefaultInstance().registerServiceProvider(new WebpImageWriterSpi(), ImageWriterSpi.class);
   }
 
   @Override
