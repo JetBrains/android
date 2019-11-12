@@ -717,8 +717,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
 
 private class ComposeTextEditorWithPreview constructor(
   composeTextEditor: TextEditor,
-  val preview: PreviewEditor) :
-  SeamlessTextEditorWithPreview(composeTextEditor, preview, "Compose Editor") {
+  preview: PreviewEditor) :
+  SeamlessTextEditorWithPreview<PreviewEditor>(composeTextEditor, preview, "Compose Editor") {
   init {
     preview.registerShortcuts(component)
   }
