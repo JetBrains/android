@@ -138,6 +138,7 @@ class MergedManifestModificationListener(
   }
 
   companion object {
+    @JvmStatic
     fun ensureSubscribed(project: Project) = project.getComponent(SubscriptionComponent::class.java).ensureSubscribed()
   }
 }
