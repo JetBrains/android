@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement.INCLUDE;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.BUILD_FILE_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
@@ -30,9 +31,12 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
+import com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
@@ -46,7 +50,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GradleSettingsModelImpl extends GradleFileModelImpl implements GradleSettingsModel {
-  public static final String INCLUDE = "include";
   private static final String INCLUDE_BUILD = "includeBuild";
 
   /**
@@ -86,16 +89,29 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     List<String> result = Lists.newArrayList();
     result.add(":"); // Indicates the root module.
 
-    GradleDslExpressionList includePaths = myGradleDslFile.getPropertyElement(INCLUDE, GradleDslExpressionList.class);
+    IncludeDslElement includePaths = myGradleDslFile.getPropertyElement(INCLUDE, IncludeDslElement.class);
     if (includePaths == null) {
       return result;
     }
 
-    for (GradleDslSimpleExpression includePath : includePaths.getSimpleExpressions()) {
-      String value = includePath.getValue(String.class);
-      if (value != null) {
-        result.add(standardiseModulePath(value));
+    for (GradleDslElement includePath : includePaths.getPropertyElements(GradleDslElement.class)) {
+      if (includePath instanceof GradleDslSimpleExpression) {
+        GradleDslSimpleExpression simpleIncludePath = (GradleDslSimpleExpression)includePath;
+        String value = simpleIncludePath.getValue(String.class);
+        if (value != null) {
+          result.add(standardiseModulePath(value));
+        }
       }
+      else if (includePath instanceof GradleDslExpressionList) {
+        GradleDslExpressionList listIncludePath = (GradleDslExpressionList)includePath;
+        for (GradleDslSimpleExpression simpleIncludePath : listIncludePath.getSimpleExpressions()) {
+          String value = simpleIncludePath.getValue(String.class);
+          if (value != null) {
+            result.add(standardiseModulePath(value));
+          }
+        }
+      }
+
     }
     return result;
   }
@@ -103,28 +119,41 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
   @Override
   public void addModulePath(@NotNull String modulePath) {
     modulePath = standardiseModulePath(modulePath);
-    myGradleDslFile.addToNewLiteralList(INCLUDE, modulePath);
+    IncludeDslElement includeDslElement = myGradleDslFile.getPropertyElement(INCLUDE, IncludeDslElement.class);
+    if (includeDslElement == null) {
+      includeDslElement = new IncludeDslElement(myGradleDslFile);
+      myGradleDslFile.setNewElement(includeDslElement);
+    }
+    GradleDslLiteral literal = new GradleDslLiteral(includeDslElement, GradleNameElement.create(INCLUDE));
+    literal.setValue(modulePath);
+    includeDslElement.setNewElement(literal);
   }
 
   @Override
   public void removeModulePath(@NotNull String modulePath) {
-    // Try to remove the module path whether it has ":" prefix or not.
-    if (!modulePath.startsWith(":")) {
-      myGradleDslFile.removeFromExpressionList(INCLUDE, ":" + modulePath);
+    IncludeDslElement includeDslElement = myGradleDslFile.getPropertyElement(INCLUDE, IncludeDslElement.class);
+    if (includeDslElement != null) {
+      // Try to remove the module path whether it has ":" prefix or not.
+      if (!modulePath.startsWith(":")) {
+        includeDslElement.removeModule(":" + modulePath);
+      }
+      includeDslElement.removeModule(modulePath);
     }
-    myGradleDslFile.removeFromExpressionList(INCLUDE, modulePath);
   }
 
   @Override
   public void replaceModulePath(@NotNull String oldModulePath, @NotNull String newModulePath) {
-    // Try to replace the module path whether it has ":" prefix or not.
-    if (!newModulePath.startsWith(":")) {
-      newModulePath = ":" + newModulePath;
+    IncludeDslElement includeDslElement = myGradleDslFile.getPropertyElement(INCLUDE, IncludeDslElement.class);
+    if (includeDslElement != null) {
+      // Try to replace the module path whether it has ":" prefix or not.
+      if (!newModulePath.startsWith(":")) {
+        newModulePath = ":" + newModulePath;
+      }
+      if (!oldModulePath.startsWith(":")) {
+        includeDslElement.replaceModulePath(":" + oldModulePath, newModulePath);
+      }
+      includeDslElement.replaceModulePath(oldModulePath, newModulePath);
     }
-    if (!oldModulePath.startsWith(":")) {
-      myGradleDslFile.replaceInExpressionList(INCLUDE, ":" + oldModulePath, newModulePath);
-    }
-    myGradleDslFile.replaceInExpressionList(INCLUDE, oldModulePath, newModulePath);
   }
 
   @Nullable
