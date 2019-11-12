@@ -91,18 +91,34 @@ public abstract class GradleSyncPerformanceTestCase extends GradleSyncIntegratio
     Logger log = getLogger();
 
     try {
-      Metric metric = new Metric(getMetricName());
       Benchmark initialBenchmark = new Benchmark.Builder("Initial sync time")
         .setProject(BENCHMARK_PROJECT)
         .build();
+      Metric metricInitial = new Metric(getMetricName());
+
       Benchmark regularBenchmark = new Benchmark.Builder("Regular sync time")
         .setProject(BENCHMARK_PROJECT)
         .build();
+      Metric metricRegular = new Metric(getMetricName());
+
+      Benchmark scenarioBenchmark = new Benchmark.Builder(getMetricName())
+        .setProject(BENCHMARK_PROJECT)
+        .build();
+      Metric metricScenarioInitialTotal = new Metric("Initial_Total");
+      Metric metricScenarioInitialIDE = new Metric("Initial_IDE");
+      Metric metricScenarioInitialGradle = new Metric("Initial_Gradle");
+      Metric metricScenarioRegularTotal = new Metric("Regular_Total");
+      Metric metricScenarioRegularIDE = new Metric("Regular_IDE");
+      Metric metricScenarioRegularGradle = new Metric("Regular_Gradle");
 
       // Measure initial sync (already synced when loadProject was called)
       GradleSyncStats initialStats = getLastSyncStats();
       printStats("Initial sync", initialStats, log);
-      metric.addSamples(initialBenchmark, new Metric.MetricSample(Instant.now().toEpochMilli(), initialStats.getTotalTimeMs()));
+      long currentTime = Instant.now().toEpochMilli();
+      metricInitial.addSamples(initialBenchmark, new Metric.MetricSample(currentTime, initialStats.getTotalTimeMs()));
+      metricScenarioInitialGradle.addSamples(scenarioBenchmark, new Metric.MetricSample(currentTime, initialStats.getGradleTimeMs()));
+      metricScenarioInitialIDE.addSamples(scenarioBenchmark, new Metric.MetricSample(currentTime, initialStats.getIdeTimeMs()));
+      metricScenarioInitialTotal.addSamples(scenarioBenchmark, new Metric.MetricSample(currentTime, initialStats.getTotalTimeMs()));
 
       // Drop some runs to stabilize readings
       for (int drop = 0; drop < INITIAL_DROPS; drop++) {
@@ -118,10 +134,21 @@ public abstract class GradleSyncPerformanceTestCase extends GradleSyncIntegratio
         printStats("Sample " + sample, sampleStats, log);
         if (sampleStats != null) {
           measurements.add(sampleStats.getTotalTimeMs());
-          metric.addSamples(regularBenchmark, new Metric.MetricSample(Instant.now().toEpochMilli(), sampleStats.getTotalTimeMs()));
+          currentTime = Instant.now().toEpochMilli();
+          metricRegular.addSamples(regularBenchmark, new Metric.MetricSample(currentTime, sampleStats.getTotalTimeMs()));
+          metricScenarioRegularGradle.addSamples(scenarioBenchmark, new Metric.MetricSample(currentTime, sampleStats.getGradleTimeMs()));
+          metricScenarioRegularIDE.addSamples(scenarioBenchmark, new Metric.MetricSample(currentTime, sampleStats.getIdeTimeMs()));
+          metricScenarioRegularTotal.addSamples(scenarioBenchmark, new Metric.MetricSample(currentTime, sampleStats.getTotalTimeMs()));
         }
       }
-      metric.commit();
+      metricInitial.commit();
+      metricRegular.commit();
+      metricScenarioInitialGradle.commit();
+      metricScenarioInitialIDE.commit();
+      metricScenarioInitialTotal.commit();
+      metricScenarioRegularGradle.commit();
+      metricScenarioRegularIDE.commit();
+      metricScenarioRegularTotal.commit();
     }
     catch(Exception e) {
       throw new RuntimeException(e);
