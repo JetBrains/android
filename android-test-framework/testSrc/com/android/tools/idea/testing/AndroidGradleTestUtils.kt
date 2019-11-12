@@ -92,22 +92,35 @@ import org.jetbrains.plugins.gradle.model.ExternalTask
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import java.io.File
 
-typealias AndroidProjectBuilder = (projectName: String, basePath: File) -> AndroidProject
+typealias AndroidProjectBuilder = (projectName: String, basePath: File, agpVersion: String) -> AndroidProject
 
 sealed class ModuleModelBuilder {
   abstract val gradlePath: String
+  abstract val gradleVersion: String?
+  abstract val agpVersion: String?
 }
 
 data class AndroidModuleModelBuilder(
   override val gradlePath: String,
+  override val gradleVersion: String? = null,
+  override val agpVersion: String? = null,
   val selectedBuildVariant: String,
   val projectBuilder: AndroidProjectBuilder
-) : ModuleModelBuilder()
+) : ModuleModelBuilder() {
+  constructor (gradlePath: String, selectedBuildVariant: String, projectBuilder: AndroidProjectBuilder)
+    : this(gradlePath, null, null, selectedBuildVariant, projectBuilder)
+}
 
 data class JavaModuleModelBuilder(
   override val gradlePath: String,
+  override val gradleVersion: String? = null,
   val buildable: Boolean = true
 ) : ModuleModelBuilder() {
+
+  constructor (gradlePath: String, buildable: Boolean = true) : this(gradlePath, null,  buildable)
+
+  override val agpVersion: String? = null
+
   companion object {
     val rootModuleBuilder = JavaModuleModelBuilder(":", buildable = false)
   }
@@ -150,7 +163,6 @@ interface AndroidProjectStubBuilder {
  * sub-model builders.
  */
 fun createAndroidProjectBuilder(
-  agpVersion: AndroidProjectStubBuilder.() -> String = { LatestKnownPluginVersionProvider.INSTANCE.get() },
   buildId: AndroidProjectStubBuilder.() -> String = { "/tmp/buildId" }, //  buildId should not be assumed to be a path.
   projectType: AndroidProjectStubBuilder.() -> Int = { AndroidProjectTypes.PROJECT_TYPE_APP },
   minSdk: AndroidProjectStubBuilder.() -> Int = { 16 },
@@ -171,9 +183,9 @@ fun createAndroidProjectBuilder(
   androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
   androidProject: AndroidProjectStubBuilder.() -> AndroidProject = { buildAndroidProjectStub() }
 ): AndroidProjectBuilder {
-  return { projectName, basePath ->
+  return { projectName, basePath, agpVersion ->
     val builder = object : AndroidProjectStubBuilder {
-      override val agpVersion: String = agpVersion()
+      override val agpVersion: String = agpVersion
       override val buildId: String = buildId()
       override val projectName: String = projectName
       override val basePath: File = basePath
@@ -578,8 +590,14 @@ fun setupTestProjectFromAndroidModel(
           moduleName,
           gradlePath,
           moduleBasePath,
+          moduleBuilder.gradleVersion,
+          moduleBuilder.agpVersion,
           gradlePlugins,
-          moduleBuilder.projectBuilder(moduleName, moduleBasePath),
+          moduleBuilder.projectBuilder(
+            moduleName,
+            moduleBasePath,
+            moduleBuilder.agpVersion ?: LatestKnownPluginVersionProvider.INSTANCE.get()
+          ),
           moduleBuilder.selectedBuildVariant
         )
       }
@@ -610,6 +628,8 @@ private fun createAndroidModuleDataNode(
   moduleName: String,
   gradlePath: String,
   moduleBasePath: File,
+  gradleVersion: String?,
+  agpVersion: String?,
   gradlePlugins: List<String>,
   androidProjectStub: AndroidProject,
   selectedVariantName: String
@@ -627,8 +647,8 @@ private fun createAndroidModuleDataNode(
         moduleBasePath,
         gradlePlugins,
         null,
-        null,
-        null,
+        gradleVersion,
+        agpVersion,
         false
       ),
       null
