@@ -470,7 +470,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       @Override
       public void run() {
         try {
-          file.rename(this, "layout*2.xml");
+          file.rename(this, "layout-2.xml");
         }
         catch (IOException e) {
           fail(e.toString());
