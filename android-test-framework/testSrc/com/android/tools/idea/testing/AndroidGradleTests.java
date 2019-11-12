@@ -34,7 +34,6 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.EXT_GRADLE_KTS;
-import static com.android.testutils.TestUtils.getKotlinVersionForTests;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.google.common.io.Files.write;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
@@ -82,7 +81,7 @@ public class AndroidGradleTests {
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
                                    pluginVersion);
 
-      String kotlinVersion = getKotlinVersionForTests().split("-")[0];
+      String kotlinVersion = getKotlinVersionForTests();
       contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", kotlinVersion);
 
       // App compat version needs to match compile SDK
@@ -123,6 +122,16 @@ public class AndroidGradleTests {
         write(contents, path, Charsets.UTF_8);
       }
     }
+  }
+
+  private static String getKotlinVersionForTests() {
+    String kotlinVersion = TestUtils.getKotlinVersionForTests();
+    if (kotlinVersion.contains("-release-")){
+      // RELEASE versions should be stripped. E.g. "1.3.50-release-128" should become "1.3.50"
+      // don't strip EAP versions, e.g. "1.3.60-eap-143" should remain "1.3.60-eap-143"
+      kotlinVersion = kotlinVersion.split("-")[0];
+    }
+    return kotlinVersion;
   }
 
   @NotNull
