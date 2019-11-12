@@ -16,421 +16,283 @@
 package com.android.tools.idea.gradle.project.build.invoker
 
 import com.android.AndroidProjectTypes
-import com.android.SdkConstants
-import com.android.ide.common.gradle.model.IdeAndroidArtifact
-import com.android.ide.common.gradle.model.IdeAndroidProject
-import com.android.ide.common.gradle.model.IdeBaseArtifact
-import com.android.ide.common.gradle.model.IdeVariant
-import com.android.tools.idea.Projects
-import com.android.tools.idea.gradle.project.model.AndroidModelFeatures
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.model.GradleModuleModel
+import com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub
 import com.android.tools.idea.gradle.util.BuildMode
-import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.testing.AndroidModuleDependency
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.Facets
 import com.android.tools.idea.testing.IdeComponents
-import com.google.common.collect.Sets
-import com.google.common.truth.Truth
-import com.intellij.openapi.module.Module
+import com.android.tools.idea.testing.JavaModuleModelBuilder
+import com.android.tools.idea.testing.createAndroidProjectBuilder
+import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
+import com.google.common.collect.Multimap
+import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.TruthJUnit.assume
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.testFramework.PlatformTestCase
-import junit.framework.TestCase
-import org.gradle.tooling.model.GradleProject
-import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.MockitoAnnotations
-import java.nio.file.Paths
+import org.mockito.Mockito.`when`
+import java.io.File
+import java.nio.file.Path
 
 /**
  * Tests for [GradleTaskFinder].
  */
 class GradleTaskFinderTest : PlatformTestCase() {
-  @Mock
-  private lateinit var androidModel: AndroidModuleModel
-  @Mock
-  private lateinit var ideAndroidProject: IdeAndroidProject
-  @Mock
-  private lateinit var ideVariant: IdeVariant
-  @Mock
-  private lateinit var mainArtifact: IdeAndroidArtifact
-  @Mock
-  private lateinit var artifact: IdeBaseArtifact
-  @Mock
-  private lateinit var testCompileType: TestCompileType
-  @Mock
-  private lateinit var rootPathFinder: GradleRootPathFinder
-  @Mock
-  private lateinit var androidModel2: AndroidModuleModel
-  @Mock
-  private lateinit var ideAndroidProject2: IdeAndroidProject
-  private lateinit var modules: Array<Module>
+
+  private val modules get() = ModuleManager.getInstance(project).modules
+  private val projectDir get() = File(project.basePath!!)
+
   private lateinit var taskFinder: GradleTaskFinder
 
   override fun setUp() {
     super.setUp()
-    MockitoAnnotations.initMocks(this)
-    val project = project
-    val projectRootPath = Projects.getBaseDirPath(project).path
-    Mockito.`when`(rootPathFinder.getProjectRootPath(Mockito.any())).thenReturn(Paths.get(projectRootPath))
-    modules = arrayOf(module)
-    taskFinder = GradleTaskFinder(rootPathFinder)
+    taskFinder = GradleTaskFinder.getInstance()
   }
 
   fun testCreateBuildTaskWithTopLevelModule() {
     val task = taskFinder.createBuildTask(":", "assemble")
-    TestCase.assertEquals(":assemble", task)
+    assertEquals(":assemble", task)
+  }
+
+  fun testFindTasksToExecuteWhenLastSyncSuccessful_noModules() {
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule())
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, TestCompileType.NONE)
+    assertThat(tasksPerProject).isEmpty()
   }
 
   fun testFindTasksToExecuteWhenLastSyncFailed() {
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule())
     val syncState = Mockito.mock(GradleSyncState::class.java)
     IdeComponents(project).replaceProjectService(GradleSyncState::class.java, syncState)
-    Mockito.`when`(syncState.lastSyncFailed()).thenReturn(true)
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly("assemble")
+    `when`(syncState.lastSyncFailed()).thenReturn(true)
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf("assemble"))
   }
 
   fun testFindTasksWithBuildSrcModule() {
-    val module = createModule("buildSrc")
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(arrayOf(module), BuildMode.ASSEMBLE, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).isEmpty()
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule(), javaModule(":buildSrc"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).isEmpty()
+  }
+
+  fun testFindTasksWithNonBuildSrcModule() {
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule(), javaModule(":buildSrc1"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsEntry(projectDir, listOf(":buildSrc1:assemble"))
   }
 
   fun testFindTasksWithNonGradleModule() {
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).isEmpty()
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule())
+    createModule("some")
+    assume().that(modules).hasLength(2)
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).isEmpty()
   }
 
   fun testFindTasksWithEmptyGradlePath() {
-    Facets.createAndAddGradleFacet(module)
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).isEmpty()
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule())
+    Facets.createAndAddGradleFacet(createModule("some"))
+    assume().that(modules).hasLength(2)
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).isEmpty()
   }
 
   fun testFindTasksToExecuteWhenCleaningAndroidProject_rootModule() {
-    setUpModuleAsRootAndroidModule()
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.CLEAN, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(
-      ":afterSyncTask1",
-      ":afterSyncTask2",
+    setupTestProjectFromAndroidModel(project, projectDir, androidModule(":"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.CLEAN, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
       ":ideSetupTask1",
       ":ideSetupTask2"
-    )
+    ))
   }
 
   fun testFindTasksToExecuteWhenCleaningAndroidProject_nonRootModule() {
-    setUpModuleAsNonRootAndroidModule()
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.CLEAN, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(
-      ":app:afterSyncTask1",
-      ":app:afterSyncTask2",
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule(), androidModule(":app"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.CLEAN, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
       ":app:ideSetupTask1",
       ":app:ideSetupTask2"
-    )
+    ))
   }
 
   fun testFindTasksToExecuteForSourceGenerationInAndroidProject_rootModule() {
-    setUpModuleAsRootAndroidModule()
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.SOURCE_GEN, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(
-      ":afterSyncTask1",
-      ":afterSyncTask2",
+    setupTestProjectFromAndroidModel(project, projectDir, androidModule(":"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.SOURCE_GEN, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
       ":ideSetupTask1",
       ":ideSetupTask2"
-    )
+    ))
   }
 
   fun testFindTasksToExecuteForSourceGenerationInAndroidProject_nonRootModule() {
-    setUpModuleAsNonRootAndroidModule()
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.SOURCE_GEN, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(
-      ":app:afterSyncTask1",
-      ":app:afterSyncTask2",
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule(), androidModule(":app"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.SOURCE_GEN, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
       ":app:ideSetupTask1",
       ":app:ideSetupTask2"
-    )
+    ))
   }
 
   fun testFindTasksToExecuteForAssemblingAndroidProject_rootModule() {
-    setUpModuleAsRootAndroidModule()
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(
-      ":assembleTask1",
-      ":assembleTask2"
-    )
+    setupTestProjectFromAndroidModel(project, projectDir, androidModule(":"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":assembleDebug"))
   }
 
   fun testFindTasksToExecuteForAssemblingAndroidProject_nonRootModule() {
-    setUpModuleAsNonRootAndroidModule()
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(
-      ":app:assembleTask1",
-      ":app:assembleTask2"
-    )
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule(), androidModule(":app"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":app:assembleDebug"))
   }
 
   fun testFindTasksToExecuteForRebuildingAndroidProject() {
-    setUpModuleAsRootAndroidModule()
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.REBUILD, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(
-      "clean",
-      ":assembleTask1",
-      ":assembleTask2"
-    )
-    // Make sure clean is the first task (b/78443416)
-    Truth.assertThat(tasks[0]).isEqualTo("clean")
+    setupTestProjectFromAndroidModel(project, projectDir, androidModule(":"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.REBUILD, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
+      "clean", // Note that the comparison is order sensitive and "clean" goes first. (b/78443416)
+      ":assembleDebug"
+    ))
   }
 
   fun testFindTasksToExecuteForCompilingAndroidProject_rootModule() {
-    setUpModuleAsRootAndroidModule()
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(
-      ":compileTask1",
-      ":compileTask2",
+    setupTestProjectFromAndroidModel(project, projectDir, androidModule(":"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
       ":ideSetupTask1",
       ":ideSetupTask2",
-      ":afterSyncTask1",
-      ":afterSyncTask2"
-    )
+      ":compileDebugSources"
+    ))
   }
 
   fun testFindTasksToExecuteForCompilingAndroidProject_nonRootModule() {
-    setUpModuleAsNonRootAndroidModule()
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(
-      ":app:compileTask1",
-      ":app:compileTask2",
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule(), androidModule(":app"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
       ":app:ideSetupTask1",
       ":app:ideSetupTask2",
-      ":app:afterSyncTask1",
-      ":app:afterSyncTask2"
-    )
+      ":app:compileDebugSources"
+    ))
   }
 
   fun testFindTasksToExecuteForCompilingDynamicApp() {
-    setUpModuleAsRootAndroidModule()
-    // Create and setup dynamic feature module
-    val featureModule = createModule("feature1")
-    setUpModuleAsAndroidModule(featureModule, androidModel2, ideAndroidProject2)
-    Mockito.`when`(ideAndroidProject.dynamicFeatures).thenReturn(listOf(":feature1"))
-    Mockito.`when`(ideAndroidProject2.projectType).thenReturn(AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE)
-    val projectRootPath = Projects.getBaseDirPath(project).path
-    Mockito.`when`(rootPathFinder.getProjectRootPath(featureModule)).thenReturn(Paths.get(projectRootPath))
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(
-      ":assembleTask1",
-      ":assembleTask2",
-      ":feature1:assembleTask1",
-      ":feature1:assembleTask2"
+    setupTestProjectFromAndroidModel(
+      project,
+      projectDir,
+      rootModule(),
+      androidModule(":app", dynamicFeatures = listOf(":feature1")),
+      androidModule(":feature1", projectType = PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app"))
     )
+    val tasksPerProject = taskFinder
+      .findTasksToExecute(
+        modules
+          .filter { it.name == "app" }
+          .toTypedArray(),
+        BuildMode.ASSEMBLE,
+        TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
+      ":feature1:assembleDebug",
+      ":app:assembleDebug"
+    ))
   }
 
   fun testFindTasksToExecuteForBundleTool_rootModule() {
-    setUpModuleAsRootAndroidModule()
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.BUNDLE, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(":bundleTask1")
+    setupTestProjectFromAndroidModel(project, projectDir, androidModule(":"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.BUNDLE, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":bundleDebug"))
   }
 
   fun testFindTasksToExecuteForBundleTool_nonRootModule() {
-    setUpModuleAsNonRootAndroidModule()
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.BUNDLE, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(":app:bundleTask1")
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule(), androidModule(":app"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.BUNDLE, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":app:bundleDebug"))
   }
 
   fun testFindTasksToExecuteForApkFromBundle_rootModule() {
-    setUpModuleAsRootAndroidModule()
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.APK_FROM_BUNDLE, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(":apkFromBundleTask1")
+    setupTestProjectFromAndroidModel(project, projectDir, androidModule(":"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.APK_FROM_BUNDLE, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":extractApksForDebug"))
   }
 
   fun testFindTasksToExecuteForApkFromBundle_nonRootModule() {
-    setUpModuleAsNonRootAndroidModule()
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.APK_FROM_BUNDLE, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(":app:apkFromBundleTask1")
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule(), androidModule(":app"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.APK_FROM_BUNDLE, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":app:extractApksForDebug"))
   }
 
-  fun testFindTasksToExecuteForAssemblingJavaModule() {
-    setUpModuleAsRootJavaModule()
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(":assemble")
+  fun testFindTasksToExecuteForAssemblingJavaModule_rootModule() {
+    setupTestProjectFromAndroidModel(project, projectDir, javaModule(":"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":assemble"))
   }
 
-  fun testFindTasksToExecuteForAssemblingNonRootJavaModule() {
-    setUpModuleAsNonRootJavaModule()
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(":lib:assemble")
+  fun testFindTasksToExecuteForAssemblingJavaModule_nonRootModule() {
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule(), javaModule(":lib"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":lib:assemble"))
   }
 
-  fun testFindTasksToExecuteForCompilingRootJavaModule() {
-    setUpModuleAsRootJavaModule()
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(":compileJava")
+  fun testFindTasksToExecuteForCompilingJavaModule_rootModule() {
+    setupTestProjectFromAndroidModel(project, projectDir, javaModule(":"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":compileJava"))
   }
 
-  fun testFindTasksToExecuteForCompilingNonRootJavaModule() {
-    setUpModuleAsNonRootJavaModule()
-    val projectPath = Projects.getBaseDirPath(project)
-    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA, testCompileType)
-    val tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(":lib:compileJava")
+  fun testFindTasksToExecuteForCompilingJavaModule_NonRootModule() {
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule(), javaModule(":lib"))
+    val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA, TestCompileType.NONE)
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(":lib:compileJava"))
   }
 
   fun testFindTasksToExecuteForCompilingJavaModuleAndTests_rootModule() {
-    setUpModuleAsRootJavaModule()
-    val projectPath = Projects.getBaseDirPath(project)
+    setupTestProjectFromAndroidModel(project, projectDir, javaModule(":"))
     var tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA, TestCompileType.UNIT_TESTS)
-    var tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
       ":compileJava",
       ":testClasses"
-    )
+    ))
     // check it also for TestCompileType.ALL
     tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA, TestCompileType.ALL)
-    tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
       ":compileJava",
       ":testClasses"
-    )
+    ))
   }
 
   fun testFindTasksToExecuteForCompilingJavaModuleAndTests_nonRootModule() {
-    setUpModuleAsNonRootJavaModule()
-    val projectPath = Projects.getBaseDirPath(project)
+    setupTestProjectFromAndroidModel(project, projectDir, rootModule(), javaModule(":lib"))
     var tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA, TestCompileType.UNIT_TESTS)
-    var tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
       ":lib:compileJava",
       ":lib:testClasses"
-    )
+    ))
     // check it also for TestCompileType.ALL
     tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.COMPILE_JAVA, TestCompileType.ALL)
-    tasks = tasksPerProject[projectPath.toPath()]
-    Truth.assertThat(tasks).containsExactly(
+    assertThat(tasksPerProject.forTest()).containsExactly(projectDir, listOf(
       ":lib:compileJava",
       ":lib:testClasses"
-    )
-  }
-
-  private fun setUpModuleAsRootJavaModule() {
-    val module = module
-    setUpModuleAsGradleModule(module, isJavaModule = true)
-    val javaFacet = Facets.createAndAddJavaFacet(module)
-    javaFacet.configuration.BUILDABLE = true
-  }
-
-  private fun setUpModuleAsNonRootJavaModule() {
-    val module = createModule("lib")
-    modules = ModuleManager.getInstance(project).modules
-    setUpModuleAsGradleModule(module, isJavaModule = true)
-    val javaFacet = Facets.createAndAddJavaFacet(module)
-    javaFacet.configuration.BUILDABLE = true
-  }
-
-  private fun setUpModuleAsRootAndroidModule() {
-    setUpModuleAsAndroidModule(module, androidModel, ideAndroidProject)
-  }
-
-  private fun setUpModuleAsNonRootAndroidModule() {
-    val module = createModule("app")
-    modules = ModuleManager.getInstance(project).modules
-    setUpModuleAsAndroidModule(module, androidModel, ideAndroidProject)
-  }
-
-  private fun setUpModuleAsAndroidModule(
-    module: Module,
-    androidModel: AndroidModuleModel,
-    ideAndroidProject: IdeAndroidProject
-  ) {
-    setUpModuleAsGradleModule(module)
-    Mockito.`when`<IdeVariant?>(androidModel.selectedVariant).thenReturn(ideVariant)
-    Mockito.`when`(testCompileType.getArtifacts(ideVariant)).thenReturn(setOf(artifact))
-    Mockito.`when`<IdeAndroidProject?>(androidModel.androidProject).thenReturn(ideAndroidProject)
-    val androidModelFeatures = Mockito.mock(AndroidModelFeatures::class.java)
-    Mockito.`when`(androidModelFeatures.isTestedTargetVariantsSupported).thenReturn(false)
-    Mockito.`when`(androidModel.features).thenReturn(androidModelFeatures)
-    Mockito.`when`<IdeAndroidArtifact?>(ideVariant.mainArtifact).thenReturn(mainArtifact)
-    Mockito.`when`(mainArtifact.bundleTaskName).thenReturn("bundleTask1")
-    Mockito.`when`(mainArtifact.apkFromBundleTaskName).thenReturn("apkFromBundleTask1")
-    Mockito.`when`(artifact.assembleTaskName).thenReturn("assembleTask1")
-    Mockito.`when`(artifact.compileTaskName).thenReturn("compileTask1")
-    Mockito.`when`(artifact.ideSetupTaskNames).thenReturn(Sets.newHashSet("ideSetupTask1", "ideSetupTask2"))
-    val androidFacet = Facets.createAndAddAndroidFacet(module)
-    val state = androidFacet.configuration.state
-    TestCase.assertNotNull(state)
-    state.ASSEMBLE_TASK_NAME = "assembleTask2"
-    state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet("afterSyncTask1", "afterSyncTask2")
-    state.COMPILE_JAVA_TASK_NAME = "compileTask2"
-    AndroidModel.set(androidFacet, androidModel)
-  }
-
-  companion object {
-
-    private fun setUpModuleAsGradleModule(module: Module, isBuildable: Boolean = true, isJavaModule: Boolean = false) {
-      // The following statements describe the way the modules are set up by sync:
-      // Root Java modules do not get their GradlePath set unless there is something to build.
-      // Root Android modules get their path set correctly to ":".
-      // Non Java or Android modules (no plugins applied) should not get a Gradle facet at all.
-      val gradleFacet = Facets.createAndAddGradleFacet(module)
-      val gradlePath = when {
-        module.name == module.project.name && isJavaModule && !isBuildable -> null
-        module.name == module.project.name -> ":"
-        else -> SdkConstants.GRADLE_PATH_SEPARATOR + module.name
-      }
-      gradleFacet.configuration.GRADLE_PROJECT_PATH = gradlePath
-      val gradleProjectStub: GradleProject? = gradlePath?.let {
-        GradleProjectStub(
-          emptyList(),
-          gradlePath,
-          Projects.getBaseDirPath(module.project)
-        )
-      }
-      if (gradleProjectStub != null) {
-        val model = GradleModuleModel(module.name, gradleProjectStub, emptyList(), null, null, null, null)
-        gradleFacet.setGradleModuleModel(model)
-      }
-    }
+    ))
   }
 }
+
+private fun javaModule(gradlePath: String) = JavaModuleModelBuilder(gradlePath)
+
+private fun Multimap<Path, String>.forTest() = asMap().mapKeys { it.key.toFile() }
+
+private fun rootModule() = JavaModuleModelBuilder.rootModuleBuilder
+
+private fun androidModule(
+  gradlePath: String,
+  projectType: Int = AndroidProjectTypes.PROJECT_TYPE_APP,
+  moduleDependencies: List<String> = emptyList(),
+  dynamicFeatures: List<String> = emptyList()
+) = AndroidModuleModelBuilder(
+  gradlePath,
+  "debug",
+  createAndroidProjectBuilder(
+    projectType = { projectType },
+    androidModuleDependencyList = { moduleDependencies.map { AndroidModuleDependency(it, "debug") } },
+    dynamicFeatures = { dynamicFeatures }
+  )
+)

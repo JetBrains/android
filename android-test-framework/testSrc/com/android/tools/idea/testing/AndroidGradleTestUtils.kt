@@ -349,8 +349,8 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     listOf(),
     null,
     null,
-    null,
-    null,
+    "bundle".takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant),
+    "extractApksFor".takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant),
     null,
     false
   )
@@ -387,8 +387,10 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     listOf(),
     null,
     null,
-    null,
-    null,
+    "bundle"
+      .takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant)?.appendCapitalized("androidTest"),
+    "extractApksFor"
+      .takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant)?.appendCapitalized("androidTest"),
     null,
     false
   )
