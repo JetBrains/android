@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.transport
+package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
@@ -66,7 +66,8 @@ class AppInspectionServiceRule(
     client = TransportClient(grpcServer.name)
     poller = TransportEventPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
     executorService = ThreadPoolExecutor(0, 1, 1L, TimeUnit.SECONDS, LinkedBlockingQueue())
-    transport = AppInspectionTransport(client, stream, process, executorService, poller)
+    transport = AppInspectionTransport(client, stream, process,
+                                                                                                   executorService, poller)
   }
 
   override fun after(description: Description) {
@@ -81,7 +82,10 @@ class AppInspectionServiceRule(
   ): ListenableFuture<AppInspectionPipelineConnection> {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    return AppInspectionPipelineConnection.attach(stream, process, grpcServer.name, executorService, transport)
+    return AppInspectionPipelineConnection.attach(stream, process,
+                                                                                                                        grpcServer.name,
+                                                                                                                        executorService,
+                                                                                                                        transport)
   }
 
   /**
@@ -90,7 +94,8 @@ class AppInspectionServiceRule(
    * [commandHandler], and [eventListener] can be provided to customize behavior of how commands and events are received.
    */
   fun launchInspectorConnection(inspectorId: String = INSPECTOR_ID,
-                                commandHandler: CommandHandler = TestInspectorCommandHandler(timer),
+                                commandHandler: CommandHandler = TestInspectorCommandHandler(
+                                  timer),
                                 eventListener: AppInspectorClient.EventListener = TestInspectorEventListener()
   ): AppInspectorClient.CommandMessenger {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)

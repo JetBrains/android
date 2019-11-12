@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.transport
+package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
@@ -51,7 +51,9 @@ class AppInspectorConnectionTest {
   private val transportService = FakeTransportService(timer)
 
   private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectorConnectionTest", transportService, transportService)!!
-  private val appInspectionRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
+  private val appInspectionRule = AppInspectionServiceRule(timer,
+                                                                                                                       transportService,
+                                                                                                                       grpcServerRule)
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionRule)!!
@@ -83,7 +85,8 @@ class AppInspectorConnectionTest {
   fun sendRawCommandSucceedWithCallback() {
     val connection = appInspectionRule.launchInspectorConnection()
 
-    assertThat(connection.sendRawCommand("TestData".toByteArray()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS))
+    assertThat(connection.sendRawCommand("TestData".toByteArray()).get(
+      TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS))
       .isEqualTo("TestData".toByteArray())
   }
 
@@ -93,7 +96,8 @@ class AppInspectorConnectionTest {
       commandHandler = TestInspectorCommandHandler(timer, false, "error")
     )
 
-    assertThat(connection.sendRawCommand("TestData".toByteArray()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS))
+    assertThat(connection.sendRawCommand("TestData".toByteArray()).get(
+      TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS))
       .isEqualTo("error".toByteArray())
   }
 
@@ -133,21 +137,24 @@ class AppInspectorConnectionTest {
     val eventListener = AppInspectionServiceRule.TestInspectorEventListener()
     val connection = appInspectionRule.launchInspectorConnection(eventListener = eventListener)
 
-    assertThat(connection.sendRawCommand("TestData".toByteArray()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS))
+    assertThat(connection.sendRawCommand("TestData".toByteArray()).get(
+      TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS))
       .isEqualTo("TestData".toByteArray())
     assertThat(eventListener.rawEvents).isEmpty()
   }
 
   @Test
   fun disposeConnectionClosesConnection() {
-    val connection = appInspectionRule.launchInspectorConnection(INSPECTOR_NAME)
+    val connection = appInspectionRule.launchInspectorConnection(
+      INSPECTOR_NAME)
 
     assertThat(connection.disposeInspector().get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS))
       .isEqualTo(AppInspection.ServiceResponse.newBuilder().setStatus((SUCCESS)).build())
 
     // connection should be closed
     try {
-      connection.sendRawCommand("Test".toByteArray()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+      connection.sendRawCommand("Test".toByteArray()).get(
+        TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     }
     catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(IllegalStateException::class.java)
@@ -260,7 +267,8 @@ class AppInspectorConnectionTest {
 
     // connection should be closed
     try {
-      connection.sendRawCommand("Data".toByteArray()).get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+      connection.sendRawCommand("Data".toByteArray()).get(
+        TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
     }
     catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(IllegalStateException::class.java)

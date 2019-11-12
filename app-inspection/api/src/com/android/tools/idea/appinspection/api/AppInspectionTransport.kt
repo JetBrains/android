@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.transport
+package com.android.tools.idea.appinspection.api
 
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.transport.TransportClient
@@ -84,7 +84,8 @@ class AppInspectionTransport(
       .setType(Commands.Command.CommandType.APP_INSPECTION)
       .setStreamId(stream.streamId)
       .setPid(process.pid)
-      .setAppInspectionCommand(appInspectionCommand.toBuilder().setCommandId(generateNextCommandId()).build())
+      .setAppInspectionCommand(appInspectionCommand.toBuilder().setCommandId(
+        generateNextCommandId()).build())
     executorService.submit{ client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build()) }
     return command.appInspectionCommand.commandId
   }

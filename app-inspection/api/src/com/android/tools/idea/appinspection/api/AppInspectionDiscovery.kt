@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.transport
+package com.android.tools.idea.appinspection.api
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.addCallback
@@ -67,7 +67,9 @@ class AppInspectionDiscovery(private val executor: ScheduledExecutorService,
   internal fun connect(device: IDevice, preferredProcess: AutoPreferredProcess) {
     val dexPusher = { file: File, onDevicePath: String -> device.pushFile(file.toPath().toAbsolutePath().toString(), onDevicePath) }
     attacher.attach(preferredProcess) { stream, process ->
-      AppInspectionPipelineConnection.attach(stream, process, transportChannel.channelName, executor)
+      AppInspectionPipelineConnection.attach(stream, process,
+                                                                                                                   transportChannel.channelName,
+                                                                                                                   executor)
         .addCallback(executor, object : FutureCallback<AppInspectionPipelineConnection> {
           override fun onSuccess(result: AppInspectionPipelineConnection?) {
             listeners.forEach {
