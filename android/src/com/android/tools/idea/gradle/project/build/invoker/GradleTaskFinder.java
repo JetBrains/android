@@ -108,7 +108,7 @@ public class GradleTaskFinder {
       }
     }
 
-    Set<Module> allModules = new HashSet<>();
+    Set<Module> allModules = new LinkedHashSet<>();
     for (Module module : modules) {
       allModules.addAll(DynamicAppUtils.getModulesToBuild(module));
     }
