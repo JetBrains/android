@@ -254,7 +254,6 @@ iml_module(
             "com.android.tools.idea.project",
             "com.android.tools.idea.refactoring",
             "com.android.tools.idea.rendering",
-            "com.android.tools.idea.res",
             "com.android.tools.idea.run",
             "com.android.tools.idea.sdk",
             "com.android.tools.idea.startup",
