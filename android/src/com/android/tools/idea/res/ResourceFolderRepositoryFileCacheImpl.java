@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -187,8 +188,8 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     }
     // First delete all the subdirectories but leave the invalidation marker intact.
     boolean[] errorDeletingDirectories = new boolean[1];
-    try {
-      Files.list(rootDir).forEach(subCache -> {
+    try (Stream<Path> stream = Files.list(rootDir)) {
+      stream.forEach(subCache -> {
         if (!subCache.getFileName().toString().equals(INVALIDATION_MARKER_FILE)) {
           try {
             FileUtil.delete(subCache);
@@ -367,8 +368,8 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
           usedCacheDirectories.add(dir);
         }
       }
-      try {
-        Files.list(projectCacheBase).forEach(file -> {
+      try (Stream<Path> stream = Files.list(projectCacheBase)) {
+        stream.forEach(file -> {
           if (!usedCacheDirectories.contains(file) && !FileUtil.delete(file.toFile())) {
             getLogger().error("Failed to delete " + file);
           }
