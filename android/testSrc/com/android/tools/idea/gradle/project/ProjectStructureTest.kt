@@ -84,9 +84,9 @@ class ProjectStructureTest : PlatformTestCase() {
       project,
       File(project.basePath!!),
       JavaModuleModelBuilder.rootModuleBuilder,
-      androidModule(":app", "3.2", PROJECT_TYPE_APP, moduleDependencies = listOf(":feature1", ":feature2")),
-      androidModule(":feature1", "3.2", PROJECT_TYPE_DYNAMIC_FEATURE),
-      androidModule(":feature2", "3.2", PROJECT_TYPE_DYNAMIC_FEATURE)
+      androidModule(":app", "3.2", PROJECT_TYPE_APP, dynamicFeatures = listOf(":feature1", ":feature2")),
+      androidModule(":feature1", "3.2", PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app")),
+      androidModule(":feature2", "3.2", PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app"))
     )
 
     val projectStructure = ProjectStructure.getInstance(project)
@@ -100,13 +100,20 @@ class ProjectStructureTest : PlatformTestCase() {
 
   private fun javaModule(gradlePath: String, buildable: Boolean = true) = JavaModuleModelBuilder(gradlePath, buildable)
 
-  private fun androidModule(gradlePath: String, agpVersion: String, projectType: Int, moduleDependencies: List<String> = emptyList()) =
+  private fun androidModule(
+    gradlePath: String,
+    agpVersion: String,
+    projectType: Int,
+    dynamicFeatures: List<String> = emptyList(),
+    moduleDependencies: List<String> = emptyList()
+  ) =
     AndroidModuleModelBuilder(
       gradlePath,
       agpVersion = agpVersion,
       selectedBuildVariant = "debug",
       projectBuilder = createAndroidProjectBuilder(
         projectType = { projectType },
+        dynamicFeatures = { dynamicFeatures },
         androidModuleDependencyList = { moduleDependencies.map { AndroidModuleDependency(it, "debug") } }
       )
     )
