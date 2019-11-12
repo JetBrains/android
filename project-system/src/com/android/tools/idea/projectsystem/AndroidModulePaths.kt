@@ -35,9 +35,14 @@ interface AndroidModulePaths {
   fun getSrcDirectory(packageName: String?): File?
 
   /**
-   * Similar to [AndroidModulePaths.getSrcDirectory], except for new tests.
+   * Similar to [AndroidModulePaths.getSrcDirectory], except for new Android tests.
    */
   fun getTestDirectory(packageName: String?): File?
+
+  /**
+   * Similar to [AndroidModulePaths.getSrcDirectory], except for new unit tests.
+   */
+  fun getUnitTestDirectory(packageName: String?): File?
 
   /**
    * Resource directories in order of increasing precedence. A resource in the last directory overrides
