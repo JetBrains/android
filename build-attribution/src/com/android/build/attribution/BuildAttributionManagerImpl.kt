@@ -15,32 +15,25 @@
  */
 package com.android.build.attribution
 
-import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersWrapper
 import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
-import com.android.build.attribution.ui.BuildAttributionTreeView
-import com.android.build.attribution.ui.data.BuildAttributionReportUiData
+import com.android.build.attribution.ui.BuildAttributionUiManager
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
-import com.intellij.ui.content.Content
-import com.intellij.ui.content.impl.ContentImpl
 import org.gradle.tooling.events.ProgressEvent
 import java.io.File
 import java.time.Duration
 
 class BuildAttributionManagerImpl(
-  private val project: Project,
-  private val buildContentManager: BuildContentManager
+  project: Project
 ) : BuildAttributionManager {
   private val taskContainer = TaskContainer()
   private val pluginContainer = PluginContainer()
@@ -50,9 +43,7 @@ class BuildAttributionManagerImpl(
   private val analyzersWrapper = BuildEventsAnalyzersWrapper(analyzersProxy.getBuildEventsAnalyzers(),
                                                              analyzersProxy.getBuildAttributionReportAnalyzers())
 
-  private var buildContent: Content? = null
-  private var buildAttributionTreeView: BuildAttributionTreeView? = null
-  private var reportUiData: BuildAttributionReportUiData? = null
+  private val uiManager = BuildAttributionUiManager(project)
 
   override fun onBuildStart() {
     analyzersWrapper.onBuildStart()
@@ -68,8 +59,7 @@ class BuildAttributionManagerImpl(
 
     logBuildAttributionResults()
 
-    reportUiData = BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp).build()
-    ApplicationManager.getApplication().invokeLater { createUiTab() }
+    uiManager.showNewReport(BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp).build())
   }
 
   override fun onBuildFailure() {
@@ -82,36 +72,7 @@ class BuildAttributionManagerImpl(
     analyzersWrapper.receiveEvent(event)
   }
 
-  @UiThread
-  private fun createUiTab() {
-    reportUiData?.let {
-      buildAttributionTreeView?.let { treeView -> Disposer.dispose(treeView) }
-      buildAttributionTreeView = BuildAttributionTreeView(it).also { view ->
-        buildContent?.takeIf { content -> content.isValid }?.also { content ->
-          content.component = view.component
-          Disposer.register(content, view)
-        } ?: run {
-          buildContent = ContentImpl(view.component, "Build Speed", true).also { disposableContent ->
-            Disposer.register(project, disposableContent)
-            Disposer.register(disposableContent, view)
-          }
-          buildContentManager.addContent(buildContent)
-        }
-        view.setInitialSelection()
-      }
-    }
-  }
-
-  override fun openResultsTab() {
-    ApplicationManager.getApplication().invokeLater {
-      if (buildContent?.isValid != true) {
-        createUiTab()
-      }
-      ApplicationManager.getApplication().invokeLater {
-        buildContentManager.setSelectedContent(buildContent, true, true, false) {}
-      }
-    }
-  }
+  override fun openResultsTab() = uiManager.openTab()
 
   private fun logBuildAttributionResults() {
     val stringBuilder = StringBuilder()
