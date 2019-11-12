@@ -369,9 +369,14 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
 
     val statementText =
       if (methodCall.fullName.isNotEmpty() && methodCall.fullName != methodCall.methodName) {
-        val propertyName = maybeTrimForParent(methodCall.nameElement, methodCall.parent, this).first
+        val externalNameInfo = maybeTrimForParent(methodCall.nameElement, methodCall.parent, this)
+        val propertyName = externalNameInfo.first
+        val useAssignment = when (val asMethod = externalNameInfo.second) {
+          null -> methodCall.shouldUseAssignment()
+          else -> !asMethod
+        }
         val methodName = maybeTrimForParent(GradleNameElement.fake(methodCall.methodName), methodCall.parent, this).first
-        if (methodCall.shouldUseAssignment()) {
+        if (useAssignment) {
           // Ex: a = b().
           "$propertyName = $methodName()"
         }
