@@ -22,6 +22,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElem
 import static com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement.DATA_BINDING_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement.DEX_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement.KOTLIN_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement.LINT_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement.PACKAGING_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
@@ -40,6 +41,7 @@ import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.DataBindingModel;
 import com.android.tools.idea.gradle.dsl.api.android.DexOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.KotlinOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.LintOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.PackagingOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
@@ -62,6 +64,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.DefaultConfigDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
@@ -271,6 +274,18 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     }
     return new LintOptionsModelImpl(lintOptionsDslElement);
   }
+
+  @Override
+  @NotNull
+  public KotlinOptionsModel kotlinOptions() {
+    KotlinOptionsDslElement kotlinOptionsDslElement = myDslElement.getPropertyElement(KOTLIN_OPTIONS_BLOCK_NAME, KotlinOptionsDslElement.class);
+    if (kotlinOptionsDslElement == null) {
+      kotlinOptionsDslElement = new KotlinOptionsDslElement(myDslElement);
+      myDslElement.setNewElement(kotlinOptionsDslElement);
+    }
+    return new KotlinOptionsModelImpl(kotlinOptionsDslElement);
+  }
+
 
   @Override
   @NotNull

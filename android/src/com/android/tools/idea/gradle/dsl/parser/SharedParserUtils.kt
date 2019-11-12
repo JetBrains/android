@@ -35,6 +35,8 @@ import com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement.DEX_OPTIONS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME
+import com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement
+import com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement.KOTLIN_OPTIONS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement.LINT_OPTIONS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement
@@ -190,6 +192,7 @@ fun GradleDslFile.getBlockElement(
         ADB_OPTIONS_BLOCK_NAME -> AdbOptionsDslElement(resultElement)
         DATA_BINDING_BLOCK_NAME -> DataBindingDslElement(resultElement)
         DEX_OPTIONS_BLOCK_NAME -> DexOptionsDslElement(resultElement)
+        KOTLIN_OPTIONS_BLOCK_NAME -> KotlinOptionsDslElement(resultElement)
         LINT_OPTIONS_BLOCK_NAME -> LintOptionsDslElement(resultElement)
         PACKAGING_OPTIONS_BLOCK_NAME -> PackagingOptionsDslElement(resultElement)
         SPLITS_BLOCK_NAME -> SplitsDslElement(resultElement)
