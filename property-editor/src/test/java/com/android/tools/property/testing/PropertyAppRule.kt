@@ -16,10 +16,10 @@
 package com.android.tools.property.testing
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.intellij.ide.ui.NotRoamableUiSettings
 import com.intellij.ide.ui.UISettings
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.testFramework.registerServiceInstance
 import org.mockito.Mockito.mock
 
 class PropertyAppRule : ApplicationRule() {
@@ -30,8 +30,9 @@ class PropertyAppRule : ApplicationRule() {
   override fun before() {
     super.before()
     try {
-      testApplication.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock())
-      testApplication.registerServiceInstance(ActionManager::class.java, mock(ActionManager::class.java))
+      testApplication.registerService(PropertiesComponent::class.java, PropertiesComponentMock())
+      testApplication.registerService(ActionManager::class.java, mock(ActionManager::class.java))
+      testApplication.registerService(NotRoamableUiSettings::class.java, NotRoamableUiSettings())
       testApplication.registerService(UISettings::class.java, UISettings())
     } catch (e: Exception) {
       super.after()
