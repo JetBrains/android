@@ -164,15 +164,16 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
   }
 
   /**
-   * Deletes the cache from disk, clearing the invalidation stamp.
+   * Deletes the cache files from disk, clearing the invalidation stamp.
    */
   @VisibleForTesting
-  void delete() {
+  void clear() {
     Path rootDir = getRootDir();
     if (rootDir == null) {
       return;
     }
-    // First delete all the subdirectories except for the stamp.
+    // First delete all the subdirectories but leave the invalidation marker intact.
+    boolean[] errorDeletingDirectories = new boolean[1];
     try {
       Files.list(rootDir).forEach(subCache -> {
         if (!subCache.getFileName().toString().equals(INVALIDATION_MARKER_FILE)) {
@@ -183,8 +184,16 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     catch (IOException ignored) {
     }
 
-    // Finally, delete the stamp and the directory.
-    FileUtil.delete(rootDir.toFile());
+    if (!errorDeletingDirectories[0]) {
+      // Finally, delete the invalidation marker file.
+      Path invalidationMarker = rootDir.resolve(INVALIDATION_MARKER_FILE);
+      try {
+        FileUtil.delete(invalidationMarker);
+      }
+      catch (IOException e) {
+        getLogger().error("Failed to delete " + invalidationMarker + " file", e);
+      }
+    }
   }
 
   /**
@@ -237,7 +246,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
       }
       // If invalid, clear the whole cache directory (including any invalidation stamps).
       if (!cache.isValid()) {
-        cache.delete();
+        cache.clear();
         return;
       }
 
