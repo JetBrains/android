@@ -22,6 +22,7 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.BazelRunfilesManifestProcessor;
 import com.android.testutils.TestUtils;
+import com.android.testutils.diff.UnifiedDiff;
 import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import java.io.File;
@@ -171,15 +172,70 @@ public class IdeaTestSuiteBase {
     }
   }
 
-  protected static void setUpOfflineRepo(@NotNull String repoZip, @NotNull String outputPath) {
-    File offlineRepoZip = new File(getWorkspaceRoot(), repoZip);
-    if (!offlineRepoZip.exists()) {
-      throw new IllegalArgumentException(repoZip + " does not exist");
+  /**
+   * Sets up a project with content of a zip file, optionally applying a collection of git diff files to the unzipped project source code.
+   */
+  protected static void setUpSourceZip(@NotNull String sourceZip, @NotNull String outputPath, DiffSpec... diffSpecs) {
+    File sourceZipFile = getWorkspaceFileAndEnsureExistence(sourceZip);
+    File outDir = createTmpDir(outputPath).toFile();
+    unzip(sourceZipFile, outDir);
+    for (DiffSpec diffSpec : diffSpecs) {
+      try {
+        new UnifiedDiff(Paths.get(diffSpec.relativeDiffPath)).apply(
+          outDir,
+          // plus 1 since the UnifiedDiff implementation artificially includes the
+          // diff prefix "a/" and "b/" when counting path segments.
+          diffSpec.diffDistance + 1);
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
+  }
+
+  /**
+   * Simple value wrapper describing a git diff file.
+   */
+  protected static class DiffSpec {
+
+    /**
+     * The relative path of the diff file from the workspace root.
+     */
+    public final String relativeDiffPath;
+
+    /**
+     * The distance from the source directory and the git root when the diff file
+     * was generated. For example, for diffs in benchmark projects, the source code is usually located
+     * at `$git-root/project_name.123/src`, hence the diff distance is 2.
+     */
+    public final int diffDistance;
+
+    public DiffSpec(String relativeDiffPath, int diffDistance) {
+      this.relativeDiffPath = relativeDiffPath;
+      this.diffDistance = diffDistance;
+    }
+  }
+
+  protected static void setUpOfflineRepo(@NotNull String repoZip, @NotNull String outputPath) {
+    File offlineRepoZip = getWorkspaceFileAndEnsureExistence(repoZip);
+    File outDir = createTmpDir(outputPath).toFile();
+    unzip(offlineRepoZip, outDir);
+  }
+
+  @NotNull
+  private static File getWorkspaceFileAndEnsureExistence(@NotNull String relativePath) {
+    File file = new File(getWorkspaceRoot(), relativePath);
+    if (!file.exists()) {
+      throw new IllegalArgumentException(relativePath + " does not exist");
+    }
+    return file;
+  }
+
+  private static void unzip(File offlineRepoZip, File outDir) {
     try {
       InstallerUtil.unzip(
         offlineRepoZip,
-        createTmpDir(outputPath).toFile(),
+        outDir,
         FileOpUtils.create(),
         offlineRepoZip.length(),
         new FakeProgressIndicator());
