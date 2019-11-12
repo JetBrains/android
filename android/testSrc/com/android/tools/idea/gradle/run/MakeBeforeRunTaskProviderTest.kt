@@ -71,15 +71,20 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
                       "-lowdr-nowidecg-port-notnight-560dpi-finger-keysexposed-nokeys-navhidden-nonav-v27")
   }
 
-  private fun setUpTestProject(vararg modules: Pair<String, AndroidProjectBuilder> = arrayOf(":" to createAndroidProjectBuilder())) {
+  private fun setUpTestProject(
+    vararg modules: Pair<String, AndroidProjectBuilder> = arrayOf(":" to createAndroidProjectBuilder())
+  ) = setUpTestProject(null, *modules)
+
+  private fun setUpTestProject(agpVersion: String?, vararg modules: Pair<String, AndroidProjectBuilder>) {
     setupTestProjectFromAndroidModel(
       project,
       File(project.basePath!!),
       *modules.map {
         AndroidModuleModelBuilder(
           it.first,
-          "debug",
-          it.second
+          agpVersion = agpVersion,
+          selectedBuildVariant = "debug",
+          projectBuilder = it.second
         )
       }.toTypedArray()
     )
@@ -200,7 +205,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
   }
 
   fun testRunGradleSyncWithPostBuildSyncNotSupported() {
-    setUpTestProject(":" to createAndroidProjectBuilder(agpVersion = { "2.0.0" }))
+    setUpTestProject("2.0.0", ":" to createAndroidProjectBuilder())
     val syncInvoker = IdeComponents(myProject).mockApplicationService(GradleSyncInvoker::class.java)
     val syncState = IdeComponents(
       myProject).mockProjectService(

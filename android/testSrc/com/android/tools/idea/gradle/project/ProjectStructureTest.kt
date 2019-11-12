@@ -103,9 +103,9 @@ class ProjectStructureTest : PlatformTestCase() {
   private fun androidModule(gradlePath: String, agpVersion: String, projectType: Int, moduleDependencies: List<String> = emptyList()) =
     AndroidModuleModelBuilder(
       gradlePath,
-      "debug",
-      createAndroidProjectBuilder(
-        agpVersion = { agpVersion },
+      agpVersion = agpVersion,
+      selectedBuildVariant = "debug",
+      projectBuilder = createAndroidProjectBuilder(
         projectType = { projectType },
         androidModuleDependencyList = { moduleDependencies.map { AndroidModuleDependency(it, "debug") } }
       )
