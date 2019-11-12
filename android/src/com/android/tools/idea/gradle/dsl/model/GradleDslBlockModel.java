@@ -79,6 +79,11 @@ public abstract class GradleDslBlockModel implements GradleDslModel {
   }
 
   @NotNull
+  protected LanguageLevelPropertyModel getJvmTargetModelForProperty(@NotNull String property) {
+    return GradlePropertyModelBuilder.create(myDslElement, property).buildJvmTarget();
+  }
+
+  @NotNull
   protected ResolvedPropertyModel getModelForProperty(@NotNull String property, boolean isMethod) {
     return GradlePropertyModelBuilder.create(myDslElement, property).asMethod(isMethod).buildResolved();
   }
