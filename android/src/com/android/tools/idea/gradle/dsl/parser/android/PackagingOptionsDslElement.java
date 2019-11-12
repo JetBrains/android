@@ -72,6 +72,7 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
       return super.getExternalToModelMap(converter);
     }
   }
+
   public PackagingOptionsDslElement(@NotNull GradleDslElement parent) {
     super(parent, GradleNameElement.create(PACKAGING_OPTIONS_BLOCK_NAME));
   }

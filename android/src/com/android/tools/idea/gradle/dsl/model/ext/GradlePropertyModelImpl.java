@@ -612,7 +612,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
     GradleDslElement element = getTransform().replace(myPropertyHolder, myElement, newElement, myName);
     element.setElementType(myPropertyType);
-    element.setUseAssignment(!myIsMethodCall);
+    element.setUseAssignment(!myIsMethodCall); // TODO(b/141970574): myElement.useAssignment
     // We need to ensure the parent will be modified so this change takes effect.
     element.setModified();
     myElement = element;
