@@ -58,6 +58,7 @@ public class Recipe implements RecipeInstruction {
     @XmlElement(name = "sourceSet", type =  SourceSetInstruction.class),
     @XmlElement(name = "setExtVar", type = SetExtVarInstruction.class),
     @XmlElement(name = "setBuildFeature", type = SetBuildFeatureInstruction.class),
+    @XmlElement(name = "requireJavaVersion", type = RequireJavaVersionInstruction.class),
   })
   private List<RecipeInstruction> instructions = Lists.newArrayList();
 
@@ -293,6 +294,22 @@ public class Recipe implements RecipeInstruction {
     @Override
     public void execute(@NotNull RecipeExecutor executor) {
       executor.setBuildFeature(name, value);
+    }
+  }
+
+  @SuppressWarnings({"NotNullFieldNotInitialized", "unused"})
+  private static final class RequireJavaVersionInstruction implements RecipeInstruction {
+    @XmlAttribute(required = true)
+    @NotNull
+    private String version;
+
+    @XmlAttribute
+    @Nullable
+    private String kotlinSupport;
+
+    @Override
+    public void execute(@NotNull RecipeExecutor executor) {
+      executor.requireJavaVersion(version, kotlinSupport != null ? kotlinSupport : "false");
     }
   }
 

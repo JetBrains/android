@@ -187,9 +187,15 @@ data class ProjectChecker(
       // substring(1) removes the first separatorChar
       val relativePath = it.path.removePrefix(this).substring(1)
       if (!comparisonExcludedPaths.contains(relativePath.replace(File.separatorChar, '/'))) {
-        // Assert the contents of each file between the new and old RenderingContext
-        val expected = FileUtil.loadFile(it).trimAllWhitespace()
-        val actual = FileUtil.loadFile(File(projectBaseNew + File.separatorChar + relativePath)).trimAllWhitespace()
+        /** Forces templates to conform to the same style */
+        fun String.harmonize() = this
+          .replace('\'', '"')
+          .replace(" : ", ": ")
+          .replace(" (", "(")
+          .trimAllWhitespace()
+        // Compare the contents of each file between the new and the old RenderingContext
+        val expected = FileUtil.loadFile(it).harmonize()
+        val actual = FileUtil.loadFile(File(projectBaseNew + File.separatorChar + relativePath)).harmonize()
         assertEquals("Contents of $relativePath are different", expected, actual)
       }
       relativePath
