@@ -27,10 +27,13 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import org.jetbrains.annotations.NotNull;
 
-public class CaptureCpuUsageTooltipView extends ProfilerTooltipView {
-  private final CaptureCpuUsageTooltip myTooltip;
+/**
+ * Tooltip view for {@link CpuCaptureStageCpuUsageTooltip}.
+ */
+public class CpuCaptureStageCpuUsageTooltipView extends ProfilerTooltipView {
+  private final CpuCaptureStageCpuUsageTooltip myTooltip;
 
-  public CaptureCpuUsageTooltipView(@NotNull CpuCaptureStageView stageView, @NotNull CaptureCpuUsageTooltip tooltip) {
+  public CpuCaptureStageCpuUsageTooltipView(@NotNull CpuCaptureStageView stageView, @NotNull CpuCaptureStageCpuUsageTooltip tooltip) {
     // Uses the CpuCapture's timeline instead of ProfilerTimeline.
     super(stageView.getStage().getCaptureTimeline());
     myTooltip = tooltip;

@@ -164,7 +164,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     stage.getStudioProfilers().addDependency(this)
          .onChange(ProfilerAspect.MODE, this::updateCaptureViewVisibility);
 
-    getTooltipBinder().bind(CpuUsageTooltip.class, CpuUsageTooltipView::new);
+    getTooltipBinder().bind(CpuProfilerStageCpuUsageTooltip.class, CpuProfilerStageCpuUsageTooltipView::new);
     getTooltipBinder().bind(CpuKernelTooltip.class, CpuKernelTooltipView::new);
     getTooltipBinder().bind(CpuThreadsTooltip.class, CpuThreadsTooltipView::new);
     getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
@@ -174,7 +174,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     if (!myStage.isImportTraceMode()) {
       myTooltipComponent.registerListenersOn(myUsageView);
-      MouseListener listener = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuUsageTooltip(myStage));
+      MouseListener listener = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuProfilerStageCpuUsageTooltip(myStage));
       myUsageView.addMouseListener(listener);
     }
 
@@ -304,6 +304,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    */
   @VisibleForTesting
   boolean shouldShowTooltipSeekComponent() {
-    return myStage.getTooltip() instanceof CpuUsageTooltip && myUsageView.shouldShowTooltipSeekComponent();
+    return myStage.getTooltip() instanceof CpuProfilerStageCpuUsageTooltip && myUsageView.shouldShowTooltipSeekComponent();
   }
 }

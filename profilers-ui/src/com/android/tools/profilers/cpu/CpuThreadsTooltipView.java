@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipView;
+import com.android.tools.profilers.StageView;
 import com.intellij.util.ui.JBUI;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -38,7 +39,7 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
   @NotNull private final JLabel myDuration;
   @NotNull private final JPanel myUnavailableDetails;
 
-  protected CpuThreadsTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuThreadsTooltip tooltip) {
+  protected CpuThreadsTooltipView(@NotNull StageView view, @NotNull CpuThreadsTooltip tooltip) {
     super(view.getTimeline());
     myTooltip = tooltip;
     // TODO(b/109661512): Move vgap scale into TabularLayout

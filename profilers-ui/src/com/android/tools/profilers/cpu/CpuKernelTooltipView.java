@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipView;
+import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.intellij.util.ui.JBUI;
@@ -39,7 +40,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class CpuKernelTooltipView extends ProfilerTooltipView {
   @NotNull private final CpuKernelTooltip myTooltip;
-  private final int myProcessId;
   @NotNull private final JPanel myContent;
   @NotNull private final JLabel myThread;
   @NotNull private final JLabel myProcess;
@@ -47,9 +47,8 @@ public class CpuKernelTooltipView extends ProfilerTooltipView {
   @NotNull private final JLabel myCpu;
   @NotNull private final JPanel myUnavailableDetails;
 
-  protected CpuKernelTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuKernelTooltip tooltip) {
+  protected CpuKernelTooltipView(@NotNull StageView view, @NotNull CpuKernelTooltip tooltip) {
     super(view.getTimeline());
-    myProcessId = view.getStage().getStudioProfilers().getSession().getPid();
     myTooltip = tooltip;
     // TODO(b/109661512): Move vgap scale into TabularLayout
     myContent = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(8)));
@@ -88,7 +87,7 @@ public class CpuKernelTooltipView extends ProfilerTooltipView {
     addRow(myContent, myDuration);
     myCpu.setText(String.format("CPU: %d", myTooltip.getCpuId()));
     addRow(myContent, myCpu);
-    if (myProcessId != threadSlice.getProcessId()) {
+    if (myTooltip.getProcessId() != threadSlice.getProcessId()) {
       addRow(myContent, myUnavailableDetails);
     }
   }

@@ -38,9 +38,11 @@ public class CpuKernelTooltip extends AspectModel<CpuKernelTooltip.Aspect> imple
   @Nullable private DataSeries<CpuThreadSliceInfo> mySeries;
   @Nullable private CpuThreadSliceInfo myCpuThreadSliceInfo;
   private int myCpuId;
+  private final int myProcessId;
 
   public CpuKernelTooltip(@NotNull CpuProfilerStage stage) {
     myStage = stage;
+    myProcessId = stage.getStudioProfilers().getSession().getPid();
     Range tooltipRange = stage.getStudioProfilers().getTimeline().getTooltipRange();
     tooltipRange.addDependency(this).onChange(Range.Aspect.RANGE, this::updateState);
   }
@@ -82,5 +84,9 @@ public class CpuKernelTooltip extends AspectModel<CpuKernelTooltip.Aspect> imple
 
   public int getCpuId() {
     return myCpuId;
+  }
+
+  public int getProcessId() {
+    return myProcessId;
   }
 }

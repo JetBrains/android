@@ -581,9 +581,9 @@ public final class CpuProfilerStageTest extends AspectObserver {
     Assume.assumeFalse(myServices.getFeatureConfig().isUnifiedPipelineEnabled());
 
     myStage.enter();
-    myStage.setTooltip(new CpuUsageTooltip(myStage));
-    assertThat(myStage.getTooltip()).isInstanceOf(CpuUsageTooltip.class);
-    CpuUsageTooltip tooltip = (CpuUsageTooltip)myStage.getTooltip();
+    myStage.setTooltip(new CpuProfilerStageCpuUsageTooltip(myStage));
+    assertThat(myStage.getTooltip()).isInstanceOf(CpuProfilerStageCpuUsageTooltip.class);
+    CpuProfilerStageCpuUsageTooltip tooltip = (CpuProfilerStageCpuUsageTooltip)myStage.getTooltip();
 
     CpuProfilerStage.CpuStageLegends legends = tooltip.getLegends();
     double tooltipTime = TimeUnit.SECONDS.toMicros(0);

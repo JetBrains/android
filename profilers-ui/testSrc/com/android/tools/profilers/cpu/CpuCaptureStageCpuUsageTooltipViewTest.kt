@@ -31,7 +31,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 
-class CaptureCpuUsageTooltipViewTest {
+class CpuCaptureStageCpuUsageTooltipViewTest {
   private val timer = FakeTimer()
 
   @Rule
@@ -49,7 +49,8 @@ class CaptureCpuUsageTooltipViewTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     profilers.stage = captureStage
     val stageView = profilersView.stageView as CpuCaptureStageView
-    val tooltip = CaptureCpuUsageTooltip(captureStage.minimapModel.cpuUsage, captureStage.captureTimeline.tooltipRange)
+    val tooltip = CpuCaptureStageCpuUsageTooltip(captureStage.minimapModel.cpuUsage,
+                                                 captureStage.captureTimeline.tooltipRange)
     tooltipView = FakeCaptureCpuUsageTooltipView(stageView, tooltip)
   }
 
@@ -60,8 +61,8 @@ class CaptureCpuUsageTooltipViewTest {
     assertThat(tooltipView.headingText).isEqualTo("00:10.000")
   }
 
-  private class FakeCaptureCpuUsageTooltipView(parent: CpuCaptureStageView, tooltip: CaptureCpuUsageTooltip)
-    : CaptureCpuUsageTooltipView(parent, tooltip) {
+  private class FakeCaptureCpuUsageTooltipView(parent: CpuCaptureStageView, tooltip: CpuCaptureStageCpuUsageTooltip)
+    : CpuCaptureStageCpuUsageTooltipView(parent, tooltip) {
     init {
       createComponent()
     }

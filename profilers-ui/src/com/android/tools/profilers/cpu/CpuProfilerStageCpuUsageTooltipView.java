@@ -23,6 +23,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipView;
+import com.android.tools.profilers.StageView;
 import com.intellij.util.ui.JBUI;
 import java.util.List;
 import javax.swing.JComponent;
@@ -32,25 +33,25 @@ import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 
-class CpuUsageTooltipView extends ProfilerTooltipView {
-  @NotNull private final CpuUsageTooltip myTooltip;
-  @NotNull private final CpuProfilerStageView myView;
+/**
+ * Tooltip view for {@link CpuCaptureStageCpuUsageTooltip}.
+ */
+class CpuProfilerStageCpuUsageTooltipView extends ProfilerTooltipView {
+  @NotNull private final CpuProfilerStageCpuUsageTooltip myTooltip;
   @NotNull private final JLabel mySelectionLabel;
 
-  CpuUsageTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuUsageTooltip tooltip) {
+  CpuProfilerStageCpuUsageTooltipView(@NotNull StageView view, @NotNull CpuProfilerStageCpuUsageTooltip tooltip) {
     super(view.getTimeline());
     myTooltip = tooltip;
-    myView = view;
     mySelectionLabel = new JLabel();
   }
 
   @Override
   protected void updateTooltip() {
-    boolean canSelect = myView.getStage().getRangeSelectionModel().canSelectRange(getTimeline().getTooltipRange());
+    boolean canSelect = myTooltip.getRangeSelectionModel().canSelectRange(getTimeline().getTooltipRange());
     if (canSelect) {
-      List<SeriesData<CpuTraceInfo>>
-        traceSeries =
-        myView.getStage().getTraceDurations().getSeries().getSeriesForRange(getTimeline().getTooltipRange());
+      List<SeriesData<CpuTraceInfo>> traceSeries =
+        myTooltip.getTraceDurations().getSeries().getSeriesForRange(getTimeline().getTooltipRange());
       if (traceSeries.isEmpty()) {
         return;
       }
