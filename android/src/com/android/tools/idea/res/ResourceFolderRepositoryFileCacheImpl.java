@@ -30,7 +30,6 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.startup.StartupActivity;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.IOException;
@@ -119,25 +118,13 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
   @VisibleForTesting
   @Nullable
   Path getRootDir() {
-    // Retries on Windows are an attempt to work around b/144005851.
-    int triesLeft = SystemInfo.isWindows ? 5 : 1;
     if (!Files.isDirectory(myRootDir, LinkOption.NOFOLLOW_LINKS)) {
-      while (true) {
-        try {
-          Files.createDirectories(myRootDir);
-          break;
-        }
-        catch (IOException e) {
-          if (--triesLeft <= 0) {
-            getLogger().error("Failed to create cache root directory " + myRootDir, e);
-            return null;
-          }
-          try {
-            Thread.sleep(5 + (long)(Math.random() * 10));
-          }
-          catch (InterruptedException e1) {
-          }
-        }
+      try {
+        Files.createDirectories(myRootDir);
+      }
+      catch (IOException e) {
+        getLogger().error("Failed to create cache root directory " + myRootDir, e);
+        return null;
       }
     }
     return myRootDir;
