@@ -32,8 +32,8 @@ import javax.swing.JComponent
  *
  * This is useful in case we want to show preview or not depending on the file content.
  */
-open class SeamlessTextEditorWithPreview(textEditor: TextEditor, preview: FileEditor, editorName: String) :
-  SplitEditor(textEditor, preview, editorName) {
+open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor, preview: P, editorName: String) :
+  SplitEditor<P>(textEditor, preview, editorName) {
 
   private var toolbarComponent: Component? = null
 

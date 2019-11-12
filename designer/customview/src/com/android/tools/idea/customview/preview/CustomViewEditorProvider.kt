@@ -154,7 +154,7 @@ private fun PsiFile.hasViewSuccessor() =
 /**
  * Text editor that enables preview if the file contains classes extending android.view.View
  */
-private class TextEditorWithCustomViewPreview(textEditor: TextEditor, val preview: CustomViewPreview) : SeamlessTextEditorWithPreview(
+private class TextEditorWithCustomViewPreview(textEditor: TextEditor, preview: CustomViewPreview) : SeamlessTextEditorWithPreview<CustomViewPreview>(
   textEditor, preview, "Custom View and Preview") {
   init {
     preview.editorWithPreview = this
