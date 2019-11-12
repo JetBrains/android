@@ -18,6 +18,7 @@ package com.android.tools.idea.templates
 import com.android.testutils.TestUtils
 import com.android.tools.idea.npw.platform.Language
 import com.google.common.truth.Truth.assertWithMessage
+import com.intellij.openapi.util.SystemInfo
 import java.io.File
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
@@ -113,6 +114,10 @@ open class TemplateTest : TemplateTestBase() {
 
   @TemplateCheck
   fun testNewProjectWithEmptyActivityWithCpp() {
+    // See b/144352075
+    if (SystemInfo.isWindows) {
+      return
+    }
     checkCreateTemplate("activities", "EmptyActivity", true, true, withCpp)
   }
 
