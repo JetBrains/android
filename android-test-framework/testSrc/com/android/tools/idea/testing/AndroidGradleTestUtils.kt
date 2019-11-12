@@ -505,10 +505,15 @@ fun setupTestProjectFromAndroidModel(
   }
 
   val moduleManager = ModuleManager.getInstance(project)
-  if (moduleManager.modules.size == 1) {
+  if (moduleManager.modules.size <= 1) {
     runWriteAction {
-      val module = moduleManager.modules[0]
       val modifiableModel = moduleManager.modifiableModel
+      val module = if (modifiableModel.modules.isEmpty()) {
+        modifiableModel.newModule(basePath.resolve("${project.name}.iml").path, JAVA.id)
+      }
+      else {
+        moduleManager.modules[0]
+      }
       if (module.name != project.name) {
         modifiableModel.renameModule(module, project.name)
         modifiableModel.setModuleGroupPath(module, arrayOf(project.name))

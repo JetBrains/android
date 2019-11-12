@@ -9,8 +9,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
             TypeId              : java-gradle
             Buildable           : false
             BuildFolderPath     :  [-]
-        JDK                 : <NAME_CUT> JavaSDK
-        *isInherited        : true
         ORDER_ENTRY         : <Module source>
     MODULE              : app
         LinkedProjectId     : :app
