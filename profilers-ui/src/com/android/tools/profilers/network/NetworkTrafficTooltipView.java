@@ -19,14 +19,14 @@ import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipView;
+import com.android.tools.profilers.StageView;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public final class NetworkTrafficTooltipView extends ProfilerTooltipView {
   @NotNull private final NetworkTrafficTooltip myTooltip;
 
-  NetworkTrafficTooltipView(@NotNull NetworkProfilerStageView view, @NotNull NetworkTrafficTooltip tooltip) {
+  NetworkTrafficTooltipView(@NotNull StageView view, @NotNull NetworkTrafficTooltip tooltip) {
     super(view.getTimeline());
     myTooltip = tooltip;
   }

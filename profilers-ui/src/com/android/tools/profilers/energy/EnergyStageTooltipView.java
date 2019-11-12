@@ -22,17 +22,18 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
-import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTooltipView;
+import com.android.tools.profilers.StageView;
+import java.awt.Color;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 
 class EnergyStageTooltipView extends ProfilerTooltipView {
   @NotNull private final EnergyStageTooltip myTooltip;
 
-  public EnergyStageTooltipView(@NotNull EnergyProfilerStageView stageView, @NotNull EnergyStageTooltip tooltip) {
+  public EnergyStageTooltipView(@NotNull StageView stageView, @NotNull EnergyStageTooltip tooltip) {
     super(stageView.getTimeline());
     myTooltip = tooltip;
   }

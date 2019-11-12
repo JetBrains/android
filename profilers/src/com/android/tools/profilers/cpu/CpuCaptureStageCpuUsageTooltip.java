@@ -23,15 +23,15 @@ import com.android.tools.adtui.model.legend.SeriesLegend;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Tooltip model for {@link CpuUsage} displayed in the CPU capture stage.
+ * Tooltip model for displaying CPU usage in the {@link CpuCaptureStage}.
  */
-public class CaptureCpuUsageTooltip implements TooltipModel {
+public class CpuCaptureStageCpuUsageTooltip implements TooltipModel {
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 5, 10, "%");
 
   private final LegendComponentModel myLegendModel;
   private final SeriesLegend myCpuLegend;
 
-  public CaptureCpuUsageTooltip(@NotNull CpuUsage cpuUsage, @NotNull Range tooltipRange) {
+  public CpuCaptureStageCpuUsageTooltip(@NotNull CpuUsage cpuUsage, @NotNull Range tooltipRange) {
     myCpuLegend = new SeriesLegend(cpuUsage.getCpuSeries(), CPU_USAGE_FORMATTER, tooltipRange);
     myLegendModel = new LegendComponentModel(tooltipRange);
     myLegendModel.add(myCpuLegend);

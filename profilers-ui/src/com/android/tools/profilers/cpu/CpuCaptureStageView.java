@@ -51,7 +51,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     super(view, stage);
     myTrackGroupList = new TrackGroupListPanel(TRACK_RENDERER_FACTORY);
     myAnalysisPanel = new CpuAnalysisPanel(view, stage);
-    getTooltipBinder().bind(CaptureCpuUsageTooltip.class, CaptureCpuUsageTooltipView::new);
+    getTooltipBinder().bind(CpuCaptureStageCpuUsageTooltip.class, CpuCaptureStageCpuUsageTooltipView::new);
 
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
     myMultiSelectionModel.addDependency(this).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, this::onTrackGroupSelectionChange);
@@ -103,7 +103,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     minimap.getComponent().addMouseListener(
       new ProfilerTooltipMouseAdapter(
         getStage(),
-        () -> new CaptureCpuUsageTooltip(minimapModel.getCpuUsage(), getStage().getCaptureTimeline().getTooltipRange())));
+        () -> new CpuCaptureStageCpuUsageTooltip(minimapModel.getCpuUsage(), getStage().getCaptureTimeline().getTooltipRange())));
     loadTrackGroupModels();
 
     JPanel container = new JPanel(new TabularLayout("*", "Fit-,*"));

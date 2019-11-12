@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JLabel
 
-class CpuUsageTooltipViewTest {
+class CpuProfilerStageCpuUsageTooltipViewTest {
   private val cpuService = FakeCpuService()
   private val timer = FakeTimer()
   private lateinit var cpuStage: CpuProfilerStage
@@ -52,7 +52,7 @@ class CpuUsageTooltipViewTest {
     profilers.stage = cpuStage
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     val stageView: CpuProfilerStageView = view.stageView as CpuProfilerStageView
-    val usageTooltip = CpuUsageTooltip(cpuStage)
+    val usageTooltip = CpuProfilerStageCpuUsageTooltip(cpuStage)
     usageTooltipView = FakeCpuUsageTooltipView(stageView, usageTooltip)
     cpuStage.tooltip = usageTooltip
     val tooltipTime = TimeUnit.SECONDS.toMicros(1)
@@ -99,8 +99,8 @@ class CpuUsageTooltipViewTest {
 
   private class FakeCpuUsageTooltipView(
     parent: CpuProfilerStageView,
-    tooltip: CpuUsageTooltip)
-    : CpuUsageTooltipView(parent, tooltip) {
+    tooltip: CpuProfilerStageCpuUsageTooltip)
+    : CpuProfilerStageCpuUsageTooltipView(parent, tooltip) {
     val tooltipPanel: JComponent = createComponent()
   }
 }

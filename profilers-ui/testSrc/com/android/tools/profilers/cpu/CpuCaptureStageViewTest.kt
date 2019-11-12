@@ -105,6 +105,6 @@ class CpuCaptureStageViewTest {
     assertThat(stage.tooltip).isNull()
     // Move into minimap
     ui.mouse.moveTo(minimapOrigin.x, minimapOrigin.y)
-    assertThat(stage.tooltip).isInstanceOf(CaptureCpuUsageTooltip::class.java)
+    assertThat(stage.tooltip).isInstanceOf(CpuCaptureStageCpuUsageTooltip::class.java)
   }
 }

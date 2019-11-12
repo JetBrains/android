@@ -346,7 +346,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
     assertThat(myStage.tooltip).isNull()
     // Move into |CpuUsageView|
     ui.mouse.moveTo(usageViewOrigin.x, usageViewOrigin.y)
-    assertThat(myStage.tooltip).isInstanceOf(CpuUsageTooltip::class.java)
+    assertThat(myStage.tooltip).isInstanceOf(CpuProfilerStageCpuUsageTooltip::class.java)
   }
 
   @Test
