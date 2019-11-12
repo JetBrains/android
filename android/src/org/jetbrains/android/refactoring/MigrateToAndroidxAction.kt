@@ -21,7 +21,6 @@ import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.support.MigrationParserVisitor
 import com.android.support.parseMigrationFile
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
@@ -192,7 +191,8 @@ class MigrateToAndroidxHandler(var showWarningDialog: Boolean = true,
 
       override fun visitGradleCoordinateUpgrade(groupName: String, artifactName: String, newBaseVersion: String) {
         classesAndCoordinates.add(
-          UpdateGradleDepedencyVersionMigrationEntry(groupName, artifactName, newBaseVersion))
+          UpdateGradleDependencyVersionMigrationEntry(
+            groupName, artifactName, newBaseVersion))
       }
     })
 
