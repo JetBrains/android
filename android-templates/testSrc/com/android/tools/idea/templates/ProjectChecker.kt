@@ -328,8 +328,7 @@ data class ProjectChecker(
       }
       if (isNewRenderingContext) {
         val newTemplates = TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
-        val moduleNameBase = moduleName.substringBefore('_')
-        val newTemplate = newTemplates.find { it.name.replace(" ", "") == moduleNameBase }!!
+        val newTemplate = newTemplates.find { it.name == template.metadata?.title }!!
         createProjectForNewRenderingContext(this, activityState, newTemplate)
       }
       else {
