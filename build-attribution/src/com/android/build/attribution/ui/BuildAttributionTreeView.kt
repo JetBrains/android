@@ -150,7 +150,13 @@ class BuildAttributionTreeView(private val reportData: BuildAttributionReportUiD
           }
 
           enabledViewRef.set(name)
-          (panel.layout as CardLayout).show(panel, name)
+          if (panel.componentCount > 1) {
+            (panel.layout as CardLayout).show(panel, name)
+          }
+          else {
+            // CardLayout.show does not trigger validation when there is just one component.
+            panel.validate()
+          }
         }
       }
     }
