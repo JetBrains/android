@@ -21,20 +21,80 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.ui.components.JBLabel;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * A console view to display a test execution and result of Android instrumentation tests.
  *
- * Note: This view is underdevelopment and most of methods are not implemented yet.
+ * Note: This view is under development and most of methods are not implemented yet.
  */
-public class AndroidTestSuiteView implements ConsoleView {
+public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListener {
 
   // Those properties are initialized by IntelliJ form editor before the constructor using reflection.
   private JPanel myRootPanel;
+  private JProgressBar myProgressBar;
+  private JBLabel myStatusText;
+  private JBLabel myStatusBreakdownText;
+
+  private int scheduledTestCases = 0;
+  private int passedTestCases = 0;
+  private int failedTestCases = 0;
+  private int skippedTestCases = 0;
+
+  private void updateProgress() {
+    int completedTestCases = passedTestCases + failedTestCases + skippedTestCases;
+    if (scheduledTestCases == 0) {
+      myProgressBar.setIndeterminate(true);
+    } else {
+      float progress = (float) completedTestCases / scheduledTestCases;
+      myProgressBar.setValue(Math.round((myProgressBar.getMaximum() - myProgressBar.getMinimum()) * progress));
+      myProgressBar.setIndeterminate(false);
+    }
+
+    myStatusText.setText(AndroidBundle.message("android.testartifacts.instrumented.testsuite.status.summary", completedTestCases));
+    myStatusBreakdownText.setText(AndroidBundle.message("android.testartifacts.instrumented.testsuite.status.breakdown",
+                                                        failedTestCases, passedTestCases, skippedTestCases, /*errorTestCases=*/0));
+  }
+
+  @Override
+  public void onTestSuiteScheduled(@NotNull String deviceId) {}
+
+  @Override
+  public void onTestSuiteStarted(@NotNull String deviceId, @NotNull String testSuiteId, int testCaseCount) {
+    scheduledTestCases += testCaseCount;
+    updateProgress();
+  }
+
+  @Override
+  public void onTestCaseStarted(@NotNull String deviceId, @NotNull String testSuiteId, @NotNull String testCaseId) {}
+
+  @Override
+  public void onTestCaseFinished(@NotNull String deviceId,
+                                 @NotNull String testSuiteId,
+                                 @NotNull String testCaseId,
+                                 @NotNull TestCaseResult result) {
+    switch(result) {
+      case PASSED:
+        passedTestCases++;
+        break;
+      case FAILED:
+        failedTestCases++;
+        break;
+      case SKIPPED:
+        skippedTestCases++;
+        break;
+    }
+    updateProgress();
+  }
+
+  @Override
+  public void onTestSuiteFinished(@NotNull String deviceId, @NotNull String testSuiteId, @NotNull TestSuiteResult result) {}
 
   @Override
   public void print(@NotNull String text, @NotNull ConsoleViewContentType contentType) { }
@@ -46,7 +106,11 @@ public class AndroidTestSuiteView implements ConsoleView {
   public void scrollTo(int offset) { }
 
   @Override
-  public void attachToProcess(ProcessHandler processHandler) { }
+  public void attachToProcess(ProcessHandler processHandler) {
+    // Put this test suite view to the process handler as AndroidTestResultListener so the view
+    // is notified the test results and to be updated.
+    processHandler.putCopyableUserData(AndroidTestSuiteConstantsKt.ANDROID_TEST_RESULT_LISTENER_KEY, this);
+  }
 
   @Override
   public void setOutputPaused(boolean value) { }
