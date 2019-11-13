@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.java;
 import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_ADD_NON_EXISTED_LANGUAGE_LEVEL;
 import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_ADD_NON_EXISTED_LANGUAGE_LEVEL_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_ADD_NON_EXISTED_TARGET_COMPATIBILITY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_ADD_NON_EXISTED_TARGET_COMPATIBILITY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_DELETE_LANGUAGE_LEVEL;
 import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSIONS_AS_DOUBLE_QUOTE_STRINGS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSIONS_AS_NUMBERS;
@@ -28,7 +29,9 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAV
 import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSION_REFERENCE_FROM_EXT_PROPERTY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_RESET_TARGET_COMPATIBILITY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_SET_SOURCE_COMPATIBILITY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_SET_SOURCE_COMPATIBILITY_EXPECTED;
 
+import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
@@ -43,6 +46,7 @@ import org.junit.Test;
 public class JavaModelTest extends GradleFileModelTestCase {
   @Test
   public void testReadJavaVersionsAsNumbers() throws IOException {
+    if(!isGroovy()) return; // TODO(b/138277630): no support for assigning numbers in KotlinScript
     writeToBuildFile(JAVA_MODEL_READ_JAVA_VERSIONS_AS_NUMBERS);
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
@@ -51,6 +55,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReadJavaVersionsAsSingleQuoteStrings() throws IOException {
+    if(!isGroovy()) return; // TODO(b/138277630): single-quoted strings don't exist in KotlinScript
     writeToBuildFile(JAVA_MODEL_READ_JAVA_VERSIONS_AS_SINGLE_QUOTE_STRINGS);
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
@@ -59,6 +64,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReadJavaVersionsAsDoubleQuoteStrings() throws IOException {
+    if(!isGroovy()) return; // TODO(b/138277630): no support for assigning strings in KotlinScript
     writeToBuildFile(JAVA_MODEL_READ_JAVA_VERSIONS_AS_DOUBLE_QUOTE_STRINGS);
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
@@ -67,6 +73,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReadJavaVersionsAsReferenceString() throws IOException {
+    if(!isGroovy()) return; // TODO(b/138277630): no support for assigning unqualified references in KotlinScript
     writeToBuildFile(JAVA_MODEL_READ_JAVA_VERSIONS_AS_REFERENCE_STRING);
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
@@ -83,6 +90,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReadJavaVersionLiteralFromExtProperty() throws IOException {
+    if(!isGroovy()) return; // TODO(b/138277630): no support for assigning numbers in KotlinScript
     writeToBuildFile(JAVA_MODEL_READ_JAVA_VERSION_LITERAL_FROM_EXT_PROPERTY);
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
@@ -106,6 +114,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
     java.sourceCompatibility().setLanguageLevel(LanguageLevel.JDK_1_7);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, JAVA_MODEL_SET_SOURCE_COMPATIBILITY_EXPECTED);
 
     java = buildModel.java();
     assertEquals(LanguageLevel.JDK_1_7, java.sourceCompatibility().toLanguageLevel());
@@ -122,16 +131,13 @@ public class JavaModelTest extends GradleFileModelTestCase {
     buildModel.resetState();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, JAVA_MODEL_RESET_TARGET_COMPATIBILITY);
 
     java = buildModel.java();
     // Because of the reset, it should remain unchanged
     assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility().toLanguageLevel());
   }
 
-  /**
-   * If sourceCompatibility exists but targetCompatibility does not, check if newly added targetCompatibility has the right
-   * default value and position.
-   */
   @Test
   public void testAddNonExistedTargetCompatibility() throws IOException {
     writeToBuildFile(JAVA_MODEL_ADD_NON_EXISTED_TARGET_COMPATIBILITY);
@@ -144,18 +150,23 @@ public class JavaModelTest extends GradleFileModelTestCase {
     java.targetCompatibility().setLanguageLevel(LanguageLevel.JDK_1_5);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, JAVA_MODEL_ADD_NON_EXISTED_TARGET_COMPATIBILITY_EXPECTED);
 
     assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility().toLanguageLevel());
 
+    // Ye Olde Comment (2015-era):
+    //
+    //   If sourceCompatibility exists but targetCompatibility does not, check if newly added targetCompatibility has the right
+    //   default value and position.
+    //
+    // I don't believe that the ordering of targetCompatibility and sourceCompatibility in the Dsl output is significant.  This doesn't
+    // test that anyway; the expected files do (and it is a bit weird that the new Groovy ends up before the existing one, but the
+    // opposite in KotlinScript; it is semantically irrelevant, though.
     PsiElement targetPsi = java.targetCompatibility().getPsiElement();
     PsiElement sourcePsi = java.sourceCompatibility().getPsiElement();
 
     assertNotNull(targetPsi);
     assertNotNull(sourcePsi);
-
-    // targetCompatibility should be previous to sourceCompatibility
-    // TODO: Enable proper placement of the written PsiElements.
-    //assertEquals(targetPsi, sourcePsi.getPrevSibling().getPrevSibling());
   }
 
   @Test
@@ -180,6 +191,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
     java.targetCompatibility().delete();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
 
     java = buildModel.java();
     assertMissingProperty(java.sourceCompatibility());

@@ -44,12 +44,16 @@ import org.jetbrains.annotations.Nullable;
 public class JavaDslElement extends BaseCompileOptionsDslElement {
   @NonNls public static final String JAVA_BLOCK_NAME = "java";
 
-  // Even though the JavaDslElement -- which is really not a DslElement at all: it has no physical existence in a Dsl file -- has the same
-  // properties as its superclass (hence the inheritance), its behaviour is different in that the accessors at this level are different
-  // between an explicit compileOptions block and at top level.  In Groovy; there is no one-argument setter method with the same name;
-  // the property syntax is used and supported.  In KotlinScript these properties appear not to be supported at all.
+  // The Java Dsl element has a different mapping of external names to functionality than the BaseCompileOptionsDslElement, even though
+  // the corresponding models are identical.  This suggests that JavaDslElement should probably not in fact be a
+  // BaseCompileOptionsDslElement.
+  //
+  // It is also a bit odd in that in Groovy the java block need not be explicitly present -- sourceCompatibility and targetCompatibility
+  // properties set at top-level are treated as altering the java block properties.  (I think).
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
+    {"sourceCompatibility", property, SOURCE_COMPATIBILITY, VAR},
+    {"targetCompatibility", property, TARGET_COMPATIBILITY, VAR}
   }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
                             data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
 
@@ -80,17 +84,35 @@ public class JavaDslElement extends BaseCompileOptionsDslElement {
 
   @Override
   @Nullable
-  public PsiElement getPsiElement() {
-    return null; // This class just act as an intermediate class for java properties and doesn't represent any real element on the file.
-  }
-
-  @Override
-  @Nullable
   public PsiElement create() {
-    return myParent == null ? null : myParent.create();
+    GradleDslNameConverter converter = getDslFile().getWriter();
+    if (converter instanceof KotlinDslNameConverter) {
+      return super.create();
+    }
+    else if (converter instanceof GroovyDslNameConverter) {
+      if (myParent == null) {
+        return null;
+      }
+      else {
+        return myParent.create();
+      }
+    }
+    else {
+      return super.create();
+    }
   }
 
   @Override
   public void setPsiElement(@Nullable PsiElement psiElement) {
+    GradleDslNameConverter converter = getDslFile().getWriter();
+    if (converter instanceof KotlinDslNameConverter) {
+      super.setPsiElement(psiElement);
+    }
+    else if (converter instanceof GroovyDslNameConverter) {
+      // do nothing
+    }
+    else {
+      super.setPsiElement(psiElement);
+    }
   }
 }
