@@ -19,6 +19,8 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.templates.TemplateManager.CATEGORY_AUTOMOTIVE;
 import static com.android.tools.idea.templates.TemplateManager.CATEGORY_COMPOSE;
 import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX;
+import static com.android.tools.idea.ui.wizard.WizardUtils.COMPOSE_MIN_AGP_VERSION;
+import static com.android.tools.idea.ui.wizard.WizardUtils.hasComposeMinAgpVersion;
 import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 
 import com.android.sdklib.AndroidVersion;
@@ -138,6 +140,10 @@ public class NewAndroidComponentAction extends AnAction {
     }
     else if (myTemplateConstraints.contains(ANDROIDX) && !useAndroidX(module)) {
       presentation.setText(AndroidBundle.message("android.wizard.action.requires.androidx", myTemplateName));
+      presentation.setEnabled(false);
+    }
+    else if (!hasComposeMinAgpVersion(module.getProject(), myTemplateCategory)) {
+      presentation.setText(AndroidBundle.message("android.wizard.action.requires.new.agp", myTemplateName, COMPOSE_MIN_AGP_VERSION));
       presentation.setEnabled(false);
     }
     else {
