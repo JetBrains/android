@@ -97,6 +97,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement
+import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement.PLUGINS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement
@@ -257,6 +259,7 @@ private fun createNewElementForFileOrSubProject(resultElement: GradlePropertiesD
   return when (nestedElementName) {
     EXT_BLOCK_NAME -> ExtDslElement(resultElement)
     ANDROID_BLOCK_NAME -> AndroidDslElement(resultElement)
+    JAVA_BLOCK_NAME -> JavaDslElement(resultElement)
     CONFIGURATIONS_BLOCK_NAME -> ConfigurationsDslElement(resultElement)
     DEPENDENCIES_BLOCK_NAME -> DependenciesDslElement(resultElement)
     SUBPROJECTS_BLOCK_NAME -> SubProjectsDslElement(resultElement)
