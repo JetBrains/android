@@ -57,6 +57,7 @@ import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
+import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
 import com.intellij.execution.ui.ConsoleView;
@@ -319,7 +320,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   protected ConsoleProvider getConsoleProvider() {
     return (parent, handler, executor) -> {
       final ConsoleView consoleView;
-      if (StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get()) {
+      if (StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get() && DefaultRunExecutor.EXECUTOR_ID.equals(executor.getId())) {
         consoleView = new AndroidTestSuiteView();
         consoleView.attachToProcess(handler);
       } else {
