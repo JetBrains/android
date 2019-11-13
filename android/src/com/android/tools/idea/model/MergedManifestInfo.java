@@ -25,6 +25,7 @@ import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlDocument;
 import com.android.tools.idea.project.SyncTimestampUtil;
 import com.android.tools.idea.projectsystem.ManifestOverrides;
+import com.android.tools.idea.projectsystem.MergedManifestContributors;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
@@ -182,7 +183,7 @@ final class MergedManifestInfo {
     Project project = facet.getModule().getProject();
     long syncTimestamp = SyncTimestampUtil.getLastSyncTimestamp(project);
 
-    MergedManifestContributors contributors = MergedManifestContributors.determineFor(facet);
+    MergedManifestContributors contributors = MergedManifestContributorsKt.getMergedManifestContributors(facet);
     ModificationStamps modificationStamps = ModificationStamps.forFiles(project, contributors.allFiles);
 
     Document document = null;
@@ -242,7 +243,7 @@ final class MergedManifestInfo {
     if (Disposer.isDisposed(myFacet)) {
       return true;
     }
-    MergedManifestContributors manifests = MergedManifestContributors.determineFor(myFacet);
+    MergedManifestContributors manifests = MergedManifestContributorsKt.getMergedManifestContributors(myFacet);
     if (manifests.primaryManifest == null) {
       return true;
     }

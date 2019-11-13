@@ -20,6 +20,7 @@ import com.android.resources.ResourceFolderType
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
+import com.android.tools.idea.projectsystem.MergedManifestContributors
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
@@ -28,42 +29,15 @@ import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.util.AndroidUtils
 import java.io.File
 
-/**
- * Immutable data object responsible for determining all the files that contribute to
- * the merged manifest of a particular [AndroidFacet] at a particular moment in time.
- *
- * Note that any navigation files are also considered contributors, since you can
- * specify the <nav-graph> tag in your manifest and the navigation component will
- * replace it at merge time with intent filters derived from the module's navigation
- * files. See https://developer.android.com/guide/navigation/navigation-deep-link
- */
-data class MergedManifestContributors(
-  @JvmField val primaryManifest: VirtualFile?,
-  @JvmField val flavorAndBuildTypeManifests: List<VirtualFile>,
-  @JvmField val libraryManifests: List<VirtualFile>,
-  @JvmField val navigationFiles: List<VirtualFile>,
-  @JvmField val flavorAndBuildTypeManifestsOfLibs: List<VirtualFile>) {
-
-  @JvmField
-  val allFiles = flavorAndBuildTypeManifests +
-                 listOfNotNull(primaryManifest) +
-                 libraryManifests +
-                 navigationFiles +
-                 flavorAndBuildTypeManifestsOfLibs
-
-  companion object {
-    @JvmStatic
-    fun determineFor(facet: AndroidFacet): MergedManifestContributors  {
-      val dependencies = AndroidUtils.getAndroidResourceDependencies(facet.module)
-      return MergedManifestContributors(
-        primaryManifest = AndroidRootUtil.getPrimaryManifestFile(facet),
-        flavorAndBuildTypeManifests = facet.getFlavorAndBuildTypeManifests(),
-        libraryManifests = if (facet.configuration.isAppOrFeature) facet.getLibraryManifests(dependencies) else emptyList(),
-        navigationFiles = facet.getNavigationFiles(),
-        flavorAndBuildTypeManifestsOfLibs = facet.getFlavorAndBuildTypeManifestsOfLibs(dependencies)
-      )
-    }
-  }
+fun AndroidFacet.getMergedManifestContributors(): MergedManifestContributors {
+  val dependencies = AndroidUtils.getAndroidResourceDependencies(module)
+  return MergedManifestContributors(
+    primaryManifest = AndroidRootUtil.getPrimaryManifestFile(this),
+    flavorAndBuildTypeManifests = getFlavorAndBuildTypeManifests(),
+    libraryManifests = if (configuration.isAppOrFeature) getLibraryManifests(dependencies) else emptyList(),
+    navigationFiles = getNavigationFiles(),
+    flavorAndBuildTypeManifestsOfLibs = getFlavorAndBuildTypeManifestsOfLibs(dependencies)
+  )
 }
 
 private fun AndroidFacet.getFlavorAndBuildTypeManifests(): List<VirtualFile> {
