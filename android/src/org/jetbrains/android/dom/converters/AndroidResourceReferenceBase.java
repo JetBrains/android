@@ -1,6 +1,7 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -14,6 +15,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.DomUtil;
 import com.intellij.util.xml.GenericDomValue;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
@@ -59,14 +61,17 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
       PsiElement element = result.getElement();
 
       if (element instanceof LazyValueResourceElementWrapper) {
-        element = ((LazyValueResourceElementWrapper)element).computeElement();
+        results.add(((LazyValueResourceElementWrapper)element).computeElement());
       }
-
-      if (element instanceof ResourceElementWrapper) {
-        element = ((ResourceElementWrapper)element).getWrappedElement();
+      else if (element instanceof ResourceElementWrapper) {
+        results.add(((ResourceElementWrapper)element).getWrappedElement());
       }
-
-      if (element != null) {
+      else if (element instanceof ResourceReferencePsiElement) {
+        PsiElement[] targets = AndroidResourceToPsiResolver.getInstance()
+          .getGotoDeclarationTargets(((ResourceReferencePsiElement)element).getResourceReference(), myElement);
+        results.addAll(Arrays.asList(targets));
+      }
+      else {
         results.add(element);
       }
     }
