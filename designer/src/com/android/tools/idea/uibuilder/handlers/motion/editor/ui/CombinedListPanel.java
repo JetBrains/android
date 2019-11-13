@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScroll
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 
+import java.util.Objects;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -411,7 +412,9 @@ public class CombinedListPanel extends JPanel {
     if (tag1 == null || tag2 == null) {
       return tag1 == tag2;
     }
-    return tag1.getTreeId().equals(tag2.getTreeId());
+    String t1 = tag1.getTreeId();
+    String t2 = tag2.getTreeId();
+    return Objects.equals(t1, t2);
   }
 
   private Component addHorizontalMargin(JLabel component) {
