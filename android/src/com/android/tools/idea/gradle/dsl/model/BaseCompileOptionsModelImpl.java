@@ -28,7 +28,7 @@ import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptio
  */
 public abstract class BaseCompileOptionsModelImpl extends GradleDslBlockModel implements BaseCompileOptionsModel {
 
-  public BaseCompileOptionsModelImpl(@NotNull BaseCompileOptionsDslElement dslElement, boolean useAssignment) {
+  public BaseCompileOptionsModelImpl(@NotNull BaseCompileOptionsDslElement dslElement) {
     super(dslElement);
   }
 

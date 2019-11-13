@@ -27,8 +27,8 @@ public class CompileOptionsModelImpl extends BaseCompileOptionsModelImpl impleme
   @NonNls private static final String ENCODING = "encoding";
   @NonNls private static final String INCREMENTAL = "incremental";
 
-  public CompileOptionsModelImpl(@NotNull BaseCompileOptionsDslElement dslElement, boolean useAssignment) {
-    super(dslElement, useAssignment);
+  public CompileOptionsModelImpl(@NotNull BaseCompileOptionsDslElement dslElement) {
+    super(dslElement);
   }
 
   @Override
