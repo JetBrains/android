@@ -227,6 +227,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareNewFullscreenActivity() {
+    checkCreateTemplate("activities", "FullscreenActivity", false, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareNewFullscreenActivityWithKotlin() {
+    checkCreateTemplate("activities", "FullscreenActivity", false, true, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewProjectWithFullscreenActivityWithKotlin() {
     checkCreateTemplate("activities", "FullscreenActivity", true, true, withKotlin)
   }
