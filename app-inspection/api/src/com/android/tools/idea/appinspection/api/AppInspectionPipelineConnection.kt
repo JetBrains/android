@@ -16,11 +16,12 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.idea.transport.TransportClient
+import com.android.tools.idea.transport.TransportFileCopier
 import com.android.tools.profiler.proto.Common.Process
 import com.android.tools.profiler.proto.Common.Stream
 import com.google.common.util.concurrent.ListenableFuture
-import java.nio.file.Path
 import java.util.concurrent.ExecutorService
 
 /**
@@ -40,7 +41,7 @@ interface AppInspectionPipelineConnection {
   @WorkerThread
   fun <T : AppInspectorClient> launchInspector(
     inspectorId: String,
-    inspectorJar: Path,
+    inspectorJar: DeployableFile,
     @WorkerThread creator: (AppInspectorClient.CommandMessenger) -> T
   ): ListenableFuture<T>
 
@@ -55,9 +56,8 @@ interface AppInspectionPipelineConnection {
       process: Process,
       channelName: String,
       executorService: ExecutorService,
-      transport: AppInspectionTransport = AppInspectionTransport(
-        TransportClient(channelName), stream, process, executorService)
-    ): ListenableFuture<AppInspectionPipelineConnection> = attachAppInspectionPipelineConnection(
-      stream, process, transport)
+      fileCopier: TransportFileCopier,
+      transport: AppInspectionTransport = AppInspectionTransport(TransportClient(channelName), stream, process, executorService)
+    ): ListenableFuture<AppInspectionPipelineConnection> = attachAppInspectionPipelineConnection(stream, process, transport, fileCopier)
   }
 }

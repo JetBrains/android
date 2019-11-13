@@ -29,7 +29,6 @@ import junit.framework.TestCase
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.nio.file.Paths
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -69,9 +68,8 @@ class AppInspectionPipelineConnectionTest {
     val clientFuture = Futures.transformAsync(
       appInspectionRule.launchPipelineConnection(),
       AsyncFunction<AppInspectionPipelineConnection, TestInspectorClient> { pipelineConnection ->
-        pipelineConnection!!.launchInspector(
-          "test.inspector",
-          Paths.get("path", "to", "inspector", "dex")) { commandMessenger ->
+        pipelineConnection!!.launchInspector("test.inspector", TEST_JAR) { commandMessenger ->
+          assertThat(appInspectionRule.jarCopier.copiedJar).isEqualTo(TEST_JAR)
           TestInspectorClient(commandMessenger)
         }
       }, appInspectionRule.executorService)
@@ -93,7 +91,7 @@ class AppInspectionPipelineConnectionTest {
       })
 
     val inspectorConnection =
-      connection.launchInspector("test.inspector", Paths.get("path", "to", "inspector", "dex")) { commandMessenger ->
+      connection.launchInspector("test.inspector", TEST_JAR) { commandMessenger ->
         TestInspectorClient(commandMessenger)
       }
 

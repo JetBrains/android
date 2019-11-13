@@ -18,7 +18,9 @@ package com.android.tools.idea.appinspection.api
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.testing.NamedExternalResource
+import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.idea.transport.TransportClient
+import com.android.tools.idea.transport.TransportFileCopier
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
@@ -27,11 +29,15 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.util.concurrent.ListenableFuture
 import org.junit.runner.Description
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
 private const val INSPECTOR_ID = "test.inspector"
+
+val TEST_JAR = DeployableFile.Builder("test.jar").build()
 
 /**
  * Rule providing all of the underlying components of App Inspection, including [executorService], [poller], [transport] and [client].
@@ -47,6 +53,7 @@ class AppInspectionServiceRule(
   lateinit var poller: TransportEventPoller
   lateinit var executorService: ThreadPoolExecutor
   lateinit var transport: AppInspectionTransport
+  lateinit var jarCopier: TestTransportFileCopier
 
   val stream = Common.Stream.getDefaultInstance()!!
   val process = Common.Process.getDefaultInstance()!!
@@ -66,8 +73,8 @@ class AppInspectionServiceRule(
     client = TransportClient(grpcServer.name)
     poller = TransportEventPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
     executorService = ThreadPoolExecutor(0, 1, 1L, TimeUnit.SECONDS, LinkedBlockingQueue())
-    transport = AppInspectionTransport(client, stream, process,
-                                                                                                   executorService, poller)
+    transport = AppInspectionTransport(client, stream, process, executorService, poller)
+    jarCopier = TestTransportFileCopier()
   }
 
   override fun after(description: Description) {
@@ -82,10 +89,7 @@ class AppInspectionServiceRule(
   ): ListenableFuture<AppInspectionPipelineConnection> {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    return AppInspectionPipelineConnection.attach(stream, process,
-                                                                                                                        grpcServer.name,
-                                                                                                                        executorService,
-                                                                                                                        transport)
+    return AppInspectionPipelineConnection.attach(stream, process, grpcServer.name, executorService, jarCopier, transport)
   }
 
   /**
@@ -147,6 +151,19 @@ class AppInspectionServiceRule(
 
     override fun onDispose() {
       isDisposed = true
+    }
+  }
+
+  /**
+   * Keeps track of the copied jar so tests could verify the operation happened.
+   */
+  class TestTransportFileCopier : TransportFileCopier {
+    private val deviceBasePath = Paths.get("/test")
+    lateinit var copiedJar: DeployableFile
+
+    override fun copyFileToDevice(deployableFile: DeployableFile): List<Path> {
+      copiedJar = deployableFile
+      return listOf(deviceBasePath.resolve(deployableFile.fileName))
     }
   }
 }
