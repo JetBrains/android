@@ -19,13 +19,13 @@ import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
 import com.android.tools.idea.welcome.wizard.ConfigureInstallationModel.InstallationType
-import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.intellij.ui.components.JBScrollPane
-
-import javax.swing.*
-
 import com.android.tools.idea.welcome.wizard.ConfigureInstallationModel.InstallationType.STANDARD
+import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.intellij.ui.layout.panel
 import com.intellij.uiDesigner.core.Spacer
+import javax.swing.ButtonGroup
+import javax.swing.JComponent
+import javax.swing.JRadioButton
 
 /**
  * Wizard step for selecting installation types
@@ -33,22 +33,41 @@ import com.intellij.uiDesigner.core.Spacer
 class InstallationTypeWizardStep(model: ConfigureInstallationModel) : ModelWizardStep<ConfigureInstallationModel>(model, "Install Type") {
   private val standardRadioBtn = JRadioButton("Standard")
   private val customRadioBtn = JRadioButton("Custom")
-  private val rootPanel = VerticalPanel(9, 1) {
-    spacer(0, 2, 1, 0)
-    label("Choose the type of setup you want for Android Studio:", 8, 0, 0, 0)
-    spacer( 0, 2, 1, 0)
-    elem(standardRadioBtn, 8, 0, 3, 0)
-    label("Android Studio will be installed with the most common settings and options.", 8, 0, 0, 0)
-    label("Recommended for most users.", 8, 0, 0, 0)
-    elem(customRadioBtn, 8, 0, 3, 0)
-    label("You can customize installation settings and components installed.", 8, 0, 0, 0)
-    spacer(0, 2, 1,6)
+  private val rootPanel = panel {
+    row {
+      Spacer()()
+    }
+    row {
+      label("Choose the type of setup you want for Android Studio:")
+    }
+    row {
+      Spacer()()
+    }
+    row {
+      standardRadioBtn()
+    }
+    row {
+      label("Android Studio will be installed with the most common settings and options.")
+    }
+    row {
+      label("Recommended for most users.")
+    }
+    row {
+      customRadioBtn()
+    }
+    row {
+      label("You can customize installation settings and components installed.")
+    }
+    row {
+      Spacer()()
+    }
 
     ButtonGroup().apply {
       add(standardRadioBtn)
       add(customRadioBtn)
     }
-  }.build()
+  }
+
   private val root = StudioWizardStepPanel.wrappedWithVScroll(rootPanel)
 
   private val bindings = BindingsManager()
