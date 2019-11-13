@@ -39,6 +39,7 @@ class TreePanel : ToolContent<DesignSurface> {
   private val componentTreeModel: ComponentTreeModel
   private val componentTreeSelectionModel: ComponentTreeSelectionModel
   private val contextSelectionListener = SelectionListener { _, _ -> contextSelectionChanged() }
+  private var shouldScroll = true
 
   init {
     val builder = ComponentTreeBuilder()
@@ -50,10 +51,12 @@ class TreePanel : ToolContent<DesignSurface> {
     componentTreeModel = model
     componentTreeSelectionModel = selectionModel
     selectionModel.addSelectionListener {
-      designSurface?.let {
-        val list = selectionModel.selection.filterIsInstance<NlComponent>()
-        it.selectionModel.setSelection(list)
-        it.scrollToCenter(list.filter { c -> c.isDestination && !c.isNavigation })
+      if (shouldScroll) {
+        designSurface?.let {
+          val list = selectionModel.selection.filterIsInstance<NlComponent>()
+          it.selectionModel.setSelection(list)
+          it.scrollToCenter(list.filter { c -> c.isDestination && !c.isNavigation })
+        }
       }
     }
   }
@@ -66,7 +69,13 @@ class TreePanel : ToolContent<DesignSurface> {
   }
 
   private fun contextSelectionChanged() {
-    componentTreeSelectionModel.selection = designSurface?.selectionModel?.selection ?: emptyList()
+    shouldScroll = false
+    try {
+      componentTreeSelectionModel.selection = designSurface?.selectionModel?.selection ?: emptyList()
+    }
+    finally {
+      shouldScroll = true
+    }
   }
 
   override fun getComponent() = componentTree
