@@ -183,7 +183,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
       element = new CompileOptionsDslElement(myDslElement);
       myDslElement.setNewElement(element);
     }
-    return new CompileOptionsModelImpl(element, false);
+    return new CompileOptionsModelImpl(element);
   }
 
   @NotNull
