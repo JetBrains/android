@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates.recipe
 
-import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT
 import com.android.SdkConstants.ATTR_CONTEXT
 import com.android.SdkConstants.DOT_GRADLE
 import com.android.SdkConstants.DOT_XML
@@ -26,7 +25,6 @@ import com.android.SdkConstants.GRADLE_ANDROID_TEST_IMPLEMENTATION_CONFIGURATION
 import com.android.SdkConstants.GRADLE_API_CONFIGURATION
 import com.android.SdkConstants.GRADLE_COMPILE_CONFIGURATION
 import com.android.SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION
-import com.android.SdkConstants.SUPPORT_LIB_ARTIFACT
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.repository.GradleVersion
 import com.android.resources.ResourceFolderType
@@ -365,6 +363,25 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     property.setValue(value)
     io.applyChanges(buildModel)
   }
+
+  /**
+   * Adds a new build feature to android block. For example, may enable compose.
+   */
+  override fun setBuildFeature(name: String, value: Boolean) {
+    val buildFile = getBuildFilePath(context)
+    // TODO(qumeric) handle it in a better way?
+    val buildModel = getBuildModel(buildFile, context.project) ?: return
+    val feature = when(name) {
+      "compose" -> buildModel.android().buildFeatures().compose()
+      else -> throw IllegalArgumentException("currently only compose build feature is supported")
+    }
+    if (feature.valueType != GradlePropertyModel.ValueType.NONE) {
+      return // we do not override value if it exists. TODO(qumeric): ask user?
+    }
+    feature.setValue(value)
+    io.applyChanges(buildModel)
+  }
+
 
   private fun convertToAndroidX(mavenCoordinate: String): String =
     if (templateData.projectTemplateData.androidXSupport)
