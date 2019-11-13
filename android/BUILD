@@ -209,27 +209,6 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
-    test_resources = ["testResources"],
-    # do not sort: must match IML order
-    test_runtime_deps = [
-        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
-        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
-        "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
-        "//tools/idea/java/manifest:intellij.java.manifest",
-        "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
-        "//tools/idea:intellij.java.ui.tests",
-        "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
-        "//tools/idea/java/plugin:intellij.java.plugin",
-        "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
-    ],
-    test_shard_count = 40,
-    test_srcs = ["testSrc"],
-    test_tags = [
-        "cpu:3",
-        "block-network",
-        "no_test_mac",
-    ],
-    test_timeout = "eternal",
     # Note: test_excluded_packages is a dictionary that is converted to a "select()", so
     #       we use a syntax that is very similar to what a "select()" would look like.
     test_excluded_packages = {
@@ -266,6 +245,27 @@ iml_module(
         ],
         "//conditions:default": [],
     },
+    test_resources = ["testResources"],
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
+        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
+        "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
+        "//tools/idea/java/manifest:intellij.java.manifest",
+        "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
+        "//tools/idea:intellij.java.ui.tests",
+        "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
+        "//tools/idea/java/plugin:intellij.java.plugin",
+        "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
+    ],
+    test_shard_count = 40,
+    test_srcs = ["testSrc"],
+    test_tags = [
+        "cpu:3",
+        "block-network",
+        "no_test_mac",
+    ],
+    test_timeout = "eternal",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
