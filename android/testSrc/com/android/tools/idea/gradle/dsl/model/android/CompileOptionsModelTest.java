@@ -16,13 +16,17 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_ADD;
+import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_ADD_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_APPLICATION_STATEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK_USING_ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK_WITH_OVERRIDE_STATEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_LONG_IDENTIFIER;
+import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_LONG_IDENTIFIER_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT_EXPECTED;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -101,6 +105,8 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     compileOptions.incremental().delete();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -134,6 +140,8 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     compileOptions.incremental().setValue(true);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -164,6 +172,8 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     compileOptions.targetCompatibility().setLanguageLevel(LanguageLevel.JDK_1_9);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_LONG_IDENTIFIER_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -194,6 +204,8 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     compileOptions.incremental().setValue(true);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_ADD_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 

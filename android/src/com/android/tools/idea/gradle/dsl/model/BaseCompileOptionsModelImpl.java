@@ -18,15 +18,16 @@ package com.android.tools.idea.gradle.dsl.model;
 import com.android.tools.idea.gradle.dsl.api.android.BaseCompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.SOURCE_COMPATIBILITY_ATTRIBUTE_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_ATTRIBUTE_NAME;
 
 /**
  * Base compile options model that only have sourceCompatibility / targetCompatibility fields.
  */
 public abstract class BaseCompileOptionsModelImpl extends GradleDslBlockModel implements BaseCompileOptionsModel {
+
+  @NonNls public static final String SOURCE_COMPATIBILITY = "mSourceCompatibility";
+  @NonNls public static final String TARGET_COMPATIBILITY = "mTargetCompatibility";
 
   public BaseCompileOptionsModelImpl(@NotNull BaseCompileOptionsDslElement dslElement) {
     super(dslElement);
@@ -35,12 +36,12 @@ public abstract class BaseCompileOptionsModelImpl extends GradleDslBlockModel im
   @NotNull
   @Override
   public LanguageLevelPropertyModel sourceCompatibility() {
-    return getLanguageModelForProperty(SOURCE_COMPATIBILITY_ATTRIBUTE_NAME);
+    return getLanguageModelForProperty(SOURCE_COMPATIBILITY);
   }
 
   @NotNull
   @Override
   public LanguageLevelPropertyModel targetCompatibility() {
-    return getLanguageModelForProperty(TARGET_COMPATIBILITY_ATTRIBUTE_NAME);
+    return getLanguageModelForProperty(TARGET_COMPATIBILITY);
   }
 }
