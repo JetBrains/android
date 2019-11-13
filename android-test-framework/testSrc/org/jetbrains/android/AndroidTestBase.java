@@ -46,10 +46,13 @@ import com.intellij.util.ui.UIUtil;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -195,8 +198,18 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     if (elements == null) {
       return "Empty";
     }
+    List<PsiElement> sortedElements = Arrays.stream(elements).map((element) -> {
+      if (element instanceof LazyValueResourceElementWrapper) {
+        LazyValueResourceElementWrapper wrapper = (LazyValueResourceElementWrapper)element;
+        XmlAttributeValue value = wrapper.computeElement();
+        if (value != null) {
+          return value;
+        }
+      }
+      return element;
+    }).sorted(Comparator.comparing(PsiElement::getText)).collect(Collectors.toList());
     StringBuilder sb = new StringBuilder();
-    for (PsiElement target : elements) {
+    for (PsiElement target : sortedElements) {
       appendElementDescription(sb, target);
     }
     return sb.toString();
@@ -206,13 +219,6 @@ public abstract class AndroidTestBase extends UsefulTestCase {
    * Appends a description of the given element, suitable as unit test golden file output
    */
   public static void appendElementDescription(@NotNull StringBuilder sb, @NotNull PsiElement element) {
-    if (element instanceof LazyValueResourceElementWrapper) {
-      LazyValueResourceElementWrapper wrapper = (LazyValueResourceElementWrapper)element;
-      XmlAttributeValue value = wrapper.computeElement();
-      if (value != null) {
-        element = value;
-      }
-    }
     PsiFile file = element.getContainingFile();
     int offset = element.getTextOffset();
     TextRange segment = element.getTextRange();
