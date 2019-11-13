@@ -345,8 +345,10 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
 
   private fun getDotQualifiedExpression(
     parent: GradleDslElement,
-    expression: KtDotQualifiedExpression,
-    name: GradleNameElement) : GradleDslExpression? {
+    psiElement: PsiElement,
+    name: GradleNameElement,
+    expression: KtDotQualifiedExpression
+  ) : GradleDslExpression? {
     val receiver = expression.receiverExpression
     val selector = expression.selectorExpression
     when (selector) {
@@ -366,7 +368,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       }
     }
 
-    return null
+    return getExpressionElement(parent, psiElement, name, expression)
   }
 
   override fun visitBinaryExpression(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {
@@ -556,7 +558,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         val arguments = expression.valueArgumentList ?: return null
         return getCallExpression(parent, expression, name, arguments, expressionName, false, isLiteral)
       }
-      is KtDotQualifiedExpression -> return getDotQualifiedExpression(parent, expression, name)
+      is KtDotQualifiedExpression -> return getDotQualifiedExpression(parent, psiElement, name, expression)
       is KtParenthesizedExpression -> return createExpressionElement(parent, psiElement, name, expression.expression ?: expression)
       else -> return getExpressionElement(parent, psiElement, name, expression)
     }
