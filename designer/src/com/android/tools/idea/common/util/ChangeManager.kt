@@ -40,7 +40,8 @@ import java.util.function.Consumer
 import kotlin.concurrent.withLock
 
 /**
- * Sets up a change listener for the given [psiFile]. When the file changes, [refreshPreview] will be called.
+ * Sets up a change listener for the given [psiFile]. When the file changes, [refreshPreview] will be called. The listener might be called
+ * in any thread.
  *
  * The given [parentDisposable] will be used to set the life cycle of the listener. When disposed, the listener will be disposed too.
  */
@@ -53,7 +54,9 @@ fun setupChangeListener(
                                                       TimeUnit.SECONDS.toMillis(1).toInt(),
                                                       true,
                                                       null,
-                                                      parentDisposable).setRestartTimerOnAdd(true)) {
+                                                      parentDisposable,
+                                                      null,
+                                                      false).setRestartTimerOnAdd(true)) {
   val documentManager = PsiDocumentManager.getInstance(project)
   documentManager.getDocument(psiFile)!!.addDocumentListener(object : DocumentListener {
     val aggregatedEventsLock = ReentrantLock()
