@@ -77,4 +77,6 @@ internal class FindReferencesRecipeExecutor2(private val context: RenderingConte
 
   override fun setExtVar(name: String, value: Any) {
   }
+
+  override fun setBuildFeature(name: String, value: Boolean) {}
 }
