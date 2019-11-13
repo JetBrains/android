@@ -17,28 +17,43 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.adtui.actions.createTestActionEvent
 import com.android.tools.adtui.actions.prettyPrintActions
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
+import java.lang.StringBuilder
 
 class ConfigurationSetMenuActionTest : AndroidTestCase() {
 
-  fun testActions() {
-    val form = VisualizationForm(project)
+  lateinit var form: VisualizationForm
 
+  override fun setUp() {
+    super.setUp()
+    form = VisualizationForm(project)
+  }
+
+  override fun tearDown() {
+    Disposer.dispose(form)
+    super.tearDown()
+  }
+
+  fun testActions() {
     val menuAction = ConfigurationSetMenuAction(form, ConfigurationSet.PIXEL_DEVICES)
     // Call update(AnActionEvent) for updating text of menuAction.
     menuAction.update(createTestActionEvent(menuAction, dataContext = Mockito.mock<DataContext>(DataContext::class.java)))
 
     val actual = prettyPrintActions(menuAction)
     // The displayed text of dropdown action is the current selected option, which is Pixel Devices in this case.
-    // There are 2 options: "Pixel Devices" and "Project Locales" in the drop down menu.
-    val expected = "Pixel Devices\n" + // The current selection of dropdown action
-                   "    Pixel Devices\n" + // The options in dropdown menu have  4 spaces as indent
-                   "    Project Locales\n"
-    assertEquals(expected, actual)
+    val builder = StringBuilder("Pixel Devices\n") // The current selection of dropdown action
+    // The options in dropdown menu have  4 spaces as indent
+    builder.append("    Pixel Devices\n")
+    builder.append("    Project Locales\n")
+    if (StudioFlags.NELE_COLOR_BLIND_MODE.get()) {
+      builder.append("    Color Blind Mode\n")
+    }
 
-    Disposer.dispose(form)
+    val expected = builder.toString()
+    assertEquals(expected, actual)
   }
 }
