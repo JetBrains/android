@@ -18,7 +18,7 @@ package com.android.tools.idea.templates
 import com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
+import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.npw.ThemeHelper
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
@@ -128,17 +128,13 @@ class ModuleTemplateDataBuilder(private val isNewProject: Boolean) {
    * Used only by dynamic modules.
    */
   fun setBaseFeature(baseFeature: Module) {
-
-    fun String.toPath() = VfsUtilCore.urlToPath(this)
-
     val androidFacet = AndroidFacet.getInstance(baseFeature)!!
-    val gradleFacet = GradleFacet.getInstance(baseFeature)!!
     val mainSourceProvider = SourceProviderManager.getInstance(androidFacet).mainIdeaSourceProvider
     val baseModuleResourceRootPath = mainSourceProvider.resDirectories.firstOrNull()?.path
-                                     ?: mainSourceProvider.resDirectoryUrls.first().toPath()
+                                     ?: VfsUtilCore.urlToPath(mainSourceProvider.resDirectoryUrls.first())
 
     this.baseFeature = BaseFeature(
-      gradleFacet.gradleModuleModel?.moduleName.orEmpty(),
+      GradleUtil.getGradlePath(baseFeature).orEmpty(),
       AndroidRootUtil.findModuleRootFolderPath(baseFeature)!!,
       File(baseModuleResourceRootPath) // Put the new resources in any of the available res directories
     )
