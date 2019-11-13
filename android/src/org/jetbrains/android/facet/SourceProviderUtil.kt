@@ -22,7 +22,9 @@ import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.IdeaSourceProviderImpl
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import java.io.File
@@ -63,12 +65,8 @@ private class LegacyDelegate constructor(private val facet: AndroidFacet) : Idea
   override val name: String = ""
 
   override val manifestFileUrl: String get() = manifestFile?.url ?: let {
-    val contentRoots = ModuleRootManager.getInstance(facet.module).contentRoots
-    return if (contentRoots.isNotEmpty()) {
-      contentRoots[0].url + "/" + SdkConstants.ANDROID_MANIFEST_XML
-    } else {
-      throw IllegalStateException("Content root is required to determine manifestFileUrl")
-    }
+    val moduleDirPath: String = File(facet.module.moduleFilePath).parent
+    VfsUtilCore.pathToUrl(FileUtil.toSystemIndependentName(moduleDirPath + facet.properties.MANIFEST_FILE_RELATIVE_PATH))
   }
 
   override val manifestDirectory: VirtualFile?
