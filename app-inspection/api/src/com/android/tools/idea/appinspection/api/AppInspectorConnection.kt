@@ -166,7 +166,7 @@ internal class AppInspectorConnection(
       else {
         disposeFuture.set(disposeResponse)
       }
-      clientEventListener!!.onDispose()
+      clientEventListener.onDispose()
     }
   }
 }
