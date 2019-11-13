@@ -18,6 +18,9 @@ package com.android.tools.idea.appinspection.api
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
 import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
 import com.android.tools.app.inspection.AppInspection.ServiceResponse.Status.SUCCESS
+import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.transport.DeployableFile
+import com.android.tools.idea.transport.TransportFileCopier
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.Command
@@ -29,9 +32,10 @@ import com.android.tools.profiler.proto.Common.Process
 import com.android.tools.profiler.proto.Common.Stream
 import com.android.tools.profiler.proto.Transport.ExecuteRequest
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.base.Function
+import com.google.common.util.concurrent.AsyncFunction
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
 import java.nio.file.Path
 
@@ -42,7 +46,8 @@ import java.nio.file.Path
 internal fun attachAppInspectionPipelineConnection(
   stream: Stream,
   process: Process,
-  transport: AppInspectionTransport
+  transport: AppInspectionTransport,
+  fileCopier: TransportFileCopier
 ): ListenableFuture<AppInspectionPipelineConnection> {
   val connectionFuture = SettableFuture.create<AppInspectionPipelineConnection>()
 
@@ -61,44 +66,50 @@ internal fun attachAppInspectionPipelineConnection(
     eventKind = AGENT,
     filter = { it.agentData.status == ATTACHED }
   ) {
-    connectionFuture.set(DefaultAppInspectionPipelineConnection(transport))
+    connectionFuture.set(DefaultAppInspectionPipelineConnection(transport, fileCopier))
     true
   }
   transport.client.transportStub.execute(ExecuteRequest.newBuilder().setCommand(attachCommand).build())
   return connectionFuture
 }
 
-private class DefaultAppInspectionPipelineConnection(val processTransport: AppInspectionTransport) : AppInspectionPipelineConnection {
-
+private class DefaultAppInspectionPipelineConnection(val processTransport: AppInspectionTransport,
+                                                     private val fileCopier: TransportFileCopier) : AppInspectionPipelineConnection {
   override fun <T : AppInspectorClient> launchInspector(
     inspectorId: String,
-    inspectorJar: Path,
+    inspectorJar: DeployableFile,
     creator: (AppInspectorClient.CommandMessenger) -> T
   ): ListenableFuture<T> {
-    // TODO(b/142526985): push dex file to the device with adb.
-    val connectionFuture = SettableFuture.create<AppInspectorConnection>()
-    val createInspectorCommand = CreateInspectorCommand.newBuilder()
-      .setInspectorId(inspectorId)
-      .setDexPath(inspectorJar.toString())
-      .build()
-    val appInspectionCommand = AppInspectionCommand.newBuilder().setCreateInspectorCommand(createInspectorCommand).build()
-    val commandId = processTransport.executeCommand(appInspectionCommand)
-    processTransport.registerEventListener(
-      eventKind = APP_INSPECTION,
-      filter = { it.appInspectionEvent.commandId == commandId }
-    ) {
-      if (it.appInspectionEvent.response.status == SUCCESS) {
-        connectionFuture.set(
-          AppInspectorConnection(processTransport, inspectorId))
-      }
-      else {
-        connectionFuture.setException(RuntimeException("Could not launch inspector $inspectorId"))
-      }
-      true
-    }
-    return Futures.transform(connectionFuture, Function {
-      setupEventListener(creator, it!!)
-    }, processTransport.executorService)
+    val launchResultFuture = MoreExecutors.listeningDecorator(processTransport.executorService)
+      .submit<Path> { fileCopier.copyFileToDevice(inspectorJar).first() }
+    return Futures.transformAsync(
+      launchResultFuture,
+      AsyncFunction<Path, AppInspectorConnection> { fileDevicePath ->
+        val connectionFuture = SettableFuture.create<AppInspectorConnection>()
+        val createInspectorCommand = CreateInspectorCommand.newBuilder()
+          .setInspectorId(inspectorId)
+          .setDexPath(fileDevicePath.toString())
+          .build()
+        val appInspectionCommand = AppInspectionCommand.newBuilder().setCreateInspectorCommand(
+          createInspectorCommand
+        ).build()
+        val commandId = processTransport.executeCommand(appInspectionCommand)
+        processTransport.registerEventListener(
+          eventKind = APP_INSPECTION,
+          filter = { it.appInspectionEvent.commandId == commandId }
+        ) { event ->
+          if (event.appInspectionEvent.response.status == SUCCESS) {
+            connectionFuture.set(AppInspectorConnection(processTransport, inspectorId))
+          } else {
+            connectionFuture.setException(RuntimeException("Could not launch inspector $inspectorId"))
+          }
+          true
+        }
+        connectionFuture
+      },
+      processTransport.executorService
+    )
+      .transform(processTransport.executorService) { setupEventListener(creator, it) }
   }
 }
 

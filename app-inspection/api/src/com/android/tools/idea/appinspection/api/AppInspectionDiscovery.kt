@@ -15,19 +15,14 @@
  */
 package com.android.tools.idea.appinspection.api
 
-import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.addCallback
+import com.android.tools.idea.transport.TransportFileCopier
 import com.google.common.util.concurrent.FutureCallback
-import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 import java.util.concurrent.ScheduledExecutorService
 
-// TODO(b/142526985): won't need to push dex manually
-typealias DexPusher = (File, String) -> Unit
-
-typealias PipelineConnectionListener = (AppInspectionPipelineConnection, DexPusher) -> Unit
-
+typealias PipelineConnectionListener = (AppInspectionPipelineConnection) -> Unit
 
 /**
  * A class that hosts an [AppInspectionDiscovery] instance and exposes a method to initialize its connection.
@@ -47,8 +42,8 @@ class AppInspectionDiscoveryHost(executor: ScheduledExecutorService, transportCh
   val discovery = AppInspectionDiscovery(executor, transportChannel)
 
   // TODO(b/143836794): this method should return to the caller if it was to connect to device
-  fun connect(device: IDevice, preferredProcess: AutoPreferredProcess) {
-    discovery.connect(device, preferredProcess)
+  fun connect(transportFileCopier: TransportFileCopier, preferredProcess: AutoPreferredProcess) {
+    discovery.connect(transportFileCopier, preferredProcess)
   }
 }
 
@@ -64,16 +59,13 @@ class AppInspectionDiscovery(private val executor: ScheduledExecutorService,
   private val listeners = ConcurrentHashMap<PipelineConnectionListener, Executor>()
   private val attacher = AppInspectionAttacher(executor, transportChannel)
 
-  internal fun connect(device: IDevice, preferredProcess: AutoPreferredProcess) {
-    val dexPusher = { file: File, onDevicePath: String -> device.pushFile(file.toPath().toAbsolutePath().toString(), onDevicePath) }
+  internal fun connect(fileCopier: TransportFileCopier, preferredProcess: AutoPreferredProcess) {
     attacher.attach(preferredProcess) { stream, process ->
-      AppInspectionPipelineConnection.attach(stream, process,
-                                                                                                                   transportChannel.channelName,
-                                                                                                                   executor)
+      AppInspectionPipelineConnection.attach(stream, process, transportChannel.channelName, executor, fileCopier)
         .addCallback(executor, object : FutureCallback<AppInspectionPipelineConnection> {
           override fun onSuccess(result: AppInspectionPipelineConnection?) {
             listeners.forEach {
-              it.value.execute { it.key(result!!, dexPusher) }
+              it.value.execute { it.key(result!!) }
             }
           }
 
