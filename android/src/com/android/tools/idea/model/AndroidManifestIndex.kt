@@ -132,7 +132,7 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
     fun getDataForMergedManifestContributors(facet: AndroidFacet): Stream<AndroidManifestRawText> {
       val project = facet.module.project
       return if (checkIndexAccessibleFor(project)) {
-        MergedManifestContributors.determineFor(facet)
+        facet.getMergedManifestContributors()
           .allFiles
           .stream()
           .map { doGetDataForManifestFile(project, it) }
