@@ -1,7 +1,6 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <module value="com.intellij.modules.androidstudio"/>
   <module value="com.intellij.modules.java-capable"/>
-  <module value="com.intellij.modules.android-capable"/>
   <module value="com.intellij.modules.python-core-capable"/>
 
   <xi:include href="/META-INF/JavaIdePlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
