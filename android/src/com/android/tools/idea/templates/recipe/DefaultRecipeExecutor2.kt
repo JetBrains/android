@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
@@ -67,6 +68,7 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileVisitor
+import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
 import com.intellij.util.LineSeparator
@@ -382,6 +384,31 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     io.applyChanges(buildModel)
   }
 
+  /**
+   * Sets sourceCompatibility and targetCompatibility in compileOptions and (if needed) jvmTarget in kotlinOptions.
+   */
+  override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {
+    val languageLevel = LanguageLevel.parse(version)!!
+    val buildFile = getBuildFilePath(context)
+    // TODO(qumeric) handle it in a better way?
+    val buildModel = getBuildModel(buildFile, context.project) ?: return
+
+    fun updateCompatibility(current: LanguageLevelPropertyModel) {
+      if (current.valueType == GradlePropertyModel.ValueType.NONE ||
+          current.toLanguageLevel()!!.isLessThan(languageLevel)) {
+        current.setLanguageLevel(languageLevel)
+      }
+    }
+
+    buildModel.android().compileOptions().run {
+      updateCompatibility(sourceCompatibility())
+      updateCompatibility(targetCompatibility())
+    }
+    if (kotlinSupport) {
+      updateCompatibility(buildModel.android().kotlinOptions().jvmTarget())
+    }
+    io.applyChanges(buildModel)
+  }
 
   private fun convertToAndroidX(mavenCoordinate: String): String =
     if (templateData.projectTemplateData.androidXSupport)

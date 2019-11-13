@@ -79,4 +79,6 @@ internal class FindReferencesRecipeExecutor2(private val context: RenderingConte
   }
 
   override fun setBuildFeature(name: String, value: Boolean) {}
+
+  override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {}
 }
