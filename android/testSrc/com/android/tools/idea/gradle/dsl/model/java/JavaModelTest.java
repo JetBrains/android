@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.java;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_ADD_NON_EXISTED_LANGUAGE_LEVEL;
+import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_ADD_NON_EXISTED_LANGUAGE_LEVEL_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_ADD_NON_EXISTED_TARGET_COMPATIBILITY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_DELETE_LANGUAGE_LEVEL;
 import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSIONS_AS_DOUBLE_QUOTE_STRINGS;
@@ -165,6 +166,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
     buildModel.java().sourceCompatibility().setLanguageLevel(LanguageLevel.JDK_1_5);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, JAVA_MODEL_ADD_NON_EXISTED_LANGUAGE_LEVEL_EXPECTED);
 
     assertEquals(LanguageLevel.JDK_1_5, buildModel.java().sourceCompatibility().toLanguageLevel());
   }

@@ -15,17 +15,59 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import static com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
+import com.google.common.collect.ImmutableMap;
+import java.util.stream.Stream;
+import kotlin.Pair;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Base class for representing compileOptions block or others blocks which have sourceCompatibility / targetCompatibility fields.
+ * Base class for representing compileOptions block or other blocks which have sourceCompatibility / targetCompatibility fields.
  */
 public abstract class BaseCompileOptionsDslElement extends GradleDslBlockElement {
   @NonNls public static final String COMPILE_OPTIONS_BLOCK_NAME = "compileOptions";
 
-  @NonNls public static final String SOURCE_COMPATIBILITY_ATTRIBUTE_NAME = "sourceCompatibility";
-  @NonNls public static final String TARGET_COMPATIBILITY_ATTRIBUTE_NAME = "targetCompatibility";
+  @NotNull
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
+    {"sourceCompatibility", property, SOURCE_COMPATIBILITY, VAR},
+    {"setSourceCompatibility", exactly(1), SOURCE_COMPATIBILITY, SET},
+    {"targetCompatibility", property, TARGET_COMPATIBILITY, VAR},
+    {"setTargetCompatibility", exactly(1), TARGET_COMPATIBILITY, SET}
+  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
+                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+
+  @NotNull
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
+    {"sourceCompatibility", property, SOURCE_COMPATIBILITY, VAR},
+    {"sourceCompatibility", exactly(1), SOURCE_COMPATIBILITY, SET},
+    {"targetCompatibility", property, TARGET_COMPATIBILITY, VAR},
+    {"targetCompatibility", exactly(1), TARGET_COMPATIBILITY, SET}
+  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
+                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+
+  @Override
+  @NotNull
+  public ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+    if (converter instanceof KotlinDslNameConverter) {
+      return ktsToModelNameMap;
+    }
+    else if (converter instanceof GroovyDslNameConverter) {
+      return groovyToModelNameMap;
+    }
+    else {
+      return super.getExternalToModelMap(converter);
+    }
+  }
 
   protected BaseCompileOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
