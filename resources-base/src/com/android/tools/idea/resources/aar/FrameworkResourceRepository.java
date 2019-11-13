@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.Executor;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.jetbrains.annotations.NotNull;
@@ -575,8 +576,8 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     @NotNull
     public Set<String> getAllCacheFileLanguages() {
       Set<String> result = new TreeSet<>();
-      try {
-        Files.list(myLanguageNeutralFile.getParent()).forEach(file -> {
+      try (Stream<Path> stream = Files.list(myLanguageNeutralFile.getParent())) {
+        stream.forEach(file -> {
           String language = getLanguage(file.getFileName().toString());
           if (language != null) {
             result.add(language);
