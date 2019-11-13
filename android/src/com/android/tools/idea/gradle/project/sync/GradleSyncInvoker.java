@@ -57,7 +57,6 @@ import com.intellij.build.events.impl.StartBuildEventImpl;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
@@ -157,10 +156,10 @@ public final class GradleSyncInvoker {
       return;
     }
     if (request.runInBackground) {
-      TransactionGuard.getInstance().submitTransactionLater(project, syncTask);
+      application.invokeLater(syncTask, project.getDisposed());
     }
     else {
-      TransactionGuard.getInstance().submitTransactionAndWait(syncTask);
+      application.invokeAndWait(syncTask);
     }
   }
 

@@ -36,14 +36,6 @@ import static com.intellij.openapi.ui.Messages.YesNoCancelResult;
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
-import com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser;
-import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper;
-import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapperKt;
-import com.android.tools.idea.gradle.project.build.output.ClangOutputParser;
-import com.android.tools.idea.gradle.project.build.output.CmakeOutputParser;
-import com.android.tools.idea.gradle.project.build.output.DataBindingOutputParser;
-import com.android.tools.idea.gradle.project.build.output.GradleBuildOutputParser;
-import com.android.tools.idea.gradle.project.build.output.XmlErrorOutputParser;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -60,13 +52,9 @@ import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.FailureResult;
 import com.intellij.build.events.impl.FinishBuildEventImpl;
-import com.intellij.build.events.impl.OutputBuildEventImpl;
 import com.intellij.build.events.impl.SkippedResultImpl;
 import com.intellij.build.events.impl.StartBuildEventImpl;
 import com.intellij.build.events.impl.SuccessResultImpl;
-import com.intellij.build.output.BuildOutputInstantReaderImpl;
-import com.intellij.build.output.JavacOutputParser;
-import com.intellij.build.output.KotlincOutputParser;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -76,7 +64,6 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -109,8 +96,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -514,9 +499,9 @@ public class GradleBuildInvoker {
         }
       };
     }
-    catch (Exception ignored) {
+    catch (Exception e) {
       eventDispatcher.close();
-      throw ignored;
+      throw e;
     }
   }
 
@@ -544,7 +529,7 @@ public class GradleBuildInvoker {
       executor.queueAndWaitForCompletion();
     }
     else {
-      TransactionGuard.getInstance().submitTransactionAndWait(executeTasksTask);
+      ApplicationManager.getApplication().invokeAndWait(executeTasksTask);
     }
   }
 
