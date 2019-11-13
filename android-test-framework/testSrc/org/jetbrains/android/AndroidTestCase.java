@@ -390,8 +390,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        String manifestRelativePath = facet.getProperties().MANIFEST_FILE_RELATIVE_PATH;
-        VirtualFile manifest = AndroidRootUtil.getFileByRelativeModulePath(module, manifestRelativePath, true);
+        VirtualFile manifest = AndroidRootUtil.getPrimaryManifestFile(facet);
         if (manifest != null) {
           try {
             manifest.delete(this);
