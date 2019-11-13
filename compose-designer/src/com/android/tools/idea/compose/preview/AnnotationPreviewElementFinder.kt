@@ -15,6 +15,7 @@ package com.android.tools.idea.compose.preview
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -55,15 +56,16 @@ private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
  * [PreviewElementFinder] that uses `@Preview` annotations.
  */
 object AnnotationPreviewElementFinder : PreviewElementFinder {
-  override fun hasPreviewMethods(project: Project, file: VirtualFile): Boolean =
+  override fun hasPreviewMethods(project: Project, file: VirtualFile): Boolean = ReadAction.compute<Boolean, Throwable> {
     PsiTreeUtil.findChildrenOfType(PsiManager.getInstance(project).findFile(file), KtImportDirective::class.java)
       .any { PREVIEW_ANNOTATION_FQN == it.importedFqName?.asString() }
+  }
 
   /**
    * Returns all the `@Composable` functions in the [uFile] that are also tagged with `@Preview`.
    * The order of the elements will be the same as the order of the composable functions.
    */
-  override fun findPreviewMethods(uFile: UFile): List<PreviewElement> {
+  override fun findPreviewMethods(uFile: UFile): List<PreviewElement> = ReadAction.compute<List<PreviewElement>, Throwable> {
     val previewMethodsFqName = mutableSetOf<String>()
     val previewElements = mutableListOf<PreviewElement>()
     uFile.accept(object : UastVisitor {
@@ -108,6 +110,6 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
       }
     })
 
-    return previewElements
+    return@compute previewElements
   }
 }
