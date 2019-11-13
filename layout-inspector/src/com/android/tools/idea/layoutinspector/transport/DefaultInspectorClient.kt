@@ -251,11 +251,7 @@ class DefaultInspectorClient(model: InspectorModel) : InspectorClient {
   }
 
   override fun attach(stream: Common.Stream, process: Common.Process) {
-    attach(stream, process, true)
-  }
-
-  private fun attach(stream: Common.Stream, process: Common.Process, log: Boolean) {
-    if (log) {
+    if (attachListener == null) {
       logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST, stream)
     }
     // Remove existing listener if we're retrying
@@ -355,7 +351,7 @@ class DefaultInspectorClient(model: InspectorModel) : InspectorClient {
         for (process in processes) {
           if (process.name == preferredProcess.packageName) {
             try {
-              attach(stream, process, timesAttempted == 0)
+              attach(stream, process)
               return
             }
             catch (ex: StatusRuntimeException) {
