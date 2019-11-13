@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.android.tools.idea.run.tasks.LaunchResult;
@@ -368,6 +369,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       }
       else {
         AndroidDebugBridge.addDeviceChangeListener(this);
+        iDevice.forceStop(applicationId);
         myClientsToWaitFor.forEach(Client::kill);
         checkDone();
       }
