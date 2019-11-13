@@ -25,8 +25,8 @@ import org.jetbrains.annotations.NotNull;
 public class IDEASyncAveragePerfTest extends GradleSyncPerformanceTestCase {
   @NotNull
   @Override
-  public String getMetricName() {
-    return "Average-Project-IDEA-sync";
+  public String getProjectName() {
+    return "Average";
   }
 
   @NotNull
