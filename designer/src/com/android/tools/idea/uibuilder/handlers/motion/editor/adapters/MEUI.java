@@ -119,6 +119,7 @@ public class MEUI {
     public static final Color ourCS_Border = makeColor("UIDesigner.motion.ourCS_Border", 0xBEBEBE, 0x6D6D6E);
     public static final Color ourCS_Background = makeColor("UIDesigner.motion.ourCS_Background", 0xFFFFFF, 0x515658);
     public static final Color ourCS_TextColor = makeColor("UIDesigner.motion.ourCS_TextColor", 0x686868, 0xc7c7c7);
+    public static final Color ourCS_FocusTextColor = makeColor("UIDesigner.motion.cs_FocusText", 0x000000, 0xFFFFFF);
     public static final Color ourML_BarColor = makeColor("UIDesigner.motion.ourML_BarColor", 0xd8d8d8, 0x808385);
     public static final Color ourPositionColor = makeColor("UIDesigner.motion.PositionMarkColor", 0XF0A732, 0XF0A732);
   }
