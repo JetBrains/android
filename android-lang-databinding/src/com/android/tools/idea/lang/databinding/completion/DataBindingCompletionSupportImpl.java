@@ -18,6 +18,7 @@ package com.android.tools.idea.lang.databinding.completion;
 import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.lang.databinding.DataBindingCompletionSupport;
 import com.android.tools.idea.lang.databinding.config.DbFileType;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.AutoPopupController;
 import com.intellij.codeInsight.TailType;
 import com.intellij.codeInsight.completion.CompletionParameters;
@@ -221,19 +222,23 @@ public class DataBindingCompletionSupportImpl implements DataBindingCompletionSu
     return element;
   }
 
+  private static String getPackagePrefix(@NotNull final PsiElement context, final int offset) {
+    return getPackagePrefix(context.getContainingFile().getViewProvider().getContents(), offset);
+  }
+
   /**
    * Original copied from {@link AllClassesGetter} because it was private.
    * Now the method has been moved to {@link LimitedAccessibleClassPreprocessor#getPackagePrefix(PsiElement context, int offset)}.
    */
-  private static String getPackagePrefix(@NotNull final PsiElement context, final int offset) {
-    final CharSequence fileText = context.getContainingFile().getViewProvider().getContents();
+  @VisibleForTesting
+  public static String getPackagePrefix(@NotNull final CharSequence text, final int offset) {
     int i = offset - 1;
     while (i >= 0) {
-      final char c = fileText.charAt(i);
+      final char c = text.charAt(i);
       if (!Character.isJavaIdentifierPart(c) && c != '.') break;
       i--;
     }
-    String prefix = fileText.subSequence(i + 1, offset).toString();
+    String prefix = text.subSequence(i + 1, offset).toString();
     final int j = prefix.lastIndexOf('.');
     return j > 0 ? prefix.substring(0, j) : "";
   }
