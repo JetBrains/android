@@ -30,11 +30,15 @@ import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
+import javax.swing.KeyStroke;
 
 /**
  * The access to platform independent UI features allow us to run using the JB components as well as the stand alone.
@@ -100,12 +104,33 @@ public class MEUI {
     return UIUtil.createImage(w, h, type);
   }
 
+  /**
+   * TODO: support intellij copy paste
+   *
+   * @param copyListener
+   * @param pasteListener
+   * @param panel
+   */
+  public static void addCopyPaste(ActionListener copyListener, ActionListener pasteListener, JComponent panel) {
+    // TODO ideally support paste and copy with control or command
+    KeyStroke copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK, false);
+    KeyStroke copy2 = KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.META_MASK, false);
+    KeyStroke paste = KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK, false);
+    KeyStroke paste2 = KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.META_MASK, false);
+    panel.registerKeyboardAction(copyListener, "Copy", copy, JComponent.WHEN_FOCUSED);
+    panel.registerKeyboardAction(copyListener, "Copy", copy2, JComponent.WHEN_FOCUSED);
+    panel.registerKeyboardAction(pasteListener, "Paste", paste, JComponent.WHEN_FOCUSED);
+    panel.registerKeyboardAction(pasteListener, "Paste", paste2, JComponent.WHEN_FOCUSED);
+  }
+
+  //0c283e
   public static class CSPanel {
     public static final Color our_SelectedFocusBackground =
-      makeColor("UIDesigner.motion.ourCS_SelectedFocusBackground", 0x3973d6, 0x1886F7);
+      makeColor("UIDesigner.motion.CSPanel.SelectedFocusBackground", 0x3973d6, 0x2E65CA);
     public static final Color our_SelectedBackground =
-       makeColor("UIDesigner.motion.ourCS_SelectedBackground", 0xD3D3D3, 0x797B7C);
+      makeColor("UIDesigner.motion.CSPanel.SelectedBackground", 0xD3D3D3, 0x0C283E);
   }
+
   public static class Overview {
     public static final Color ourCS = makeColor("UIDesigner.motion.ConstraintSet", 0xFFFFFF, 0x515658);
     public static final Color ourCSText = makeColor("UIDesigner.motion.ConstraintSetText", 0x000000, 0xC7C7C7);
