@@ -174,10 +174,13 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
 
     // Enable import trace flag which is required for import-trace-mode.
     myIdeServices.enableImportTrace(true)
+    myIdeServices.enableCpuCaptureStage(false)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
     myStage.enter()
 
     val cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
+    assertThat(cpuStageView.supportsStreaming()).isFalse()
+    assertThat(cpuStageView.supportsStageNavigation()).isFalse()
     // Selecting the capture automatically selects the first process in the capture.
     myStage.setAndSelectCapture(0)
     val processLabel = TreeWalker(cpuStageView.toolbar).descendants().filterIsInstance<JLabel>()[0]

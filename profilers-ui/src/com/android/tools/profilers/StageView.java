@@ -135,10 +135,18 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
   }
 
   /**
-   * Whether navigation controllers (i.e. Jump to Live, Profilers Combobox, and Back arrow) are enabled/visible.
+   * @return whether the current stage supports streaming. Useful for toggling the streaming controls (e.g. Go Live button).
    */
-  public boolean navigationControllersEnabled() {
-    return true;
+  public boolean supportsStreaming() {
+    return getStage().getTimeline() instanceof StreamingTimeline;
+  }
+
+  /**
+   * @return whether user can navigate to other stages from here. Useful for toggling the stage navigation controls (e.g. Go Back button,
+   * profiler dropdown list).
+   */
+  public boolean supportsStageNavigation() {
+    return getStage().getStudioProfilers().getSession().getPid() != 0;
   }
 
   /**

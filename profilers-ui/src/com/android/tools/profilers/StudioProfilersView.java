@@ -381,7 +381,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
         .setEnableBooleanSupplier(
           () -> myGoLive.isEnabled() &&
                 !myGoLive.isSelected() &&
-                myStageView.navigationControllersEnabled())
+                myStageView.supportsStreaming())
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER))
         .build();
     ProfilerAction detachAction =
@@ -390,7 +390,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
         .setEnableBooleanSupplier(
           () -> myGoLive.isEnabled() &&
                 myGoLive.isSelected() &&
-                myStageView.navigationControllersEnabled())
+                myStageView.supportsStreaming())
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)).build();
 
     myGoLive.setToolTipText(detachAction.getDefaultToolTipText());
@@ -506,10 +506,10 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myStageToolbar.add(myStageView.getToolbar(), BorderLayout.CENTER);
     myStageToolbar.revalidate();
     myToolbar.setVisible(myStageView.isToolbarVisible());
-    myGoLiveToolbar.setVisible(myStageView.navigationControllersEnabled());
+    myGoLiveToolbar.setVisible(myStageView.supportsStreaming());
 
     boolean topLevel = myStageView == null || myStageView.needsProcessSelection();
-    myCommonToolbar.setVisible(!topLevel && myStageView.navigationControllersEnabled());
+    myCommonToolbar.setVisible(!topLevel && myStageView.supportsStageNavigation());
   }
 
   private void toggleStageLayout() {

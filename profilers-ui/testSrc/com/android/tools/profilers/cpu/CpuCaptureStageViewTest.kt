@@ -59,6 +59,10 @@ class CpuCaptureStageViewTest {
   fun validateCaptureStageSetsCaptureView() {
     stage.studioProfilers.stage = stage
     assertThat(profilersView.stageView).isInstanceOf(CpuCaptureStageView::class.java)
+    // Streaming controls should be disabled for the capture stage.
+    assertThat(profilersView.stageView.supportsStreaming()).isFalse()
+    // Stage navigation should be disabled for an imported trace.
+    assertThat(profilersView.stageView.supportsStageNavigation()).isFalse()
   }
 
   @Test
