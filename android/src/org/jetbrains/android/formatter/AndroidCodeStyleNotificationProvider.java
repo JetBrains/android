@@ -1,6 +1,6 @@
 package org.jetbrains.android.formatter;
 
-import com.intellij.application.options.XmlCodeStyleSettingsProvider;
+import com.intellij.application.options.XmlLanguageCodeStyleSettingsProvider;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.notification.NotificationDisplayType;
@@ -90,7 +90,7 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
         @Override
         public void run() {
           ShowSettingsUtilImpl.showSettingsDialog(
-            myProject, "preferences.sourceCode." + XmlCodeStyleSettingsProvider.getConfigurableDisplayNameText(), "");
+            myProject, "preferences.sourceCode." + XmlLanguageCodeStyleSettingsProvider.getConfigurableDisplayNameText(), "");
             myNotifications.updateAllNotifications();
         }
       });
