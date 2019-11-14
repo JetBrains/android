@@ -302,11 +302,6 @@ public final class StudioFlags {
     "Support Actionbar in property panel",
     false);
 
-  public static final Flag<Boolean> NELE_DISPLAY_MODEL_NAME = Flag.create(
-    NELE, "display.model.name", "Display Model Name",
-    "Enable the feature which can display the model name in Layout Editor.",
-    true);
-
   public static final Flag<Boolean> NELE_CUSTOM_VIEW_PREVIEW = Flag.create(
     NELE, "show.custom.view.preview", "Show Custom View Preview",
     "Enable the feature which shows a graphical preview for Android custom View classes.",

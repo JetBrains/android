@@ -334,7 +334,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   public boolean isShowModelNames() {
-    return StudioFlags.NELE_DISPLAY_MODEL_NAME.get() && myShowModelNames;
+    return myShowModelNames;
   }
 
   @NotNull
