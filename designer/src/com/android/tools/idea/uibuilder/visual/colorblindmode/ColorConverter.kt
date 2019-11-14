@@ -56,7 +56,7 @@ class ColorConverter(val mode: ColorBlindMode) : Disposable {
   }
 
   /**
-   * Pre condition : BufferedImage either [BufferedImage.TYPE_3BYTE_BGR] or [BufferedImage.TYPE_INT_ARGB]
+   * Pre condition : BufferedImage must be [BufferedImage.TYPE_INT_ARGB]
    */
   fun convert(startImage: BufferedImage, postImage: BufferedImage) {
     if (cbmCLut == null || removeGammaCLut == null) {
@@ -68,13 +68,50 @@ class ColorConverter(val mode: ColorBlindMode) : Disposable {
     val outData = (postImage.raster.dataBuffer as DataBufferInt).data
 
     for (i in inData.indices) {
-      val inputColor = inData[i]
-      outData[i] = cbmCLut!!.interpolate(inputColor)
+      outData[i] = convert(inData[i])
     }
     ColorConverterLogger.end("Apply ${mode.name}")
 
     if (DEBUG) {
       println(ColorConverterLogger.dumpAndClearLog())
+    }
+  }
+
+  /**
+   * Converts a single color. Color input must be [BufferedImage.TYPE_INT_ARGB].
+   */
+  fun convert(color: Int): Int {
+    return 0xff shl 24 or cbmCLut!!.interpolate(prepare(color))
+  }
+
+  /**
+   * Slightly reduce the colour domain as per the paper
+   * "Digital Vido Colourmaps for Checking the Legibility of Displays by Dichromats"
+   * Also strip alpha value so we can continue working with RGB.
+   * We assume white background (since layoutlib works with single bitmap).
+   */
+  private fun prepare(color: Int): Int {
+    val a = a(color).toDouble() / 255.0
+    var r = r(color).toDouble() * a
+    var g = g(color).toDouble() * a
+    var b = b(color).toDouble() * a
+
+    return when (mode) {
+      ColorBlindMode.PROTANOMALY,
+      ColorBlindMode.PROTANOPES -> {
+        r = 0.992052 * r + 0.003974
+        g = 0.992052 * g + 0.003974
+        b = 0.992052 * b + 0.003974
+        combine(r, g, b)
+      }
+      ColorBlindMode.DEUTERANOMALY,
+      ColorBlindMode.DEUTERANOPES-> {
+        r = 0.957237 * r + 0.0213814
+        g = 0.957237 * g + 0.0213814
+        b = 0.957237 * b + 0.0213814
+        combine(r, g, b)
+      }
+      else -> combine(r, g, b)
     }
   }
 
@@ -135,7 +172,6 @@ class ColorLut(val lut: IntArray, val dim: Int) {
     val red = inputColor shr 16 and 0xFF
     val green = inputColor shr 8 and 0xFF
     val blue = inputColor and 0xFF
-    val alpha = inputColor shr 24 and 0xFF
 
     // 2) x - INDEX, y - COLOR. Interpolate from x to y.
     val rx: Double = red * (dim - 1) / 255.0
@@ -169,7 +205,7 @@ class ColorLut(val lut: IntArray, val dim: Int) {
     val by = if (bx0 == bx1) by0 else
       interpolate(bx, bx0.toDouble(), bx1.toDouble(), by0, by1)
 
-    return alpha shl 24 or (ry shl 16 or (gy shl 8) or by)
+    return ry shl 16 or (gy shl 8) or by
   }
 
   override fun toString(): String {

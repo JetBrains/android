@@ -29,6 +29,7 @@ class ColorLutTest: TestCase() {
   private val removeGammaCLut: DoubleArray = buildGammaCLut(Function { (it / 255.0).pow(GAMMA) })
 
   fun testUniform() {
+    val threshhold = 4
     val uniform1 = buildUniformColorLut(DIM)
     val uniform2 = buildColorLut(DIM, ColorBlindMode.NONE, removeGammaCLut)
 
@@ -36,9 +37,12 @@ class ColorLutTest: TestCase() {
       val color1 = uniform1.lut[i]
       val color2 = uniform2.lut[i]
 
-      assertTrue(Math.abs(r(color1) - r(color2)) <= 1)
-      assertTrue(Math.abs(g(color1) - g(color2)) <= 1)
-      assertTrue(Math.abs(b(color1) - b(color2)) <= 1)
+      assertTrue("Red comparison between ${getColorString(color1)} vs ${getColorString(color2)}",
+                 Math.abs(r(color1) - r(color2)) <= threshhold)
+      assertTrue("Green comparison between ${getColorString(color1)} vs ${getColorString(color2)}",
+                            Math.abs(g(color1) - g(color2)) <= threshhold)
+      assertTrue("Blue comparison between ${getColorString(color1)} vs ${getColorString(color2)}",
+                 Math.abs(b(color1) - b(color2)) <= threshhold)
     }
   }
 
