@@ -23,4 +23,9 @@
     <projectService serviceImplementation="com.android.tools.idea.projectsystem.ProjectSystemService"/>
     <projectService serviceImplementation="com.android.tools.idea.projectsystem.ProjectSyncModificationTracker"/>
   </extensions>
+  <project-components>
+    <component>
+      <implementation-class>com.android.tools.idea.projectsystem.SourceProviderManagerComponent</implementation-class>
+    </component>
+  </project-components>
 </idea-plugin>
