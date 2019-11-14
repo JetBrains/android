@@ -21,7 +21,7 @@ import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.FormFactor.Companion.get
 import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
-// TODO(uncomment in the next cl): import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
+import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.templates.Template.ANDROID_PROJECT_TEMPLATE
@@ -53,7 +53,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
             AndroidModuleTemplateGalleryEntry(
               null,
               { appTitle: String? ->
-                { data: TemplateData -> /*TODO(uncomment in the next cl): this.generateAndroidModule(data as ModuleTemplateData, appTitle)*/ }
+                { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle) }
               },
               FormFactor.MOBILE,
               LOWEST_ACTIVE_API,
