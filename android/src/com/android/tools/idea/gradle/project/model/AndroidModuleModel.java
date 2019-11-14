@@ -173,6 +173,26 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     mySelectedVariantName = findVariantToSelect(variantName);
   }
 
+  // for serialization
+  @SuppressWarnings({"unused", "ConstantConditions"})
+  private AndroidModuleModel() {
+    myProjectSystemId = null;
+    myModuleName = null;
+    myRootDirPath = null;
+    myAndroidProject = null;
+    myFeatures = null;
+    myModelVersion = null;
+    mySelectedVariantName = null;
+    myRootDir = null;
+    myOverridesManifestPackage = null;
+    myMinSdkVersion = null;
+    myBuildTypesByName = null;
+    myProductFlavorsByName = null;
+    myVariantsByName = null;
+    myVariantNames = null;
+    myUsingSingleVariantSync = false;
+    myExtraGeneratedSourceFolders = null;
+  }
 
   private void populateBuildTypesByName() {
     for (BuildTypeContainer container : myAndroidProject.getBuildTypes()) {

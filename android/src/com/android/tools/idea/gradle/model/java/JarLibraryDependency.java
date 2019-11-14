@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.model.java;
 
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.serialization.PropertyMapping;
 import org.gradle.tooling.model.GradleModuleVersion;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -62,6 +63,7 @@ public class JarLibraryDependency implements Serializable {
     return !libraryName.startsWith(UNRESOLVED_DEPENDENCY_PREFIX);
   }
 
+  @PropertyMapping({"myName", "myBinaryPath", "mySourcePath", "myJavadocPath", "myScope", "myModuleVersion", "myResolved"})
   public JarLibraryDependency(@NotNull String name,
                               @Nullable File binaryPath,
                               @Nullable File sourcePath,
