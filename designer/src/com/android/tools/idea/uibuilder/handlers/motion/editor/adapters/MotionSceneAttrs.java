@@ -473,8 +473,7 @@ public class MotionSceneAttrs {
     MOTION_PATH_MOTION_ARC
   ));
 
-
-  public static final String[] ourCustomAttribute = {
+public static final String[] ourCustomAttribute = {
     ATTR_CUSTOM_COLOR_VALUE,
     ATTR_CUSTOM_COLOR_DRAWABLE_VALUE,
     ATTR_CUSTOM_INTEGER_VALUE,
