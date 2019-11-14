@@ -24,6 +24,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFinder
+import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Path
 
 /**
@@ -126,6 +127,13 @@ fun Project.getSyncManager(): ProjectSystemSyncManager {
  */
 fun Module.getModuleSystem(): AndroidModuleSystem {
   return project.getProjectSystem().getModuleSystem(this)
+}
+
+/**
+ * Returns the instance of [AndroidModuleSystem] that applies to the given [AndroidFacet].
+ */
+fun AndroidFacet.getModuleSystem(): AndroidModuleSystem {
+  return module.project.getProjectSystem().getModuleSystem(module)
 }
 
 /**
