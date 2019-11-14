@@ -140,9 +140,7 @@ public class AndroidRootUtil {
       return null;
     }
 
-    VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
-
-    String moduleDirPath = new File(module.getModuleFilePath()).getParent();
+    String moduleDirPath = getModuleDirPath(module);
     if (moduleDirPath != null) {
       String absPath = toSystemIndependentName(moduleDirPath + relativePath);
       VirtualFile file = LocalFileSystem.getInstance().findFileByPath(absPath);
@@ -151,6 +149,7 @@ public class AndroidRootUtil {
       }
     }
 
+    VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
     if (lookInContentRoot) {
       for (VirtualFile contentRoot : contentRoots) {
         String absPath = toSystemIndependentName(contentRoot.getPath() + relativePath);
