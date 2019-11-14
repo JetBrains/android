@@ -19,12 +19,14 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TooltipLabel
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.npw.FormFactor
+import com.android.tools.idea.npw.bindExpression
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getSourceProvider
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep.RowEntry
 import com.android.tools.idea.npw.template.components.CheckboxProvider2
 import com.android.tools.idea.npw.template.components.EnumComboProvider2
+import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.npw.template.components.LabelWithEditButtonProvider2
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
 import com.android.tools.idea.npw.template.components.ModuleTemplateComboProvider
@@ -37,7 +39,6 @@ import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
-import com.android.tools.idea.observable.expressions.Expression
 import com.android.tools.idea.observable.ui.IconProperty
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.TextProperty
@@ -74,11 +75,9 @@ import com.android.tools.idea.wizard.template.TextFieldWidget
 import com.android.tools.idea.wizard.template.Widget
 import com.google.common.cache.CacheBuilder
 import com.google.common.base.Joiner
-import com.google.common.base.Strings
 import com.google.common.io.Files
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.ui.RecentsManager
 import com.intellij.uiDesigner.core.GridConstraints
@@ -93,15 +92,11 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import java.awt.Dimension
 import java.awt.Font
 import java.util.EnumSet
-import java.util.Optional
-import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.SwingConstants
-
-private val log get() = logger<ConfigureTemplateParametersStep2>()
 
 val TYPE_CONSTRAINTS: EnumSet<Constraint> = EnumSet.of(
   ACTIVITY, API_LEVEL, CLASS, PACKAGE, APP_PACKAGE, MODULE, LAYOUT, DRAWABLE, ID, SOURCE_SET_FOLDER, STRING, URI_AUTHORITY
@@ -155,7 +150,9 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     val anySize = Dimension(-1, -1)
     val defaultSizePolicy = GridConstraints.SIZEPOLICY_CAN_GROW or GridConstraints.SIZEPOLICY_CAN_SHRINK
     add(templateThumbLabel, GridConstraints(0, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, 0, 0, anySize, anySize, anySize))
-    add(parametersPanel, GridConstraints(0, 1, 1, 1, ANCHOR_CENTER, FILL_BOTH, defaultSizePolicy, defaultSizePolicy or GridConstraints.SIZEPOLICY_WANT_GROW, anySize, anySize, anySize))
+    add(parametersPanel,
+        GridConstraints(0, 1, 1, 1, ANCHOR_CENTER, FILL_BOTH, defaultSizePolicy, defaultSizePolicy or GridConstraints.SIZEPOLICY_WANT_GROW,
+                        anySize, anySize, anySize))
     add(templateDescriptionLabel, GridConstraints(1, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, defaultSizePolicy, 0, anySize, anySize, anySize))
     add(footerSeparator, GridConstraints(1, 1, 1, 1, ANCHOR_CENTER, FILL_HORIZONTAL, defaultSizePolicy, 0, anySize, anySize, anySize))
   }
@@ -191,31 +188,25 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
 
     val newTemplate = model.newTemplate
 
-    ApplicationManager.getApplication().invokeLater(
-      {
-        // We want to set the label's text AFTER the wizard has been packed. Otherwise, its
-        // width calculation gets involved and can really stretch out some wizards if the label is
-        // particularly long (see Master/Detail Activity for example).
-        templateDescriptionLabel.text = WizardUtils.toHtmlString(newTemplate.description)
-      }, ModalityState.any())
+    invokeLater {
+      // We want to set the label's text AFTER the wizard has been packed. Otherwise, its
+      // width calculation gets involved and can really stretch out some wizards if the label is
+      // particularly long (see Master/Detail Activity for example).
+      templateDescriptionLabel.text = WizardUtils.toHtmlString(newTemplate.description)
+    }
 
     icon = FormFactor[newTemplate.formFactor.toString()].icon // TODO(qumeric): do not use strings (may fail with Generic, etc.)
 
     val thumb = IconProperty(templateThumbLabel)
     val thumbVisibility = VisibleProperty(templateThumbLabel)
-    bindings.bind(thumb, object : Expression<Optional<Icon>>(thumbPath) {
-      override fun get(): Optional<Icon> = thumbnailsCache.getUnchecked(newTemplate.thumb().path)
-    })
-    bindings.bind(thumbVisibility, object : Expression<Boolean>(thumb) {
-      override fun get(): Boolean = thumb.get().isPresent
-    })
+    val parameterDescription = TextProperty(parameterDescriptionLabel)
+    bindings.apply {
+      bindExpression(thumb) { thumbnailsCache.getUnchecked(newTemplate.thumb().path) }
+      bindExpression(thumbVisibility) { thumb.get().isPresent }
+      bindExpression(VisibleProperty(footerSeparator)) { parameterDescription.get().isNotEmpty() }
+    }
     thumbPath.set(thumbnailPath)
     templateThumbLabel.text = newTemplate.name
-
-    val parameterDescription = TextProperty(parameterDescriptionLabel)
-    bindings.bind(VisibleProperty(footerSeparator), object : Expression<Boolean>(parameterDescription) {
-      override fun get(): Boolean = parameterDescription.get().isNotEmpty()
-    })
 
     for (widget in widgets) {
       val row = createRowForWidget(model.module, widget).apply { addToPanel(parametersPanel) }
@@ -274,24 +265,25 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
    * The caller should use [RowEntry.addToPanel] after receiving it.
    */
   private fun createRowForWidget(module: Module?, widget: Widget<*>): RowEntry<*> = when (widget) {
-      is TextFieldWidget -> RowEntry(widget.p.name, TextFieldProvider2(widget.parameter))
-      is LanguageWidget-> RowEntry(message("android.wizard.language.combo.header"), LanguageComboProvider()).also {
-        val language = (it.property as SelectedItemProperty<Language>)
-        bindings.bindTwoWay(ObjectProperty.wrap(language), model.renderLanguage)
-      }
-      is PackageNameWidget -> {
-        val rowEntry = if (module != null)
-          RowEntry(widget.p.name, PackageComboProvider2(module.project, widget.p, model.packageName.get(), getRecentsKeyForParameter(widget.p)))
-        else
-          RowEntry(widget.p.name, LabelWithEditButtonProvider2(widget.p))
+    is TextFieldWidget -> RowEntry(widget.p.name, TextFieldProvider2(widget.parameter))
+    is LanguageWidget -> RowEntry(message("android.wizard.language.combo.header"), LanguageComboProvider()).also {
+      val language = (it.property as SelectedItemProperty<Language>)
+      bindings.bindTwoWay(ObjectProperty.wrap(language), model.renderLanguage)
+    }
+    is PackageNameWidget -> {
+      val rowEntry = if (module != null)
+        RowEntry(widget.p.name,
+                 PackageComboProvider2(module.project, widget.p, model.packageName.get(), getRecentsKeyForParameter(widget.p)))
+      else
+        RowEntry(widget.p.name, LabelWithEditButtonProvider2(widget.p))
 
-        // All ATTR_PACKAGE_NAME providers should be string types and provide StringProperties
-        val packageName = rowEntry.property as StringProperty
-        bindings.bindTwoWay(packageName, model.packageName)
-        // Model.packageName is used for parameter evaluation, but updated asynchronously. Do new evaluation when value changes.
-        listeners.listen(model.packageName) { enqueueEvaluateParameters() }
-        rowEntry
-      }
+      // All ATTR_PACKAGE_NAME providers should be string types and provide StringProperties
+      val packageName = rowEntry.property as StringProperty
+      bindings.bindTwoWay(packageName, model.packageName)
+      // Model.packageName is used for parameter evaluation, but updated asynchronously. Do new evaluation when value changes.
+      listeners.listen(model.packageName) { enqueueEvaluateParameters() }
+      rowEntry
+    }
     is CheckBoxWidget -> RowEntry(CheckboxProvider2(widget.p))
     is Separator -> RowEntry(SeparatorProvider())
     is EnumWidget<*> -> RowEntry(widget.p.name, EnumComboProvider2(widget.p))
@@ -309,7 +301,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     }
     evaluationState = EvaluationState.REQUEST_ENQUEUED
 
-    ApplicationManager.getApplication().invokeLater({ this.evaluateParameters() }, ModalityState.any())
+    invokeLater { evaluateParameters() }
   }
 
   /**
@@ -397,7 +389,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     parameterRows.values.forEach(RowEntry<*>::accept)
 
     parameterRows.forEach { (p, row) ->
-      p.value = row.property!!.get() // FIXME row may have no property? (e.g. separator)
+      p.value = row.property!!.get() // TODO(qumeric): row may have no property? (e.g. separator)
     }
   }
 
@@ -423,7 +415,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
       return value
     }
 
-    var suggested: String = value
+    var suggested = value
     val extPart = Files.getFileExtension(value)
 
     // First remove file extension. Then remove all trailing digits, because we probably were the ones that put them there.
