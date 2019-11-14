@@ -27,6 +27,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.property.NavPropertyPanelDefinition
 import com.android.tools.idea.naveditor.property2.NavPropertiesPanelDefinition
+import com.android.tools.idea.naveditor.structure.HostPanelDefinition
 import com.android.tools.idea.naveditor.structure.StructurePanel
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.project.Project
@@ -46,9 +47,13 @@ open class NavEditor(file: VirtualFile, project: Project) : DesignerEditor(file,
     DesignerEditorPanel(this, myProject, myFile, WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this, this),
                         { NavDesignSurface(myProject, it, this) })
     {
-      val list = mutableListOf(propertyPanelDefinition(it), StructurePanel.StructurePanelDefinition())
+      val list = mutableListOf(propertyPanelDefinition(it))
       if(StudioFlags.NAV_NEW_COMPONENT_TREE.get()) {
         list.add(TreePanelDefinition())
+        list.add(HostPanelDefinition())
+      }
+      else {
+        list.add(StructurePanel.StructurePanelDefinition())
       }
       list
     }
