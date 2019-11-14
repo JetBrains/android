@@ -15,7 +15,7 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <projectService serviceInterface="com.android.build.attribution.BuildAttributionManager"
+    <projectService serviceInterface="com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager"
                     serviceImplementation="com.android.build.attribution.BuildAttributionManagerImpl"/>
     <projectService serviceImplementation="com.android.build.attribution.BuildAttributionWarningsFilter"/>
   </extensions>

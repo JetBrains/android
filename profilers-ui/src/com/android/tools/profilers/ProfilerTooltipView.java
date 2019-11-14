@@ -15,25 +15,30 @@
  */
 package com.android.tools.profilers;
 
+import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
+import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_HEADER_FONT;
+
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.LayoutManager;
+import java.awt.Rectangle;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
-import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_HEADER_FONT;
 
 public abstract class ProfilerTooltipView extends AspectObserver {
   @NotNull
@@ -77,9 +82,7 @@ public abstract class ProfilerTooltipView extends AspectObserver {
   /**
    * Function for tooltip views to override if they want to react on tooltip range change events.
    */
-  protected void updateTooltip() {
-
-  }
+  protected void updateTooltip() { }
 
   @NotNull
   protected abstract JComponent createTooltip();
@@ -91,6 +94,15 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     return label;
   }
 
+  /**
+   * @return the timeline that this tooltip view is based on. Accessible by subclasses.
+   */
+  @NotNull
+  protected Timeline getTimeline() {
+    return myTimeline;
+  }
+
+  @NotNull
   public final JComponent createComponent() {
     TooltipPanel tooltipPanel = new TooltipPanel(new TabularLayout("Fit", "Fit-,8px,Fit"));
     tooltipPanel.add(myHeadingLabel, new TabularLayout.Constraint(0, 0));

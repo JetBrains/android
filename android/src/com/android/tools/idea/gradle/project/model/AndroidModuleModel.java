@@ -255,13 +255,11 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return getSelectedVariant().getMainArtifact();
   }
 
-  @Override
   @NotNull
   public SourceProvider getDefaultSourceProvider() {
     return getAndroidProject().getDefaultConfig().getSourceProvider();
   }
 
-  @Override
   @NotNull
   public List<SourceProvider> getActiveSourceProviders() {
     return getMainSourceProviders(mySelectedVariantName);
@@ -311,7 +309,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return getSourceProvidersForArtifacts(containers, TEST_ARTIFACT_NAMES);
   }
 
-  @Override
   @NotNull
   public List<SourceProvider> getTestSourceProviders() {
     return getTestSourceProviders(mySelectedVariantName, TEST_ARTIFACT_NAMES);
@@ -375,7 +372,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return false;
   }
 
-  @Override
   @NotNull
   public List<SourceProvider> getAllSourceProviders() {
     Collection<Variant> variants = myAndroidProject.getVariants();

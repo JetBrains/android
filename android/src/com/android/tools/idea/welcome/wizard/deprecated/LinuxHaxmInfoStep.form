@@ -32,7 +32,7 @@
           </grid>
         </constraints>
         <properties>
-          <text value="&lt;html&gt;Linux-based systems support virtual machine acceleration through the KVM (Kernel-mode Virtual Machine) software package.&lt;/html&gt;"/>
+          <text value="&lt;html&gt;Linux-based systems support virtual machine acceleration through the KVM (Kernel-based Virtual Machine) software package.&lt;/html&gt;"/>
         </properties>
       </component>
       <vspacer id="d6388">

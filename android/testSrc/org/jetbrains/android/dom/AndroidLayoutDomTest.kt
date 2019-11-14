@@ -1,10 +1,12 @@
 package org.jetbrains.android.dom
 
-import com.android.SdkConstants
 import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+import com.android.SdkConstants
+import com.android.SdkConstants.DOT_XML
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.tools.idea.lint.AndroidLintMotionLayoutInvalidSceneFileReferenceInspection
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
@@ -31,15 +33,22 @@ import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiPolyVariantReference
+import com.intellij.psi.util.parentOfType
+import com.intellij.psi.xml.XmlAttribute
+import com.intellij.psi.xml.XmlTag
 import com.intellij.spellchecker.inspections.SpellCheckingInspection
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.UsefulTestCase
+import com.intellij.util.xml.DomManager
 import junit.framework.TestCase
 import org.intellij.lang.annotations.Language
+import org.jetbrains.android.dom.converters.ResourceReferenceConverter
+import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix
+import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator
 import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction
 import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.junit.Test
@@ -278,6 +287,69 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   override fun getPathToCopy(testFileName: String): String {
     return "res/layout/$testFileName"
+  }
+
+  /**
+   * Regression test for http://b/136596952
+   * This test checks that an attribute eg. <attr name="defaultValue" format="color|string|boolean"\>, which has Boolean in the formats, but
+   * also has other [ResourceType] options, accepts literals which are not "true" or "false". See [testResourceLiteralWithBooleanFormat]
+   * where this validation is enforced.
+   */
+  fun testResourceLiteralWithMultipleFormats() {
+    //
+    val file = myFixture.addFileToProject(
+      "res/xml/preferences.xml",
+      //language=XML
+      """
+      <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+        <ListPreference android:defaultValue="he<caret>llo"/>
+      </PreferenceScreen>""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    val xmlAttribute = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<XmlAttribute>()
+    val domElement = DomManager.getDomManager(myFixture.project).getDomElement(xmlAttribute)
+    assertThat(domElement!!.converter).isInstanceOf(ResourceReferenceConverter::class.java)
+    val value = domElement.value as ResourceValue
+    assertThat(value.isReference).isEqualTo(false)
+    assertThat(value.value).isEqualTo("hello")
+    assertThat(value.type).isNull()
+  }
+
+  /**
+   * This test checks that an attribute eg. <attr name="shouldDisableView" format="boolean"\>, which only has Boolean in the formats,
+   * accepts literals which are only "true" or "false".
+   */
+  fun testResourceLiteralWithBooleanFormat() {
+    val file = myFixture.addFileToProject(
+      "res/xml/preferences.xml",
+      //language=XML
+      """
+      <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+        <ListPreference android:shouldDisableView="t<caret>e"/>
+      </PreferenceScreen>
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    val xmlAttribute = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<XmlAttribute>()
+    val domElement = DomManager.getDomManager(myFixture.project).getDomElement(xmlAttribute)
+    assertThat(domElement!!.converter).isInstanceOf(ResourceReferenceConverter::class.java)
+    assertThat(domElement.value).isNull()
+
+    // With a valid literal for a boolean only attribute
+    val validFile = myFixture.addFileToProject(
+      "res/xml/preferences_valid.xml",
+      //language=XML
+      """
+      <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+        <ListPreference android:shouldDisableView="tr<caret>ue"/>
+      </PreferenceScreen>
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(validFile.virtualFile)
+    val newXmlAttribute = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<XmlAttribute>()
+    val newDomElement = DomManager.getDomManager(myFixture.project).getDomElement(newXmlAttribute)
+    assertThat(newDomElement!!.converter).isInstanceOf(ResourceReferenceConverter::class.java)
+    val value = newDomElement.value as ResourceValue
+    assertThat(value.isReference).isEqualTo(false)
+    assertThat(value.value).isEqualTo("true")
+    assertThat(value.type).isNull()
   }
 
   fun testStylesItemReferenceAndroid() {
@@ -2128,6 +2200,14 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
     myFixture.configureFromExistingVirtualFile(layout.virtualFile)
     myFixture.checkHighlighting()
+  }
+
+  fun testMotionLayoutWithoutLayoutDescription() {
+    myFixture.enableInspections(AndroidLintMotionLayoutInvalidSceneFileReferenceInspection())
+    val file = copyFileToProject(getTestName(true) + DOT_XML)
+    doTestOnClickQuickfix(file, AndroidLintExternalAnnotator.MyFixingIntention::class.java, getTestName(true) + "_after" + DOT_XML)
+    val sceneFile = "${getTestName(true)}_scene.xml"
+    myFixture.checkResultByFile("res/xml/$sceneFile", "$myTestFolder/$sceneFile", false)
   }
 
   /**

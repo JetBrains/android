@@ -111,8 +111,8 @@ public final class SelectDeploymentTargetsDialogTableTest {
     // Assert
     // @formatter:off
     Object data = Arrays.asList(
-      Arrays.asList("",    "Type",           "Device"),
-      Arrays.asList(false, device.getIcon(), "Pixel 3 API 29"));
+      Arrays.asList("",    "Type",           "Device",         "Snapshot"),
+      Arrays.asList(false, device.getIcon(), "Pixel 3 API 29", "Quickboot"));
     // @formatter:on
 
     assertEquals(data, table.getData());

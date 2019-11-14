@@ -88,7 +88,6 @@ public class ConfigurationDslElement extends GradleDslBlockElement implements Gr
     return methodName;
   }
 
-  @Nullable
   @Override
   public void setMethodName(@Nullable String value) {
     methodName = value;
@@ -107,17 +106,5 @@ public class ConfigurationDslElement extends GradleDslBlockElement implements Gr
   @Override
   public boolean isInsignificantIfEmpty() {
     return false;
-  }
-
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    super.addParsedElement(element);
-    maybeRenameElement(element);
-  }
-
-  @Override
-  public void setParsedElement(@NotNull GradleDslElement element) {
-    super.setParsedElement(element);
-    maybeRenameElement(element);
   }
 }

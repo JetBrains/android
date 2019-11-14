@@ -173,9 +173,6 @@ public class CommonActions {
     actions.add(new ViewActionSeparator());
     actions.add(new ClearConstraintsAction());
 
-    if (StudioFlags.ENABLE_NEW_SCOUT.get()) {
-      actions.add((new ScoutAction()));
-    }
     actions.add((new ViewActionSeparator()));
 
     // TODO Decide if we want lock actions.add(new LockConstraints());
@@ -1379,61 +1376,6 @@ public class CommonActions {
       // Clear selection.
       editor.getScene().select(Collections.emptyList());
       ensureLayersAreShown(editor, 1000);
-    }
-  }
-
-  private static class ScoutAction extends DirectViewAction {
-    @Override
-    public void perform(@NotNull ViewEditor editor,
-                        @NotNull ViewHandler handler,
-                        @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren,
-                        @InputEventMask int modifiers) {
-      getAnalyticsManager(editor).trackInferConstraints();
-      try {
-        Scout.findConstraintSetAndCommit(component);
-        ensureLayersAreShown(editor, 1000);
-      }
-      catch (Exception e) {
-        // TODO show dialog the inference failed
-        Logger.getInstance(ConstraintLayoutHandler.class).warn("Error in inferring constraints", e);
-      }
-    }
-
-    @Override
-    public void updatePresentation(@NotNull ViewActionPresentation presentation,
-                                   @NotNull ViewEditor editor,
-                                   @NotNull ViewHandler handler,
-                                   @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiersEx) {
-      presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.INFER_CONSTRAINTS);
-      presentation.setLabel("Infer Constraints (new)");
-    }
-  }
-
-
-  private static class ClearConstraintsSelectedComponentsAction extends DirectViewAction {
-    @Override
-    public void perform(@NotNull ViewEditor editor,
-                        @NotNull ViewHandler handler,
-                        @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren,
-                        @InputEventMask int modifiers) {
-      ViewGroupHandler constraintHandler = (ViewGroupHandler) handler;
-      constraintHandler.clearAttributes(selectedChildren);
-      ensureLayersAreShown(editor, 1000);
-    }
-
-    @Override
-    public void updatePresentation(@NotNull ViewActionPresentation presentation,
-                                   @NotNull ViewEditor editor,
-                                   @NotNull ViewHandler handler,
-                                   @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiersEx) {
-      presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS);
-      presentation.setLabel("Clear Constraints of Selection");
     }
   }
 

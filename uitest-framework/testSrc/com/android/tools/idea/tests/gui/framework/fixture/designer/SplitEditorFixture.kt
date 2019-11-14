@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.WorkBenchLoadingPanelF
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesignSurfaceFixture
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.base.Preconditions.checkState
+import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import org.fest.swing.core.Robot
 import org.fest.swing.edt.GuiQuery
@@ -33,7 +34,7 @@ import javax.swing.JComponent
 /**
  * Fixture wrapping for [SplitEditor]
  */
-class SplitEditorFixture(val robot: Robot, val editor: SplitEditor) :
+class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEditor>) :
   ComponentFixture<SplitEditorFixture, JComponent>(SplitEditorFixture::class.java, robot, editor.component) {
   private fun setMode(modeName: String) = robot.click(robot.finder().findByName(target(), modeName))
 
@@ -76,7 +77,7 @@ fun EditorFixture.getSplitEditorFixture(): SplitEditorFixture {
     val editors = FileEditorManager.getInstance(ideFrame.project).selectedEditors
     checkState(editors.isNotEmpty(), "no selected editors")
     val selected = editors[0]
-    checkState(selected is SplitEditor, "invalid editor selected")
-    SplitEditorFixture(ideFrame.robot(), selected as SplitEditor)
+    checkState(selected is SplitEditor<out FileEditor>, "invalid editor selected")
+    SplitEditorFixture(ideFrame.robot(), selected as SplitEditor<out FileEditor>)
   }
 }

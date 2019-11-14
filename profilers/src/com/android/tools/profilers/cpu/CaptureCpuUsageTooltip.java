@@ -16,16 +16,16 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
-import com.android.tools.profilers.ProfilerTooltip;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Tooltip model for {@link CpuUsage} displayed in the CPU capture stage.
  */
-public class CaptureCpuUsageTooltip implements ProfilerTooltip {
+public class CaptureCpuUsageTooltip implements TooltipModel {
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 5, 10, "%");
 
   private final LegendComponentModel myLegendModel;

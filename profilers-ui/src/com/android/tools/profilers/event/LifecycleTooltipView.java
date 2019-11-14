@@ -17,20 +17,21 @@ package com.android.tools.profilers.event;
 
 import com.android.tools.adtui.ActivityComponent;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.event.LifecycleAction;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorTooltipView;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StageView;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.util.ui.JBEmptyBorder;
+import java.awt.Color;
 import java.util.ArrayList;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonitor> {
@@ -58,8 +59,8 @@ public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonito
     myComponent = parent.getComponent();
 
     // Callback on the data range so the active event time gets updated properly.
-    getMonitor().getProfilers().getTimeline().getDataRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
-    getMonitor().getProfilers().getTimeline().getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
+    getTimeline().getDataRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
+    getTimeline().getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
 
     myActivityNameLabel = new JLabel();
     myDurationLabel = new JLabel();
@@ -69,19 +70,18 @@ public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonito
   @Override
   public void dispose() {
     super.dispose();
-    getMonitor().getProfilers().getTimeline().getDataRange().removeDependencies(this);
+    getTimeline().getDataRange().removeDependencies(this);
   }
 
   private void timeChanged() {
-    ProfilerTimeline timeline = getMonitor().getProfilers().getTimeline();
-    Range dataRange = timeline.getDataRange();
-    Range range = timeline.getTooltipRange();
+    Range dataRange = getTimeline().getDataRange();
+    Range range = getTimeline().getTooltipRange();
     if (!range.isEmpty()) {
-      showStackedEventInfo(timeline, dataRange, range.getMin());
+      showStackedEventInfo(getTimeline(), dataRange, range.getMin());
     }
   }
 
-  private void showStackedEventInfo(ProfilerTimeline timeline, Range dataRange, double tooltipX) {
+  private void showStackedEventInfo(Timeline timeline, Range dataRange, double tooltipX) {
     LifecycleAction activity = myLifecycleTooltip.getActivityAt(tooltipX);
 
     if (activity != null) {
@@ -96,7 +96,7 @@ public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonito
 
     if (getMonitor().getProfilers().getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
       myFragmentsPanel.removeAll();
-      double timePerPixel = getMonitor().getProfilers().getTimeline().getViewRange().getLength() / myComponent.getWidth();
+      double timePerPixel = getTimeline().getViewRange().getLength() / myComponent.getWidth();
       Range hoverRange = new Range(tooltipX - timePerPixel * HOVER_OVER_WIDTH_PX / 2, tooltipX + timePerPixel * HOVER_OVER_WIDTH_PX / 2);
       List<LifecycleAction> fragments = myLifecycleTooltip.getFragmentsAt(hoverRange);
       List<JLabel> labels = new ArrayList<>();

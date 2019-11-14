@@ -70,8 +70,20 @@ public class ProguardR8ClassSpecificationHeaderImpl extends ASTWrapperPsiElement
 
   @Override
   @NotNull
+  public List<ProguardR8SuperClassName> getSuperClassNameList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8SuperClassName.class);
+  }
+
+  @Override
+  @NotNull
   public List<PsiClass> resolvePsiClasses() {
     return ProguardR8PsiImplUtil.resolvePsiClasses(this);
+  }
+
+  @Override
+  @NotNull
+  public List<PsiClass> resolveSuperPsiClasses() {
+    return ProguardR8PsiImplUtil.resolveSuperPsiClasses(this);
   }
 
 }

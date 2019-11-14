@@ -167,21 +167,20 @@ class SqliteViewImpl(
     tree.expandPath(TreePath(schemaNode.path))
   }
 
-  override fun updateDatabase(database: SqliteDatabase, toRemove: List<SqliteTable>, toAdd: List<IndexedSqliteTable>) {
+  override fun updateDatabase(database: SqliteDatabase, toAdd: List<SqliteTable>) {
     val treeModel = viewContext.schemaTree!!.model as DefaultTreeModel
     val currentSchemaNode = findTreeNode(database)
     currentSchemaNode.userObject = database
 
-    currentSchemaNode.children().toList().map { it as DefaultMutableTreeNode }.forEach {
-      if (toRemove.contains(it.userObject))
-        treeModel.removeNodeFromParent(it)
+    currentSchemaNode.children().toList().map { it as DefaultMutableTreeNode }.forEach { treeModel.removeNodeFromParent(it) }
+
+    toAdd.forEachIndexed { index, table ->
+      val newTableNode = DefaultMutableTreeNode(table)
+      table.columns.forEach { column -> newTableNode.add(DefaultMutableTreeNode(column)) }
+      treeModel.insertNodeInto(newTableNode, currentSchemaNode, index)
     }
 
-    toAdd.forEach {
-      val newTableNode = DefaultMutableTreeNode(it.sqliteTable)
-      it.sqliteTable.columns.forEach { column -> newTableNode.add(DefaultMutableTreeNode(column)) }
-      treeModel.insertNodeInto(newTableNode, currentSchemaNode, it.index)
-    }
+    viewContext.schemaTree?.expandPath(TreePath(currentSchemaNode.path))
   }
 
   override fun removeDatabaseSchema(database: SqliteDatabase) {

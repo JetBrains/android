@@ -8,8 +8,10 @@ PROJECT             : LightSyncBasedTestsWithGradleLikeStructureTest
         FACET               : Android
             TypeId              : android
             SelectedBuildVariant          : debug
-            AssembleTaskName    : assemble
-            CompileJavaTaskName : compile
+            AssembleTaskName    : assembleDebug
+            CompileJavaTaskName : compileDebugSources
+            - AfterSyncTask     : ideSetupTask1
+            - AfterSyncTask     : ideSetupTask2
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -23,7 +25,7 @@ PROJECT             : LightSyncBasedTestsWithGradleLikeStructureTest
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
             UseCustomCompilerManifest     : false
-            ProjectType         : 2
+            ProjectType         : 0
             RunProcessResourcesMavenTask  : true
             PackTestCode        : false
             RunProguard         : false

@@ -47,8 +47,8 @@ private const val NAV_RIGHT_INPUT_KEY = "navigate_split_editor_mode_right"
  * [TextEditorWithPreview] with keyboard shortcuts to navigate between views, and code navigation when interacting with the preview portion
  * of the editor. Please use this class if you're adding a [TextEditorWithPreview] editor to Android Studio.
  */
-abstract class SplitEditor(textEditor: TextEditor,
-                           designEditor: FileEditor,
+abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
+                           designEditor: P,
                            editorName: String,
                            defaultLayout: Layout = Layout.SHOW_EDITOR_AND_PREVIEW) : TextEditorWithPreview(textEditor, designEditor,
                                                                                                            editorName,
@@ -144,4 +144,7 @@ abstract class SplitEditor(textEditor: TextEditor,
 
     open fun onUserSelectedAction() {}
   }
+
+  @Suppress("UNCHECKED_CAST")
+  val preview: P = myPreview as P
 }

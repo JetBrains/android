@@ -20,7 +20,6 @@ import com.android.build.attribution.ui.data.CriticalPathTasksUiData
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.durationString
-import com.android.build.attribution.ui.taskIcon
 import com.android.build.attribution.ui.issuesCountString
 import com.android.build.attribution.ui.mergedIcon
 import com.android.build.attribution.ui.panels.AbstractBuildAttributionInfoPanel
@@ -31,6 +30,7 @@ import com.android.build.attribution.ui.panels.TreeLinkListener
 import com.android.build.attribution.ui.panels.criticalPathHeader
 import com.android.build.attribution.ui.panels.headerLabel
 import com.android.build.attribution.ui.panels.taskInfoPanel
+import com.android.build.attribution.ui.taskIcon
 import com.intellij.ui.treeStructure.SimpleNode
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -91,7 +91,7 @@ private class TaskNode(
   private val taskIssueLinkListener: TreeLinkListener<TaskIssueUiData>
 ) : AbstractBuildAttributionNode(parent, taskData.taskPath) {
 
-  override val presentationIcon: Icon? = mergedIcon(taskIcon(taskData), colorIcon(selectedChartItem.legendColor))
+  override val presentationIcon: Icon? = mergedIcon(taskIcon(taskData), colorIcon(selectedChartItem.legendColor.baseColor))
 
   override val issuesCountsSuffix: String? = null
 

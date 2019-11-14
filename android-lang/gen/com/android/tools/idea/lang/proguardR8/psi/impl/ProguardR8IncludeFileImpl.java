@@ -45,32 +45,32 @@ public class ProguardR8IncludeFileImpl extends ASTWrapperPsiElement implements P
 
   @Override
   @Nullable
+  public PsiElement getDoubleQuotedString() {
+    return findChildByType(DOUBLE_QUOTED_STRING);
+  }
+
+  @Override
+  @Nullable
   public PsiElement getFileName() {
     return findChildByType(FILE_NAME);
   }
 
   @Override
   @Nullable
-  public PsiElement getFileNameDoubleQuoted() {
-    return findChildByType(FILE_NAME_DOUBLE_QUOTED);
+  public PsiElement getSingleQuotedString() {
+    return findChildByType(SINGLE_QUOTED_STRING);
   }
 
   @Override
   @Nullable
-  public PsiElement getFileNameSingleQuoted() {
-    return findChildByType(FILE_NAME_SINGLE_QUOTED);
+  public PsiElement getUnterminatedDoubleQuotedString() {
+    return findChildByType(UNTERMINATED_DOUBLE_QUOTED_STRING);
   }
 
   @Override
   @Nullable
-  public PsiElement getUnterminatedFileNameDoubleQuoted() {
-    return findChildByType(UNTERMINATED_FILE_NAME_DOUBLE_QUOTED);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getUnterminatedFileNameSingleQuoted() {
-    return findChildByType(UNTERMINATED_FILE_NAME_SINGLE_QUOTED);
+  public PsiElement getUnterminatedSingleQuotedString() {
+    return findChildByType(UNTERMINATED_SINGLE_QUOTED_STRING);
   }
 
 }

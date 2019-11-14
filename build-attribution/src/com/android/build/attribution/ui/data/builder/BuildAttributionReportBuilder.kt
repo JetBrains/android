@@ -16,7 +16,7 @@
 package com.android.build.attribution.ui.data.builder
 
 import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
-import com.android.build.attribution.analyzers.CriticalPathAnalyzer
+import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.BuildSummary
@@ -89,7 +89,7 @@ class BuildAttributionReportBuilder(
 
   private fun createCriticalPathPluginUiData(
     criticalPathTasks: List<TaskData>,
-    pluginCriticalPathBuildData: CriticalPathAnalyzer.PluginBuildData
+    pluginCriticalPathBuildData: PluginBuildData
   ) = object : CriticalPathPluginUiData {
     override val name = pluginCriticalPathBuildData.plugin.displayName
     override val criticalPathDuration = TimeWithPercentage(pluginCriticalPathBuildData.buildDuration, buildAnalysisResult.getTotalBuildTimeMs())

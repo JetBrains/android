@@ -153,6 +153,7 @@ class CpuCaptureStageTest {
     profilers.stage = stage
     assertThat(stage.captureTimeline.dataRange.length.toLong()).isEqualTo(303)
     assertThat(stage.minimapModel.captureRange.length.toLong()).isEqualTo(303)
+    assertThat(stage.minimapModel.rangeSelectionModel.selectionRange.length.toLong()).isEqualTo(303)
   }
 
   @Test

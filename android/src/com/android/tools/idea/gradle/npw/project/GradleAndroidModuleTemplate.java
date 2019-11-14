@@ -21,6 +21,7 @@ import static com.android.SdkConstants.FD_MAIN;
 import static com.android.SdkConstants.FD_RESOURCES;
 import static com.android.SdkConstants.FD_SOURCES;
 import static com.android.SdkConstants.FD_TEST;
+import static com.android.SdkConstants.FD_UNIT_TEST;
 import static com.android.tools.idea.templates.SourceProviderUtilKt.getSourceProvidersForFile;
 
 import com.android.builder.model.SourceProvider;
@@ -70,6 +71,7 @@ public class GradleAndroidModuleTemplate implements AndroidModulePaths {
   @Nullable private File myModuleRoot;
   @Nullable private File mySrcRoot;
   @Nullable private File myTestRoot;
+  @Nullable private File myUnitTestRoot;
   @NotNull private List<File> myResDirectories = Collections.emptyList();
   @Nullable private File myAidlRoot;
   @Nullable private File myManifestDirectory;
@@ -99,6 +101,12 @@ public class GradleAndroidModuleTemplate implements AndroidModulePaths {
   @Nullable
   public File getTestDirectory(@Nullable String packageName) {
     return appendPackageToRoot(myTestRoot, packageName);
+  }
+
+  @Override
+  @Nullable
+  public File getUnitTestDirectory(@Nullable String packageName) {
+    return appendPackageToRoot(myUnitTestRoot, packageName);
   }
 
   @Override
@@ -137,6 +145,7 @@ public class GradleAndroidModuleTemplate implements AndroidModulePaths {
     paths.myModuleRoot = moduleRoot;
     paths.mySrcRoot = new File(baseFlavorDir, FD_JAVA);
     paths.myTestRoot = new File(baseSrcDir.getPath(), FD_TEST + File.separatorChar + FD_JAVA);
+    paths.myUnitTestRoot = new File(baseSrcDir.getPath(), FD_UNIT_TEST + File.separatorChar + FD_JAVA);
     paths.myResDirectories = ImmutableList.of(new File(baseFlavorDir, FD_RESOURCES));
     paths.myAidlRoot = new File(baseFlavorDir, FD_AIDL);
     paths.myManifestDirectory = baseFlavorDir;
@@ -180,8 +189,12 @@ public class GradleAndroidModuleTemplate implements AndroidModulePaths {
       }
       paths.mySrcRoot = new File(VfsUtilCore.urlToPath(Iterables.getFirst(sourceProvider.getJavaDirectoryUrls(), null)));
       List<VirtualFile> testsRoot = ModuleRootManager.getInstance(module).getSourceRoots(JavaModuleSourceRootTypes.TESTS);
-      if (!testsRoot.isEmpty()) {
+      if (testsRoot.size() == 1) {
+        paths.myUnitTestRoot = VfsUtilCore.virtualToIoFile(testsRoot.get(0));
+      }
+      else if (!testsRoot.isEmpty()) {
         paths.myTestRoot = VfsUtilCore.virtualToIoFile(testsRoot.get(0));
+        paths.myUnitTestRoot = VfsUtilCore.virtualToIoFile(testsRoot.get(1));
       }
       paths.myResDirectories =
         ImmutableList.copyOf(

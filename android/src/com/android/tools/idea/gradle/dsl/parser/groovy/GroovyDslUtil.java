@@ -36,12 +36,15 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.extapi.psi.ASTDelegatePsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -55,6 +58,7 @@ import com.intellij.util.IncorrectOperationException;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
@@ -460,7 +464,13 @@ public final class GroovyDslUtil {
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(newLiteral.getProject());
     GrNamedArgument namedArgument = factory.createNamedArgument(expression.getName(), newLiteral);
     PsiElement added;
-    if (parentPsiElement instanceof GrArgumentList) {
+    if (parentPsiElement instanceof GrCommandArgumentList) {
+      // addNamedArgument() on a GrCommandArgumentList adds the argument before the last existing argument, if any.  Although it doesn't
+      // directly affect the semantics, we want to add new elements at the end of the argument list.  (This doesn't work for general
+      // GrArgumentLists because the last child of the Psi might be the closing bracket of an explicit method call.)
+      added = parentPsiElement.addAfter(namedArgument, parentPsiElement.getLastChild());
+    }
+    else if (parentPsiElement instanceof GrArgumentList) {
       added = ((GrArgumentList)parentPsiElement).addNamedArgument(namedArgument);
     }
     else if (parentPsiElement instanceof GrListOrMap) {
@@ -725,7 +735,17 @@ public final class GroovyDslUtil {
     if (oldName == null) return;
 
     GradleDslElement parent = element.getParent();
-    String newName = (parent == null) ? localName : writer.externalNameForParent(localName, parent);
+    if (parent != null) {
+      ImmutableCollection<Pair<String, SemanticsDescription>> modelProperties = parent.getExternalToModelMap(writer).values();
+      for (Pair<String, SemanticsDescription> value : modelProperties) {
+        if (value.getFirst().equals(nameElement.getOriginalName())) {
+          Logger.getInstance(GroovyDslWriter.class)
+            .warn(new UnsupportedOperationException("trying to update a property: " + nameElement.getOriginalName()));
+          return;
+        }
+      }
+    }
+    String newName = localName;
 
     PsiElement newElement;
     if (oldName instanceof PsiNamedElement) {

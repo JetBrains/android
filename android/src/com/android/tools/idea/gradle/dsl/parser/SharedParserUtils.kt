@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME
+import com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement
+import com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement.BUILD_FEATURES_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME
@@ -33,6 +35,8 @@ import com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement.DEX_OPTIONS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME
+import com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement
+import com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement.KOTLIN_OPTIONS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement.LINT_OPTIONS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement
@@ -178,6 +182,7 @@ fun GradleDslFile.getBlockElement(
       is AndroidDslElement -> when (nestedElementName) {
         "defaultConfig" -> DefaultConfigDslElement(resultElement, elementName)
         PRODUCT_FLAVORS_BLOCK_NAME -> ProductFlavorsDslElement(resultElement)
+        BUILD_FEATURES_BLOCK_NAME -> BuildFeaturesDslElement(resultElement)
         BUILD_TYPES_BLOCK_NAME -> BuildTypesDslElement(resultElement)
         COMPILE_OPTIONS_BLOCK_NAME -> CompileOptionsDslElement(resultElement)
         EXTERNAL_NATIVE_BUILD_BLOCK_NAME -> ExternalNativeBuildDslElement(resultElement)
@@ -187,6 +192,7 @@ fun GradleDslFile.getBlockElement(
         ADB_OPTIONS_BLOCK_NAME -> AdbOptionsDslElement(resultElement)
         DATA_BINDING_BLOCK_NAME -> DataBindingDslElement(resultElement)
         DEX_OPTIONS_BLOCK_NAME -> DexOptionsDslElement(resultElement)
+        KOTLIN_OPTIONS_BLOCK_NAME -> KotlinOptionsDslElement(resultElement)
         LINT_OPTIONS_BLOCK_NAME -> LintOptionsDslElement(resultElement)
         PACKAGING_OPTIONS_BLOCK_NAME -> PackagingOptionsDslElement(resultElement)
         SPLITS_BLOCK_NAME -> SplitsDslElement(resultElement)
@@ -313,17 +319,19 @@ internal fun findLastPsiElementIn(startElement: GradleDslElement): PsiElement? {
 }
 
 /**
- * Get the external name of a dsl element by trimming the parent's name parts and converting the name from model to external, if necessary.
+ * Get the external name of a dsl element by trimming the parent's name parts and converting the name from model to external, if necessary,
+ * returning a pair of the name and whether this is a method call an assignment or unknown (see
+ * [GradleDslNameConverter.externalNameForParent])
  */
 internal fun maybeTrimForParent(name: GradleNameElement,
                                 parent: GradleDslElement?,
-                                converter: GradleDslNameConverter): String {
+                                converter: GradleDslNameConverter): Pair<String, Boolean?> {
   // FIXME(xof): this case needs fixing too
-  if (parent == null) return name.fullName()
+  if (parent == null) return name.fullName() to null
 
   val parts = ArrayList(name.fullNameParts())
   if (parts.isEmpty()) {
-    return name.fullName()
+    return name.fullName() to null
   }
   var lastNamePart = parts.removeAt(parts.size - 1)
   val parentParts = Splitter.on(".").splitToList(parent.qualifiedName)
@@ -332,8 +340,10 @@ internal fun maybeTrimForParent(name: GradleNameElement,
     parts.removeAt(0)
     i++
   }
-  // FIXME(xof): I have a feeling that this is partly wrong, with the same kind of forward/backward issues as in GradleNameElement.from()
-  lastNamePart = converter.externalNameForParent(lastNamePart, parent)
+
+  val externalNameInfo = converter.externalNameForParent(lastNamePart, parent)
+
+  lastNamePart = externalNameInfo.first
   parts.add(lastNamePart)
-  return GradleNameElement.createNameFromParts(parts)
+  return GradleNameElement.createNameFromParts(parts) to externalNameInfo.second
 }

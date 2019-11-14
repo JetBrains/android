@@ -44,6 +44,7 @@ import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.ATTR_SHRINK_MODE;
 import static com.android.SdkConstants.ATTR_STYLE;
 import static com.android.SdkConstants.ATTR_TARGET_API;
+import static com.android.SdkConstants.ATTR_VIEW_BINDING_IGNORE;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.CLASS_DRAWER_LAYOUT;
 import static com.android.SdkConstants.CLASS_NESTED_SCROLL_VIEW;
@@ -510,6 +511,7 @@ public class AttributeProcessingUtil {
         registerToolsAttribute(ATTR_MENU, callback);
         registerToolsAttribute(ATTR_ACTION_BAR_NAV_MODE, callback);
         registerToolsAttribute(ATTR_SHOW_IN, callback);
+        registerToolsAttribute(ATTR_VIEW_BINDING_IGNORE, callback);
       }
 
       // AdapterView resides in android.widget package and thus is acquired from class map by short name.

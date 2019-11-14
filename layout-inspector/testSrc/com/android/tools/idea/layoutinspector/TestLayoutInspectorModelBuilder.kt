@@ -21,6 +21,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.openapi.project.Project
 import org.mockito.Mockito.mock
+import java.awt.Image
 import java.awt.Rectangle
 
 fun model(body: InspectorModelDescriptor.() -> Unit) = InspectorModelDescriptor().also(body).build()
@@ -32,11 +33,10 @@ class InspectorViewDescriptor(private val drawId: Long,
                               private val width: Int,
                               private val height: Int,
                               private val viewId: ResourceReference?,
-                              private val textValue: String) {
+                              private val textValue: String,
+                              private val imageBottom: Image?,
+                              private val imageTop: Image?) {
   private val children = mutableListOf<InspectorViewDescriptor>()
-
-  constructor(drawId: Long, qualifiedName: String, rect: Rectangle, viewId: ResourceReference?, textValue: String)
-    : this(drawId, qualifiedName, rect.x, rect.y, rect.width, rect.height, viewId, textValue)
 
   fun view(drawId: Long,
            x: Int = 0,
@@ -46,8 +46,10 @@ class InspectorViewDescriptor(private val drawId: Long,
            qualifiedName: String = CLASS_VIEW,
            viewId: ResourceReference? = null,
            textValue: String = "",
+           imageBottom: Image? = null,
+           imageTop: Image? = null,
            body: InspectorViewDescriptor.() -> Unit = {}) =
-    children.add(InspectorViewDescriptor(drawId, qualifiedName, x, y, width, height, viewId, textValue).apply(body))
+    children.add(InspectorViewDescriptor(drawId, qualifiedName, x, y, width, height, viewId, textValue, imageBottom, imageTop).apply(body))
 
   fun view(drawId: Long,
            rect: Rectangle,
@@ -55,10 +57,12 @@ class InspectorViewDescriptor(private val drawId: Long,
            viewId: ResourceReference? = null,
            textValue: String = "",
            body: InspectorViewDescriptor.() -> Unit = {}) =
-    view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, body)
+    view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, null, null, body)
 
   fun build(): ViewNode {
     val result = ViewNode(drawId, qualifiedName, null, x, y, 0, 0, width, height, viewId, textValue)
+    result.imageBottom = imageBottom
+    result.imageTop = imageTop
     children.forEach { result.children.add(it.build()) }
     result.children.forEach { it.parent = result }
     return result
@@ -76,8 +80,10 @@ class InspectorModelDescriptor {
            qualifiedName: String = CLASS_VIEW,
            viewId: ResourceReference? = null,
            textValue: String = "",
+           imageBottom: Image? = null,
+           imageTop: Image? = null,
            body: InspectorViewDescriptor.() -> Unit = {}) {
-    root = InspectorViewDescriptor(drawId, qualifiedName, x, y, width, height, viewId, textValue).apply(body)
+    root = InspectorViewDescriptor(drawId, qualifiedName, x, y, width, height, viewId, textValue, imageBottom, imageTop).apply(body)
   }
 
   fun view(drawId: Long,
@@ -86,7 +92,7 @@ class InspectorModelDescriptor {
            viewId: ResourceReference? = null,
            textValue: String = "",
            body: InspectorViewDescriptor.() -> Unit = {}) =
-    view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, body)
+    view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, null, null, body)
 
   fun build() = InspectorModel(mock(Project::class.java), root.build())
 }

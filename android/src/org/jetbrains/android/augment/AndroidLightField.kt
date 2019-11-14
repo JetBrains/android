@@ -23,8 +23,8 @@ import com.intellij.util.PlatformIcons
 import org.jetbrains.annotations.NonNls
 import javax.swing.Icon
 
-class AndroidLightField(
-  @Volatile private var _name: String,
+open class AndroidLightField(
+  @Volatile protected var _name: String,
   private val myContext: PsiClass,
   private val myType: PsiType,
   fieldModifier: FieldModifier,

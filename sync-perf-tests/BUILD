@@ -9,6 +9,7 @@ iml_module(
     # keep sorted
     test_data = [
         ":test_deps.zip",
+        "//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",

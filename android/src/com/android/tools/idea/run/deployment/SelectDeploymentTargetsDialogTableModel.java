@@ -18,7 +18,6 @@ package com.android.tools.idea.run.deployment;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
-import java.nio.file.FileSystems;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.Icon;
@@ -137,7 +136,8 @@ final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel {
       case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
         return getSerialNumber(myDevices.get(modelRowIndex));
       case SNAPSHOT_MODEL_COLUMN_INDEX:
-        return Strings.nullToEmpty(Snapshot.getText(myDevices.get(modelRowIndex).getSnapshot(), FileSystems.getDefault()));
+        Object snapshot = myDevices.get(modelRowIndex).getSnapshot();
+        return snapshot == null ? "" : snapshot.toString();
       case ISSUE_MODEL_COLUMN_INDEX:
         return Strings.nullToEmpty(myDevices.get(modelRowIndex).getValidityReason());
       default:

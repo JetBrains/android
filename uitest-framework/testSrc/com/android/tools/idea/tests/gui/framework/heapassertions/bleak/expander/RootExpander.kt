@@ -16,14 +16,13 @@
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander
 
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.BleakHelper
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.HeapGraph
 
 /** Expands the synthetic root node, whose children are the ClassLoader instances. This enables tracking growth
  * in the number of ClassLoaders just like any other leak. This fake root node doesn't really correspond to any
  * object, but since one must be provided, we use an instance of [BleakHelper], as it is responsible for determining
  * the loaded classes.
  */
-class RootExpander(g: HeapGraph): Expander(g) {
+class RootExpander: Expander() {
   override fun canExpand(obj: Any): Boolean = obj is BleakHelper
 
   override fun canPotentiallyGrowIndefinitely(n: Node) = true

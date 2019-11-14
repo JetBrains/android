@@ -19,12 +19,11 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaDirectoryService;
@@ -52,8 +51,6 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.io.IOException;
 import java.util.List;
-import org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler;
-import org.jetbrains.android.refactoring.renaming.ResourceRenameHandler;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AndroidRenameTest extends AndroidTestCase {
@@ -1118,16 +1115,7 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
   }
 
   protected void doRename(String newName) {
-    DataContext context = ((EditorEx)myFixture.getEditor()).getDataContext();
-    // We can either invoke the processor directly or go through the handler layer. Unfortunately MemberInplaceRenameHandler won't work in
-    // unit test mode, the default handler fails for light elements and some tests depend on the logic from AndroidRenameHandler. To handle
-    // that mess, use the handlers only if the Android handler is available.
-    if (new AndroidRenameHandler().isAvailableOnDataContext(context) ||
-        new ResourceRenameHandler().isAvailableOnDataContext(context) ||
-        new KotlinResourceRenameHandler().isAvailableOnDataContext(context)) {
-      myFixture.renameElementAtCaretUsingHandler(newName);
-    }
-    else {
+    if (!AndroidTestUtils.renameElementAtCaretUsingAndroidHandler(myFixture, newName)) {
       myFixture.renameElementAtCaret(newName);
     }
   }

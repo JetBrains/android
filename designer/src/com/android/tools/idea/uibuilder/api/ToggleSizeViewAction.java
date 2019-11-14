@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.common.model.NlComponent;
@@ -49,9 +50,12 @@ public class ToggleSizeViewAction extends ToggleViewAction {
                           @NotNull NlComponent parent,
                           @NotNull List<NlComponent> selectedChildren,
                           boolean selected) {
-    for (NlComponent component : selectedChildren) {
-      component.setAttribute(ANDROID_URI, myAttribute, selected ? VALUE_MATCH_PARENT : VALUE_WRAP_CONTENT);
-    }
+    String writeCommandLabel = "Set " + (selected ? VALUE_WRAP_CONTENT : VALUE_MATCH_PARENT);
+    NlWriteCommandActionUtil.run(selectedChildren, writeCommandLabel, () -> {
+      for (NlComponent component : selectedChildren) {
+        component.setAttribute(ANDROID_URI, myAttribute, selected ? VALUE_MATCH_PARENT : VALUE_WRAP_CONTENT);
+      }
+    });
   }
 
   private boolean isFill(@NotNull List<NlComponent> selectedChildren) {

@@ -18,8 +18,6 @@ package com.android.tools.idea.common.scene.draw
 import com.google.common.base.Joiner
 import java.awt.Color
 import java.awt.Font
-import java.awt.Point
-import java.awt.geom.Point2D
 
 fun parse(s: String, expected: Int): Array<String> {
   val sp = splitString(s, ',').toTypedArray()
@@ -64,30 +62,6 @@ fun stringToFont(s: String): Font {
 
 fun fontToString(f: Font): String {
   return Joiner.on(':').join(f.name, f.style, f.size)
-}
-
-fun stringToPoint(s: String): Point {
-  val sp = splitString(s, 'x')
-  val p = Point()
-  p.x = sp[0].toInt()
-  p.y = sp[1].toInt()
-  return p
-}
-
-fun pointToString(p: Point): String {
-  return Joiner.on('x').join(p.x, p.y)
-}
-
-fun stringToPoint2D(s: String): Point2D.Float {
-  val sp = splitString(s, 'x')
-  val p = Point2D.Float()
-  p.x = sp[0].toFloat()
-  p.y = sp[1].toFloat()
-  return p
-}
-
-fun point2DToString(p: Point2D.Float): String {
-  return Joiner.on('x').join(p.x, p.y)
 }
 
 private fun splitString(s: String, delimiter: Char): List<String> {

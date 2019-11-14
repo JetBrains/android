@@ -57,4 +57,9 @@ public class ProguardR8QualifiedNameImpl extends ASTWrapperPsiElement implements
     return ProguardR8PsiImplUtil.resolveToPsiClass(this);
   }
 
+  @Override
+  public boolean containsWildcards() {
+    return ProguardR8PsiImplUtil.containsWildcards(this);
+  }
+
 }

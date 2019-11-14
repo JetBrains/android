@@ -23,6 +23,10 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import kotlin.jvm.JvmDefault
 
+import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*
+import com.intellij.openapi.application.runReadAction
+
 interface KotlinDslNameConverter: GradleDslNameConverter {
   @JvmDefault
   override fun psiToName(element: PsiElement): String {
@@ -34,17 +38,30 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
 
   @JvmDefault
   override fun convertReferenceText(context: GradleDslElement, referenceText: String): String {
-    val referencePsi = KtPsiFactory(context.dslFile.project).createExpression(referenceText)
-    return gradleNameFor(referencePsi) ?: referenceText
+    var result : String? = null
+    runReadAction {
+      val referencePsi = KtPsiFactory(context.dslFile.project, false).createExpression(referenceText)
+      result = gradleNameFor(referencePsi)
+    }
+    return result ?: referenceText
   }
 
   @JvmDefault
-  override fun externalNameForParent(modelName: String, context: GradleDslElement): String {
+  override fun externalNameForParent(modelName: String, context: GradleDslElement): Pair<String, Boolean?> {
     val map = context.getExternalToModelMap(this)
+    val defaultResult : Pair<String, Boolean?> = modelName to null
+    var result : Pair<String, Boolean?>? = null
     for (e in map.entries) {
-      if (e.value.first == modelName) return e.key.first
+      if (e.value.first == modelName ) {
+        // prefer assignment if possible, or otherwise the first appropriate method we find
+        when (e.value.second) {
+          VAR, VWO -> return e.key.first to false
+          SET, OTHER -> if (result == null) result = e.key.first to true
+          else -> Unit
+        }
+      }
     }
-    return modelName
+    return result ?: defaultResult
   }
 
   @JvmDefault

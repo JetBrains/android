@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander
 
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.HeapGraph
 import com.intellij.util.SmartList
 
 /** [SmartList] is a list optimized for holding 0 or 1 element. It has an Object field 'elem' which either
@@ -23,7 +22,7 @@ import com.intellij.util.SmartList
  * handling provided by this class, BLeak would not be able to follow the expansion of the list across the
  * boundary from one to multiple elements.
  */
-class SmartListExpander(g: HeapGraph): Expander(g) {
+class SmartListExpander: Expander() {
   override fun canExpand(obj: Any) = obj is SmartList<*>
 
   override fun canPotentiallyGrowIndefinitely(n: Node) = true

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
-import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
@@ -30,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.getNextValidParent
 import com.android.tools.idea.gradle.dsl.parser.removePsiIfInvalid
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -67,6 +67,7 @@ import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
+import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
 import kotlin.reflect.KClass
 
@@ -557,10 +558,18 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
   if (localName == nameElement.originalName) return
 
   val oldName = nameElement.namedPsiElement ?: return
-  val newName = when (val parent = element.parent) {
-    null -> localName
-    else -> writer.externalNameForParent(localName, parent)
+
+  val modelProperties = element.parent?.getExternalToModelMap(writer)?.values
+  if (modelProperties != null) {
+    for (value in modelProperties) {
+      if (value.first == nameElement.originalName) {
+        Logger.getInstance(KotlinDslWriter::class.java)
+          .error(UnsupportedOperationException( "trying to updateName a property: ${nameElement.originalName}"))
+      }
+    }
   }
+
+  val newName = localName
 
   val newElement : PsiElement
   if (oldName is PsiNamedElement) {

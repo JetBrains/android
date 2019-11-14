@@ -16,6 +16,7 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskContainer
@@ -167,6 +168,4 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
     tasksSet.clear()
     dependenciesMap.clear()
   }
-
-  data class PluginBuildData(val plugin: PluginData, val buildDuration: Long)
 }

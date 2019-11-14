@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.DefaultTimeline;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
@@ -116,11 +117,24 @@ public class CpuCaptureStage extends Stage {
   private final AspectModel<Aspect> myAspect = new AspectModel<>();
   private final List<CpuAnalysisModel> myAnalysisModels = new ArrayList<>();
   private final List<TrackGroupModel> myTrackGroupModels = new ArrayList<>();
+
   private CpuCaptureMinimapModel myMinimapModel;
   private State myState = State.PARSING;
 
   // Accessible only when in state analyzing
   private CpuCapture myCapture;
+
+  /**
+   * The track groups share a timeline based on the minimap selection.
+   * <p>
+   * Data range: capture range;
+   * View range: minimap selection;
+   * Tooltip range: all track groups share the same mouse-over range, different from the minimap or profilers;
+   * Selection range: union of all selected trace events;
+   *
+   * TODO(b/142553170): expose the timeline as the stage timeline, overriding {@link StudioProfilers#getTimeline()}.
+   */
+  private final Timeline myTrackGroupTimeline = new DefaultTimeline();
 
   /**
    * Create a capture stage that loads a given trace id. If a trace id is not found null will be returned.
@@ -239,7 +253,8 @@ public class CpuCaptureStage extends Stage {
   }
 
   private void onCaptureParsed(@NotNull CpuCapture capture) {
-    myMinimapModel = new CpuCaptureMinimapModel(getStudioProfilers(), capture);
+    myTrackGroupTimeline.getDataRange().set(capture.getRange());
+    myMinimapModel = new CpuCaptureMinimapModel(getStudioProfilers(), capture, myTrackGroupTimeline.getViewRange());
     initTrackGroupList(myMinimapModel.getRangeSelectionModel().getSelectionRange(), capture);
     addCpuAnalysisModel(new CpuFullTraceAnalysisModel(capture, myMinimapModel.getRangeSelectionModel().getSelectionRange()));
   }

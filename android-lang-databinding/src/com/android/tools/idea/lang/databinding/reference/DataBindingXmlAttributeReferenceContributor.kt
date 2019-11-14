@@ -20,6 +20,7 @@ import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
+import com.android.tools.idea.lang.databinding.model.PsiModelClass.MemberAccess
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.utils.usLocaleCapitalize
 import com.intellij.codeInsight.AnnotationUtil
@@ -193,7 +194,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
             if (type.isAssignableFrom(viewType)) {
               val methodValue = bindingMethodAnnotation.findAttributeValue("method") as? PsiLiteralExpression ?: return@forEach
               val methodName = methodValue.value as? String ?: return@forEach
-              for (method in PsiModelClass(type, mode).findMethods(methodName, false)) {
+              for (method in PsiModelClass(type, mode).findMethods(methodName, MemberAccess.ALL_MEMBERS)) {
                 val parameters = method.psiMethod.parameterList.parameters
                 if (parameters.size == 1) {
                   referenceList.add(PsiParameterReference(attribute, parameters[0]))
@@ -214,7 +215,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
     fun getReferencesFromViewSetter(): List<PsiReference> {
       val setterName = "set" + attribute.name.substringAfter(":").usLocaleCapitalize()
       val referenceList = mutableListOf<PsiReference>()
-      for (method in PsiModelClass(viewType, mode).findMethods(setterName, false)) {
+      for (method in PsiModelClass(viewType, mode).findMethods(setterName, MemberAccess.NON_STATICS_ONLY)) {
         val parameters = method.psiMethod.parameterList.parameters
         if (parameters.size == 1) {
           referenceList.add(PsiParameterReference(attribute, parameters[0]))
@@ -294,7 +295,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
                 val methodPrefix = if (attributeType.isAssignableFrom(PsiPrimitiveType.BOOLEAN)) "is" else "get"
                 methodName = methodPrefix + attribute.name.substringAfter(":").usLocaleCapitalize()
               }
-              for (method in PsiModelClass(type, mode).findMethods(methodName, false)) {
+              for (method in PsiModelClass(type, mode).findMethods(methodName, MemberAccess.ALL_MEMBERS)) {
                 if (method.parameterTypes.isEmpty()) {
                   referenceList.add(PsiMethodReference(attribute, method, PsiMethodReference.Kind.METHOD_CALL))
                   break
@@ -314,7 +315,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
     fun getReferencesFromViewGetter(): List<PsiReference> {
       val getterName = "get" + attribute.name.substringAfter(":").usLocaleCapitalize()
       return PsiModelClass(viewType, mode)
-               .findMethods(getterName, false)
+               .findMethods(getterName, MemberAccess.NON_STATICS_ONLY)
                .firstOrNull { method -> method.psiMethod.parameterList.isEmpty }
                ?.let { method -> listOf(PsiMethodReference(attribute, method, PsiMethodReference.Kind.METHOD_CALL)) }
              ?: listOf()

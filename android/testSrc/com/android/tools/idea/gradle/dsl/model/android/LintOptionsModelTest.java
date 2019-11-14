@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_REMOVE_ONLY_ELEMENTS_IN_THE_LIST;
 import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_TEXT;
 
@@ -54,11 +57,11 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.checkReleaseBuilds().setValue(true);
     lintOptions.disable().getListValue("disable-id-2").setValue("disable-id-3");
     lintOptions.enable().getListValue("enable-id-2").setValue("enable-id-3");
-    lintOptions.error().getListValue("error-id-2").setValue("error-id-3");
+    lintOptions.error().getListValue("error-id-1").setValue("error-id-3");
     lintOptions.explainIssues().setValue(false);
     lintOptions.fatal().getListValue("fatal-id-2").setValue("fatal-id-3");
     lintOptions.htmlOutput().setValue("other-html.output");
-    lintOptions.htmlReport().setValue(true);
+    lintOptions.htmlReport().setValue(false);
     lintOptions.ignore().getListValue("ignore-id-2").setValue("ignore-id-3");
     lintOptions.ignoreWarnings().setValue(false);
     lintOptions.lintConfig().setValue("other-lint.config");
@@ -73,6 +76,8 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.xmlReport().setValue(false);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, LINT_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -84,11 +89,11 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("checkReleaseBuilds", Boolean.TRUE, lintOptions.checkReleaseBuilds());
     assertEquals("disable", ImmutableList.of("disable-id-1", "disable-id-3"), lintOptions.disable());
     assertEquals("enable", ImmutableList.of("enable-id-1", "enable-id-3"), lintOptions.enable());
-    assertEquals("error", ImmutableList.of("error-id-1", "error-id-3"), lintOptions.error());
+    assertEquals("error", ImmutableList.of("error-id-3", "error-id-2"), lintOptions.error());
     assertEquals("explainIssues", Boolean.FALSE, lintOptions.explainIssues());
     assertEquals("fatal", ImmutableList.of("fatal-id-1", "fatal-id-3"), lintOptions.fatal());
     assertEquals("htmlOutput", "other-html.output", lintOptions.htmlOutput());
-    assertEquals("htmlReport", Boolean.TRUE, lintOptions.htmlReport());
+    assertEquals("htmlReport", Boolean.FALSE, lintOptions.htmlReport());
     assertEquals("ignore", ImmutableList.of("ignore-id-1", "ignore-id-3"), lintOptions.ignore());
     assertEquals("ignoreWarnings", Boolean.FALSE, lintOptions.ignoreWarnings());
     assertEquals("lintConfig", "other-lint.config", lintOptions.lintConfig());
@@ -139,6 +144,8 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.xmlReport().setValue(true);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, LINT_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -207,6 +214,8 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.xmlReport().delete();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -303,6 +312,8 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.warning().getListValue("warning-id-1").delete();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, LINT_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -343,6 +354,8 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.warning().getListValue("warning-id").delete();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     android = buildModel.android();
     assertNotNull(android);
 

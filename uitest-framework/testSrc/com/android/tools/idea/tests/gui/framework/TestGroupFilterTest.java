@@ -52,19 +52,19 @@ public class TestGroupFilterTest {
   }
 
   @Test
-  public void shouldRun_theme() throws Exception {
-    TestGroupFilter themeFilter = new TestGroupFilter(TestGroup.THEME);
-    assertThat(methodNamesToRun(themeFilter)).containsExactly("themeMethod");
-    assertThat(classNamesToRun(themeFilter)).containsExactly("ThemeTest");
-    assertThat(themeFilter.shouldRun(suite)).isTrue();
+  public void shouldRun_performance() throws Exception {
+    TestGroupFilter performanceFilter = new TestGroupFilter(TestGroup.PERFORMANCE);
+    assertThat(methodNamesToRun(performanceFilter)).containsExactly("performanceMethod");
+    assertThat(classNamesToRun(performanceFilter)).containsExactly("PerformanceTest");
+    assertThat(performanceFilter.shouldRun(suite)).isTrue();
   }
 
   @Test
-  public void shouldRun_qa() throws Exception {
-    TestGroupFilter qaFilter = new TestGroupFilter(TestGroup.QA);
-    assertThat(methodNamesToRun(qaFilter)).containsExactly("qaMethodInDefaultTest", "qaMethodInThemeTest");
-    assertThat(classNamesToRun(qaFilter)).containsExactly("DefaultTest", "ThemeTest");
-    assertThat(qaFilter.shouldRun(suite)).isTrue();
+  public void shouldRun_excluded() throws Exception {
+    TestGroupFilter excludedFilter = new TestGroupFilter(TestGroup.EXCLUDED);
+    assertThat(methodNamesToRun(excludedFilter)).containsExactly("excludedMethodInDefaultTest", "excludedMethodInPerformanceTest");
+    assertThat(classNamesToRun(excludedFilter)).containsExactly("DefaultTest", "PerformanceTest");
+    assertThat(excludedFilter.shouldRun(suite)).isTrue();
   }
 
   @Test
@@ -93,11 +93,11 @@ public class TestGroupFilterTest {
 
   private static class DefaultTest {
     void defaultMethod() {}
-    @RunIn(TestGroup.QA) void qaMethodInDefaultTest() {}
+    @RunIn(TestGroup.EXCLUDED) void excludedMethodInDefaultTest() {}
   }
 
-  @RunIn(TestGroup.THEME) private static class ThemeTest {
-    void themeMethod() {}
-    @RunIn(TestGroup.QA) void qaMethodInThemeTest() {}
+  @RunIn(TestGroup.PERFORMANCE) private static class PerformanceTest {
+    void performanceMethod() {}
+    @RunIn(TestGroup.EXCLUDED) void excludedMethodInPerformanceTest() {}
   }
 }

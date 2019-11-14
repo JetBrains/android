@@ -385,7 +385,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       """.trimIndent()
     )
     header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
-    assertThat(header.resolvePsiClasses()).containsExactly(myClass)
+    assertThat(header.resolveSuperPsiClasses()).containsExactly(myClass)
 
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
@@ -394,7 +394,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       """.trimIndent()
     )
     header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
-    assertThat(header.resolvePsiClasses()).containsExactly(myClass, superClass)
+    assertThat(header.resolvePsiClasses() + header.resolveSuperPsiClasses()).containsExactly(myClass, superClass)
   }
 
   fun testResolveToMultiplePsiClasses() {
@@ -601,5 +601,25 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     type = myFixture.moveCaret("*|*[] myFunction2();").parentOfType()!!
     assertThat(type.matchesPsiType(elementFactory.createTypeFromText("Object", null))).isFalse()
     assertThat(type.matchesPsiType(elementFactory.createTypeFromText("Object[]", null))).isTrue()
+  }
+
+  fun testQualifiedNameContainsWildCards() {
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -keep class java.wildCard**.myClass
+        -keep class java.lang.String
+        -keep class *
+      """.trimIndent()
+    )
+
+    var name = myFixture.moveCaret("java.wildCard**.myCl|ass").parentOfType<ProguardR8QualifiedName>()!!
+    assertThat(name.containsWildcards()).isTrue()
+
+    name = myFixture.moveCaret("java.lang.Strin|g").parentOfType()!!
+    assertThat(name.containsWildcards()).isFalse()
+
+    name = myFixture.moveCaret("keep class |*").parentOfType()!!
+    assertThat(name.containsWildcards()).isTrue()
   }
 }

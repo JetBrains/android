@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.util;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_KTS;
+import static com.android.SdkConstants.EXT_GRADLE;
+import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_RES_CLASS;
 import static com.android.SdkConstants.FD_SOURCE_GEN;
@@ -307,6 +309,17 @@ public final class GradleUtil {
 
     File moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module);
     return moduleRoot != null ? getGradleBuildFile(moduleRoot) : null;
+  }
+
+  /**
+   * Returns true if the file given by the file exists, is a file and ends with either ".gradle"
+   * or ".gradle.kts".
+   *
+   * __Note__: There is a {@link File} implementation of this method {@link BuildScriptUtil#isGradleScript(File)}.
+   * Prefer working with {@link VirtualFile}s if possible as these are more compatible with IDEAs testing infrastructure.
+   */
+  public static boolean isGradleScript(@NotNull VirtualFile file) {
+    return !file.isDirectory() && (file.getName().endsWith(EXT_GRADLE) || file.getName().endsWith(EXT_GRADLE_KTS));
   }
 
   /**

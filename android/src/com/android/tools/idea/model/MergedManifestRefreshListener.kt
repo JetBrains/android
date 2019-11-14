@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.model
 
-import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
+import com.android.SdkConstants
 import com.android.ide.common.util.PathString
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.util.LazyVirtualFileListenerSubscriber
+import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.listenUntilNextSync
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
@@ -63,7 +64,7 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
    *  @see [MergedManifestContributors]
    */
   override fun isRelevant(file: VirtualFile, facet: AndroidFacet): Boolean {
-    if (file.name == FN_ANDROID_MANIFEST_XML) return isManifestFile(facet, file)
+    if (file.name == SdkConstants.FN_ANDROID_MANIFEST_XML) return isManifestFile(facet, file)
 
     fun VirtualFile.couldBeNavigationFolder(): Boolean {
       return isDirectory && parent != null && ResourceFolderType.getFolderType(name) == ResourceFolderType.NAVIGATION
@@ -84,14 +85,7 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
   }
 
   override fun fileChanged(path: PathString, facet: AndroidFacet) {
-    updateModificationTrackers(facet)
     refreshAffectedMergedManifests(facet)
-  }
-
-  private fun updateModificationTrackers(facet: AndroidFacet) {
-    facet.module.getTransitiveResourceDependents().forEach {
-      MergedManifestModificationTracker.getInstance(it).manifestChanged()
-    }
   }
 
   private fun refreshAffectedMergedManifests(facet: AndroidFacet) {
@@ -112,11 +106,12 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
 
   /**
    * [ProjectComponent] responsible for ensuring that a [Project] has a [MergedManifestRefreshListener]
-   * subscribed once the initial project sync has completed.
+   * subscribed to listen for VFS changes once the initial project sync has completed.
    */
   private class SubscriptionComponent(val project: Project) :
-    LazyVirtualFileListenerSubscriber<MergedManifestRefreshListener>(MergedManifestRefreshListener(project), project),
+    LazyFileListenerSubscriber<MergedManifestRefreshListener>(MergedManifestRefreshListener(project), project),
     ProjectComponent {
+    override fun subscribe() = VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
 
     override fun projectOpened() {
       project.listenUntilNextSync(listener = object : SyncResultListener {
@@ -141,11 +136,5 @@ private val FRESHNESS_EXECUTOR = AppExecutorUtil.createBoundedApplicationPoolExe
 private fun Module.getTopLevelResourceDependents() = TOP_LEVEL_RESOURCE_DEPENDENTS.`fun`(this)
 
 private val TOP_LEVEL_RESOURCE_DEPENDENTS = TreeTraversal.LEAVES_DFS.unique().traversal<Module> {
-  it.getModuleSystem().getDirectResourceModuleDependents()
-}
-
-private fun Module.getTransitiveResourceDependents() = TRANSITIVE_RESOURCE_DEPENDENTS.`fun`(this)
-
-private val TRANSITIVE_RESOURCE_DEPENDENTS = TreeTraversal.PLAIN_BFS.unique().traversal<Module> {
   it.getModuleSystem().getDirectResourceModuleDependents()
 }

@@ -17,9 +17,6 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
-import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
@@ -114,9 +111,13 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     val project = parentPsiElement.project
     val psiFactory = KtPsiFactory(project)
 
-    // The text should be quoted if not followed by anything else,  otherwise it will create a reference expression.
-    var statementText = maybeTrimForParent(element.nameElement, element.parent, this)
+    val externalNameInfo = maybeTrimForParent(element.nameElement, element.parent, this)
+    var statementText = externalNameInfo.first
 
+    val useAssignment = when (val asMethod = externalNameInfo.second) {
+      null -> element.shouldUseAssignment()
+      else -> !asMethod
+    }
     if (element is GradleDslNamedDomainElement) {
       val parent = element.parent
       statementText = when {
@@ -139,7 +140,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     if (element.isBlockElement) {
       statementText += " {\n}"  // Can't create expression with another new line after.
     }
-    else if (element.shouldUseAssignment()) {
+    else if (useAssignment) {
       if (element.elementType == PropertyType.REGULAR) {
         if (element.parent is ExtDslElement) {
           // This is about a regular extra property and should have a dedicated syntax.
@@ -368,9 +369,14 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
 
     val statementText =
       if (methodCall.fullName.isNotEmpty() && methodCall.fullName != methodCall.methodName) {
-        val propertyName = maybeTrimForParent(methodCall.nameElement, methodCall.parent, this)
-        val methodName = maybeTrimForParent(GradleNameElement.fake(methodCall.methodName), methodCall.parent, this)
-        if (methodCall.shouldUseAssignment()) {
+        val externalNameInfo = maybeTrimForParent(methodCall.nameElement, methodCall.parent, this)
+        val propertyName = externalNameInfo.first
+        val useAssignment = when (val asMethod = externalNameInfo.second) {
+          null -> methodCall.shouldUseAssignment()
+          else -> !asMethod
+        }
+        val methodName = maybeTrimForParent(GradleNameElement.fake(methodCall.methodName), methodCall.parent, this).first
+        if (useAssignment) {
           // Ex: a = b().
           "$propertyName = $methodName()"
         }
@@ -382,7 +388,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     else {
         // Ex : proguardFile() where the name is the same as the methodName, so we need to make sure we create one method only.
         maybeTrimForParent(
-          GradleNameElement.fake(methodCall.getMethodName()), methodCall.getParent(), this) + "()"
+          GradleNameElement.fake(methodCall.getMethodName()), methodCall.getParent(), this).first + "()"
       }
     val expression = psiFactory.createExpression(statementText)
 

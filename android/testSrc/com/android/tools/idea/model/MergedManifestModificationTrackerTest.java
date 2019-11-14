@@ -43,21 +43,21 @@ public class MergedManifestModificationTrackerTest extends PlatformTestCase {
   public void testWhenManifestChanged() {
     PathString stringPath = mock(PathString.class);
     AndroidFacetConfiguration androidFacetConfiguration = mock(AndroidFacetConfiguration.class);
-    MergedManifestRefreshListener refreshListener = new MergedManifestRefreshListener(myProject);
+    MergedManifestModificationListener modificationListener = new MergedManifestModificationListener(myProject);
     AndroidFacet androidFacet = new AndroidFacet(myModule, "App", androidFacetConfiguration);
 
     // Load service on demand
     MergedManifestModificationTracker mergedManifestTracker = MergedManifestModificationTracker.getInstance(myModule);
     assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(0);
 
-    updateManifest(refreshListener, stringPath, androidFacet);
+    updateManifest(modificationListener, stringPath, androidFacet);
     assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(1);
   }
 
   public void testCombinationCases() {
     PathString stringPath = mock(PathString.class);
     AndroidFacetConfiguration androidFacetConfiguration = mock(AndroidFacetConfiguration.class);
-    MergedManifestRefreshListener refreshListener = new MergedManifestRefreshListener(myProject);
+    MergedManifestModificationListener modificationListener = new MergedManifestModificationListener(myProject);
 
     AndroidFacet androidFacet = new AndroidFacet(myModule, "App", androidFacetConfiguration);
 
@@ -69,7 +69,7 @@ public class MergedManifestModificationTrackerTest extends PlatformTestCase {
     assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(0);
 
     // update manifest
-    updateManifest(refreshListener, stringPath, androidFacet);
+    updateManifest(modificationListener, stringPath, androidFacet);
     assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(1);
 
     // sync
@@ -78,7 +78,7 @@ public class MergedManifestModificationTrackerTest extends PlatformTestCase {
     assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(2);
 
     // update manifest
-    updateManifest(refreshListener, stringPath, androidFacet);
+    updateManifest(modificationListener, stringPath, androidFacet);
     assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(3);
 
     // sync
@@ -97,7 +97,7 @@ public class MergedManifestModificationTrackerTest extends PlatformTestCase {
     myProject.getMessageBus().syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS);
   }
 
-  private static void updateManifest(MergedManifestRefreshListener refreshListener, PathString stringPath, AndroidFacet androidFacet) {
-    refreshListener.fileChanged(stringPath, androidFacet);
+  private static void updateManifest(MergedManifestModificationListener modificationListener, PathString stringPath, AndroidFacet androidFacet) {
+    modificationListener.fileChanged(stringPath, androidFacet);
   }
 }

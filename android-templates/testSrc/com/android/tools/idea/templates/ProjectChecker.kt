@@ -184,19 +184,26 @@ data class ProjectChecker(
   private infix fun String.compareFilesBetweenNewAndOldRenderingContexts(projectBaseNew: String) {
     // File names except for the baseDirectory for the old RenderingContext
     val oldGeneratedFiles = File(this).walk().filter { it.isFile }.map {
-      val fileName = it.absolutePath.split(this + File.separatorChar)[1]
-      if (!comparisonExcludedPaths.contains(fileName)) {
-        // Assert the contents of each file between the new and old RenderingContext
-        val expected = FileUtil.loadFile(it).trimAllWhitespace()
-        val actual = FileUtil.loadFile(File(projectBaseNew + File.separatorChar + fileName)).trimAllWhitespace()
-        assertEquals(expected, actual)
+      // substring(1) removes the first separatorChar
+      val relativePath = it.path.removePrefix(this).substring(1)
+      if (!comparisonExcludedPaths.contains(relativePath.replace(File.separatorChar, '/'))) {
+        /** Forces templates to conform to the same style */
+        fun String.harmonize() = this
+          .replace('\'', '"')
+          .replace(" : ", ": ")
+          .replace(" (", "(")
+          .trimAllWhitespace()
+        // Compare the contents of each file between the new and the old RenderingContext
+        val expected = FileUtil.loadFile(it).harmonize()
+        val actual = FileUtil.loadFile(File(projectBaseNew + File.separatorChar + relativePath)).harmonize()
+        assertEquals("Contents of $relativePath are different", expected, actual)
       }
-      fileName
+      relativePath
     }.toSet()
 
     // File names except for the baseDirectory for the new RenderingContext
     val newGeneratedFiles = File(projectBaseNew).walk().filter { it.isFile }.map {
-      it.absolutePath.split(projectBaseNew + File.separatorChar)[1]
+      it.path.removePrefix(projectBaseNew).substring(1)
     }.toSet()
 
     // Assert the generated set of files are equivalent
@@ -236,6 +243,7 @@ data class ProjectChecker(
       File(activityState.getString(ATTR_RES_OUT)),
       File(activityState.getString(ATTR_MANIFEST_OUT)),
       File(activityState.getString(ATTR_TEST_OUT)),
+      File(activityState.getString(ATTR_TEST_OUT).replace("androidTest", "test")), // this is unavailable in the old system
       File(activityState.getString(ATTR_AIDL_OUT)),
       File(activityState.getString(ATTR_PROJECT_OUT)),
       activityState.getBoolean(ATTR_THEME_EXISTS),
@@ -326,8 +334,7 @@ data class ProjectChecker(
       }
       if (isNewRenderingContext) {
         val newTemplates = TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
-        val moduleNameBase = moduleName.split("_").getOrElse(0) { moduleName }
-        val newTemplate = newTemplates.find { it.name.replace(" ", "") == moduleNameBase }!!
+        val newTemplate = newTemplates.find { it.name == template.metadata?.title }!!
         createProjectForNewRenderingContext(this, activityState, newTemplate)
       }
       else {

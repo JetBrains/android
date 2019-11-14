@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import java.nio.file.FileSystems;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +35,7 @@ final class Devices {
 
   @NotNull
   static String getText(@NotNull Device device, @Nullable Key key, @Nullable Snapshot snapshot) {
-    String snapshotName = Snapshot.getText(snapshot, FileSystems.getDefault());
+    String snapshotName = snapshot == null ? null : snapshot.toString();
     return getText(device.getName(), key == null ? null : key.getDeviceKey(), snapshotName, device.getValidityReason());
   }
 

@@ -72,6 +72,9 @@ public interface AndroidModel extends GradleDslModel {
   ResolvedPropertyModel generatePureSplits();
 
   @NotNull
+  KotlinOptionsModel kotlinOptions();
+
+  @NotNull
   LintOptionsModel lintOptions();
 
   @NotNull
@@ -118,4 +121,7 @@ public interface AndroidModel extends GradleDslModel {
 
   @NotNull
   ViewBindingModel viewBinding();
+
+  @NotNull
+  BuildFeaturesModel buildFeatures();
 }

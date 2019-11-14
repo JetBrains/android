@@ -38,6 +38,12 @@ public interface ProguardR8ClassSpecificationHeader extends PsiElement {
   ProguardR8ClassType getClassType();
 
   @NotNull
+  List<ProguardR8SuperClassName> getSuperClassNameList();
+
+  @NotNull
   List<PsiClass> resolvePsiClasses();
+
+  @NotNull
+  List<PsiClass> resolveSuperPsiClasses();
 
 }

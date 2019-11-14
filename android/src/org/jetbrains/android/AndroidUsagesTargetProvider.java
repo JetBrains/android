@@ -3,14 +3,17 @@ package org.jetbrains.android;
 import static com.android.SdkConstants.TAG_RESOURCES;
 import static com.android.tools.idea.res.psi.ResourceReferencePsiElement.RESOURCE_CONTEXT_ELEMENT;
 import static com.android.tools.idea.res.psi.ResourceReferencePsiElement.RESOURCE_CONTEXT_SCOPE;
+import static org.jetbrains.android.util.AndroidResourceUtil.VALUE_RESOURCE_TYPES;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -18,6 +21,7 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlToken;
@@ -37,23 +41,29 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
   @Override
   public UsageTarget[] getTargets(@NotNull Editor editor, @NotNull PsiFile file) {
     if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+      PsiElement contextElement = file.findElementAt(editor.getCaretModel().getOffset());
+      if (contextElement == null) {
+        return UsageTarget.EMPTY_ARRAY;
+      }
       PsiElement targetElement = TargetElementUtil.findTargetElement(editor, TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED);
-      if (targetElement == null) {
+      ResourceReferencePsiElement resourceReferencePsiElement = null;
+      if (targetElement != null) {
+        resourceReferencePsiElement = ResourceReferencePsiElement.create(targetElement);
+      }
+      if (resourceReferencePsiElement == null) {
+        // The user has selected an element that does not resolve to a resource, check whether they have selected something nearby and if we
+        // can assume the correct resource if any. The allowed matches are:
+        // XmlTag of a values resource. eg. <col${caret}or name="... />
+        // XmlValue of a values resource if it is not a reference to another resource. eg. <color name="foo">#12${caret}3456</color>
+        resourceReferencePsiElement = AndroidResourceUtil.getResourceElementFromSurroundingValuesTag(contextElement);
+      }
+      if (resourceReferencePsiElement == null) {
         return UsageTarget.EMPTY_ARRAY;
       }
-      ResourceReferencePsiElement referencePsiElement = ResourceReferencePsiElement.create(targetElement);
-      if (referencePsiElement == null) {
-        return UsageTarget.EMPTY_ARRAY;
-      }
-      PsiReference reference = TargetElementUtil.findReference(editor);
-      if (reference == null) {
-        return UsageTarget.EMPTY_ARRAY;
-      }
-      PsiElement contextElement = reference.getElement();
-      referencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_ELEMENT, contextElement);
-      SearchScope scope = ResourceRepositoryToPsiResolver.getResourceSearchScope(referencePsiElement.getResourceReference(), contextElement);
-      referencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_SCOPE, scope);
-      return new UsageTarget[]{new PsiElement2UsageTargetAdapter(referencePsiElement)};
+      resourceReferencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_ELEMENT, contextElement);
+      SearchScope scope = ResourceRepositoryToPsiResolver.getResourceSearchScope(resourceReferencePsiElement.getResourceReference(), contextElement);
+      resourceReferencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_SCOPE, scope);
+      return new UsageTarget[]{new PsiElement2UsageTargetAdapter(resourceReferencePsiElement)};
     } else {
       final XmlTag tag = findValueResourceTagInContext(editor, file, false);
       return tag != null

@@ -137,18 +137,6 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
       return isCorrespondingDefaultModuleFound
     }
 
-    // Creating a new module, so no existing dependencies: provide some defaults. This is really intended for appcompat-v7,
-    // but since it depends on support-v4, we include it here (such that a query to see if support-v4 is installed in a newly
-    // created project will return true since it will be by virtue of appcompat also being installed.)
-    if (mavenCoordinate.contains(APPCOMPAT_LIB_ARTIFACT) || mavenCoordinate.contains(SUPPORT_LIB_ARTIFACT)) {
-      // No dependencies: Base it off of the minApi and buildApi versions:
-      // If building with Lollipop, and targeting anything earlier than Lollipop, use appcompat.
-      // (Also use it if minApi is less than ICS.)
-      val buildApiObject = context.templateData.projectTemplateData.buildApi
-      val minApiObject = context.templateData.projectTemplateData.minApiLevel
-      return buildApiObject >= 21 && minApiObject < 21
-    }
-
     return false
   }
 

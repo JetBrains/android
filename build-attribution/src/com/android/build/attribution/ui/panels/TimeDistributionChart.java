@@ -19,7 +19,6 @@ import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.duration
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.percentageString;
 
 import com.android.build.attribution.ui.data.TimeWithPercentage;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.panels.VerticalLayout;
@@ -41,8 +40,8 @@ public class TimeDistributionChart<T> extends JPanel {
 
   private static final int PIXELS_BY_PERCENT = 2;
   private static final int BOX_WIDTH = 100;
-  public static final int MIN_OTHER_TASKS_SECTION_HEIGHT = 25;
-  //Was decided to always have white (1px lines between boxes) for better visibility
+  public static final int MIN_OTHER_TASKS_SECTION_HEIGHT_PX = 25;
+  // Was decided to always have white (1px lines between boxes) for better visibility.
   @SuppressWarnings("UseJBColor")
   public static final Color BOXES_STACK_BACKGROUND = Color.WHITE;
 
@@ -149,7 +148,7 @@ public class TimeDistributionChart<T> extends JPanel {
 
     Icon getTableIcon();
 
-    JBColor getLegendColor();
+    CriticalPathChartLegend.ChartColor getLegendColor();
 
     String chartBoxText();
 
@@ -159,14 +158,6 @@ public class TimeDistributionChart<T> extends JPanel {
 
     default Color unselectedTextColor() {
       return UIUtil.getInactiveTextColor();
-    }
-
-    default Color selectedChartColor() {
-      return getLegendColor();
-    }
-
-    default Color unselectedChartColor() {
-      return UIUtil.shade(getLegendColor(), 1.0, 0.5);
     }
   }
 
@@ -180,7 +171,7 @@ public class TimeDistributionChart<T> extends JPanel {
 
   private class ChartItem {
     final ChartDataItem<T> myDataItem;
-    Color myColor;
+    Color myConnectorLineColor;
     JBPanel leftBox;
     JBPanel rightAnchor;
 
@@ -189,32 +180,24 @@ public class TimeDistributionChart<T> extends JPanel {
     }
 
     public void init() {
-      myColor = getChartColor();
-      int height = calculateHeight();
-      String boxText = myDataItem.chartBoxText();
-      if (boxText != null) {
-        height = Math.max(MIN_OTHER_TASKS_SECTION_HEIGHT, height);
-        this.leftBox = new Box(myColor, BOX_WIDTH, height);
-        leftBox.add(new JBLabel(boxText, SwingConstants.CENTER).withFont(JBUI.Fonts.smallFont()), BorderLayout.CENTER);
-      }
-      else {
-        this.leftBox = new Box(myColor, BOX_WIDTH, height);
-      }
-
-      this.rightAnchor = new Box(myColor, 5, 5);
-    }
-
-    private Color getChartColor() {
+      this.leftBox = createMainBox();
+      this.rightAnchor = createBulletPointBox();
       if (isSelected()) {
-        return myDataItem.selectedChartColor();
+        myConnectorLineColor = myDataItem.getLegendColor().selectionColor;
       }
       else {
-        return myDataItem.unselectedChartColor();
+        myConnectorLineColor = myDataItem.getLegendColor().baseColor;
       }
     }
 
-    protected int calculateHeight() {
-      return Math.max((int)Math.round(Math.ceil(time().getPercentage())), 1) * PIXELS_BY_PERCENT;
+    private int calculateBoxHeightPx() {
+      int minHeightPixels = PIXELS_BY_PERCENT;
+      if (myDataItem.chartBoxText() != null) {
+        minHeightPixels = MIN_OTHER_TASKS_SECTION_HEIGHT_PX;
+      }
+      int heightInPercentage = (int)Math.round(Math.ceil(time().getPercentage()));
+      int heightInPixels = heightInPercentage * PIXELS_BY_PERCENT;
+      return Math.max(heightInPixels, minHeightPixels);
     }
 
     public TimeWithPercentage time() {
@@ -230,21 +213,45 @@ public class TimeDistributionChart<T> extends JPanel {
     }
 
     private boolean isSelected() {
-      return myHighlightedItem == null || myHighlightedItem == myDataItem;
+      return myHighlightedItem == myDataItem;
     }
 
     private Color getTableTextColor() {
-      if (isSelected()) {
+      if (myHighlightedItem == null) {
+        // When there is no selection in the chart, all text should be as when it is active.
+        return myDataItem.selectedTextColor();
+      }
+      else if (isSelected()) {
         return myDataItem.selectedTextColor();
       }
       else {
         return myDataItem.unselectedTextColor();
       }
     }
+
+    private Box createMainBox() {
+      int heightPx = calculateBoxHeightPx();
+      String boxText = myDataItem.chartBoxText();
+      Box box = new Box(myDataItem.getLegendColor().baseColor, BOX_WIDTH, heightPx);
+      if (boxText != null) {
+        JBLabel label = new JBLabel(boxText, SwingConstants.CENTER).withFont(JBUI.Fonts.smallFont());
+        label.setForeground(CriticalPathChartLegend.OTHER_TASKS_TEXT_COLOR);
+        box.add(label, BorderLayout.CENTER);
+      }
+
+      Color borderColor = isSelected() ? myDataItem.getLegendColor().selectionColor : myDataItem.getLegendColor().baseColor;
+      box.setBorder(JBUI.Borders.customLine(borderColor, 0, 0, 0, 5));
+      return box;
+    }
+
+    private Box createBulletPointBox() {
+      Color color = isSelected() ? myDataItem.getLegendColor().selectionColor : myDataItem.getLegendColor().baseColor;
+      return new Box(color, 5, 5);
+    }
   }
 
   private static class Box extends JBPanel {
-    private Box(Color color, int width, int height) {
+    private Box(Color baseColor, int width, int height) {
       super();
       withMinimumWidth(width);
       withPreferredWidth(width);
@@ -252,7 +259,7 @@ public class TimeDistributionChart<T> extends JPanel {
       withMinimumHeight(height);
       withPreferredHeight(height);
       withMaximumHeight(height);
-      setBackground(color);
+      setBackground(baseColor);
     }
   }
 
@@ -263,7 +270,7 @@ public class TimeDistributionChart<T> extends JPanel {
       GraphicsUtil.setupAAPainting(g);
       super.paintComponent(g);
       myChartItems.forEach(item -> {
-        g.setColor(item.myColor);
+        g.setColor(item.myConnectorLineColor);
         int lx = 0;
         int ly = item.leftBox.getY() + item.leftBox.getHeight() / 2;
         int rx = getWidth();

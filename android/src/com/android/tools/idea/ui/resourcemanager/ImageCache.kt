@@ -97,6 +97,10 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
     }
   }
 
+  fun clear(designAsset: DesignAsset) {
+    objectToImage.invalidate(designAsset)
+  }
+
   fun clear() {
     objectToImage.invalidateAll()
   }

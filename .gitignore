@@ -7,3 +7,4 @@ Thumbs.db
 tools-base
 .knownPackages
 **/stale_outputs_checked
+**/testData/KotlinDsl/.gradle

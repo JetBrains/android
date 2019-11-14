@@ -65,9 +65,9 @@ class ExistingNewProjectModelData(project: Project, override val projectSyncInvo
   override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
   override val multiTemplateRenderer: MultiTemplateRenderer = MultiTemplateRenderer { renderer ->
     object : Task.Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
-        override fun run(indicator: ProgressIndicator) {
-          renderer(project)
-        }
+      override fun run(indicator: ProgressIndicator) {
+        renderer(project)
+      }
     }.queue()
     projectSyncInvoker.syncProject(project)
   }
@@ -77,7 +77,7 @@ class ExistingNewProjectModelData(project: Project, override val projectSyncInvo
   }
 }
 
-interface ModuleModelData: ProjectModelData {
+interface ModuleModelData : ProjectModelData {
   val template: ObjectProperty<NamedModuleTemplate>
   val moduleParent: String?
   val formFactor: ObjectValueProperty<FormFactor>
@@ -149,7 +149,6 @@ class NewModuleModel(
       projectTemplateValues.also {
         it[formFactor.get().id + ATTR_INCLUDE_FORM_FACTOR] = true
         it[formFactor.get().id + ATTR_MODULE_NAME] = moduleName.get()
-        moduleTemplateValues.putAll(projectTemplateValues)
       }
 
       moduleTemplateValues[ATTR_APP_TITLE] = applicationName.get()
@@ -169,7 +168,7 @@ class NewModuleModel(
 
       if (useAppCompat.get()) {
         // The highest supported/recommended appCompact version is P(28)
-        moduleTemplateValues[ATTR_BUILD_API] =  androidSdkInfo.value.buildApiLevel.coerceAtMost(P)
+        moduleTemplateValues[ATTR_BUILD_API] = androidSdkInfo.value.buildApiLevel.coerceAtMost(P)
       }
 
       moduleTemplateValues.putAll(projectTemplateValues)

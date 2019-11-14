@@ -32,6 +32,7 @@ import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.AppUIUtil
+import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 
@@ -42,6 +43,7 @@ import java.util.concurrent.CountDownLatch
 class TestProjectSystem @JvmOverloads constructor(
   val project: Project,
   availableDependencies: List<GradleCoordinate> = listOf(),
+  private var sourceProvidersFactoryStub: SourceProvidersFactory = SourceProvidersFactoryStub(),
   @Volatile private var lastSyncResult: SyncResult = SyncResult.SUCCESS
 )
   : AndroidProjectSystem {
@@ -205,4 +207,10 @@ class TestProjectSystem @JvmOverloads constructor(
       override fun getAllLightRClasses() = emptyList<PsiClass>()
     }
   }
+
+  override fun getSourceProvidersFactory(): SourceProvidersFactory = sourceProvidersFactoryStub
+}
+
+private class SourceProvidersFactoryStub : SourceProvidersFactory {
+  override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? = null
 }

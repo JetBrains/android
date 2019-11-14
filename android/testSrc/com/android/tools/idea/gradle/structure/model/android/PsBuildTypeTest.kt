@@ -332,7 +332,21 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(proGuardFiles[2].resolved.asTestValue(), nullValue())
       assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(File("z.txt")))
 
-      assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf()))
+      // TODO(b/144074581): there is a distinction between emptying a map that is the right-hand side of an assignment, where the map itself
+      //  must remain in the Dsl, and emptying the implicit map argument to a Dsl method call, where (probably) the entire method call
+      //  should be deleted.  This test assumes that manifestPlaceholders is assigned (and hence removal of the keys should leave an
+      //  empty map) but details of Dsl language might say that that isn't always true.  For now, both answers are acceptable dependent
+      //  on which Dsl language is used.
+      if (!afterSync) {
+        assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf()))
+      }
+      else {
+        when (appModule.parsedModel?.psiFile?.language) {
+          is GroovyLanguage -> assertThat(manifestPlaceholders.parsedValue.asTestValue(), nullValue())
+          is KotlinLanguage -> assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf()))
+          else -> Unit
+        }
+      }
 
       if (afterSync) {
         assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo(applicationIdSuffix.resolved.asTestValue()))
@@ -349,9 +363,8 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
         // TODO(b/72814329): assertThat(proGuardFiles[1].parsedValue.asTestValue(), equalTo(proGuardFiles[1].resolved.asTestValue()))
         // TODO(b/72814329): assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(proGuardFiles[2].resolved.asTestValue()))
 
-        // Note: empty manifestPlaceholders does not match null value.
         assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf()))
-       }
+      }
     }
 
     verifyValues(buildType)

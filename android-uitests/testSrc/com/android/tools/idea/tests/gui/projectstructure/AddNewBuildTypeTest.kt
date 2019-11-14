@@ -92,6 +92,6 @@ class AddNewBuildTypeTest {
       .open("/app/build.gradle")
       .currentFileContents
     assertThat(gradleFileContents)
-      .containsMatch("newBuildType \\{\\n[\\s]*debuggable = true\\n[\\s]*versionNameSuffix = 'suffix'\\n[\\s]*\\}")
+      .containsMatch("newBuildType \\{\\n[\\s]*debuggable true\\n[\\s]*versionNameSuffix 'suffix'\\n[\\s]*\\}")
   }
 }

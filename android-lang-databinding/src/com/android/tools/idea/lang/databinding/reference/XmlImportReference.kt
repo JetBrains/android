@@ -38,6 +38,5 @@ internal class XmlImportReference(element: PsiElement,
         ?.let { psiType -> PsiModelClass(PsiTypesUtil.getClassType(psiType), DataBindingMode.fromPsiElement(element)) }
     }
 
-  override val isStatic: Boolean
-    get() = true
+  override val memberAccess = PsiModelClass.MemberAccess.STATICS_ONLY
 }

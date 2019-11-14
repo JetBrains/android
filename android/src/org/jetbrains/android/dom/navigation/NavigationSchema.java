@@ -701,11 +701,29 @@ public class NavigationSchema implements Disposable {
   private ImmutableMap<DestinationType, String> buildTypeToDefaultTag(Map<PsiClass, String> navigatorToTag) {
     ImmutableMap.Builder<DestinationType, String> builder = ImmutableMap.builder();
 
-    builder.put(FRAGMENT, navigatorToTag.get(getClass(ROOT_FRAGMENT_NAVIGATOR)));
-    builder.put(ACTIVITY, navigatorToTag.get(getClass(ROOT_ACTIVITY_NAVIGATOR)));
-    builder.put(NAVIGATION, navigatorToTag.get(getClass(ROOT_NAV_GRAPH_NAVIGATOR)));
+    addDefaultTag(FRAGMENT, ROOT_FRAGMENT_NAVIGATOR, navigatorToTag, builder);
+    addDefaultTag(ACTIVITY, ROOT_ACTIVITY_NAVIGATOR, navigatorToTag, builder);
+    addDefaultTag(NAVIGATION, ROOT_NAV_GRAPH_NAVIGATOR, navigatorToTag, builder);
 
     return builder.build();
+  }
+
+  /**
+   * Adds the default tag to the map, if the tag exists.
+   */
+  private void addDefaultTag(DestinationType destinationType,
+                             String className,
+                             Map<PsiClass, String> navigatorToTag,
+                             ImmutableMap.Builder<DestinationType, String> builder) {
+    PsiClass psiClass = getClass(className);
+    if (psiClass == null) {
+      return;
+    }
+
+    String tag = navigatorToTag.get(psiClass);
+    if (tag != null) {
+      builder.put(destinationType, tag);
+    }
   }
 
   //endregion

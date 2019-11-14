@@ -15,21 +15,27 @@
  */
 package com.android.tools.profilers;
 
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.intellij.ui.components.JBPanel;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class StageView<T extends Stage> extends AspectObserver {
   private final T myStage;
@@ -49,7 +55,7 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
   /**
    * Binder to bind a tooltip to its view.
    */
-  private final ViewBinder<StageView, ProfilerTooltip, ProfilerTooltipView> myTooltipBinder;
+  private final ViewBinder<StageView, TooltipModel, ProfilerTooltipView> myTooltipBinder;
 
   /**
    * A common component for showing the current selection range.
@@ -100,7 +106,7 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
     return myStage.getStudioProfilers().getTimeline();
   }
 
-  public ViewBinder<StageView, ProfilerTooltip, ProfilerTooltipView> getTooltipBinder() {
+  public ViewBinder<StageView, TooltipModel, ProfilerTooltipView> getTooltipBinder() {
     return myTooltipBinder;
   }
 

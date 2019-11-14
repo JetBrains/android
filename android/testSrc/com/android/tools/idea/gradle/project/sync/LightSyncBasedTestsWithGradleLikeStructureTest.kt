@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.testutils.TestUtils
-import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -112,11 +110,6 @@ class LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest : SnapshotC
 
 class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTest {
   override val snapshotDirectoryName: String = "syncedProjectSnapshots"
-
-  override fun setUp() {
-    super.setUp()
-    AndroidGradleTests.setUpSdks(myFixture, TestUtils.getSdk())
-  }
 
   @Test
   fun testLightTestsWithDefaultTestProjectStructureForAndroidTestCase() {

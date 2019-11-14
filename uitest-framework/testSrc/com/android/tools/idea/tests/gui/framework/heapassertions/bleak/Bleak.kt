@@ -17,8 +17,6 @@
 
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ElidingExpander
-
 /**
  * BLeak checks for memory leaks by repeatedly running a test that returns to its original state, taking
  * and analyzing memory snapshots between each run. It looks for paths from GC roots through the heap that
@@ -42,6 +40,7 @@ import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.
 
 // Whitelist for known issues: don't report leak roots for which this method returns true
 fun Signature.isWhitelisted(): Boolean =
+  size == 2 || // Root + com.intellij.util.lang.UrlClassLoader#?
   anyTypeContains("com.intellij.testGuiFramework") ||
   entry(2) == "com.android.layoutlib.bridge.impl.DelegateManager#sJavaReferences" ||
   anyTypeContains("org.fest.swing") ||
@@ -49,10 +48,14 @@ fun Signature.isWhitelisted(): Boolean =
   entry(-2) == "java.util.concurrent.ForkJoinPool#workQueues" ||
   entry(-4) == "java.io.DeleteOnExitHook#files" ||
 
-  // don't report growing weak maps. Nodes whose weak referents have been GC'd will be removed from the map during some future map operation.
+  // don't report growing weak or soft maps. Nodes whose weak or soft referents have been GC'd will be removed from the map during some
+  // future map operation.
   entry(-2) == "com.intellij.util.containers.ConcurrentWeakHashMap#myMap" ||
   entry(-2) == "com.intellij.util.containers.ConcurrentWeakKeyWeakValueHashMap#myMap" ||
   entry(-3) == "com.intellij.util.containers.WeakHashMap#myMap" && lastType() == "[Ljava.lang.Object;" ||
+  entry(-2) == "com.intellij.util.containers.ConcurrentSoftHashMap#myMap" ||
+  entry(-2) == "com.intellij.util.containers.ConcurrentSoftValueHashMap#myMap" ||
+  entry(-2) == "com.intellij.util.containers.ConcurrentSoftKeySoftValueHashMap#myMap" ||
 
   entry(-4) == "com.android.tools.idea.configurations.ConfigurationManager#myCache" ||
   entry(-4) == "com.maddyhome.idea.copyright.util.NewFileTracker#newFiles" || // b/126417715
@@ -67,7 +70,8 @@ fun Signature.isWhitelisted(): Boolean =
   entry(2) == "sun.java2d.marlin.OffHeapArray#REF_LIST" ||
   entry(2) == "sun.awt.X11.XInputMethod#lastXICFocussedComponent" || // b/126447315
   entry(-3) == "sun.font.XRGlyphCache#cacheMap" ||
-  lastLabel() in listOf("_set", "_values") && entry(-4) == "com.intellij.openapi.util.Disposer#ourTree" ||  // this accounts for both myObject2NodeMap and myRootObjects
+  // this accounts for both myObject2NodeMap and myRootObjects
+  lastLabel() in listOf("_set", "_values") && entry(-4) == "com.intellij.openapi.util.Disposer#ourTree" ||
   entry(-3) == "com.intellij.openapi.application.impl.ReadMostlyRWLock#readers" ||
   entry(-3) == "org.jdom.JDOMInterner#myElements" ||
   entry(-4) == "org.jdom.JDOMInterner#myStrings" ||
@@ -76,7 +80,8 @@ fun Signature.isWhitelisted(): Boolean =
   entry(-2) == "com.intellij.ide.plugins.MainRunner$1#threads" ||
   entry(-2) == "com.intellij.openapi.command.impl.UndoRedoStacksHolder#myGlobalStack" ||
   entry(-4) == "com.intellij.openapi.command.impl.UndoRedoStacksHolder#myDocumentStacks" ||
-  entry(-2) == "com.intellij.openapi.fileEditor.impl.IdeDocumentHistoryImpl#myBackPlaces"
+  entry(-2) == "com.intellij.openapi.fileEditor.impl.IdeDocumentHistoryImpl#myBackPlaces" ||
+  entry(-2) == "com.intellij.openapi.editor.impl.RangeMarkerTree\$RMNode#intervals"
 
 class BleakResult(val leakInfos: List<LeakInfo> = listOf(), val disposerInfo: Map<DisposerInfo.Key, Int> = mapOf()) {
   val success = leakInfos.filterNot { it.whitelisted }.isEmpty() && disposerInfo.isEmpty()

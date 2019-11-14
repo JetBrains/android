@@ -35,6 +35,7 @@ import com.android.tools.idea.resources.aar.AarResourceRepository
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.model.Asset
+import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManager
@@ -136,6 +137,10 @@ class ResourceExplorerListViewModelImpl(
    */
   override val summaryPreviewManager: AssetPreviewManager by lazy {
     AssetPreviewManagerImpl(facet, summaryImageCache, resourceResolver)
+  }
+
+  override fun clearImageCache(asset: DesignAsset) {
+    listViewImageCache.clear(asset)
   }
 
   override fun facetUpdated(newFacet: AndroidFacet) {

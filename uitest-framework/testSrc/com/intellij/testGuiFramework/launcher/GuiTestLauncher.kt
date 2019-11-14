@@ -174,13 +174,6 @@ object GuiTestLauncher {
       options += "-Denable.bleak=true"
       options += "-Xmx16g"
       options += "-XX:+UseG1GC"
-      val instrumentationAgentJar = File(TestUtils.getWorkspaceRoot(),
-                                         "bazel-bin/tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents/ObjectSizeInstrumentationAgent_deploy.jar")
-      if (instrumentationAgentJar.exists()) {
-        options += "-javaagent:${instrumentationAgentJar.absolutePath}"
-      } else {
-        println("Object size instrumentation agent not found - leak share reports will all be 0")
-      }
       val jvmtiAgent = File(TestUtils.getWorkspaceRoot(),
                             "bazel-bin/tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents/libjnibleakhelper.so")
       if (jvmtiAgent.exists()) {

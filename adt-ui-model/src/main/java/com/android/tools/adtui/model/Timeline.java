@@ -44,4 +44,24 @@ public interface Timeline {
    */
   @NotNull
   Range getSelectionRange();
+
+  /**
+   * Decrease view range.
+   */
+  void zoomIn();
+
+  /**
+   * Increase view range.
+   */
+  void zoomOut();
+
+  /**
+   * Set view range to the entire data range.
+   */
+  void resetZoom();
+
+  /**
+   * Set view range to the given range.
+   */
+  void frameViewToRange(Range targetRange);
 }

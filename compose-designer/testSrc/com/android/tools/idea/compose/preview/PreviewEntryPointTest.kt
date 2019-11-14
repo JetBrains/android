@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.intellij.ToolExtensionPoints
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.Extensions
@@ -28,7 +27,7 @@ class PreviewEntryPointTest : ComposeLightJavaCodeInsightFixtureTestCase() {
     // Kotlin UnusedSymbolInspection caches the extensions during the initialization so, unfortunately we have to do this to ensure
     // our entry point detector is registered early enough
     PlatformTestUtil.registerExtension(Extensions.getRootArea(),
-                                       ExtensionPointName.create<Any>(ToolExtensionPoints.DEAD_CODE_TOOL),
+                                       ExtensionPointName<PreviewEntryPoint>("com.intellij.deadCode"),
                                        PreviewEntryPoint(),
                                        testRootDisposable)
   }

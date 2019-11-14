@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander
 
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.BleakHelper
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.HeapGraph
 import java.util.Vector
 
 object BootstrapClassloaderPlaceholder
@@ -25,7 +24,7 @@ object BootstrapClassloaderPlaceholder
  * null in [Class.getClassLoader], but every Node must correspond to a non-null object.
  * [BootstrapClassloaderPlaceholder] serves as a placeholder for the bootstrap class loader for this purpose.
  */
-class ClassLoaderExpander(g: HeapGraph, val bleakHelper: BleakHelper): Expander(g) {
+class ClassLoaderExpander(val bleakHelper: BleakHelper): Expander() {
   private val labelToNodeMap: MutableMap<Node, MutableMap<Label, Node>> = mutableMapOf()
 
   override fun canExpand(obj: Any): Boolean = obj is ClassLoader || obj === BootstrapClassloaderPlaceholder

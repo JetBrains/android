@@ -16,13 +16,17 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_ADD_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_EDIT_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_EDIT_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_EDIT_IGNORE_ASSET_PATTERN;
+import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_EDIT_IGNORE_ASSET_PATTERN_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_PARSE_ELEMENTS_ONE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_PARSE_ELEMENTS_TWO;
 import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_REMOVE_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_REMOVE_LAST_ELEMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_REMOVE_ONE_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.AAPT_OPTIONS_REMOVE_ONE_ELEMENT_EXPECTED;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AaptOptionsModel;
@@ -91,6 +95,8 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     aaptOptions.noCompress().getListValue("b").setValue("c");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, AAPT_OPTIONS_EDIT_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -118,6 +124,8 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     aaptOptions.ignoreAssets().setValue("mnop");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, AAPT_OPTIONS_EDIT_IGNORE_ASSET_PATTERN_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -149,6 +157,8 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     aaptOptions.noCompress().addListValue().setValue("a");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, AAPT_OPTIONS_ADD_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -186,6 +196,8 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     aaptOptions.noCompress().delete();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -200,7 +212,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
   }
 
   @Test
-  public void testRemoveOneOfElementsInTheList() throws Exception {
+  public void testRemoveOneElementsInList() throws Exception {
     writeToBuildFile(AAPT_OPTIONS_REMOVE_ONE_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -215,6 +227,8 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     aaptOptions.noCompress().getListValue("b").delete();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, AAPT_OPTIONS_REMOVE_ONE_ELEMENT_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
 
@@ -224,7 +238,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
   }
 
   @Test
-  public void testRemoveOnlyElementInTheList() throws Exception {
+  public void testRemoveLastElementInList() throws Exception {
     writeToBuildFile(AAPT_OPTIONS_REMOVE_LAST_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -240,6 +254,8 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     aaptOptions.noCompress().getListValue("a").delete();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     android = buildModel.android();
     assertNotNull(android);
 

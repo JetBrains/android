@@ -17,10 +17,12 @@ package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement.BUILD_FEATURES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement.DATA_BINDING_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement.DEX_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement.KOTLIN_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement.LINT_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement.PACKAGING_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
@@ -34,10 +36,12 @@ import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptio
 import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AaptOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.BuildFeaturesModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.DataBindingModel;
 import com.android.tools.idea.gradle.dsl.api.android.DexOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.KotlinOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.LintOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.PackagingOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
@@ -52,6 +56,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement;
@@ -59,6 +64,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.DefaultConfigDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
@@ -117,6 +123,17 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     return new AdbOptionsModelImpl(adbOptionsElement);
   }
 
+  @Override
+  @NotNull
+  public BuildFeaturesModel buildFeatures() {
+    BuildFeaturesDslElement buildFeaturesDslElement = myDslElement.getPropertyElement(BUILD_FEATURES_BLOCK_NAME, BuildFeaturesDslElement.class);
+    if (buildFeaturesDslElement == null) {
+      buildFeaturesDslElement = new BuildFeaturesDslElement(myDslElement);
+      myDslElement.setNewElement(buildFeaturesDslElement);
+    }
+    return new BuildFeaturesModelImpl(buildFeaturesDslElement);
+  }
+
   @NotNull
   @Override
   public ResolvedPropertyModel buildToolsVersion() {
@@ -169,7 +186,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
       element = new CompileOptionsDslElement(myDslElement);
       myDslElement.setNewElement(element);
     }
-    return new CompileOptionsModelImpl(element, false);
+    return new CompileOptionsModelImpl(element);
   }
 
   @NotNull
@@ -220,7 +237,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public ResolvedPropertyModel dynamicFeatures() {
-    return getModelForProperty(DYNAMIC_FEATURES, false);
+    return getModelForProperty(DYNAMIC_FEATURES);
   }
 
   @NotNull
@@ -238,7 +255,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public ResolvedPropertyModel flavorDimensions() {
-    return getModelForProperty(FLAVOR_DIMENSIONS, true);
+    return getModelForProperty(FLAVOR_DIMENSIONS);
   }
 
   @Override
@@ -257,6 +274,18 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     }
     return new LintOptionsModelImpl(lintOptionsDslElement);
   }
+
+  @Override
+  @NotNull
+  public KotlinOptionsModel kotlinOptions() {
+    KotlinOptionsDslElement kotlinOptionsDslElement = myDslElement.getPropertyElement(KOTLIN_OPTIONS_BLOCK_NAME, KotlinOptionsDslElement.class);
+    if (kotlinOptionsDslElement == null) {
+      kotlinOptionsDslElement = new KotlinOptionsDslElement(myDslElement);
+      myDslElement.setNewElement(kotlinOptionsDslElement);
+    }
+    return new KotlinOptionsModelImpl(kotlinOptionsDslElement);
+  }
+
 
   @Override
   @NotNull
@@ -394,13 +423,13 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public ResolvedPropertyModel publishNonDefault() {
-    return getModelForProperty(PUBLISH_NON_DEFAULT, true);
+    return getModelForProperty(PUBLISH_NON_DEFAULT);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel resourcePrefix() {
-    return getModelForProperty(RESOURCE_PREFIX, true);
+    return getModelForProperty(RESOURCE_PREFIX);
   }
 
   @Override

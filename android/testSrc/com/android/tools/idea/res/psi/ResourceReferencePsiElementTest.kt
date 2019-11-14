@@ -127,7 +127,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
   }
 
   fun testResourceReferencePsiElementDeclaration() {
-    myFixture.configureByFile("/res/values/colors.xml")
+    myFixture.configureByFile("res/values/colors.xml")
     myFixture.moveCaret("colorPri|mary")
     val elementAtCaret = myFixture.elementAtCaret
     assertThat(elementAtCaret).isInstanceOf(ResourceReferencePsiElement::class.java)
@@ -319,7 +319,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     val androidLightField = myFixture.elementAtCaret
     assertThat(androidLightField).isInstanceOf(AndroidLightField::class.java)
 
-    myFixture.configureByFile("/res/values/colors.xml")
+    myFixture.configureByFile("res/values/colors.xml")
     myFixture.moveCaret("colorPri|mary")
     val resourceReferencePsiElement = myFixture.elementAtCaret
     assertThat(resourceReferencePsiElement).isInstanceOf(ResourceReferencePsiElement::class.java)
