@@ -401,8 +401,16 @@ public final class ResourceRepositoryManager implements Disposable {
           if (myFacet.isDisposed()) {
             return new EmptyRepository(getNamespace());
           }
-          myModuleResources = ModuleResourceRepository.forMainResources(myFacet, getNamespace());
-          Disposer.register(this, myModuleResources);
+          try {
+            myModuleResources = ModuleResourceRepository.forMainResources(myFacet, getNamespace());
+            Disposer.register(this, myModuleResources);
+          }
+          catch (Throwable t) {
+            if (myModuleResources != null) {
+              Disposer.dispose(myModuleResources);
+            }
+            throw t;
+          }
         }
         return myModuleResources;
       }
@@ -459,9 +467,15 @@ public final class ResourceRepositoryManager implements Disposable {
       return moduleTestResources;
     }
 
-    TestAppResourceRepository testAppRepo = TestAppResourceRepository.create(myFacet, moduleTestResources, model);
-    Disposer.register(testAppRepo, moduleTestResources);
-    return testAppRepo;
+    try {
+      TestAppResourceRepository testAppRepo = TestAppResourceRepository.create(myFacet, moduleTestResources, model);
+      Disposer.register(testAppRepo, moduleTestResources);
+      return testAppRepo;
+    }
+    catch (Throwable t) {
+      Disposer.dispose(moduleTestResources);
+      throw t;
+    }
   }
 
   /**
