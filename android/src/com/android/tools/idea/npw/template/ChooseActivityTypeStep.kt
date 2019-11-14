@@ -23,6 +23,7 @@ import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -56,7 +57,9 @@ class ChooseActivityTypeStep(
         if (isNewModule) {
           yield(NewTemplateRenderer(Template.NoActivity))
         }
-        yieldAll(TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }.map(::NewTemplateRenderer)) // TODO filter by formfactor
+        yieldAll(TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
+                   .filter { WizardUiContext.ActivityGallery in it.uiContexts }
+                   .map(::NewTemplateRenderer))
       }
     }
     templateRenders = if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get() && !isNewModule) {

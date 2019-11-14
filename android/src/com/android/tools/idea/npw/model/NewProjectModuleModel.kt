@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.model
 
 import com.android.SdkConstants
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
 import com.android.tools.idea.npw.FormFactor
@@ -33,6 +34,7 @@ import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.templates.TemplateManager.CATEGORY_ACTIVITY
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.Template
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import org.jetbrains.android.util.AndroidBundle.message
@@ -40,11 +42,18 @@ import java.io.File
 import java.util.Locale
 
 private val log: Logger get() = logger<NewProjectModuleModel>()
+private val newTemplates = StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get()
 
 class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardModel() {
   @JvmField
   val formFactor = ObjectValueProperty(FormFactor.MOBILE)
-  private val newModuleModel = NewModuleModel(projectModel, File(""), createDummyTemplate(), formFactor)
+  private val newModuleModel = NewModuleModel(
+    projectModel,
+    File("").takeUnless { newTemplates },
+    null,
+    createDummyTemplate(),
+    formFactor
+  )
   /**
    * A model which is used at the optional step after usual activity configuring. Currently only used for Android Things.
    */

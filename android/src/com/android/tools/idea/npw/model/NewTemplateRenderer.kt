@@ -18,10 +18,10 @@ package com.android.tools.idea.npw.model
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.templates.TemplateUtils
-import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
 import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.Template
 import com.google.common.annotations.VisibleForTesting
@@ -44,10 +44,10 @@ private val log: Logger get() = logger<Template>()
 
 fun Template.render(c: RenderingContext2, e: RecipeExecutor): Boolean {
   val success = if (c.project.isInitialized)
-    doRender(c, e)
+    recipe.doRender(c, e)
   else
     PostprocessReformattingAspect.getInstance(c.project).disablePostprocessFormattingInside<Boolean> {
-      doRender(c, e)
+      recipe.doRender(c, e)
     }
 
   if (!c.dryRun && this != Template.NoActivity) {
@@ -64,10 +64,10 @@ fun Template.render(c: RenderingContext2, e: RecipeExecutor): Boolean {
   return success
 }
 
-fun Template.doRender(c: RenderingContext2, e: RecipeExecutor): Boolean {
+fun Recipe.doRender(c: RenderingContext2, e: RecipeExecutor): Boolean {
   try {
     writeCommandAction(c.project).withName(c.commandName).run<IOException> {
-      recipe(e, c.templateData)
+      this(e, c.templateData)
     }
   }
   catch (e: IOException) {
