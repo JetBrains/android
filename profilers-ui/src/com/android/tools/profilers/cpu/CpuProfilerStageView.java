@@ -285,10 +285,22 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   @Override
-  public boolean navigationControllersEnabled() {
+  public boolean supportsStreaming() {
+    if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
+      // Imported traces will be displayed in the new capture stage. No need to override here.
+      return super.supportsStreaming();
+    }
     return !myStage.isImportTraceMode();
   }
 
+  @Override
+  public boolean supportsStageNavigation() {
+    if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
+      // Imported traces will be displayed in the new capture stage. No need to override here.
+      return super.supportsStageNavigation();
+    }
+    return !myStage.isImportTraceMode();
+  }
 
   private void updateCaptureViewVisibility() {
     if (myStage.getProfilerMode() == ProfilerMode.EXPANDED) {

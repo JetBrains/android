@@ -512,6 +512,9 @@ public class StudioProfilersViewTest {
     // be the case that some listeners that don't point to the view/component are still
     // leaked but it would be pretty rare that such a listener was needed in the first place.
     new ReferenceWalker(myProfilers).assertNotReachable(myView, component);
+    // L1 and all L2 stages should support streaming.
+    assertThat(myView.getStageView().supportsStreaming()).isTrue();
+    assertThat(myView.getStageView().supportsStageNavigation()).isTrue();
   }
 
   static class FakeView extends StageView<FakeStage> {
