@@ -59,8 +59,8 @@ open class ProjectSystemService(val project: Project) {
   private fun detectProjectSystem(project: Project): AndroidProjectSystem {
     val extensions = EP_NAME.getExtensions(project)
     val provider = extensions.find { it.isApplicable() }
-        ?: extensions.find { it.id == "" }
-        ?: throw IllegalStateException("Default AndroidProjectSystem not found for project " + project.name)
+                   ?: extensions.find { it.id == "" }
+                   ?: throw IllegalStateException("Default AndroidProjectSystem not found for project " + project.name)
     return provider.projectSystem
   }
 

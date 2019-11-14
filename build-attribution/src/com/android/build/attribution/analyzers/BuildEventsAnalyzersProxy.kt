@@ -17,6 +17,8 @@ package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.AlwaysRunTaskData
+import com.android.build.attribution.data.AnnotationProcessorData
+import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskContainer
@@ -24,12 +26,12 @@ import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
 
 interface BuildEventsAnalysisResult {
-  fun getAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData>
-  fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData>
+  fun getAnnotationProcessorsData(): List<AnnotationProcessorData>
+  fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData>
   fun getCriticalPathDurationMs(): Long
   fun getTotalBuildTimeMs(): Long
   fun getCriticalPathTasks(): List<TaskData>
-  fun getCriticalPathPlugins(): List<CriticalPathAnalyzer.PluginBuildData>
+  fun getCriticalPathPlugins(): List<PluginBuildData>
   fun getProjectsConfigurationData(): List<ProjectConfigurationData>
   fun getAlwaysRunTasks(): List<AlwaysRunTaskData>
   fun getNonCacheableTasks(): List<TaskData>
@@ -64,11 +66,11 @@ class BuildEventsAnalyzersProxy(
     tasksConfigurationIssuesAnalyzer
   )
 
-  override fun getAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> {
+  override fun getAnnotationProcessorsData(): List<AnnotationProcessorData> {
     return annotationProcessorsAnalyzer.getAnnotationProcessorsData()
   }
 
-  override fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorsAnalyzer.AnnotationProcessorData> {
+  override fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData> {
     return annotationProcessorsAnalyzer.getNonIncrementalAnnotationProcessorsData()
   }
 
@@ -84,7 +86,7 @@ class BuildEventsAnalyzersProxy(
     return criticalPathAnalyzer.tasksCriticalPath
   }
 
-  override fun getCriticalPathPlugins(): List<CriticalPathAnalyzer.PluginBuildData> {
+  override fun getCriticalPathPlugins(): List<PluginBuildData> {
     return criticalPathAnalyzer.pluginsCriticalPath
   }
 

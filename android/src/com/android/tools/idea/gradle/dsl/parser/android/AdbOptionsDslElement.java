@@ -15,16 +15,61 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.AdbOptionsModelImpl.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
+import com.google.common.collect.ImmutableMap;
+import java.util.stream.Stream;
+import kotlin.Pair;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class AdbOptionsDslElement extends GradleDslBlockElement {
   @NonNls public static final String ADB_OPTIONS_BLOCK_NAME = "adbOptions";
 
+  @NotNull
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
+    {"installOptions", property, INSTALL_OPTIONS, VAL},
+    {"installOptions", atLeast(0), INSTALL_OPTIONS, OTHER},
+    {"setInstallOptions", exactly(1), INSTALL_OPTIONS, SET},
+    {"timeOutInMs", property, TIME_OUT_IN_MS, VAR},
+    {"timeOutInMs", exactly(1), TIME_OUT_IN_MS, SET}
+  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
+                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+
+  @NotNull
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
+    {"installOptions", property, INSTALL_OPTIONS, VAL},
+    {"installOptions", atLeast(0), INSTALL_OPTIONS, OTHER},
+    {"timeOutInMs", property, TIME_OUT_IN_MS, VAR},
+    {"timeOutInMs", exactly(1), TIME_OUT_IN_MS, SET}
+  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
+                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+
+  @Override
+  @NotNull
+  public ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+    if (converter instanceof KotlinDslNameConverter) {
+      return ktsToModelNameMap;
+    }
+    else if (converter instanceof GroovyDslNameConverter) {
+      return groovyToModelNameMap;
+    }
+    else {
+      return super.getExternalToModelMap(converter);
+    }
+  }
   public AdbOptionsDslElement(@NotNull GradleDslElement parent) {
     super(parent, GradleNameElement.create(ADB_OPTIONS_BLOCK_NAME));
   }
@@ -32,7 +77,7 @@ public class AdbOptionsDslElement extends GradleDslBlockElement {
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
     if (element instanceof GradleDslSimpleExpression && element.getName().equals("installOptions")) {
-      addAsParsedDslExpressionList(element.getName(), (GradleDslSimpleExpression)element);
+      addAsParsedDslExpressionList(INSTALL_OPTIONS, (GradleDslSimpleExpression)element);
       return;
     }
     super.addParsedElement(element);

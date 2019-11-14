@@ -18,7 +18,7 @@ package com.android.tools.idea.templates
 import com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
+import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.npw.ThemeHelper
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
@@ -62,6 +62,7 @@ class ModuleTemplateDataBuilder(private val isNewProject: Boolean) {
   var resDir: File? = null
   var manifestDir: File? = null
   var testDir: File? = null
+  var unitTestDir: File? = null
   var aidlDir: File? = null
   var projectOut: File? = null
   var themeExists: Boolean = false
@@ -75,7 +76,7 @@ class ModuleTemplateDataBuilder(private val isNewProject: Boolean) {
   var baseFeature: BaseFeature? = null
 
   /**
-   * Adds common module roots template values like [projectOut], [srcDir], etc.
+   * Adds common module roots template values like [projectOut], [srcDir], etc
    *
    * @param paths       Project paths
    * @param packageName Package Name for the module
@@ -88,6 +89,7 @@ class ModuleTemplateDataBuilder(private val isNewProject: Boolean) {
 
     srcDir = paths.getSrcDirectory(packageName)
     testDir = paths.getTestDirectory(packageName)
+    unitTestDir = paths.getUnitTestDirectory(packageName)
     resDir = paths.resDirectories.firstOrNull()
     manifestDir = paths.manifestDirectory
     aidlDir = paths.getAidlDirectory(packageName)
@@ -126,17 +128,13 @@ class ModuleTemplateDataBuilder(private val isNewProject: Boolean) {
    * Used only by dynamic modules.
    */
   fun setBaseFeature(baseFeature: Module) {
-
-    fun String.toPath() = VfsUtilCore.urlToPath(this)
-
     val androidFacet = AndroidFacet.getInstance(baseFeature)!!
-    val gradleFacet = GradleFacet.getInstance(baseFeature)!!
     val mainSourceProvider = SourceProviderManager.getInstance(androidFacet).mainIdeaSourceProvider
     val baseModuleResourceRootPath = mainSourceProvider.resDirectories.firstOrNull()?.path
-                                     ?: mainSourceProvider.resDirectoryUrls.first().toPath()
+                                     ?: VfsUtilCore.urlToPath(mainSourceProvider.resDirectoryUrls.first())
 
     this.baseFeature = BaseFeature(
-      gradleFacet.gradleModuleModel?.moduleName.orEmpty(),
+      GradleUtil.getGradlePath(baseFeature).orEmpty(),
       AndroidRootUtil.findModuleRootFolderPath(baseFeature)!!,
       File(baseModuleResourceRootPath) // Put the new resources in any of the available res directories
     )
@@ -190,6 +188,7 @@ class ModuleTemplateDataBuilder(private val isNewProject: Boolean) {
     resDir!!,
     manifestDir!!,
     testDir!!,
+    unitTestDir!!,
     aidlDir!!,
     projectOut!!,
     themeExists,

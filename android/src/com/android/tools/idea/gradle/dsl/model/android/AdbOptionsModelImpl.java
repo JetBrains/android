@@ -24,8 +24,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class AdbOptionsModelImpl extends GradleDslBlockModel implements AdbOptionsModel {
-  @NonNls private static final String INSTALL_OPTIONS = "installOptions";
-  @NonNls private static final String TIME_OUT_IN_MS = "timeOutInMs";
+  @NonNls public static final String INSTALL_OPTIONS = "mInstallOptions";
+  @NonNls public static final String TIME_OUT_IN_MS = "mTimeOutInMs";
 
   public AdbOptionsModelImpl(@NotNull AdbOptionsDslElement dslElement) {
     super(dslElement);
@@ -34,12 +34,12 @@ public class AdbOptionsModelImpl extends GradleDslBlockModel implements AdbOptio
   @Override
   @NotNull
   public ResolvedPropertyModel installOptions() {
-    return GradlePropertyModelBuilder.create(myDslElement, INSTALL_OPTIONS).asMethod(true).buildResolved();
+    return GradlePropertyModelBuilder.create(myDslElement, INSTALL_OPTIONS).buildResolved();
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel timeOutInMs() {
-    return GradlePropertyModelBuilder.create(myDslElement, TIME_OUT_IN_MS).asMethod(true).buildResolved();
+    return GradlePropertyModelBuilder.create(myDslElement, TIME_OUT_IN_MS).buildResolved();
   }
 }

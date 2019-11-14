@@ -20,11 +20,10 @@ import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
 import com.android.build.attribution.ui.data.CriticalPathTasksUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
-import com.android.build.attribution.ui.pluginIcon
-import com.android.build.attribution.ui.taskIcon
 import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.android.build.attribution.ui.panels.TimeDistributionChart
-import com.intellij.ui.JBColor
+import com.android.build.attribution.ui.pluginIcon
+import com.android.build.attribution.ui.taskIcon
 import com.intellij.util.ui.UIUtil
 import java.util.ArrayList
 import javax.swing.Icon
@@ -103,7 +102,7 @@ fun createPluginChartItems(data: CriticalPathPluginsUiData): List<TimeDistributi
 
 private class TaskChartItem(
   private val taskData: TaskUiData,
-  private val assignedColor: JBColor
+  private val assignedColor: CriticalPathChartLegend.ChartColor
 ) : TimeDistributionChart.SingularChartDataItem<TaskUiData> {
 
   override fun time(): TimeWithPercentage {
@@ -116,7 +115,7 @@ private class TaskChartItem(
 
   override fun getTableIcon() = taskIcon(taskData)
 
-  override fun getLegendColor(): JBColor {
+  override fun getLegendColor(): CriticalPathChartLegend.ChartColor {
     return assignedColor
   }
 
@@ -131,7 +130,7 @@ private class TaskChartItem(
 
 private class PluginChartItem(
   private val pluginData: CriticalPathPluginUiData,
-  private val assignedColor: JBColor
+  private val assignedColor: CriticalPathChartLegend.ChartColor
 ) : TimeDistributionChart.SingularChartDataItem<CriticalPathPluginUiData> {
 
   override fun time(): TimeWithPercentage {
@@ -144,7 +143,7 @@ private class PluginChartItem(
 
   override fun getTableIcon(): Icon? = pluginIcon(pluginData)
 
-  override fun getLegendColor(): JBColor {
+  override fun getLegendColor(): CriticalPathChartLegend.ChartColor {
     return assignedColor
   }
 
@@ -161,7 +160,7 @@ private class OtherChartItem<T>(
   private val time: TimeWithPercentage,
   private val textPrefix: String,
   private val aggregatedItems: List<T>,
-  private val assignedColor: JBColor
+  private val assignedColor: CriticalPathChartLegend.ChartColor
 ) : TimeDistributionChart.AggregatedChartDataItem<T> {
 
   override fun time(): TimeWithPercentage {
@@ -176,7 +175,7 @@ private class OtherChartItem<T>(
     return null
   }
 
-  override fun getLegendColor(): JBColor {
+  override fun getLegendColor(): CriticalPathChartLegend.ChartColor {
     return assignedColor
   }
 
@@ -203,7 +202,7 @@ private class MiscGradleStepsChartItem<T>(val miscStepsTime: TimeWithPercentage)
     return null
   }
 
-  override fun getLegendColor(): JBColor {
+  override fun getLegendColor(): CriticalPathChartLegend.ChartColor {
     return CriticalPathChartLegend.MISC_COLOR
   }
 
@@ -214,8 +213,4 @@ private class MiscGradleStepsChartItem<T>(val miscStepsTime: TimeWithPercentage)
   override fun selectedTextColor() = UIUtil.getInactiveTextColor()
 
   override fun unselectedTextColor() = UIUtil.getInactiveTextColor()
-
-  override fun selectedChartColor() = legendColor
-
-  override fun unselectedChartColor() = legendColor
 }

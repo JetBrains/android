@@ -24,19 +24,32 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.lint.detector.api.isKotlin
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
+import com.intellij.lang.java.JavaLanguage
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiIdentifier
+import com.intellij.psi.PsiJavaCodeReferenceElement
+import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiWhiteSpace
+import com.intellij.psi.codeStyle.JavaCodeStyleSettings
+import com.intellij.psi.impl.source.codeStyle.ImportHelper
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 import org.jetbrains.android.refactoring.isAndroidx
+import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.util.ImportInsertHelperImpl
+import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
 /**
  * An action which recognizes classes from key Maven artifacts and offers to add a dependency on them.
- *
- * TODO: Support in XML files
  */
 class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   private var artifact: String? = null
@@ -46,9 +59,47 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   }
 
   fun perform(project: Project, element: PsiElement, offset: Int, sync: Boolean): ListenableFuture<ProjectSystemSyncManager.SyncResult>? {
-    val module = ModuleUtil.findModuleForPsiElement(element) ?: return null
     // this.artifact should be the same, but make absolutely certain
     val artifact = findArtifact(project, element, offset) ?: return null
+    val importSymbol = findImport(project, element, offset)
+    return perform(project, element, artifact, importSymbol, sync)
+  }
+
+  fun perform(
+    project: Project,
+    element: PsiElement,
+    artifact: String,
+    importSymbol: String?,
+    sync: Boolean
+  ): ListenableFuture<ProjectSystemSyncManager.SyncResult>? {
+    var future: ListenableFuture<ProjectSystemSyncManager.SyncResult>? = null
+    WriteCommandAction.runWriteCommandAction(project) {
+      future = performWithLock(project, element, artifact, importSymbol, sync)
+    }
+
+    return future
+  }
+
+  /**
+   * Imports a given artifact in the project, and optionally also imports the given symbol, which is
+   * currently limited to classes but will be updated to support functions (for KTX in particular)
+   * in a future CL.
+   */
+  private fun performWithLock(
+    project: Project,
+    element: PsiElement,
+    artifact: String,
+    importSymbol: String?,
+    sync: Boolean
+  ): ListenableFuture<ProjectSystemSyncManager.SyncResult>? {
+    val module = ModuleUtil.findModuleForPsiElement(element) ?: return null
+
+    // Import the class as well (if possible); otherwise it might be confusing that you have to invoke two
+    // separate intention actions in order to get your symbol resolved
+    if (importSymbol != null) {
+      addImportStatement(project, element, importSymbol)
+    }
+
     addDependency(module, artifact)
 
     // Also add dependent annotation processor?
@@ -115,6 +166,39 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
   private fun findElement(element: PsiElement, caret: Int): PsiElement {
     if (element is PsiIdentifier || caret == 0) {
+      // If you're pointing somewhere in the middle of a fully qualified name (such as an import statement
+      // to a library that isn't available), the unresolved symbol won't be the final class, it will be the
+      // first unavailable package segment. In these cases, search down the chain for the actual imported
+      // class symbol and scan on that one instead.
+      if (element.text[0].isLowerCase() && element.parent is PsiJavaCodeReferenceElement) {
+        var curr: PsiJavaCodeReferenceElement = element.parent as PsiJavaCodeReferenceElement
+        while (curr.parent is PsiJavaCodeReferenceElement) {
+          curr = curr.parent as PsiJavaCodeReferenceElement
+        }
+        val referenceNameElement = curr.referenceNameElement
+        if (referenceNameElement != null) {
+          return referenceNameElement
+        }
+      }
+      return element
+    }
+    else if (element is LeafPsiElement && element.elementType == KtTokens.IDENTIFIER) {
+      if (element.text[0].isLowerCase() &&
+          element.parent is KtNameReferenceExpression &&
+          element.parent.parent is KtDotQualifiedExpression) {
+        var curr: KtDotQualifiedExpression = element.parent.parent as KtDotQualifiedExpression
+        while (curr.parent is KtDotQualifiedExpression) {
+          curr = curr.parent as KtDotQualifiedExpression
+        }
+        val referenceNameElement = curr.selectorExpression
+        if (referenceNameElement != null) {
+          var left: PsiElement = referenceNameElement
+          while (left.firstChild != null) {
+            left = left.firstChild
+          }
+          return left
+        }
+      }
       return element
     }
 
@@ -139,7 +223,12 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   }
 
   private fun findArtifact(project: Project, element: PsiElement, caret: Int): String? {
-    val text = findElement(element, caret).text
+    val leaf = findElement(element, caret)
+    return findArtifact(project, leaf)
+  }
+
+  fun findArtifact(project: Project, element: PsiElement): String? {
+    val text = element.text
     val artifact = MavenClassRegistry.findArtifact(text) ?: return null
 
     return if (project.isAndroidx()) {
@@ -150,13 +239,48 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       // contains Kotlin.
       if (isKotlin(element)) {
         androidx = MavenClassRegistry.findKtxLibrary(androidx) ?: androidx
-
       }
 
       androidx
     }
     else {
       artifact
+    }
+  }
+
+  private fun findImport(project: Project, element: PsiElement, caret: Int): String? {
+    val text = findElement(element, caret).text
+    val fqn = MavenClassRegistry.findImport(text) ?: return null
+    return if (project.isAndroidx()) {
+      AndroidxNameUtils.getNewName(fqn)
+    }
+    else {
+      fqn
+    }
+  }
+
+  private fun addImportStatement(project: Project, element: PsiElement, import: String) {
+    val file = element.containingFile
+    if (file.text.contains(import)) { // either as import statement or fully qualified reference
+      return
+    }
+
+    when (element.language) {
+      JavaLanguage.INSTANCE -> {
+        val factory = JavaPsiFacade.getInstance(project).elementFactory
+        val dot = import.lastIndexOf('.')
+        val pkg = import.substring(0, dot)
+        val name = import.substring(dot + 1)
+        val cls = factory.createClass(name)
+        (cls.containingFile as PsiJavaFile).packageName = pkg
+        val importHelper = ImportHelper(JavaCodeStyleSettings.getInstance(element.containingFile))
+        importHelper.addImport(file as PsiJavaFile, cls)
+      }
+      KotlinLanguage.INSTANCE -> {
+        // Can't access org.jetbrains.kotlin.idea.util.ImportInsertHelper
+        ImportInsertHelperImpl.addImport(project, file as KtFile, FqName(import))
+      }
+      // Nothing to do in XML etc
     }
   }
 }

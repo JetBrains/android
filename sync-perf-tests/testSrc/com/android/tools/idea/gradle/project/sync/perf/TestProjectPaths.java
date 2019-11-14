@@ -17,4 +17,6 @@ package com.android.tools.idea.gradle.project.sync.perf;
 
 public final class TestProjectPaths {
   public static final String SYNC_AVERAGE_PERF_PROJECT = "projects/sync/averagePerfProject";
+  public static final String DOLPHIN_PROJECT_ROOT = "projects/sync/dolphin";
+  public static final String DOLPHIN_PROJECT_ANDROID_ROOT = DOLPHIN_PROJECT_ROOT + "/Source/Android";
 }

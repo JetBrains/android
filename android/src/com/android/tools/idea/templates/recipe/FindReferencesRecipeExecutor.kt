@@ -74,6 +74,10 @@ internal class FindReferencesRecipeExecutor(private val myContext: RenderingCont
 
   override fun popFolder() {}
 
+  override fun setBuildFeature(name: String, value: String) {}
+
+  override fun requireJavaVersion(version: String, kotlinSupport: String) {}
+
   fun addSourceFile(file: File) {
     myContext.sourceFiles.add(resolveSourceFile(file))
   }

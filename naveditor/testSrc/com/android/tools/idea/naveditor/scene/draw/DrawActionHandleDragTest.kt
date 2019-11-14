@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingLength
+import com.android.tools.adtui.common.SwingPoint
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.common.scene.LerpEllipse
 import com.android.tools.idea.common.scene.draw.FillShape
@@ -23,11 +25,11 @@ import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import java.awt.geom.Ellipse2D
 import java.awt.geom.Point2D
 
-private val CENTER = Point2D.Float(100f, 150f)
+private val CENTER = SwingPoint(Point2D.Float(100f, 150f))
 
-private const val INITIAL_OUTER_RADIUS = 10f
-private const val FINAL_OUTER_RADIUS = 20f
-private const val INNER_RADIUS = 1f
+private val INITIAL_OUTER_RADIUS = SwingLength(10f)
+private val FINAL_OUTER_RADIUS = SwingLength(20f)
+private val INNER_RADIUS = SwingLength(1f)
 private const val DURATION = 30
 
 private val OUTER_CIRCLE = LerpEllipse(Ellipse2D.Float(90f, 140f, 20f, 20f),

@@ -19,6 +19,7 @@ package com.android.tools.idea.gradle.project.sync.internal
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
+import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -61,50 +62,19 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
       artifacts = ${artifacts.take(3)}...
       artifactsByConfiguration = ${artifactsByConfiguration.entries.take(3)}...
       """.replaceIndent("    ")
-    is AndroidModuleModel -> "\n" + """
-      androidProject = ${androidProject.format()}
-      selectedMainCompileDependencies = ${selectedMainCompileDependencies.format()}
-      selectedMainCompileLevel2Dependencies = ${selectedMainCompileLevel2Dependencies.format()}
-      selectedAndroidTestCompileDependencies = ${selectedAndroidTestCompileDependencies?.format()}
-      features = ${features.format()}
-      modelVersion = $modelVersion
-      mainArtifact = ${mainArtifact.format()}
-      defaultSourceProvider = ${defaultSourceProvider.format()}
-      activeSourceProviders = ${activeSourceProviders.format()}
-      testSourceProviders = ${testSourceProviders.format()}
-      allSourceProviders = ${allSourceProviders.format()}
-      applicationId = $applicationId
-      allApplicationIds = $allApplicationIds
-      isDebuggable = $isDebuggable
-      minSdkVersion = $minSdkVersion
-      runtimeMinSdkVersion = $runtimeMinSdkVersion
-      targetSdkVersion = $targetSdkVersion
-      versionCode = $versionCode
-      projectSystemId = $projectSystemId
-      buildTypes = ${buildTypes.format()}
-      productFlavors = ${productFlavors.format()}
-      moduleName = $moduleName
-      rootDirPath = $rootDirPath
-      selectedVariant = ${selectedVariant.format()}
-      buildTypeNames = ${buildTypeNames.format()}
-      productFlavorNames = ${productFlavorNames.format()}
-      variantNames = ${variantNames.format()}
-      javaLanguageLevel = $javaLanguageLevel
-      overridesManifestPackage = ${overridesManifestPackage()}
-      extraGeneratedSourceFolderPaths = ${extraGeneratedSourceFolderPaths.format()}
-      syncIssues = ${syncIssues?.format()}
-      artifactForAndroidTest = ${artifactForAndroidTest?.format()}
-      testExecutionStrategy = $testExecutionStrategy
-      buildTypeSourceProvider = ${buildTypeSourceProvider.format()}
-      flavorSourceProviders = ${flavorSourceProviders.format()}
-      multiFlavorSourceProvider = ${multiFlavorSourceProvider?.format()}
-      variantSourceProvider = ${variantSourceProvider?.format()}
-      dataBindingMode = $dataBindingMode
-      classJarProvider = $classJarProvider
-      namespacing = $namespacing
-      desugaring = $desugaring
-      resValues = $resValues
+    is JavaModuleModel -> "\n" + """
+      isBuildable = ${isBuildable}
+      languageLevel = ${javaLanguageLevel}
+      buildFolderPath = ${buildFolderPath}
+      isAndroidModuleWithoutVariants = ${isAndroidModuleWithoutVariants}
+      contentRoots = ${contentRoots}
+      javaModuleDependencies = ${javaModuleDependencies}
+      jarLibraryDependencies = ${jarLibraryDependencies}
+      artifactsByConfiguration = ${artifactsByConfiguration}
+      syncIssues = ${syncIssues}
+      configurations = ${configurations}
       """.replaceIndent("    ")
+    is AndroidModuleModel -> format()
     else -> toString()
   }
 
@@ -119,6 +89,51 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
 
   this@dump.dumpNode()
 }
+
+fun AndroidModuleModel.format(): String = "\n" + """
+    androidProject = ${androidProject.format()}
+    selectedMainCompileDependencies = ${selectedMainCompileDependencies.format()}
+    selectedMainCompileLevel2Dependencies = ${selectedMainCompileLevel2Dependencies.format()}
+    selectedAndroidTestCompileDependencies = ${selectedAndroidTestCompileDependencies?.format()}
+    features = ${features.format()}
+    modelVersion = $modelVersion
+    mainArtifact = ${mainArtifact.format()}
+    defaultSourceProvider = ${defaultSourceProvider.format()}
+    activeSourceProviders = ${activeSourceProviders.format()}
+    testSourceProviders = ${testSourceProviders.format()}
+    allSourceProviders = ${allSourceProviders.format()}
+    applicationId = $applicationId
+    allApplicationIds = $allApplicationIds
+    isDebuggable = $isDebuggable
+    minSdkVersion = $minSdkVersion
+    runtimeMinSdkVersion = $runtimeMinSdkVersion
+    targetSdkVersion = $targetSdkVersion
+    versionCode = $versionCode
+    projectSystemId = $projectSystemId
+    buildTypes = ${buildTypes.format()}
+    productFlavors = ${productFlavors.format()}
+    moduleName = $moduleName
+    rootDirPath = $rootDirPath
+    selectedVariant = ${selectedVariant.format()}
+    buildTypeNames = ${buildTypeNames.format()}
+    productFlavorNames = ${productFlavorNames.format()}
+    variantNames = ${variantNames.format()}
+    javaLanguageLevel = $javaLanguageLevel
+    overridesManifestPackage = ${overridesManifestPackage()}
+    extraGeneratedSourceFolderPaths = ${extraGeneratedSourceFolderPaths.format()}
+    syncIssues = ${syncIssues?.format()}
+    artifactForAndroidTest = ${artifactForAndroidTest?.format()}
+    testExecutionStrategy = $testExecutionStrategy
+    buildTypeSourceProvider = ${buildTypeSourceProvider.format()}
+    flavorSourceProviders = ${flavorSourceProviders.format()}
+    multiFlavorSourceProvider = ${multiFlavorSourceProvider?.format()}
+    variantSourceProvider = ${variantSourceProvider?.format()}
+    dataBindingMode = $dataBindingMode
+    classJarProvider = $classJarProvider
+    namespacing = $namespacing
+    desugaring = $desugaring
+    resValues = $resValues
+    """.replaceIndent("    ")
 
 private fun Any.format(prefix: String = "      "): String {
   val text = this.toString()

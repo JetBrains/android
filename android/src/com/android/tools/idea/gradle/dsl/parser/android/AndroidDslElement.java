@@ -103,12 +103,5 @@ public final class AndroidDslElement extends GradleDslBlockElement {
       return;
     }
     super.addParsedElement(element);
-    maybeRenameElement(element);
-  }
-
-  @Override
-  public void setParsedElement(@NotNull GradleDslElement element) {
-    super.setParsedElement(element);
-    maybeRenameElement(element);
   }
 }

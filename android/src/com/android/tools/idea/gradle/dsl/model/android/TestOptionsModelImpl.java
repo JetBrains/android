@@ -28,9 +28,10 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement.UNIT_TESTS_BLOCK_NAME;
 
 public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOptionsModel {
-  @NonNls private static final String REPORT_DIR = "reportDir";
-  @NonNls private static final String RESULTS_DIR = "resultsDir";
-  @NonNls private static final String EXECUTION = "execution";
+  // TODO(xof): support animationsDisabled?
+  @NonNls public static final String REPORT_DIR = "mReportDir";
+  @NonNls public static final String RESULTS_DIR = "mResultsDir";
+  @NonNls public static final String EXECUTION = "mExecution";
 
   public TestOptionsModelImpl(@NotNull TestOptionsDslElement dslElement) {
     super(dslElement);
@@ -39,13 +40,13 @@ public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOpt
   @Override
   @NotNull
   public ResolvedPropertyModel reportDir() {
-    return getModelForProperty(REPORT_DIR, true);
+    return getModelForProperty(REPORT_DIR);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel resultsDir() {
-    return getModelForProperty(RESULTS_DIR, true);
+    return getModelForProperty(RESULTS_DIR);
   }
 
   @Override
@@ -62,6 +63,6 @@ public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOpt
   @NotNull
   @Override
   public ResolvedPropertyModel execution() {
-    return getModelForProperty(EXECUTION, true);
+    return getModelForProperty(EXECUTION);
   }
 }

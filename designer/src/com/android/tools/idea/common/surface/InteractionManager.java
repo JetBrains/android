@@ -463,17 +463,17 @@ public class InteractionManager implements Disposable {
       int clickCount = event.getClickCount();
 
       if (clickCount == 2 && event.getButton() == MouseEvent.BUTTON1) {
-        mySurface.onDoubleClick(x, y);
+        myInteractionProvider.doubleClick(x, y);
         return;
       }
 
       // No need to navigate XML when click was done holding some modifiers (e.g multi-selecting).
       if (clickCount == 1 && event.getButton() == MouseEvent.BUTTON1 && !event.isShiftDown() && !AdtUiUtils.isActionKeyDown(event)) {
-        mySurface.onSingleClick(x, y);
+        myInteractionProvider.singleClick(x, y);
       }
 
       if (event.isPopupTrigger()) {
-        mySurface.onPopupMenuTrigger(event, true);
+        myInteractionProvider.popupMenuTrigger(event, true);
       }
     }
 
@@ -490,7 +490,7 @@ public class InteractionManager implements Disposable {
       myLastModifiersEx = event.getModifiersEx();
 
       if (event.isPopupTrigger()) {
-        mySurface.onPopupMenuTrigger(event, true);
+        myInteractionProvider.popupMenuTrigger(event, true);
         event.consume();
         return;
       }
@@ -530,7 +530,7 @@ public class InteractionManager implements Disposable {
         return;
       }
       if (event.isPopupTrigger()) {
-        mySurface.onPopupMenuTrigger(event, true);
+        myInteractionProvider.popupMenuTrigger(event, true);
         return;
       }
 
@@ -565,7 +565,7 @@ public class InteractionManager implements Disposable {
       int modifiersEx = event.getModifiersEx();
 
       if (myCurrentInteraction == null) {
-        mySurface.onMouseReleaseWithoutInteraction(x, y, modifiersEx);
+        myInteractionProvider.mouseReleaseWhenNoInteraction(x, y, modifiersEx);
         updateCursor(x, y, modifiersEx);
       }
       else {

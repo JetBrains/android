@@ -246,11 +246,6 @@ public final class StudioFlags {
     "Enable the Convert View Action when right clicking on a component",
     true);
 
-  public static final Flag<Boolean> ENABLE_NEW_SCOUT = Flag.create(
-    NELE, "exp.scout.engine", "Experimental version of the Scout inference system",
-    "Enable experimental version of the Scout inference system",
-    false);
-
   public static final Flag<Boolean> NELE_RENDER_DIAGNOSTICS = Flag.create(
     NELE, "diagnostics", "Enable rendering on-screen stats",
     "If enabled, the surface displays some debug information to diagnose performance",
@@ -302,11 +297,6 @@ public final class StudioFlags {
     "Enable the shadow rendering in Layout Editor",
     true);
 
-  public static final Flag<Boolean> NELE_CONSTRAINT_SECTION = Flag.create(
-    NELE, "constraint.section", "Constraint Section",
-    "Show the constraint section for constraint widget in property panel",
-    true);
-
   public static final Flag<Boolean> NELE_PROPERTY_PANEL_ACTIONBAR = Flag.create(
     NELE, "property.panel.actionbar", "Property Panel Actionbar",
     "Support Actionbar in property panel",
@@ -335,7 +325,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_COLOR_BLIND_MODE = Flag.create(
     NELE, "color.blind.mode", "Color Blind Mode",
     "Enable Visualisation Tool to preview layouts in multiple color blind modes at the same time",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_NEW_INTERACTION_INTERFACE = Flag.create(
     NELE, "new.interaction.interface", "New Interaction Interface",
@@ -475,12 +465,16 @@ public final class StudioFlags {
   public static final Flag<Boolean> LAYOUT_INSPECTOR_EDITING_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "ui.editing", "Enable editing ViewNode properties in the properties table.",
     "If enabled, users can edit properties in the properties table.", false);
-  public static final Flag<Boolean>  DYNAMIC_LAYOUT_INSPECTOR_ENABLED = Flag.create(
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector", "Enable dynamic layout inspector",
     "Turns on the dynamic layout inspector.", true);
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_EDITING_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.editor", "Enable dynamic layout editor",
     "If enabled, users can edit layout properties with live updates on a device while the dynamic layout inspector is running.",
+    false);
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.legacy.devices", "View legacy devices in the dynamic layout inspector",
+    "If enabled, pre-api 29 devices will be available in the dynamic layout inspector in a reduced-functionality compatibility mode.",
     false);
   //endregion
 
@@ -694,6 +688,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> ANTIVIRUS_METRICS_ENABLED = Flag.create(
     SYSTEM_HEALTH, "antivirus.metrics.enabled", "Enable antivirus metrics collection",
     "If enabled, metrics about the status of antivirus realtime scanning and excluded directories will be collected",
+    true);
+
+  public static final Flag<Boolean> ANTIVIRUS_CHECK_USE_REGISTRY = Flag.create(
+    SYSTEM_HEALTH, "antivirus.check.registry", "Use registry instead of PowerShell for checking antivirus status",
+    "If enabled, the antivirus status checker will use the Windows registry instead of PowerShell commands",
     true);
   //endregion
 

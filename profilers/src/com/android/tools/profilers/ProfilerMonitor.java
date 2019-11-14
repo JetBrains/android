@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.TooltipModel;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -62,7 +63,7 @@ public abstract class ProfilerMonitor extends AspectModel<ProfilerMonitor.Aspect
 
   public abstract String getName();
 
-  public abstract ProfilerTooltip buildTooltip();
+  public abstract TooltipModel buildTooltip();
 
   public void setFocus(boolean focus) {
     if (focus != myFocus) {

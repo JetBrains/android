@@ -22,10 +22,12 @@ import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.ui.JBColor;
+import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.datatransfer.StringSelection;
 import java.awt.image.BufferedImage;
@@ -98,6 +100,12 @@ public class MEUI {
     return UIUtil.createImage(w, h, type);
   }
 
+  public static class CSPanel {
+    public static final Color our_SelectedFocusBackground =
+      makeColor("UIDesigner.motion.ourCS_SelectedFocusBackground", 0x3973d6, 0x1886F7);
+    public static final Color our_SelectedBackground =
+       makeColor("UIDesigner.motion.ourCS_SelectedBackground", 0xD3D3D3, 0x797B7C);
+  }
   public static class Overview {
     public static final Color ourCS = makeColor("UIDesigner.motion.ConstraintSet", 0xFFFFFF, 0x515658);
     public static final Color ourCSText = makeColor("UIDesigner.motion.ConstraintSetText", 0x000000, 0xC7C7C7);
@@ -111,6 +119,7 @@ public class MEUI {
     public static final Color ourCS_Border = makeColor("UIDesigner.motion.ourCS_Border", 0xBEBEBE, 0x6D6D6E);
     public static final Color ourCS_Background = makeColor("UIDesigner.motion.ourCS_Background", 0xFFFFFF, 0x515658);
     public static final Color ourCS_TextColor = makeColor("UIDesigner.motion.ourCS_TextColor", 0x686868, 0xc7c7c7);
+    public static final Color ourCS_FocusTextColor = makeColor("UIDesigner.motion.cs_FocusText", 0x000000, 0xFFFFFF);
     public static final Color ourML_BarColor = makeColor("UIDesigner.motion.ourML_BarColor", 0xd8d8d8, 0x808385);
     public static final Color ourPositionColor = makeColor("UIDesigner.motion.PositionMarkColor", 0XF0A732, 0XF0A732);
   }
@@ -190,5 +199,9 @@ public class MEUI {
   public static void cut(MTag tag) {
     CopyPasteManager.getInstance().setContents(new StringSelection(MTag.serializeTag(tag)));
     tag.getTagWriter().deleteTag().commit("cut");
+  }
+
+  public static Icon generateImageIcon(Image image) {
+    return IconUtil.createImageIcon(image);
   }
 }

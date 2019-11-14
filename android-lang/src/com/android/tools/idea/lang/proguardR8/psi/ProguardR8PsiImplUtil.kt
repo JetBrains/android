@@ -59,6 +59,10 @@ private class ProguardR8JavaClassReferenceProvider(
   }
 }
 
+fun containsWildcards(className: ProguardR8QualifiedName): Boolean {
+  return className.node.findChildByType(ProguardR8Lexer.wildcardsTokenSet) != null
+}
+
 fun getReferences(className: ProguardR8QualifiedName): Array<PsiReference> {
   val provider = ProguardR8JavaClassReferenceProvider(className.resolveScope, true)
   var referenceSet = provider.getReferencesByElement(className)
@@ -77,10 +81,19 @@ fun resolveToPsiClass(className: ProguardR8QualifiedName): PsiClass? {
 }
 
 /**
- * Returns all resolvable psiClasses found in header, including classes that specified after "extends"/"implements" key words.
+ * Returns all resolvable psiClasses found in header, excluding classes that specified after "extends"/"implements" key words.
+ *
+ * Example: for "-keep myClass1, myClass2 extends myClass3" returns "myClass1", "myClass2"
  */
 fun resolvePsiClasses(classSpecificationHeader: ProguardR8ClassSpecificationHeader): List<PsiClass> {
-  return classSpecificationHeader.classNameList.mapNotNull { it.qualifiedName.resolveToPsiClass() }
+  return classSpecificationHeader.classNameList.mapNotNull { it.qualifiedName?.resolveToPsiClass() }
+}
+
+/**
+ * Returns classes in header that specified after "extends"/"implements" key words.
+ */
+fun resolveSuperPsiClasses(classSpecificationHeader: ProguardR8ClassSpecificationHeader): List<PsiClass> {
+  return classSpecificationHeader.superClassNameList.mapNotNull { it.qualifiedName?.resolveToPsiClass() }
 }
 
 fun getPsiPrimitive(proguardR8JavaPrimitive: ProguardR8JavaPrimitive): PsiPrimitiveType? {

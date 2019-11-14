@@ -34,18 +34,12 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget<State> {
   @NotNull
   private final Collection<Device> myDevices;
 
-  // TODO Delete this
-  @Nullable
-  private final Snapshot mySnapshot;
-
-  DeviceAndSnapshotComboBoxTarget(@Nullable Device device, @Nullable Snapshot snapshot) {
+  DeviceAndSnapshotComboBoxTarget(@Nullable Device device) {
     myDevices = device == null ? Collections.emptyList() : Collections.singletonList(device);
-    mySnapshot = snapshot;
   }
 
   DeviceAndSnapshotComboBoxTarget(@NotNull Collection<Device> devices) {
     myDevices = devices;
-    mySnapshot = null;
   }
 
   @Override
@@ -64,7 +58,7 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget<State> {
   public DeviceFutures getDevices(@NotNull State state, @NotNull AndroidFacet facet, @NotNull DeviceCount count, boolean debug, int id) {
     DeviceFutures futures = new DeviceFutures(new ArrayList<>(myDevices.size()));
     Project project = facet.getModule().getProject();
-    myDevices.forEach(device -> device.addTo(futures, project, mySnapshot));
+    myDevices.forEach(device -> device.addTo(futures, project));
 
     return futures;
   }

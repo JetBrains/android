@@ -108,18 +108,6 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
   }
 
   @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    super.addParsedElement(element);
-    maybeRenameElement(element);
-  }
-
-  @Override
-  public void setParsedElement(@NotNull GradleDslElement element) {
-    super.setParsedElement(element);
-    maybeRenameElement(element);
-  }
-
-  @Override
   public boolean isInsignificantIfEmpty() {
     // "release" and "debug" Build Type blocks can be deleted if empty
     return myName.name().equals("release") || myName.name().equals("debug");

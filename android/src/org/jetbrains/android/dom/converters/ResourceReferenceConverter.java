@@ -595,11 +595,11 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         }
         else {
           Set<ResourceType> types = getResourceTypes(context);
-          if (types.contains(ResourceType.BOOL) && types.size() < VALUE_RESOURCE_TYPES.size()) {
+          if (types.size() == 1 && types.contains(ResourceType.BOOL)) {
             // For a boolean we *only* accept true or false if it's not a resource reference
-            // (We're checking  VALUE_RESOURCE_TYPES.size above since for properties with
-            // *unknown type* we're including all resource types, and we don't want to start
-            // flagging colors (#ff00ff) as unresolved etc.
+            // We're only performing this check if the eligible resource type is only boolean
+            // as we don't want to start flagging resource values with multiple resource type
+            // formats eg. "string|boolean|color" as unresolved etc.
             if (!(VALUE_TRUE.equals(s) || VALUE_FALSE.equals(s))) {
               return null;
             }

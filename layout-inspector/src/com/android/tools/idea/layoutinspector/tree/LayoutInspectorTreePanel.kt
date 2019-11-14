@@ -23,7 +23,6 @@ import com.android.tools.componenttree.api.ViewNodeType
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.IdeActions
@@ -39,7 +38,6 @@ const val GOTO_DEFINITION_ACTION_KEY = "gotoDefinition"
 
 class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   private var layoutInspector: LayoutInspector? = null
-  private var client: InspectorClient? = null
   private val componentTree: JComponent
   private val componentTreeModel: ComponentTreeModel
 
@@ -67,7 +65,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   private fun showPopup(component: JComponent, x: Int, y: Int) {
     val node = componentTreeSelectionModel.selection.singleOrNull() as ViewNode?
     if (node != null) {
-      layoutInspector?.let { showViewContextMenu(node, it, component, x, y) }
+      layoutInspector?.let { showViewContextMenu(node, it.layoutInspectorModel, component, x, y) }
     }
   }
 
@@ -76,7 +74,6 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     layoutInspector?.layoutInspectorModel?.modificationListeners?.remove(this::modelModified)
     layoutInspector = toolContext
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add(this::modelModified)
-    client = layoutInspector?.client
     toolContext?.layoutInspectorModel?.selectionListeners?.add(this::selectionChanged)
   }
 

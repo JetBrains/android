@@ -35,7 +35,6 @@ import com.android.tools.idea.sqlite.model.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
-import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
@@ -431,37 +430,7 @@ class SqliteControllerTest : PlatformTestCase() {
     // Assert
     verify(sqliteView).updateDatabase(
       sqliteDatabase1,
-      emptyList(),
-      listOf(IndexedSqliteTable(0, SqliteTable("table", emptyList(), false)))
-    )
-  }
-
-  fun testUpdateExistingDatabaseRemoveTables() {
-    // Prepare
-    val schema = SqliteSchema(listOf(SqliteTable("table1", emptyList(), false), SqliteTable("table2", emptyList(), false)))
-    val newSchema = SqliteSchema(emptyList())
-    val evaluatorView = viewFactory.sqliteEvaluatorView
-
-    // Prepare
-    `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(schema))
-    `when`(mockSqliteService.executeUpdate(SqliteStatement("INSERT"))).thenReturn(Futures.immediateFuture(0))
-
-    sqliteController.openSqliteDatabase(sqliteFile1)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    sqliteView.viewListeners.first().openSqliteEvaluatorTabActionInvoked()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    // Act
-    `when`(mockSqliteService.readSchema()).thenReturn(Futures.immediateFuture(newSchema))
-    evaluatorView.listeners.forEach { it.evaluateSqlActionInvoked(sqliteDatabase1, "INSERT") }
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    // Assert
-    verify(sqliteView).updateDatabase(
-      sqliteDatabase1,
-      listOf(SqliteTable("table1", emptyList(), false), SqliteTable("table2", emptyList(), false)),
-      emptyList()
+      listOf(SqliteTable("table", emptyList(), false))
     )
   }
 

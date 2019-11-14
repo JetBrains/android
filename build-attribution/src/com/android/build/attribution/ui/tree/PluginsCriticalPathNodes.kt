@@ -24,7 +24,6 @@ import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.durationString
-import com.android.build.attribution.ui.taskIcon
 import com.android.build.attribution.ui.issuesCountString
 import com.android.build.attribution.ui.panels.AbstractBuildAttributionInfoPanel
 import com.android.build.attribution.ui.panels.ChartBuildAttributionInfoPanel
@@ -39,6 +38,7 @@ import com.android.build.attribution.ui.panels.headerLabel
 import com.android.build.attribution.ui.panels.pluginInfoPanel
 import com.android.build.attribution.ui.panels.pluginTasksListPanel
 import com.android.build.attribution.ui.panels.taskInfoPanel
+import com.android.build.attribution.ui.taskIcon
 import com.intellij.ui.treeStructure.SimpleNode
 import java.util.ArrayList
 import java.util.HashMap
@@ -116,7 +116,7 @@ private class PluginNode(
     }
   }
 
-  override val presentationIcon: Icon? = colorIcon(selectedChartItem.legendColor)
+  override val presentationIcon: Icon? = colorIcon(selectedChartItem.legendColor.baseColor)
 
   override val issuesCountsSuffix: String? = issuesCountString(pluginData.warningCount, pluginData.infoCount)
 

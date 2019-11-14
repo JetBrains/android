@@ -15,10 +15,7 @@
  */
 package org.jetbrains.android.refactoring.renaming
 
-import com.android.SdkConstants
 import com.android.ide.common.resources.ValueResourceNameValidator
-import com.android.resources.ResourceFolderType
-import com.android.resources.ResourceUrl
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
@@ -37,17 +34,12 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiReference
 import com.intellij.psi.search.SearchScope
-import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.util.parentOfType
-import com.intellij.psi.xml.XmlTag
 import com.intellij.refactoring.listeners.RefactoringElementListener
 import com.intellij.refactoring.rename.RenameDialog
 import com.intellij.refactoring.rename.RenameHandler
 import com.intellij.refactoring.rename.RenamePsiElementProcessor
 import org.jetbrains.android.util.AndroidBuildCommonUtils.PNG_EXTENSION
 import org.jetbrains.android.util.AndroidResourceUtil
-import org.jetbrains.android.util.AndroidResourceUtil.VALUE_RESOURCE_TYPES
-import org.jetbrains.android.util.AndroidResourceUtil.isInResourceSubdirectory
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 /**
@@ -138,8 +130,7 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
       val offset = CommonDataKeys.CARET.getData(dataContext)?.offset ?: return null
       val file = CommonDataKeys.PSI_FILE.getData(dataContext) ?: return null
       val elementInFile = file.findElementAt(offset) ?: return null
-      val nameAttrValuePsiElement = getTagForValuesResource(elementInFile, file)?.getAttribute(SdkConstants.ATTR_NAME)?.valueElement
-      return (nameAttrValuePsiElement?.reference?.resolve() as? ResourceReferencePsiElement)?.toWritableResourceReferencePsiElement()
+      return AndroidResourceUtil.getResourceElementFromSurroundingValuesTag(elementInFile)?.toWritableResourceReferencePsiElement()
     }
   }
 
@@ -187,20 +178,6 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
       if (errorText != null) {
         throw ConfigurationException(errorText)
       }
-    }
-  }
-
-  private fun getTagForValuesResource(element: PsiElement, file: PsiFile) : XmlTag? {
-    if (!isInResourceSubdirectory(file, ResourceFolderType.VALUES.getName()) ||
-        (element.text != null && ResourceUrl.parse(element.text) != null)) {
-      return null
-    }
-    else {
-      val tag = element.parentOfType<XmlTag>() ?: return null
-      if (VALUE_RESOURCE_TYPES.contains(AndroidResourceUtil.getResourceTypeForResourceTag(tag))) {
-        return tag
-      }
-      return null
     }
   }
 }

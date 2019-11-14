@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Drawing;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -48,6 +49,7 @@ import javax.swing.JPanel;
 class OverviewPanel extends JPanel {
   public static final boolean DEBUG = false;
   private static final int ROUND_SIZE = 5;
+  static Font ourBaseFont = new Font("SansSerif", Font.BOLD, 12);
   MEScenePicker picker = new MEScenePicker();
   MTag mMotionScene;
   MTag[] mConstraintSet;
@@ -68,7 +70,7 @@ class OverviewPanel extends JPanel {
   int[] mRectPathY = new int[mRectPathLen];
   private boolean mComputedDerivedLines = false;
   private static int MIN_CS_WIDTH = MEUI.scale(50);
-  private static int MAX_CS_WIDTH = MEUI.scale(60);
+  private static int MAX_CS_WIDTH = MEUI.scale(80);
   boolean mHighlightStart = false;
   boolean mHighlightEnd = false;
   private static final String MAIN_TOOL_TIP = null;
@@ -192,6 +194,7 @@ class OverviewPanel extends JPanel {
                        else if (mConstraintSetSelected >= 0) {
                          switch (e.getKeyCode()) {
                            case KeyEvent.VK_DELETE:
+                           case KeyEvent.VK_BACK_SPACE:
                              if (mConstraintSetSelected > 0) {
                                mListener.delete(new MTag[]{mConstraintSet[mConstraintSetSelected - 1]}, 0);
                              }
@@ -506,7 +509,7 @@ class OverviewPanel extends JPanel {
 
     // calculate and set the font based on fitting the ConstraintSet ids
     g2g.setStroke(mThickStroke);
-
+    g.setFont(ourBaseFont);
     FontMetrics fm = g.getFontMetrics();
     String maxString = "Layout";
     int maxStringWidth = maxString.length();
@@ -521,7 +524,8 @@ class OverviewPanel extends JPanel {
     maxStringWidth = fm.stringWidth(maxString);
     int margin = MEUI.scale(1);
     while (csWidth < maxStringWidth + margin) {
-      g.setFont(g.getFont().deriveFont(g.getFont().getSize() / 1.4f));
+      float f = ourBaseFont.getSize() / 1.4f;
+      g.setFont(g.getFont().deriveFont(f));
       fm = g.getFontMetrics();
       maxStringWidth = fm.stringWidth(maxString);
     }
@@ -558,9 +562,11 @@ class OverviewPanel extends JPanel {
 
       String name = drawLayout ? "Layout" : mConstraintSetNames[setIndex];
       Color colorBackground = MEUI.Overview.ourCS_Background;
+      Color textColor = MEUI.Overview.ourCS_TextColor;
       if (mConstraintSetSelected == i) {
         if (focus) {
           colorBackground = MEUI.Overview.ourCS_SelectedFocusBackground;
+          textColor = MEUI.Overview.ourCS_FocusTextColor;
         }
         else {
           colorBackground = MEUI.Overview.ourCS_SelectedBackground;
@@ -571,6 +577,7 @@ class OverviewPanel extends JPanel {
       g.fillRoundRect(x, y, csWidth, csHeight, space, space);
 
       Color color = colorNormalLine;
+
       if (hover) {
         color = colorHoverLine;
       }
@@ -595,7 +602,7 @@ class OverviewPanel extends JPanel {
         g.drawRoundRect(x, y, csWidth, csHeight, space, space);
         g.fillRect(x, y + csHeight / 4, csWidth, 2);
       }
-      g.setColor(MEUI.Overview.ourCS_TextColor);
+      g.setColor(textColor);
 
       if (drawLayout) {
         int stringWidth = fm.stringWidth("Motion");

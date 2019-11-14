@@ -25,6 +25,8 @@ import com.android.tools.idea.databinding.util.findVariableTag
 import com.android.tools.idea.lang.databinding.JAVA_LANG
 import com.android.tools.idea.lang.databinding.config.DbFileType
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
+import com.android.tools.idea.lang.databinding.model.PsiModelClass.MemberAccess.ALL_MEMBERS
+import com.android.tools.idea.lang.databinding.model.PsiModelClass.MemberAccess.STATICS_ONLY
 import com.android.tools.idea.lang.databinding.model.PsiModelField
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.tools.idea.lang.databinding.model.toModelClassResolvable
@@ -170,7 +172,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
         val langClass = simpleName.takeUnless { name -> name.contains('.') }
           ?.let { name -> javaPsiFacade.findClass(JAVA_LANG + name, GlobalSearchScope.moduleWithLibrariesScope(module)) }
         if (langClass != null) {
-          return arrayOf(PsiClassReference(element, langClass, true))
+          return arrayOf(PsiClassReference(element, langClass, STATICS_ONLY))
         }
 
         val psiPackage = javaPsiFacade.findPackage(simpleName)
@@ -183,7 +185,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
           val contextClass = LayoutBindingTypeUtil.parsePsiType(SdkConstants.CLASS_CONTEXT, element)
             ?.let { psiType -> (psiType as? PsiClassType)?.resolve() }
           if (contextClass != null) {
-            return arrayOf(PsiClassReference(element, contextClass, false))
+            return arrayOf(PsiClassReference(element, contextClass, ALL_MEMBERS))
           }
         }
       }
@@ -206,14 +208,14 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       val psiClass = psiModelClass.psiClass ?: return PsiReference.EMPTY_ARRAY
 
       // Find the reference to a field or its getter e.g. "var.field" may reference "var.field", "var.isField()" or "var.getField()".
-      val getterOrField = psiModelClass.findGetterOrField(fieldText, modelResolvable.isStatic)
-      when (getterOrField) {
+      when (val getterOrField =
+        psiModelClass.findGetterOrField(fieldText, modelResolvable.memberAccess)) {
         is PsiModelMethod -> {
           val getterReference = PsiMethodReference(refExpr, getterOrField, PsiMethodReference.Kind.METHOD_CALL)
           // Find the reference to setter method that has the same pattern and type.
           // e.g. `String getName()` and `setName(String)`
           val setterReference = getterOrField.returnType
-            ?.let { type -> psiModelClass.findSetter(fieldText, modelResolvable.isStatic, type) }
+            ?.let { type -> psiModelClass.findSetter(fieldText, type) }
             ?.let { setterMethod -> PsiMethodReference(refExpr, setterMethod, PsiMethodReference.Kind.METHOD_REFERENCE) }
           return if (setterReference != null) arrayOf(getterReference, setterReference) else arrayOf(getterReference)
         }
@@ -223,7 +225,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       }
 
       // Find the reference to a listener method without parentheses. e.g. "var.onClick".
-      val methods = psiModelClass.findMethods(fieldText, staticOnly = false)
+      val methods = psiModelClass.findMethods(fieldText, modelResolvable.memberAccess)
       if (methods.isNotEmpty()) {
         return methods.map { modelMethod ->
           PsiMethodReference(refExpr, modelMethod, PsiMethodReference.Kind.METHOD_REFERENCE)
@@ -233,7 +235,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       // Find the reference to an inner class.
       val innerClass = psiClass.findInnerClassByName(fieldText, true)
       if (innerClass != null && innerClass.hasModifierProperty(PsiModifier.PUBLIC)) {
-        return arrayOf(PsiClassReference(refExpr, innerClass, true))
+        return arrayOf(PsiClassReference(refExpr, innerClass, STATICS_ONLY))
       }
 
       // Find the reference to get() method if [psiModelClass] is an instance of [java.util.Map] and we can not find any other references.
@@ -275,7 +277,7 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
           val classes = aPackage.findClassByShortName(fieldText, scope)
           if (classes.isNotEmpty()) {
             return classes
-              .map { aClass -> PsiClassReference(refExpr, aClass, true) }
+              .map { aClass -> PsiClassReference(refExpr, aClass, STATICS_ONLY) }
               .toTypedArray()
           }
         }
@@ -298,7 +300,8 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
       val callExpr = element as PsiDbCallExpr
       val methodExpr = callExpr.refExpr.expr ?: return PsiReference.EMPTY_ARRAY
-      val psiModelClass = methodExpr.toModelClassResolvable()?.resolvedType?.unwrapped ?: return PsiReference.EMPTY_ARRAY
+      val modelClassResolvable = methodExpr.toModelClassResolvable() ?: return PsiReference.EMPTY_ARRAY
+      val psiModelClass = modelClassResolvable.resolvedType?.unwrapped ?: return PsiReference.EMPTY_ARRAY
 
       val methodArgs: MutableList<PsiModelClass?> = mutableListOf()
       callExpr.expressionList?.exprList?.forEach { expr -> methodArgs.add(expr.toModelClassResolvable()?.resolvedType) }
@@ -307,14 +310,19 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       if (!methodArgs.contains(null)) {
         @Suppress("NAME_SHADOWING") // We reframe List<PsiModelClass?> as List<PsiModelClass>
         val methodArgs = methodArgs.requireNoNulls()
-        val method = psiModelClass.getMethod(callExpr.refExpr.id.text, methodArgs, staticOnly = false, allowProtected = false)
+        val method = psiModelClass.getMethod(
+          callExpr.refExpr.id.text,
+          methodArgs,
+          modelClassResolvable.memberAccess,
+          allowProtected = false
+        )
         if (method is PsiModelMethod) {
           return arrayOf(PsiMethodReference(callExpr, method))
         }
       }
 
       // As a fallback, see if we can find a method by just its name
-      return psiModelClass.findMethods(callExpr.refExpr.id.text, staticOnly = false)
+      return psiModelClass.findMethods(callExpr.refExpr.id.text, modelClassResolvable.memberAccess)
         .map { modelMethod -> PsiMethodReference(callExpr, modelMethod) }
         .toTypedArray()
     }
@@ -336,8 +344,9 @@ class DataBindingExprReferenceContributor : PsiReferenceContributor() {
       val funRefExpr = element as PsiDbFunctionRefExpr
       val classExpr = funRefExpr.expr
       val methodExpr = funRefExpr.id
-      val psiModelClass = classExpr.toModelClassResolvable()?.resolvedType?.unwrapped ?: return PsiReference.EMPTY_ARRAY
-      return psiModelClass.findMethods(methodExpr.text, staticOnly = false)
+      val modelClassResolvable = classExpr.toModelClassResolvable() ?: return PsiReference.EMPTY_ARRAY
+      val psiModelClass = modelClassResolvable.resolvedType?.unwrapped ?: return PsiReference.EMPTY_ARRAY
+      return psiModelClass.findMethods(methodExpr.text, modelClassResolvable.memberAccess)
         .map { modelMethod -> PsiMethodReference(element, modelMethod) }
         .toTypedArray()
     }

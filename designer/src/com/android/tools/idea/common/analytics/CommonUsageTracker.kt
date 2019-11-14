@@ -16,9 +16,17 @@
 package com.android.tools.idea.common.analytics
 
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.rendering.RenderResult
+import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.GradleApplicationIdProvider
+import com.android.tools.idea.run.NonGradleApplicationIdProvider
+import com.android.tools.idea.stats.AnonymizerUtil
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
+import org.jetbrains.android.facet.AndroidFacet
 import java.util.function.Consumer
 
 /**
@@ -37,7 +45,7 @@ interface CommonUsageTracker {
    *
    * @param trigger The event that triggered the render action or null if not known.
    */
-  fun logRenderResult(trigger: LayoutEditorRenderResult.Trigger?, result: RenderResult, totalRenderTimeMs: Long)
+  fun logRenderResult(trigger: LayoutEditorRenderResult.Trigger?, result: RenderResult, totalRenderTimeMs: Long, wasInflated: Boolean)
 
   /**
    * Logs the given design tools event. This method will return immediately.
@@ -60,3 +68,15 @@ interface CommonUsageTracker {
     }
   }
 }
+
+fun AndroidStudioEvent.Builder.setApplicationId(facet: AndroidFacet): AndroidStudioEvent.Builder {
+  val appId = getApplicationId(facet)
+  return setRawProjectId(appId).setProjectId(AnonymizerUtil.anonymizeUtf8(appId))
+}
+
+private fun getApplicationId(facet: AndroidFacet): String  = getApplicationIdProvider(facet).packageName
+
+private fun getApplicationIdProvider(facet: AndroidFacet): ApplicationIdProvider =
+  if (AndroidModel.get(facet) is AndroidModuleModel)
+    GradleApplicationIdProvider(facet)
+  else NonGradleApplicationIdProvider(facet)

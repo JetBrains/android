@@ -18,11 +18,11 @@ package com.android.tools.idea.run.deployment;
 import static org.junit.Assert.assertEquals;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.testing.AndroidProjectRule;
+import com.google.common.util.concurrent.Futures;
 import java.util.Collections;
-import java.util.concurrent.Callable;
-import java.util.stream.Stream;
-import org.junit.Rule;
+import java.util.List;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -30,23 +30,22 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class ConnectedDevicesTaskTest {
-  @Rule
-  public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
-
   @Test
-  public void call() throws Exception {
+  public void get() throws Exception {
     // Arrange
-    Callable task = new ConnectedDevicesTask(myRule.getProject(), null, project -> {
-      IDevice device = Mockito.mock(IDevice.class);
-      Mockito.when(device.getSerialNumber()).thenReturn("emulator-5554");
+    IDevice device = Mockito.mock(IDevice.class);
 
-      return Stream.of(device);
-    });
+    AndroidDebugBridge bridge = Mockito.mock(AndroidDebugBridge.class);
+
+    // noinspection UnstableApiUsage
+    Mockito.when(bridge.getConnectedDevices()).thenReturn(Futures.immediateFuture(Collections.singletonList(device)));
+
+    ConnectedDevicesTask task = new ConnectedDevicesTask(bridge, true, null);
 
     // Act
-    Object devices = task.call();
+    Future<List<ConnectedDevice>> devices = task.get();
 
     // Assert
-    assertEquals(Collections.emptyList(), devices);
+    assertEquals(Collections.emptyList(), devices.get(1, TimeUnit.SECONDS));
   }
 }

@@ -23,9 +23,10 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class PackagingOptionsModelImpl extends GradleDslBlockModel implements PackagingOptionsModel {
-  @NonNls private static final String EXCLUDES = "excludes";
-  @NonNls private static final String MERGES = "merges";
-  @NonNls private static final String PICK_FIRSTS = "pickFirsts";
+  // FIXME: implement doNotStrip
+  @NonNls public static final String EXCLUDES = "mExcludes";
+  @NonNls public static final String MERGES = "mMerges";
+  @NonNls public static final String PICK_FIRSTS = "mPickFirsts";
 
   public PackagingOptionsModelImpl(@NotNull PackagingOptionsDslElement dslElement) {
     super(dslElement);
@@ -34,18 +35,18 @@ public class PackagingOptionsModelImpl extends GradleDslBlockModel implements Pa
   @Override
   @NotNull
   public ResolvedPropertyModel excludes() {
-    return getModelForProperty(EXCLUDES, true);
+    return getModelForProperty(EXCLUDES);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel merges() {
-    return getModelForProperty(MERGES, true);
+    return getModelForProperty(MERGES);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel pickFirsts() {
-    return getModelForProperty(PICK_FIRSTS, true);
+    return getModelForProperty(PICK_FIRSTS);
   }
 }

@@ -54,6 +54,7 @@ public interface ProguardR8PsiTypes {
   IElementType QUALIFIED_NAME = new ProguardR8AstNodeType("QUALIFIED_NAME");
   IElementType RULE = new ProguardR8AstNodeType("RULE");
   IElementType RULE_WITH_CLASS_SPECIFICATION = new ProguardR8AstNodeType("RULE_WITH_CLASS_SPECIFICATION");
+  IElementType SUPER_CLASS_NAME = new ProguardR8AstNodeType("SUPER_CLASS_NAME");
   IElementType TYPE = new ProguardR8AstNodeType("TYPE");
   IElementType TYPE_LIST = new ProguardR8AstNodeType("TYPE_LIST");
 
@@ -77,12 +78,12 @@ public interface ProguardR8PsiTypes {
   IElementType DOT = new ProguardR8TokenType(".");
   IElementType DOUBLE = new ProguardR8TokenType("double");
   IElementType DOUBLE_ASTERISK = new ProguardR8TokenType("DOUBLE_ASTERISK");
+  IElementType DOUBLE_QUOTED_CLASS = new ProguardR8TokenType("DOUBLE_QUOTED_CLASS");
+  IElementType DOUBLE_QUOTED_STRING = new ProguardR8TokenType("DOUBLE_QUOTED_STRING");
   IElementType EM = new ProguardR8TokenType("!");
   IElementType ENUM = new ProguardR8TokenType("enum");
   IElementType EXTENDS = new ProguardR8TokenType("extends");
   IElementType FILE_NAME = new ProguardR8TokenType("FILE_NAME");
-  IElementType FILE_NAME_DOUBLE_QUOTED = new ProguardR8TokenType("FILE_NAME_DOUBLE_QUOTED");
-  IElementType FILE_NAME_SINGLE_QUOTED = new ProguardR8TokenType("FILE_NAME_SINGLE_QUOTED");
   IElementType FINAL = new ProguardR8TokenType("final");
   IElementType FLAG = new ProguardR8TokenType("FLAG");
   IElementType FLOAT = new ProguardR8TokenType("float");
@@ -105,12 +106,16 @@ public interface ProguardR8PsiTypes {
   IElementType RPAREN = new ProguardR8TokenType(")");
   IElementType SEMICOLON = new ProguardR8TokenType(";");
   IElementType SHORT = new ProguardR8TokenType("short");
+  IElementType SINGLE_QUOTED_CLASS = new ProguardR8TokenType("SINGLE_QUOTED_CLASS");
+  IElementType SINGLE_QUOTED_STRING = new ProguardR8TokenType("SINGLE_QUOTED_STRING");
   IElementType STATIC = new ProguardR8TokenType("static");
   IElementType STRICTFP = new ProguardR8TokenType("strictfp");
   IElementType SYNCHRONIZED = new ProguardR8TokenType("synchronized");
   IElementType TRANSIENT = new ProguardR8TokenType("transient");
-  IElementType UNTERMINATED_FILE_NAME_DOUBLE_QUOTED = new ProguardR8TokenType("UNTERMINATED_FILE_NAME_DOUBLE_QUOTED");
-  IElementType UNTERMINATED_FILE_NAME_SINGLE_QUOTED = new ProguardR8TokenType("UNTERMINATED_FILE_NAME_SINGLE_QUOTED");
+  IElementType UNTERMINATED_DOUBLE_QUOTED_CLASS = new ProguardR8TokenType("UNTERMINATED_DOUBLE_QUOTED_CLASS");
+  IElementType UNTERMINATED_DOUBLE_QUOTED_STRING = new ProguardR8TokenType("UNTERMINATED_DOUBLE_QUOTED_STRING");
+  IElementType UNTERMINATED_SINGLE_QUOTED_CLASS = new ProguardR8TokenType("UNTERMINATED_SINGLE_QUOTED_CLASS");
+  IElementType UNTERMINATED_SINGLE_QUOTED_STRING = new ProguardR8TokenType("UNTERMINATED_SINGLE_QUOTED_STRING");
   IElementType VALUES = new ProguardR8TokenType("values");
   IElementType VOID = new ProguardR8TokenType("void");
   IElementType VOLATILE = new ProguardR8TokenType("volatile");
@@ -209,6 +214,9 @@ public interface ProguardR8PsiTypes {
       }
       else if (type == RULE_WITH_CLASS_SPECIFICATION) {
         return new ProguardR8RuleWithClassSpecificationImpl(node);
+      }
+      else if (type == SUPER_CLASS_NAME) {
+        return new ProguardR8SuperClassNameImpl(node);
       }
       else if (type == TYPE) {
         return new ProguardR8TypeImpl(node);

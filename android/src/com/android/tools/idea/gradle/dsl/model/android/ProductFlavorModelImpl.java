@@ -83,7 +83,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @Override
   @NotNull
   public ResolvedPropertyModel dimension() {
-    return getModelForProperty(DIMENSION, true);
+    return getModelForProperty(DIMENSION);
   }
 
   @Override
@@ -107,13 +107,13 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @Override
   @NotNull
   public ResolvedPropertyModel maxSdkVersion() {
-    return getModelForProperty(MAX_SDK_VERSION, true);
+    return getModelForProperty(MAX_SDK_VERSION);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel minSdkVersion() {
-    return getModelForProperty(MIN_SDK_VERSION, true);
+    return getModelForProperty(MIN_SDK_VERSION);
   }
 
   @NotNull
@@ -134,7 +134,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
     GradleDslExpressionList list = new GradleDslExpressionList(myDslElement, GradleNameElement.create(MISSING_DIMENSION_STRATEGY), false);
     myDslElement.setNewElement(list);
     list.setElementType(REGULAR);
-    ResolvedPropertyModel model = GradlePropertyModelBuilder.create(list).asMethod(true).buildResolved();
+    ResolvedPropertyModel model = GradlePropertyModelBuilder.create(list).buildResolved();
     model.addListValue().setValue(dimension);
     for (Object fallback : fallbacks) {
       model.addListValue().setValue(fallback);
@@ -181,7 +181,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @Override
   @NotNull
   public ResolvedPropertyModel resConfigs() {
-    return getModelForProperty(RES_CONFIGS, true);
+    return getModelForProperty(RES_CONFIGS);
   }
 
   @NotNull
@@ -211,7 +211,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @Override
   @NotNull
   public ResolvedPropertyModel targetSdkVersion() {
-    return getModelForProperty(TARGET_SDK_VERSION, true);
+    return getModelForProperty(TARGET_SDK_VERSION);
   }
 
   @Override
@@ -223,13 +223,13 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @Override
   @NotNull
   public ResolvedPropertyModel testFunctionalTest() {
-    return getModelForProperty(TEST_FUNCTIONAL_TEST, true);
+    return getModelForProperty(TEST_FUNCTIONAL_TEST);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel testHandleProfiling() {
-    return getModelForProperty(TEST_HANDLE_PROFILING, true);
+    return getModelForProperty(TEST_HANDLE_PROFILING);
   }
 
   @Override

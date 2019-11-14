@@ -111,8 +111,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     super(null);
     mMain = new SingleWidgetView(mColorSet, myWidgetModel);
     mMain.setOpaque(false);
-    myConstraintSection = StudioFlags.NELE_CONSTRAINT_SECTION.get() ? new WidgetConstraintSection(myWidgetModel)
-                                                                    : new WidgetEmptySection();
+    myConstraintSection = new WidgetConstraintSection(myWidgetModel);
     myConstraintSection.setOpaque(false);
 
     setPreferredSize(JBUI.size(PANEL_WIDTH, PANEL_HEIGHT));

@@ -25,18 +25,18 @@ import com.intellij.psi.PsiElement;
 public interface ProguardR8IncludeFile extends PsiElement {
 
   @Nullable
+  PsiElement getDoubleQuotedString();
+
+  @Nullable
   PsiElement getFileName();
 
   @Nullable
-  PsiElement getFileNameDoubleQuoted();
+  PsiElement getSingleQuotedString();
 
   @Nullable
-  PsiElement getFileNameSingleQuoted();
+  PsiElement getUnterminatedDoubleQuotedString();
 
   @Nullable
-  PsiElement getUnterminatedFileNameDoubleQuoted();
-
-  @Nullable
-  PsiElement getUnterminatedFileNameSingleQuoted();
+  PsiElement getUnterminatedSingleQuotedString();
 
 }

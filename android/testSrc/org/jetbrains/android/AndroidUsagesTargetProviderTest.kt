@@ -105,7 +105,7 @@ class AndroidUsagesTargetProviderTest : AndroidTestCase() {
   }
 
   private fun checkContextElement(targetElement: ResourceReferencePsiElement) {
-    val elementInFile = myFixture.file!!.findReferenceAt(myFixture.editor.caretModel.offset)!!.element
+    val elementInFile = myFixture.file.findElementAt(myFixture.editor.caretModel.offset)
     val contextElement = targetElement.getCopyableUserData(ResourceReferencePsiElement.RESOURCE_CONTEXT_ELEMENT)
     assertThat(contextElement).isEqualTo(elementInFile)
   }

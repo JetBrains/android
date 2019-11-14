@@ -21,8 +21,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +39,7 @@ final class SnapshotActionGroup extends ActionGroup {
   private final Project myProject;
 
   SnapshotActionGroup(@NotNull List<Device> devices, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction, @NotNull Project project) {
-    super(getText(devices), null, getProperty(devices, Device::getIcon));
+    super(getText(devices), null, getIcon(devices));
     setPopup(true);
 
     myDevices = devices;
@@ -62,6 +64,16 @@ final class SnapshotActionGroup extends ActionGroup {
       .allMatch(Predicate.isEqual(property));
 
     return property;
+  }
+
+  @NotNull
+  private static Icon getIcon(@NotNull List<Device> devices) {
+    Optional<Icon> icon = devices.stream()
+      .filter(Device::isConnected)
+      .map(Device::getIcon)
+      .findFirst();
+
+    return icon.orElse(devices.get(0).getIcon());
   }
 
   @NotNull

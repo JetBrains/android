@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander
 
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.HeapGraph
 import com.intellij.util.SmartFMap
 
 /** [SmartFMap] is a map optimized for holding a small number of items. It has an Object field 'myMap' which either
@@ -24,7 +23,7 @@ import com.intellij.util.SmartFMap
  * Without the handling provided by this class, BLeak would not be able to follow the expansion of the map across
  * this boundary.
  */
-class SmartFMapExpander(g: HeapGraph): Expander(g) {
+class SmartFMapExpander(): Expander() {
   override fun canExpand(obj: Any) = obj is SmartFMap<*,*>
 
   override fun canPotentiallyGrowIndefinitely(n: Node) = true

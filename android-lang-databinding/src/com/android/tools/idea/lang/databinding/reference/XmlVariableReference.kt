@@ -86,6 +86,5 @@ internal class XmlVariableReference(element: PsiElement,
     return JavaPsiFacade.getElementFactory(psiClass.project).createType(psiClass, *(parameters.toTypedArray()))
   }
 
-  override val isStatic: Boolean
-    get() = false
+  override val memberAccess = PsiModelClass.MemberAccess.ALL_MEMBERS
 }

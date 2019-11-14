@@ -37,6 +37,5 @@ internal class XmlAttributeReference(element: PsiElement,
       return PsiModelClass(PsiTypesUtil.getClassType(viewClass), DataBindingMode.fromPsiElement(element))
     }
 
-  override val isStatic: Boolean
-    get() = false
+  override val memberAccess = PsiModelClass.MemberAccess.ALL_MEMBERS
 }

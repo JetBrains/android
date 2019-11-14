@@ -326,14 +326,18 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
   }
 
   protected final void doTestOnClickQuickfix(VirtualFile file) {
+    doTestOnClickQuickfix(file, AndroidMissingOnClickHandlerInspection.MyQuickFix.class, "onClickIntention.xml");
+  }
+
+  protected final void doTestOnClickQuickfix(VirtualFile file, Class<? extends IntentionAction> klass, String expectedFile) {
     myFixture.configureFromExistingVirtualFile(file);
-    List<IntentionAction> actions = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
+    List<IntentionAction> actions = highlightAndFindQuickFixes(klass);
     assertEquals(1, actions.size());
     IntentionAction action = actions.get(0);
-    assertInstanceOf(action, AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
+    assertInstanceOf(action, klass);
     WriteCommandAction.runWriteCommandAction(
-      null, () -> ((AndroidMissingOnClickHandlerInspection.MyQuickFix)action).doApplyFix(getProject()));
-    myFixture.checkResultByFile(myTestFolder + "/onClickIntention.xml");
+      null, () -> (klass.cast(action)).invoke(getProject(), myFixture.getEditor(), null));
+    myFixture.checkResultByFile(myTestFolder + "/" + expectedFile);
   }
 }
 

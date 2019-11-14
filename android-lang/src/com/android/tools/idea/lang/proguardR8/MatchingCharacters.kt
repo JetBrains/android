@@ -40,8 +40,8 @@ class ProguardR8PairedBraceMatcher : PairedBraceMatcher {
  * [com.intellij.codeInsight.editorActions.QuoteHandler] for ProguardR8. Makes the IDE insert the matching quote when typing.
  */
 class ProguardR8QuoteHandler : SimpleTokenSetQuoteHandler(
-  ProguardR8PsiTypes.FILE_NAME_DOUBLE_QUOTED,
-  ProguardR8PsiTypes.FILE_NAME_SINGLE_QUOTED,
-  ProguardR8PsiTypes.UNTERMINATED_FILE_NAME_DOUBLE_QUOTED,
-  ProguardR8PsiTypes.UNTERMINATED_FILE_NAME_SINGLE_QUOTED
+  ProguardR8PsiTypes.SINGLE_QUOTED_STRING,
+  ProguardR8PsiTypes.DOUBLE_QUOTED_STRING,
+  ProguardR8PsiTypes.UNTERMINATED_SINGLE_QUOTED_STRING,
+  ProguardR8PsiTypes.UNTERMINATED_DOUBLE_QUOTED_STRING
 )

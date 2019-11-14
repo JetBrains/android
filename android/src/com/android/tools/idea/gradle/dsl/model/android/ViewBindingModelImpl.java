@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class ViewBindingModelImpl extends GradleDslBlockModel implements ViewBindingModel {
-  @NonNls private static final String ENABLED = "enabled";
+  @NonNls public static final String ENABLED = "mEnabled";
 
   public ViewBindingModelImpl(@NotNull ViewBindingDslElement dslElement) {
     super(dslElement);
@@ -32,6 +32,6 @@ public class ViewBindingModelImpl extends GradleDslBlockModel implements ViewBin
   @Override
   @NotNull
   public ResolvedPropertyModel enabled() {
-    return getModelForProperty(ENABLED, true);
+    return getModelForProperty(ENABLED);
   }
 }

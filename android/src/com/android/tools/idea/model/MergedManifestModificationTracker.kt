@@ -16,6 +16,9 @@
 package com.android.tools.idea.model
 
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.openapi.util.ModificationTracker
@@ -28,6 +31,7 @@ import com.intellij.openapi.util.SimpleModificationTracker
  */
 class MergedManifestModificationTracker(val module: Module) : ModificationTracker {
   private val manifestContributorTracker = SimpleModificationTracker()
+  private val LOG: Logger get() = logger(::LOG)
 
   companion object {
     @JvmStatic
@@ -48,5 +52,6 @@ class MergedManifestModificationTracker(val module: Module) : ModificationTracke
    */
   fun manifestChanged() {
     manifestContributorTracker.incModificationCount()
+    LOG.debug { "MergedManifest Modification Tracker of ${module} is updated to ${modificationCount}" }
   }
 }

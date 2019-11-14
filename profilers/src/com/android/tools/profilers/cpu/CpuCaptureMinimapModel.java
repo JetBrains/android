@@ -35,12 +35,14 @@ public class CpuCaptureMinimapModel {
   @NotNull
   private final CpuUsage myCpuUsage;
 
-  public CpuCaptureMinimapModel(@NotNull StudioProfilers profilers, @NotNull CpuCapture cpuCapture) {
+  public CpuCaptureMinimapModel(@NotNull StudioProfilers profilers,
+                                @NotNull CpuCapture cpuCapture,
+                                @NotNull Range selectionRange) {
     myCaptureRange = cpuCapture.getRange();
     myCpuUsage = new CpuUsage(profilers, myCaptureRange, myCaptureRange, cpuCapture);
 
     // Set initial selection to the entire capture range.
-    myRangeSelectionModel = new RangeSelectionModel(new Range());
+    myRangeSelectionModel = new RangeSelectionModel(selectionRange);
     myRangeSelectionModel.set(myCaptureRange.getMin(), myCaptureRange.getMax());
   }
 

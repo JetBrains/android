@@ -26,11 +26,12 @@ WHITE_SPACE=\s+
 
 FLAG=-[a-z]+
 FILE_NAME=[\w\-./<>*?]+
-FILE_NAME_SINGLE_QUOTED='([\w\-./<>*?\s()])*'
-FILE_NAME_DOUBLE_QUOTED=\"([\w\-./<>*?\s()])*\"
 
-UNTERMINATED_FILE_NAME_SINGLE_QUOTED='([\w\-./<>*?\s()])*
-UNTERMINATED_FILE_NAME_DOUBLE_QUOTED=\"([\w\-./<>*?\s()])*
+UNTERMINATED_SINGLE_QUOTED_STRING = '(\\'|[^'])*
+SINGLE_QUOTED_STRING = {UNTERMINATED_SINGLE_QUOTED_STRING} '
+UNTERMINATED_DOUBLE_QUOTED_STRING = \"(\\\"|[^\"])*
+DOUBLE_QUOTED_STRING = {UNTERMINATED_DOUBLE_QUOTED_STRING} \"
+
 LINE_CMT=#[^\n\r]*
 
 // jletter includes all characters for which the Java function Character.isJavaIdentifierStart returns true and
@@ -55,11 +56,11 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
 }
 
 <STATE_FILE_NAME> {
-    {FILE_NAME}                            { yybegin(YYINITIAL); return FILE_NAME; }
-    {FILE_NAME_SINGLE_QUOTED}              { yybegin(YYINITIAL); return FILE_NAME_SINGLE_QUOTED; }
-    {FILE_NAME_DOUBLE_QUOTED}              { yybegin(YYINITIAL); return FILE_NAME_DOUBLE_QUOTED; }
-    {UNTERMINATED_FILE_NAME_SINGLE_QUOTED} { yybegin(YYINITIAL); return FILE_NAME_SINGLE_QUOTED; }
-    {UNTERMINATED_FILE_NAME_DOUBLE_QUOTED} { yybegin(YYINITIAL); return FILE_NAME_DOUBLE_QUOTED; }
+    {FILE_NAME}                         { yybegin(YYINITIAL); return FILE_NAME; }
+    {SINGLE_QUOTED_STRING}              { yybegin(YYINITIAL); return SINGLE_QUOTED_STRING; }
+    {DOUBLE_QUOTED_STRING}              { yybegin(YYINITIAL); return DOUBLE_QUOTED_STRING; }
+    {UNTERMINATED_SINGLE_QUOTED_STRING} { yybegin(YYINITIAL); return UNTERMINATED_SINGLE_QUOTED_STRING; }
+    {UNTERMINATED_DOUBLE_QUOTED_STRING} { yybegin(YYINITIAL); return UNTERMINATED_DOUBLE_QUOTED_STRING; }
 }
 
 <STATE_FLAG_ARGS> {
@@ -91,10 +92,10 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
 
   {FLAG}                                 {  yypushback(yytext().length()); yybegin(YYINITIAL); }
   {FILE_NAME}                            { return FILE_NAME; }
-  {FILE_NAME_SINGLE_QUOTED}              { return FILE_NAME_SINGLE_QUOTED; }
-  {FILE_NAME_DOUBLE_QUOTED}              { return FILE_NAME_DOUBLE_QUOTED; }
-  {UNTERMINATED_FILE_NAME_SINGLE_QUOTED} { return FILE_NAME_SINGLE_QUOTED; }
-  {UNTERMINATED_FILE_NAME_DOUBLE_QUOTED} { return FILE_NAME_DOUBLE_QUOTED; }
+  {SINGLE_QUOTED_STRING}              { return SINGLE_QUOTED_STRING; }
+  {DOUBLE_QUOTED_STRING}              { return DOUBLE_QUOTED_STRING; }
+  {UNTERMINATED_SINGLE_QUOTED_STRING} { return UNTERMINATED_SINGLE_QUOTED_STRING; }
+  {UNTERMINATED_DOUBLE_QUOTED_STRING} { return UNTERMINATED_DOUBLE_QUOTED_STRING; }
   {LINE_CMT}                             { return LINE_CMT; }
 }
 
@@ -123,6 +124,10 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
   "enum"                                 { return ENUM; }
 
 
+  {SINGLE_QUOTED_STRING}                 { return SINGLE_QUOTED_CLASS; }
+  {DOUBLE_QUOTED_STRING}                 { return DOUBLE_QUOTED_CLASS; }
+  {UNTERMINATED_SINGLE_QUOTED_STRING}    { return UNTERMINATED_SINGLE_QUOTED_CLASS; }
+  {UNTERMINATED_DOUBLE_QUOTED_STRING}    { return UNTERMINATED_DOUBLE_QUOTED_CLASS; }
   {JAVA_IDENTIFIER}                      { return JAVA_IDENTIFIER; }
   {JAVA_IDENTIFIER_WITH_WILDCARDS}       { return JAVA_IDENTIFIER_WITH_WILDCARDS; }
   {FLAG}                                 { yypushback(yytext().length()); yybegin(YYINITIAL);}
@@ -174,6 +179,10 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
   "final"                                { return FINAL; }
   "abstract"                             { return ABSTRACT; }
 
+  {SINGLE_QUOTED_STRING}                 { return SINGLE_QUOTED_CLASS; }
+  {DOUBLE_QUOTED_STRING}                 { return DOUBLE_QUOTED_CLASS; }
+  {UNTERMINATED_SINGLE_QUOTED_STRING}    { return UNTERMINATED_SINGLE_QUOTED_CLASS; }
+  {UNTERMINATED_DOUBLE_QUOTED_STRING}    { return UNTERMINATED_DOUBLE_QUOTED_CLASS; }
   {JAVA_IDENTIFIER}                      { return JAVA_IDENTIFIER; }
   {JAVA_IDENTIFIER_WITH_WILDCARDS}       { return JAVA_IDENTIFIER_WITH_WILDCARDS; }
   {LINE_CMT}                             { return LINE_CMT; }

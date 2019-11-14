@@ -73,39 +73,6 @@ public interface AndroidModel {
   }
 
   /**
-   * @return the default source provider.
-   * @see SourceProviders
-   */
-  @Deprecated
-  @NotNull
-  SourceProvider getDefaultSourceProvider();
-
-  /**
-   * @return the currently active (non-test) source providers for this Android module in overlay order (meaning that later providers
-   * override earlier providers when they redefine resources).
-   * {@link SourceProviders#getCurrentSourceProviders}
-   */
-  @Deprecated
-  @NotNull
-  List<SourceProvider> getActiveSourceProviders();
-
-  /**
-   * @return the currently active test source providers for this Android module in overlay order.
-   * {@link SourceProviders#getCurrentTestSourceProviders}
-   */
-  @Deprecated
-  @NotNull
-  List<SourceProvider> getTestSourceProviders();
-
-  /**
-   * @return all of the non-test source providers, including those that are not currently active.
-   * {@link org.jetbrains.android.facet.IdeaSourceProvider#getAllSourceProviders(AndroidFacet)}
-   */
-  @Deprecated
-  @NotNull
-  List<SourceProvider> getAllSourceProviders();
-
-  /**
    * @return the current application ID.
    */
   @NotNull

@@ -6,7 +6,7 @@ android {
   }
   buildTypes {
     xyz {
-      signingConfig = signingConfigs.myConfig
+      signingConfig signingConfigs.myConfig
     }
   }
 }

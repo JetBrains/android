@@ -104,7 +104,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
     // Additionally, let's verify the behavior of the LightBindingClass's navigation element, for
     // code coverage purposes.
     binding.navigationElement.let { navElement ->
-      assertThat(navElement).isInstanceOf(BindingLayout.BindingLayoutFile::class.java)
+      assertThat(navElement).isInstanceOf(BindingLayoutFile::class.java)
       assertThat(navElement.containingFile).isSameAs(navElement)
       // This next cast has to be true or else Java code coverage will crash. More details in the
       // header docs of BindingLayoutFile

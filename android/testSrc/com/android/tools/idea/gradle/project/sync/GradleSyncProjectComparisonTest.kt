@@ -172,12 +172,7 @@ abstract class GradleSyncProjectComparisonTest(
 
   fun testSimpleApplicationWithAgp3_3_2() {
     val text = importSyncAndDumpProject(SIMPLE_APPLICATION) {
-      val buildFile = it.resolve("build.gradle")
-      buildFile.writeText(
-        buildFile.readText()
-          .replace(
-            Regex("classpath ['\"]com.android.tools.build:gradle:(.+)['\"]"),
-            "classpath 'com.android.tools.build:gradle:3.3.2'"))
+      AndroidGradleTests.defaultPatchPreparedProject(it, "5.5", "3.3.2")
     }
     assertIsEqualToSnapshot(text)
   }

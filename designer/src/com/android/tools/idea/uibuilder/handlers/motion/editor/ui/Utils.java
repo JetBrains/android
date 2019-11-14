@@ -28,6 +28,9 @@ import javax.swing.ImageIcon;
  * Small static functions used across the system
  */
 public class Utils {
+  public static final int ICON_LIGHT = 0;
+  public static final int ICON_LIGHT_SELECTED = 1;
+  public static final int ICON_SELECTED = 2;
 
   public static String stripID(String id) {
     if (id == null) {
@@ -55,24 +58,46 @@ public class Utils {
   }
 
   /**
-   * Produce an icon of reduced opacity but turning down the alpha by 1/3
-   *
-   * @param icon input icon
-   * @return created icon
+   * Produce icons base on input icon suitable for other mode of the ConstraintSet Panel
+   * @param mode Mode of Icons ICON_LIGHT, ICON_LIGHT_SELECTED etc.
+   * @param icon Input icon to be processed
+   * @return output Icon
    */
-  public static Icon computeLiteIcon(Icon icon) {
+  public static Icon computeLiteIcon(int mode, Icon icon) {
     final int w = icon.getIconWidth();
     final int h = icon.getIconHeight();
     BufferedImage image = MEUI.createImage(w, h, BufferedImage.TYPE_INT_ARGB);
+
     Graphics2D g2d = image.createGraphics();
     icon.paintIcon(null, g2d, 0, 0);
     int[] data = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
-    for (int i = 0; i < data.length; i++) {
-      int v = data[i] & 0xFF;
-      int a = (data[i] >> 24) & 0xFF;
-      a /= 3;
-      data[i] = (a << 24) | (v * 0x10101);
+    switch (mode) {
+      case ICON_LIGHT:
+        for (int i = 0; i < data.length; i++) {
+          int v = data[i] & 0xFF;
+          int a = (data[i] >> 24) & 0xFF;
+          a /= 3;
+          data[i] = (a << 24) | (v * 0x10101);
+        }
+        break;
+      case ICON_LIGHT_SELECTED:
+        for (int i = 0; i < data.length; i++) {
+
+          int a = (data[i] >> 24) & 0xFF;
+          int v =  255;
+          a /=  3;
+          data[i] = (a << 24) | (v * 0x10101);
+        }
+        break;
+      case ICON_SELECTED:
+        for (int i = 0; i < data.length; i++) {
+          int a = (data[i] >> 24) & 0xFF;
+          int v =  255;
+          data[i] = (a << 24) | (v * 0x10101);
+        }
+        break;
     }
-    return new ImageIcon(image);
+
+    return  MEUI.generateImageIcon(image);
   }
 }

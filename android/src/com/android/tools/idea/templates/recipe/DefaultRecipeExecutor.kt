@@ -28,6 +28,9 @@ import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
+import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
+import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
 import com.android.tools.idea.templates.FmGetConfigurationNameMethod
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException
@@ -369,6 +372,78 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
   }
 
   /**
+   * Adds a new build feature to android block. For example, may enable compose.
+   */
+  override fun setBuildFeature(name: String, value: String) {
+    val buildFile = getBuildFilePath(context)
+
+    // TODO(qumeric) handle it in a better way?
+    val buildModel = getBuildModel(buildFile, context.project) ?: return
+
+    val feature = when(name) {
+      "compose" -> buildModel.android().buildFeatures().compose()
+      else -> throw IllegalArgumentException("currently only compose build feature is supported")
+    }
+
+    if (feature.valueType != GradlePropertyModel.ValueType.NONE) {
+      return // we do not override value if it exists. TODO(qumeric): ask user?
+    }
+
+    val boolValue = parseBoolean(value, "buildFeature")
+
+    feature.setValue(boolValue)
+    io.applyChanges(buildModel)
+  }
+
+  /**
+   * Sets sourceCompatibility and targetCompatibility in compileOptions and (if needed) jvmTarget in kotlinOptions.
+   */
+  override fun requireJavaVersion(version: String, kotlinSupport: String) {
+    infix fun String.compareWith(other: String): Int {
+      val validTargets = listOf("1.6", "1.7", "1.8", "9", "10", "11", "12", "13")
+
+      return validTargets.indexOf(this) - validTargets.indexOf(other)
+    }
+
+    val buildFile = getBuildFilePath(context)
+
+    // TODO(qumeric) handle it in a better way?
+    val buildModel = getBuildModel(buildFile, context.project) ?: return
+
+    val compileOptions = buildModel.android().compileOptions()
+    val kotlinOptions = buildModel.android().kotlinOptions()
+
+    val currentSourceCompatibility = compileOptions.sourceCompatibility()
+    val currentTargetCompatibility = compileOptions.targetCompatibility()
+
+    val languageLevel = LanguageLevelUtil.parseFromGradleString(version)!!
+
+    fun updateCompatibility(current: LanguageLevelPropertyModel) {
+      if (current.valueType == GradlePropertyModel.ValueType.NONE ||
+          languageLevel.isAtLeast(LanguageLevelUtil.parseFromGradleString(current.getValue(STRING_TYPE)!!)!!)) {
+        current.setLanguageLevel(languageLevel)
+      }
+    }
+
+    updateCompatibility(currentSourceCompatibility)
+    updateCompatibility(currentTargetCompatibility)
+
+    if (!parseBoolean(kotlinSupport, "kotlinSupport")) {
+      io.applyChanges(buildModel)
+      return
+    }
+
+    val currentKotlinJvmTarget = kotlinOptions.jvmTarget()
+
+    if (currentKotlinJvmTarget.valueType == GradlePropertyModel.ValueType.NONE ||
+        currentKotlinJvmTarget.getValue(STRING_TYPE)!! compareWith version <= 0) {
+      currentKotlinJvmTarget.setValue(version)
+    }
+
+    io.applyChanges(buildModel)
+  }
+
+  /**
    * Update the project's gradle build file and sync, if necessary. This should only be called
    * once and after all dependencies are already added.
    */
@@ -614,4 +689,10 @@ private fun getBuildFilePath(context: RenderingContext): File {
   val module = context.module
   val moduleBuildFile = if (module == null) null else getGradleBuildFile(module)
   return moduleBuildFile?.let { virtualToIoFile(it) } ?: findGradleBuildFile(context.moduleRoot)
+}
+
+private fun parseBoolean(value: String, name: String = "value") = when(value) {
+  "true" -> true
+  "false" -> false
+  else -> throw IllegalArgumentException("$name may be 'true' or 'false' but '$value' was given")
 }

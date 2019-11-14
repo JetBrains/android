@@ -18,6 +18,8 @@ package com.android.tools.idea.res
 import com.android.AndroidProjectTypes
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -45,6 +47,7 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
+import org.jetbrains.android.augment.AndroidStyleableAttrLightField
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
@@ -274,6 +277,43 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       myFixture.completeBasic()
 
       assertThat(myFixture.lookupElementStrings).containsExactly("appString")
+    }
+
+    fun testStyleableAttrResourceNamesCompletion_java() {
+      myFixture.addFileToProject(
+        "/res/values/styles.xml",
+        // language=xml
+        """
+        <resources>
+          <attr name="foo" format="boolean" />
+          <declare-styleable name="LabelView">
+              <attr name="foo"/>
+              <attr name="android:maxHeight"/>
+          </declare-styleable>
+        </resources>
+        """.trimIndent()
+      )
+      myFixture.configureByText(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                int styleableattr = R.styleable.${caret};
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsExactly("LabelView_android_maxHeight", "LabelView_foo", "LabelView", "class")
     }
 
     fun testManifestClass_java() {
@@ -781,9 +821,10 @@ sealed class LightClassesTestBase : AndroidTestCase() {
           int string another_aar_string 0x7f010002
           int attr attrOne 0x7f040001
           int attr attrTwo 0x7f040002
-          int[] styleable LibStyleable { 0x7f040001, 0x7f040002 }
+          int[] styleable LibStyleable { 0x7f040001, 0x7f040002, 0x7f040003 }
           int styleable LibStyleable_attrOne 0
           int styleable LibStyleable_attrTwo 1
+          int styleable LibStyleable_android_maxWidth 2
           """.trimIndent()
         )
       }
@@ -903,14 +944,50 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
       myFixture.checkHighlighting()
-      assertThat(resolveReferenceUnderCaret()).isInstanceOf(LightElement::class.java)
+      val elementUnderCaret = resolveReferenceUnderCaret()
+      assertThat(elementUnderCaret).isInstanceOf(AndroidStyleableAttrLightField::class.java)
+      val styleable = (elementUnderCaret as AndroidStyleableAttrLightField).styleableAttrFieldUrl.styleable
+      assertThat(styleable).isEqualTo(ResourceReference(RES_AUTO, ResourceType.STYLEABLE, "LibStyleable"))
+      val attr = elementUnderCaret.styleableAttrFieldUrl.attr
+      assertThat(attr).isEqualTo(ResourceReference(RES_AUTO, ResourceType.ATTR, "attrOne"))
+
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly(
         "LibStyleable",
         "LibStyleable_attrOne",
         "LibStyleable_attrTwo",
+        "LibStyleable_android_maxWidth",
         "class"
       )
+    }
+
+    fun testResourceNames_styleableWithPackage() {
+      val activityWithStyleablePackage = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(com.example.mylibrary.R.styleable.${caret}LibStyleable_android_maxWidth);
+            }
+        }
+        """.trimIndent()
+      )
+      myFixture.configureFromExistingVirtualFile(activityWithStyleablePackage.virtualFile)
+      myFixture.checkHighlighting()
+      val elementUnderCaret = resolveReferenceUnderCaret()
+      assertThat(elementUnderCaret).isInstanceOf(AndroidStyleableAttrLightField::class.java)
+      val styleable = (elementUnderCaret as AndroidStyleableAttrLightField).styleableAttrFieldUrl.styleable
+      assertThat(styleable).isEqualTo(ResourceReference(RES_AUTO, ResourceType.STYLEABLE, "LibStyleable"))
+      val attr = elementUnderCaret.styleableAttrFieldUrl.attr
+      assertThat(attr).isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.ATTR, "maxWidth"))
     }
 
     fun testRClassCompletion_java() {
@@ -1047,7 +1124,9 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
       myFixture.checkHighlighting()
-      assertThat(resolveReferenceUnderCaret()).isInstanceOf(LightElement::class.java)
+      val elementUnderCaret = resolveReferenceUnderCaret()
+      assertThat(elementUnderCaret).isNotInstanceOf(AndroidStyleableAttrLightField::class.java)
+      assertThat(elementUnderCaret).isInstanceOf(AndroidLightField::class.java)
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly(
         "FontFamilyFont",

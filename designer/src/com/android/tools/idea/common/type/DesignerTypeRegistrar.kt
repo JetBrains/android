@@ -23,9 +23,9 @@ import org.jetbrains.annotations.TestOnly
  */
 object DesignerTypeRegistrar {
 
-  private val types = mutableListOf<DesignerEditorFileType>()
+  private val types = mutableSetOf<DesignerEditorFileType>()
 
-  val registeredTypes: List<DesignerEditorFileType>
+  val registeredTypes: Set<DesignerEditorFileType>
     get() = types
 
   fun register(type: DesignerEditorFileType) {

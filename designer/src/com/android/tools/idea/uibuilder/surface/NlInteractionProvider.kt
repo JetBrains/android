@@ -24,6 +24,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionProviderBase
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.model.viewGroupHandler
 import org.intellij.lang.annotations.JdkConstants
@@ -153,6 +154,43 @@ class NlInteractionProvider(private val surface: DesignSurface): InteractionProv
       dragged = listOf(primaryDraggedComponent.nlComponent)
     }
     return DragDropInteraction(surface, dragged)
+  }
+
+  override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int) {
+    if ((surface as NlDesignSurface).isPreviewSurface) {
+      // Highlight the clicked widget but keep focus in DesignSurface.
+      // TODO: Remove this after when b/136174865 is implemented, which removes the preview mode.
+      clickPreview(x, y, false)
+    }
+    else {
+      super.singleClick(x, y)
+    }
+  }
+
+  override fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int) {
+    if ((surface as NlDesignSurface).isPreviewSurface) {
+      // Navigate the caret to the clicked widget and focus on text editor.
+      // TODO: Remove this after when b/136174865 is implemented, which removes the preview mode.
+      clickPreview(x, y, true)
+    }
+    else {
+      super.doubleClick(x, y)
+    }
+  }
+
+  private fun clickPreview(x: Int, y: Int, needsFocusEditor: Boolean) {
+    val sceneView = surface.getSceneView(x, y) ?: return
+
+    val component = Coordinates.findComponent(sceneView, x, y)
+    val navigationHandler = (surface as NlDesignSurface).navigationHandler
+    if (surface.navigationHandler != null) {
+      navigationHandler!!.handleNavigate(sceneView, surface.models, needsFocusEditor, component)
+      return
+    }
+
+    if (component != null) {
+      navigateToComponent(component, needsFocusEditor)
+    }
   }
 
   override fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,

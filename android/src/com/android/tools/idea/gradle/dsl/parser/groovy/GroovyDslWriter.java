@@ -18,9 +18,11 @@ package com.android.tools.idea.gradle.dsl.parser.groovy;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -118,12 +120,18 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     Project project = parentPsiElement.getProject();
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
-    String statementText = maybeTrimForParent(element.getNameElement(), element.getParent(), this);
+    Pair<String, Boolean> externalNameInfo = maybeTrimForParent(element.getNameElement(), element.getParent(), this);
+    String statementText = externalNameInfo.getFirst();
     assert statementText != null && !statementText.isEmpty() : "Element name can't be null! This will cause statement creation to error.";
+
+    boolean useAssignment = element.shouldUseAssignment();
+    if (externalNameInfo.getSecond() != null) {
+      useAssignment = !externalNameInfo.getSecond();
+    }
     if (element.isBlockElement()) {
       statementText += " {\n}\n";
     }
-    else if (element.shouldUseAssignment()) {
+    else if (useAssignment) {
       if (element.getElementType() == PropertyType.REGULAR) {
         statementText += " = 'abc'";
       }
@@ -263,8 +271,8 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
     String statementText =
-      (!methodCall.getFullName().isEmpty() ? maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent(), this) + " " : "") +
-      maybeTrimForParent(GradleNameElement.fake(methodCall.getMethodName()), methodCall.getParent(), this) +
+      (!methodCall.getFullName().isEmpty() ? maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent(), this).getFirst() + " " : "") +
+      maybeTrimForParent(GradleNameElement.fake(methodCall.getMethodName()), methodCall.getParent(), this).getFirst() +
       "()";
     GrStatement statement = factory.createStatementFromText(statementText);
     PsiElement addedElement = parentPsiElement.addAfter(statement, anchor);

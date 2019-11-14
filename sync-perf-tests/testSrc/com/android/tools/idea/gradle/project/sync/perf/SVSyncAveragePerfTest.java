@@ -15,26 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.perf;
 
-import static com.android.tools.idea.gradle.project.sync.perf.TestProjectPaths.SYNC_AVERAGE_PERF_PROJECT;
-
-import org.jetbrains.annotations.NotNull;
-
 /**
  * Measure performance for Single variant sync using the average project.
  */
-public class SVSyncAveragePerfTest extends GradleSyncPerformanceTestCase {
-  @NotNull
-  @Override
-  public String getMetricName() {
-    return "Average-Project-Single-Variant-sync";
-  }
-
-  @NotNull
-  @Override
-  public String getRelativePath() {
-    return SYNC_AVERAGE_PERF_PROJECT;
-  }
-
+public class SVSyncAveragePerfTest extends IDEASyncAveragePerfTest {
   @Override
   protected boolean useSingleVariantSyncInfrastructure() {
     return true;

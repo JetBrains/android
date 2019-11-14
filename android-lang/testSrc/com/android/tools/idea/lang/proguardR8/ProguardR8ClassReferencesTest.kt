@@ -65,7 +65,7 @@ class ProguardR8ClassReferencesTest : ProguardR8TestCase() {
     assertThat(presentation).contains(
       """
         Found usages (1 usage)
-          Referenced in Proguard/R8 files (1 usage)
+          Referenced in Shrinker Config files (1 usage)
       """.trimIndent()
     )
   }

@@ -16,13 +16,13 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.common.AdtPrimaryPanel
-import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
-import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.PopupHandler
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.AlphaComposite
@@ -52,9 +52,8 @@ private val SELECTED_LINE_STROKE = EMPHASIZED_LINE_STROKE
 private val NORMAL_LINE_COLOR = JBColor(Gray.get(128, 128), Gray.get(212, 128))
 private val NORMAL_LINE_STROKE = BasicStroke(NORMAL_BORDER_THICKNESS)
 
-class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings: DeviceViewSettings) : AdtPrimaryPanel() {
+class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings) : AdtPrimaryPanel() {
 
-  private val inspectorModel = layoutInspector.layoutInspectorModel
   val model = DeviceViewPanelModel(inspectorModel)
 
   private val HQ_RENDERING_HINTS = mapOf(
@@ -84,6 +83,10 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
       }
 
       override fun mouseDragged(e: MouseEvent) {
+        if (!model.rotatable) {
+          // can't rotate
+          return
+        }
         val xRotation = (e.x - x) * 0.001
         val yRotation = (e.y - y) * 0.001
         x = e.x
@@ -110,7 +113,7 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
 
     addMouseListener(object : PopupHandler() {
       override fun invokePopup(comp: Component, x: Int, y: Int) {
-        showViewContextMenu(findClickedComponent(x, y), layoutInspector, this@DeviceViewContentPanel, x, y)
+        showViewContextMenu(findClickedComponent(x, y), inspectorModel, this@DeviceViewContentPanel, x, y)
       }
     })
 
@@ -136,6 +139,12 @@ class DeviceViewContentPanel(layoutInspector: LayoutInspector, val viewSettings:
     // ViewNode.imageTop are images that the parents draw on top of their
     // children. Therefore draw them in the reverse order (children first).
     model.hitRects.asReversed().forEach { drawView(g2d, it, it.node.imageTop) }
+
+    if (model.overlay != null) {
+      g2d.composite = AlphaComposite.SrcOver.derive(0.6f)
+      val bounds = model.hitRects[0].bounds.bounds
+      g2d.drawImage(model.overlay, bounds.x, bounds.y, bounds.width, bounds.height, null)
+    }
   }
 
   override fun getPreferredSize() =

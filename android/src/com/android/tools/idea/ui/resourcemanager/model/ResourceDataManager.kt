@@ -57,6 +57,7 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
       LangDataKeys.PSI_ELEMENT_ARRAY.name -> assetsToArrayPsiElements()
       PlatformDataKeys.COPY_PROVIDER.name -> this
       UsageView.USAGE_TARGETS_KEY.name -> getUsageTargets(assetsToArrayPsiElements())
+      RESOURCE_DESIGN_ASSETS_KEY.name -> selectedAssets.mapNotNull { it as? DesignAsset }.toTypedArray()
       else -> null
     }
   }

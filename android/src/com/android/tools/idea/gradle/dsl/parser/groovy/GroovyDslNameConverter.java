@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VWO;
+
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
@@ -22,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
+import java.util.Arrays;
 import java.util.Map;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -41,14 +47,21 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
 
   @NotNull
   @Override
-  public String externalNameForParent(@NotNull String modelName, @NotNull GradleDslElement context) {
+  public Pair<String, Boolean> externalNameForParent(@NotNull String modelName, @NotNull GradleDslElement context) {
     ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> map = context.getExternalToModelMap(this);
+    Pair<String, Boolean> result = new Pair<>(modelName, null);
     for (Map.Entry<Pair<String,Integer>, Pair<String,SemanticsDescription>> e : map.entrySet()) {
       if (e.getValue().getFirst().equals(modelName)) {
-        return e.getKey().getFirst();
+        SemanticsDescription semantics = e.getValue().getSecond();
+        if (semantics == SET || semantics == OTHER) {
+          return new Pair<>(e.getKey().getFirst(), true);
+        }
+        if (semantics == VAR || semantics == VWO) {
+          result = new Pair<>(e.getKey().getFirst(), false);
+        }
       }
     }
-    return modelName;
+    return result;
   }
 
   @NotNull

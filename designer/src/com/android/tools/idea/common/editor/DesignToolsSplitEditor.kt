@@ -38,7 +38,7 @@ open class DesignToolsSplitEditor(textEditor: TextEditor,
                                   val designerEditor: DesignerEditor,
                                   editorName: String,
                                   private val project: Project)
-  : SplitEditor(textEditor, designerEditor, editorName,
+  : SplitEditor<DesignerEditor>(textEditor, designerEditor, editorName,
                 if (AndroidEditorSettings.getInstance().globalState.isPreferXmlEditor) Layout.SHOW_EDITOR else Layout.SHOW_PREVIEW) {
 
   private val propertiesComponent = PropertiesComponent.getInstance()
@@ -142,7 +142,7 @@ open class DesignToolsSplitEditor(textEditor: TextEditor,
   }
 
   private inner class MyToolBarAction internal constructor(delegate: SplitEditorAction, internal val surfaceState: DesignSurface.State)
-    : SplitEditor.SplitEditorAction(delegate.name, delegate.icon, delegate.delegate) {
+    : SplitEditor<DesignerEditor>.SplitEditorAction(delegate.name, delegate.icon, delegate.delegate) {
 
     override fun setSelected(e: AnActionEvent, state: Boolean, userExplicitlySelected: Boolean) {
       designerEditor.component.surface.state = surfaceState

@@ -140,6 +140,10 @@ public class ProguardR8Visitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitSuperClassName(@NotNull ProguardR8SuperClassName o) {
+    visitPsiElement(o);
+  }
+
   public void visitType(@NotNull ProguardR8Type o) {
     visitPsiElement(o);
   }

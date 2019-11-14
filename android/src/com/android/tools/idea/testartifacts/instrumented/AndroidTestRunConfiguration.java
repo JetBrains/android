@@ -24,6 +24,7 @@ import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.TestOptions;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.AndroidDevice;
@@ -42,6 +43,7 @@ import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.AndroidTestSuiteView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -316,8 +318,14 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @Override
   protected ConsoleProvider getConsoleProvider() {
     return (parent, handler, executor) -> {
-      AndroidTestConsoleProperties properties = new AndroidTestConsoleProperties(this, executor);
-      ConsoleView consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole("Android", handler, properties);
+      final ConsoleView consoleView;
+      if (StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get()) {
+        consoleView = new AndroidTestSuiteView();
+        consoleView.attachToProcess(handler);
+      } else {
+        AndroidTestConsoleProperties properties = new AndroidTestConsoleProperties(this, executor);
+        consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole("Android", handler, properties);
+      }
       Disposer.register(parent, consoleView);
       return consoleView;
     };

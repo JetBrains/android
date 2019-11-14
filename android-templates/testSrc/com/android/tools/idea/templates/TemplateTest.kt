@@ -18,6 +18,7 @@ package com.android.tools.idea.templates
 import com.android.testutils.TestUtils
 import com.android.tools.idea.npw.platform.Language
 import com.google.common.truth.Truth.assertWithMessage
+import com.intellij.openapi.util.SystemInfo
 import java.io.File
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
@@ -113,6 +114,10 @@ open class TemplateTest : TemplateTestBase() {
 
   @TemplateCheck
   fun testNewProjectWithEmptyActivityWithCpp() {
+    // See b/144352075
+    if (SystemInfo.isWindows) {
+      return
+    }
     checkCreateTemplate("activities", "EmptyActivity", true, true, withCpp)
   }
 
@@ -124,6 +129,16 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewViewModelActivityWithKotlin() {
     checkCreateTemplate("activities", "ViewModelActivity", false, true, withKotlin)
+  }
+
+  @TemplateCheck
+  fun testCompareViewModelActivity() {
+    checkCreateTemplate("activities", "ViewModelActivity", false, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareViewModelActivityWithKotlin() {
+    checkCreateTemplate("activities", "ViewModelActivity", false, true, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -144,6 +159,16 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewProjectWithTabbedActivityWithKotlin() {
     checkCreateTemplate("activities", "TabbedActivity", true, true, withKotlin)
+  }
+
+  @TemplateCheck
+  fun testCompareTabbedActivity() {
+    checkCreateTemplate("activities", "TabbedActivity", false, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareTabbedActivityWithKotlin() {
+    checkCreateTemplate("activities", "TabbedActivity", false, true, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -219,6 +244,16 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewProjectWithLoginActivityWithKotlin() {
     checkCreateTemplate("activities", "LoginActivity", true, true, withKotlin)
+  }
+
+  @TemplateCheck
+  fun testCompareLoginActivity() {
+    checkCreateTemplate("activities", "LoginActivity", false, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareLoginActivityWithKotlin() {
+    checkCreateTemplate("activities", "LoginActivity", false, true, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck

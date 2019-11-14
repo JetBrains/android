@@ -9,8 +9,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
             TypeId              : java-gradle
             Buildable           : false
             BuildFolderPath     :  [-]
-        JDK                 : <NAME_CUT> JavaSDK
-        *isInherited        : true
         ORDER_ENTRY         : <Module source>
     MODULE              : app
         LinkedProjectId     : :app
@@ -21,8 +19,10 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         FACET               : Android
             TypeId              : android
             SelectedBuildVariant          : debug
-            AssembleTaskName    : assemble
-            CompileJavaTaskName : compile
+            AssembleTaskName    : assembleDebug
+            CompileJavaTaskName : compileDebugSources
+            - AfterSyncTask     : ideSetupTask1
+            - AfterSyncTask     : ideSetupTask2
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -36,7 +36,7 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
             UseCustomCompilerManifest     : false
-            ProjectType         : 2
+            ProjectType         : 0
             RunProcessResourcesMavenTask  : true
             PackTestCode        : false
             RunProguard         : false
@@ -99,8 +99,10 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         FACET               : Android
             TypeId              : android
             SelectedBuildVariant          : debug
-            AssembleTaskName    : assemble
-            CompileJavaTaskName : compile
+            AssembleTaskName    : assembleDebug
+            CompileJavaTaskName : compileDebugSources
+            - AfterSyncTask     : ideSetupTask1
+            - AfterSyncTask     : ideSetupTask2
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -114,7 +116,7 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
             UseCustomCompilerManifest     : false
-            ProjectType         : 2
+            ProjectType         : 0
             RunProcessResourcesMavenTask  : true
             PackTestCode        : false
             RunProguard         : false

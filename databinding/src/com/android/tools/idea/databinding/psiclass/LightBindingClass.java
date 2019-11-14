@@ -20,7 +20,9 @@ import static com.android.SdkConstants.ATTR_ID;
 import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.databinding.BindingLayout;
+import com.android.tools.idea.databinding.BindingLayoutFile;
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
 import com.android.tools.idea.databinding.index.BindingLayoutType;
 import com.android.tools.idea.databinding.index.BindingXmlData;
@@ -120,14 +122,17 @@ public class LightBindingClass extends AndroidLightClassBase {
     setModuleInfo(myConfig.getFacet().getModule(), false);
 
     CachedValuesManager cachedValuesManager = CachedValuesManager.getManager(getProject());
-    myPsiMethodsCache =
-      cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<PsiMethod[]>(myConfig.getFacet(), myCacheLock) {
+    myPsiMethodsCache = cachedValuesManager.createCachedValue(
+      new ResourceCacheValueProvider<PsiMethod[]>(myConfig.getFacet(), myCacheLock,
+                                                  AndroidPsiUtils.getXmlPsiModificationTracker(getProject())) {
         @Override
         protected PsiMethod[] doCompute() {
           List<PsiMethod> methods = new ArrayList<>();
 
           PsiMethod constructor = createConstructor();
           methods.add(constructor);
+
+          createRootOverride(methods);
 
           for (Pair<VariableData, XmlTag> variableTag : myConfig.getVariableTags()) {
             createVariableMethods(variableTag, methods);
@@ -328,6 +333,43 @@ public class LightBindingClass extends AndroidLightClassBase {
     return true;
   }
 
+  /**
+   * If applicable, create a `getRoot` method that overrides / specializes the one in the base
+   * class.
+   *
+   * For example, "View getRoot()" in the base interface could be returned as
+   * "LinearLayout getRoot()" in this binding class.
+   *
+   * If this binding is for a layout with multiple configurations that define inconsistent
+   * root tags, then "View" will be returned.
+   */
+  private void createRootOverride(@NotNull List<PsiMethod> outPsiMethods) {
+    XmlFile xmlFile = myConfig.getTargetLayout().toXmlFile();
+    if (xmlFile == null) {
+      return;
+    }
+
+    BindingXmlData xmlData = myConfig.getTargetLayout().getData();
+    // For legacy reasons, data binding does not override getRoot with a more specialized return
+    // type (e.g. FrameLayout instead of View). Only view binding does this at this time.
+    if (xmlData.getLayoutType() == BindingLayoutType.PLAIN_LAYOUT && ViewBindingUtil.isViewBindingEnabled(myConfig.getFacet())) {
+      XmlTag xmlRootTag = xmlFile.getRootTag();
+      if (xmlRootTag == null) {
+        return; // Abort if we can't find an actual PSI tag we can navigate to
+      }
+
+      // Note: We don't simply use xmlRootTag's name, since the final return type could be
+      // different if root tag names are not consistent across layout configurations.
+      String rootTag = myConfig.getRootType();
+
+      PsiType type = LayoutBindingTypeUtil.resolveViewPsiType(rootTag, this);
+      if (type != null) {
+        LightMethodBuilder rootMethod = createPublicMethod("getRoot", type);
+        outPsiMethods.add(new LightDataBindingMethod(xmlRootTag, getManager(), rootMethod, this, JavaLanguage.INSTANCE));
+      }
+    }
+  }
+
   private void createVariableMethods(@NotNull Pair<VariableData, XmlTag> variableTag, @NotNull List<PsiMethod> outPsiMethods) {
     PsiManager psiManager = getManager();
 
@@ -360,6 +402,11 @@ public class LightBindingClass extends AndroidLightClassBase {
   }
 
   private void createStaticMethods(@NotNull PsiClassType ownerType, @NotNull List<PsiMethod> outPsiMethods) {
+    XmlFile xmlFile = myConfig.getTargetLayout().toXmlFile();
+    if (xmlFile == null) {
+      return;
+    }
+
     Project project = getProject();
     Module module = myConfig.getFacet().getModule();
     PsiClassType viewGroupType =
@@ -445,7 +492,6 @@ public class LightBindingClass extends AndroidLightClassBase {
       methods.add(bind);
     }
 
-    XmlFile xmlFile = myConfig.getTargetLayout().toXmlFile();
     PsiManager psiManager = getManager();
     for (PsiMethod method : methods) {
       outPsiMethods.add(new LightDataBindingMethod(xmlFile, psiManager, method, this, JavaLanguage.INSTANCE));
@@ -489,7 +535,12 @@ public class LightBindingClass extends AndroidLightClassBase {
   @NotNull
   @Override
   public PsiElement getNavigationElement() {
-    return myConfig.getTargetLayout().getNavigationElement();
+    XmlFile xmlFile = myConfig.getTargetLayout().toXmlFile();
+    if (xmlFile == null) {
+      return super.getNavigationElement();
+    }
+
+    return new BindingLayoutFile(this, xmlFile);
   }
 
   @Override
@@ -565,6 +616,9 @@ public class LightBindingClass extends AndroidLightClassBase {
     @Nullable
     private XmlTag computeTag() {
       XmlFile xmlFile = myLayout.toXmlFile();
+      if (xmlFile == null) {
+        return null;
+      }
       Ref<XmlTag> resultTag = new Ref<>();
       xmlFile.accept(new XmlRecursiveElementWalkingVisitor() {
         @Override

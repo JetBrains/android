@@ -544,47 +544,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     return new ItemTransferable(new DnDTransferItem(model != null ? model.getId() : 0, components));
   }
 
-  @Override
-  public void onSingleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
-    if (isPreviewSurface()) {
-      // Highlight the clicked widget but keep focus in DesignSurface.
-      // TODO: Remove this after when b/136174865 is implemented, which removes the preview mode.
-      onClickPreview(x, y, false);
-    }
-    else {
-      super.onSingleClick(x, y);
-    }
-  }
-
-  @Override
-  public void onDoubleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
-    if (isPreviewSurface()) {
-      // Navigate the caret to the clicked widget and focus on text editor.
-      // TODO: Remove this after when b/136174865 is implemented, which removes the preview mode.
-      onClickPreview(x, y, true);
-    }
-    else {
-      super.onDoubleClick(x, y);
-    }
-  }
-
-  private void onClickPreview(int x, int y, boolean needsFocusEditor) {
-    SceneView sceneView = getSceneView(x, y);
-    if (sceneView == null) {
-      return;
-    }
-
-    NlComponent component = Coordinates.findComponent(sceneView, x, y);
-    if (myNavigationHandler != null) {
-      myNavigationHandler.handleNavigate(sceneView, getModels(), needsFocusEditor, component);
-      return;
-    }
-
-    if (component != null) {
-      navigateToComponent(component, needsFocusEditor);
-    }
-  }
-
   @SwingCoordinate
   @Override
   protected Dimension getDefaultOffset() {

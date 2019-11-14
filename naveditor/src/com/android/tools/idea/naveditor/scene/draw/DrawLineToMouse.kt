@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingPoint
+import com.android.tools.adtui.common.toSwingPoint
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommandBase
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.parse
-import com.android.tools.idea.common.scene.draw.point2DToString
-import com.android.tools.idea.common.scene.draw.stringToPoint2D
 import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
@@ -29,19 +28,18 @@ import java.awt.BasicStroke
 import java.awt.Graphics2D
 import java.awt.Stroke
 import java.awt.geom.Line2D
-import java.awt.geom.Point2D
 
 val LINE_TO_MOUSE_STROKE: Stroke = BasicStroke(JBUI.scale(3.0f))
 
-data class DrawLineToMouse(@VisibleForTesting @SwingCoordinate val center: Point2D.Float) : DrawCommandBase() {
-  private constructor(tokens: Array<String>) : this(stringToPoint2D(tokens[0]))
+data class DrawLineToMouse(@VisibleForTesting val center: SwingPoint) : DrawCommandBase() {
+  private constructor(tokens: Array<String>) : this(tokens[0].toSwingPoint())
 
   @VisibleForTesting
-  val line = Line2D.Float(center.x, center.y, 0f, 0f)
+  val line = Line2D.Float(center.x.value, center.y.value, 0f, 0f)
 
   constructor(serialized: String) : this(parse(serialized, 1))
 
-  override fun serialize() = buildString(javaClass.simpleName, point2DToString(center))
+  override fun serialize() = buildString(javaClass.simpleName, center)
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     line.x2 = sceneContext.mouseX.toFloat()

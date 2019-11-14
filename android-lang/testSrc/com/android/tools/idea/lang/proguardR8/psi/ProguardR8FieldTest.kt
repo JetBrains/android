@@ -16,22 +16,18 @@
 package com.android.tools.idea.lang.proguardR8.psi
 
 import com.android.tools.idea.lang.androidSql.referenceAtCaret
-import com.android.tools.idea.lang.proguardR8.ProguardR8ClassMemberInspection
 import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
 import com.android.tools.idea.lang.proguardR8.ProguardR8TestCase
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.lang.annotation.HighlightSeverity.WEAK_WARNING
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.parentOfType
 
 class ProguardR8FieldsTest : ProguardR8TestCase() {
-
-  override fun setUp() {
-    super.setUp()
-    myFixture.enableInspections(ProguardR8ClassMemberInspection::class.java)
-  }
 
   fun testReturnsCorrectType() {
     myFixture.addClass(
@@ -378,7 +374,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
       ProguardR8FileType.INSTANCE,
       """
       -keep class test.MyClass {
-        long <error descr="The rule matches no class members">myBoolean</error>;
+        long ${"myBoolean".highlightedAs(WEAK_WARNING, "The rule matches no class members")};
       }
       """.trimIndent())
 
@@ -389,7 +385,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
       ProguardR8FileType.INSTANCE,
       """
       -keep class test.MyClass {
-        boolean <error descr="The rule matches no class members">myNotBoolean</error>;
+        boolean ${"myNotBoolean" highlightedAs WEAK_WARNING};
       }
       """.trimIndent())
 
@@ -404,13 +400,22 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
       }
       """.trimIndent())
 
+    // don't highlight if class is unknown, but super class is known
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class * extends test.MyClass {
+        foo;
+      }
+      """.trimIndent())
+
     myFixture.checkHighlighting()
 
     // don't highlight if class is unknown (2)
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
       """
-      -keep class test.MyNotExistingClass {
+      -keep class ${"test.MyNotExistingClass".highlightedAs(WEAK_WARNING, "Unresolved class name")} {
         long myBoolean;
       }
       """.trimIndent())

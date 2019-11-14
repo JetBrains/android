@@ -45,9 +45,13 @@ import org.jetbrains.annotations.Nullable;
 public class CommonUsageTrackerImpl implements CommonUsageTracker {
 
   /**
-   * Sampling percentage for render events
+   * Sampling percentage for render events, this corresponds to 1%
    */
-  private static final int LOG_RENDER_PERCENT = 10;
+  private static final int LOG_RENDER_PERCENT = 1;
+  /**
+   * Sampling percentage for inflate events, this corresponds to 10%
+   */
+  private static final int LOG_INFLATE_PERCENT = 10;
 
   private static final Random sRandom = new Random();
 
@@ -111,11 +115,11 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
   }
 
   /**
-   * Returns whether an event should be logged given a percentage {@link #LOG_RENDER_PERCENT} of times we want to log it.
+   * Returns whether an event should be logged given a percentage of times we want to log it.
    */
   @VisibleForTesting
-  boolean shouldLog() {
-    return sRandom.nextInt(100) >= 100 - LOG_RENDER_PERCENT - 1;
+  boolean shouldLog(int percentage) {
+    return sRandom.nextInt(100) >= 100 - percentage - 1;
   }
 
   @Override
@@ -158,13 +162,18 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
   }
 
   @Override
-  public void logRenderResult(@Nullable LayoutEditorRenderResult.Trigger trigger, @NotNull RenderResult result, long totalRenderTimeMs) {
+  public void logRenderResult(@Nullable LayoutEditorRenderResult.Trigger trigger,
+                              @NotNull RenderResult result,
+                              long totalRenderTimeMs,
+                              boolean wasInflated) {
     // Renders are a quite common event so we sample them
-    if (!shouldLog()) {
+    if (!shouldLog(wasInflated ? LOG_INFLATE_PERCENT : LOG_RENDER_PERCENT)) {
       return;
     }
 
-    logStudioEvent(LayoutEditorEvent.LayoutEditorEventType.RENDER, (event) -> {
+    LayoutEditorEvent.LayoutEditorEventType eventType =
+      wasInflated ? LayoutEditorEvent.LayoutEditorEventType.INFLATE_ONLY : LayoutEditorEvent.LayoutEditorEventType.RENDER_ONLY;
+    logStudioEvent(eventType, (event) -> {
       LayoutEditorRenderResult.Builder builder = LayoutEditorRenderResult.newBuilder()
         .setResultCode(result.getRenderResult().getStatus().ordinal())
         .setTotalRenderTimeMs(totalRenderTimeMs);

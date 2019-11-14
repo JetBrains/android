@@ -19,17 +19,10 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.ui.LayoutInspectorSettingsKt;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.facet.ui.FacetDependentToolWindow;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.ui.TitledSeparator;
 import java.util.Hashtable;
 import javax.swing.JCheckBox;
@@ -78,8 +71,10 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myLayoutEditorQualitySlider.setMajorTickSpacing(25);
     myNewPsdSeparator.setVisible(StudioFlags.NEW_PSD_ENABLED.get());
     myNewPsdCheckbox.setVisible(StudioFlags.NEW_PSD_ENABLED.get());
-    myLayoutInspectorSeparator.setVisible(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get());
-    myLayoutInspectorCheckbox.setVisible(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get());
+    boolean showLayoutInspectorSettings =
+      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get() && !StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get();
+    myLayoutInspectorSeparator.setVisible(showLayoutInspectorSettings);
+    myLayoutInspectorCheckbox.setVisible(showLayoutInspectorSettings);
 
     reset();
   }
@@ -134,40 +129,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
     mySettings.USE_NEW_PSD = isUseNewPsd();
-    if (myLayoutInspectorCheckbox.isSelected() != LayoutInspectorSettingsKt.getEnableLiveLayoutInspector()) {
-      LayoutInspectorSettingsKt.setEnableLiveLayoutInspector(myLayoutInspectorCheckbox.isSelected());
 
-      if (myLayoutInspectorCheckbox.isSelected()) {
-        for (FacetDependentToolWindow windowEp : FacetDependentToolWindow.EXTENSION_POINT_NAME.getExtensionList()) {
-          if (windowEp.id.equals("Layout Inspector")) {
-            for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-              ToolWindowManagerEx windowManager = ((ToolWindowManagerEx)ToolWindowManager.getInstance(project));
-              ToolWindow window = windowManager.getToolWindow("Layout Inspector");
-              if (window == null) {
-                windowManager.initToolWindow(windowEp);
-              }
-              window = windowManager.getToolWindow("Layout Inspector");
-              window.activate(null);
-            }
-          }
-        }
-        for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-          FileEditorManager editorManager = FileEditorManager.getInstance(project);
-          for (VirtualFile vf : editorManager.getOpenFiles()) {
-            if (vf.getFileType().getName().equals("Layout Inspector")) {
-              editorManager.closeFile(vf);
-            }
-          }
-        }
-      }
-      else {
-        for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-          ToolWindowManagerEx windowManager = ((ToolWindowManagerEx)ToolWindowManager.getInstance(project));
-          ToolWindow window = windowManager.getToolWindow("Layout Inspector");
-          window.hide(null);
-        }
-      }
-    }
+    LayoutInspectorSettingsKt.setEnableLiveLayoutInspector(myLayoutInspectorCheckbox.isSelected());
   }
 
   @VisibleForTesting

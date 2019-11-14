@@ -19,28 +19,23 @@ import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
-import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.ui.AdtUiCursors
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.legacydevice.CaptureAction
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
-import com.android.tools.profiler.proto.Common
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
-import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Cursor
 import java.awt.Point
@@ -66,18 +61,16 @@ private const val TOOLBAR_INSET = 14
  */
 class DeviceViewPanel(
   val layoutInspector: LayoutInspector,
-  val viewSettings: DeviceViewSettings,
+  private val viewSettings: DeviceViewSettings,
   disposableParent: Disposable
 ) : JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
-
-  private val client = layoutInspector.client
 
   override val scale
     get() = viewSettings.scaleFraction
 
   override val screenScalingFactor = 1f
 
-  private val contentPanel = DeviceViewContentPanel(layoutInspector, viewSettings)
+  private val contentPanel = DeviceViewContentPanel(layoutInspector.layoutInspectorModel, viewSettings)
   private val panInterceptorPanel = JPanel()
 
   private val scrollPane = JBScrollPane(contentPanel)
@@ -273,6 +266,9 @@ class DeviceViewPanel(
     if (DEVICE_VIEW_MODEL_KEY.`is`(dataId)) {
       return contentPanel.model
     }
+    if (DEVICE_VIEW_SETTINGS_KEY.`is`(dataId)) {
+      return viewSettings
+    }
     return null
   }
 
@@ -285,167 +281,38 @@ class DeviceViewPanel(
 
     val leftPanel = AdtPrimaryPanel(BorderLayout())
     val leftGroup = DefaultActionGroup()
-    leftGroup.add(SelectProcessAction(client))
-    leftGroup.add(object : DropDownAction(null, "View options", StudioIcons.Common.VISIBILITY_INLINE) {
-      init {
-        add(object : ToggleAction("Show borders") {
-          override fun update(event: AnActionEvent) {
-            super.update(event)
-            event.presentation.isEnabled = client.isConnected
-          }
-
-          override fun isSelected(event: AnActionEvent): Boolean {
-            return viewSettings.drawBorders
-          }
-
-          override fun setSelected(event: AnActionEvent, state: Boolean) {
-            viewSettings.drawBorders = state
-            repaint()
-          }
-        })
-        add(object : ToggleAction("Show View Label") {
-          override fun update(event: AnActionEvent) {
-            super.update(event)
-            event.presentation.isEnabled = client.isConnected
-          }
-
-          override fun isSelected(event: AnActionEvent): Boolean {
-            return viewSettings.drawLabel
-          }
-
-          override fun setSelected(event: AnActionEvent, state: Boolean) {
-            viewSettings.drawLabel = state
-            repaint()
-          }
-        })
-      }
-    })
-    leftGroup.add(PauseLayoutInspectorAction(client))
-    leftPanel.add(ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true).component,
-                  BorderLayout.CENTER)
+    leftGroup.add(SelectProcessAction(layoutInspector))
+    leftGroup.add(ViewMenuAction)
+    leftGroup.add(ToggleOverlayAction)
+    leftGroup.add(PauseLayoutInspectorAction(layoutInspector::currentClient))
+    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get()) {
+      leftGroup.add(CaptureAction(layoutInspector::currentClient, layoutInspector.layoutInspectorModel))
+    }
+    val actionToolbar = ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true)
+    actionToolbar.setTargetComponent(this)
+    leftPanel.add(actionToolbar.component, BorderLayout.CENTER)
     panel.add(leftPanel, BorderLayout.CENTER)
     return panel
   }
 
-  private class SelectProcessAction(val client: InspectorClient) :
-    DropDownAction("Select Process", "Select a process to connect to.", AllIcons.General.Add) {
-
-    private var currentProcess = Common.Process.getDefaultInstance()
-
-    override fun update(event: AnActionEvent) {
-      if (currentProcess != client.selectedProcess) {
-        val processName = client.selectedProcess.name.substringAfterLast('.')
-        val actionName = if (client.selectedProcess == Common.Process.getDefaultInstance()) "Select Process" else processName
-        currentProcess = client.selectedProcess
-        event.presentation.text = actionName
-      }
-    }
-
-    override fun updateActions(): Boolean {
-      removeAll()
-
-      // Rebuild the action tree.
-      val processesMap = client.loadProcesses()
-      if (processesMap.isEmpty()) {
-        val noDeviceAction = object : AnAction("No devices detected") {
-          override fun actionPerformed(event: AnActionEvent) {}
-        }
-        noDeviceAction.templatePresentation.isEnabled = false
-        add(noDeviceAction)
-      }
-      else {
-        for (stream in processesMap.keys) {
-          val deviceName = buildDeviceName(stream.device)
-          val deviceAction = if (stream.device.featureLevel < 29) {
-            object : AnAction("$deviceName (Unsupported for API < 29)") {
-              override fun actionPerformed(e: AnActionEvent) {}
-            }.apply { templatePresentation.isEnabled = false }
-          }
-          else {
-            object : DropDownAction(deviceName, null, null) {
-              override fun displayTextInToolbar() = true
-            }.apply {
-              val processes = processesMap[stream]
-              if (processes == null || processes.isEmpty()) {
-                val noProcessAction = object : AnAction("No debuggable processes detected") {
-                  override fun actionPerformed(event: AnActionEvent) {}
-                }
-                noProcessAction.templatePresentation.isEnabled = false
-                add(noProcessAction)
-              }
-              else {
-                val sortedProcessList = processes.sortedWith(compareBy({ it.name }, { it.pid }))
-                for (process in sortedProcessList) {
-                  val processAction = object : ToggleAction("${process.name} (${process.pid})") {
-                    override fun isSelected(event: AnActionEvent): Boolean {
-                      return process == client.selectedProcess && stream == client.selectedStream
-                    }
-
-                    override fun setSelected(event: AnActionEvent, state: Boolean) {
-                      if (state) {
-                        client.attach(stream, process)
-                      }
-                    }
-                  }
-                  add(processAction)
-                }
-              }
-            }
-          }
-          add(deviceAction)
-        }
-        add(object : AnAction("Stop inspector") {
-          override fun update(event: AnActionEvent) {
-            event.presentation.isEnabled = client.isConnected
-          }
-
-          override fun actionPerformed(event: AnActionEvent) {
-            client.disconnect()
-          }
-        })
-      }
-      return true
-    }
-
-    override fun displayTextInToolbar() = true
-
-    private fun buildDeviceName(device: Common.Device): String {
-      val deviceNameBuilder = StringBuilder()
-      val manufacturer = device.manufacturer
-      var model = device.model
-      val serial = device.serial
-      val suffix = String.format("-%s", serial)
-      if (model.endsWith(suffix)) {
-        model = model.substring(0, model.length - suffix.length)
-      }
-      if (!StringUtil.isEmpty(manufacturer)) {
-        deviceNameBuilder.append(manufacturer)
-        deviceNameBuilder.append(" ")
-      }
-      deviceNameBuilder.append(model)
-
-      return deviceNameBuilder.toString()
-    }
-  }
-
-  private class PauseLayoutInspectorAction(val client: InspectorClient) : CheckboxAction("Live updates") {
+  private class PauseLayoutInspectorAction(val client: () -> InspectorClient) : CheckboxAction("Live updates") {
 
     override fun update(event: AnActionEvent) {
       super.update(event)
-      event.presentation.isEnabled = client.isConnected
+      event.presentation.isVisible = client().isConnected && client().selectedStream.device.apiLevel >= 29
     }
 
     // Display as "Live updates ON" when disconnected to indicate the default value after the inspector is connected to the device.
     override fun isSelected(event: AnActionEvent): Boolean {
-      return !client.isConnected || client.isCapturing
+      return !client().isConnected || client().isCapturing
     }
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
-      if (!client.isConnected) {
+      if (!client().isConnected) {
         return
       }
-      val command = if (client.isCapturing) LayoutInspectorCommand.Type.STOP else LayoutInspectorCommand.Type.START
-      client.execute(command)
+      val command = if (client().isCapturing) LayoutInspectorCommand.Type.STOP else LayoutInspectorCommand.Type.START
+      client().execute(command)
     }
   }
 }

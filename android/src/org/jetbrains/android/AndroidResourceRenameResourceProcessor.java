@@ -68,6 +68,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.light.LightElement;
@@ -104,7 +105,6 @@ import org.jetbrains.android.dom.resources.Attr;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.ResourcesDomFileDescription;
 import org.jetbrains.android.dom.resources.Style;
-import org.jetbrains.android.dom.resources.StyleItem;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -225,6 +225,19 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     else if (computedElement instanceof ResourceReferencePsiElement) {
       prepareValueResourceRenaming(computedElement, newName, allRenames, facet);
     }
+  }
+
+  @Nullable
+  @Override
+  public Runnable getPostRenameCallback(@NotNull PsiElement element,
+                                        @NotNull String newName,
+                                        @NotNull RefactoringElementListener elementListener) {
+    // As per b/134373997, there is an issue with string resources not resolving after a rename refactor.
+    // This is due to the resource repositories not being updated before the ResolveCache is calculated.
+    // Manually dropping the resolve caches for the project fixes this issue by forcing the ResolveCache to be re-calculated after the new
+    // resource has propagated through the ResourceFolderRepositories.
+    Project project = element.getProject();
+    return () -> PsiManager.getInstance(project).dropResolveCaches();
   }
 
   private static void prepareCustomViewRenaming(PsiClass cls, String newName, Map<PsiElement, String> allRenames, AndroidFacet facet) {

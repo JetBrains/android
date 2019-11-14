@@ -24,14 +24,13 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class AaptOptionsModelImpl extends GradleDslBlockModel implements AaptOptionsModel {
-  @NonNls private static final String ADDITIONAL_PARAMETERS = "additionalParameters";
-  @NonNls private static final String CRUNCHER_ENABLED = "cruncherEnabled";
-  @NonNls private static final String CRUNCHER_PROCESSES = "cruncherProcesses";
-  @NonNls private static final String FAIL_ON_MISSING_CONFIG_ENTRY = "failOnMissingConfigEntry";
-  @NonNls private static final String IGNORE_ASSETS = "ignoreAssets";
-  @NonNls private static final String IGNORE_ASSETS_PATTERN = "ignoreAssetsPattern";
-  @NonNls private static final String NO_COMPRESS = "noCompress";
-  @NonNls private static final String NAMESPACED = "namespaced";
+  @NonNls public static final String ADDITIONAL_PARAMETERS = "mAdditionalParameters";
+  @NonNls public static final String CRUNCHER_ENABLED = "mCruncherEnabled";
+  @NonNls public static final String CRUNCHER_PROCESSES = "mCruncherProcesses";
+  @NonNls public static final String FAIL_ON_MISSING_CONFIG_ENTRY = "mFailOnMissingConfigEntry";
+  @NonNls public static final String IGNORE_ASSETS = "mIgnoreAssetsPattern";
+  @NonNls public static final String NO_COMPRESS = "mNoCompress";
+  @NonNls public static final String NAMESPACED = "mNamespaced";
 
   public AaptOptionsModelImpl(@NotNull AaptOptionsDslElement dslElement) {
     super(dslElement);
@@ -40,47 +39,42 @@ public class AaptOptionsModelImpl extends GradleDslBlockModel implements AaptOpt
   @Override
   @NotNull
   public ResolvedPropertyModel additionalParameters() {
-    return GradlePropertyModelBuilder.create(myDslElement, ADDITIONAL_PARAMETERS).asMethod(true).buildResolved();
+    return GradlePropertyModelBuilder.create(myDslElement, ADDITIONAL_PARAMETERS).buildResolved();
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel ignoreAssets() {
-    if (myDslElement.getPropertyElementsByName(IGNORE_ASSETS_PATTERN).isEmpty()) {
-      return GradlePropertyModelBuilder.create(myDslElement, IGNORE_ASSETS).asMethod(true).buildResolved();
-    }
-    else {
-      return GradlePropertyModelBuilder.create(myDslElement, IGNORE_ASSETS_PATTERN).asMethod(true).buildResolved();
-    }
+    return GradlePropertyModelBuilder.create(myDslElement, IGNORE_ASSETS).buildResolved();
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel failOnMissingConfigEntry() {
-    return GradlePropertyModelBuilder.create(myDslElement, FAIL_ON_MISSING_CONFIG_ENTRY).asMethod(true).buildResolved();
+    return GradlePropertyModelBuilder.create(myDslElement, FAIL_ON_MISSING_CONFIG_ENTRY).buildResolved();
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel cruncherProcesses() {
-    return GradlePropertyModelBuilder.create(myDslElement, CRUNCHER_PROCESSES).asMethod(true).buildResolved();
+    return GradlePropertyModelBuilder.create(myDslElement, CRUNCHER_PROCESSES).buildResolved();
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel cruncherEnabled() {
-    return GradlePropertyModelBuilder.create(myDslElement, CRUNCHER_ENABLED).asMethod(true).buildResolved();
+    return GradlePropertyModelBuilder.create(myDslElement, CRUNCHER_ENABLED).buildResolved();
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel noCompress() {
-    return GradlePropertyModelBuilder.create(myDslElement, NO_COMPRESS).asMethod(true).buildResolved();
+    return GradlePropertyModelBuilder.create(myDslElement, NO_COMPRESS).buildResolved();
   }
 
   @NotNull
   @Override
   public ResolvedPropertyModel namespaced() {
-    return GradlePropertyModelBuilder.create(myDslElement, NAMESPACED).asMethod(true).buildResolved();
+    return GradlePropertyModelBuilder.create(myDslElement, NAMESPACED).buildResolved();
   }
 }

@@ -15,9 +15,15 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.AndroidProjectTypes
 import com.android.builder.model.AndroidArtifact
+import com.android.builder.model.AndroidArtifactOutput
+import com.android.builder.model.AndroidLibrary
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.BuildTypeContainer
+import com.android.builder.model.Dependencies
+import com.android.builder.model.JavaArtifact
+import com.android.builder.model.JavaLibrary
 import com.android.builder.model.ProductFlavorContainer
 import com.android.builder.model.SourceProvider
 import com.android.builder.model.SourceProviderContainer
@@ -35,6 +41,7 @@ import com.android.ide.common.gradle.model.stubs.BuildTypeStub
 import com.android.ide.common.gradle.model.stubs.DependenciesStub
 import com.android.ide.common.gradle.model.stubs.DependencyGraphsStub
 import com.android.ide.common.gradle.model.stubs.InstantRunStub
+import com.android.ide.common.gradle.model.stubs.JavaArtifactStub
 import com.android.ide.common.gradle.model.stubs.JavaCompileOptionsStub
 import com.android.ide.common.gradle.model.stubs.LintOptionsStub
 import com.android.ide.common.gradle.model.stubs.MavenCoordinatesStub
@@ -49,6 +56,7 @@ import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getLatestAndroidPlatform
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -59,8 +67,11 @@ import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTa
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
+import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.utils.FileUtils
+import com.android.utils.appendCapitalized
 import com.google.common.truth.TruthJUnit.assume
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -83,23 +94,37 @@ import org.jetbrains.plugins.gradle.model.ExternalTask
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import java.io.File
 
-typealias AndroidProjectBuilder = (projectName: String, basePath: File) -> AndroidProject
+typealias AndroidProjectBuilder = (projectName: String, basePath: File, agpVersion: String) -> AndroidProject
 
 sealed class ModuleModelBuilder {
   abstract val gradlePath: String
+  abstract val gradleVersion: String?
+  abstract val agpVersion: String?
 }
 
 data class AndroidModuleModelBuilder(
   override val gradlePath: String,
+  override val gradleVersion: String? = null,
+  override val agpVersion: String? = null,
   val selectedBuildVariant: String,
   val projectBuilder: AndroidProjectBuilder
-) : ModuleModelBuilder()
+) : ModuleModelBuilder() {
+  constructor (gradlePath: String, selectedBuildVariant: String, projectBuilder: AndroidProjectBuilder)
+    : this(gradlePath, null, null, selectedBuildVariant, projectBuilder)
+}
 
 data class JavaModuleModelBuilder(
-  override val gradlePath: String
+  override val gradlePath: String,
+  override val gradleVersion: String? = null,
+  val buildable: Boolean = true
 ) : ModuleModelBuilder() {
+
+  constructor (gradlePath: String, buildable: Boolean = true) : this(gradlePath, null,  buildable)
+
+  override val agpVersion: String? = null
+
   companion object {
-    val rootModuleBuilder = JavaModuleModelBuilder(":")
+    val rootModuleBuilder = JavaModuleModelBuilder(":", buildable = false)
   }
 }
 
@@ -108,10 +133,12 @@ data class AndroidModuleDependency(val moduleGradlePath: String, val variant: St
  * An interface providing access to [AndroidProject] sub-model builders are used to build [AndroidProject] and its other sub-models.
  */
 interface AndroidProjectStubBuilder {
+  val agpVersion: String
   val buildId: String
   val projectName: String
   val basePath: File
   val buildPath: File
+  val projectType: Int
   val minSdk: Int
   val targetSdk: Int
   val mainSourceProvider: SourceProvider
@@ -122,9 +149,12 @@ interface AndroidProjectStubBuilder {
   val defaultConfig: ProductFlavorContainer
   val debugBuildType: BuildTypeContainer?
   val releaseBuildType: BuildTypeContainer?
+  val dynamicFeatures: List<String>
   val viewBindingOptions: ViewBindingOptions
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
   fun mainArtifact(variant: String): AndroidArtifact
+  fun androidTestArtifact(variant: String): AndroidArtifact
+  fun unitTestArtifact(variant: String): JavaArtifact
   val androidProject: AndroidProject
 }
 
@@ -136,6 +166,7 @@ interface AndroidProjectStubBuilder {
  */
 fun createAndroidProjectBuilder(
   buildId: AndroidProjectStubBuilder.() -> String = { "/tmp/buildId" }, //  buildId should not be assumed to be a path.
+  projectType: AndroidProjectStubBuilder.() -> Int = { AndroidProjectTypes.PROJECT_TYPE_APP },
   minSdk: AndroidProjectStubBuilder.() -> Int = { 16 },
   targetSdk: AndroidProjectStubBuilder.() -> Int = { 22 },
   defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub = { buildDefaultConfigStub() },
@@ -146,17 +177,22 @@ fun createAndroidProjectBuilder(
   releaseSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub? = { buildReleaseSourceProviderStub() },
   debugBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildDebugBuildTypeStub() },
   releaseBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildReleaseBuildTypeStub() },
+  dynamicFeatures: AndroidProjectStubBuilder.() -> List<String> = { emptyList() },
   viewBindingOptions: AndroidProjectStubBuilder.() -> ViewBindingOptionsStub = { buildViewBindingOptions() },
   mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub = { variant -> buildMainArtifactStub(variant) },
+  androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub = { variant -> buildAndroidTestArtifactStub(variant) },
+  unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> JavaArtifactStub = { variant -> buildUnitTestArtifactStub(variant) },
   androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
   androidProject: AndroidProjectStubBuilder.() -> AndroidProject = { buildAndroidProjectStub() }
 ): AndroidProjectBuilder {
-  return { projectName, basePath ->
+  return { projectName, basePath, agpVersion ->
     val builder = object : AndroidProjectStubBuilder {
+      override val agpVersion: String = agpVersion
       override val buildId: String = buildId()
       override val projectName: String = projectName
       override val basePath: File = basePath
       override val buildPath: File get() = basePath.resolve("build")
+      override val projectType: Int get() = projectType()
       override val minSdk: Int get() = minSdk()
       override val targetSdk: Int get() = targetSdk()
       override val mainSourceProvider: SourceProvider get() = mainSourceProvider()
@@ -167,9 +203,12 @@ fun createAndroidProjectBuilder(
       override val defaultConfig: ProductFlavorContainer = defaultConfig()
       override val debugBuildType: BuildTypeContainer? = debugBuildType()
       override val releaseBuildType: BuildTypeContainer? = releaseBuildType()
+      override val dynamicFeatures: List<String> = dynamicFeatures()
       override val viewBindingOptions: ViewBindingOptions = viewBindingOptions()
       override fun androidModuleDependencies(variant: String): List<AndroidModuleDependency> = androidModuleDependencyList(variant)
       override fun mainArtifact(variant: String): AndroidArtifact = mainArtifactStub(variant)
+      override fun androidTestArtifact(variant: String): AndroidArtifact = androidTestArtifactStub(variant)
+      override fun unitTestArtifact(variant: String): JavaArtifact = unitTestArtifactStub(variant)
       override val androidProject: AndroidProject = androidProject()
     }
     builder.androidProject
@@ -266,10 +305,13 @@ fun AndroidProjectStubBuilder.buildReleaseBuildTypeStub() = releaseSourceProvide
 
 fun AndroidProjectStubBuilder.buildViewBindingOptions() = ViewBindingOptionsStub()
 
-fun AndroidProjectStubBuilder.buildMainArtifactStub(variant: String): AndroidArtifactStub {
+fun AndroidProjectStubBuilder.buildMainArtifactStub(
+  variant: String,
+  classFolders: Set<File> = setOf()
+): AndroidArtifactStub {
   val androidModuleDependencies = this.androidModuleDependencies(variant).orEmpty()
-  val dependenciesStub = DependenciesStub(
-    androidModuleDependencies.map {
+  val dependenciesStub = buildDependenciesStub(
+    libraries = androidModuleDependencies.map {
       AndroidLibraryStub(
         MavenCoordinatesStub("artifacts", it.moduleGradlePath, "unspecificed", "jar"),
         this.buildId,
@@ -293,25 +335,25 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(variant: String): AndroidArt
         File("stub_lintJar.jar"),
         File("stub_publicResources")
       )
-    },
-    listOf(), listOf(), listOf(), listOf())
+    }
+  )
   return AndroidArtifactStub(
     ARTIFACT_NAME_MAIN,
-    "compile",
-    "assemble",
-    buildPath.resolve("classes"),
-    setOf(),
-    buildPath.resolve("res"),
+    "compile".appendCapitalized(variant).appendCapitalized("sources"),
+    "assemble".appendCapitalized(variant),
+    buildPath.resolve("intermediates/javac/$variant/classes"),
+    classFolders,
+    buildPath.resolve("intermediates/java_res/$variant/out"),
     dependenciesStub,
     dependenciesStub,
     DependencyGraphsStub(listOf(), listOf(), listOf(), listOf()),
-    setOf(),
+    setOf("ideSetupTask1", "ideSetupTask2"),
     setOf(),
     null,
     null,
-    listOf(),
+    listOf<AndroidArtifactOutput>(),
     "applicationId",
-    "sourceGenTaskName",
+    "generate".appendCapitalized(variant).appendCapitalized("sources"),
     mapOf(),
     mapOf(),
     InstantRunStub(),
@@ -321,9 +363,74 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(variant: String): AndroidArt
     listOf(),
     null,
     null,
-    null,
+    "bundle".takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant),
+    "extractApksFor".takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant),
     null,
     false
+  )
+}
+
+fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
+  variant: String,
+  classFolders: Set<File> = setOf()
+): AndroidArtifactStub {
+  val dependenciesStub = buildDependenciesStub()
+  return AndroidArtifactStub(
+    ARTIFACT_NAME_ANDROID_TEST,
+    "compile".appendCapitalized(variant).appendCapitalized("androidTestSources"),
+    "assemble".appendCapitalized(variant).appendCapitalized("androidTest"),
+    buildPath.resolve("intermediates/javac/${variant}AndroidTest/classes"),
+    classFolders,
+    buildPath.resolve("intermediates/java_res/${variant}AndroidTest/out"),
+    dependenciesStub,
+    dependenciesStub,
+    DependencyGraphsStub(listOf(), listOf(), listOf(), listOf()),
+    setOf("ideAndroidTestSetupTask1", "ideAndroidTestSetupTask2"),
+    setOf(),
+    null,
+    null,
+    listOf(),
+    "applicationId",
+    "generate".appendCapitalized(variant).appendCapitalized("androidTestSources"),
+    mapOf(),
+    mapOf(),
+    InstantRunStub(),
+    "defaultConfig",
+    null,
+    null,
+    listOf(),
+    null,
+    null,
+    "bundle"
+      .takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant)?.appendCapitalized("androidTest"),
+    "extractApksFor"
+      .takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant)?.appendCapitalized("androidTest"),
+    null,
+    false
+  )
+}
+
+fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
+  variant: String,
+  classFolders: Set<File> = setOf(),
+  dependencies: Dependencies = buildDependenciesStub(),
+  mockablePlatformJar: File? = null
+): JavaArtifactStub {
+  return JavaArtifactStub(
+    ARTIFACT_NAME_UNIT_TEST,
+    "compile".appendCapitalized(variant).appendCapitalized("unitTestSources"),
+    "assemble".appendCapitalized(variant).appendCapitalized("unitTest"),
+    buildPath.resolve("intermediates/javac/${variant}UnitTest/classes"),
+    classFolders,
+    buildPath.resolve("intermediates/java_res/${variant}UnitTest/out"),
+    dependencies,
+    dependencies,
+    DependencyGraphsStub(listOf(), listOf(), listOf(), listOf()),
+    setOf("ideUnitTestSetupTask1", "ideUnitTestSetupTask2"),
+    setOf(),
+    null,
+    null,
+    mockablePlatformJar
   )
 }
 
@@ -333,7 +440,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
   val defaultVariant = debugBuildType ?: releaseBuildType
   val defaultVariantName = defaultVariant?.sourceProvider?.name ?: "main"
   return AndroidProjectStub(
-    LatestKnownPluginVersionProvider.INSTANCE.get(),
+    agpVersion,
     projectName,
     null,
     defaultConfig,
@@ -347,8 +454,8 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
           variant,
           variant,
           mainArtifact(variant),
-          listOf(),
-          listOf(),
+          listOf(androidTestArtifact(variant)),
+          listOf(unitTestArtifact(variant)),
           variant,
           listOf(),
           defaultConfig.productFlavor,
@@ -367,17 +474,25 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     setOf(),
     JavaCompileOptionsStub(),
     AaptOptionsStub(),
+    dynamicFeatures,
     viewBindingOptions,
     buildPath,
     null,
     1,
     true,
-    2,
+    projectType,
     true,
     AndroidGradlePluginProjectFlagsStub()
   )
 }
 
+fun AndroidProjectStubBuilder.buildDependenciesStub(
+  libraries: List<AndroidLibrary> = listOf(),
+  javaLibraries: List<JavaLibrary> = listOf(),
+  projects: List<String> = listOf(),
+  javaModules: List<Dependencies.ProjectIdentifier> = listOf(),
+  runtimeOnlyClasses: List<File> = listOf()
+): DependenciesStub = DependenciesStub(libraries, javaLibraries, projects, javaModules, runtimeOnlyClasses)
 
 /**
  * Sets up [project] as a one module project configured in the same way sync would conigure it from the same model.
@@ -387,12 +502,20 @@ fun setupTestProjectFromAndroidModel(
   basePath: File,
   vararg moduleBuilders: ModuleModelBuilder
 ) {
+  if (IdeSdks.getInstance().androidSdkPath === null) {
+    AndroidGradleTests.setUpSdks(project, project, TestUtils.getSdk())
+  }
 
   val moduleManager = ModuleManager.getInstance(project)
-  if (moduleManager.modules.size == 1) {
+  if (moduleManager.modules.size <= 1) {
     runWriteAction {
-      val module = moduleManager.modules[0]
       val modifiableModel = moduleManager.modifiableModel
+      val module = if (modifiableModel.modules.isEmpty()) {
+        modifiableModel.newModule(basePath.resolve("${project.name}.iml").path, JAVA.id)
+      }
+      else {
+        moduleManager.modules[0]
+      }
       if (module.name != project.name) {
         modifiableModel.renameModule(module, project.name)
         modifiableModel.setModuleGroupPath(module, arrayOf(project.name))
@@ -410,7 +533,7 @@ fun setupTestProjectFromAndroidModel(
   else {
     assume().that(moduleManager.modules.size).isEqualTo(0)
   }
-
+  ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem (project))
   val gradlePlugins = listOf(
     "com.android.java.model.builder.JavaLibraryPlugin", "org.gradle.buildinit.plugins.BuildInitPlugin",
     "org.gradle.buildinit.plugins.WrapperPlugin", "org.gradle.api.plugins.HelpTasksPlugin",
@@ -474,8 +597,14 @@ fun setupTestProjectFromAndroidModel(
           moduleName,
           gradlePath,
           moduleBasePath,
+          moduleBuilder.gradleVersion,
+          moduleBuilder.agpVersion,
           gradlePlugins,
-          moduleBuilder.projectBuilder(moduleName, moduleBasePath),
+          moduleBuilder.projectBuilder(
+            moduleName,
+            moduleBasePath,
+            moduleBuilder.agpVersion ?: LatestKnownPluginVersionProvider.INSTANCE.get()
+          ),
           moduleBuilder.selectedBuildVariant
         )
       }
@@ -483,7 +612,8 @@ fun setupTestProjectFromAndroidModel(
         createJavaModuleDataNode(
           moduleName,
           gradlePath,
-          moduleBasePath
+          moduleBasePath,
+          moduleBuilder.buildable
         )
     }
     projectDataNode.addChild(moduleDataNode)
@@ -505,6 +635,8 @@ private fun createAndroidModuleDataNode(
   moduleName: String,
   gradlePath: String,
   moduleBasePath: File,
+  gradleVersion: String?,
+  agpVersion: String?,
   gradlePlugins: List<String>,
   androidProjectStub: AndroidProject,
   selectedVariantName: String
@@ -522,8 +654,8 @@ private fun createAndroidModuleDataNode(
         moduleBasePath,
         gradlePlugins,
         null,
-        null,
-        null,
+        gradleVersion,
+        agpVersion,
         false
       ),
       null
@@ -553,10 +685,31 @@ private fun createAndroidModuleDataNode(
 private fun createJavaModuleDataNode(
   moduleName: String,
   gradlePath: String,
-  moduleBasePath: File
+  moduleBasePath: File,
+  buildable: Boolean
 ): DataNode<ModuleData> {
 
   val moduleDataNode = createGradleModuleDataNode(gradlePath, moduleName, moduleBasePath)
+
+  if (buildable || gradlePath != ":") {
+    moduleDataNode.addChild(
+      DataNode<GradleModuleModel>(
+        AndroidProjectKeys.GRADLE_MODULE_MODEL,
+        GradleModuleModel(
+          moduleName,
+          listOf(),
+          gradlePath,
+          moduleBasePath,
+          emptyList(),
+          null,
+          null,
+          null,
+          false
+        ),
+        null
+      )
+    )
+  }
 
   moduleDataNode.addChild(
     DataNode<JavaModuleModel>(
@@ -571,7 +724,7 @@ private fun createJavaModuleDataNode(
         null,
         null,
         null,
-        false,
+        buildable,
         false
       ),
       null
@@ -600,4 +753,3 @@ private fun createGradleModuleDataNode(
   )
   return moduleDataNode
 }
-

@@ -16,8 +16,10 @@
 package com.android.tools.idea.layoutinspector.transport
 
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
+import com.android.tools.idea.layoutinspector.model.TreeLoader
+import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import com.google.common.annotations.VisibleForTesting
@@ -30,7 +32,7 @@ interface InspectorClient {
   /**
    * Register a handler for a specific groupId.
    */
-  fun register(groupId: EventGroupIds, callback: (LayoutInspectorEvent) -> Unit)
+  fun register(groupId: EventGroupIds, callback: (Any) -> Unit)
 
   /**
    * Register a handler for when the current process ends.
@@ -45,7 +47,7 @@ interface InspectorClient {
   /**
    * Attach to a preferred process.
    */
-  fun attach(preferredProcess: LayoutInspectorPreferredProcess)
+  fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Boolean
 
   /**
    * Attach to a specific process.
@@ -69,11 +71,7 @@ interface InspectorClient {
     execute(LayoutInspectorCommand.newBuilder().setType(commandType).build())
   }
 
-  /**
-   * Fetch the payload from a given payload [id].
-   */
-  fun getPayload(id: Int): ByteArray
-
+  val treeLoader: TreeLoader
   /**
    * True, if a connection to a device is currently open.
    */
@@ -106,4 +104,22 @@ interface InspectorClient {
      */
     fun createInstance(project: Project): InspectorClient = clientFactory(project)
   }
+}
+
+object DisconnectedClient : InspectorClient {
+  override val treeLoader: TreeLoader = object: TreeLoader {
+    override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient): ViewNode? = null
+  }
+  override fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {}
+  override fun registerProcessChanged(callback: () -> Unit) {}
+  override fun loadProcesses(): Map<Common.Stream, List<Common.Process>> = mapOf()
+  override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess) = false
+  override fun attach(stream: Common.Stream, process: Common.Process) {}
+  override fun disconnect() {}
+  override fun execute(command: LayoutInspectorCommand) {}
+  override val isConnected = false
+  override val selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
+  override val selectedProcess: Common.Process = Common.Process.getDefaultInstance()
+  override val isCapturing = false
+
 }

@@ -19,15 +19,14 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profilers.ProfilerTooltip;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.android.tools.adtui.model.TooltipModel;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> implements ProfilerTooltip {
+public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> implements TooltipModel {
   public enum Aspect {
     // The hovering thread state changed
     THREAD_STATE,

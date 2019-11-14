@@ -25,18 +25,20 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectBuildVari
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import org.fest.swing.timing.Wait
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
 class CreateNewFlavorsTest {
 
   @Rule
   @JvmField
-  val guiTest = GuiTestRule()
+  val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
 
   @Before
   fun setUp() {
@@ -70,7 +72,7 @@ class CreateNewFlavorsTest {
    *   set in the project structure flavor dialog
    * </pre>
    */
-  @RunIn(TestGroup.FAST_BAZEL)
+  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   @Throws(Exception::class)
   fun createNewFlavors() {
@@ -107,7 +109,7 @@ class CreateNewFlavorsTest {
 
     val dimenDemo = "dimension '$DIMEN_NAME'"
     val flavor1 = "$FLAVOR1 {\n            $dimenDemo\n            minSdkVersion 24\n            targetSdkVersion 24\n        }"
-    val flavor2 = "$FLAVOR2 {\n            $dimenDemo\n            versionCode = 2\n            versionName = '2.3'\n        }"
+    val flavor2 = "$FLAVOR2 {\n            $dimenDemo\n            versionCode 2\n            versionName '2.3'\n        }"
 
     assertThat(gradleFileContents).contains(flavor1)
     assertThat(gradleFileContents).contains(flavor2)
@@ -121,7 +123,7 @@ class CreateNewFlavorsTest {
       .setTargetSourceSet(FLAVOR1)
       .wizard()
       .clickFinish()
-      .waitForGradleProjectSyncToFinish()
+      .waitForGradleProjectSyncToFinish(Wait.seconds(120))
   }
 }
 

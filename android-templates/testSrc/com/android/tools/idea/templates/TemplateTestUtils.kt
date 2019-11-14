@@ -209,7 +209,7 @@ internal fun getModifiedModuleName(
   moduleName: String, activityState: TestTemplateWizardState?, isNewRenderingContext: Boolean = false
 ): String =
   when {
-    SystemInfo.isWindows -> "app"
+    SystemInfo.isWindows -> if (isNewRenderingContext) moduleName.substringBefore('_') else "app"
     // Bug 142926378
     isNewRenderingContext -> moduleName
     // Bug 137161906
