@@ -20,6 +20,7 @@ import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.search.GlobalSearchScope
@@ -47,7 +48,9 @@ class IncorrectScopeInspection : AbstractKotlinInspection() {
             expression.references.ifNotEmpty {
               val resolveResult = expression.mainReference.resolve() ?: return
               val scope: GlobalSearchScope = expression.resolveScope
-              if (!PsiSearchScopeUtil.isInScope(scope, resolveResult)) {
+              // Only mark elements as in the incorrect scope if they are in the same IDEA module, but wrong Android test scope.
+              if (ModuleUtilCore.findModuleForPsiElement(expression) == ModuleUtilCore.findModuleForPsiElement(resolveResult) &&
+                  !PsiSearchScopeUtil.isInScope(scope, resolveResult)) {
                 val diagnostic = Errors.UNRESOLVED_REFERENCE.on(expression, expression)
                 val message = IdeErrorMessages.render(diagnostic)
                 holder.registerProblem(expression, message, ProblemHighlightType.ERROR)

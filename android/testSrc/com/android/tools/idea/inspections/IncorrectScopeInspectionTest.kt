@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.psi.PsiDocumentManager
 import org.jetbrains.kotlin.android.inspection.IncorrectScopeInspection
 
 class IncorrectScopeInspectionTest : AndroidGradleTestCase() {
@@ -64,6 +65,23 @@ class IncorrectScopeInspectionTest : AndroidGradleTestCase() {
       it.description == expectedErrorMessage
       && it.severity == HighlightSeverity.ERROR
     }).isTrue()
+  }
+
+  fun testIncorrectScopeDifferentModuleAndroidTest() {
+    val unitTestPath = "app/src/test/java/com/example/android/kotlin/ExampleUnitTest.kt"
+    val file = project.guessProjectDir()!!.findFileByRelativePath(unitTestPath)
+    myFixture.openFileInEditor(file!!)
+    myFixture.moveCaret("import org.junit.Test|")
+    myFixture.type("\nimport android.support.test.InstrumentationRegistry")
+    PsiDocumentManager.getInstance(project).commitDocument(myFixture.editor.document)
+    myFixture.moveCaret("assertEquals(4, 2 + 2)|")
+    myFixture.type("\nInstrumentationRegistry.getTargetContext()")
+    PsiDocumentManager.getInstance(project).commitDocument(myFixture.editor.document)
+
+    // This should be marked as an error, but because it is possible for this library to be in both androidTest and test source sets but
+    // only one of the scopes, we don't mark it as an error.
+    val highlightInfo = myFixture.doHighlighting(HighlightSeverity.WARNING)
+    assertThat(highlightInfo).isEmpty()
   }
 
   fun testCorrectScopeUnitTest() {
