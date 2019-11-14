@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.facet
 
+import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
@@ -33,24 +34,24 @@ class SourceProviderManagerTest {
   @Test
   fun selfDisposesOnFacetConfigurationChange() {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val sourceProviderManagerBeforeNotification = facet.sourceProviderManager
+    val sourceProviderManagerBeforeNotification = facet.sourceProviders
     invokeAndWaitIfNeeded {
       projectRule.module.messageBus.syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(facet)
     }
-    val sourceProviderManagerAfterNotification = facet.sourceProviderManager
+    val sourceProviderManagerAfterNotification = facet.sourceProviders
     assertThat(sourceProviderManagerAfterNotification).isNotSameAs(sourceProviderManagerBeforeNotification)
   }
 
   @Test
   fun selfDisposesOnProjectRootsChange() {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val sourceProviderManagerBeforeNotification = facet.sourceProviderManager
+    val sourceProviderManagerBeforeNotification = facet.sourceProviders
     invokeAndWaitIfNeeded {
       val publisher = projectRule.project.messageBus.syncPublisher(ProjectTopics.PROJECT_ROOTS)
       publisher.beforeRootsChange(ModuleRootEventImpl(projectRule.project, false))
       publisher.rootsChanged(ModuleRootEventImpl(projectRule.project, false))
     }
-    val sourceProviderManagerAfterNotification = facet.sourceProviderManager
+    val sourceProviderManagerAfterNotification = facet.sourceProviders
     assertThat(sourceProviderManagerAfterNotification).isNotSameAs(sourceProviderManagerBeforeNotification)
   }
 }
@@ -63,9 +64,9 @@ class GradleSourceProviderManagerTest {
   fun selfDisposesOnFacetConfigurationChange() {
     projectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
     val facet = AndroidFacet.getInstance(projectRule.modules.appModule)!!
-    val sourceProviderManagerBeforeNotification = facet.sourceProviderManager
+    val sourceProviderManagerBeforeNotification = facet.sourceProviders
     projectRule.requestSyncAndWait()
-    val sourceProviderManagerAfterNotification = facet.sourceProviderManager
+    val sourceProviderManagerAfterNotification = facet.sourceProviders
     assertThat(sourceProviderManagerAfterNotification).isNotSameAs(sourceProviderManagerBeforeNotification)
   }
 }
