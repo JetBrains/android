@@ -18,6 +18,7 @@ package org.jetbrains.android.facet
 
 import com.android.SdkConstants
 import com.android.builder.model.SourceProvider
+import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.IdeaSourceProviderImpl
 import com.android.tools.idea.projectsystem.SourceProviders
@@ -82,8 +83,11 @@ private class LegacyDelegate constructor(private val facet: AndroidFacet) : Idea
     // as tested by ResourceTypeInspectionTest#testLibraryRevocablePermission)
     get() {
       val module = facet.module
-      val file = AndroidRootUtil.getFileByRelativeModulePath(module,
-                                                             facet.properties.MANIFEST_FILE_RELATIVE_PATH, true)
+      val file = AndroidProjectRootUtil.getFileByRelativeModulePath(
+        module,
+        facet.properties.MANIFEST_FILE_RELATIVE_PATH,
+        true
+      )
       if (file != null) {
         return file
       }
@@ -102,14 +106,14 @@ private class LegacyDelegate constructor(private val facet: AndroidFacet) : Idea
   override val resourcesDirectories: Collection<VirtualFile> get() = emptySet()
 
   override val aidlDirectoryUrls: Collection<String> get() = listOfNotNull(
-    AndroidRootUtil.getAidlGenSourceRootPath(facet)?.convertToUrl())
+    AndroidProjectRootUtil.getAidlGenSourceRootPath(facet)?.convertToUrl())
   override val aidlDirectories: Collection<VirtualFile> get() = listOfNotNull(
-    AndroidRootUtil.getAidlGenDir(facet))
+    AndroidProjectRootUtil.getAidlGenDir(facet))
 
   override val renderscriptDirectoryUrls: Collection<String> get() = listOfNotNull(
-    AndroidRootUtil.getRenderscriptGenSourceRootPath(facet)?.convertToUrl())
+    AndroidProjectRootUtil.getRenderscriptGenSourceRootPath(facet)?.convertToUrl())
   override val renderscriptDirectories: Collection<VirtualFile> get() = listOfNotNull(
-    AndroidRootUtil.getRenderscriptGenDir(facet))
+    AndroidProjectRootUtil.getRenderscriptGenDir(facet))
 
   override val jniDirectoryUrls: Collection<String> get() = emptySet()
   override val jniDirectories: Collection<VirtualFile> get() = emptySet()
@@ -121,13 +125,13 @@ private class LegacyDelegate constructor(private val facet: AndroidFacet) : Idea
   override val resDirectories: Collection<VirtualFile>
     get() {
       val resRelPath = facet.properties.RES_FOLDER_RELATIVE_PATH
-      return listOfNotNull(AndroidRootUtil.getFileByRelativeModulePath(facet.module, resRelPath, true))
+      return listOfNotNull(AndroidProjectRootUtil.getFileByRelativeModulePath(facet.module, resRelPath, true))
     }
 
   override val assetsDirectoryUrls: Collection<String> get() = assetsDirectories.map { it.url }
   override val assetsDirectories: Collection<VirtualFile>
     get() {
-      val dir = AndroidRootUtil.getAssetsDir(facet)
+      val dir = AndroidProjectRootUtil.getAssetsDir(facet)
       return listOfNotNull(dir)
     }
 
