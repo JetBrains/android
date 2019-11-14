@@ -55,6 +55,7 @@ iml_module(
         "//tools/base/build-system:studio.android.sdktools.manifest-merger[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
+        "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
     ],
 )
 
