@@ -15,15 +15,66 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android.splits;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
+import static com.android.tools.idea.gradle.dsl.model.android.splits.DensityModelImpl.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
+import com.google.common.collect.ImmutableMap;
+import java.util.stream.Stream;
+import kotlin.Pair;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class DensityDslElement extends GradleDslBlockElement {
+public class DensityDslElement extends BaseSplitOptionsDslElement {
   @NonNls public static final String DENSITY_BLOCK_NAME = "density";
+
+  @NotNull
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap =
+    Stream.concat(
+      BaseSplitOptionsDslElement.ktsToModelNameMap.entrySet().stream().map(data -> new Object[]{
+        data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().getFirst(), data.getValue().getSecond()
+      }),
+      Stream.of(new Object[][]{
+        {"setAuto", exactly(1), AUTO, SET},
+        {"compatibleScreens", atLeast(0), COMPATIBLE_SCREENS, OTHER}
+      })).collect(toImmutableMap(data -> new Pair<>((String)data[0], (Integer)data[1]),
+                                 data -> new Pair<>((String)data[2], (SemanticsDescription)data[3])));
+
+  @NotNull
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap =
+    Stream.concat(
+      BaseSplitOptionsDslElement.groovyToModelNameMap.entrySet().stream().map(data -> new Object[]{
+        data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().getFirst(), data.getValue().getSecond()
+      }),
+      Stream.of(new Object[][]{
+        {"auto", property, AUTO, VAR},
+        {"auto", exactly(1), AUTO, SET},
+        {"compatibleScreens", property, COMPATIBLE_SCREENS, VAR},
+        {"compatibleScreens", atLeast(0), COMPATIBLE_SCREENS, OTHER},
+      })).collect(toImmutableMap(data -> new Pair<>((String)data[0], (Integer)data[1]),
+                                 data -> new Pair<>((String)data[2], (SemanticsDescription)data[3])));
+
+  @Override
+  @NotNull
+  public ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+    if (converter instanceof KotlinDslNameConverter) {
+      return ktsToModelNameMap;
+    }
+    else if (converter instanceof GroovyDslNameConverter) {
+      return groovyToModelNameMap;
+    }
+    else {
+      return super.getExternalToModelMap(converter);
+    }
+  }
 
   public DensityDslElement(@NotNull GradleDslElement parent) {
     super(parent, GradleNameElement.create(DENSITY_BLOCK_NAME));
@@ -32,13 +83,8 @@ public class DensityDslElement extends GradleDslBlockElement {
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
     String property = element.getName();
-    if (property.equals("compatibleScreens") || property.equals("include") || property.equals("exclude")) {
-      addToParsedExpressionList(property, element);
-      return;
-    }
-
-    if (property.equals("reset") && element instanceof GradleDslMethodCall) {
-      addParsedResettingElement(element, "include");
+    if (property.equals("compatibleScreens")) {
+      addToParsedExpressionList(COMPATIBLE_SCREENS, element);
       return;
     }
 

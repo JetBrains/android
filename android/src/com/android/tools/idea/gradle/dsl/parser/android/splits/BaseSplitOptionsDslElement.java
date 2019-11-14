@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,20 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android.splits;
 
-import static com.android.tools.idea.gradle.dsl.model.android.splits.LanguageModelImpl.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.model.android.splits.BaseSplitOptionsModelImpl.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAL;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
@@ -31,18 +36,20 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class LanguageDslElement extends GradleDslBlockElement {
-  @NonNls public static final String LANGUAGE_BLOCK_NAME = "language";
+public abstract class BaseSplitOptionsDslElement extends GradleDslBlockElement {
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"isEnable", property, ENABLE, VAR},
+    {"exclude", property, EXCLUDE, VAL},
+    {"exclude", atLeast(0), EXCLUDE, OTHER},
+    {"setExclude", exactly(1), EXCLUDE, SET},
     {"include", property, INCLUDE, VAL},
     {"include", atLeast(0), INCLUDE, OTHER},
-    {"setInclude", exactly(1), INCLUDE, SET}
+    {"setInclude", exactly(1), INCLUDE, SET},
+    {"reset", exactly(0), INCLUDE, OTHER}
   }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
                             data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
 
@@ -50,8 +57,11 @@ public class LanguageDslElement extends GradleDslBlockElement {
   public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
     {"enable", property, ENABLE, VAR},
     {"enable", exactly(1), ENABLE, SET},
+    {"exclude", property, EXCLUDE, VAR},
+    {"exclude", atLeast(0), EXCLUDE, OTHER},
     {"include", property, INCLUDE, VAR},
-    {"include", atLeast(0), INCLUDE, OTHER}
+    {"include", atLeast(0), INCLUDE, OTHER},
+    {"reset", exactly(0), INCLUDE, OTHER}
   }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
                             data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
 
@@ -69,15 +79,23 @@ public class LanguageDslElement extends GradleDslBlockElement {
     }
   }
 
-  public LanguageDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(LANGUAGE_BLOCK_NAME));
+  BaseSplitOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement blockName) {
+    super(parent, blockName);
   }
 
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
     String property = element.getName();
+    if (property.equals("exclude")) {
+      addToParsedExpressionList(EXCLUDE, element);
+      return;
+    }
     if (property.equals("include")) {
       addToParsedExpressionList(INCLUDE, element);
+      return;
+    }
+    if (property.equals("reset") && element instanceof GradleDslMethodCall) {
+      addParsedResettingElement(element, INCLUDE);
       return;
     }
 

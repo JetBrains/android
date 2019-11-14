@@ -34,6 +34,9 @@ import static com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDsl
 import static com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement.LANGUAGE_BLOCK_NAME;
 
 public class SplitsModelImpl extends GradleDslBlockModel implements SplitsModel {
+
+  // TODO(xof): support abiFilters, densityFilters, languageFilters read-only properties?
+
   public SplitsModelImpl(@NotNull SplitsDslElement dslElement) {
     super(dslElement);
   }

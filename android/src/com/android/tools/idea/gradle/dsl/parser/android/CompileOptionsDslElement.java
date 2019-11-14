@@ -75,6 +75,7 @@ public class CompileOptionsDslElement extends BaseCompileOptionsDslElement {
       return super.getExternalToModelMap(converter);
     }
   }
+
   public CompileOptionsDslElement(@NotNull GradleDslElement parent) {
     super(parent);
   }
