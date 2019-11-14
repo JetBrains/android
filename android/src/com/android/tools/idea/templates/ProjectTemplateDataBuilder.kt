@@ -30,6 +30,7 @@ import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.templates.TemplateMetadata.getBuildApiString
+import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.PackageName
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.Version
@@ -73,6 +74,7 @@ class ProjectTemplateDataBuilder(private val isNew: Boolean) {
   var explicitBuildToolsVersion: Boolean? = null
   var topOut: File? = null
   var applicationPackage: PackageName? = null
+  val includedFormFactorNames = mutableMapOf<FormFactor, MutableList<String>>()
 
   private fun setEssentials(project: Project) {
     kotlinVersion = bundledRuntimeVersion()
@@ -187,7 +189,7 @@ class ProjectTemplateDataBuilder(private val isNew: Boolean) {
   }
 
   // Note: New projects are always created with androidx dependencies
-  private fun Project?.hasAndroidxSupport() : Boolean =
+  private fun Project?.hasAndroidxSupport(): Boolean =
     this == null || isNew || this.isAndroidx()
 
   fun build() = ProjectTemplateData(
@@ -206,7 +208,8 @@ class ProjectTemplateDataBuilder(private val isNew: Boolean) {
     kotlinVersion!!,
     buildToolsVersion!!.toString(),
     topOut!!,
-    applicationPackage
+    applicationPackage,
+    includedFormFactorNames
   )
 }
 
