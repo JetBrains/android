@@ -336,7 +336,7 @@ class Edge(val start: Node, val end: Node, val label: Expander.Label): DoNotTrac
   fun signature(): String =
     if (start.isRootNode) {
       "ROOT#" + if (end.obj === BootstrapClassloaderPlaceholder) "BootstrapClassLoader" else end.type.simpleName
-    } else if (label is DefaultObjectExpander.FieldLabel && (label.field.modifiers and Modifier.STATIC) != 0) {
+    } else if (label is Expander.FieldLabel && (label.field.modifiers and Modifier.STATIC) != 0) {
       label.field.declaringClass.name + "#" + label.signature()
     } else {
       start.type.name + "#" + label.signature()
