@@ -51,12 +51,24 @@ class AppInspectorConnectionTest {
   private val transportService = FakeTransportService(timer)
 
   private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectorConnectionTest", transportService, transportService)!!
-  private val appInspectionRule = AppInspectionServiceRule(timer,
-                                                                                                                       transportService,
-                                                                                                                       grpcServerRule)
+  private val appInspectionRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionRule)!!
+
+  private fun createRawAppInspectionEvent(
+    data: ByteArray,
+    commandId: Int = 0,
+    name: String = INSPECTOR_NAME
+  ) = AppInspectionEvent.newBuilder()
+    .setCommandId(commandId)
+    .setRawEvent(
+      RawEvent.newBuilder()
+        .setInspectorId(name)
+        .setContent(ByteString.copyFrom(data))
+        .build()
+    )
+    .build()
 
   @Test
   fun disposeInspectorSucceedWithCallback() {
@@ -113,14 +125,7 @@ class AppInspectorConnectionTest {
     }
     appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_NAME, eventListener = eventListener)
 
-    appInspectionRule.addAppInspectionEvent(
-      AppInspectionEvent.newBuilder()
-        .setRawEvent(RawEvent.newBuilder()
-                       .setInspectorId(INSPECTOR_NAME)
-                       .setContent(ByteString.copyFrom(byteArrayOf(0x12, 0x15)))
-                       .build())
-        .build()
-    )
+    appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(byteArrayOf(0x12, 0x15)))
 
     try {
       assertThat(latch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
@@ -339,12 +344,7 @@ class AppInspectorConnectionTest {
         .setKind(APP_INSPECTION)
         .setTimestamp(ts)
         .setIsEnded(true)
-        .setAppInspectionEvent(AppInspectionEvent.newBuilder()
-                                 .setRawEvent(RawEvent.newBuilder()
-                                                .setInspectorId("test.inspector")
-                                                .setContent(data)
-                                                .build())
-                                 .build())
+        .setAppInspectionEvent(createRawAppInspectionEvent(data.toByteArray(), name = "test.inspector"))
         .build()
 
     val latch = CountDownLatch(2)
@@ -373,5 +373,39 @@ class AppInspectorConnectionTest {
 
     assertThat(String(listener.rawEvents[0])).isEqualTo("first")
     assertThat(String(listener.rawEvents[1])).isEqualTo("second")
+  }
+
+  @Test
+  fun connectionDoesNotReceiveStaleEvents() {
+    val latch = CountDownLatch(1)
+    val staleEventData = byteArrayOf(0x12, 0x15)
+    val freshEventData = byteArrayOf(0x01, 0x02)
+    val listener = object : AppInspectionServiceRule.TestInspectorEventListener() {
+      override fun onRawEvent(eventData: ByteArray) {
+        super.onRawEvent(eventData)
+        latch.countDown()
+      }
+    }
+
+    timer.currentTimeNs = 3
+    appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(staleEventData))
+
+    timer.currentTimeNs = 5
+    appInspectionRule.launchInspectorConnection(
+      inspectorId = "test.inspector",
+      eventListener = listener
+    )
+    appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(freshEventData))
+
+    try {
+      assertThat(latch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
+    }
+    catch (e: InterruptedException) {
+      e.printStackTrace()
+      fail("Test interrupted")
+    }
+
+    assertThat(listener.rawEvents).hasSize(1)
+    assertThat(listener.rawEvents[0]).isEqualTo(freshEventData)
   }
 }

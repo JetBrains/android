@@ -63,12 +63,11 @@ internal fun attachAppInspectionPipelineConnection(
     .build()
 
   transport.registerEventListener(
-    eventKind = AGENT,
-    filter = { it.agentData.status == ATTACHED }
+    transport.createEventListener(eventKind = AGENT, filter = { it.agentData.status == ATTACHED }
   ) {
     connectionFuture.set(DefaultAppInspectionPipelineConnection(transport, fileCopier))
     true
-  }
+  })
   transport.client.transportStub.execute(ExecuteRequest.newBuilder().setCommand(attachCommand).build())
   return connectionFuture
 }
@@ -95,16 +94,18 @@ private class DefaultAppInspectionPipelineConnection(val processTransport: AppIn
         ).build()
         val commandId = processTransport.executeCommand(appInspectionCommand)
         processTransport.registerEventListener(
-          eventKind = APP_INSPECTION,
-          filter = { it.appInspectionEvent.commandId == commandId }
-        ) { event ->
-          if (event.appInspectionEvent.response.status == SUCCESS) {
-            connectionFuture.set(AppInspectorConnection(processTransport, inspectorId))
-          } else {
-            connectionFuture.setException(RuntimeException("Could not launch inspector $inspectorId"))
+          processTransport.createEventListener(
+            eventKind = APP_INSPECTION,
+            filter = { it.appInspectionEvent.commandId == commandId }
+          ) { event ->
+            if (event.appInspectionEvent.response.status == SUCCESS) {
+              connectionFuture.set(AppInspectorConnection(processTransport, inspectorId, event.timestamp))
+            } else {
+              connectionFuture.setException(RuntimeException("Could not launch inspector $inspectorId"))
+            }
+            true
           }
-          true
-        }
+        )
         connectionFuture
       },
       processTransport.executorService
@@ -123,8 +124,9 @@ private fun <T : AppInspectorClient> setupEventListener(creator: (AppInspectorCo
 fun <T : AppInspectorClient> launchInspectorForTest(
   inspectorId: String,
   transport: AppInspectionTransport,
+  connectionStartTimeNs: Long,
   creator: (AppInspectorClient.CommandMessenger) -> T
 ): T {
-  val connection = AppInspectorConnection(transport, inspectorId)
+  val connection = AppInspectorConnection(transport, inspectorId, connectionStartTimeNs)
   return setupEventListener(creator, connection)
 }

@@ -98,12 +98,11 @@ class AppInspectionServiceRule(
    * [commandHandler], and [eventListener] can be provided to customize behavior of how commands and events are received.
    */
   fun launchInspectorConnection(inspectorId: String = INSPECTOR_ID,
-                                commandHandler: CommandHandler = TestInspectorCommandHandler(
-                                  timer),
+                                commandHandler: CommandHandler = TestInspectorCommandHandler(timer),
                                 eventListener: AppInspectorClient.EventListener = TestInspectorEventListener()
   ): AppInspectorClient.CommandMessenger {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    return launchInspectorForTest(inspectorId, transport) {
+    return launchInspectorForTest(inspectorId, transport, timer.currentTimeNs) {
       TestInspectorClient(it, eventListener)
     }.messenger
   }
