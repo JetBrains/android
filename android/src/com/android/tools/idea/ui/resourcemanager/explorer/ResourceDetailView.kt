@@ -26,6 +26,8 @@ import com.android.tools.idea.ui.resourcemanager.widget.AssetView
 import com.android.tools.idea.ui.resourcemanager.widget.Separator
 import com.android.tools.idea.ui.resourcemanager.widget.SingleAssetCard
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
@@ -39,6 +41,7 @@ import com.intellij.ui.components.JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import java.awt.Component
 import java.awt.FlowLayout
 import java.awt.event.ActionEvent
 import java.awt.event.FocusEvent
@@ -104,6 +107,24 @@ class ResourceDetailView(
     })
   }
 
+  private val cardPopupHandler = object : PopupHandler() {
+    val actionManager = ActionManager.getInstance()
+    val actionGroup = actionManager.getAction("ResourceExplorer") as ActionGroup
+
+    override fun invokePopup(comp: Component?, x: Int, y: Int) {
+      (comp as? AssetView)?.let { card ->
+        val lastCard = lastFocusedAsset
+        // Set the last focused card to get the right ContextData, but revert the assignation to let the FocusListener handle the UI
+        lastFocusedAsset = card
+        actionManager.createActionPopupMenu("ResourceExplorer", actionGroup).also { popUpMenu ->
+          popUpMenu.setTargetComponent(card)
+          popUpMenu.component.show(card, x, y)
+        }
+        lastFocusedAsset = lastCard
+      }
+    }
+  }
+
   private val cardFocusListener = object : FocusListener {
     override fun focusLost(e: FocusEvent?) {
     }
@@ -113,10 +134,10 @@ class ResourceDetailView(
         if (lastFocusedAsset != assetCard) {
           lastFocusedAsset?.selected = false
           lastFocusedAsset?.focused = false
-          assetCard.selected = true
-          assetCard.focused = true
           lastFocusedAsset = assetCard
         }
+        assetCard.selected = true
+        assetCard.focused = true
       }
     }
   }
@@ -200,8 +221,9 @@ class ResourceDetailView(
     val iconLabel = JBLabel(assetIcon).apply { verticalAlignment = SwingConstants.CENTER }
     // DefaultIconProvider provides an empty icon, to avoid comparison, we just set the thumbnail to null.
     thumbnail = if (previewProvider is DefaultIconProvider) null else iconLabel
-    // Mouse listener to open the file on double click
     addFocusListener(cardFocusListener)
+    addMouseListener(cardPopupHandler)
+    // Mouse listener to open the file on double click
     addMouseListener(object : MouseAdapter() {
       override fun mousePressed(e: MouseEvent) {
         requestFocusInWindow()
@@ -222,7 +244,6 @@ class ResourceDetailView(
     registerBackOnEscape()
     isFocusable = true
     isRequestFocusEnabled = true
-    PopupHandler.installPopupHandler(this, "ResourceExplorer", "ResourceExplorer")
   }
 
   private fun openFile(asset: DesignAsset) {
