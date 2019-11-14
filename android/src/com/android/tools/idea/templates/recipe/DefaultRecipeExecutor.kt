@@ -44,6 +44,7 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_APPLICATION_PACK
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BASE_FEATURE_DIR
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API_STRING
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_DYNAMIC_FEATURE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_NAME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
@@ -440,7 +441,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     updateCompatibility(currentSourceCompatibility)
     updateCompatibility(currentTargetCompatibility)
 
-    if (!parseBoolean(kotlinSupport, "kotlinSupport")) {
+    if (!parseBoolean(kotlinSupport, "kotlinSupport") || context.paramMap[ATTR_IS_DYNAMIC_FEATURE] == true) {
       io.applyChanges(buildModel)
       return
     }

@@ -388,7 +388,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
       updateCompatibility(sourceCompatibility())
       updateCompatibility(targetCompatibility())
     }
-    if (kotlinSupport) {
+    if (kotlinSupport && !context.templateData.isDynamic) {
       updateCompatibility(buildModel.android().kotlinOptions().jvmTarget())
     }
     io.applyChanges(buildModel)
