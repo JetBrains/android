@@ -92,6 +92,8 @@ enum class TestFileName(val path: String) {
   GRADLE_SETTINGS_MODEL_GET_MODULE_WITH_DIRECTORY("gradleSettingsModel/getModuleWithDirectory"),
   GRADLE_SETTINGS_MODEL_GET_BUILD_FILE("gradleSettingsModel/getBuildFile"),
   GRADLE_SETTINGS_MODEL_GET_PARENT_MODULE("gradleSettingsModel/getParentModule"),
+  GRADLE_SETTINGS_EXISTING_VARIABLE("gradleSettingsModel/existingVariable"),
+  GRADLE_SETTINGS_EXISTING_VARIABLE_EXPECTED("gradleSettingsModel/existingVariableExpected"),
   PROJECT_BUILD_MODEL_APPLIED_FILES_SHARED("projectBuildModel/appliedFilesShared"),
   PROJECT_BUILD_MODEL_APPLIED_FILES_SHARED_APPLIED("projectBuildModel/appliedFilesSharedApplied"),
   PROJECT_BUILD_MODEL_APPLIED_FILES_SHARED_SUB("projectBuildModel/appliedFilesShared_sub"),

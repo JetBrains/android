@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_EXISTING_VARIABLE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_EXISTING_VARIABLE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_ADD_AND_APPLY_ALL_MODULE_PATHS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_ADD_AND_APPLY_ALL_MODULE_PATHS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_ADD_AND_APPLY_MODULE_PATHS;
@@ -261,6 +263,16 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals(":", settingsModel.parentModule("olibs"));
     assertEquals(":olibs", settingsModel.parentModule(":olibs:mylibrary"));
     assertEquals(":", settingsModel.parentModule(":notamodule:deepmodule"));
+  }
+
+  @Test
+  public void testExistingVariable() throws Exception {
+    writeToSettingsFile(GRADLE_SETTINGS_EXISTING_VARIABLE);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    settingsModel.addModulePath("lib1");
+    applyChanges(settingsModel);
+
+    verifyFileContents(mySettingsFile, GRADLE_SETTINGS_EXISTING_VARIABLE_EXPECTED);
   }
 
   private void applyChanges(@NotNull final GradleSettingsModel settingsModel) {
