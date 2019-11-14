@@ -318,12 +318,12 @@ public class CpuCaptureStage extends Stage<Timeline> {
       TrackModel.newBuilder(
         new StateChartModel<EventAction>(),
         ProfilerTrackRendererType.SURFACEFLINGER,
-        "Surfaceflinger"));
+        "SurfaceFlinger"));
     display.addTrackModel(
       TrackModel.newBuilder(
         new StateChartModel<EventAction>(),
         ProfilerTrackRendererType.VSYNC,
-        "Vsync"));
+        "VSYNC"));
     return display;
   }
 
