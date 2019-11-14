@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.intellij.openapi.module.Module;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.serialization.PropertyMapping;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
 import org.jetbrains.annotations.NotNull;
@@ -67,6 +68,9 @@ public class JavaModuleModel implements ModuleModel {
     return javaFacet.getJavaModuleModel();
   }
 
+  @PropertyMapping({"myModuleName", "myContentRoots", "myJavaModuleDependencies", "myJarLibraryDependencies",  "mySyncIssues",
+    "myArtifactsByConfiguration", "myCompilerOutput", "myBuildFolderPath", "myLanguageLevel", "myBuildable",
+    "myAndroidModuleWithoutVariants"})
   public JavaModuleModel(@NotNull String moduleName,
                          @NotNull Collection<JavaModuleContentRoot> contentRoots,
                          @NotNull Collection<JavaModuleDependency> javaModuleDependencies,

@@ -91,6 +91,19 @@ public class GradleModuleModel implements ModuleModel {
     myAgpVersion = agpVersion;
   }
 
+  // for serialization
+  @SuppressWarnings({"unused", "ConstantConditions"})
+  private GradleModuleModel() {
+    myModuleName = null;
+    myTaskNames = null;
+    myGradlePath = null;
+    myRootFolderPath = null;
+    myGradlePlugins = null;
+    myBuildFilePath = null;
+    myGradleVersion = null;
+    myAgpVersion = null;
+  }
+
   @NotNull
   private static List<String> getTaskNames(@NotNull GradleProject gradleProject) {
     List<String> taskNames = new ArrayList<>();

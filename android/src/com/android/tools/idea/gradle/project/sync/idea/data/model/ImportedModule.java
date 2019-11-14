@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.model;
 
+import com.intellij.serialization.PropertyMapping;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +28,12 @@ public class ImportedModule implements Serializable {
   @NotNull private final String myName;
 
   public ImportedModule(@NotNull IdeaModule module) {
-    myName = module.getName();
+    this(module.getName());
+  }
+
+  @PropertyMapping({"myName"})
+  public ImportedModule(@NotNull String name) {
+    myName = name;
   }
 
   @NotNull

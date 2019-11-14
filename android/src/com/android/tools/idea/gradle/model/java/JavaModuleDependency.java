@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.model.java;
 
+import com.intellij.serialization.PropertyMapping;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
@@ -77,6 +78,7 @@ public class JavaModuleDependency implements Serializable {
     return null;
   }
 
+  @PropertyMapping({"myModuleName", "myModuleId", "myScope", "myExported"})
   public JavaModuleDependency(@NotNull String moduleName, @NotNull String moduleId, @Nullable String scope, boolean exported) {
     myModuleName = moduleName;
     myModuleId = moduleId;
