@@ -4,6 +4,7 @@ import com.intellij.openapi.util.IconLoader;
 
 import javax.swing.*;
 
+
 /**
  * Note: This file should be auto generated once build/scripts/icons.gant is part of CE.
  * https://youtrack.jetbrains.com/issue/IDEA-103558
@@ -52,6 +53,8 @@ public class AndroidIcons {
   public static class Wizards {
     public static final Icon StudioProductIcon = load("/icons/wizards/studio_product.png"); // 60x60
     public static final Icon NewModuleSidePanel = load("/icons/wizards/newModule.png"); // 143x627
+    // Template thumbnails
+    public static final Icon AndroidModule = load("/icons/wizards/android_module.png"); // 256x256
     public static final Icon NavigationDrawer = load("/icons/wizards/navigation/navigation_drawer.png"); // 256x256
     public static final Icon BottomNavigation = load("/icons/wizards/navigation/bottom_navigation.png"); // 256x256
     public static final Icon NavigationTabs = load("/icons/wizards/navigation/navigation_tabs.png"); // 256x256
