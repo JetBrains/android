@@ -38,21 +38,21 @@ enum class ColorBlindMode(val displayName: String) {
 }
 
 /**
- * RGB to LMS based on Hunt-Pointer-Estevez transformation matrix in D65.
+ * RGB to LMS based on the paper
+ * "Digital Vido Colourmaps for Checking the Legibility of Displays by Dichromats"
  */
 val RGB_TO_LMS: Mat3D = Mat3D(
-  0.31399, 0.63951, 0.04649,
-  0.1577, 0.7696, 0.0880,
-  0.0193, 0.1191, 0.9503)
+  17.8824, 43.5161, 4.11935,
+  3.45565, 27.1554, 3.86713,
+  0.0299566, 0.184309, 1.46709)
 
 /**
  * LMS to RGB, inverse of the [RGB_TO_LMS].
  */
 val LMS_TO_RGB: Mat3D = Mat3D(
-  //        Newer
-  5.47041 , -4.56978 , 0.155553,
-  -1.12436 , 2.25752 , -0.154046,
-  0.0298141 , -0.190123 , 1.06845)
+  0.080944, -0.13054, 0.116721,
+  -0.0102485, 0.0540194, -0.113615,
+  -0.000365294, -0.00412163, 0.693513)
 
 /**
  * Simple identity matrix.
@@ -67,7 +67,7 @@ val IDENTITY_MATRIX: Mat3D = Mat3D(
  */
 fun buildLms2Lmsp(factor: Double = 0.0): Mat3D {
   return Mat3D(
-    0.0 + factor, 1.03526 * (1.0 - factor), -0.04694 * (1.0 - factor),
+    0.0 + factor, 2.02344 * (1.0 - factor), -2.52579 * (1.0 - factor),
     0.0, 1.0, 0.0,
     0.0, 0.0, 1.0)
 }
@@ -78,7 +78,7 @@ fun buildLms2Lmsp(factor: Double = 0.0): Mat3D {
 fun buildLms2Lmsd(factor: Double = 0.0): Mat3D {
   return Mat3D(
     1.0, 0.0, 0.0,
-    0.96594 * (1.0 - factor), 0.0 + factor, 0.045347 * (1.0 - factor),
+    0.494207 * (1.0 - factor), 0.0 + factor, 1.24826 * (1.0 - factor),
     0.0, 0.0, 1.0)
 }
 
@@ -89,5 +89,5 @@ fun buildLms2Lmst(factor: Double = 0.0): Mat3D {
   return Mat3D(
     1.0, 0.0, 0.0,
     0.0, 1.0, 0.0,
-    -0.94411 * (1.0 - factor), 2.0021 * (1.0 - factor), 0.0 + factor)
+    -0.012244 * (1.0 - factor), 0.072034 * (1.0 - factor), 0.0 + factor)
 }
