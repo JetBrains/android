@@ -28,9 +28,11 @@ import java.io.File
 private val minimumSupportedAgpVersion = GradleVersion.tryParseAndroidGradlePluginVersion("4.0.0-alpha03")!!
 
 fun isBuildAttributionEnabledForProject(project: Project): Boolean {
-  return StudioFlags.BUILD_ATTRIBUTION_ENABLED.get() && ProjectStructure.getInstance(project).androidPluginVersions
-    .checkAllVersionsAreAtLeast(minimumSupportedAgpVersion)
+  return StudioFlags.BUILD_ATTRIBUTION_ENABLED.get()
+         && ProjectStructure.getInstance(project).androidPluginVersions.allVersions.all { it.higherOrEqualToMinimal() }
 }
+
+private fun GradleVersion.higherOrEqualToMinimal() = compareTo(minimumSupportedAgpVersion) >= 0
 
 fun getAgpAttributionFileDir(buildDir: File): File {
   return FileUtils.join(buildDir, GradleUtil.BUILD_DIR_DEFAULT_NAME)
