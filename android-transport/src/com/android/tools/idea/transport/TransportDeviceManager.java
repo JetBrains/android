@@ -253,16 +253,16 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         fileManager.copyFilesToDevice();
         // Keep starting the daemon in case it's killed, as long as this thread is running (which should be the case
         // as long as the device is connected). The execution may exit this loop only via exceptions.
-        long previousTimeMs = System.currentTimeMillis();
+        long lastDaemonStartTime = System.currentTimeMillis();  // initialized as current time
         for (boolean reconnectAgents = false; ; reconnectAgents = true) {
           long currentTimeMs = System.currentTimeMillis();
-          reportTransportDaemonStarted(reconnectAgents, currentTimeMs - previousTimeMs);
+          reportTransportDaemonStarted(reconnectAgents, currentTimeMs - lastDaemonStartTime);
           // Start transport daemon and block until it is terminated or an exception is thrown.
           startTransportDaemon(transportDevice, reconnectAgents);
           getLogger().info("Daemon stopped running; will try to restart it");
           // Disconnect the proxy and datastore before attempting to reconnect to agents.
           disconnect(mySerialToDeviceContextMap.get(myDevice.getSerialNumber()), myDataStore);
-          previousTimeMs = currentTimeMs;
+          lastDaemonStartTime = currentTimeMs;
         }
       }
       catch (ShellCommandUnresponsiveException | SyncException e) {
