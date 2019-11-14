@@ -36,6 +36,7 @@ import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.ProductDetails.SoftwareLifeCycleChannel
 import com.google.wireless.android.sdk.stats.StudioProjectChange
 import com.google.wireless.android.sdk.stats.UserSentiment
+import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.ide.ui.LafManager
@@ -137,10 +138,20 @@ object AndroidStudioUsageTracker {
     val connection = app.messageBus.connect()
     connection.subscribe(ProjectLifecycleListener.TOPIC, ProjectLifecycleTracker())
     connection.subscribe(LatencyListener.TOPIC, TypingLatencyTracker)
+    connection.subscribe(AppLifecycleListener.TOPIC, object : AppLifecycleListener {
+      override fun appWillBeClosed(isRestart: Boolean) {
+        runShutdownReports()
+      }
+    })
   }
 
   private fun runStartupReports() {
     reportEnabledPlugins()
+  }
+
+  private fun runShutdownReports() {
+    TypingLatencyTracker.reportTypingLatency()
+    CompletionStats.reportCompletionStats()
   }
 
   private fun reportEnabledPlugins() {
