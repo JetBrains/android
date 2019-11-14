@@ -52,8 +52,6 @@ class MigrateToAndroidxAction : BaseRefactoringAction() {
   override fun getHandler(dataContext: DataContext): RefactoringActionHandler? = MigrateToAndroidxHandler()
 
   override fun update(anActionEvent: AnActionEvent) {
-    anActionEvent.presentation.isEnabledAndVisible = StudioFlags.MIGRATE_TO_ANDROID_X_REFACTORING_ENABLED.get()
-
     if (HAS_KTS_BUILD_FILES.get(anActionEvent.project, false)) {
       anActionEvent.presentation.isEnabled = false
       anActionEvent.presentation.description = "Migration to AndroidX package names is not supported for projects that use Gradle KTS build files"
