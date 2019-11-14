@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.perf;
+package google.simpleapplication;
 
-public final class TestProjectPaths {
-  public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
-  public static final String SYNC_AVERAGE_PERF_PROJECT = "projects/sync/averagePerfProject";
-  public static final String DOLPHIN_PROJECT_ROOT = "projects/sync/dolphin";
-  public static final String DOLPHIN_PROJECT_ANDROID_ROOT = DOLPHIN_PROJECT_ROOT + "/Source/Android";
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.lang.Deprecated;
+
+/**
+ * A unit test to be executed on the local vm.
+ */
+public class UnitTest {
+  @Test
+  public void passingTest() throws Exception {
+    Assert.assertEquals(2, 1 + 1);
+  }
+
+  @Test
+  public void failingTest() throws Exception {
+    Assert.assertEquals(5, 2 + 2);
+  }
 }

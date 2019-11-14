@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.perf;
 
+import static com.android.tools.idea.gradle.project.sync.perf.TestProjectPaths.SIMPLE_APPLICATION;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
 import com.android.testutils.VirtualTimeScheduler;
@@ -37,7 +38,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class GradleSyncPerformanceTestCase extends GradleSyncIntegrationTestCase {
   private static final int INITIAL_DROPS = 5;
   private static final int NUM_SAMPLES = 10;
@@ -76,6 +80,32 @@ public abstract class GradleSyncPerformanceTestCase extends GradleSyncIntegratio
   public void setUpFixture() throws Exception {
     super.setUpFixture();
     myFixture.setTestDataPath(getModulePath("sync-perf-tests") + "/testData");
+  }
+
+  /**
+   * This test is run first in order to have gradle daemon already running before actual metrics are done.
+   * @throws Exception
+   */
+  public void testInitialization() throws Exception {
+    UsageTracker.setWriterForTest(myUsageTracker); // Start logging data for performance dashboard
+    loadProject(SIMPLE_APPLICATION);
+    Logger log = getLogger();
+
+    try {
+      // Measure initial sync (already synced when loadProject was called)
+      GradleSyncStats initialStats = getLastSyncStats();
+      printStats("initial (initialization)", initialStats, log);
+
+      // Drop some runs to stabilize readings
+      for (int drop = 0; drop < INITIAL_DROPS; drop++) {
+        requestSyncAndWait();
+        GradleSyncStats droppedStats = getLastSyncStats();
+        printStats("dropped (initialization) " + drop, droppedStats, log);
+      }
+    }
+    catch(Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
