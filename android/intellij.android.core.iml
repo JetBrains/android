@@ -167,6 +167,7 @@
     <orderEntry type="module" module-name="intellij.platform.serviceContainer" />
     <orderEntry type="library" scope="RUNTIME" name="intellij.android.kotlin.idea" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="org.jetbrains.intellij.deps.android.tools:resources-aar" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.objectSerializer.annotations" />
     <orderEntry type="library" scope="PROVIDED" name="kotlin-plugin-android-compile-deps" level="project" />
   </component>
 </module>
