@@ -14,9 +14,6 @@
             <preferred-size width="150" height="-1"/>
           </grid>
         </constraints>
-        <properties>
-          <name value="ModuleName"/>
-        </properties>
       </component>
       <component id="6c8a2" class="com.android.tools.adtui.LabelWithEditButton" binding="myPackageName">
         <constraints>
@@ -33,7 +30,7 @@
           </grid>
         </constraints>
         <properties>
-          <visible value="true"/>
+          <name value="ModuleName"/>
         </properties>
       </component>
       <component id="9427e" class="com.android.tools.idea.npw.module.AndroidApiLevelComboBox" binding="myApiLevelCombo" custom-create="true">
