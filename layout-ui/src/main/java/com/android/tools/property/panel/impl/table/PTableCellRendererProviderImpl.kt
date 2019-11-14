@@ -32,8 +32,8 @@ class PTableCellRendererProviderImpl<N : NewPropertyItem, P : PropertyItem>(
   valueControlTypeProvider: ControlTypeProvider<P>,
   valueEditorProvider: EditorProvider<P>) : PTableCellRendererProvider {
 
-  private val defaultNameRenderer = DefaultNameTableCellRenderer()
-  private val defaultValueRenderer = DefaultValueTableCellRenderer()
+  private var defaultNameRenderer = DefaultNameTableCellRenderer()
+  private var defaultValueRenderer = DefaultValueTableCellRenderer()
   private val nameRenderer = EditorBasedTableCellRenderer(
     nameType, nameControlTypeProvider, nameEditorProvider, UIUtil.FontSize.SMALL, defaultNameRenderer)
   private val valueRenderer = EditorBasedTableCellRenderer(
@@ -47,7 +47,9 @@ class PTableCellRendererProviderImpl<N : NewPropertyItem, P : PropertyItem>(
   }
 
   override fun updateUI() {
-    nameRenderer.updateUI()
-    valueRenderer.updateUI()
+    defaultNameRenderer = DefaultNameTableCellRenderer()
+    defaultValueRenderer = DefaultValueTableCellRenderer()
+    nameRenderer.updateUI(defaultNameRenderer)
+    valueRenderer.updateUI(defaultValueRenderer)
   }
 }
