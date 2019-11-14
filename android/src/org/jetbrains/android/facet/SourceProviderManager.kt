@@ -98,6 +98,7 @@ interface SourceProviderManager {
 
 val AndroidFacet.sourceProviderManager: SourceProviders get() = getUserData(KEY) ?: createSourceProviderFor(this)
 
+@Deprecated("Moved. Use com.android.tools.idea.projectsystem.SourceProvidersImpl")
 class SourceProvidersImpl(
   override val mainIdeaSourceProvider: IdeaSourceProvider,
   override val currentSourceProviders: List<IdeaSourceProvider>,
