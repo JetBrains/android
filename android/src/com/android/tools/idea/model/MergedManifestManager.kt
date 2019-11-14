@@ -27,7 +27,6 @@ import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -36,7 +35,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
-import java.lang.RuntimeException
 import java.time.Duration
 import java.util.concurrent.ExecutionException
 
