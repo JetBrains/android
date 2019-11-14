@@ -20,13 +20,13 @@ import com.android.tools.adtui.TooltipLabel
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.bindExpression
+import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getSourceProvider
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep.RowEntry
 import com.android.tools.idea.npw.template.components.CheckboxProvider2
 import com.android.tools.idea.npw.template.components.EnumComboProvider2
-import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.npw.template.components.LabelWithEditButtonProvider2
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
 import com.android.tools.idea.npw.template.components.ModuleTemplateComboProvider
@@ -73,11 +73,9 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TextFieldWidget
 import com.android.tools.idea.wizard.template.Widget
-import com.google.common.cache.CacheBuilder
 import com.google.common.base.Joiner
+import com.google.common.cache.CacheBuilder
 import com.google.common.io.Files
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.module.Module
 import com.intellij.ui.RecentsManager
 import com.intellij.uiDesigner.core.GridConstraints

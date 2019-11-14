@@ -33,6 +33,7 @@ import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.templates.ProjectTemplateDataBuilder
 import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_ANDROIDX_SUPPORT
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_TITLE
@@ -83,6 +84,7 @@ interface ProjectModelData {
   val projectTemplateValues: MutableMap<String, Any>
   val language: OptionalValueProperty<Language>
   val multiTemplateRenderer: MultiTemplateRenderer
+  val projectTemplateDataBuilder: ProjectTemplateDataBuilder
 }
 
 class NewProjectModel : WizardModel(), ProjectModelData {
@@ -113,6 +115,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       ProjectManagerEx.getInstanceEx().openProject(newProject)
     }
   }
+  override val projectTemplateDataBuilder = ProjectTemplateDataBuilder(true)
 
   init {
     packageName.addListener {

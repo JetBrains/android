@@ -17,12 +17,23 @@ package com.android.tools.idea.npw.module
 
 import com.android.tools.idea.npw.FormFactor
 import java.io.File
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.wizard.template.Recipe
+
+typealias NewAndroidModuleRecipe = (String?) -> Recipe
 
 interface ModuleTemplateGalleryEntry : ModuleGalleryEntry {
   /**
    * The file from where this template was loaded.
+   * [newTemplate] should be used instead if [StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY] is enabled.
    */
-  val templateFile: File
+  val templateFile: File?
+  /**
+   * A recipe to run (actually a closure which runs the recipe with additional parameters).
+   * Used instead of [templateFile] if [StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY] is enabled.
+   */
+  val recipe: NewAndroidModuleRecipe?
+
   /**
    * Form factor associated with this template.
    */

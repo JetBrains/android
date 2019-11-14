@@ -56,8 +56,7 @@ private fun getRelativePath(base: File, file: File): String? =
  *
  * Extracts information from various data sources.
  */
-class ModuleTemplateDataBuilder(private val isNewProject: Boolean) {
-  var projectTemplateDataBuilder = ProjectTemplateDataBuilder(isNewProject)
+class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateDataBuilder) {
   var srcDir: File? = null
   var resDir: File? = null
   var manifestDir: File? = null

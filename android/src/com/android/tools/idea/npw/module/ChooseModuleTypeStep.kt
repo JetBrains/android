@@ -38,10 +38,11 @@ import javax.swing.JComponent
 /**
  * This step allows the user to select which type of module they want to create.
  */
-class ChooseModuleTypeStep(private val project: Project,
-                           private val moduleParent: String?,
-                           moduleGalleryEntries: List<ModuleGalleryEntry>,
-                           private val projectSyncInvoker: ProjectSyncInvoker
+class ChooseModuleTypeStep(
+  private val project: Project,
+  private val moduleParent: String?,
+  moduleGalleryEntries: List<ModuleGalleryEntry>,
+  private val projectSyncInvoker: ProjectSyncInvoker
 ) : ModelWizardStep.WithoutModel(message("android.wizard.module.new.module.header")) {
   private val moduleGalleryEntryList: List<ModuleGalleryEntry> = sortModuleEntries(moduleGalleryEntries)
   private var formFactorGallery: ASGallery<ModuleGalleryEntry> =
@@ -56,16 +57,20 @@ class ChooseModuleTypeStep(private val project: Project,
   public override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
     moduleDescriptionToStepMap.clear()
     return moduleGalleryEntryList.map { moduleGalleryEntry ->
-        val model = NewModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate())
-        if (moduleGalleryEntry is ModuleTemplateGalleryEntry) {
-          model.isLibrary.set(moduleGalleryEntry.isLibrary)
-          model.templateFile.value = moduleGalleryEntry.templateFile
-        }
-
-        moduleGalleryEntry.createStep(model).also { step ->
-          moduleDescriptionToStepMap[moduleGalleryEntry] = step
+      val model = NewModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate())
+      if (moduleGalleryEntry is ModuleTemplateGalleryEntry) {
+        model.isLibrary.set(moduleGalleryEntry.isLibrary)
+        when {
+          moduleGalleryEntry.templateFile != null -> model.templateFile.value = moduleGalleryEntry.templateFile!!
+          moduleGalleryEntry.recipe != null -> model.moduleRecipe = moduleGalleryEntry.recipe!!
+          else -> throw IllegalStateException("Module Gallery Entry should have either an old or a new template")
         }
       }
+
+      moduleGalleryEntry.createStep(model).also { step ->
+        moduleDescriptionToStepMap[moduleGalleryEntry] = step
+      }
+    }
   }
 
   override fun onWizardStarting(wizard: ModelWizard.Facade) {

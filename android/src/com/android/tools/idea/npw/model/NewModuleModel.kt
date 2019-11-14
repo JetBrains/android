@@ -17,8 +17,10 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.sdklib.AndroidVersion.VersionCodes.P
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
+import com.android.tools.idea.npw.module.NewAndroidModuleRecipe
 import com.android.tools.idea.npw.module.getModuleRoot
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
@@ -30,6 +32,8 @@ import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.templates.ModuleTemplateDataBuilder
+import com.android.tools.idea.templates.ProjectTemplateDataBuilder
 import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_TITLE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
@@ -37,8 +41,12 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_INCLUDE_FORM_FAC
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_NAME
 import com.android.tools.idea.templates.TemplateUtils
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
+import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
 import com.android.tools.idea.templates.recipe.RenderingContext
+import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.Recipe
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -71,6 +79,7 @@ class ExistingNewProjectModelData(project: Project, override val projectSyncInvo
     }.queue()
     projectSyncInvoker.syncProject(project)
   }
+  override val projectTemplateDataBuilder = ProjectTemplateDataBuilder(false)
 
   init {
     applicationName.addConstraint(String::trim)
@@ -89,7 +98,12 @@ interface ModuleModelData : ProjectModelData {
    * module, or instead modifies an existing module (for example just adding a new Activity)
    */
   val templateFile: OptionalValueProperty<File>
+  /**
+   * Used in place of [templateFile] if [StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY] is enabled.
+   */
+  var moduleRecipe: NewAndroidModuleRecipe?
   val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem>
+  val moduleTemplateDataBuilder: ModuleTemplateDataBuilder
 }
 
 class NewModuleModel(
@@ -102,7 +116,9 @@ class NewModuleModel(
   override val moduleTemplateValues = mutableMapOf<String, Any>()
   override val moduleName = StringValueProperty().apply { addConstraint(String::trim) }
   override val templateFile = OptionalValueProperty<File>()
+  override var moduleRecipe: NewAndroidModuleRecipe? = null
   override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty()
+  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
 
   // TODO(qumeric): replace constructors by factories
   constructor(
@@ -116,8 +132,14 @@ class NewModuleModel(
     isLibrary.addListener { updateApplicationName() }
   }
 
+  // TODO(qumeric): remove when new templates will be supported at project level
   constructor(
-    projectModel: NewProjectModel, templateFile: File, template: NamedModuleTemplate,
+    projectModel: NewProjectModel, templateFile: File?, template: NamedModuleTemplate,
+    formFactor: ObjectValueProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
+  ) : this(projectModel, templateFile, null, template, formFactor)
+
+  constructor(
+    projectModel: NewProjectModel, templateFile: File?, recipe: NewAndroidModuleRecipe?, template: NamedModuleTemplate,
     formFactor: ObjectValueProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
   ) : this(
     projectModelData = projectModel,
@@ -125,7 +147,12 @@ class NewModuleModel(
     moduleParent = null,
     formFactor = formFactor
   ) {
-    this.templateFile.value = templateFile
+    if (templateFile != null) {
+      this.templateFile.value = templateFile
+    }
+    if (recipe != null) {
+      moduleRecipe = recipe
+    }
     multiTemplateRenderer.incrementRenders()
   }
 
@@ -145,6 +172,30 @@ class NewModuleModel(
         log.error("NewModuleModel did not collect expected information and will not complete. Please report this error.")
       }
 
+      val project = project.value
+
+      if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get()) {
+        moduleTemplateDataBuilder.apply {
+          formFactor = this@NewModuleModel.formFactor.get().toTemplateFormFactor()
+          isNew = true
+          isLibrary = this@NewModuleModel.isLibrary.get()
+          projectTemplateDataBuilder.setProjectDefaults(project)
+          setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@NewModuleModel.packageName.get())
+          if (androidSdkInfo.isPresent.get()) {
+            setBuildVersion(androidSdkInfo.value, project)
+          }
+          if (language.get().isPresent) { // For new Projects, we have a different UI, so no Language should be present
+            projectTemplateDataBuilder.language = language.value
+          }
+          if (useAppCompat.get()) {
+            // The highest supported/recommended appCompact version is P(28)
+            projectTemplateDataBuilder.buildApi = androidSdkInfo.value.buildApiLevel.coerceAtMost(P)
+          }
+        }
+        val tff = formFactor.get().toTemplateFormFactor()
+        projectTemplateDataBuilder.includedFormFactorNames.putIfAbsent(tff, mutableListOf(moduleName.get()))?.add(moduleName.get())
+      }
+
       // TODO(qumeric): let project know about formFactors (it is being rendered before NewModuleModel.init runs)
       projectTemplateValues.also {
         it[formFactor.get().id + ATTR_INCLUDE_FORM_FACTOR] = true
@@ -154,7 +205,6 @@ class NewModuleModel(
       moduleTemplateValues[ATTR_APP_TITLE] = applicationName.get()
       moduleTemplateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary.get()
 
-      val project = project.value
       TemplateValueInjector(moduleTemplateValues).apply {
         setProjectDefaults(project, isNewProject)
         setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), packageName.get())
@@ -179,7 +229,7 @@ class NewModuleModel(
       // This is done because module needs to know about all included form factors, and currently we know about them only after init run,
       // so we need to set it again after all inits (thus in dryRun) TODO(qumeric): remove after adding formFactors to the project
       moduleTemplateValues.putAll(projectTemplateValues)
-      if (templateFile.valueOrNull == null) {
+      if (templateFile.valueOrNull == null && moduleRecipe == null) {
         return false // If here, the user opted to skip creating any module at all, or is just adding a new Activity
       }
 
@@ -203,9 +253,25 @@ class NewModuleModel(
     private fun renderModule(dryRun: Boolean, project: Project): Boolean {
       val projectRoot = File(project.basePath!!)
       val moduleRoot = getModuleRoot(project.basePath!!, moduleName.get())
-      val template = Template.createFromPath(templateFile.value)
       val filesToOpen = ArrayList<File>()
 
+      if (moduleRecipe != null) {
+        val context = RenderingContext2(
+          project = project,
+          module = null,
+          commandName = "New Module",
+          templateData = moduleTemplateDataBuilder.build(),
+          moduleRoot = moduleRoot,
+          dryRun = dryRun,
+          showErrors = true
+        )
+
+        val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
+
+        return moduleRecipe!!(applicationName.get()).doRender(context, executor)
+      }
+
+      val template = Template.createFromPath(templateFile.value)
       val context = RenderingContext.Builder.newContext(template, project)
         .withCommandName("New Module")
         .withDryRun(dryRun)
