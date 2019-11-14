@@ -87,7 +87,7 @@ public class NewKotlinModuleTest {
 
   private void assertModuleSupportsKotlin(String moduleName) {
     assertThat(guiTest.getProjectFileText(moduleName + "/build.gradle"))
-      .contains("apply plugin: 'kotlin-android");
+      .contains("kotlin-android");
   }
 
   private void assertModuleDoesNotSupportKotlin(String moduleName) {
