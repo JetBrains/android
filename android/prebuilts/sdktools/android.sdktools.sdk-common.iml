@@ -55,13 +55,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="">
       <library name="precompiled-sdk-common" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools:sdk-common:26.5.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools:sdk-common:26.5.0.2" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/sdk-common/26.5.0/sdk-common-26.5.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdk-common/26.5.0.2/sdk-common-26.5.0.2.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/sdk-common/26.5.0/sdk-common-26.5.0-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/sdk-common/26.5.0.2/sdk-common-26.5.0.2-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
