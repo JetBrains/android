@@ -110,8 +110,19 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
     val accessor = AWTAccessor.getComponentAccessor()
     if (accessor.getPeer(component) == null) {
       val peer = Mockito.mock(ComponentPeer::class.java)
-      Mockito.`when`(peer.requestFocus(ArgumentMatchers.any(), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
-                                       ArgumentMatchers.anyLong(), ArgumentMatchers.any())).then(answer)
+
+      if (SystemInfo.IS_AT_LEAST_JAVA9) {
+        val causeClass = Class.forName("java.awt.event.FocusEvent\$Cause")
+        val methodCall = ComponentPeer::class.java.getMethod("requestFocus", Component::class.java,
+                                            Boolean::class.javaPrimitiveType, Boolean::class.javaPrimitiveType,
+                                            Long::class.javaPrimitiveType, causeClass)
+
+        Mockito.`when`(methodCall.invoke(peer, ArgumentMatchers.any(), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
+                                         ArgumentMatchers.anyLong(), ArgumentMatchers.any())).then(answer)
+      } else {
+        Mockito.`when`(peer.requestFocus(ArgumentMatchers.any(), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
+                                         ArgumentMatchers.anyLong(), ArgumentMatchers.any())).then(answer)
+      }
       accessor.setPeer(component, peer)
     }
   }
