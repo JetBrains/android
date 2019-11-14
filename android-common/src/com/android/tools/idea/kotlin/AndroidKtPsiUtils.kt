@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
+import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelector
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator
@@ -53,9 +54,12 @@ fun KtAnnotationEntry.getQualifiedName(): String? {
  *
  * @see org.jetbrains.kotlin.psi.ValueArgument.getArgumentExpression
  */
-fun KtAnnotationEntry.findArgumentExpression(annotationAttributeName: String): KtExpression? {
-  return valueArguments.firstOrNull { it.getArgumentName()?.asName?.asString() == annotationAttributeName }?.getArgumentExpression()
-}
+fun KtAnnotationEntry.findArgumentExpression(annotationAttributeName: String): KtExpression? =
+  findValueArgument(annotationAttributeName)?.getArgumentExpression()
+
+/** Finds the [KtValueArgument] assigned to [annotationAttributeName] in this [KtAnnotationEntry]. */
+fun KtAnnotationEntry.findValueArgument(annotationAttributeName: String): KtValueArgument? =
+  valueArguments.firstOrNull { it.getArgumentName()?.asName?.asString() == annotationAttributeName } as? KtValueArgument
 
 /**
  * Tries to evaluate this [KtExpression] as a constant-time constant string.
