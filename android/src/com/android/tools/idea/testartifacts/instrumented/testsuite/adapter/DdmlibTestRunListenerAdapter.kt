@@ -19,61 +19,71 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.android.tools.idea.testartifacts.instrumented.testsuite.AndroidTestResultListener
-import com.android.tools.idea.testartifacts.instrumented.testsuite.TestCaseResult
-import com.android.tools.idea.testartifacts.instrumented.testsuite.TestSuiteResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 
 /**
  * An adapter to translate [ITestRunListener] callback methods into [AndroidTestResultListener].
  */
-class DdmlibTestRunListenerAdapter(val device: IDevice,
+class DdmlibTestRunListenerAdapter(device: IDevice,
                                    private val listener: AndroidTestResultListener) : ITestRunListener {
 
-  private val deviceId = device.serialNumber
-  private lateinit var testSuiteId: String
-  private var testSuiteResult = TestSuiteResult.PASSED
-  private val testCaseResults = mutableMapOf<TestIdentifier, TestCaseResult>()
+  private val myDevice = AndroidDevice(device.serialNumber,
+                                       device.avdName ?: device.serialNumber)
+  private lateinit var myTestSuite: AndroidTestSuite
+  private val myTestCases = mutableMapOf<TestIdentifier, AndroidTestCase>()
 
   init {
-    listener.onTestSuiteScheduled(deviceId)
+    listener.onTestSuiteScheduled(myDevice)
   }
 
   override fun testRunStarted(runName: String, testCount: Int) {
-    testSuiteId = runName
-    listener.onTestSuiteStarted(deviceId, testSuiteId, testCount)
+    myTestSuite = AndroidTestSuite(runName, runName, testCount)
+    listener.onTestSuiteStarted(myDevice, myTestSuite)
   }
 
   override fun testStarted(testId: TestIdentifier) {
-    testCaseResults[testId] = TestCaseResult.PASSED
-    listener.onTestCaseStarted(deviceId, testSuiteId, testId.toString())
+    val testCase = AndroidTestCase(testId.toString(), testId.toString())
+    myTestCases[testId] = testCase
+    listener.onTestCaseStarted(myDevice, myTestSuite, testCase)
   }
 
   override fun testFailed(testId: TestIdentifier, trace: String) {
-    testCaseResults[testId] = TestCaseResult.FAILED
-    testSuiteResult = TestSuiteResult.FAILED
+    val testCase = myTestCases.getValue(testId)
+    testCase.result = AndroidTestCaseResult.FAILED
+    myTestSuite.result = AndroidTestSuiteResult.FAILED
   }
 
   override fun testAssumptionFailure(testId: TestIdentifier, trace: String) {
-    testCaseResults[testId] = TestCaseResult.FAILED
-    testSuiteResult = TestSuiteResult.FAILED
+    val testCase = myTestCases.getValue(testId)
+    testCase.result = AndroidTestCaseResult.FAILED
+    myTestSuite.result = AndroidTestSuiteResult.FAILED
   }
 
   override fun testIgnored(testId: TestIdentifier) {
-    testCaseResults[testId] = TestCaseResult.SKIPPED
+    val testCase = myTestCases.getValue(testId)
+    testCase.result = AndroidTestCaseResult.SKIPPED
   }
 
   override fun testEnded(testId: TestIdentifier, testMetrics: MutableMap<String, String>) {
-    listener.onTestCaseFinished(deviceId, testSuiteId, testId.toString(), testCaseResults.getValue(testId))
+    val testCase = myTestCases.getValue(testId)
+    testCase.result = testCase.result ?: AndroidTestCaseResult.PASSED
+    listener.onTestCaseFinished(myDevice, myTestSuite, testCase)
   }
 
   override fun testRunFailed(errorMessage: String) {
-    testSuiteResult = TestSuiteResult.ABORTED
+    myTestSuite.result = AndroidTestSuiteResult.ABORTED
   }
 
   override fun testRunStopped(elapsedTime: Long) {
-    testSuiteResult = TestSuiteResult.CANCELLED
+    myTestSuite.result = AndroidTestSuiteResult.CANCELLED
   }
 
   override fun testRunEnded(elapsedTime: Long, runMetrics: MutableMap<String, String>) {
-    listener.onTestSuiteFinished(deviceId, testSuiteId, testSuiteResult)
+    myTestSuite.result = myTestSuite.result ?: AndroidTestSuiteResult.PASSED
+    listener.onTestSuiteFinished(myDevice, myTestSuite)
   }
 }
