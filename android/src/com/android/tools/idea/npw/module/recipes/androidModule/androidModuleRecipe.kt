@@ -91,7 +91,7 @@ fun RecipeExecutor.generateAndroidModule(
   createDirectory(srcOut)
   createDirectory(unitTestOut)
 
-  mergeGradleFile("include ':${data.name}'", topOut.resolve("settings.gradle"))
+  addIncludeToSettings(data.name)
 
   val buildToolsVersion = projectData.buildToolsVersion
   val supportsImprovedTestDeps = GradleVersion.parse(projectData.gradlePluginVersion).compareIgnoringQualifiers("3.0.0") >= 0

@@ -368,6 +368,16 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
   }
 
   /**
+   * Adds a module dependency to global settings.gradle[.kts] file.
+   */
+  override fun addIncludeToSettings(moduleName: String) {
+    ProjectBuildModel.get(context.project).projectSettingsModel?.apply {
+      addModulePath(moduleName)
+      io.applyChanges(this)
+    }
+  }
+
+  /**
    * Adds a new build feature to android block. For example, may enable compose.
    */
   override fun setBuildFeature(name: String, value: Boolean) {
