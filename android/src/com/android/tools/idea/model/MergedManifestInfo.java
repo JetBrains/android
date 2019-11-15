@@ -183,7 +183,7 @@ final class MergedManifestInfo {
     Project project = facet.getModule().getProject();
     long syncTimestamp = SyncTimestampUtil.getLastSyncTimestamp(project);
 
-    MergedManifestContributors contributors = MergedManifestContributorsKt.getMergedManifestContributors(facet);
+    MergedManifestContributors contributors = ProjectSystemUtil.getModuleSystem(facet).getMergedManifestContributors();
     ModificationStamps modificationStamps = ModificationStamps.forFiles(project, contributors.allFiles);
 
     Document document = null;
@@ -243,7 +243,8 @@ final class MergedManifestInfo {
     if (Disposer.isDisposed(myFacet)) {
       return true;
     }
-    MergedManifestContributors manifests = MergedManifestContributorsKt.getMergedManifestContributors(myFacet);
+    MergedManifestContributors manifests = ProjectSystemUtil.getModuleSystem(myFacet).getMergedManifestContributors();
+
     if (manifests.primaryManifest == null) {
       return true;
     }

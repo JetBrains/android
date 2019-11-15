@@ -40,6 +40,7 @@ import com.android.SdkConstants.TAG_USES_PERMISSION_SDK_M
 import com.android.SdkConstants.TAG_USES_SDK
 import com.android.tools.apk.analyzer.BinaryXmlParser
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.utils.reflection.qualifiedName
 import com.google.common.primitives.Shorts
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk
@@ -132,7 +133,9 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
     fun getDataForMergedManifestContributors(facet: AndroidFacet): Stream<AndroidManifestRawText> {
       val project = facet.module.project
       return if (checkIndexAccessibleFor(project)) {
-        facet.getMergedManifestContributors()
+        facet
+          .getModuleSystem()
+          .getMergedManifestContributors()
           .allFiles
           .stream()
           .map { doGetDataForManifestFile(project, it) }

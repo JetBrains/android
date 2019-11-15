@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.resources.ResourceFolderType
+import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Immutable data object responsible for determining all the files that contribute to
@@ -39,4 +42,54 @@ data class MergedManifestContributors(
                  libraryManifests +
                  navigationFiles +
                  flavorAndBuildTypeManifestsOfLibs
+}
+
+fun AndroidModuleSystem.defaultGetMergedManifestContributors(): MergedManifestContributors {
+  val facet = module.androidFacet!!
+  val dependencies = getResourceModuleDependencies().mapNotNull { it.androidFacet }
+  return MergedManifestContributors(
+    primaryManifest = facet.sourceProviders.mainManifestFile,
+    flavorAndBuildTypeManifests = facet.getFlavorAndBuildTypeManifests(),
+    libraryManifests = if (facet.configuration.isAppOrFeature) facet.getLibraryManifests(dependencies) else emptyList(),
+    navigationFiles = facet.getNavigationFiles(),
+    flavorAndBuildTypeManifestsOfLibs = facet.getFlavorAndBuildTypeManifestsOfLibs(dependencies)
+  )
+}
+
+fun AndroidFacet.getFlavorAndBuildTypeManifests(): List<VirtualFile> {
+  // get all other manifests for this module, (NOT including the default one)
+  val sourceProviderManager = sourceProviders
+  val defaultSourceProvider = sourceProviderManager.mainIdeaSourceProvider
+  return sourceProviderManager.currentSourceProviders
+    .filter { it != defaultSourceProvider }
+    .mapNotNull(IdeaSourceProvider::manifestFile)
+}
+
+fun AndroidFacet.getFlavorAndBuildTypeManifestsOfLibs(dependencies: List<AndroidFacet>): List<VirtualFile> {
+  return dependencies.flatMap(AndroidFacet::getFlavorAndBuildTypeManifests)
+}
+
+private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): List<VirtualFile> {
+  if (isDisposed) return emptyList()
+  return dependencies.mapNotNull { it.sourceProviders.mainManifestFile }
+}
+
+/**
+ * Returns all navigation files for the facet's module, ordered from higher precedence to lower precedence.
+ * TODO(b/70815924): Change implementation to use resource repository API
+ */
+fun AndroidFacet.getNavigationFiles(): List<VirtualFile> {
+  return sourceProviders.currentSourceProviders
+    .asReversed() // iterate over providers in reverse order so higher precedence navigation files are first
+    .asSequence()
+    .flatMapWithoutNulls { provider -> provider.resDirectories.asSequence() }
+    .flatMapWithoutNulls { resDir -> resDir.children?.asSequence() }
+    .filter { resDirFolder -> ResourceFolderType.getFolderType(resDirFolder.name) == ResourceFolderType.NAVIGATION }
+    .flatMapWithoutNulls { navDir -> navDir.children?.asSequence() }
+    .filter { potentialNavFile -> !potentialNavFile.isDirectory }
+    .toList()
+}
+
+private fun <T, R : Any> Sequence<T>.flatMapWithoutNulls(transform: (T) -> Sequence<R?>?): Sequence<R> {
+  return flatMap { transform(it) ?: emptySequence() }.filterNotNull()
 }
