@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public final class CMakeDslElement extends GradleDslBlockElement {
+public final class CMakeDslElement extends AbstractBuildDslElement {
   @NonNls public static final String CMAKE_BLOCK_NAME = "cmake";
 
   public CMakeDslElement(@NotNull GradleDslElement parent) {
