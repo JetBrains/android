@@ -89,7 +89,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   private int myNumberOfLanguageGroupsLoadedFromCache;
   private final boolean myUseCompiled9Patches;
 
-  private FrameworkResourceRepository(@NotNull RepositoryLoader loader, boolean useCompiled9Patches) {
+  private FrameworkResourceRepository(@NotNull RepositoryLoader<FrameworkResourceRepository> loader, boolean useCompiled9Patches) {
     super(loader, null);
     myUseCompiled9Patches = useCompiled9Patches;
   }
