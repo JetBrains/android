@@ -159,11 +159,6 @@ interface ComposePreviewManager {
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
   fun refresh()
-
-  /**
-   * Invalidates the last cached [PreviewElement]s and forces a refresh
-   */
-  fun invalidateAndRefresh()
 }
 
 /**
@@ -589,7 +584,7 @@ private class PreviewEditor(private val psiFile: PsiFile,
     isRefreshingPreview = true
     val filePreviewElements = previewProvider()
 
-    if (filePreviewElements == previewElements) {
+    if (filePreviewElements == previewElements && savedIsShowingDecorations == RenderSettings.getProjectSettings(project).showDecorations) {
       LOG.debug("No updates on the PreviewElements, just refreshing the existing ones")
       // In this case, there are no new previews. We need to make sure that the surface is still correctly
       // configured and that we are showing the right size for components. For example, if the user switches on/off
@@ -612,13 +607,6 @@ private class PreviewEditor(private val psiFile: PsiFile,
     }
 
     doRefresh(filePreviewElements)
-  }
-
-  /**
-   * Invalidates the last cached [PreviewElement]s and forces a fresh refresh
-   */
-  override fun invalidateAndRefresh() {
-    doRefresh(previewProvider())
   }
 
   override fun getName(): String = "Compose Preview"
@@ -668,7 +656,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       if (settings.showDecorations != state) {
         // We also persist the settings to the RenderSettings
         settings.showDecorations = state
-        findComposePreviewManagerForAction(e)?.invalidateAndRefresh()
+        findComposePreviewManagerForAction(e)?.refresh()
       }
     }
 
