@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite;
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite;
+import com.google.common.base.Preconditions;
 import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
@@ -22,6 +26,7 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -41,11 +46,20 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   private JProgressBar myProgressBar;
   private JBLabel myStatusText;
   private JBLabel myStatusBreakdownText;
+  private JPanel myTableViewContainer;
+
+  private final AndroidTestResultsTable myTable;
 
   private int scheduledTestCases = 0;
   private int passedTestCases = 0;
   private int failedTestCases = 0;
   private int skippedTestCases = 0;
+
+  public AndroidTestSuiteView() {
+    myTable = new AndroidTestResultsTable();
+    myTableViewContainer.add(myTable.getComponent());
+    updateProgress();
+  }
 
   private void updateProgress() {
     int completedTestCases = passedTestCases + failedTestCases + skippedTestCases;
@@ -63,23 +77,26 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   }
 
   @Override
-  public void onTestSuiteScheduled(@NotNull String deviceId) {}
+  public void onTestSuiteScheduled(@NotNull AndroidDevice device) {
+    myTable.addDevice(device);
+  }
 
   @Override
-  public void onTestSuiteStarted(@NotNull String deviceId, @NotNull String testSuiteId, int testCaseCount) {
-    scheduledTestCases += testCaseCount;
+  public void onTestSuiteStarted(@NotNull AndroidDevice device, @NotNull AndroidTestSuite testSuite) {
+    scheduledTestCases += testSuite.getTestCaseCount();
     updateProgress();
   }
 
   @Override
-  public void onTestCaseStarted(@NotNull String deviceId, @NotNull String testSuiteId, @NotNull String testCaseId) {}
+  public void onTestCaseStarted(@NotNull AndroidDevice device, @NotNull AndroidTestSuite testSuite, @NotNull AndroidTestCase testCase) {
+    myTable.addTestCase(device, testCase);
+  }
 
   @Override
-  public void onTestCaseFinished(@NotNull String deviceId,
-                                 @NotNull String testSuiteId,
-                                 @NotNull String testCaseId,
-                                 @NotNull TestCaseResult result) {
-    switch(result) {
+  public void onTestCaseFinished(@NotNull AndroidDevice device,
+                                 @NotNull AndroidTestSuite testSuite,
+                                 @NotNull AndroidTestCase testCase) {
+    switch(Preconditions.checkNotNull(testCase.getResult())) {
       case PASSED:
         passedTestCases++;
         break;
@@ -91,10 +108,13 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
         break;
     }
     updateProgress();
+    myTable.refreshTable();
   }
 
   @Override
-  public void onTestSuiteFinished(@NotNull String deviceId, @NotNull String testSuiteId, @NotNull TestSuiteResult result) {}
+  public void onTestSuiteFinished(@NotNull AndroidDevice device, @NotNull AndroidTestSuite testSuite) {
+    myTable.refreshTable();
+  }
 
   @Override
   public void print(@NotNull String text, @NotNull ConsoleViewContentType contentType) { }
