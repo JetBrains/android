@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMak
 import org.jetbrains.annotations.NotNull;
 
 /**
- * This model is incomplete.
+ * This model is incomplete, missing version (and the parent is missing buildStagingPath)
  */
 public class CMakeModelImpl extends AbstractBuildModelImpl implements CMakeModel {
   public CMakeModelImpl(@NotNull CMakeDslElement dslElement) {

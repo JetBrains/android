@@ -29,8 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement.CMAKE_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement.NDK_BUILD_BLOCK_NAME;
 
-public class ExternalNativeBuildModelImpl extends GradleDslBlockModel implements
-                                                                      ExternalNativeBuildModel {
+public class ExternalNativeBuildModelImpl extends GradleDslBlockModel implements ExternalNativeBuildModel {
   public ExternalNativeBuildModelImpl(@NotNull GradlePropertiesDslElement dslElement) {
     super(dslElement);
   }
