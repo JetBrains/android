@@ -19,8 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.After;
@@ -32,7 +30,6 @@ import org.junit.runner.RunWith;
 /**
  * UI test for the visualization tool window
  */
-@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRemoteRunner.class)
 public class VisualizationTest {
 
