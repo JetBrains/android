@@ -282,11 +282,6 @@ public final class StudioFlags {
     "Enable the new Property Panel",
     true);
 
-  public static final Flag<Boolean> NELE_NEW_PROPERTY_PANEL_WITH_TABS = Flag.create(
-    NELE, "new.property.tabs", "Use a tab panel to switch to the advanced table",
-    "Use a tab panel to switch to advanced",
-    false);
-
   public static final Flag<Boolean> NELE_DRAG_PLACEHOLDER = Flag.create(
     NELE, "drag.placeholder", "Dragging widgets with Placeholders",
     "New architecture for dragging widgets in Layout Editor",
