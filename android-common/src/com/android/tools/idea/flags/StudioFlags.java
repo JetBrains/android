@@ -121,11 +121,6 @@ public final class StudioFlags {
     "Toggles usage of gRPC apis to fetch data from perfd and the datastore.",
     true);
 
-  public static final Flag<Boolean> PROFILER_IMPORT_SESSION = Flag.create(
-    PROFILER, "import.session", "Enable the session import dialog",
-    "Shows the file open drop down menu for session import.",
-    true);
-
   public static final Flag<Boolean> PROFILER_ENERGY_PROFILER_ENABLED = Flag.create(
     PROFILER, "energy", "Enable Energy profiling",
     "Enable the new energy profiler. It monitors battery usage of the selected app.", true);

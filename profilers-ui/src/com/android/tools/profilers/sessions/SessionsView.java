@@ -367,21 +367,19 @@ public class SessionsView extends AspectObserver {
 
   private void addImportAction() {
     // Add the dropdown action for loading from file
-    if (myProfilers.getIdeServices().getFeatureConfig().isSessionImportEnabled()) {
-      CommonAction loadAction = new CommonAction("Load from file...", null);
-      loadAction.setAction(
-        () -> myIdeProfilerComponents.createImportDialog().open(
-          () -> "Open",
-          ImmutableList.of("hprof", "trace"),
-          file -> {
-            if (!myProfilers.getSessionsManager().importSessionFromFile(new File(file.getPath()))) {
-              myIdeProfilerComponents.createUiMessageHandler()
-                .displayErrorMessage(myComponent, "File Open Error",
-                                     String.format("Unknown file type: %s", file.getPath()));
-            }
-          }));
-      myProcessSelectionAction.addChildrenActions(loadAction, new CommonAction.SeparatorAction());
-    }
+    CommonAction loadAction = new CommonAction("Load from file...", null);
+    loadAction.setAction(
+      () -> myIdeProfilerComponents.createImportDialog().open(
+        () -> "Open",
+        ImmutableList.of("hprof", "trace"),
+        file -> {
+          if (!myProfilers.getSessionsManager().importSessionFromFile(new File(file.getPath()))) {
+            myIdeProfilerComponents.createUiMessageHandler()
+              .displayErrorMessage(myComponent, "File Open Error",
+                                   String.format("Unknown file type: %s", file.getPath()));
+          }
+        }));
+    myProcessSelectionAction.addChildrenActions(loadAction, new CommonAction.SeparatorAction());
   }
 
   void stopProfilingSession() {

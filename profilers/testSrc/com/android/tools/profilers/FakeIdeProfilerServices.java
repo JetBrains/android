@@ -124,11 +124,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myShouldParseLongTraces = false;
 
   /**
-   * Toggle for faking session import support in tests.
-   */
-  private boolean mySessionsImportEnabled = true;
-
-  /**
    * Can toggle for tests via {@link #enableStartupCpuProfiling(boolean)}, but each test starts with this defaulted to false.
    */
   private boolean myStartupCpuProfilingEnabled = false;
@@ -338,11 +333,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isCustomEventVisualizationEnabled() {
         return myCustomEventVisualizationEnabled;
-      }
-
-      @Override
-      public boolean isSessionImportEnabled() {
-        return mySessionsImportEnabled;
       }
 
       @Override
