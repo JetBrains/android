@@ -45,6 +45,11 @@
             <category>Kotlin Android</category>
         </intentionAction>
 
+        <intentionAction>
+            <className>org.jetbrains.kotlin.android.intention.ComposeSurroundWithWidget</className>
+            <category>Compose Android</category>
+        </intentionAction>
+
         <externalProjectDataService implementation="org.jetbrains.kotlin.android.configure.KotlinGradleAndroidModuleModelProjectDataService"/>
 
         <intentionAction>

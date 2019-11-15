@@ -738,6 +738,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_SURROUND_WITH_WIDGET = Flag.create(
+    COMPOSE, "surround.with.widget.action",
+    "Enables \"Surround with widget\" intention and template",
+    "Enables \"Surround with widget\" intention inside composable functions and adds \"Surround with widget\" live template",
+    false
+  );
+
   //endregion
 
   //region Manifests
