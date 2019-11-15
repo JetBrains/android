@@ -61,6 +61,7 @@ import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyElementTypes;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyRecursiveElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
@@ -169,8 +170,11 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
                     @Override
                     public void visitApplicationStatement(@NotNull GrApplicationStatement applicationStatement) {
                       super.visitApplicationStatement(applicationStatement);
-                      PsiMethod method = applicationStatement.resolveMethod();
-                      if (method != null && method.getName().equals("resValue")) {
+                      if (applicationStatement.getNode().getElementType() != GroovyElementTypes.APPLICATION_EXPRESSION) {
+                        return;
+                      }
+                      PsiElement method = applicationStatement.getFirstChild();
+                      if (method != null && method.getText().equals("resValue")) {
                         GrExpression[] args = applicationStatement.getArgumentList().getExpressionArguments();
                         if (args.length >= 3) {
                           Object typeString = GroovyConstantExpressionEvaluator.evaluate(args[0]);
