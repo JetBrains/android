@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.SdkConstants.FD_MAIN;
-import static com.intellij.psi.PsiDirectory.EMPTY_ARRAY;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> implements FolderGroupNode {
@@ -149,7 +148,7 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
   @Override
   @NotNull
   public PsiDirectory[] getFolders() {
-    return EMPTY_ARRAY;
+    return PsiDirectory.EMPTY_ARRAY;
   }
 
   @Override
