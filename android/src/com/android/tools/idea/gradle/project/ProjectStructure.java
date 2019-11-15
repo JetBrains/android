@@ -222,6 +222,7 @@ public class ProjectStructure {
       return false;
     }
 
+    @NotNull
     public List<GradleVersion> getAllVersions() {
       return new ArrayList<>(myAgpVersionsPerModule.values());
     }

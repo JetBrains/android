@@ -20,6 +20,7 @@ import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.ui.data.InterTaskIssueUiData
+import com.android.build.attribution.ui.data.PluginSourceType
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
@@ -105,6 +106,9 @@ class TaskIssueUiDataContainer(
     val outputFolder: String
   ) : InterTaskIssueUiData {
     override val type = TaskIssueType.TASK_SETUP_ISSUE
+    override val bugReportTitle = type.uiName
+    override val bugReportBriefDescription = "Task declares the same output directory as task ${connectedTask.name} from " +
+                                             "${if (connectedTask.sourceType == PluginSourceType.BUILD_SRC) "build script" else connectedTask.pluginName}."
     override val explanation = """
 This task declares the same output directory as task ${connectedTask.taskPath}: <span>${outputFolder}</span>.
 As a result, these tasks are not able to take advantage of incremental build optimizations,
@@ -117,6 +121,8 @@ and might need to run with each subsequent build.
     override val task: TaskUiData
   ) : TaskIssueUiData {
     override val type = TaskIssueType.ALWAYS_RUN_TASKS
+    override val bugReportTitle = "${type.uiName} No Output Declared"
+    override val bugReportBriefDescription = "Task runs on every build because it declares no outputs."
     override val explanation: String = "This task runs on every build because it declares no outputs, which it must do in order to support incremental builds."
     override val helpLink = "https://d.android.com/r/tools/build-attribution/no-task-outputs-declared"
   }
@@ -125,6 +131,8 @@ and might need to run with each subsequent build.
     override val task: TaskUiData
   ) : TaskIssueUiData {
     override val type = TaskIssueType.ALWAYS_RUN_TASKS
+    override val bugReportTitle = "${type.uiName} Up-To-Date Override"
+    override val bugReportBriefDescription = "This task might be setting its up-to-date check to always return false."
     override val explanation: String = """
 This task might be setting its up-to-date check to always return <code>false</code>,
 which means that it must regenerate its output during every build.

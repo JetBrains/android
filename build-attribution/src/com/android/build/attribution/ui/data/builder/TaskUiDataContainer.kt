@@ -50,10 +50,12 @@ class TaskUiDataContainer(
         else -> PluginSourceType.THIRD_PARTY
       }
       override val module: String = task.projectPath
+      override val name: String = task.taskName
       override val taskPath: String = task.getTaskPath()
       override val taskType: String = task.taskType
       override val executionTime: TimeWithPercentage = TimeWithPercentage(task.executionTime, totalBuildTimeMs)
       override val executedIncrementally: Boolean = task.executionMode == TaskData.TaskExecutionMode.INCREMENTAL
+      override val executionMode: String = task.executionMode.name
       override val onCriticalPath: Boolean = task in criticalPathTasks
       override val reasonsToRun: List<String> = task.executionReasons
       override val issues: List<TaskIssueUiData>

@@ -63,10 +63,12 @@ interface CriticalPathPluginsUiData {
 
 interface TaskUiData {
   val module: String
+  val name: String
   val taskPath: String
   val taskType: String
   val executionTime: TimeWithPercentage
   val executedIncrementally: Boolean
+  val executionMode: String
   val onCriticalPath: Boolean
   val pluginName: String
   val sourceType: PluginSourceType
@@ -132,6 +134,8 @@ enum class TaskIssueType(
 interface TaskIssueUiData {
   val type: TaskIssueType
   val task: TaskUiData
+  val bugReportTitle: String
+  val bugReportBriefDescription: String
   val explanation: String
   val helpLink: String
 }
