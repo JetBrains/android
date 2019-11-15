@@ -293,11 +293,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       public boolean isAuditsEnabled() { return StudioFlags.PROFILER_AUDITS.get(); }
 
       @Override
-      public boolean isSessionImportEnabled() {
-        return StudioFlags.PROFILER_IMPORT_SESSION.get();
-      }
-
-      @Override
       public boolean isFragmentsEnabled() {
         return StudioFlags.PROFILER_FRAGMENT_PROFILER_ENABLED.get();
       }
