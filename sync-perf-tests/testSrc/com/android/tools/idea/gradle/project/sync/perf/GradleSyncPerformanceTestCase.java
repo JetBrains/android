@@ -43,8 +43,8 @@ import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class GradleSyncPerformanceTestCase extends GradleSyncIntegrationTestCase {
-  private static final int INITIAL_DROPS = 5;
-  private static final int NUM_SAMPLES = 10;
+  private static final int DEFAULT_INITIAL_DROPS = 5;
+  private static final int DEFAULT_NUM_SAMPLES = 10;
   private static final String BENCHMARK_PROJECT = "Android Studio Sync Test";
   private TestUsageTracker myUsageTracker;
   private VirtualTimeScheduler myScheduler;
@@ -97,7 +97,7 @@ public abstract class GradleSyncPerformanceTestCase extends GradleSyncIntegratio
       printStats("initial (initialization)", initialStats, log);
 
       // Drop some runs to stabilize readings
-      for (int drop = 0; drop < INITIAL_DROPS; drop++) {
+      for (int drop = 1; drop <= DEFAULT_INITIAL_DROPS; drop++) {
         requestSyncAndWait();
         GradleSyncStats droppedStats = getLastSyncStats();
         printStats("dropped (initialization) " + drop, droppedStats, log);
@@ -111,7 +111,7 @@ public abstract class GradleSyncPerformanceTestCase extends GradleSyncIntegratio
   /**
    * Measure the following sync times:
    *   - Initial sync time.
-   *   - Average over {@link NUM_SAMPLES} samples of subsequent syncs.
+   *   - Average over {@link GradleSyncPerformanceTestCase#getNumSamples()} samples of subsequent syncs.
    * @throws Exception
    */
   public void testSyncTimes() throws Exception {
@@ -150,14 +150,14 @@ public abstract class GradleSyncPerformanceTestCase extends GradleSyncIntegratio
       metricInitialTotal.addSamples(scenarioBenchmark, new Metric.MetricSample(currentTime, initialStats.getTotalTimeMs()));
 
       // Drop some runs to stabilize readings
-      for (int drop = 0; drop < INITIAL_DROPS; drop++) {
+      for (int drop = 1; drop <= getNumDrops(); drop++) {
         requestSyncAndWait();
         GradleSyncStats droppedStats = getLastSyncStats();
         printStats("dropped " + drop, droppedStats, log);
       }
 
       // perform actual samples
-      for (int sample = 0; sample < NUM_SAMPLES; sample++) {
+      for (int sample = 1; sample <= getNumSamples(); sample++) {
         requestSyncAndWait();
         GradleSyncStats sampleStats = getLastSyncStats();
         printStats("sample " + sample, sampleStats, log);
@@ -221,5 +221,13 @@ public abstract class GradleSyncPerformanceTestCase extends GradleSyncIntegratio
   @NotNull
   public String getScenarioName() {
     return getProjectName() + (useSingleVariantSyncInfrastructure() ? "_SVS" : "_FULL");
+  }
+
+  public int getNumSamples() {
+    return DEFAULT_NUM_SAMPLES;
+  }
+
+  public int getNumDrops() {
+    return DEFAULT_INITIAL_DROPS;
   }
 }

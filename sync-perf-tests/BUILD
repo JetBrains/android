@@ -9,6 +9,7 @@ iml_module(
     # keep sorted
     test_data = [
         ":test_deps.zip",
+        "//prebuilts/studio/buildbenchmarks:Base100_project",
         "//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
@@ -49,7 +50,7 @@ iml_module(
         "no_test_mac",
         "no_test_windows",
     ],
-    test_timeout = "long",
+    test_timeout = "eternal",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -109,15 +110,26 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/android/support/test/espresso/espresso-idling-resource/3.0.2:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/test/monitor/1.0.2:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/test/runner/1.0.2:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/test/uiautomator/uiautomator-v18/2.1.1:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/versionedparcelable/28.0.0:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/viewpager/28.0.0:aar",
+        "//prebuilts/tools/common/m2/repository/com/facebook/testing/screenshot/core/0.2.3:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/android/4.1.1.4:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/auto/value/auto-value/1.4-rc1:jar",
         "//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/2.0.1:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/dexmaker/dexmaker-mockito/1.2:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/dexmaker/dexmaker/1.2:jar",
         "//prebuilts/tools/common/m2/repository/com/google/guava/guava/19.0:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/compile/compile-testing/0.9:jar",
+        "//prebuilts/tools/common/m2/repository/com/jakewharton/auto/value/auto-value-annotations/1.2-update1:jar",
         "//prebuilts/tools/common/m2/repository/com/squareup/javawriter/2.1.1:jar",
+        "//prebuilts/tools/common/m2/repository/io/opentracing/opentracing-api/0.13.0:jar",
+        "//prebuilts/tools/common/m2/repository/io/opentracing/opentracing-impl/0.13.0:jar",
         "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar",
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar",
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-integration/1.3:jar",
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-library/1.3:jar",
+        "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/1.10.19:jar",
     ],
     visibility = ["//visibility:public"],
 )
