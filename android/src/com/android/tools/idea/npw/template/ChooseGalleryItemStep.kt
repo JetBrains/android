@@ -156,7 +156,7 @@ abstract class ChooseGalleryItemStep(
     invalidParameterMessage.set(
       if (renderModel.newTemplate != Template.NoActivity)
         // TODO(qumeric): pass language?
-        renderModel.newTemplate.validate(moduleApiLevel, moduleBuildApiLevel, isNewModule, isAndroidxProject, messageKeys)
+        renderModel.newTemplate.validate(moduleApiLevel, moduleBuildApiLevel, isNewModule, isAndroidxProject, model.language.value, messageKeys)
       else
         validateTemplate(templateData, moduleApiLevel, moduleBuildApiLevel, isNewModule, isAndroidxProject, model.language.value, messageKeys)
     )
@@ -239,12 +239,14 @@ fun Template.validate(moduleApiLevel: Int,
                       moduleBuildApiLevel: Int,
                       isNewModule: Boolean,
                       isAndroidxProject: Boolean,
+                      language: Language,
                       messageKeys: WizardGalleryItemsStepMessageKeys
 ): String = when {
   this == Template.NoActivity -> if (isNewModule) "" else message(messageKeys.itemNotFound)
   moduleApiLevel < this.minSdk -> message(messageKeys.invalidMinSdk, this.minSdk)
   moduleBuildApiLevel < this.minCompileSdk -> message(messageKeys.invalidMinBuild, this.minCompileSdk)
   constraints.contains(TemplateConstraint.AndroidX) && !isAndroidxProject -> message(messageKeys.invalidAndroidX)
+  constraints.contains(TemplateConstraint.Kotlin) && language != Language.KOTLIN -> message(messageKeys.invalidNeedsKotlin)
   else -> ""
 }
 
