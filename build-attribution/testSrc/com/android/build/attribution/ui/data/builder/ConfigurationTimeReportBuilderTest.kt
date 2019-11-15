@@ -15,13 +15,10 @@
  */
 package com.android.build.attribution.ui.data.builder
 
-import com.android.build.attribution.data.PluginConfigurationData
-import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import java.time.Duration
 
 class ConfigurationTimeReportBuilderTest : AbstractBuildAttributionReportBuilderTest() {
 
@@ -65,7 +62,8 @@ class ConfigurationTimeReportBuilderTest : AbstractBuildAttributionReportBuilder
     assertThat(report.configurationTime.projects[0].plugins[0].nestedPlugins.size).isEqualTo(1)
     assertThat(report.configurationTime.projects[0].plugins[0].nestedPlugins[0].pluginName).isEqualTo(applicationPlugin.displayName)
     assertThat(report.configurationTime.projects[0].plugins[0].nestedPlugins[0].nestedPlugins.size).isEqualTo(1)
-    assertThat(report.configurationTime.projects[0].plugins[0].nestedPlugins[0].nestedPlugins[0].pluginName).isEqualTo(libraryPlugin.displayName)
+    assertThat(report.configurationTime.projects[0].plugins[0].nestedPlugins[0].nestedPlugins[0].pluginName).isEqualTo(
+      libraryPlugin.displayName)
 
     assertThat(report.configurationTime.projects[1].plugins.size).isEqualTo(3)
     assertThat(report.configurationTime.projects[1].plugins[0].pluginName).isEqualTo(pluginC.displayName)
@@ -81,13 +79,4 @@ class ConfigurationTimeReportBuilderTest : AbstractBuildAttributionReportBuilder
     assertThat(report.configurationTime.projects[2].plugins[1].pluginName).isEqualTo(pluginA.displayName)
     assertThat(report.configurationTime.projects[2].plugins[1].configurationTime).isEqualTo(TimeWithPercentage(200, 3500))
   }
-
-  private fun plugin(pluginData: PluginData, duration: Long, nested: List<PluginConfigurationData> = emptyList()) = PluginConfigurationData(
-    pluginData, Duration.ofMillis(duration), nested
-  )
-
-  private fun project(name: String, duration: Long, plugins: List<PluginConfigurationData> = emptyList()) = ProjectConfigurationData (
-    plugins, name, Duration.ofMillis(duration)
-  )
-
 }
