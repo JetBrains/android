@@ -192,7 +192,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
     }), true);
-    //myGradleFiles.maybeProcessSyncStarted(getProject()).get(100, TimeUnit.SECONDS); // FIXME-ank :-(
+    myGradleFiles.getSyncListener().syncStarted(getProject(), false, false);
     myGradleFiles.getSyncListener().syncSucceeded(getProject());
     runFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
@@ -206,7 +206,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
     }, true);
-    //myGradleFiles.maybeProcessSyncStarted(getProject()).get(100, TimeUnit.SECONDS); // FIXME-ank :-(
+    myGradleFiles.getSyncListener().syncStarted(getProject(), false, false);
     myGradleFiles.getSyncListener().syncSucceeded(getProject());
     assertFalse(myGradleFiles.areGradleFilesModified());
   }
@@ -228,7 +228,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.hello.application'"));
     }), true);
-    //myGradleFiles.maybeProcessSyncStarted(getProject()).get(100, TimeUnit.SECONDS); // FIXME-ank :-(
+    myGradleFiles.getSyncListener().syncStarted(getProject(), false, false);
     runFakeModificationTest((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
       file.getChildren()[0].replace(factory.createStatementFromText("apply plugin: 'com.bandroid.application'"));
@@ -282,7 +282,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     boolean deleted = path.delete();
     assertTrue(deleted);
     assertTrue(getAppBuildFile().exists());
-    //myGradleFiles.maybeProcessSyncStarted(getProject()).get(100, TimeUnit.SECONDS); // FIXME-ank :-(
+    myGradleFiles.getSyncListener().syncStarted(getProject(), false, false);
     // syncStarted adds a transaction to update the file hashes, ensure this is run before verifying
     UIUtil.dispatchAllInvocationEvents();
     assertFalse(myGradleFiles.areGradleFilesModified());
