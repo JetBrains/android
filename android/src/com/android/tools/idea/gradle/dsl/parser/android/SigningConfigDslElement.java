@@ -15,14 +15,72 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.SigningConfigModelImpl.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
+import com.google.common.collect.ImmutableMap;
+import java.util.stream.Stream;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class SigningConfigDslElement extends GradleDslBlockElement implements GradleDslNamedDomainElement {
+  @NotNull
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
+    {"keyAlias", property, KEY_ALIAS, VAR},
+    {"setKeyAlias", exactly(1), KEY_ALIAS, SET},
+    {"keyPassword", property, KEY_PASSWORD, VAR},
+    {"setKeyPassword", exactly(1), KEY_PASSWORD, SET},
+    {"storeFile", property, STORE_FILE, VAR},
+    {"setStoreFile", exactly(1), STORE_FILE, SET},
+    {"storePassword", property, STORE_PASSWORD, VAR},
+    {"setStorePassword", exactly(1), STORE_PASSWORD, SET},
+    {"storeType", property, STORE_TYPE, VAR},
+    {"setStoreType", exactly(1), STORE_TYPE, SET},
+  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
+                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+
+  @NotNull
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
+    {"keyAlias", property, KEY_ALIAS, VAR},
+    {"keyAlias", exactly(1), KEY_ALIAS, SET},
+    {"keyPassword", property, KEY_PASSWORD, VAR},
+    {"keyPassword", exactly(1), KEY_PASSWORD, SET},
+    {"storeFile", property, STORE_FILE, VAR},
+    {"storeFile", exactly(1), STORE_FILE, SET},
+    {"storePassword", property, STORE_PASSWORD, VAR},
+    {"storePassword", exactly(1), STORE_PASSWORD, SET},
+    {"storeType", property, STORE_TYPE, VAR},
+    {"storeType", exactly(1), STORE_TYPE, SET},
+  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
+                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+
+  @Override
+  @NotNull
+  public ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+    if (converter instanceof KotlinDslNameConverter) {
+      return ktsToModelNameMap;
+    }
+    else if (converter instanceof GroovyDslNameConverter) {
+      return groovyToModelNameMap;
+    }
+    else {
+      return super.getExternalToModelMap(converter);
+    }
+  }
+
   @Nullable
   private String methodName;
 

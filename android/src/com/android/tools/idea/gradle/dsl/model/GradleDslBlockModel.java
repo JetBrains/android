@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
@@ -91,5 +92,10 @@ public abstract class GradleDslBlockModel implements GradleDslModel {
   @NotNull
   protected ResolvedPropertyModel getFileModelForProperty(@NotNull String property) {
     return GradlePropertyModelBuilder.create(myDslElement, property).addTransform(PropertyUtil.FILE_TRANSFORM).buildResolved();
+  }
+
+  @NotNull
+  protected PasswordPropertyModel getPasswordModelForProperty(@NotNull String property) {
+    return GradlePropertyModelBuilder.create(myDslElement, property).buildPassword();
   }
 }
