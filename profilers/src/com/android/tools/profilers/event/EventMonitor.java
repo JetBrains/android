@@ -52,19 +52,7 @@ public class EventMonitor extends ProfilerMonitor {
     myUserEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), events, getTimeline().getDataRange()));
 
     LifecycleEventDataSeries activities = new LifecycleEventDataSeries(myProfilers, false);
-    LifecycleEventDataSeries fragments;
-    if (myProfilers.getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
-      fragments = new LifecycleEventDataSeries(myProfilers, true);
-    }
-    else {
-      fragments = new LifecycleEventDataSeries(myProfilers, true) {
-        @Override
-        public List<SeriesData<EventAction<LifecycleEvent>>> getDataForRange(@NotNull Range range) {
-          // Return empty list when fragments data are disabled.
-          return new ArrayList<>();
-        }
-      };
-    }
+    LifecycleEventDataSeries fragments = new LifecycleEventDataSeries(myProfilers, true);
 
     myLifecycleEvents = new LifecycleEventModel(
       new RangedSeries<>(getTimeline().getViewRange(), activities, getTimeline().getDataRange()),

@@ -89,32 +89,32 @@ public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonito
       double endTime = activity.getEndUs() == 0 ? dataRange.getMax() : activity.getEndUs();
       setTimelineText(timeline.getDataRange(), activity.getStartUs(), endTime);
       myActivityNameLabel.setText(activity.getName());
-    } else {
+    }
+    else {
       myDurationLabel.setText("");
       myActivityNameLabel.setText("");
     }
 
-    if (getMonitor().getProfilers().getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
-      myFragmentsPanel.removeAll();
-      double timePerPixel = getTimeline().getViewRange().getLength() / myComponent.getWidth();
-      Range hoverRange = new Range(tooltipX - timePerPixel * HOVER_OVER_WIDTH_PX / 2, tooltipX + timePerPixel * HOVER_OVER_WIDTH_PX / 2);
-      List<LifecycleAction> fragments = myLifecycleTooltip.getFragmentsAt(hoverRange);
-      List<JLabel> labels = new ArrayList<>();
-      fragments.forEach(fragment -> {
-        String text = fragment.getName();
-        boolean justAdded = fragment.getStartUs() > hoverRange.getMin() && fragment.getStartUs() <= hoverRange.getMax();
-        boolean justRemoved = fragment.getEndUs() != 0 && fragment.getEndUs() > hoverRange.getMin() && fragment.getEndUs() <= hoverRange.getMax();
-        if (justAdded) {
-          text += " - resumed";
-        }
-        else if (justRemoved) {
-          text += " - paused";
-        }
-        labels.add(new JLabel(text));
-      });
-      labels.sort((o1, o2) -> o1.getText().compareToIgnoreCase(o2.getText()));
-      labels.forEach(label -> myFragmentsPanel.add(label));
-    }
+    myFragmentsPanel.removeAll();
+    double timePerPixel = getTimeline().getViewRange().getLength() / myComponent.getWidth();
+    Range hoverRange = new Range(tooltipX - timePerPixel * HOVER_OVER_WIDTH_PX / 2, tooltipX + timePerPixel * HOVER_OVER_WIDTH_PX / 2);
+    List<LifecycleAction> fragments = myLifecycleTooltip.getFragmentsAt(hoverRange);
+    List<JLabel> labels = new ArrayList<>();
+    fragments.forEach(fragment -> {
+      String text = fragment.getName();
+      boolean justAdded = fragment.getStartUs() > hoverRange.getMin() && fragment.getStartUs() <= hoverRange.getMax();
+      boolean justRemoved =
+        fragment.getEndUs() != 0 && fragment.getEndUs() > hoverRange.getMin() && fragment.getEndUs() <= hoverRange.getMax();
+      if (justAdded) {
+        text += " - resumed";
+      }
+      else if (justRemoved) {
+        text += " - paused";
+      }
+      labels.add(new JLabel(text));
+    });
+    labels.sort((o1, o2) -> o1.getText().compareToIgnoreCase(o2.getText()));
+    labels.forEach(label -> myFragmentsPanel.add(label));
   }
 
   private void setTimelineText(Range dataRange, double startTime, double endTime) {
@@ -151,10 +151,8 @@ public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonito
     myDurationLabel.setForeground(Color.GRAY);
     myDurationLabel.setFont(myFont);
     panel.add(myDurationLabel);
-    if (getMonitor().getProfilers().getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
-      myFragmentsPanel.setBorder(new JBEmptyBorder(8, 0, 0, 0));
-      panel.add(myFragmentsPanel);
-    }
+    myFragmentsPanel.setBorder(new JBEmptyBorder(8, 0, 0, 0));
+    panel.add(myFragmentsPanel);
     return panel;
   }
 }
