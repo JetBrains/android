@@ -49,7 +49,6 @@ public final class ComponentTreeTest {
   @Rule
   public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/140560022
   @Test
   public void testDropThatOpensDialog() {
     WizardUtils.createNewProject(myGuiTest);
