@@ -1,6 +1,6 @@
 android {
   signingConfigs {
-    create("release") {
+    create("newName") {
       setStoreFile(file("release.keystore"))
       setStorePassword("password")
       setStoreType("type")
