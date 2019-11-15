@@ -111,11 +111,6 @@ public final class StudioFlags {
     "CpuProfilerStageView flow.",
     false);
 
-  public static final Flag<Boolean> PROFILER_FRAGMENT_PROFILER_ENABLED = Flag.create(
-    PROFILER, "event.fragment", "Enable fragment profiling",
-    "Shows fragment information in event profiler's activity bar and tooltip.",
-    true);
-
   public static final Flag<Boolean> PROFILER_UNIFIED_PIPELINE = Flag.create(
     PROFILER, "unified.pipeline", "Enables new event pipeline to be used for core components.",
     "Toggles usage of gRPC apis to fetch data from perfd and the datastore.",
