@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfigurati
 import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
-import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
@@ -29,7 +28,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.ContentEntry
 import com.intellij.openapi.roots.ExcludeFolder
 import com.intellij.openapi.roots.InheritedJdkOrderEntry
@@ -60,10 +58,12 @@ class ProjectDumper(
   private val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!
 ) {
   private val devBuildHome: File = getStudioSourcesLocation()
+  private val adtHome: File = getAdtLocation()
   private val gradleCache: File = getGradleCacheLocation()
 
   init {
     println("<DEV>         <== ${devBuildHome.absolutePath}")
+    println("<DEV_ADT>     <== ${adtHome.absolutePath}")
     println("<GRADLE>      <== ${gradleCache.absolutePath}")
     println("<ANDROID_SDK> <== ${androidSdk.absolutePath}")
     println("<M2>          <==")
@@ -110,6 +110,7 @@ class ProjectDumper(
           .replace(currentRootDirectory.absolutePath, "<$currentRootDirectoryName>", ignoreCase = false)
           .replace(gradleCache.absolutePath, "<GRADLE>", ignoreCase = false)
           .replace(androidSdk.absolutePath, "<ANDROID_SDK>", ignoreCase = false)
+          .replace(adtHome.absolutePath, "<DEV_ADT>", ignoreCase = false)
           .replace(devBuildHome.absolutePath, "<DEV>", ignoreCase = false)
           .replace(gradleHashPattern, gradleHashStub)
           .removeAndroidVersionsFromPath()
@@ -409,6 +410,23 @@ private fun ProjectDumper.dump(compilerSettings: CompilerSettings) {
 }
 
 private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?: (System.getProperty("user.home") + "/.gradle"))
+
+private fun getAdtLocation() : File {
+  val alternatives = listOf(
+    "../../tools/adt/idea", // AOSP
+    "community/android", // IU
+    "android" // IC
+  )
+  val home = File(PathManager.getHomePath())
+  for (alternative in alternatives) {
+    val altPath = File(home, alternative)
+    if (altPath.isDirectory){
+      return altPath
+    }
+  }
+  assert(false) {"Could not find path for ADT sources"}
+  return home
+}
 
 private fun getStudioSourcesLocation() = File(PathManager.getHomePath()).parentFile.parentFile!!
 

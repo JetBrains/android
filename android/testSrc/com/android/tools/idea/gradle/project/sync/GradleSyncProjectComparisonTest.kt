@@ -68,7 +68,7 @@ import java.io.File
  * details on the way in which the file names are constructed.
  *
  * NOTE: It you made changes to sync or the test projects which make these tests fail in an expected way, you can re-run the tests
- *       from IDE with -DUPDATE_SYNC_TEST_SNAPSHOTS to update the files. (You may need to re-run several times (currently up to 3) to
+ *       from IDE with -DUPDATE_SYNC_TEST_SNAPSHOTS to update the files. (You may need to re-run several times (currently up to 4) to
  *       update multiple snapshots used in one test.
  *
  *       Or with bazel:
