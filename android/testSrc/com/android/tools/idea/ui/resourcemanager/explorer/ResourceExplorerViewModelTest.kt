@@ -135,7 +135,9 @@ class ResourceExplorerViewModelTest {
                        .flatMap { it.assets }
                        .mapNotNull { it.resourceItem.resourceValue?.value }
                        .map {
-                         FileUtil.getRelativePath(projectRule.fixture.tempDirPath, it, '/')
+                         // ResourceValue.getValue() implementations can return strings with different separators on Windows
+                         FileUtil.getRelativePath(FileUtil.toSystemIndependentName(projectRule.fixture.tempDirPath),
+                                                  FileUtil.toSystemIndependentName(it), '/')
                        })
       .containsExactly("res/drawable/png.png", "res/drawable/vector_drawable.xml")
 
@@ -155,7 +157,9 @@ class ResourceExplorerViewModelTest {
                        .flatMap { it.assets }
                        .mapNotNull { it.resourceItem.resourceValue?.value }
                        .map {
-                         FileUtil.getRelativePath(projectRule.fixture.tempDirPath, it, '/')
+                         // ResourceValue.getValue() implementations can return strings with different separators on Windows
+                         FileUtil.getRelativePath(FileUtil.toSystemIndependentName(projectRule.fixture.tempDirPath),
+                                                  FileUtil.toSystemIndependentName(it), '/')
                        })
       .containsExactly("res/drawable/png.png", "res/drawable/new_name.xml")
   }
