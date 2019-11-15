@@ -174,7 +174,9 @@ class ResourceExplorerViewTest {
       false,
       { asset ->
         assertThat(asset).isInstanceOf(DesignAsset::class.java)
-        openedFile = FileUtil.getRelativePath(projectRule.fixture.tempDirPath, (asset as DesignAsset).file.path, '/').orEmpty()
+        openedFile = FileUtil.getRelativePath(
+          FileUtil.toSystemIndependentName(projectRule.fixture.tempDirPath),
+          FileUtil.toSystemIndependentName((asset as DesignAsset).file.path), '/').orEmpty()
       },
       {})
     Disposer.register(disposable, viewModel)
