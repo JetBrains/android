@@ -30,11 +30,11 @@ import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManag
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.ModuleUtil
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.openapi.vfs.newvfs.impl.FakeVirtualFile
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.util.projectStructure.getModuleDir
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -86,7 +86,7 @@ class SummaryScreenViewModelTest {
 
     val firstLevelDirs = (0..3)
       .map { fileTreeModel.root.getChild(it) }
-      .map { it.file.relativeTo(projectResDir.parentFile).path }
+      .map { FileUtil.toSystemIndependentName(it.file.relativeTo (projectResDir.parentFile).path) }
 
     val files = (0..3)
       .map { fileTreeModel.root.getChild(it).getChild(0) }

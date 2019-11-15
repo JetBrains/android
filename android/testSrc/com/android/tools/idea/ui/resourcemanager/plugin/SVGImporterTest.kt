@@ -63,7 +63,7 @@ class SVGImporterTest {
                  "  <path\n" +
                  "      android:fillColor=\"#FF000000\"\n" +
                  "      android:pathData=\"M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM10,17l-5,-5 1.41,-1.41L10,14.17l7.59,-7.59L19,8l-9,9z\"/>\n" +
-                 "</vector>\n", String(content1))
+                 "</vector>\n", String(content1).replace(System.lineSeparator(), "\n"))
 
     assertEquals("<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                  "    android:width=\"24dp\"\n" +
@@ -73,6 +73,6 @@ class SVGImporterTest {
                  "  <path\n" +
                  "      android:fillColor=\"#FF000000\"\n" +
                  "      android:pathData=\"M22.7,19l-9.1,-9.1c0.9,-2.3 0.4,-5 -1.5,-6.9 -2,-2 -5,-2.4 -7.4,-1.3L9,6 6,9 1.6,4.7C0.4,7.1 0.9,10.1 2.9,12.1c1.9,1.9 4.6,2.4 6.9,1.5l9.1,9.1c0.4,0.4 1,0.4 1.4,0l2.3,-2.3c0.5,-0.4 0.5,-1.1 0.1,-1.4z\"/>\n" +
-                 "</vector>\n", String(content2))
+                 "</vector>\n", String(content2).replace(System.lineSeparator(), "\n"))
   }
 }
