@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.adtui.common.SwingStroke
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawShape
@@ -24,10 +25,9 @@ import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BACKGROUND
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BORDER
 import com.android.tools.idea.naveditor.scene.decorator.REGULAR_FRAME_THICKNESS
 import com.google.common.annotations.VisibleForTesting
-import java.awt.BasicStroke
 import java.awt.geom.Line2D
 
-private val STROKE = BasicStroke(REGULAR_FRAME_THICKNESS)
+private val STROKE = SwingStroke(REGULAR_FRAME_THICKNESS)
 
 class DrawPlaceholder(@VisibleForTesting val rectangle: SwingRectangle) : CompositeDrawCommand() {
   override fun serialize(): String = ""

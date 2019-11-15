@@ -16,11 +16,12 @@
 package com.android.tools.idea.common.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingFont
 import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.adtui.common.toSwingFont
 import com.android.tools.adtui.common.toSwingRect
 import com.android.tools.idea.common.scene.SceneContext
 import java.awt.Color
-import java.awt.Font
 import java.awt.FontMetrics
 import java.awt.Graphics2D
 
@@ -33,7 +34,7 @@ data class DrawTruncatedText(private var myLevel: Int,
                              private var myText: String,
                              private val myRectangle: SwingRectangle,
                              private val myColor: Color,
-                             private val myFont: Font,
+                             private val myFont: SwingFont,
                              private val myIsCentered: Boolean) : DrawCommandBase() {
 
   private var myTruncatedText = ""
@@ -43,7 +44,7 @@ data class DrawTruncatedText(private var myLevel: Int,
   constructor(s: String) : this(parse(s, 6))
 
   private constructor(sp: Array<String>) : this(sp[0].toInt(), sp[1],
-    sp[2].toSwingRect(), stringToColor(sp[3]), stringToFont(sp[4]), sp[5].toBoolean())
+    sp[2].toSwingRect(), stringToColor(sp[3]), sp[4].toSwingFont(), sp[5].toBoolean())
 
   override fun getLevel(): Int {
     return myLevel
@@ -55,12 +56,13 @@ data class DrawTruncatedText(private var myLevel: Int,
         myText,
         myRectangle.toString(),
         colorToString(myColor),
-        fontToString(myFont),
+        myFont.toString(),
         myIsCentered)
   }
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
-    val fontMetrics = g.getFontMetrics(myFont)
+    val fontValue = myFont.value
+    val fontMetrics = g.getFontMetrics(fontValue)
     val textRectangle = myRectangle.value
 
     if (myTruncatedText.isEmpty()) {
@@ -76,7 +78,7 @@ data class DrawTruncatedText(private var myLevel: Int,
     }
 
     g.color = myColor
-    g.font = myFont
+    g.font = fontValue
     g.drawString(myTruncatedText, myX, myY)
   }
 

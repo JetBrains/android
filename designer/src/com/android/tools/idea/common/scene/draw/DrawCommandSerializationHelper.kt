@@ -17,10 +17,9 @@ package com.android.tools.idea.common.scene.draw
 
 import com.google.common.base.Joiner
 import java.awt.Color
-import java.awt.Font
 
 fun parse(s: String, expected: Int): Array<String> {
-  val sp = splitString(s, ',').toTypedArray()
+  val sp = s.split(',').dropLastWhile { it.isEmpty() }.toTypedArray()
   return if (sp.size == expected) {
     sp
   }
@@ -52,20 +51,3 @@ fun stringToColor(s: String): Color {
 fun colorToString(c: Color): String {
   return Integer.toHexString(c.rgb)
 }
-
-fun stringToFont(s: String): Font {
-  val sp = splitString(s, ':')
-  val style = sp[1].toInt()
-  val size = sp[2].toInt()
-  return Font(sp[0], style, size)
-}
-
-fun fontToString(f: Font): String {
-  return Joiner.on(':').join(f.name, f.style, f.size)
-}
-
-private fun splitString(s: String, delimiter: Char): List<String> {
-  return s.split(delimiter).dropLastWhile { it.isEmpty() }
-}
-
-

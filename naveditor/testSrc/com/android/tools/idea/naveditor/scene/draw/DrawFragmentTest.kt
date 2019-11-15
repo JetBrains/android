@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.adtui.common.SwingStroke
 import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.naveditor.NavTestCase
@@ -32,8 +33,8 @@ private val HIGHLIGHT_COLOR = Color.RED
 
 private val IMAGE_RECT = SwingRectangle(Rectangle2D.Float(11f, 21f, 28f, 38f))
 private val HIGHLIGHT_RECT = RoundRectangle2D.Float(4f, 14f, 42f, 52f, 6f, 6f)
-private val REGULAR_FRAME_STROKE = BasicStroke(1f)
-private val HIGHLIGHTED_FRAME_STROKE = BasicStroke(2f)
+private val REGULAR_FRAME_STROKE = SwingStroke(BasicStroke(1f))
+private val HIGHLIGHTED_FRAME_STROKE = SwingStroke(BasicStroke(2f))
 private val FRAME_COLOR = JBColor(0xa7a7a7, 0x2d2f31)
 
 class DrawFragmentTest : NavTestCase() {

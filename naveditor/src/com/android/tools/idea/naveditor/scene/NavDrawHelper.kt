@@ -16,9 +16,13 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingFont
 import com.android.tools.adtui.common.SwingLength
 import com.android.tools.adtui.common.SwingPoint
 import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.adtui.common.SwingStroke
+import com.android.tools.adtui.common.scaledSwingLength
+import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.model.scaledAndroidLength
 import com.android.tools.idea.common.model.times
 import com.android.tools.idea.common.scene.LerpEllipse
@@ -29,19 +33,14 @@ import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
 import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.util.ui.JBUI
-import java.awt.BasicStroke
 import java.awt.Color
-import java.awt.Font
 import java.awt.geom.Ellipse2D
 import java.awt.geom.Path2D
-import java.awt.geom.Point2D
-import java.awt.geom.Rectangle2D
-import java.awt.geom.RoundRectangle2D
+import kotlin.math.min
 
 @VisibleForTesting
 const val DEFAULT_FONT_NAME = "Default"
-private val DEFAULT_FONT_SIZE = JBUI.scale(12)
+private val DEFAULT_FONT_SIZE = scaledAndroidLength(12f)
 
 val INNER_RADIUS_SMALL = scaledAndroidLength(5f)
 val INNER_RADIUS_LARGE = scaledAndroidLength(8f)
@@ -49,7 +48,7 @@ val OUTER_RADIUS_SMALL = scaledAndroidLength(7f)
 val OUTER_RADIUS_LARGE = scaledAndroidLength(11f)
 
 @SwingCoordinate
-val HANDLE_STROKE = BasicStroke(JBUI.scale(2).toFloat())
+val HANDLE_STROKE = SwingStroke(scaledSwingLength(2f))
 
 val FRAGMENT_BORDER_SPACING = scaledAndroidLength(2f)
 val ACTION_HANDLE_OFFSET = FRAGMENT_BORDER_SPACING + scaledAndroidLength(2f)
@@ -64,14 +63,13 @@ val HEADER_TEXT_HEIGHT = HEADER_ICON_SIZE - 2 * HEADER_TEXT_PADDING
 val ACTION_ARROW_PARALLEL = scaledAndroidLength(10f)
 val ACTION_ARROW_PERPENDICULAR = scaledAndroidLength(12f)
 
-fun regularFont(scale: Float, style: Int): Font {
-  val size = scale * DEFAULT_FONT_SIZE
-  return Font(DEFAULT_FONT_NAME, style, size.toInt())
+fun regularFont(scale: Scale, style: Int): SwingFont {
+  return SwingFont(DEFAULT_FONT_NAME, style, scale * DEFAULT_FONT_SIZE)
 }
 
-fun scaledFont(scale: Float, style: Int): Font {
-  val size = (scale * (2.0 - Math.min(scale, 1f))) * DEFAULT_FONT_SIZE // keep font size slightly larger at smaller scales
-  return Font(DEFAULT_FONT_NAME, style, size.toInt())
+fun scaledFont(scale: Scale, style: Int): SwingFont {
+  val newScale = scale.value.let { Scale(it * (2.0 - min(it, 1.0))) }  // keep font size slightly larger at smaller scales
+  return regularFont(newScale, style)
 }
 
 fun createDrawImageCommand(rectangle: SwingRectangle, image: RefinableImage?): DrawCommand {
