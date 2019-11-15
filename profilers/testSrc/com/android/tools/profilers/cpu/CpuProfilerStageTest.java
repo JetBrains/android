@@ -1354,18 +1354,12 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void importTraceModeOnlyEnabledWhenImportSessionFlagIsSet() {
+  public void importTraceModeOnlyEnabledWhenImportedTraceProvided() {
     StudioProfilers profilers = myStage.getStudioProfilers();
-    myServices.enableImportTrace(false);
 
     File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
     CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
-    // Import trace flag is not set. Inspect trace mode should be disabled.
-    assertThat(stage.isImportTraceMode()).isFalse();
-
-    myServices.enableImportTrace(true);
-    stage = new CpuProfilerStage(profilers, traceFile);
-    // Flag is enabled, passing a non-null file to the constructor will set the stage to inspect trace mode.
+    // Passing a non-null file to the constructor will set the stage to inspect trace mode.
     assertThat(stage.isImportTraceMode()).isTrue();
 
     stage = new CpuProfilerStage(profilers, null);
@@ -1380,7 +1374,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void importTraceShouldSetCorrectTraceInfo() {
     StudioProfilers profilers = myStage.getStudioProfilers();
-    myServices.enableImportTrace(true);
 
     File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
     CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
@@ -1402,7 +1395,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void corruptedTraceInImportTraceModeShowsABalloon() {
     StudioProfilers profilers = myStage.getStudioProfilers();
-    myServices.enableImportTrace(true);
 
     FakeFeatureTracker tracker = (FakeFeatureTracker)myServices.getFeatureTracker();
     // Sanity check to verify the last import trace status was not set yet
@@ -1425,7 +1417,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void abortParsingImportTraceFileShowsABalloon() {
     StudioProfilers profilers = myStage.getStudioProfilers();
-    myServices.enableImportTrace(true);
     File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
 
     FakeParserCancelParsing parser = new FakeParserCancelParsing(myServices);
@@ -1464,7 +1455,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void captureIsSetWhenOpeningStageInImportTraceMode() {
     StudioProfilers profilers = myStage.getStudioProfilers();
-    myServices.enableImportTrace(true);
 
     FakeFeatureTracker tracker = (FakeFeatureTracker)myServices.getFeatureTracker();
     // Sanity check to verify the last import trace status was not set yet
@@ -1494,7 +1484,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void threadsDataComesFromCaptureInImportTraceMode() {
     StudioProfilers profilers = myStage.getStudioProfilers();
-    myServices.enableImportTrace(true);
     File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
     CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
     stage.enter();
@@ -1517,7 +1506,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void captureAlwaysSelectedInImportTraceMode() {
     StudioProfilers profilers = myStage.getStudioProfilers();
-    myServices.enableImportTrace(true);
     File traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
     CpuProfilerStage stage = new CpuProfilerStage(profilers, traceFile);
     stage.enter();

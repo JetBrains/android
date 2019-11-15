@@ -60,9 +60,6 @@ class CpuUsageImportModeViewTest {
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
-    // Enable import trace flag which is required for import-trace-mode.
-    ideServices.enableImportTrace(true)
-
     stage = CpuProfilerStage(profilers, File("FakePathToTraceFile.trace"))
     stage.studioProfilers.stage = stage
     stage.enter()

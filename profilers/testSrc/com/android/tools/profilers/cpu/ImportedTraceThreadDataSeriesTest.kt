@@ -44,8 +44,6 @@ class ImportedTraceThreadDataSeriesTest {
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
-    // Enable import trace flags to allow initiating CpuProfilerStage in import trace mode
-    ideServices.enableImportTrace(true)
     val stage = CpuProfilerStage(profilers, CpuProfilerTestUtils.getTraceFile("valid_trace.trace"))
     stage.enter()
     myCapture = stage.capture!!

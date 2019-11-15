@@ -70,11 +70,8 @@ public class CpuProfiler extends StudioProfiler {
   public CpuProfiler(@NotNull StudioProfilers profilers) {
     super(profilers);
     mySessionTraceFiles = new HashMap<>();
-    if (profilers.getIdeServices().getFeatureConfig().isImportCpuTraceEnabled()) {
-      // Only enable handling *.trace files if the import CPU traces flag is enabled.
-      registerImportedSessionListener();
-      registerTraceImportHandler();
-    }
+    registerImportedSessionListener();
+    registerTraceImportHandler();
   }
 
   private void run() {

@@ -124,8 +124,6 @@ class CpuProfilerContextMenuInstallerTest {
     assertThat(items[5].text).isEqualTo("Previous capture")
     assertThat(items[5].isEnabled).isTrue()
 
-    // Enable import trace flag which is required for import-trace-mode.
-    ideServices.enableImportTrace(true)
     stage = CpuProfilerStage(stage.studioProfilers, File("FakePathToTraceFile.trace"))
     stage.enter()
     // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView
