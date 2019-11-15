@@ -54,7 +54,7 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : IdeaSourcePr
       val file = AndroidProjectRootUtil.getFileByRelativeModulePath(
         module,
         facet.properties.MANIFEST_FILE_RELATIVE_PATH,
-        true
+        false
       )
       if (file != null) {
         return file
@@ -96,7 +96,7 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : IdeaSourcePr
       val resRelPath = facet.properties.RES_FOLDER_RELATIVE_PATH
       return listOfNotNull(
         AndroidProjectRootUtil.getFileByRelativeModulePath(facet.module, resRelPath,
-                                                           true))
+                                                           false))
     }
 
   override val assetsDirectoryUrls: Collection<String> get() = assetsDirectories.map { it.url }
