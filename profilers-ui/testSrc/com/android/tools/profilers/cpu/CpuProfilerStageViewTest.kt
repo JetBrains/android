@@ -172,8 +172,6 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
                                              CpuProfilerTestUtils.traceFileToByteString(
                                                TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
 
-    // Enable import trace flag which is required for import-trace-mode.
-    myIdeServices.enableImportTrace(true)
     myIdeServices.enableCpuCaptureStage(false)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
     myStage.enter()
@@ -190,8 +188,6 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
 
   @Test
   fun importTraceModeShouldShowCpuCaptureView() {
-    // Enable import trace flag which is required for import-trace-mode.
-    myIdeServices.enableImportTrace(true)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
     myStage.enter()
 

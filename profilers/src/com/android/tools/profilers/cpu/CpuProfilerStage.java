@@ -227,8 +227,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     super(profilers);
     myImportedTrace = importedTrace;
     mySession = profilers.getSession();
-    // Only allow import trace mode if Import CPU trace and sessions flag are enabled.
-    myIsImportTraceMode = getStudioProfilers().getIdeServices().getFeatureConfig().isImportCpuTraceEnabled() && importedTrace != null;
+    myIsImportTraceMode = importedTrace != null;
 
     myCpuTraceDataSeries = new CpuTraceDataSeries();
     myProfilerConfigModel = new CpuProfilerConfigModel(profilers, this);
