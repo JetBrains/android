@@ -60,9 +60,7 @@ class CpuProfilerContextMenuInstaller {
     installRecordMenuItem();
 
     // Add the item to export a trace file.
-    if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isExportCpuTraceEnabled()) {
-      installExportTraceMenuItem();
-    }
+    installExportTraceMenuItem();
 
     installCaptureNavigationMenuItems();
   }

@@ -84,11 +84,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myEnergyProfilerEnabled = false;
 
   /**
-   * Can toggle for tests via {@link #enableExportTrace(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean myExportCpuTraceEnabled = false;
-
-  /**
    * JNI references alloc/dealloc events are tracked and shown.
    */
   private boolean myIsJniReferenceTrackingEnabled = false;
@@ -272,11 +267,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isExportCpuTraceEnabled() {
-        return myExportCpuTraceEnabled;
-      }
-
-      @Override
       public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
 
       @Override
@@ -441,10 +431,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableCpuApiTracing(boolean enabled) {
     myIsCpuApiTracingEnabled = enabled;
-  }
-
-  public void enableExportTrace(boolean enabled) {
-    myExportCpuTraceEnabled = enabled;
   }
 
   public void enableEventsPipeline(boolean enabled) {
