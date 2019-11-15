@@ -22,6 +22,7 @@ import com.android.ddmlib.ClientData
 import com.android.ddmlib.HandleViewDebug
 import com.android.ddmlib.IDevice
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.ddms.DevicePropertyUtil
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
@@ -36,6 +37,7 @@ import io.grpc.StatusRuntimeException
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.io.IOException
 import java.nio.ByteBuffer
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
 private const val MAX_RETRY_COUNT = 60
@@ -84,8 +86,8 @@ class LegacyClient(private val project: Project) : InspectorClient {
         iDevice.version.codename?.let { codename = it }
         featureLevel = iDevice.version.featureLevel
         isEmulator = iDevice.isEmulator
-        manufacturer = iDevice.getProperty(IDevice.PROP_DEVICE_MANUFACTURER)
-        model = iDevice.avdName ?: iDevice.getProperty(IDevice.PROP_DEVICE_MODEL)
+        manufacturer = DevicePropertyUtil.getManufacturer(iDevice, "")
+        model = iDevice.avdName ?: DevicePropertyUtil.getModel(iDevice, "")
         serial = iDevice.serialNumber
         version = SdkVersionInfo.getVersionString(iDevice.version.apiLevel)
         build()
@@ -113,9 +115,8 @@ class LegacyClient(private val project: Project) : InspectorClient {
     return result
   }
 
-  override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Boolean {
-    ApplicationManager.getApplication().executeOnPooledThread { attachWithRetry(preferredProcess, 0) }
-    return true
+  override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Future<*>? {
+    return ApplicationManager.getApplication().executeOnPooledThread { attachWithRetry(preferredProcess, 0) }
   }
 
   // TODO: It might be possible for attach() to be successful here before the process is actually ready to be inspected, causing the later
