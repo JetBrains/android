@@ -16,7 +16,9 @@
 package com.android.tools.idea.templates.recipe
 
 import com.android.SdkConstants.ATTR_CONTEXT
+import com.android.SdkConstants.DOT_GRADLE
 import com.android.SdkConstants.DOT_XML
+import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.SdkConstants.GRADLE_ANDROID_TEST_API_CONFIGURATION
 import com.android.SdkConstants.GRADLE_ANDROID_TEST_COMPILE_CONFIGURATION
 import com.android.SdkConstants.GRADLE_ANDROID_TEST_IMPLEMENTATION_CONFIGURATION
@@ -47,6 +49,7 @@ import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
 import com.android.tools.idea.templates.TemplateUtils.writeTextFile
 import com.android.tools.idea.templates.findModule
+import com.android.tools.idea.templates.mergeGradleSettingsFile
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -136,6 +139,31 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     }
 
     return false
+  }
+
+  /**
+   * Merges the given gradle file into the given destination file (or copies it over if the destination file does not exist).
+   */
+  @Deprecated("Avoid merging Gradle files, add to an existing file programmatically instead")
+  override fun mergeGradleFile(source: String, to: File) {
+    val targetFile = getTargetFile(to)
+    require(hasExtension(targetFile, DOT_GRADLE)) { "Only Gradle files can be merged at this point: $targetFile" }
+
+    val targetText = readTargetText(targetFile) ?: run {
+      save(source, to, true, true)
+      return
+    }
+
+    val contents: String = when {
+      targetFile.name == GRADLE_PROJECT_SETTINGS_FILE -> mergeGradleSettingsFile(source, targetText)
+      targetFile.name == FN_BUILD_GRADLE -> {
+        val compileSdkVersion = templateData.projectTemplateData.buildApiString
+        io.mergeBuildFiles(source, targetText, project, compileSdkVersion)
+      }
+      else -> throw RuntimeException("Only $GRADLE_PROJECT_SETTINGS_FILE and $FN_BUILD_GRADLE can be merged: $targetFile")
+    }
+
+    writeTargetFile(this, contents, targetFile)
   }
 
   /**

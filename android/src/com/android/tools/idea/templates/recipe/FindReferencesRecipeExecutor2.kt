@@ -36,6 +36,10 @@ internal class FindReferencesRecipeExecutor2(private val context: RenderingConte
     addTargetFile(to)
   }
 
+  override fun mergeGradleFile(source: String, to: File) {
+    addTargetFile(to)
+  }
+
   override fun open(file: File) {
     context.filesToOpen.add(resolveTargetFile(file))
   }
