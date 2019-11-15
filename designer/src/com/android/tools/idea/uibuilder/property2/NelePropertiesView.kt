@@ -44,16 +44,30 @@ class NelePropertiesView(model : NelePropertiesModel) : PropertiesView<NelePrope
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
     main.builders.add(SelectedComponentBuilder())
-    val basic = addTab(BASIC_PAGE)
-    basic.searchable = false
-    if (StudioFlags.NELE_PROPERTY_PANEL_ACTIONBAR.get()) {
-      basic.builders.add(ComponentActionsInspectorBuilder(model))
+    if (StudioFlags.NELE_NEW_PROPERTY_PANEL_WITH_TABS.get()) {
+      val basic = addTab(BASIC_PAGE)
+      basic.searchable = false
+      if (StudioFlags.NELE_PROPERTY_PANEL_ACTIONBAR.get()) {
+        basic.builders.add(ComponentActionsInspectorBuilder(model))
+      }
+      basic.builders.add(IdInspectorBuilder(editorProvider))
+      basic.builders.add(LayoutInspectorBuilder(model.project, editorProvider))
+      basic.builders.add(CommonAttributesInspectorBuilder(model.project, editorProvider))
+      val advanced = addTab(ADVANCED_PAGE)
+      advanced.builders.add(DeclaredAttributesInspectorBuilder(model, enumSupportProvider))
+      advanced.builders.add(AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider))
     }
-    basic.builders.add(IdInspectorBuilder(editorProvider))
-    basic.builders.add(LayoutInspectorBuilder(model.project, editorProvider))
-    basic.builders.add(CommonAttributesInspectorBuilder(model.project, editorProvider))
-    val advanced = addTab(ADVANCED_PAGE)
-    advanced.builders.add(DeclaredAttributesInspectorBuilder(model, enumSupportProvider))
-    advanced.builders.add(AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider))
+    else {
+      val tab = addTab("")
+      if (StudioFlags.NELE_PROPERTY_PANEL_ACTIONBAR.get()) {
+        tab.builders.add(ComponentActionsInspectorBuilder(model))
+      }
+      tab.builders.add(IdInspectorBuilder(editorProvider))
+      tab.builders.add(DeclaredAttributesInspectorBuilder(model, enumSupportProvider))
+      tab.builders.add(LayoutInspectorBuilder(model.facet.module.project, editorProvider))
+      tab.builders.add(FavoritesInspectorBuilder(model, enumSupportProvider))
+      tab.builders.add(CommonAttributesInspectorBuilder(model.project, editorProvider))
+      tab.builders.add(AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider))
+    }
   }
 }
