@@ -512,6 +512,12 @@ open class TemplateTest : TemplateTestBase() {
     checkCreateTemplate("activities", "ComposeActivity", ActivityCreationMode.WITHOUT_PROJECT, true, withKotlin) // Compose is always kotlin
   }
 
+  @TemplateCheck
+  fun testCompareComposeActivity() {
+    checkCreateTemplate("activities", "ComposeActivity", ActivityCreationMode.WITHOUT_PROJECT, false,
+                        withKotlin, withNewRenderingContext) // Compose is always kotlin
+  }
+
   //--- Non-activity templates ---
 
   @TemplateCheck
