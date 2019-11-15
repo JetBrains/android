@@ -45,8 +45,12 @@ public class SyncPerfTestSuite extends IdeaTestSuiteBase {
                    // We unzip the source code into the same directory containing other test data.
                    "tools/adt/idea/sync-perf-tests/testData/" + TestProjectPaths.DOLPHIN_PROJECT_ROOT,
                    new DiffSpec("prebuilts/studio/buildbenchmarks/dolphin.3627ef8a/setupForSyncTest.diff", 2));
+    setUpSourceZip("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/src.zip",
+                   "tools/adt/idea/sync-perf-tests/testData/" + TestProjectPaths.BASE100,
+                   new DiffSpec("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/setupForSyncTest.diff", 2));
 
     setUpOfflineRepo("prebuilts/studio/buildbenchmarks/dolphin.3627ef8a/repo.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/repo.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/adt/idea/sync-perf-tests/test_deps.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
   }
