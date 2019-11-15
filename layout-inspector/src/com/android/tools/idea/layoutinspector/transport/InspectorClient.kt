@@ -26,6 +26,7 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspec
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import com.google.common.annotations.VisibleForTesting
+import java.util.concurrent.Future
 
 /**
  * Client for communicating with the agent.
@@ -49,7 +50,7 @@ interface InspectorClient {
   /**
    * Attach to a preferred process.
    */
-  fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Boolean
+  fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Future<*>?
 
   /**
    * Attach to a specific process.
@@ -120,7 +121,7 @@ object DisconnectedClient : InspectorClient {
   override fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {}
   override fun registerProcessChanged(callback: () -> Unit) {}
   override fun loadProcesses(): Map<Common.Stream, List<Common.Process>> = mapOf()
-  override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess) = false
+  override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Future<*>? = null
   override fun attach(stream: Common.Stream, process: Common.Process) {}
   override fun disconnect() {}
   override fun execute(command: LayoutInspectorCommand) {}

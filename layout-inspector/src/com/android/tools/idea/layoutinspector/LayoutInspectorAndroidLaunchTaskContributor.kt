@@ -67,7 +67,7 @@ private class LayoutInspectorLaunchTask(private val module: Module): LaunchTask 
     val window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID) ?: return LaunchResult.success()
     val preferredProcess = LayoutInspectorPreferredProcess(device, module)
     if (window.isVisible) {
-      lookupLayoutInspector(window)?.allClients?.find { it.attachIfSupported(preferredProcess) }
+      lookupLayoutInspector(window)?.allClients?.find { it.attachIfSupported(preferredProcess) != null }
     }
     project.putUserData(PREFERRED_PROCESS, preferredProcess)
 

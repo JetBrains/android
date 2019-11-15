@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.profiler.proto.Common
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -89,7 +90,8 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
 
   override fun displayTextInToolbar() = true
 
-  private class ConnectAction(val process: Common.Process, val stream: Common.Stream, val client: InspectorClient) :
+  @VisibleForTesting
+  class ConnectAction(val process: Common.Process, val stream: Common.Stream, val client: InspectorClient) :
     ToggleAction("${process.name} (${process.pid})") {
     override fun isSelected(event: AnActionEvent): Boolean {
       return process == client.selectedProcess && stream == client.selectedStream

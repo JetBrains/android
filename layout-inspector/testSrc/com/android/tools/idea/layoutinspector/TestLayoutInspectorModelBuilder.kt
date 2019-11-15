@@ -24,7 +24,8 @@ import org.mockito.Mockito.mock
 import java.awt.Image
 import java.awt.Rectangle
 
-fun model(body: InspectorModelDescriptor.() -> Unit) = InspectorModelDescriptor().also(body).build()
+fun model(project: Project = mock(Project::class.java), body: InspectorModelDescriptor.() -> Unit) =
+  InspectorModelDescriptor(project).also(body).build()
 
 class InspectorViewDescriptor(private val drawId: Long,
                               private val qualifiedName: String,
@@ -69,7 +70,7 @@ class InspectorViewDescriptor(private val drawId: Long,
   }
 }
 
-class InspectorModelDescriptor {
+class InspectorModelDescriptor(val project: Project) {
   private lateinit var root: InspectorViewDescriptor
 
   fun view(drawId: Long,
@@ -94,5 +95,5 @@ class InspectorModelDescriptor {
            body: InspectorViewDescriptor.() -> Unit = {}) =
     view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, null, null, body)
 
-  fun build() = InspectorModel(mock(Project::class.java), root.build())
+  fun build() = InspectorModel(project, root.build())
 }

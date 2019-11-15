@@ -35,6 +35,7 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -66,6 +67,8 @@ import java.awt.event.ActionEvent
 import java.util.ArrayList
 import java.util.HashMap
 import java.util.LinkedList
+import java.util.concurrent.Future
+import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import javax.swing.AbstractAction
 import javax.swing.JLabel
@@ -73,12 +76,19 @@ import kotlin.properties.Delegates
 
 private const val MAX_RETRY_COUNT = 60
 
-class DefaultInspectorClient(model: InspectorModel) : InspectorClient {
+class DefaultInspectorClient(
+  model: InspectorModel,
+  channelNameForTest: String = TransportService.getInstance().channelName,
+  private val scheduler: ScheduledExecutorService = JobScheduler.getScheduler() // test only
+) : InspectorClient {
   private val project = model.project
-  private var client = TransportClient(TransportService.getInstance().channelName)
-  private var transportPoller = TransportEventPoller.createPoller(client.transportStub,
-                                                                  TimeUnit.MILLISECONDS.toNanos(100),
-                                                                  Comparator.comparing(Common.Event::getTimestamp).reversed())
+  private var client = TransportClient(channelNameForTest)
+
+  @VisibleForTesting
+  var transportPoller = TransportEventPoller.createPoller(client.transportStub,
+                                                          TimeUnit.MILLISECONDS.toNanos(100),
+                                                          Comparator.comparing(Common.Event::getTimestamp).reversed(),
+                                                          scheduler)
 
   override var selectedStream: Common.Stream by Delegates.observable(Common.Stream.getDefaultInstance()) { _, old, new ->
     if (old != new) {
@@ -106,10 +116,14 @@ class DefaultInspectorClient(model: InspectorModel) : InspectorClient {
 
   override val treeLoader = ComponentTreeLoader
 
+  private val SELECTION_LOCK = Any()
+
   init {
     registerProcessEnded()
     registerProjectClosed(project)
-    adb = AndroidSdkUtils.getAdb(project)?.let { AdbService.getInstance().getDebugBridge(it) }
+    adb = AndroidSdkUtils.getAdb(project)?.let { AdbService.getInstance().getDebugBridge(it) } ?:
+          Futures.immediateFuture(AndroidDebugBridge.createBridge())
+
   }
 
   // TODO: detect when a connection is dropped
@@ -280,14 +294,15 @@ class DefaultInspectorClient(model: InspectorModel) : InspectorClient {
       processId = process::getPid,
       filter = { it.agentData.status == Common.AgentData.Status.ATTACHED }
     ) {
-      logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_SUCCESS, stream)
-      isConnected = true
-      selectedStream = stream
-      selectedProcess = process
-      processChangedListeners.forEach { it() }
-      setDebugViewAttributes(selectedStream, true)
-      execute(LayoutInspectorCommand.Type.START)
-
+      synchronized(SELECTION_LOCK) {
+        logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_SUCCESS, stream)
+        isConnected = true
+        selectedStream = stream
+        selectedProcess = process
+        processChangedListeners.forEach { it() }
+        setDebugViewAttributes(selectedStream, true)
+        execute(LayoutInspectorCommand.Type.START)
+      }
       // TODO: verify that capture started successfully
       attachListener?.let { transportPoller.unregisterListener(it) }
       attachListener = null
@@ -303,12 +318,11 @@ class DefaultInspectorClient(model: InspectorModel) : InspectorClient {
    *
    * The method called will retry itself up to MAX_RETRY_COUNT times.
    */
-  override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Boolean {
+  override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Future<*>? {
     if (preferredProcess.api < 29) {
-      return false
+      return null
     }
-    ApplicationManager.getApplication().executeOnPooledThread { attachWithRetry(preferredProcess, 0) }
-    return true
+    return ApplicationManager.getApplication().executeOnPooledThread { attachWithRetry(preferredProcess, 0) }
   }
 
   fun logInitialRender(containsPicture: Boolean) {
@@ -333,7 +347,9 @@ class DefaultInspectorClient(model: InspectorModel) : InspectorClient {
             .setDynamicLayoutInspectorEvent(
               DynamicLayoutInspectorEvent.newBuilder().setType(eventType))
           if (bridge != null) {
-            findDevice(bridge, stream)?.let { builder.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(it)) }
+            findDevice(bridge, stream)?.let {
+              builder.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(it))
+            }
           }
           UsageTracker.log(builder)
         }
@@ -365,7 +381,7 @@ class DefaultInspectorClient(model: InspectorModel) : InspectorClient {
       }
     }
     if (timesAttempted < MAX_RETRY_COUNT) {
-      JobScheduler.getScheduler().schedule({ attachWithRetry(preferredProcess, timesAttempted + 1) }, 1, TimeUnit.SECONDS)
+      scheduler.schedule({ attachWithRetry(preferredProcess, timesAttempted + 1) }, 1, TimeUnit.SECONDS)
     }
   }
 
@@ -377,13 +393,19 @@ class DefaultInspectorClient(model: InspectorModel) : InspectorClient {
   }
 
   private fun disconnectNow() {
-    if (selectedStream != Common.Stream.getDefaultInstance() &&
-        selectedProcess != Common.Process.getDefaultInstance()) {
-      setDebugViewAttributes(selectedStream, false)
-      selectedStream = Common.Stream.getDefaultInstance()
-      selectedProcess = Common.Process.getDefaultInstance()
-      isConnected = false
-      isCapturing = false
+    var didDisconnect = false
+    synchronized(SELECTION_LOCK) {
+      if (selectedStream != Common.Stream.getDefaultInstance() &&
+          selectedProcess != Common.Process.getDefaultInstance()) {
+        didDisconnect = true
+        setDebugViewAttributes(selectedStream, false)
+        selectedStream = Common.Stream.getDefaultInstance()
+        selectedProcess = Common.Process.getDefaultInstance()
+        isConnected = false
+        isCapturing = false
+      }
+    }
+    if (didDisconnect) {
       processChangedListeners.forEach { it() }
     }
   }
