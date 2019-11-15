@@ -15,22 +15,20 @@
  */
 package com.android.tools.adtui.common
 
-import java.awt.geom.RoundRectangle2D
+import java.awt.Font
 
-inline class SwingRoundRectangle(val value: RoundRectangle2D.Float) {
-  constructor(rectangle: SwingRectangle, arcwidth: SwingLength, archeight: SwingLength)
-    : this(RoundRectangle2D.Float(
-    rectangle.x.value, rectangle.y.value, rectangle.width.value, rectangle.height.value, arcwidth.value, archeight.value))
+private const val SEPARATOR = ':'
 
-  val x: SwingX
-    get() = SwingX(value.x)
+/**
+ * Represents a Font whose size is measured the [SwingCoordinate] system
+ */
+inline class SwingFont(val value: Font) {
+  constructor(name: String, style: Int, size: SwingLength) : this(Font(name, style, size.toInt()))
 
-  val y: SwingY
-    get() = SwingY(value.y)
+  override fun toString() = "${this.value.name}$SEPARATOR${this.value.style}$SEPARATOR${this.value.size}"
+}
 
-  val width: SwingLength
-    get() = SwingLength(value.width)
-
-  val height: SwingLength
-    get() = SwingLength(value.height)
+fun String.toSwingFont(): SwingFont {
+  val (name, style, size) = split(SEPARATOR)
+  return SwingFont(name, style.toInt(), size.toSwingLength())
 }

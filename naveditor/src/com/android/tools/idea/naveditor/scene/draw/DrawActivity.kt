@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingLength
 import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.adtui.common.SwingRoundRectangle
+import com.android.tools.adtui.common.SwingStroke
 import com.android.tools.adtui.common.scaledSwingLength
+import com.android.tools.adtui.common.toSwingLength
 import com.android.tools.adtui.common.toSwingRect
 import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.model.scaledAndroidLength
@@ -38,20 +41,19 @@ import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.createDrawImageCommand
 import com.android.tools.idea.naveditor.scene.scaledFont
 import com.google.common.annotations.VisibleForTesting
-import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Font
 
 private val ACTIVITY_ARC_SIZE = scaledAndroidLength(12f)
 private val ACTIVITY_BORDER_WIDTH = scaledSwingLength(1f)
 @VisibleForTesting
-val ACTIVITY_BORDER_STROKE = BasicStroke(ACTIVITY_BORDER_WIDTH.value)
+val ACTIVITY_BORDER_STROKE = SwingStroke(ACTIVITY_BORDER_WIDTH)
 
 class DrawActivity(@VisibleForTesting val rectangle: SwingRectangle,
                    @VisibleForTesting val imageRectangle: SwingRectangle,
                    @VisibleForTesting val scale: Scale,
                    @VisibleForTesting val frameColor: Color,
-                   @VisibleForTesting val frameThickness: Float,
+                   @VisibleForTesting val frameThickness: SwingLength,
                    @VisibleForTesting val textColor: Color,
                    @VisibleForTesting val image: RefinableImage? = null) : CompositeDrawCommand(COMPONENT_LEVEL) {
 
@@ -59,7 +61,7 @@ class DrawActivity(@VisibleForTesting val rectangle: SwingRectangle,
 
   private constructor(tokens: Array<String>) : this(tokens[0].toSwingRect(), tokens[1].toSwingRect(),
                                                     tokens[2].toScale(), stringToColor(tokens[3]),
-                                                    tokens[4].toFloat(), stringToColor(tokens[5]))
+                                                    tokens[4].toSwingLength(), stringToColor(tokens[5]))
 
   override fun serialize() = buildString(javaClass.simpleName, rectangle.toString(),
                                          imageRectangle.toString(), scale,
@@ -72,7 +74,7 @@ class DrawActivity(@VisibleForTesting val rectangle: SwingRectangle,
     val roundRectangle = SwingRoundRectangle(rectangle, arcSize, arcSize)
 
     list.add(FillShape(roundRectangle.value, COMPONENT_BACKGROUND))
-    list.add(DrawShape(roundRectangle.value, frameColor, BasicStroke(frameThickness)))
+    list.add(DrawShape(roundRectangle.value, frameColor, SwingStroke(frameThickness)))
     list.add(createDrawImageCommand(imageRectangle, image))
 
     list.add(DrawShape(imageRectangle.value, ACTIVITY_BORDER, ACTIVITY_BORDER_STROKE))
@@ -81,7 +83,7 @@ class DrawActivity(@VisibleForTesting val rectangle: SwingRectangle,
     val textRectangle = SwingRectangle(rectangle.x, imageRectangle.y + imageRectangle.height,
                                        rectangle.width, textHeight)
     list.add(DrawTruncatedText(4, "Activity", textRectangle, textColor,
-                               scaledFont(scale.value.toFloat(), Font.BOLD), true))
+                               scaledFont(scale, Font.BOLD), true))
 
     return list
   }

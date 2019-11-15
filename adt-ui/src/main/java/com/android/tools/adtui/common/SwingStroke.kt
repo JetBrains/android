@@ -15,22 +15,13 @@
  */
 package com.android.tools.adtui.common
 
-import java.awt.geom.RoundRectangle2D
+import java.awt.BasicStroke
+import java.awt.Stroke
 
-inline class SwingRoundRectangle(val value: RoundRectangle2D.Float) {
-  constructor(rectangle: SwingRectangle, arcwidth: SwingLength, archeight: SwingLength)
-    : this(RoundRectangle2D.Float(
-    rectangle.x.value, rectangle.y.value, rectangle.width.value, rectangle.height.value, arcwidth.value, archeight.value))
-
-  val x: SwingX
-    get() = SwingX(value.x)
-
-  val y: SwingY
-    get() = SwingY(value.y)
-
-  val width: SwingLength
-    get() = SwingLength(value.width)
-
-  val height: SwingLength
-    get() = SwingLength(value.height)
+/**
+ * Represents a Stroke whose width is measured the [SwingCoordinate] system
+ */
+inline class SwingStroke(val value: Stroke) {
+  constructor(width: SwingLength) : this(BasicStroke(width.value))
+  constructor(width: SwingLength, cap: Int, join: Int) : this(BasicStroke(width.value, cap, join))
 }

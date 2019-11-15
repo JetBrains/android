@@ -16,8 +16,10 @@
 package com.android.tools.idea.naveditor.scene.decorator
 
 import com.android.SdkConstants
-import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingLength
 import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.adtui.common.SwingStroke
+import com.android.tools.adtui.common.scaledSwingLength
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
@@ -32,16 +34,12 @@ import com.android.tools.idea.naveditor.scene.NavColors.TEXT
 import com.android.tools.idea.naveditor.scene.draw.DrawHeader
 import com.android.tools.idea.naveditor.scene.getHeaderRect
 import com.android.tools.idea.naveditor.scene.targets.isDragCreateInProgress
-import com.intellij.util.ui.JBUI
-import java.awt.BasicStroke
 import java.awt.Color
 
-@SwingCoordinate
-val REGULAR_FRAME_THICKNESS = JBUI.scale(1f)
-val REGULAR_FRAME_STROKE = BasicStroke(REGULAR_FRAME_THICKNESS)
-@SwingCoordinate
-val HIGHLIGHTED_FRAME_THICKNESS = JBUI.scale(2f)
-val HIGHLIGHTED_FRAME_STROKE = BasicStroke(HIGHLIGHTED_FRAME_THICKNESS)
+val REGULAR_FRAME_THICKNESS = scaledSwingLength(1f)
+val REGULAR_FRAME_STROKE = SwingStroke(REGULAR_FRAME_THICKNESS)
+val HIGHLIGHTED_FRAME_THICKNESS = scaledSwingLength(2f)
+val HIGHLIGHTED_FRAME_STROKE = SwingStroke(HIGHLIGHTED_FRAME_THICKNESS)
 
 abstract class NavBaseDecorator : SceneDecorator() {
   override fun addFrame(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
@@ -72,7 +70,7 @@ abstract class NavBaseDecorator : SceneDecorator() {
 
   fun textColor(component: SceneComponent): Color = if (component.isSelected) SELECTED else TEXT
 
-  fun frameThickness(component: SceneComponent): Float =
+  fun frameThickness(component: SceneComponent): SwingLength =
     if (isHighlighted(component)) HIGHLIGHTED_FRAME_THICKNESS else REGULAR_FRAME_THICKNESS
 
   fun isHighlighted(component: SceneComponent): Boolean =
