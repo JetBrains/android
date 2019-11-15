@@ -164,6 +164,12 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
   fun getManifestOverrides(): ManifestOverrides
 
   /**
+   * Returns a structure describing the manifest files contributing to the module's merged manifest.
+   */
+  @JvmDefault
+  fun getMergedManifestContributors(): MergedManifestContributors = defaultGetMergedManifestContributors()
+
+  /**
    * Returns the module's resource package name, or null if it could not be determined.
    *
    * The resource package name is equivalent to the "package" attribute of the module's

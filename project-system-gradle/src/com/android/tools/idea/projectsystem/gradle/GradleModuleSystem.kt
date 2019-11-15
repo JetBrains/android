@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT_ID
+import com.android.builder.model.AndroidLibrary
 import com.android.builder.model.BuildType
 import com.android.ide.common.gradle.model.GradleModelConverter
 import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
@@ -31,22 +32,28 @@ import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ManifestOverrides
+import com.android.tools.idea.projectsystem.MergedManifestContributors
 import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
+import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifests
+import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifestsOfLibs
+import com.android.tools.idea.projectsystem.getNavigationFiles
+import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
+import com.android.tools.idea.util.androidFacet
 import com.google.common.base.Predicate
 import com.google.common.base.Predicates
 import com.google.common.collect.ArrayListMultimap
@@ -54,6 +61,7 @@ import com.google.common.collect.Multimap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
@@ -63,6 +71,7 @@ import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
+import java.io.File
 import java.util.ArrayDeque
 import java.util.Collections
 
@@ -404,11 +413,23 @@ class GradleModuleSystem(
     return ManifestOverrides(directOverrides + directOverridesFromGradle, placeholders)
   }
 
+  override fun getMergedManifestContributors(): MergedManifestContributors {
+    val facet = module.androidFacet!!
+    val dependencies = getResourceModuleDependencies().mapNotNull { it.androidFacet }
+    return MergedManifestContributors(
+      primaryManifest = facet.sourceProviders.mainManifestFile,
+      flavorAndBuildTypeManifests = facet.getFlavorAndBuildTypeManifests(),
+      libraryManifests = if (facet.configuration.isAppOrFeature) facet.getLibraryManifests(dependencies) else emptyList(),
+      navigationFiles = facet.getNavigationFiles(),
+      flavorAndBuildTypeManifestsOfLibs = facet.getFlavorAndBuildTypeManifestsOfLibs(dependencies)
+    )
+  }
+
   private fun getVersionNameOverride(facet: AndroidFacet, gradleModel: AndroidModuleModel, buildType: BuildType): String? {
     val flavor = gradleModel.selectedVariant.mergedFlavor
     val versionName = flavor.versionName
     val flavorSuffix = if (gradleModel.features.isProductFlavorVersionSuffixSupported) flavor.versionNameSuffix.orEmpty() else ""
-    val suffix =  flavorSuffix + buildType.versionNameSuffix.orEmpty()
+    val suffix = flavorSuffix + buildType.versionNameSuffix.orEmpty()
     return when {
       versionName != null && versionName.isNotEmpty() -> versionName + suffix
       suffix.isEmpty() -> null
@@ -590,4 +611,40 @@ class GradleModuleSystem(
 
   override val submodules: Collection<Module>
     get() = moduleHierarchyProvider.submodules
+}
+
+private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): List<VirtualFile> {
+  if (isDisposed) return emptyList()
+  val localLibManifests = dependencies.mapNotNull { it.sourceProviders.mainManifestFile }
+
+  val aarManifests = hashSetOf<File>()
+  AndroidModuleModel.get(this)
+    ?.selectedMainCompileDependencies
+    ?.libraries
+    ?.forEach { addAarManifests(it, aarManifests, dependencies) }
+
+  // Local library manifests come first because they have higher priority.
+  return localLibManifests +
+         // If any of these are null, then the file is specified in the model,
+         // but not actually available yet, such as exploded AAR manifests.
+         aarManifests.mapNotNull { VfsUtil.findFileByIoFile(it, false) }
+}
+
+private fun addAarManifests(lib: AndroidLibrary, result: MutableSet<File>, moduleDeps: List<AndroidFacet>) {
+  lib.project?.let { projectName ->
+    // The model ends up with AndroidLibrary references both to normal, source modules,
+    // as well as AAR dependency wrappers. We don't want to add an AAR reference for
+    // normal libraries (so we find these and just return below), but we *do* want to
+    // include AAR wrappers.
+    // TODO(b/128928135): Make this build system-independent.
+    if (moduleDeps.any { projectName == GradleUtil.getGradlePath(it.module) }) {
+      return
+    }
+  }
+  if (lib.manifest !in result) {
+    result.add(lib.manifest)
+    lib.libraryDependencies.forEach {
+      addAarManifests(it, result, moduleDeps)
+    }
+  }
 }
