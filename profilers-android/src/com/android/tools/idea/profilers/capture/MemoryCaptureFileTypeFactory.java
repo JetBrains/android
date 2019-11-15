@@ -24,9 +24,6 @@ import org.jetbrains.annotations.NotNull;
 public class MemoryCaptureFileTypeFactory extends FileTypeFactory {
   @Override
   public void createFileTypes(@NotNull FileTypeConsumer consumer) {
-    // Only consume .hprof files if PROFILER_OPEN_CAPTURES flag is enabled.
-    if (StudioFlags.PROFILER_OPEN_CAPTURES.get()) {
-      consumer.consume(MemoryCaptureFileType.getInstance(), MemoryCaptureFileType.getInstance().getDefaultExtension());
-    }
+    consumer.consume(MemoryCaptureFileType.getInstance(), MemoryCaptureFileType.getInstance().getDefaultExtension());
   }
 }
