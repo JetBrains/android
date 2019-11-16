@@ -38,7 +38,6 @@ public interface FeatureConfig {
   boolean isAuditsEnabled();
   boolean isCustomEventVisualizationEnabled();
   boolean isSessionImportEnabled();
-  boolean isSimpleperfHostEnabled();
   boolean isStartupCpuProfilingEnabled();
   boolean isUnifiedPipelineEnabled();
   // Add new features alphabetically instead of at the end of the list

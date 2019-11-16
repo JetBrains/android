@@ -298,11 +298,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       }
 
       @Override
-      public boolean isSimpleperfHostEnabled() {
-        return StudioFlags.PROFILER_SIMPLEPERF_HOST.get();
-      }
-
-      @Override
       public boolean isFragmentsEnabled() {
         return StudioFlags.PROFILER_FRAGMENT_PROFILER_ENABLED.get();
       }
