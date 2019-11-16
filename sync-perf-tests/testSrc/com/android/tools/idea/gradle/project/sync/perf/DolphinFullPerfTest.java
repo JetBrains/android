@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Measure performance for IDEA sync using the dolphin project.
  */
-public class DolphinFullSyncAveragePerfTest extends GradleSyncPerformanceTestCase {
+public class DolphinFullPerfTest extends GradleSyncPerfTestCase {
 
   @Override
   public void setUp() throws Exception {

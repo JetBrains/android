@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.perf;
 /**
  * Measure performance for Single variant sync using the dolphin project.
  */
-public class DolphinSingleVariantSyncAveragePerfTest extends DolphinFullSyncAveragePerfTest {
+public class DolphinSVSPerfTest extends DolphinFullPerfTest {
   @Override
   protected boolean useSingleVariantSyncInfrastructure() {
     return true;

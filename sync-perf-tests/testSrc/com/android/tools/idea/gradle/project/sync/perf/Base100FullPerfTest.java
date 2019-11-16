@@ -19,7 +19,7 @@ import static com.android.tools.idea.gradle.project.sync.perf.TestProjectPaths.B
 
 import org.jetbrains.annotations.NotNull;
 
-public class Base100FullPerfTest extends GradleSyncPerformanceTestCase {
+public class Base100FullPerfTest extends GradleSyncPerfTestCase {
   @NotNull
   @Override
   public String getProjectName() {

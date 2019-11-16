@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.perf;
 /**
  * Measure performance for Single variant sync using the average project.
  */
-public class SVSyncAveragePerfTest extends IDEASyncAveragePerfTest {
+public class AverageSVSPerfTest extends AverageFullPerfTest {
   @Override
   protected boolean useSingleVariantSyncInfrastructure() {
     return true;
