@@ -99,11 +99,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myImportCpuTraceEnabled = false;
 
   /**
-   * Can toggle for tests via {@link #enableSimpleperfHost(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean mySimpleperfHostEnabled = false;
-
-  /**
    * JNI references alloc/dealloc events are tracked and shown.
    */
   private boolean myIsJniReferenceTrackingEnabled = false;
@@ -351,11 +346,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isSimpleperfHostEnabled() {
-        return mySimpleperfHostEnabled;
-      }
-
-      @Override
       public boolean isStartupCpuProfilingEnabled() {
         return myStartupCpuProfilingEnabled;
       }
@@ -493,10 +483,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableImportTrace(boolean enabled) {
     myImportCpuTraceEnabled = enabled;
-  }
-
-  public void enableSimpleperfHost(boolean enabled) {
-    mySimpleperfHostEnabled = enabled;
   }
 
   public void enableEventsPipeline(boolean enabled) {
