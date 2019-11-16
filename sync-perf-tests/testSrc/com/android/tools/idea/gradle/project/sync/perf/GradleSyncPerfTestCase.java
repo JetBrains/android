@@ -42,7 +42,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public abstract class GradleSyncPerformanceTestCase extends GradleSyncIntegrationTestCase {
+public abstract class GradleSyncPerfTestCase extends GradleSyncIntegrationTestCase {
   private static final int DEFAULT_INITIAL_DROPS = 5;
   private static final int DEFAULT_NUM_SAMPLES = 10;
   private static final String BENCHMARK_PROJECT = "Android Studio Sync Test";
@@ -111,7 +111,7 @@ public abstract class GradleSyncPerformanceTestCase extends GradleSyncIntegratio
   /**
    * Measure the following sync times:
    *   - Initial sync time.
-   *   - Average over {@link GradleSyncPerformanceTestCase#getNumSamples()} samples of subsequent syncs.
+   *   - Average over {@link GradleSyncPerfTestCase#getNumSamples()} samples of subsequent syncs.
    * @throws Exception
    */
   public void testSyncTimes() throws Exception {
