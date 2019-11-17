@@ -62,6 +62,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.ReadonlyStatusHandler
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
+import com.intellij.openapi.vfs.VfsUtil.findFileByURL
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile
 import com.intellij.openapi.vfs.VirtualFile
@@ -245,14 +246,14 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
    * is allowed to be a directory, in which case the whole directory is copied recursively)
    */
   override fun copy(from: File, to: File) {
-    val source = File(getResource(from.path).path)
+    val sourceUrl = getResource(from.path)
     val target = getTargetFile(to)
 
-    val sourceFile = findFileByIoFile(source, true) ?: error(from)
+    val sourceFile = findFileByURL(sourceUrl) ?: error("$from ($sourceUrl)")
     sourceFile.refresh(false, false)
-    val destPath = if (source.isDirectory) target else target.parentFile
+    val destPath = if (sourceFile.isDirectory) target else target.parentFile
     when {
-      source.isDirectory -> copyDirectory(sourceFile, destPath)
+      sourceFile.isDirectory -> copyDirectory(sourceFile, destPath)
       target.exists() -> if (!sourceFile.contentEquals(target)) {
         addFileAlreadyExistWarning(target)
       }
