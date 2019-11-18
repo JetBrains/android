@@ -216,7 +216,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
     @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
-    @NotNull Function<DesignSurface, InteractionProvider> interactionProviderCreator,
+    @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
     boolean isEditable) {
     super(new BorderLayout());
     Disposer.register(parentDisposable, this);

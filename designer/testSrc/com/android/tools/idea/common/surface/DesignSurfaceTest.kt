@@ -23,7 +23,6 @@ import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.google.common.collect.ImmutableList
@@ -142,7 +141,7 @@ class TestActionManager(surface: DesignSurface) : ActionManager<DesignSurface>(s
   override fun getToolbarActions(component: NlComponent?, newSelection: MutableList<NlComponent>) = DefaultActionGroup()
 }
 
-class TestInteractionProvider(surface: DesignSurface) : InteractionProviderBase(surface) {
+class TestInteractionHandler(surface: DesignSurface) : InteractionHandlerBase(surface) {
   override fun createInteractionOnClick(mouseX: Int, mouseY: Int): Interaction? = null
 
   override fun createInteractionOnDrag(mouseX: Int, mouseY: Int): Interaction? = null
@@ -152,7 +151,7 @@ private class TestDesignSurface(project: Project, disposible: Disposable)
   : DesignSurface(project,
                   disposible,
                   java.util.function.Function { TestActionManager(it) },
-                  java.util.function.Function { TestInteractionProvider(it) },
+                  java.util.function.Function { TestInteractionHandler(it) },
                   true) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
