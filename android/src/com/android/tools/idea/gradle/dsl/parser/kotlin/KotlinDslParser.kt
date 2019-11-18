@@ -363,7 +363,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           // method call. For example : System.getEnv("pass") -> in such case, we shouldn't consider the expression as a literal but rather
           // as a methodCall.
           val methodName = "${receiver.text}.${referenceName}"
-          return getMethodCall(parent, selector, name, methodName)
+          return getMethodCall(parent, expression, name, methodName, selector.valueArgumentList)
         }
       }
     }
@@ -455,7 +455,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     // If the CallExpression has one argument only that is a callExpression, we skip the current CallExpression.
     val arguments = argumentsList.arguments
     if (arguments.size != 1) {
-      return getMethodCall(parentElement, psiElement, name, methodName)
+      return getMethodCall(parentElement, psiElement, name, methodName, argumentsList)
     }
     else {
       val argumentExpression = arguments[0].getArgumentExpression()
@@ -471,7 +471,9 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           psiElement,
           // isNamed() checks if getArgumentName() is not null, so using !! here is safe (unless the implementation changes).
           if (arguments[0].isNamed()) GradleNameElement.create(arguments[0].getArgumentName()!!.text) else name,
-          methodName)
+          methodName,
+          argumentsList
+        )
       }
       if (isFirstCall && !arguments[0].isNamed()) {
         return getExpressionElement(
@@ -480,17 +482,20 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           name,
           arguments[0].getArgumentExpression() as KtElement)
       }
-      return getMethodCall(parentElement, psiElement, name, methodName)
+      return getMethodCall(parentElement, psiElement, name, methodName, argumentsList)
     }
   }
 
-  private fun getMethodCall(parent : GradleDslElement,
-                            psiElement: PsiElement,
-                            name : GradleNameElement,
-                            methodName: String) : GradleDslMethodCall {
+  private fun getMethodCall(
+    parent: GradleDslElement,
+    psiElement: PsiElement,
+    name: GradleNameElement,
+    methodName: String,
+    arguments: KtValueArgumentList?
+  ): GradleDslMethodCall {
 
     val methodCall = GradleDslMethodCall(parent, psiElement, name, methodName, false)
-    val arguments = (psiElement as KtCallExpression).valueArgumentList ?: return methodCall
+    if (arguments == null) return methodCall
     val argumentList = getExpressionList(methodCall, arguments, GradleNameElement.empty(), arguments.arguments, false)
     methodCall.setParsedArgumentList(argumentList)
     return methodCall
