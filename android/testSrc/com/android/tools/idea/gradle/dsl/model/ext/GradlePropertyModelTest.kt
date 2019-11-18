@@ -394,9 +394,10 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val propertyModel = buildModel.ext().findProperty("prop1")
       assertEquals(MAP, propertyModel.valueType)
       val map = propertyModel.getValue(MAP_TYPE)!!
-      assertSize(2, map.entries)
+      assertSize(3, map.entries)
       verifyPropertyModel(map["key"], STRING_TYPE, "getValue()", UNKNOWN, DERIVED, 0)
       verifyPropertyModel(map["key2"], STRING_TYPE, "2 + 3", UNKNOWN, DERIVED, 0)
+      verifyPropertyModel(map["key3"], STRING_TYPE, "z(1)", UNKNOWN, DERIVED, 0)
     }
   }
 
