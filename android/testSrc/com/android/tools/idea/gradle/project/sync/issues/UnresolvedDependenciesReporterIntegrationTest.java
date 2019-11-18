@@ -15,14 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.builder.model.SyncIssue;
@@ -43,11 +35,20 @@ import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link UnresolvedDependenciesReporter}.
