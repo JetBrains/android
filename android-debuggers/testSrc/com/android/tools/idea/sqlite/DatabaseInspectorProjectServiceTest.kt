@@ -104,7 +104,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
   //  verify(mockSqliteController).closeDatabase(openedDatabase!!)
   //}
 
-  fun testSyncOpensFile() {
+  fun testReDownloadOpensFile() {
     // Prepare
     openedDatabase = pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(sqliteFile1))
 
@@ -119,13 +119,13 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     project.registerServiceInstance(DeviceFileDownloaderService::class.java, mockDownloaderService)
 
     // Act
-    pumpEventsAndWaitForFuture(databaseInspectorProjectService.sync(openedDatabase!!, mock(DownloadProgress::class.java)))
+    pumpEventsAndWaitForFuture(databaseInspectorProjectService.reDownloadAndOpenFile(openedDatabase!!, mock(DownloadProgress::class.java)))
 
     // Assert
     assertEquals(sqliteFile1, fileOpened)
   }
 
-  fun testSyncFileIfFileNotOpened() {
+  fun testReDownloadFileIfFileNotOpened() {
     // Prepare
     val mockDownloaderService = mock(DeviceFileDownloaderService::class.java)
     `when`(mockDownloaderService.downloadFile(any(DeviceFileId::class.java), any(DownloadProgress::class.java)))
@@ -138,10 +138,12 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     project.registerServiceInstance(DeviceFileDownloaderService::class.java, mockDownloaderService)
 
     // Act/Assert
-    pumpEventsAndWaitForFutureException(databaseInspectorProjectService.sync(mockDatabase, mock(DownloadProgress::class.java)))
+    pumpEventsAndWaitForFutureException(
+      databaseInspectorProjectService.reDownloadAndOpenFile(mockDatabase, mock(DownloadProgress::class.java))
+    )
   }
 
-  fun testSyncFileHasNoMetadata() {
+  fun testReDownloadFileHasNoMetadata() {
     // Prepare
     sqliteFile1.putUserData(DeviceFileId.KEY, null)
     openedDatabase = pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(sqliteFile1))
@@ -157,10 +159,11 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     project.registerServiceInstance(DeviceFileDownloaderService::class.java, mockDownloaderService)
 
     // Act/Assert
-    pumpEventsAndWaitForFutureException(databaseInspectorProjectService.sync(openedDatabase!!, mock(DownloadProgress::class.java)))
+    pumpEventsAndWaitForFutureException(
+      databaseInspectorProjectService.reDownloadAndOpenFile(openedDatabase!!, mock(DownloadProgress::class.java)))
   }
 
-  fun testSyncFileDoesNotWorkWithLiveDatabase() {
+  fun testReDownloadFileDoesNotWorkWithLiveDatabase() {
     // Prepare
     openedDatabase = pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(
       mock(AppInspectorClient.CommandMessenger::class.java),
@@ -169,6 +172,9 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     ))
 
     // Act
-    pumpEventsAndWaitForFutureException(databaseInspectorProjectService.sync(openedDatabase!!, mock(DownloadProgress::class.java)))
+    pumpEventsAndWaitForFutureException(databaseInspectorProjectService.reDownloadAndOpenFile(
+      openedDatabase!!,
+      mock(DownloadProgress::class.java)
+    ))
   }
 }

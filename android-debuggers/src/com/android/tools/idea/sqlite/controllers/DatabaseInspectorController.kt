@@ -248,8 +248,8 @@ class DatabaseInspectorControllerImpl(
       closeDatabase(database)
     }
 
-    override fun syncDatabaseActionInvoked(database: SqliteDatabase) {
-      val downloadFuture = DatabaseInspectorProjectService.getInstance(project).sync(database, object : DownloadProgress {
+    override fun reDownloadDatabaseFileActionInvoked(database: SqliteDatabase) {
+      val downloadFuture = DatabaseInspectorProjectService.getInstance(project).reDownloadAndOpenFile(database, object : DownloadProgress {
         override val isCancelled: Boolean
           get() = false
 
