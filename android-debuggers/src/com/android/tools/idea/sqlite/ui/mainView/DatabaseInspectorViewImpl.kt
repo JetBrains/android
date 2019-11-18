@@ -297,13 +297,13 @@ class DatabaseInspectorViewImpl(
         listeners.forEach { databaseToRemove?.forEach { database -> it.removeDatabaseActionInvoked(database) } }
       }
 
-      val syncButton = CommonButton("Sync", AllIcons.Actions.Refresh)
-      syncButton.toolTipText = "Sync"
-      schemaPanel.controlsPanel.add(syncButton)
+      val reDownloadButton = CommonButton("Re-download file", AllIcons.Actions.Refresh)
+      reDownloadButton.toolTipText = "Re-download file"
+      schemaPanel.controlsPanel.add(reDownloadButton)
 
-      syncButton.addActionListener {
+      reDownloadButton.addActionListener {
         val databaseToSync = tree?.selectionPaths?.mapNotNull { findDatabaseNode(it) }?.first() ?: return@addActionListener
-        listeners.forEach { it.syncDatabaseActionInvoked(databaseToSync) }
+        listeners.forEach { it.reDownloadDatabaseFileActionInvoked(databaseToSync) }
       }
 
       schemaPanel.controlsPanel.add(syncProgressLabel)

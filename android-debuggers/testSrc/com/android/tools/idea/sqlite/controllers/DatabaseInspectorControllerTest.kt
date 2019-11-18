@@ -360,19 +360,19 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
     )
   }
 
-  fun testSyncUpdatesView() {
+  fun testReDownloadFileUpdatesView() {
     // Prepare
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     val mockSqliteExplorerProjectService = mock(DatabaseInspectorProjectService::class.java)
-    `when`(mockSqliteExplorerProjectService.sync(any(SqliteDatabase::class.java), any(DownloadProgress::class.java)))
+    `when`(mockSqliteExplorerProjectService.reDownloadAndOpenFile(any(SqliteDatabase::class.java), any(DownloadProgress::class.java)))
       .thenReturn(Futures.immediateFuture(null))
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, mockSqliteExplorerProjectService)
 
     // Act
-    mockSqliteView.viewListeners.single().syncDatabaseActionInvoked(sqliteDatabase1)
+    mockSqliteView.viewListeners.single().reDownloadDatabaseFileActionInvoked(sqliteDatabase1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert

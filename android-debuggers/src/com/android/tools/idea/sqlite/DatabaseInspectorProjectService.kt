@@ -99,11 +99,10 @@ interface DatabaseInspectorProjectService {
   fun runSqliteStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement)
 
   /**
-   * Syncs the local database with the one on the device.
-   * Downloads and re-opens the database.
+   * Re-downloads and opens the file associated with the [SqliteDatabase] passed as argument.
    */
   @AnyThread
-  fun sync(database: SqliteDatabase, progress: DownloadProgress): ListenableFuture<Unit>
+  fun reDownloadAndOpenFile(database: SqliteDatabase, progress: DownloadProgress): ListenableFuture<Unit>
 
   /**
    * Returns true if the Sqlite Inspector has an open database, false otherwise.
@@ -233,7 +232,7 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
   }
 
   @AnyThread
-  override fun sync(database: SqliteDatabase, progress: DownloadProgress): ListenableFuture<Unit> {
+  override fun reDownloadAndOpenFile(database: SqliteDatabase, progress: DownloadProgress): ListenableFuture<Unit> {
     val virtualFile = lock.withLock {
       databaseToFile[database] ?: return Futures.immediateFailedFuture(IllegalStateException("DB not found"))
     }
