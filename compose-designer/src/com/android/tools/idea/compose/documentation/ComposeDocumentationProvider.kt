@@ -13,18 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.idea.compose.documentation
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.compose.preview.PREVIEW_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.PREVIEW_NAME
+import com.android.tools.idea.compose.preview.PreviewConfiguration
+import com.android.tools.idea.compose.preview.PreviewElement
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.flags.StudioFlags
 import com.android.utils.reflection.qualifiedName
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.codeInsight.lookup.impl.LookupImpl
 import com.intellij.codeInsight.lookup.impl.LookupManagerImpl
 import com.intellij.lang.documentation.CompositeDocumentationProvider
 import com.intellij.lang.documentation.DocumentationProviderEx
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
@@ -49,40 +56,56 @@ import java.util.concurrent.CompletableFuture
 /**
  * Adds rendered image of sample@ to Compose element's documentation.
  */
-class AndroidComposeDocumentationProvider : DocumentationProviderEx() {
+class ComposeDocumentationProvider() : DocumentationProviderEx() {
   companion object {
-    private val previewImageKey: Key<CachedValue<CompletableFuture<BufferedImage?>>> = Key.create(::previewImageKey.qualifiedName)
+    private val previewImageKey: Key<CachedValue<CompletableFuture<BufferedImage?>>> = Key.create(
+      Companion::previewImageKey.qualifiedName)
   }
 
-  @WorkerThread
-  override fun generateDoc(element: PsiElement?, originalElement: PsiElement?): String? {
-    if (!StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION.get()) return null
+  @AnyThread
+  @VisibleForTesting
+  fun generateDocAsync(element: PsiElement?, originalElement: PsiElement?): CompletableFuture<String> {
+    if (!StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION.get()) return CompletableFuture.completedFuture(null)
 
-    if (element == null || !element.isComposableFunction()) return null
+    if (element == null || !element.isComposableFunction()) return CompletableFuture.completedFuture(null)
 
-    val previewElement = getPreviewElement(element) ?: return null
+    val previewElement = getPreviewElement(element) ?: return CompletableFuture.completedFuture(null)
 
     val future = CachedValuesManager.getCachedValue(previewElement, previewImageKey) {
       CachedValueProvider.Result.create(renderImage(previewElement), PsiModificationTracker.MODIFICATION_COUNT)
     }
 
-    if (future.isDone) {
-      val image = future.get() ?: return null
-      val originalDoc = getOriginalDoc(element, originalElement)
-      return originalDoc + getImageTag(previewElement.name!!, image)
-    }
-    future.whenComplete { image, _ ->
+    return future.whenComplete { image, _ ->
       if (image == null) return@whenComplete
       ApplicationManager.getApplication().executeOnPooledThread {
         runReadAction {
           if (StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION_SLOW.get()) {
             Thread.sleep(3000)
           }
-          if ((LookupManagerImpl.getInstance(element.project).activeLookup as? LookupImpl)?.currentItem?.psiElement == element) {
+          if (element.isValid &&
+              (LookupManagerImpl.getInstance(element.project).activeLookup as? LookupImpl)?.currentItem?.psiElement == element) {
             DocumentationManager.getInstance(element.project).showJavaDocInfo(element, originalElement)
           }
         }
       }
+    }
+      .thenApply {
+        if (!element.isValid) return@thenApply null
+        val originalDoc = getOriginalDoc(element, originalElement)
+        if (it == null) {
+          return@thenApply originalDoc
+        }
+        val previewElementName = ReadAction.compute<String, Throwable> { previewElement.name!! }
+        originalDoc + getImageTag(previewElementName, it)
+      }
+  }
+
+  @WorkerThread
+  override fun generateDoc(element: PsiElement?, originalElement: PsiElement?): String? {
+    val future = generateDocAsync(element, originalElement)
+
+    if (future.isDone) {
+      return future.get()
     }
 
     return null
@@ -103,14 +126,16 @@ class AndroidComposeDocumentationProvider : DocumentationProviderEx() {
    *
    * Returned function is annotated with [androidx.ui.tooling.preview.Preview] annotation.
    */
-  private fun getPreviewElement(element: PsiElement): KtNamedFunction? {
-    val docComment = (element as? KtNamedFunction)?.docComment ?: return null
-    val sampleTag = docComment.getDefaultSection().findTagByName("sample") ?: return null
-    val sample = PsiTreeUtil.findChildOfType<KDocName>(sampleTag, KDocName::class.java)?.mainReference?.resolve() ?: return null
-    return if (sample.isPreview()) sample as KtNamedFunction else null
+  private fun getPreviewElement(element: PsiElement): KtNamedFunction? = ReadAction.compute<KtNamedFunction?, Throwable> {
+    val docComment = (element as? KtNamedFunction)?.docComment ?: return@compute null
+    val sampleTag = docComment.getDefaultSection().findTagByName("sample") ?: return@compute null
+    val sample = PsiTreeUtil.findChildOfType<KDocName>(sampleTag, KDocName::class.java)?.mainReference?.resolve() ?: return@compute null
+    return@compute if (sample.isPreview()) sample as KtNamedFunction else null
   }
 
-  private fun getFullNameForPreview(function: KtNamedFunction): String? = "${function.getClassName()}.${function.name}"
+  private fun getFullNameForPreview(function: KtNamedFunction): String = ReadAction.compute<String, Throwable> {
+    "${function.getClassName()}.${function.name}"
+  }
 
   private fun KtNamedFunction.getClassName(): String? = (toUElement()?.uastParent as? UClass)?.qualifiedName
 
@@ -126,17 +151,18 @@ class AndroidComposeDocumentationProvider : DocumentationProviderEx() {
                                        annotationEntries.any { it.shortName?.asString() == PREVIEW_NAME } &&
                                        this.findAnnotation(FqName(PREVIEW_ANNOTATION_FQN)) != null
 
-  private fun getOriginalDoc(element: PsiElement?, originalElement: PsiElement?): String? {
+  private fun getOriginalDoc(element: PsiElement?, originalElement: PsiElement?): String? = ReadAction.compute<String?, Throwable> {
+    if (element?.isValid != true) return@compute null
     val docProvider = DocumentationManager.getProviderFromElement(element, originalElement) as? CompositeDocumentationProvider
-                      ?: return null
-    val providers = docProvider.allProviders.asSequence().filter { it !is AndroidComposeDocumentationProvider }
+                      ?: return@compute null
+    val providers = docProvider.allProviders.asSequence().filter { it !is ComposeDocumentationProvider }
     for (provider in providers) {
       val result = provider.generateDoc(element, originalElement)
       if (result != null) {
-        return result
+        return@compute result
       }
     }
-    return null
+    return@compute null
   }
 
   /**
@@ -147,7 +173,8 @@ class AndroidComposeDocumentationProvider : DocumentationProviderEx() {
    */
   override fun getLocalImageForElement(element: PsiElement, imageSpec: String): Image? {
     val previewPsiElement = getPreviewElement(element) as? PsiElement ?: return null
-    val future: CompletableFuture<BufferedImage?> = previewPsiElement.getUserData(previewImageKey)?.value ?: return null
+    val future: CompletableFuture<BufferedImage?> = previewPsiElement.getUserData(
+      previewImageKey)?.value ?: return null
     return future.getNow(null)
   }
 }
