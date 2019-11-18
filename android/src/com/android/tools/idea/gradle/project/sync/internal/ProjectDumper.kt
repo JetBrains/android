@@ -457,7 +457,7 @@ private fun String.removeAndroidVersionsFromPath(): String =
       this.replace(it.value, "<VERSION>")
     } ?: this
 
-private fun String.replaceJdkVersion(): String? = replace(Regex("1\\.8\\.0_[0-9]+"), "<JDK_VERSION>")
+private fun String.replaceJdkVersion(): String? = replace(Regex("(1\\.8\\.0_[0-9]+)|(11\\.0\\.[0-9]+)"), "<JDK_VERSION>")
 
 
 private fun String.smartPad() = this.padEnd(max(20, 10 + this.length / 10 * 10))
