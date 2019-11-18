@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
+import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.res.colorToString
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.FlagValue
@@ -108,6 +109,11 @@ class DefaultPropertiesProvider(
         val isDeclared = property.source == properties.layout &&
                          property.source != Resource.getDefaultInstance()
         val source = stringTable[property.source]
+        val group = when {
+          property.isLayout -> PropertySection.LAYOUT
+          isDeclared -> PropertySection.DECLARED
+          else -> PropertySection.DEFAULT
+        }
         val value: String? = when (property.type) {
           Type.STRING,
           Type.INT_ENUM -> stringTable[property.int32Value]
@@ -133,7 +139,7 @@ class DefaultPropertiesProvider(
         }
         // TODO: Handle attribute namespaces i.e. the hardcoded ANDROID_URI below
         add(
-          InspectorPropertyItem(ANDROID_URI, name, name, property.type, value, isDeclared, source, view, resourceLookup))
+          InspectorPropertyItem(ANDROID_URI, name, name, property.type, value, group, source, view, resourceLookup))
       }
       ApplicationManager.getApplication().runReadAction { generateItemsForResolutionStack() }
       return table
@@ -188,7 +194,7 @@ class DefaultPropertiesProvider(
                                          property.type,
                                          value,
                                          classLocation,
-                                         item.isDeclared,
+                                         item.group,
                                          item.source,
                                          view,
                                          resourceLookup,
