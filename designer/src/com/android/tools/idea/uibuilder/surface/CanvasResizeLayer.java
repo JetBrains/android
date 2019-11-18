@@ -1,12 +1,17 @@
 package com.android.tools.idea.uibuilder.surface;
 
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.BOUNDS_RECT_DELTA;
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_CORNER_COLOR;
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_CUE_COLOR;
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
+
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.surface.Layer;
+import com.android.tools.idea.uibuilder.graphics.NlConstants;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
-
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
 
 /**
  * Layer to buildDisplayList the canvas resizing cue in the bottom-right corner of the screen view.
@@ -44,7 +49,7 @@ public class CanvasResizeLayer extends Layer {
     int y = myScreenView.getY();
 
     Graphics2D graphics = (Graphics2D)g2d.create();
-    graphics.setStroke(SOLID_STROKE);
+    graphics.setStroke(NlConstants.SOLID_STROKE);
     graphics.setColor(myIsHovering ? RESIZING_CORNER_COLOR : RESIZING_CUE_COLOR);
     graphics.drawLine(x + size.width + BOUNDS_RECT_DELTA, y + size.height + 4, x + size.width + 4, y + size.height + BOUNDS_RECT_DELTA);
     graphics.drawLine(x + size.width + BOUNDS_RECT_DELTA, y + size.height + 12, x + size.width + 12, y + size.height + BOUNDS_RECT_DELTA);
