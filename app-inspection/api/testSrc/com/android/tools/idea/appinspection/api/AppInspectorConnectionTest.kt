@@ -19,16 +19,16 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionEvent
 import com.android.tools.app.inspection.AppInspection.CrashEvent
-import com.android.tools.app.inspection.AppInspection.RawEvent
 import com.android.tools.app.inspection.AppInspection.ServiceResponse.Status.ERROR
 import com.android.tools.app.inspection.AppInspection.ServiceResponse.Status.SUCCESS
+import com.android.tools.idea.appinspection.api.AppInspectionTestUtils.createRawAppInspectionEvent
+import com.android.tools.idea.appinspection.api.AppInspectionTestUtils.createRawEvent
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common.Event
-import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION
 import com.android.tools.profiler.proto.Common.Event.Kind.PROCESS
 import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase.fail
@@ -38,13 +38,6 @@ import org.junit.rules.RuleChain
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
-
-/**
- * The amount of time tests will wait for async calls and events to trigger. It is used primarily in asserting latches and futures.
- */
-private const val TIMEOUT_MILLISECONDS: Long = 10000
-
-private const val INSPECTOR_NAME = "test.inspector"
 
 class AppInspectorConnectionTest {
   private val timer = FakeTimer()
@@ -56,28 +49,16 @@ class AppInspectorConnectionTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionRule)!!
 
-  private fun createRawAppInspectionEvent(
-    data: ByteArray,
-    commandId: Int = 0,
-    name: String = INSPECTOR_NAME
-  ) = AppInspectionEvent.newBuilder()
-    .setCommandId(commandId)
-    .setRawEvent(
-      RawEvent.newBuilder()
-        .setInspectorId(name)
-        .setContent(ByteString.copyFrom(data))
-        .build()
-    )
-    .build()
-
   @Test
   fun disposeInspectorSucceedWithCallback() {
     val connection = appInspectionRule.launchInspectorConnection()
 
-    assertThat(connection.disposeInspector().get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS))
-      .isEqualTo(AppInspection.ServiceResponse.newBuilder()
-                   .setStatus(SUCCESS)
-                   .build())
+    assertThat(connection.disposeInspector().get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+      .isEqualTo(
+        AppInspection.ServiceResponse.newBuilder()
+          .setStatus(SUCCESS)
+          .build()
+      )
   }
 
   @Test
@@ -86,19 +67,20 @@ class AppInspectorConnectionTest {
       commandHandler = TestInspectorCommandHandler(timer, false, "error")
     )
 
-    assertThat(connection.disposeInspector().get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS))
-      .isEqualTo(AppInspection.ServiceResponse.newBuilder()
-                   .setStatus(ERROR)
-                   .setErrorMessage("error")
-                   .build())
+    assertThat(connection.disposeInspector().get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+      .isEqualTo(
+        AppInspection.ServiceResponse.newBuilder()
+          .setStatus(ERROR)
+          .setErrorMessage("error")
+          .build()
+      )
   }
 
   @Test
   fun sendRawCommandSucceedWithCallback() {
     val connection = appInspectionRule.launchInspectorConnection()
 
-    assertThat(connection.sendRawCommand("TestData".toByteArray()).get(
-      TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS))
+    assertThat(connection.sendRawCommand("TestData".toByteArray()).get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS))
       .isEqualTo("TestData".toByteArray())
   }
 
@@ -108,8 +90,7 @@ class AppInspectorConnectionTest {
       commandHandler = TestInspectorCommandHandler(timer, false, "error")
     )
 
-    assertThat(connection.sendRawCommand("TestData".toByteArray()).get(
-      TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS))
+    assertThat(connection.sendRawCommand("TestData".toByteArray()).get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS))
       .isEqualTo("error".toByteArray())
   }
 
@@ -123,14 +104,13 @@ class AppInspectorConnectionTest {
         latch.countDown()
       }
     }
-    appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_NAME, eventListener = eventListener)
+    appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID, eventListener = eventListener)
 
     appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(byteArrayOf(0x12, 0x15)))
 
     try {
-      assertThat(latch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
-    }
-    catch (e: InterruptedException) {
+      assertThat(latch.await(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isEqualTo(true)
+    } catch (e: InterruptedException) {
       e.printStackTrace()
       fail("Test interrupted")
     }
@@ -142,28 +122,24 @@ class AppInspectorConnectionTest {
     val eventListener = AppInspectionServiceRule.TestInspectorEventListener()
     val connection = appInspectionRule.launchInspectorConnection(eventListener = eventListener)
 
-    assertThat(connection.sendRawCommand("TestData".toByteArray()).get(
-      TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS))
+    assertThat(connection.sendRawCommand("TestData".toByteArray()).get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS))
       .isEqualTo("TestData".toByteArray())
     assertThat(eventListener.rawEvents).isEmpty()
   }
 
   @Test
   fun disposeConnectionClosesConnection() {
-    val connection = appInspectionRule.launchInspectorConnection(
-      INSPECTOR_NAME)
+    val connection = appInspectionRule.launchInspectorConnection(INSPECTOR_ID)
 
-    assertThat(connection.disposeInspector().get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS))
+    assertThat(connection.disposeInspector().get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS))
       .isEqualTo(AppInspection.ServiceResponse.newBuilder().setStatus((SUCCESS)).build())
 
     // connection should be closed
     try {
-      connection.sendRawCommand("Test".toByteArray()).get(
-        TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
-    }
-    catch (e: ExecutionException) {
+      connection.sendRawCommand("Test".toByteArray()).get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+    } catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(IllegalStateException::class.java)
-      assertThat(e.cause!!.message).isEqualTo("Failed to send a command because the $INSPECTOR_NAME connection is already closed.")
+      assertThat(e.cause!!.message).isEqualTo("Failed to send a command because the $INSPECTOR_ID connection is already closed.")
     }
   }
 
@@ -176,21 +152,22 @@ class AppInspectorConnectionTest {
         latch.countDown()
       }
     }
-    val connection = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_NAME, eventListener = eventListener)
+    val connection = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID, eventListener = eventListener)
 
     appInspectionRule.addAppInspectionEvent(
       AppInspectionEvent.newBuilder()
-        .setCrashEvent(CrashEvent.newBuilder()
-                         .setInspectorId(INSPECTOR_NAME)
-                         .setErrorMessage("error")
-                         .build())
+        .setCrashEvent(
+          CrashEvent.newBuilder()
+            .setInspectorId(INSPECTOR_ID)
+            .setErrorMessage("error")
+            .build()
+        )
         .build()
     )
 
     try {
-      assertThat(latch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
-    }
-    catch (e: InterruptedException) {
+      assertThat(latch.await(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isEqualTo(true)
+    } catch (e: InterruptedException) {
       e.printStackTrace()
       fail("Test interrupted")
     }
@@ -199,11 +176,10 @@ class AppInspectorConnectionTest {
 
     // connection should be closed
     try {
-      connection.disposeInspector().get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
-    }
-    catch (e: ExecutionException) {
+      connection.disposeInspector().get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+    } catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(RuntimeException::class.java)
-      assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_NAME has crashed.")
+      assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_ID has crashed.")
     }
   }
 
@@ -215,7 +191,7 @@ class AppInspectorConnectionTest {
         latch.countDown()
       }
     }
-    val connection = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_NAME, eventListener = eventListener)
+    val connection = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID, eventListener = eventListener)
 
     appInspectionRule.addEvent(
       Event.newBuilder()
@@ -226,20 +202,18 @@ class AppInspectorConnectionTest {
     )
 
     try {
-      assertThat(latch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
-    }
-    catch (e: InterruptedException) {
+      assertThat(latch.await(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isEqualTo(true)
+    } catch (e: InterruptedException) {
       e.printStackTrace()
       fail("Test interrupted")
     }
 
     // connection should be closed
     try {
-      connection.disposeInspector().get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
-    }
-    catch (e: ExecutionException) {
+      connection.disposeInspector().get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+    } catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(RuntimeException::class.java)
-      assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_NAME was disposed, because app process terminated.")
+      assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_ID was disposed, because app process terminated.")
     }
   }
 
@@ -252,7 +226,7 @@ class AppInspectorConnectionTest {
         latch.countDown()
       }
     }
-    val connection = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_NAME, eventListener = eventListener)
+    val connection = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID, eventListener = eventListener)
 
     appInspectionRule.addEvent(
       Event.newBuilder()
@@ -263,21 +237,18 @@ class AppInspectorConnectionTest {
     )
 
     try {
-      assertThat(latch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
-    }
-    catch (e: InterruptedException) {
+      assertThat(latch.await(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isEqualTo(true)
+    } catch (e: InterruptedException) {
       e.printStackTrace()
       fail("Test interrupted")
     }
 
     // connection should be closed
     try {
-      connection.sendRawCommand("Data".toByteArray()).get(
-        TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
-    }
-    catch (e: ExecutionException) {
+      connection.sendRawCommand("Data".toByteArray()).get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+    } catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(IllegalStateException::class.java)
-      assertThat(e.cause!!.message).isEqualTo("Failed to send a command because the $INSPECTOR_NAME connection is already closed.")
+      assertThat(e.cause!!.message).isEqualTo("Failed to send a command because the $INSPECTOR_ID connection is already closed.")
     }
   }
 
@@ -291,62 +262,54 @@ class AppInspectorConnectionTest {
       }
     }
     val connection = appInspectionRule.launchInspectorConnection(
-      inspectorId = INSPECTOR_NAME,
+      inspectorId = INSPECTOR_ID,
       commandHandler = object : CommandHandler(timer) {
         override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
           // do nothing
         }
       },
-      eventListener = eventListener)
+      eventListener = eventListener
+    )
 
     val disposeFuture = connection.disposeInspector()
     val commandFuture = connection.sendRawCommand("Blah".toByteArray())
 
     appInspectionRule.addAppInspectionEvent(
       AppInspectionEvent.newBuilder()
-        .setCrashEvent(CrashEvent.newBuilder()
-                         .setInspectorId(INSPECTOR_NAME)
-                         .setErrorMessage("error")
-                         .build())
+        .setCrashEvent(
+          CrashEvent.newBuilder()
+            .setInspectorId(INSPECTOR_ID)
+            .setErrorMessage("error")
+            .build()
+        )
         .build()
     )
 
     try {
-      assertThat(latch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
-    }
-    catch (e: InterruptedException) {
+      assertThat(latch.await(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isEqualTo(true)
+    } catch (e: InterruptedException) {
       e.printStackTrace()
       fail("Test interrupted")
     }
     assertThat(eventListener.crashEvents).containsExactly("error")
 
     try {
-      disposeFuture.get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
-    }
-    catch (e: ExecutionException) {
+      disposeFuture.get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+    } catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(RuntimeException::class.java)
-      assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_NAME has crashed.")
+      assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_ID has crashed.")
     }
 
     try {
-      commandFuture.get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
-    }
-    catch (e: ExecutionException) {
+      commandFuture.get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+    } catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(RuntimeException::class.java)
-      assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_NAME has crashed.")
+      assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_ID has crashed.")
     }
   }
 
   @Test
   fun receiveEventsInChronologicalOrder() {
-    fun createRawEvent(data: ByteString, ts: Long) =
-      Event.newBuilder()
-        .setKind(APP_INSPECTION)
-        .setTimestamp(ts)
-        .setIsEnded(true)
-        .setAppInspectionEvent(createRawAppInspectionEvent(data.toByteArray(), name = "test.inspector"))
-        .build()
-
     val latch = CountDownLatch(2)
     val listener = object : AppInspectionServiceRule.TestInspectorEventListener() {
       override fun onRawEvent(eventData: ByteArray) {
@@ -359,14 +322,13 @@ class AppInspectorConnectionTest {
     appInspectionRule.addEvent(createRawEvent(ByteString.copyFromUtf8("first"), 2))
 
     appInspectionRule.launchInspectorConnection(
-      inspectorId = "test.inspector",
+      inspectorId = INSPECTOR_ID,
       eventListener = listener
     )
 
     try {
-      assertThat(latch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
-    }
-    catch (e: InterruptedException) {
+      assertThat(latch.await(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isEqualTo(true)
+    } catch (e: InterruptedException) {
       e.printStackTrace()
       fail("Test interrupted")
     }
@@ -392,15 +354,14 @@ class AppInspectorConnectionTest {
 
     timer.currentTimeNs = 5
     appInspectionRule.launchInspectorConnection(
-      inspectorId = "test.inspector",
+      inspectorId = INSPECTOR_ID,
       eventListener = listener
     )
     appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(freshEventData))
 
     try {
-      assertThat(latch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
-    }
-    catch (e: InterruptedException) {
+      assertThat(latch.await(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isEqualTo(true)
+    } catch (e: InterruptedException) {
       e.printStackTrace()
       fail("Test interrupted")
     }

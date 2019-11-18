@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.app.inspection.AppInspection
+import com.android.tools.idea.appinspection.api.AppInspectionTestUtils.createSuccessfulServiceResponse
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
@@ -32,48 +32,29 @@ import org.junit.rules.RuleChain
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-/**
- * The amount of time tests will wait for async calls and events to trigger. It is used primarily in asserting latches and futures.
- *
- * These calls normally take way less than the allotted time below, on the order of tens of milliseconds. The timeout we chose is extremely
- * generous and was only chosen to fail tests faster if something goes wrong. If you hit this timeout, please don't just increase it but
- * investigate the root cause.
- */
-private const val TIMEOUT_MILLISECONDS: Long = 10000
-
 
 class AppInspectionPipelineConnectionTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
   private val gRpcServerRule = FakeGrpcServer.createFakeGrpcServer("InspectorPipelineConnectionTest", transportService, transportService)!!
-  private val appInspectionRule = AppInspectionServiceRule(timer,
-                                                                                                                       transportService,
-                                                                                                                       gRpcServerRule)
+  private val appInspectionRule = AppInspectionServiceRule(timer, transportService, gRpcServerRule)
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(gRpcServerRule).around(appInspectionRule)!!
-
-  private fun createEventWithCommandId(commandId: Int): AppInspection.AppInspectionEvent {
-    return AppInspection.AppInspectionEvent.newBuilder()
-      .setCommandId(commandId)
-      .setResponse(AppInspection.ServiceResponse.newBuilder()
-                     .setStatus(AppInspection.ServiceResponse.Status.SUCCESS)
-                     .build())
-      .build()
-  }
 
   @Test
   fun launchInspector() {
     val clientFuture = Futures.transformAsync(
       appInspectionRule.launchPipelineConnection(),
       AsyncFunction<AppInspectionPipelineConnection, TestInspectorClient> { pipelineConnection ->
-        pipelineConnection!!.launchInspector("test.inspector", TEST_JAR) { commandMessenger ->
+        pipelineConnection!!.launchInspector(INSPECTOR_ID, TEST_JAR) { commandMessenger ->
           assertThat(appInspectionRule.jarCopier.copiedJar).isEqualTo(TEST_JAR)
           TestInspectorClient(commandMessenger)
         }
-      }, appInspectionRule.executorService)
-    assertThat(clientFuture.get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isNotNull()
+      }, appInspectionRule.executorService
+    )
+    assertThat(clientFuture.get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isNotNull()
   }
 
   @Test
@@ -91,19 +72,18 @@ class AppInspectionPipelineConnectionTest {
       })
 
     val inspectorConnection =
-      connection.launchInspector("test.inspector", TEST_JAR) { commandMessenger ->
+      connection.launchInspector(INSPECTOR_ID, TEST_JAR) { commandMessenger ->
         TestInspectorClient(commandMessenger)
       }
 
     try {
-      assertThat(latch.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isEqualTo(true)
-    }
-    catch (e: InterruptedException) {
+      assertThat(latch.await(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isEqualTo(true)
+    } catch (e: InterruptedException) {
       e.printStackTrace()
       TestCase.fail("Test interrupted")
     }
 
-    val incorrectEvent = createEventWithCommandId(12345)
+    val incorrectEvent = createSuccessfulServiceResponse(12345)
     appInspectionRule.addAppInspectionEvent(incorrectEvent)
 
     appInspectionRule.poller.poll()
@@ -111,10 +91,13 @@ class AppInspectionPipelineConnectionTest {
     assertThat(appInspectionRule.executorService.activeCount).isEqualTo(0)
     assertThat(inspectorConnection.isDone).isFalse()
 
-    appInspectionRule.addAppInspectionEvent(createEventWithCommandId(
-      AppInspectionTransport.lastGeneratedCommandId()))
+    appInspectionRule.addAppInspectionEvent(
+      createSuccessfulServiceResponse(
+        AppInspectionTransport.lastGeneratedCommandId()
+      )
+    )
 
-    assertThat(inspectorConnection.get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)).isNotNull()
+    assertThat(inspectorConnection.get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isNotNull()
   }
 }
 

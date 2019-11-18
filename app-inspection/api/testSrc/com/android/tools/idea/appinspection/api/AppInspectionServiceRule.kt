@@ -35,8 +35,6 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
-private const val INSPECTOR_ID = "test.inspector"
-
 val TEST_JAR = DeployableFile.Builder("test.jar").build()
 
 /**
