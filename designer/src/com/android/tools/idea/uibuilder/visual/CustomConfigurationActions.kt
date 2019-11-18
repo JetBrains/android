@@ -29,7 +29,7 @@ import org.jetbrains.android.facet.AndroidFacet
 class AddCustomConfigurationAction(private val file: PsiFile,
                                    private val facet: AndroidFacet,
                                    private val provider: CustomModelsProvider)
-  : AnAction("Add Configuration", "Adding a custom configuration", StudioIcons.Common.ADD) {
+  : AnAction("Add Configuration", "Adding a custom configuration", StudioIcons.NavEditor.Toolbar.ADD_DESTINATION) {
 
   override fun actionPerformed(e: AnActionEvent) {
     val dialog = LightCalloutPopup()
@@ -43,21 +43,5 @@ class AddCustomConfigurationAction(private val file: PsiFile,
     location.translate(owner.width / 2, owner.height)
 
     dialog.show(content, null, location)
-  }
-}
-
-/**
- * Remove the last custom configuration.
- * Note that the default configuration is not in [CustomModelsProvider.customConfigurations] so it never be removed.
- * TODO: Use remove action in context menu of focused SceneView instead.
- */
-class RemoveCustomConfigurationAction(private val customModelsProvider: CustomModelsProvider)
-  : AnAction("Remove Configuration", "Remove a custom configuration", StudioIcons.Common.REMOVE) {
-
-  override fun actionPerformed(e: AnActionEvent) {
-    val customConfigs = customModelsProvider.customConfigurations
-    if (customConfigs.isNotEmpty()) {
-      customModelsProvider.removeConfiguration(customConfigs.last())
-    }
   }
 }

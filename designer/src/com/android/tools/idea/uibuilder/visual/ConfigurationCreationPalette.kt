@@ -108,18 +108,7 @@ class ConfigurationCreationPalette(private val file: PsiFile,
       newConfig.nightMode = nightMode
       newConfig.uiMode = uiMode
 
-      val modelName = configurationName ?: let {
-        val builder = StringBuilder("Custom:")
-        builder.append(" ${device.displayName}")
-        builder.append(", ${orientation.name}")
-        builder.append(if (apiTarget == null) ", No API Level" else ", API ${apiTarget.version.apiLevel}")
-        builder.append(", ${LocaleMenuAction.getLocaleLabel(locale, false)}")
-        builder.append(", $theme")
-        builder.append(", ${uiMode.longDisplayValue}")
-        builder.append(", ${nightMode.longDisplayValue}")
-        builder.toString()
-      }
-
+      val modelName = configurationName ?: "Custom: " + newConfig.toDisplayName()
       createdCallback.invoke(modelName, newConfig)
     }
   }
@@ -382,3 +371,15 @@ private val DeviceGroup?.orderOfOption: Int
     DeviceGroup.OTHER -> 7
     else -> 8
   }
+
+fun Configuration.toDisplayName(): String {
+  val builder = StringBuilder()
+  device?.let { builder.append(it.displayName) }
+  deviceState?.let { builder.append(", ${it.orientation.name}") }
+  target?.let { builder.append(", API ${it.version.apiLevel}") }
+  builder.append(", ${LocaleMenuAction.getLocaleLabel(locale, false)}")
+  builder.append(", $theme")
+  builder.append(", ${uiMode.longDisplayValue}")
+  builder.append(", ${nightMode.longDisplayValue}")
+  return builder.toString()
+}

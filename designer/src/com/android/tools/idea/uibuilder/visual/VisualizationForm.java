@@ -122,7 +122,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   private FileEditor myEditor;
 
   @NotNull private ConfigurationSet myCurrentConfigurationSet = ConfigurationSet.PIXEL_DEVICES;
-  private VisualizationModelsProvider myCurrentModelsProvider = myCurrentConfigurationSet.getModelsProviderCreator().invoke(this);
+  @NotNull private VisualizationModelsProvider myCurrentModelsProvider = myCurrentConfigurationSet.getModelsProviderCreator().invoke(this);
 
   /**
    * {@link CompletableFuture} of the next model load. This is kept so the load can be cancelled.
@@ -134,8 +134,9 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
     mySurface = NlDesignSurface.builder(myProject, myProject)
       .showModelNames()
       .setIsPreview(false)
-      .setEditable(false)
+      .setEditable(true)
       .setActionManagerProvider((surface) -> new VisualizationActionManager((NlDesignSurface) surface))
+      .setInteractionHandlerProvider((surface) -> new VisualizationInteractionHandler(surface, () -> myCurrentModelsProvider ))
       .setLayoutManager(new GridSurfaceLayoutManager(DEFAULT_SCREEN_OFFSET_X,
                                                      DEFAULT_SCREEN_OFFSET_Y,
                                                      HORIZONTAL_SCREEN_DELTA,

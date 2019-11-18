@@ -37,6 +37,7 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.common.surface.SceneView;
@@ -103,6 +104,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
      */
     private Function<DesignSurface, ActionManager<? extends DesignSurface>> myActionManagerProvider =
       NlDesignSurface::defaultActionManagerProvider;
+
+    /**
+     * Factory to create an {@link InteractionHandler} for the {@link DesignSurface}.
+     */
+    private Function<DesignSurface, InteractionHandler> myInteractionHandlerProvider = NlDesignSurface::defaultInteractionHandlerProvider;
 
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
       myProject = project;
@@ -175,6 +181,18 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     /**
+     * Allows customizing the {@link InteractionHandler}. Use this method if you need to apply different interaction behavior to the
+     * {@link DesignSurface}.
+     *
+     * @see NlDesignSurface#defaultInteractionHandlerProvider(DesignSurface)
+     */
+    @NotNull
+    public Builder setInteractionHandlerProvider(@NotNull Function<DesignSurface, InteractionHandler> interactionHandlerProvider) {
+      myInteractionHandlerProvider = interactionHandlerProvider;
+      return this;
+    }
+
+    /**
      * When the surface is clicked, it can delegate navigation related task to the given handler.
      * @param navigationHandler handles the navigation when the surface is clicked.
      */
@@ -195,6 +213,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  mySceneManagerProvider,
                                  layoutManager,
                                  myActionManagerProvider,
+                                 myInteractionHandlerProvider,
                                  myNavigationHandler);
     }
   }
@@ -250,8 +269,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
                           @NotNull SurfaceLayoutManager layoutManager,
                           @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
+                          @NotNull Function<DesignSurface, InteractionHandler> interactionHandlerProvider,
                           @Nullable NavigationHandler navigationHandler) {
-    super(project, parentDisposable, actionManagerProvider, NlInteractionHandler::new, isEditable);
+    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;
@@ -284,6 +304,14 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   public static ActionManager<? extends NlDesignSurface> defaultActionManagerProvider(@NotNull DesignSurface surface) {
     return new NlActionManager((NlDesignSurface) surface);
+  }
+
+  /**
+   * Default {@link NlInteractionHandler} provider.
+   */
+  @NotNull
+  public static NlInteractionHandler defaultInteractionHandlerProvider(@NotNull DesignSurface surface) {
+    return new NlInteractionHandler(surface);
   }
 
   @NotNull

@@ -52,8 +52,7 @@ class CustomModelsProvider(private val configurationSetListener: ConfigurationSe
 
   override fun createActions(file: PsiFile, facet: AndroidFacet): ActionGroup {
     val addAction = AddCustomConfigurationAction(file, facet, this)
-    val removeAction = RemoveCustomConfigurationAction(this)
-    return DefaultActionGroup(addAction, removeAction)
+    return DefaultActionGroup(addAction)
   }
 
   override fun createNlModels(parentDisposable: Disposable, file: PsiFile, facet: AndroidFacet): List<NlModel> {
