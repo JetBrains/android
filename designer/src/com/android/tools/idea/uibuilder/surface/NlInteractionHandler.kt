@@ -22,7 +22,7 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
-import com.android.tools.idea.common.surface.InteractionProviderBase
+import com.android.tools.idea.common.surface.InteractionHandlerBase
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.uibuilder.graphics.NlConstants
@@ -31,7 +31,7 @@ import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
 import java.awt.Rectangle
 
-class NlInteractionProvider(private val surface: DesignSurface): InteractionProviderBase(surface) {
+class NlInteractionHandler(private val surface: DesignSurface): InteractionHandlerBase(surface) {
 
   override fun createInteractionOnClick(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction? {
     val view = surface.getSceneView(mouseX, mouseY) ?: return null

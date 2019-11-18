@@ -160,7 +160,7 @@ public class NavDesignSurface extends DesignSurface {
    * {@code editorPanel} should only be null in tests
    */
   public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
-    super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), NavInteractionProvider::new, true);
+    super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), NavInteractionHandler::new, true);
     setBackground(JBColor.white);
 
     // TODO: add nav-specific issues

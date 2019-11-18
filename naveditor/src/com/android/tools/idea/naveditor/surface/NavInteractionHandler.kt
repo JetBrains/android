@@ -22,10 +22,10 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
-import com.android.tools.idea.common.surface.InteractionProviderBase
+import com.android.tools.idea.common.surface.InteractionHandlerBase
 import com.android.tools.idea.uibuilder.surface.MarqueeInteraction
 
-class NavInteractionProvider(private val surface: DesignSurface): InteractionProviderBase(surface) {
+class NavInteractionHandler(private val surface: DesignSurface): InteractionHandlerBase(surface) {
 
   override fun createInteractionOnClick(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction? {
     val sceneView = surface.getSceneView(mouseX, mouseY) ?: return null

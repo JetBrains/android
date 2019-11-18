@@ -38,7 +38,10 @@ import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 
-interface InteractionProvider {
+/**
+ * Handles the interaction events of [DesignSurface]. The events is dispatched from [InteractionManager].
+ */
+interface InteractionHandler {
   fun createInteractionOnClick(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction?
 
   fun createInteractionOnDrag(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction?
@@ -75,7 +78,7 @@ interface InteractionProvider {
                                  @JdkConstants.InputEventMask modifiersEx: Int): Cursor?
 }
 
-abstract class InteractionProviderBase(private val surface: DesignSurface) : InteractionProvider {
+abstract class InteractionHandlerBase(private val surface: DesignSurface) : InteractionHandler {
   private var cursorWhenNoInteraction: Cursor? = null
 
   override fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction? {
