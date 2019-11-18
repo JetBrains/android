@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.rendering.RenderService
+import com.intellij.openapi.project.Project
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
 
@@ -27,3 +31,11 @@ internal fun UFile.method(name: String): UMethod? =
   declaredMethods()
     .filter { it.name == name }
     .singleOrNull()
+
+// Disable security manager during tests (for bazel)
+internal class NoSecurityManagerRenderService(project: Project) : RenderService(project) {
+  override fun taskBuilder(facet: AndroidFacet, configuration: Configuration): RenderService.RenderTaskBuilder {
+    return super.taskBuilder(facet, configuration)
+      .disableSecurityManager()
+  }
+}
