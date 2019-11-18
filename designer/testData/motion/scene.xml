@@ -98,8 +98,8 @@
   </ConstraintSet>
 
   <Transition
-      motion:constraintSetEnd="@+id/end"
-      motion:constraintSetStart="@+id/start"
+      motion:constraintSetEnd="@id/end"
+      motion:constraintSetStart="@id/start"
       motion:duration="2000"
       motion:motionInterpolator="linear">
 

@@ -251,8 +251,8 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
     List<? extends NlComponent> components = selection.getComponents();
     NelePropertyType type = TypeResolver.INSTANCE.resolveType(name, attr);
     String libraryName = StringUtil.notNullize(attr != null ? attr.getLibraryName() : null);
-    if (namespace == ANDROID_URI && name == ATTR_ID) {
-      return new NeleIdPropertyItem(model, attr, "", components, selection, subTag);
+    if (namespace.equals(ANDROID_URI) && name.equals(ATTR_ID)) {
+      return new MotionIdPropertyItem(model, attr, "", components, selection, subTag);
     }
     if (attr != null && attr.getFormats().contains(AttributeFormat.FLAGS) && attr.getValues().length == 0) {
       return new NeleFlagsPropertyItem(namespace, name, type, attr, "", libraryName, model, components, selection, subTag);

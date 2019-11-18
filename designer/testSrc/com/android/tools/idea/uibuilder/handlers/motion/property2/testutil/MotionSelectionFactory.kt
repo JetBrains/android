@@ -28,7 +28,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionSelection
 import com.intellij.psi.xml.XmlFile
 
-class MotionSelectionFactory(val nlModel: NlModel, sceneFile: XmlFile) {
+class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
   private val motionScene = MotionSceneTag(sceneFile.rootTag, null)
   private val meModel = MeModel(motionScene, convertToNlComponentTag(nlModel.components.single()), null, null)
 
