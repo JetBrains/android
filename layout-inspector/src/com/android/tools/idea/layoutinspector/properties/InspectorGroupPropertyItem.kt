@@ -37,12 +37,12 @@ class InspectorGroupPropertyItem(
   type: LayoutInspectorProto.Property.Type,
   value: String?,
   val classLocation: SourceLocation?,
-  isDeclared: Boolean,
+  group: PropertySection,
   source: ResourceReference?,
   view: ViewNode,
   resourceLookup: ResourceLookup?,
   stack: Map<ResourceReference, String?>
-): InspectorPropertyItem(namespace, name, name, type, value, isDeclared, source, view, resourceLookup), PTableGroupItem {
+): InspectorPropertyItem(namespace, name, name, type, value, group, source, view, resourceLookup), PTableGroupItem {
   override val children: List<InspectorPropertyItem> =
     stack.map { (reference, value) -> ResolutionStackItem(this, reference, value) }
 }

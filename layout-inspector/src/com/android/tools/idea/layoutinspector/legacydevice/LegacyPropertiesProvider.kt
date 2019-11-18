@@ -23,6 +23,7 @@ import com.android.resources.ResourceUrl
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
+import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 
@@ -67,8 +68,8 @@ class LegacyPropertiesProvider : PropertiesProvider {
         val index = data.indexOf('=', start)
         val fullName = data.substring(start, index)
         val colonIndex = fullName.indexOf(':')
-        // TODO: Use the group for grouping all layout attributes together
-        // val group = fullName.substring(0, Integer.max(0, colonIndex))
+        val group = fullName.substring(0, Integer.max(0, colonIndex))
+        val section = if (group == "layout") PropertySection.LAYOUT else PropertySection.DEFAULT
         val rawName = fullName.substring(colonIndex + 1)
         val index2 = data.indexOf(',', index + 1)
         val length = Integer.parseInt(data.substring(index + 1, index2))
@@ -80,7 +81,7 @@ class LegacyPropertiesProvider : PropertiesProvider {
           val name = definition.name
           val type = definition.type
           val value = definition.value_mapper(rawValue)
-          val property = InspectorPropertyItem(SdkConstants.ANDROID_URI, name, name, type, value, false, null, view, null)
+          val property = InspectorPropertyItem(SdkConstants.ANDROID_URI, name, name, type, value, section, null, view, null)
           table.put(property.namespace, property.name, property)
         }
 

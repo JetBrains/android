@@ -50,8 +50,8 @@ open class InspectorPropertyItem(
   /** The value of the attribute when the snapshot was taken */
   override var value: String?,
 
-  /** If the attribute value was specified in a layout file i.e. by the user */
-  val isDeclared: Boolean,
+  /** Which group this attribute belongs to */
+  val group: PropertySection,
 
   /** A reference to the resource where the value was set e.g. "@layout/my_form.xml" */
   val source: ResourceReference?,

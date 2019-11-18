@@ -15,26 +15,11 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
-import com.android.ide.common.rendering.api.ResourceReference
-
 /**
- * Specifies an overriden property value.
- *
- * These value are usually found in styles where the value
- * has been overridden by another style or a direct attribute
- * assignment of the xml tag.
+ * The attributes are grouped in sections in the properties panel.
  */
-class ResolutionStackItem(
-  val property: InspectorGroupPropertyItem,
-  reference: ResourceReference,
-  value: String?
-) : InspectorPropertyItem(
-  property.namespace,
-  property.name,
-  "",               // The name of the PTableItem is empty, such that is isn't repeated in the properties table.
-  property.type,
-  value,
-  property.group,
-  reference,
-  property.view,
-  property.resourceLookup)
+enum class PropertySection {
+  DEFAULT,    // Use this value if an item is not in any of the groups mentioned below
+  DECLARED,   // This attribute was specified by the user in a layout file in the application
+  LAYOUT,     // This attribute is a layout attribute i.e. defined by the parent view
+}
