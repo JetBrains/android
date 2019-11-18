@@ -27,6 +27,7 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.application.ApplicationManager;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -44,8 +45,7 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyn
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link MissingAndroidPluginErrorHandler}.
@@ -165,6 +165,7 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
     loadProject(SIMPLE_APPLICATION);
     Project spyProject = spy(getProject());
     when(spyProject.isInitialized()).thenReturn(false);
+    doReturn(getProject().getComponent(ModuleManager.class)).when(spyProject).getComponent(ModuleManager.class);
 
     // Verify generated hyperlinks
     List<NotificationHyperlink> quickFixes = new MissingAndroidPluginErrorHandler().getQuickFixHyperlinks(spyProject, "Test Error");

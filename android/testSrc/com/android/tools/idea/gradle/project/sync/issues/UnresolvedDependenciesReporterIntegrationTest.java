@@ -20,9 +20,8 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
@@ -252,6 +251,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     Project spyProject = spy(spyAppModule.getProject());
     when(spyAppModule.getProject()).thenReturn(spyProject);
     when(spyProject.isInitialized()).thenReturn(false);
+    doReturn(appModule.getProject().getComponent(ModuleManager.class)).when(spyProject).getComponent(ModuleManager.class);
 
     when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");
 
