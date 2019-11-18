@@ -41,7 +41,7 @@ private val LARGE_MAXIMUM_CACHE_WEIGHT_BYTES = (100 * 1024.0.pow(2)).toLong() //
  * @see CacheBuilder.softValues
  */
 class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
-                                     private val objectToImage: Cache<DesignAsset, BufferedImage>
+                                     private val objectToImage: Cache<String, BufferedImage>
 ) : Disposable {
   companion object {
     private val largeObjectToImage by lazy { createObjectToImageCache(5, LARGE_MAXIMUM_CACHE_WEIGHT_BYTES) }
@@ -98,7 +98,7 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
   }
 
   fun clear(designAsset: DesignAsset) {
-    objectToImage.invalidate(designAsset)
+    objectToImage.invalidate(designAsset.file.path)
   }
 
   fun clear() {
@@ -123,7 +123,7 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
                     executor: Executor = EdtExecutorService.getInstance(),
                     computationFutureProvider: (() -> CompletableFuture<out BufferedImage?>))
     : BufferedImage {
-    val cachedImage = objectToImage.getIfPresent(key)
+    val cachedImage = objectToImage.getIfPresent(key.file.path)
     if ((cachedImage == null || forceComputation) && !pendingFutures.containsKey(key)) {
       val executeImmediately = cachedImage == null // If we don't have any image, no need to wait.
       runOrQueue(key, executeImmediately) {
@@ -144,7 +144,7 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
           pendingFutures.remove(key)
         }
         if (image != null) {
-          objectToImage.put(key, image)
+          objectToImage.put(key.file.path, image)
           executor.execute(onImageCached)
         }
       }
@@ -156,10 +156,10 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
   }
 }
 
-private fun createObjectToImageCache(duration: Long, size: Long): Cache<DesignAsset, BufferedImage> =
+private fun createObjectToImageCache(duration: Long, size: Long): Cache<String, BufferedImage> =
   CacheBuilder.newBuilder()
     .expireAfterAccess(duration, TimeUnit.MINUTES)
     .softValues()
-    .weigher<DesignAsset, BufferedImage> { _, image -> image.raster.dataBuffer.size * Integer.BYTES }
+    .weigher<String, BufferedImage> { _, image -> image.raster.dataBuffer.size * Integer.BYTES }
     .maximumWeight(size)
-    .build<DesignAsset, BufferedImage>()
+    .build<String, BufferedImage>()
