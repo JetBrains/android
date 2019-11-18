@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2
 
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START
 import com.android.tools.idea.uibuilder.handlers.motion.property2.testutil.MotionAttributeRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor
 import com.android.tools.property.panel.api.PropertiesModelListener
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
@@ -69,5 +76,22 @@ class MotionLayoutAttributesModelTest {
     motionRule.selectConstraint("start", "widget")
     UIUtil.dispatchAllInvocationEvents()
     verify(listener).propertyValuesChanged(model)
+  }
+
+  @Test
+  fun testRenameOfConstraintId() {
+    val model = motionRule.attributesModel
+    motionRule.selectConstraintSet("start")
+    val property = model.allProperties[MotionSceneAttrs.Tags.CONSTRAINTSET]!![ANDROID_URI, ATTR_ID]
+    NeleIdRenameProcessor.dialogProvider = { _, _, _, _ -> NeleIdRenameProcessor.RefactoringChoice.YES }
+    property.value = "different_start"
+    motionRule.update()
+
+    motionRule.selectConstraintSet("different_start")
+    assertThat(model.allProperties[MotionSceneAttrs.Tags.CONSTRAINTSET]!![ANDROID_URI, ATTR_ID].rawValue)
+      .isEqualTo("@+id/different_start")
+    motionRule.selectTransition("different_start", "end")
+    assertThat(model.allProperties[MotionSceneAttrs.Tags.TRANSITION]!![AUTO_URI, ATTR_CONSTRAINTSET_START].rawValue)
+      .isEqualTo("@id/different_start")
   }
 }
