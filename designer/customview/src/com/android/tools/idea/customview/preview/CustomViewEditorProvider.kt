@@ -90,7 +90,7 @@ private const val CUSTOM_VIEW_PREVIEW_ID = "android-custom-view"
 
 private val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
 
-private class CustomViewLightVirtualFile(name: String, content: String) : LightVirtualFile(name, content) {
+internal class CustomViewLightVirtualFile(name: String, content: String) : LightVirtualFile(name, content) {
   override fun getParent() = FAKE_LAYOUT_RES_DIR
 }
 
@@ -111,7 +111,7 @@ private fun getXmlLayout(qualifiedName: String, shrinkWidth: Boolean, shrinkHeig
 
 private fun fqcn2name(fcqn: String) = fcqn.substringAfterLast('.')
 
-private fun PsiClass.extendsView(): Boolean {
+fun PsiClass.extendsView(): Boolean {
   return this.qualifiedName == "android.view.View" || this.extendsListTypes.any {
     it.resolve()?.extendsView() ?: false
   }
@@ -223,7 +223,17 @@ class CustomViewEditorProvider : FileEditorProvider, DumbAware {
   override fun getPolicy() = FileEditorPolicy.HIDE_DEFAULT_EDITOR
 }
 
+internal interface CustomViewPreviewManager {
+  val states: List<String>
+  var currentState: String
+  var shrinkHeight: Boolean
+  var shrinkWidth: Boolean
+}
 
+internal fun FileEditor.getCustomViewPreviewManager(): CustomViewPreviewManager? = when(this) {
+  is CustomViewPreview -> this
+  else -> null
+}
 /**
  * Toolbar that creates a dropdown button allowing to select between the custom views available from the current file and two toggle buttons
  * for switching vertical and horizontal wrap content options.
@@ -232,10 +242,10 @@ class CustomViewEditorProvider : FileEditorProvider, DumbAware {
 private class CustomViewPreviewToolbar(private val surface: DesignSurface) :
   ToolbarActionGroups(surface) {
 
-  private fun findPreviewEditors() = FileEditorManager.getInstance(surface.project)?.let { fileEditorManager ->
+  private fun findPreviewEditors(): List<CustomViewPreviewManager> = FileEditorManager.getInstance(surface.project)?.let { fileEditorManager ->
     surface.models.flatMap { fileEditorManager.getAllEditors(it.virtualFile).asIterable() }
-      .filterIsInstance<TextEditorWithCustomViewPreview>()
-      .map { it.preview }
+      .filterIsInstance<SeamlessTextEditorWithPreview<out FileEditor>>()
+      .mapNotNull { it.preview.getCustomViewPreviewManager() }
       .distinct()
   } ?: listOf()
 
@@ -292,7 +302,7 @@ private class CustomViewPreviewToolbar(private val surface: DesignSurface) :
  * A preview for a file containing custom android view classes. Allows selecting between the classes if multiple custom view classes are
  * present in the file.
  */
-private class CustomViewPreview(private val psiFile: PsiFile, persistenceProvider: (Project) -> PropertiesComponent) : Disposable, DesignFileEditor(psiFile.virtualFile!!) {
+private class CustomViewPreview(private val psiFile: PsiFile, persistenceProvider: (Project) -> PropertiesComponent) : Disposable, CustomViewPreviewManager, DesignFileEditor(psiFile.virtualFile!!) {
   private val project = psiFile.project
   private val virtualFile = psiFile.virtualFile!!
   private val persistenceManager = persistenceProvider(project)
@@ -317,12 +327,12 @@ private class CustomViewPreview(private val psiFile: PsiFile, persistenceProvide
     }
 
   // We use a list to preserve the order
-  val states: List<String>
+  override val states: List<String>
     get() {
       return classes.map { fqcn2name(it) }
     }
 
-  var currentState: String = persistenceManager.getValue(currentStatePropertyName, "")
+  override var currentState: String = persistenceManager.getValue(currentStatePropertyName, "")
     set(value) {
       if (field != value) {
         field = value
@@ -331,7 +341,7 @@ private class CustomViewPreview(private val psiFile: PsiFile, persistenceProvide
       }
     }
 
-  var shrinkHeight = persistenceManager.getValue(wrapContentHeightPropertyNameForClass(currentState), "false").toBoolean()
+  override var shrinkHeight = persistenceManager.getValue(wrapContentHeightPropertyNameForClass(currentState), "false").toBoolean()
     set(value) {
       if (field != value) {
         field = value
@@ -340,7 +350,7 @@ private class CustomViewPreview(private val psiFile: PsiFile, persistenceProvide
       }
     }
 
-  var shrinkWidth = persistenceManager.getValue(wrapContentWidthPropertyNameForClass(currentState), "false").toBoolean()
+  override var shrinkWidth = persistenceManager.getValue(wrapContentWidthPropertyNameForClass(currentState), "false").toBoolean()
     set(value) {
       if (field != value) {
         field = value
