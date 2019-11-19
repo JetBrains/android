@@ -22,7 +22,9 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.actionSystem.ShortcutSet
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.DumbService
@@ -39,6 +41,29 @@ import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
 import kotlin.math.max
+
+/** Preview element name */
+internal const val PREVIEW_NAME = "Preview"
+
+/** Package containing the preview definitions */
+private const val PREVIEW_PACKAGE = "androidx.ui.tooling.preview"
+
+/** Only composables with this annotation will be rendered to the surface */
+internal const val PREVIEW_ANNOTATION_FQN = "$PREVIEW_PACKAGE.$PREVIEW_NAME"
+
+internal const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.Composable"
+
+/** View included in the runtime library that will wrap the @Composable element so it gets rendered by layoutlib */
+internal const val COMPOSE_VIEW_ADAPTER = "$PREVIEW_PACKAGE.ComposeViewAdapter"
+
+/** [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call */
+private const val COMPOSABLE_NAME_ATTR = "tools:composableName"
+
+/** Action ID of the IDE declared force refresh action (see PlatformActions.xml). This allows us to re-use the shortcut of the declared action. */
+private const val FORCE_REFRESH_ACTION_ID = "ForceRefresh"
+
+/** [ShortcutSet] that triggers a build and refreshes the preview */
+internal fun getBuildAndRefreshShortcut(): ShortcutSet = KeymapUtil.getActiveKeymapShortcuts(FORCE_REFRESH_ACTION_ID)
 
 const val UNDEFINED_API_LEVEL = -1
 const val UNDEFINED_DIMENSION = -1
