@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.android.splits;
 import static com.android.tools.idea.gradle.dsl.model.android.splits.DensityModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -45,8 +45,7 @@ public class DensityDslElement extends BaseSplitOptionsDslElement {
       Stream.of(new Object[][]{
         {"setAuto", exactly(1), AUTO, SET},
         {"compatibleScreens", atLeast(0), COMPATIBLE_SCREENS, OTHER}
-      })).collect(toImmutableMap(data -> new Pair<>((String)data[0], (Integer)data[1]),
-                                 data -> new Pair<>((String)data[2], (SemanticsDescription)data[3])));
+      })).collect(toModelMap());
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap =
@@ -59,8 +58,7 @@ public class DensityDslElement extends BaseSplitOptionsDslElement {
         {"auto", exactly(1), AUTO, SET},
         {"compatibleScreens", property, COMPATIBLE_SCREENS, VAR},
         {"compatibleScreens", atLeast(0), COMPATIBLE_SCREENS, OTHER},
-      })).collect(toImmutableMap(data -> new Pair<>((String)data[0], (Integer)data[1]),
-                                 data -> new Pair<>((String)data[2], (SemanticsDescription)data[3])));
+      })).collect(toModelMap());
 
   @Override
   @NotNull

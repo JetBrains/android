@@ -33,8 +33,8 @@ import static com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 /**
  * Common base class for {@link ProductFlavorDslElement} and {@link DefaultConfigDslElement}
@@ -78,8 +78,7 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
         {"setVersionName", exactly(1), VERSION_NAME, SET},
         {"wearAppUnbundled", property, WEAR_APP_UNBUNDLED, VAR}
       }))
-      .collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                              data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+      .collect(toModelMap());
 
   @NotNull
   public static final ImmutableMap<Pair<String, Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap =
@@ -126,8 +125,7 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
         {"wearAppUnbundled", property, WEAR_APP_UNBUNDLED, VAR},
         {"wearAppUnbundled", exactly(1), WEAR_APP_UNBUNDLED, SET}
       }))
-      .collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                              data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+      .collect(toModelMap());
 
   @Override
   @NotNull

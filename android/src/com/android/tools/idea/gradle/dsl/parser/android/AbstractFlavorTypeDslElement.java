@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.model.android.FlavorTypeModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
@@ -56,8 +56,7 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     {"useJack", exactly(1), USE_JACK, SET}, // see above
     {"versionNameSuffix", property, VERSION_NAME_SUFFIX, VAR}
   })
-    .collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+    .collect(toModelMap());
 
   @NotNull
   public static final ImmutableMap<Pair<String, Integer>, Pair<String, SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
@@ -83,8 +82,7 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     {"versionNameSuffix", property, VERSION_NAME_SUFFIX, VAR},
     {"versionNameSuffix", exactly(1), VERSION_NAME_SUFFIX, SET}
   })
-    .collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+    .collect(toModelMap());
 
   @Override
   @NotNull

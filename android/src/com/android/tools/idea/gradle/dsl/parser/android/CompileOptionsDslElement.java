@@ -18,11 +18,9 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import static com.android.tools.idea.gradle.dsl.model.android.CompileOptionsModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-import com.android.tools.idea.gradle.dsl.api.android.BaseCompileOptionsModel;
-import com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -45,8 +43,7 @@ public class CompileOptionsDslElement extends BaseCompileOptionsDslElement {
       Stream.of(new Object[][]{
         {"encoding", property, ENCODING, VAR},
         {"incremental", property, INCREMENTAL, VAR}
-      })).collect(toImmutableMap(data -> new Pair<>((String)data[0], (Integer)data[1]),
-                                 data -> new Pair<>((String)data[2], (SemanticsDescription)data[3])));
+      })).collect(toModelMap());
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap =
@@ -59,8 +56,7 @@ public class CompileOptionsDslElement extends BaseCompileOptionsDslElement {
         {"encoding", exactly(1), ENCODING, SET},
         {"incremental", property, INCREMENTAL, VAR},
         {"incremental", exactly(1), INCREMENTAL, SET},
-      })).collect(toImmutableMap(data -> new Pair<>((String)data[0], (Integer)data[1]),
-                                 data -> new Pair<>((String)data[2], (SemanticsDescription)data[3])));
+      })).collect(toModelMap());
 
   @Override
   @NotNull
