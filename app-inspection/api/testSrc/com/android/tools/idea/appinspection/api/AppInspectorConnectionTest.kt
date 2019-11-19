@@ -35,6 +35,7 @@ import junit.framework.TestCase.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.junit.rules.Timeout
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
@@ -49,11 +50,14 @@ class AppInspectorConnectionTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionRule)!!
 
+  @get:Rule
+  val timeoutRule = Timeout(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+
   @Test
   fun disposeInspectorSucceedWithCallback() {
     val connection = appInspectionRule.launchInspectorConnection()
 
-    assertThat(connection.disposeInspector().get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+    assertThat(connection.disposeInspector().get())
       .isEqualTo(
         AppInspection.ServiceResponse.newBuilder()
           .setStatus(SUCCESS)
@@ -67,7 +71,7 @@ class AppInspectorConnectionTest {
       commandHandler = TestInspectorCommandHandler(timer, false, "error")
     )
 
-    assertThat(connection.disposeInspector().get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS))
+    assertThat(connection.disposeInspector().get())
       .isEqualTo(
         AppInspection.ServiceResponse.newBuilder()
           .setStatus(ERROR)
@@ -80,8 +84,7 @@ class AppInspectorConnectionTest {
   fun sendRawCommandSucceedWithCallback() {
     val connection = appInspectionRule.launchInspectorConnection()
 
-    assertThat(connection.sendRawCommand("TestData".toByteArray()).get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS))
-      .isEqualTo("TestData".toByteArray())
+    assertThat(connection.sendRawCommand("TestData".toByteArray()).get()).isEqualTo("TestData".toByteArray())
   }
 
   @Test
@@ -90,8 +93,7 @@ class AppInspectorConnectionTest {
       commandHandler = TestInspectorCommandHandler(timer, false, "error")
     )
 
-    assertThat(connection.sendRawCommand("TestData".toByteArray()).get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS))
-      .isEqualTo("error".toByteArray())
+    assertThat(connection.sendRawCommand("TestData".toByteArray()).get()).isEqualTo("error".toByteArray())
   }
 
 
@@ -108,12 +110,7 @@ class AppInspectorConnectionTest {
 
     appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(byteArrayOf(0x12, 0x15)))
 
-    try {
-      assertThat(latch.await(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isEqualTo(true)
-    } catch (e: InterruptedException) {
-      e.printStackTrace()
-      fail("Test interrupted")
-    }
+    latch.await()
     assertThat(eventListener.rawEvents[0]).isEqualTo(byteArrayOf(0x12, 0x15))
   }
 
@@ -122,8 +119,7 @@ class AppInspectorConnectionTest {
     val eventListener = AppInspectionServiceRule.TestInspectorEventListener()
     val connection = appInspectionRule.launchInspectorConnection(eventListener = eventListener)
 
-    assertThat(connection.sendRawCommand("TestData".toByteArray()).get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS))
-      .isEqualTo("TestData".toByteArray())
+    assertThat(connection.sendRawCommand("TestData".toByteArray()).get()).isEqualTo("TestData".toByteArray())
     assertThat(eventListener.rawEvents).isEmpty()
   }
 
@@ -131,12 +127,12 @@ class AppInspectorConnectionTest {
   fun disposeConnectionClosesConnection() {
     val connection = appInspectionRule.launchInspectorConnection(INSPECTOR_ID)
 
-    assertThat(connection.disposeInspector().get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS))
-      .isEqualTo(AppInspection.ServiceResponse.newBuilder().setStatus((SUCCESS)).build())
+    assertThat(connection.disposeInspector().get()).isEqualTo(AppInspection.ServiceResponse.newBuilder().setStatus((SUCCESS)).build())
 
     // connection should be closed
     try {
-      connection.sendRawCommand("Test".toByteArray()).get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+      connection.sendRawCommand("Test".toByteArray()).get()
+      fail()
     } catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(IllegalStateException::class.java)
       assertThat(e.cause!!.message).isEqualTo("Failed to send a command because the $INSPECTOR_ID connection is already closed.")
@@ -165,18 +161,14 @@ class AppInspectorConnectionTest {
         .build()
     )
 
-    try {
-      assertThat(latch.await(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isEqualTo(true)
-    } catch (e: InterruptedException) {
-      e.printStackTrace()
-      fail("Test interrupted")
-    }
+    latch.await()
     assertThat(eventListener.crashEvents).containsExactly("error")
     assertThat(eventListener.isDisposed).isTrue()
 
     // connection should be closed
     try {
-      connection.disposeInspector().get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+      connection.disposeInspector().get()
+      fail()
     } catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(RuntimeException::class.java)
       assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_ID has crashed.")
@@ -201,16 +193,12 @@ class AppInspectorConnectionTest {
         .build()
     )
 
-    try {
-      assertThat(latch.await(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isEqualTo(true)
-    } catch (e: InterruptedException) {
-      e.printStackTrace()
-      fail("Test interrupted")
-    }
+    latch.await()
 
     // connection should be closed
     try {
-      connection.disposeInspector().get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+      connection.disposeInspector().get()
+      fail()
     } catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(RuntimeException::class.java)
       assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_ID was disposed, because app process terminated.")
@@ -236,16 +224,12 @@ class AppInspectorConnectionTest {
         .build()
     )
 
-    try {
-      assertThat(latch.await(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isEqualTo(true)
-    } catch (e: InterruptedException) {
-      e.printStackTrace()
-      fail("Test interrupted")
-    }
+    latch.await()
 
     // connection should be closed
     try {
-      connection.sendRawCommand("Data".toByteArray()).get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+      connection.sendRawCommand("Data".toByteArray()).get()
+      fail()
     } catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(IllegalStateException::class.java)
       assertThat(e.cause!!.message).isEqualTo("Failed to send a command because the $INSPECTOR_ID connection is already closed.")
@@ -285,23 +269,20 @@ class AppInspectorConnectionTest {
         .build()
     )
 
-    try {
-      assertThat(latch.await(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isEqualTo(true)
-    } catch (e: InterruptedException) {
-      e.printStackTrace()
-      fail("Test interrupted")
-    }
+    latch.await()
     assertThat(eventListener.crashEvents).containsExactly("error")
 
     try {
-      disposeFuture.get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+      disposeFuture.get()
+      fail()
     } catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(RuntimeException::class.java)
       assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_ID has crashed.")
     }
 
     try {
-      commandFuture.get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+      commandFuture.get()
+      fail()
     } catch (e: ExecutionException) {
       assertThat(e.cause).isInstanceOf(RuntimeException::class.java)
       assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_ID has crashed.")
@@ -326,12 +307,7 @@ class AppInspectorConnectionTest {
       eventListener = listener
     )
 
-    try {
-      assertThat(latch.await(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isEqualTo(true)
-    } catch (e: InterruptedException) {
-      e.printStackTrace()
-      fail("Test interrupted")
-    }
+    latch.await()
 
     assertThat(String(listener.rawEvents[0])).isEqualTo("first")
     assertThat(String(listener.rawEvents[1])).isEqualTo("second")
@@ -359,12 +335,7 @@ class AppInspectorConnectionTest {
     )
     appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(freshEventData))
 
-    try {
-      assertThat(latch.await(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isEqualTo(true)
-    } catch (e: InterruptedException) {
-      e.printStackTrace()
-      fail("Test interrupted")
-    }
+    latch.await()
 
     assertThat(listener.rawEvents).hasSize(1)
     assertThat(listener.rawEvents[0]).isEqualTo(freshEventData)

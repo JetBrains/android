@@ -29,6 +29,7 @@ import junit.framework.TestCase
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.junit.rules.Timeout
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -43,6 +44,9 @@ class AppInspectionPipelineConnectionTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(gRpcServerRule).around(appInspectionRule)!!
 
+  @get:Rule
+  val timeoutRule = Timeout(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+
   @Test
   fun launchInspector() {
     val clientFuture = Futures.transformAsync(
@@ -54,7 +58,7 @@ class AppInspectionPipelineConnectionTest {
         }
       }, appInspectionRule.executorService
     )
-    assertThat(clientFuture.get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isNotNull()
+    assertThat(clientFuture.get()).isNotNull()
   }
 
   @Test
@@ -76,12 +80,7 @@ class AppInspectionPipelineConnectionTest {
         TestInspectorClient(commandMessenger)
       }
 
-    try {
-      assertThat(latch.await(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isEqualTo(true)
-    } catch (e: InterruptedException) {
-      e.printStackTrace()
-      TestCase.fail("Test interrupted")
-    }
+    latch.await()
 
     val incorrectEvent = createSuccessfulServiceResponse(12345)
     appInspectionRule.addAppInspectionEvent(incorrectEvent)
@@ -97,7 +96,7 @@ class AppInspectionPipelineConnectionTest {
       )
     )
 
-    assertThat(inspectorConnection.get(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)).isNotNull()
+    assertThat(inspectorConnection.get()).isNotNull()
   }
 }
 
