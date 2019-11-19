@@ -39,6 +39,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -77,6 +78,7 @@ import java.util.function.Predicate;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -965,8 +967,7 @@ public class IdeSdks {
         possiblePath = macPath;
       }
     }
-    JavaSdkVersion expectedVersion = getRunningVersionOrDefault();
-    if (isJdkSameVersion(possiblePath, expectedVersion)) {
+    if (StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.get() || isJdkSameVersion(possiblePath, getRunningVersionOrDefault())) {
       return possiblePath;
     }
     return null;
@@ -997,6 +998,7 @@ public class IdeSdks {
    * @param expectedVersion The expected java version.
    * @return true if the folder is a valid JDK location and it has the given version.
    */
+  @Contract("null, _ -> false")
   public static boolean isJdkSameVersion(@Nullable File jdkLocation, @NotNull JavaSdkVersion expectedVersion) {
     if (jdkLocation == null) {
       return false;

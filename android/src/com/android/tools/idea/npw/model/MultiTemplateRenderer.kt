@@ -18,6 +18,10 @@ package com.android.tools.idea.npw.model
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
+import com.intellij.openapi.application.TransactionGuard
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task.Modal
 import com.intellij.openapi.project.Project
@@ -25,12 +29,12 @@ import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
 import org.jetbrains.android.util.AndroidBundle.message
 
-typealias ProjectRenderRunner = ((Project) -> Unit) -> Unit
+typealias ProjectRenderRunner = (renderRunnable: (project: Project) -> Unit) -> Unit
 /**
  * Sometimes there are several separate classes which want to render templates, in some order, but the whole process should be aborted if
  * any of them fail a validation pass. This class acts as a central way to coordinate such render request.
  */
-class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner, private val projectSyncInvoker: ProjectSyncInvoker) {
+class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
   interface TemplateRendererListener {
     /**
      * Called just before rendering multiple templates. Since rendering typically involves adding quite a lot of files
@@ -117,28 +121,25 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner, priva
       return
     }
     renderRunner { project ->
-      object : Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
-        override fun run(indicator: ProgressIndicator) {
-          multiRenderingStarted(myProject)
+      log.info("Generating sources.")
+      multiRenderingStarted(project)
 
-          // Some models need to access other models data, during doDryRun/render phase. By calling init() in all of them first,
-          // we make sure they are properly initialized when doDryRun/render is called bellow.
-          with(templateRenderers) {
-            forEach(TemplateRenderer::init)
-            if (!all(TemplateRenderer::doDryRun)) return
-            forEach(TemplateRenderer::render)
-          }
-
-          if (myProject.isInitialized) {
-            projectSyncInvoker.syncProject(myProject)
-          }
+      // Some models need to access other models data, during doDryRun/render phase. By calling init() in all of them first,
+      // we make sure they are properly initialized when doDryRun/render is called below.
+      with(templateRenderers) {
+        forEach(TemplateRenderer::init)
+        if (all(TemplateRenderer::doDryRun)) {
+          forEach(TemplateRenderer::render)
         }
+      }
+      log.info("Generate sources completed.")
 
-        override fun onFinished() {
-          multiRenderingFinished(myProject)
-          templateRenderers.forEach(TemplateRenderer::finish)
-        }
-      }.queue()
+      TransactionGuard.getInstance().submitTransactionAndWait {
+        // This code needs to run in EDT.
+        log.info("Finishing generating sources.")
+        multiRenderingFinished(project)
+        templateRenderers.forEach(TemplateRenderer::finish)
+      }
     }
   }
 
@@ -156,4 +157,5 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner, priva
     fun multiRenderingFinished(project: Project) = project.messageBus.syncPublisher(TEMPLATE_RENDERER_TOPIC).multiRenderingFinished()
   }
 }
+private val log = logger<MultiTemplateRenderer>()
 

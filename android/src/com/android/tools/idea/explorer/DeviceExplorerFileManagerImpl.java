@@ -27,6 +27,8 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.application.TransactionGuardImpl;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -92,7 +94,10 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
 
   @NotNull
   @Override
-  public ListenableFuture<Void> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull FileTransferProgress progress) {
+  public ListenableFuture<Void> downloadFileEntry(
+    @NotNull DeviceFileEntry entry,
+    @NotNull Path localPath,
+    @NotNull FileTransferProgress progress) {
     SettableFuture<Void> futureResult = SettableFuture.create();
 
     FileUtils.mkdirs(localPath.getParent().toFile());
@@ -103,9 +108,14 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     myEdtExecutor.addCallback(getVirtualFile, new FutureCallback<VirtualFile>() {
       @Override
       public void onSuccess(VirtualFile virtualFile) {
-        ApplicationManager.getApplication().runWriteAction(() -> {
-          deleteVirtualFile(futureResult, virtualFile);
-          downloadFile(futureResult, entry, localPath, progress);
+        TransactionGuard.submitTransaction(myProject, () -> {
+          // This assertions prevent regressions for b/141649841.
+          // We need to add this assertion because in tests the deletion of a file doesn't trigger some PSI events that call the assertion.
+          ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
+          ApplicationManager.getApplication().runWriteAction(() -> {
+            deleteVirtualFile(futureResult, virtualFile);
+            downloadFile(futureResult, entry, localPath, progress);
+          });
         });
       }
 
@@ -121,6 +131,9 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   private void deleteVirtualFile(SettableFuture<Void> futureResult, VirtualFile virtualFile) {
     if (virtualFile != null) {
       try {
+        // This assertions prevent regressions for b/141649841.
+        // We need to add this assertion because in tests the deletion of a file doesn't trigger some PSI events that call the assertion.
+        ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
         virtualFile.delete(this);
       }
       catch (IOException e) {
@@ -179,9 +192,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     return path.get();
   }
 
-  private ListenableFuture<Void> openFileInEditorWorker(@NotNull DeviceFileEntry entry,
-                                                        @NotNull Path localPath,
-                                                        boolean focusEditor) {
+  private ListenableFuture<Void> openFileInEditorWorker(@NotNull DeviceFileEntry entry, @NotNull Path localPath, boolean focusEditor) {
     ListenableFuture<VirtualFile> futureFile = DeviceExplorerFilesUtils.findFile(localPath);
 
     return myEdtExecutor.transform(futureFile, file -> {
@@ -190,16 +201,27 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
       DeviceFileId fileInfo = new DeviceFileId(entry.getFileSystem().getName(), entry.getFullPath());
       file.putUserData(DeviceFileId.KEY, fileInfo);
 
-      FileType type = FileTypeChooser.getKnownFileTypeOrAssociate(file, myProject);
-      if (type == null) {
-        throw new CancellationException("Operation cancelled by user");
-      }
+      TransactionGuard.submitTransaction(myProject, () -> {
+        // This assertions prevent regressions for b/141649841.
+        // The underlying API expects to be called from a write-safe context.
+        // In a tests TestEditorManagerImpl is used instead of FileEditorManagerImpl, which doesn't assert for write action allowed.
+        // therefore we have to do it here.
+        ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
+        FileType type = FileTypeChooser.getKnownFileTypeOrAssociate(file, myProject);
+        if (type == null) {
+          throw new CancellationException("Operation cancelled by user");
+        }
 
-      FileEditor[] editors = FileEditorManager.getInstance(myProject).openFile(file, focusEditor);
-      if (editors.length == 0) {
-        throw new RuntimeException(String.format("Unable to open file \"%s\" in editor", localPath));
-      }
-      myTemporaryEditorFiles.add(file);
+        // This assertions prevent regressions for b/141649841.
+        // We need to add this assertion because in tests the deletion of a file doesn't trigger some PSI events that call the assertion.
+        ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
+        FileEditor[] editors = FileEditorManager.getInstance(myProject).openFile(file, focusEditor);
+        if (editors.length == 0) {
+          throw new RuntimeException(String.format("Unable to open file \"%s\" in editor", localPath));
+        }
+        myTemporaryEditorFiles.add(file);
+      });
+
       return null;
     });
   }
