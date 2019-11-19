@@ -45,7 +45,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"compileSdkVersion", property, COMPILE_SDK_VERSION, VAR}, // TODO(xof): type handling of this is tricky
     {"compileSdkVersion", exactly(1), COMPILE_SDK_VERSION, SET},
     {"defaultPublishConfig", property, DEFAULT_PUBLISH_CONFIG, VAR},
-    {"defaultPublishConfig", exactly(1), DEFAULT_PUBLISH_CONFIG, VAR},
+    {"defaultPublishConfig", exactly(1), DEFAULT_PUBLISH_CONFIG, SET},
     {"dynamicFeatures", property, DYNAMIC_FEATURES, VAR},
     {"flavorDimensions", atLeast(0), FLAVOR_DIMENSIONS, OTHER}, // SETN: sets the property to the list of varargs arguments
     {"generatePureSplits", property, GENERATE_PURE_SPLITS, VAR},

@@ -51,7 +51,7 @@ public class DexOptionsDslElement extends GradleDslBlockElement {
     {"maxProcessCount", property, MAX_PROCESS_COUNT, VAR},
     {"setMaxProcessCount", exactly(1), MAX_PROCESS_COUNT, SET},
     {"optimize", property, OPTIMIZE, VAR},
-    {"setOptimize", exactly(1), OPTIMIZE, VAR},
+    {"setOptimize", exactly(1), OPTIMIZE, SET},
     {"preDexLibraries", property, PRE_DEX_LIBRARIES, VAR},
     {"setPreDexLibraries", exactly(1), PRE_DEX_LIBRARIES, SET},
     {"threadCount", property, THREAD_COUNT, VAR},
