@@ -144,6 +144,7 @@ class ConstraintSetPanel extends JPanel {
     mConstraintSetTable.setRowHeight(MEUI.scale(18));
     mConstraintSetTable.setShowHorizontalLines(false);
     mConstraintSetTable.setAlignmentY(0.0f);
+    mConstraintSetTable.getColumnModel().getColumn(0).setPreferredWidth(MEUI.scale(32));
     mConstraintSetTable.setDefaultRenderer(Icon.class, new TableCellRenderer() {
       JLabel myLabel = new JLabel();
 
@@ -155,6 +156,7 @@ class ConstraintSetPanel extends JPanel {
                                                      int row,
                                                      int column) {
         myLabel.setIcon((Icon)value);
+        myLabel.setHorizontalAlignment(SwingConstants.CENTER);
         myLabel.setSize(new Dimension(MEUI.scale(18), MEUI.scale(12)));
         if (isSelected) {
           if (value == MEIcons.LIST_STATE_DERIVED) {
