@@ -124,7 +124,7 @@ public class AndroidGradleTests {
     }
   }
 
-  private static String getKotlinVersionForTests() {
+  public static String getKotlinVersionForTests() {
     String kotlinVersion = TestUtils.getKotlinVersionForTests();
     if (kotlinVersion.contains("-release-")){
       // RELEASE versions should be stripped. E.g. "1.3.50-release-128" should become "1.3.50"
