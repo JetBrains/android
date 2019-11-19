@@ -494,6 +494,11 @@ public class InteractionManager implements Disposable {
         event.consume();
         return;
       }
+      if (SwingUtilities.isRightMouseButton(event)) {
+        // On Windows the convention is that the mouse up event triggers the popup.
+        // If the user is starting a right click, return and handle the popup in mouseReleased.
+        return;
+      }
       if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
         // TODO: move this logic into InteractionProvider.createInteractionOnClick()
         if (myCurrentInteraction instanceof PanInteraction) {
@@ -530,6 +535,8 @@ public class InteractionManager implements Disposable {
         return;
       }
       if (event.isPopupTrigger()) {
+        // On Windows the convention is that the mouse up event triggers the popup.
+        // Handle popup triggers here for Windows.
         myInteractionHandler.popupMenuTrigger(event, true);
         return;
       }

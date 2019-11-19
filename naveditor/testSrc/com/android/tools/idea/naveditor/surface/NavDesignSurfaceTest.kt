@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.scene.inlineDrawRect
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.InteractionManager
@@ -551,6 +552,49 @@ class NavDesignSurfaceTest : NavTestCase() {
     assertNotEquals(initialSchema, NavigationSchema.get(myModule))
     verify(workbench).showLoading("Refreshing Navigators...")
     verify(workbench).hideLoading()
+  }
+
+  fun testRightClick() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+      }
+    }
+
+    val surface = model.surface as NavDesignSurface
+    val scene = surface.scene!!
+    scene.layout(0, SceneContext.get())
+    val sceneView = NavView(surface, surface.sceneManager!!)
+    `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
+    `when`<SceneView>(surface.getSceneView(anyInt(), anyInt())).thenReturn(sceneView)
+
+    model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
+
+    val manager = InteractionManager(surface, NavInteractionHandler(surface))
+    manager.startListening()
+
+    try {
+      val fragment1 = scene.getSceneComponent("fragment1")!!
+
+      val rect = fragment1.inlineDrawRect(sceneView)
+      val x1 = rect.center.x
+      val y = rect.center.y.toInt()
+      LayoutTestUtilities.pressMouse(manager, MouseEvent.BUTTON3, x1.toInt(), y, 0)
+
+      val x2 = x1 + rect.width * 3
+      LayoutTestUtilities.moveMouse(manager, x1.toInt(), y, x2.toInt(), y)
+      LayoutTestUtilities.releaseMouse(manager, MouseEvent.BUTTON3, x2.toInt(), y, 0)
+
+      val x3 = x2 - rect.width
+      LayoutTestUtilities.moveMouse(manager, x2.toInt(), y, x3.toInt(), y)
+
+      // confirm that right clicking did not end up dragging the fragment
+      val finalRect = fragment1.inlineDrawRect(sceneView)
+      assertEquals(finalRect, rect)
+    }
+    finally {
+      manager.stopListening()
+    }
   }
 
   private fun addClass(@Language("JAVA") content: String): PsiClass {
