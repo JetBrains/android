@@ -31,12 +31,12 @@ public class CpuCoreTrackModel {
   private final int myCpuId;
   private final int myAppProcessId;
 
-  public CpuCoreTrackModel(@NotNull Range range, @NotNull AtraceCpuCapture atraceCapture, int cpuId, int appProcessId) {
+  public CpuCoreTrackModel(@NotNull Range range, @NotNull AtraceCpuCapture atraceCapture, int cpuId) {
     myDataSeries = new AtraceDataSeries<>(atraceCapture, capture -> capture.getCpuThreadSliceInfoStates(cpuId));
     myStateChartModel = new StateChartModel<>();
     myStateChartModel.addSeries(new RangedSeries<>(range, myDataSeries));
     myCpuId = cpuId;
-    myAppProcessId = appProcessId;
+    myAppProcessId = atraceCapture.getMainThreadId();
   }
 
   public AtraceDataSeries<CpuThreadSliceInfo> getDataSeries() {

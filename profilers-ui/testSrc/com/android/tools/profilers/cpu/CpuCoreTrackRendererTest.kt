@@ -54,8 +54,10 @@ class CpuCoreTrackRendererTest {
   fun render() {
     val mockCapture = Mockito.mock(AtraceCpuCapture::class.java)
     Mockito.`when`(mockCapture.range).thenReturn(Range())
-    val coreTrackModel = TrackModel.newBuilder(CpuCoreTrackModel(Range(), mockCapture, 1, 123), ProfilerTrackRendererType.CPU_CORE, "Foo")
+    Mockito.`when`(mockCapture.mainThreadId).thenReturn(123)
+    val coreTrackModel = TrackModel.newBuilder(CpuCoreTrackModel(Range(), mockCapture, 1), ProfilerTrackRendererType.CPU_CORE, "Foo")
       .build()
+    assertThat(coreTrackModel.dataModel.appProcessId).isEqualTo(123)
     val component = CpuCoreTrackRenderer().render(coreTrackModel)
     assertThat(component).isInstanceOf(StateChart::class.java)
   }
