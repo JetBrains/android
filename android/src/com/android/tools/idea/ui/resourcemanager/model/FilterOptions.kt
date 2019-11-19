@@ -154,6 +154,12 @@ class TypeFiltersModel {
   }
 }
 
+private const val BITMAP_FILTER_NAME = "Bitmap (webp, png, etc...)"
+private const val NINE_PATCH_FILTER_NAME = "9-Patch"
+private const val FONTFILE_FILTER_NAME = "Font File (ttf, ttc, otf)"
+private const val CONSTRAINT_FILTER_NAME = "ConstraintLayout"
+private const val MOTION_FILTER_NAME = "MotionLayout"
+
 private fun getTypeFiltersMap(): Map<ResourceType, LinkedHashMap<TypeFilter, Boolean>> {
   return mapOf<ResourceType, LinkedHashMap<TypeFilter, Boolean>>(
     Pair(ResourceType.DRAWABLE, linkedMapOf(
@@ -162,14 +168,28 @@ private fun getTypeFiltersMap(): Map<ResourceType, LinkedHashMap<TypeFilter, Boo
       xmlFilterType(SdkConstants.TAG_SELECTOR),
       xmlFilterType(SdkConstants.TAG_ANIMATED_SELECTOR),
       xmlFilterType(SdkConstants.TAG_SHAPE),
-      fileFilterType(SdkConstants.DOT_WEBP),
-      fileFilterType(SdkConstants.DOT_PNG))),
+      // FIXME(b/144786008) = Can't read 9 patch files when using LayoutLib native.
+      fileFilterType(".compiled${SdkConstants.DOT_9PNG}", NINE_PATCH_FILTER_NAME),
+      fileFilterType(SdkConstants.DOT_9PNG, NINE_PATCH_FILTER_NAME),
+      fileFilterType(SdkConstants.DOT_WEBP, BITMAP_FILTER_NAME),
+      fileFilterType(SdkConstants.DOT_PNG, BITMAP_FILTER_NAME),
+      fileFilterType(SdkConstants.DOT_JPG, BITMAP_FILTER_NAME),
+      fileFilterType(SdkConstants.DOT_GIF, BITMAP_FILTER_NAME),
+      xmlFilterType(SdkConstants.TAG_INSET),
+      xmlFilterType(SdkConstants.TAG_LAYER_LIST))),
     Pair(ResourceType.COLOR, linkedMapOf(xmlFilterType(SdkConstants.TAG_SELECTOR))),
-    Pair(ResourceType.LAYOUT, linkedMapOf(xmlFilterType(SdkConstants.TAG_LAYOUT))),
+    Pair(ResourceType.LAYOUT, linkedMapOf(
+      xmlFilterType(SdkConstants.TAG_LAYOUT, "Data Binding"),
+      xmlFilterType(SdkConstants.CONSTRAINT_LAYOUT.oldName(), CONSTRAINT_FILTER_NAME),
+      xmlFilterType(SdkConstants.CONSTRAINT_LAYOUT.newName(), CONSTRAINT_FILTER_NAME),
+      xmlFilterType(SdkConstants.MOTION_LAYOUT.oldName(), MOTION_FILTER_NAME),
+      xmlFilterType(SdkConstants.MOTION_LAYOUT.newName(), MOTION_FILTER_NAME))),
+    Pair(ResourceType.MIPMAP, linkedMapOf(xmlFilterType(SdkConstants.TAG_ADAPTIVE_ICON))),
     Pair(ResourceType.FONT, linkedMapOf(
       xmlFilterType(SdkConstants.TAG_FONT_FAMILY),
-      fileFilterType(SdkConstants.DOT_TTF),
-      fileFilterType(SdkConstants.DOT_TTC)))
+      fileFilterType(SdkConstants.DOT_TTF, FONTFILE_FILTER_NAME),
+      fileFilterType(SdkConstants.DOT_TTC, FONTFILE_FILTER_NAME),
+      fileFilterType(SdkConstants.DOT_OTF, FONTFILE_FILTER_NAME)))
   )
 }
 
@@ -179,8 +199,8 @@ private fun linkedMapOf(vararg typeFilterPairs: Pair<TypeFilter, Boolean>): Link
   }
 }
 
-private fun xmlFilterType(value: String) = Pair(TypeFilter(TypeFilterKind.XML_TAG, value), false)
-private fun fileFilterType(value: String) = Pair(TypeFilter(TypeFilterKind.FILE, value), false)
+private fun xmlFilterType(value: String, displayName: String = value) = Pair(TypeFilter(TypeFilterKind.XML_TAG, value, displayName), false)
+private fun fileFilterType(value: String, displayName: String = value) = Pair(TypeFilter(TypeFilterKind.FILE, value, displayName), false)
 
 /**
  * Represents how a resource should be filtered and what value to use for filtering.
@@ -188,7 +208,7 @@ private fun fileFilterType(value: String) = Pair(TypeFilter(TypeFilterKind.FILE,
  * Eg: A [TypeFilter] defined by [kind] = [TypeFilterKind.XML_TAG] and [value] = `vector` is a filter that looks for the
  * `vector` root tag in an XML resource file.
  */
-data class TypeFilter(val kind: TypeFilterKind, val value: String)
+data class TypeFilter(val kind: TypeFilterKind, val value: String, val displayName: String = value)
 
 /**
  * Describes the type of filtering to apply to the resource.

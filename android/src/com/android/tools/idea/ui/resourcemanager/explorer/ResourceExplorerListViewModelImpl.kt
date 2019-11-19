@@ -421,6 +421,7 @@ class ResourceExplorerListViewModelImpl(
     when(psiElement) {
       is XmlFile -> {
         val tag = runReadAction { psiElement.rootTag } ?: return false
+        // To verify XML Tag filters, we just compare the XML root tag value to the filter value.
         typeFilters.forEach { filter ->
           if (filter.kind == TypeFilterKind.XML_TAG && tag.name == filter.value ) {
             return true
@@ -430,9 +431,12 @@ class ResourceExplorerListViewModelImpl(
       }
       is PsiBinaryFile -> {
         val name = psiElement.name
+        // To verify File filters, we look for the file extension, but we take the extension as the string after the first '.', since the
+        // VirtualFile#getExtension method does not consider '.9.png' as an extension (returns 'png').
         typeFilters.forEach { filter ->
-          if (filter.kind == TypeFilterKind.FILE && name.endsWith(filter.value, ignoreCase = true) ) {
-            // TODO: This can't differentiate between 9-Patch and PNG, consider using substring at first '.'
+          val isFileFilter = filter.kind == TypeFilterKind.FILE
+          val extension = name.substring(name.indexOf('.'))
+          if (isFileFilter && extension.equals(filter.value, true)) {
             return true
           }
         }
