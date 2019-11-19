@@ -26,12 +26,14 @@ import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
@@ -119,7 +121,7 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
     // Add kotlin-android plugin to top-level build file, and app module.
     ProjectBuildModel buildModel = ProjectBuildModel.get(getProject());
     buildModel.getProjectBuildModel().buildscript().dependencies()
-      .addArtifact("classpath", "org.jetbrains.kotlin:kotlin-gradle-plugin:" + getKotlinVersionForTests());
+      .addArtifact("classpath", "org.jetbrains.kotlin:kotlin-gradle-plugin:" + AndroidGradleTests.getKotlinVersionForTests());
     buildModel.getModuleBuildModel(getModule("app")).applyPlugin("kotlin-android");
     runWriteCommandAction(getProject(), buildModel::applyChanges);
 
