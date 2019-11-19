@@ -126,10 +126,10 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     }
     InstallationIntention installationIntention = myInstallUpdates ? InstallationIntention.INSTALL_WITH_UPDATES
                                                                    : InstallationIntention.INSTALL_WITHOUT_UPDATES;
-    if (reason == FirstRunWizardMode.NEW_INSTALL && Haxm.canRun()) {
+    if (reason == FirstRunWizardMode.NEW_INSTALL && Haxm.InstallerInfo.canRun()) {
       components.add(new Haxm(installationIntention, stateStore, FirstRunWizard.KEY_CUSTOM_INSTALL));
     }
-    if (reason == FirstRunWizardMode.NEW_INSTALL && Gvm.canRun()) {
+    if (reason == FirstRunWizardMode.NEW_INSTALL && Gvm.InstallerInfo.canRun()) {
       components.add(new Gvm(installationIntention, stateStore, FirstRunWizard.KEY_CUSTOM_INSTALL));
     }
     if (createAvd) {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import static com.android.tools.idea.welcome.install.Haxm.UI_UNITS;
+import static com.android.tools.idea.welcome.install.HaxmKt.UI_UNITS;
 
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;

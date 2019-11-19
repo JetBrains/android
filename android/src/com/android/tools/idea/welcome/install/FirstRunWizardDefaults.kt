@@ -72,7 +72,7 @@ fun getRecommendedHaxmMemory(memorySize: Long): Int {
     memorySize > 2 * gb -> gb
     else -> gb / 2
   }
-  return (defaultMemory / Haxm.UI_UNITS.numberOfBytes).toInt()
+  return (defaultMemory / UI_UNITS.numberOfBytes).toInt()
 }
 
 /**
