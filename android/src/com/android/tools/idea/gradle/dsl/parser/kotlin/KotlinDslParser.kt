@@ -472,7 +472,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           argumentsList
         )
       }
-      if (isFirstCall && !arguments[0].isNamed()) {
+      if (isFirstCall && arguments[0].getArgumentExpression() != null && !arguments[0].isNamed()) {
         return getExpressionElement(
           parentElement,
           arguments[0],
