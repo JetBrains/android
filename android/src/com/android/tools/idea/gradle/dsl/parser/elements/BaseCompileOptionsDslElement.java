@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import static com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
@@ -43,8 +43,7 @@ public abstract class BaseCompileOptionsDslElement extends GradleDslBlockElement
     {"setSourceCompatibility", exactly(1), SOURCE_COMPATIBILITY, SET},
     {"targetCompatibility", property, TARGET_COMPATIBILITY, VAR},
     {"setTargetCompatibility", exactly(1), TARGET_COMPATIBILITY, SET}
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
@@ -52,8 +51,7 @@ public abstract class BaseCompileOptionsDslElement extends GradleDslBlockElement
     {"sourceCompatibility", exactly(1), SOURCE_COMPATIBILITY, SET},
     {"targetCompatibility", property, TARGET_COMPATIBILITY, VAR},
     {"targetCompatibility", exactly(1), TARGET_COMPATIBILITY, SET}
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
 
   @Override
   @NotNull

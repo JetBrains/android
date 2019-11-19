@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.android.splits;
 import static com.android.tools.idea.gradle.dsl.model.android.splits.LanguageModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
@@ -43,8 +43,7 @@ public class LanguageDslElement extends GradleDslBlockElement {
     {"include", property, INCLUDE, VAL},
     {"include", atLeast(0), INCLUDE, OTHER},
     {"setInclude", exactly(1), INCLUDE, SET}
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
@@ -52,8 +51,7 @@ public class LanguageDslElement extends GradleDslBlockElement {
     {"enable", exactly(1), ENABLE, SET},
     {"include", property, INCLUDE, VAR},
     {"include", atLeast(0), INCLUDE, OTHER}
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
 
   @Override
   @NotNull

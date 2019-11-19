@@ -19,8 +19,8 @@ import static com.android.tools.idea.gradle.dsl.model.android.SigningConfigModel
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
@@ -49,8 +49,7 @@ public final class SigningConfigDslElement extends GradleDslBlockElement impleme
     {"setStorePassword", exactly(1), STORE_PASSWORD, SET},
     {"storeType", property, STORE_TYPE, VAR},
     {"setStoreType", exactly(1), STORE_TYPE, SET},
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
@@ -64,8 +63,7 @@ public final class SigningConfigDslElement extends GradleDslBlockElement impleme
     {"storePassword", exactly(1), STORE_PASSWORD, SET},
     {"storeType", property, STORE_TYPE, VAR},
     {"storeType", exactly(1), STORE_TYPE, SET},
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
 
   @Override
   @NotNull

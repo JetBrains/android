@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
@@ -54,8 +54,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"setPublishNonDefault", exactly(1), PUBLISH_NON_DEFAULT, SET},
     {"resourcePrefix", property, RESOURCE_PREFIX, VAL}, // no setResourcePrefix: not a VAR
     {"resourcePrefix", exactly(1), RESOURCE_PREFIX, SET}
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
 
   @NotNull
   private static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
@@ -75,8 +74,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"publishNonDefault", exactly(1), PUBLISH_NON_DEFAULT, SET},
     {"resourcePrefix", property, RESOURCE_PREFIX, VAL},
     {"resourcePrefix", exactly(1), RESOURCE_PREFIX, SET}
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
 
   @Override
   @NotNull

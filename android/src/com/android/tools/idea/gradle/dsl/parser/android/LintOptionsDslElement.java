@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
@@ -73,8 +73,7 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
     {"ignore", atLeast(0), IGNORE, OTHER},
     // TODO(b/144403889): {"informational", atLeast(0), INFORMATIONAL, OTHER},
     {"warning", atLeast(0), WARNING, OTHER},
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
@@ -126,8 +125,7 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
     {"ignore", atLeast(0), IGNORE, OTHER},
     // TODO(b/144403889): {"informational", atLeast(0), INFORMATIONAL, OTHER},
     {"warning", atLeast(0), WARNING, OTHER},
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
 
   @Override
   @NotNull
