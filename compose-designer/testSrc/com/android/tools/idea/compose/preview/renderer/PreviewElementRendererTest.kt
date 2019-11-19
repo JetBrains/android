@@ -24,6 +24,7 @@ import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -77,5 +78,17 @@ class SinglePreviewElementRendererTest {
     ImageDiffUtil.assertImageSimilar(File("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"),
                                      defaultRender!!,
                                      0.0)
+  }
+
+  /**
+   * Checks the rendering that rendering an empty preview does not throw an exception.
+   * Regression test for b/144722608.
+   */
+  @Test
+  fun testEmptyRender() {
+    val defaultRender = renderPreviewElement(projectRule.androidFacet,
+                                             previewFromMethodName("google.simpleapplication.OtherPreviewsKt.EmptyPreview")).get()
+
+    assertTrue(defaultRender!!.width > 0 && defaultRender.height > 0)
   }
 }

@@ -106,6 +106,12 @@ public class RenderTask {
   private static final Logger LOG = Logger.getInstance(RenderTask.class);
 
   /**
+   * When an element in Layoutlib does not take any space, it will ask for a 0px X 0px image. This will throw an exception so we limit the
+   * min size of the returned bitmap to 1x1.
+   */
+  private static final int MIN_BITMAP_SIZE_PX = 1;
+
+  /**
    * {@link IImageFactory} that returns a new image exactly of the requested size. It does not do caching or resizing.
    */
   private static final IImageFactory SIMPLE_IMAGE_FACTORY = new IImageFactory() {
@@ -113,7 +119,8 @@ public class RenderTask {
     @Override
     public BufferedImage getImage(int width, int height) {
       @SuppressWarnings("UndesirableClassUsage")
-      BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+      BufferedImage image =
+        new BufferedImage(Math.max(MIN_BITMAP_SIZE_PX, width), Math.max(MIN_BITMAP_SIZE_PX, height), BufferedImage.TYPE_INT_ARGB);
       image.setAccelerationPriority(1f);
 
       return image;
