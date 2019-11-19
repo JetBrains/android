@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.semantics;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import kotlin.Pair;
@@ -26,7 +27,21 @@ import org.jetbrains.annotations.NotNull;
 public final class ModelMapCollector {
   @NotNull
   public static Collector<Object[], ?, ImmutableMap<Pair<String, Integer>, Pair<String, SemanticsDescription>>> toModelMap() {
-    Function<Object[], Pair<String,Integer>> k = data -> new Pair<>((String) data[0], (Integer) data[1]);
+    Function<Object[], Pair<String,Integer>> k = data -> {
+      Integer arity = (Integer) data[1];
+      SemanticsDescription description = (SemanticsDescription) data[3];
+      if (Objects.equals(arity, ArityHelper.property)) {
+        if (!(description instanceof PropertySemanticsDescription)) {
+          throw new RuntimeException((String) data[0]);
+        }
+      }
+      else {
+        if (!(description instanceof MethodSemanticsDescription)) {
+          throw new RuntimeException((String) data[0]);
+        }
+      }
+      return new Pair<>((String)data[0], (Integer)data[1]);
+    };
     Function<Object[], Pair<String,SemanticsDescription>> v = data -> new Pair<>((String) data[2], (SemanticsDescription) data[3]);
     return toImmutableMap(k, v);
   }
