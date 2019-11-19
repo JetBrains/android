@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStar
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleWrapper
-/* TODO(uncomment in next cl): import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectRecipe */
+import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectRecipe
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.platform.Language.JAVA
 import com.android.tools.idea.npw.platform.Language.KOTLIN
@@ -186,20 +186,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     lateinit var projectTemplate: Template
     @WorkerThread
     override fun init() {
-      if (StudioFlags.NPW_NEW_PROJECT_TEMPLATE.get()) {
-        projectTemplateDataBuilder.apply {
-          // TODO(qumeric)
-          // cppSupport = this@NewProjectModel.cppSupport.get()
-          // cppFlags = this@NewProjectModel.cppFlags.get()
-          topOut = File(project.value.basePath ?: "")
-          androidXSupport = !useAppCompat.get()
-
-          setProjectDefaults(project.value)
-          language = this@NewProjectModel.language.value
-        }
-        return
-      }
-
       projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME)
       // Cpp Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
       projectTemplateValues[ATTR_CPP_SUPPORT] = enableCppSupport.get()
@@ -215,6 +201,22 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       TemplateValueInjector(projectTemplateValues)
         .setProjectDefaults(project.value, isNewProject)
         .setLanguage(language.value)
+
+      // It is slightly slower but safer to initialize it after setting template values because they may be reused in later stages
+      if (StudioFlags.NPW_NEW_PROJECT_TEMPLATE.get()) {
+        projectTemplateDataBuilder.apply {
+          // TODO(qumeric)
+          // cppSupport = this@NewProjectModel.cppSupport.get()
+          // cppFlags = this@NewProjectModel.cppFlags.get()
+          topOut = File(project.value.basePath ?: "")
+          androidXSupport = !useAppCompat.get()
+
+          setProjectDefaults(project.value)
+          language = this@NewProjectModel.language.value
+        }
+        return
+      }
+
     }
 
     @WorkerThread
@@ -255,7 +257,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         )
         val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
         val recipe: AndroidProjectRecipe = { appTitle, language, useAndroidX ->
-          { data: TemplateData -> /* TODO(uncomment in next cl): androidProjectRecipe(data as ProjectTemplateData, appTitle, language, useAndroidX)*/ }
+          { data: TemplateData -> androidProjectRecipe(data as ProjectTemplateData, appTitle, language, useAndroidX) }
         }
 
         recipe(applicationName.get(), language.value, !useAppCompat.get()).doRender(context, executor)

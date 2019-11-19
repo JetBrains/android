@@ -45,7 +45,7 @@ internal class FindReferencesRecipeExecutor2(private val context: RenderingConte
     val sourceUrl = findResource(context.templateData.javaClass, from)
     val sourceFile = VfsUtil.findFileByURL(sourceUrl) ?: error("$from ($sourceUrl)")
     if (sourceFile.isDirectory) {
-      throw RuntimeException("Directories not supported for Find References")
+      return
     }
     addTargetFile(to)
   }
