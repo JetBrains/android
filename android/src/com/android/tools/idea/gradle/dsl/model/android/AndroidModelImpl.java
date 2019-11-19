@@ -105,33 +105,22 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public AaptOptionsModel aaptOptions() {
-    AaptOptionsDslElement aaptOptionsElement = myDslElement.getPropertyElement(AAPT_OPTIONS_BLOCK_NAME, AaptOptionsDslElement.class);
-    if (aaptOptionsElement == null) {
-      aaptOptionsElement = new AaptOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(aaptOptionsElement);
-    }
+    AaptOptionsDslElement aaptOptionsElement = myDslElement.ensurePropertyElement(AAPT_OPTIONS_BLOCK_NAME, AaptOptionsDslElement.class);
     return new AaptOptionsModelImpl(aaptOptionsElement);
   }
 
   @Override
   @NotNull
   public AdbOptionsModel adbOptions() {
-    AdbOptionsDslElement adbOptionsElement = myDslElement.getPropertyElement(ADB_OPTIONS_BLOCK_NAME, AdbOptionsDslElement.class);
-    if (adbOptionsElement == null) {
-      adbOptionsElement = new AdbOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(adbOptionsElement);
-    }
+    AdbOptionsDslElement adbOptionsElement = myDslElement.ensurePropertyElement(ADB_OPTIONS_BLOCK_NAME, AdbOptionsDslElement.class);
     return new AdbOptionsModelImpl(adbOptionsElement);
   }
 
   @Override
   @NotNull
   public BuildFeaturesModel buildFeatures() {
-    BuildFeaturesDslElement buildFeaturesDslElement = myDslElement.getPropertyElement(BUILD_FEATURES_BLOCK_NAME, BuildFeaturesDslElement.class);
-    if (buildFeaturesDslElement == null) {
-      buildFeaturesDslElement = new BuildFeaturesDslElement(myDslElement);
-      myDslElement.setNewElement(buildFeaturesDslElement);
-    }
+    BuildFeaturesDslElement buildFeaturesDslElement =
+      myDslElement.ensurePropertyElement(BUILD_FEATURES_BLOCK_NAME, BuildFeaturesDslElement.class);
     return new BuildFeaturesModelImpl(buildFeaturesDslElement);
   }
 
@@ -157,17 +146,8 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NotNull
   @Override
   public BuildTypeModel addBuildType(@NotNull String buildType) {
-    BuildTypesDslElement buildTypes = myDslElement.getPropertyElement(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);
-    if (buildTypes == null) {
-      buildTypes = new BuildTypesDslElement(myDslElement);
-      myDslElement.setNewElement(buildTypes);
-    }
-
-    BuildTypeDslElement buildTypeElement = buildTypes.getPropertyElement(buildType, BuildTypeDslElement.class);
-    if (buildTypeElement == null) {
-      buildTypeElement = new BuildTypeDslElement(buildTypes, GradleNameElement.create(buildType));
-      buildTypes.setNewElement(buildTypeElement);
-    }
+    BuildTypesDslElement buildTypes = myDslElement.ensurePropertyElement(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);
+    BuildTypeDslElement buildTypeElement = buildTypes.ensureNamedPropertyElement(buildType, BuildTypeDslElement.class);
     return new BuildTypeModelImpl(buildTypeElement);
   }
 
@@ -182,11 +162,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NotNull
   @Override
   public CompileOptionsModel compileOptions() {
-    CompileOptionsDslElement element = myDslElement.getPropertyElement(COMPILE_OPTIONS_BLOCK_NAME, CompileOptionsDslElement.class);
-    if (element == null) {
-      element = new CompileOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(element);
-    }
+    CompileOptionsDslElement element = myDslElement.ensurePropertyElement(COMPILE_OPTIONS_BLOCK_NAME, CompileOptionsDslElement.class);
     return new CompileOptionsModelImpl(element);
   }
 
@@ -199,22 +175,14 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public DataBindingModel dataBinding() {
-    DataBindingDslElement dataBindingElement = myDslElement.getPropertyElement(DATA_BINDING_BLOCK_NAME, DataBindingDslElement.class);
-    if (dataBindingElement == null) {
-      dataBindingElement = new DataBindingDslElement(myDslElement);
-      myDslElement.setNewElement(dataBindingElement);
-    }
+    DataBindingDslElement dataBindingElement = myDslElement.ensurePropertyElement(DATA_BINDING_BLOCK_NAME, DataBindingDslElement.class);
     return new DataBindingModelImpl(dataBindingElement);
   }
 
   @Override
   @NotNull
   public ProductFlavorModel defaultConfig() {
-    DefaultConfigDslElement defaultConfigElement = myDslElement.getPropertyElement(DEFAULT_CONFIG, DefaultConfigDslElement.class);
-    if (defaultConfigElement == null) {
-      defaultConfigElement = new DefaultConfigDslElement(myDslElement, GradleNameElement.create(DEFAULT_CONFIG));
-      myDslElement.setNewElement(defaultConfigElement);
-    }
+    DefaultConfigDslElement defaultConfigElement = myDslElement.ensureNamedPropertyElement(DEFAULT_CONFIG, DefaultConfigDslElement.class);
     return new ProductFlavorModelImpl(defaultConfigElement);
   }
 
@@ -227,11 +195,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public DexOptionsModel dexOptions() {
-    DexOptionsDslElement dexOptionsElement = myDslElement.getPropertyElement(DEX_OPTIONS_BLOCK_NAME, DexOptionsDslElement.class);
-    if (dexOptionsElement == null) {
-      dexOptionsElement = new DexOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(dexOptionsElement);
-    }
+    DexOptionsDslElement dexOptionsElement = myDslElement.ensurePropertyElement(DEX_OPTIONS_BLOCK_NAME, DexOptionsDslElement.class);
     return new DexOptionsModelImpl(dexOptionsElement);
   }
 
@@ -246,12 +210,8 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NotNull
   @Override
   public ExternalNativeBuildModel externalNativeBuild() {
-    ExternalNativeBuildDslElement externalNativeBuildDslElement = myDslElement.getPropertyElement(EXTERNAL_NATIVE_BUILD_BLOCK_NAME,
-                                                                                                  ExternalNativeBuildDslElement.class);
-    if (externalNativeBuildDslElement == null) {
-      externalNativeBuildDslElement = new ExternalNativeBuildDslElement(myDslElement);
-      myDslElement.setNewElement(externalNativeBuildDslElement);
-    }
+    ExternalNativeBuildDslElement externalNativeBuildDslElement =
+      myDslElement.ensurePropertyElement(EXTERNAL_NATIVE_BUILD_BLOCK_NAME, ExternalNativeBuildDslElement.class);
     return new ExternalNativeBuildModelImpl(externalNativeBuildDslElement);
   }
 
@@ -270,22 +230,15 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public LintOptionsModel lintOptions() {
-    LintOptionsDslElement lintOptionsDslElement = myDslElement.getPropertyElement(LINT_OPTIONS_BLOCK_NAME, LintOptionsDslElement.class);
-    if (lintOptionsDslElement == null) {
-      lintOptionsDslElement = new LintOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(lintOptionsDslElement);
-    }
+    LintOptionsDslElement lintOptionsDslElement = myDslElement.ensurePropertyElement(LINT_OPTIONS_BLOCK_NAME, LintOptionsDslElement.class);
     return new LintOptionsModelImpl(lintOptionsDslElement);
   }
 
   @Override
   @NotNull
   public KotlinOptionsModel kotlinOptions() {
-    KotlinOptionsDslElement kotlinOptionsDslElement = myDslElement.getPropertyElement(KOTLIN_OPTIONS_BLOCK_NAME, KotlinOptionsDslElement.class);
-    if (kotlinOptionsDslElement == null) {
-      kotlinOptionsDslElement = new KotlinOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(kotlinOptionsDslElement);
-    }
+    KotlinOptionsDslElement kotlinOptionsDslElement =
+      myDslElement.ensurePropertyElement(KOTLIN_OPTIONS_BLOCK_NAME, KotlinOptionsDslElement.class);
     return new KotlinOptionsModelImpl(kotlinOptionsDslElement);
   }
 
@@ -294,11 +247,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NotNull
   public PackagingOptionsModel packagingOptions() {
     PackagingOptionsDslElement packagingOptionsDslElement =
-      myDslElement.getPropertyElement(PACKAGING_OPTIONS_BLOCK_NAME, PackagingOptionsDslElement.class);
-    if (packagingOptionsDslElement == null) {
-      packagingOptionsDslElement = new PackagingOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(packagingOptionsDslElement);
-    }
+      myDslElement.ensurePropertyElement(PACKAGING_OPTIONS_BLOCK_NAME, PackagingOptionsDslElement.class);
     return new PackagingOptionsModelImpl(packagingOptionsDslElement);
   }
 
@@ -312,18 +261,9 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public ProductFlavorModel addProductFlavor(@NotNull String flavor) {
-    ProductFlavorsDslElement productFlavors = myDslElement.getPropertyElement(PRODUCT_FLAVORS_BLOCK_NAME, ProductFlavorsDslElement.class);
-    if (productFlavors == null) {
-      productFlavors = new ProductFlavorsDslElement(myDslElement);
-      myDslElement.setNewElement(productFlavors);
-    }
-
-    ProductFlavorDslElement flavorElement = productFlavors.getPropertyElement(flavor, ProductFlavorDslElement.class);
-    if (flavorElement == null) {
-      GradleNameElement name = GradleNameElement.create(flavor);
-      flavorElement = new ProductFlavorDslElement(productFlavors, name);
-      productFlavors.setNewElement(flavorElement);
-    }
+    ProductFlavorsDslElement productFlavors =
+      myDslElement.ensurePropertyElement(PRODUCT_FLAVORS_BLOCK_NAME, ProductFlavorsDslElement.class);
+    ProductFlavorDslElement flavorElement = productFlavors.ensureNamedPropertyElement(flavor, ProductFlavorDslElement.class);
     return new ProductFlavorModelImpl(flavorElement);
   }
 
@@ -345,18 +285,9 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public SigningConfigModel addSigningConfig(@NotNull String config) {
-    SigningConfigsDslElement signingConfigs = myDslElement.getPropertyElement(SIGNING_CONFIGS_BLOCK_NAME, SigningConfigsDslElement.class);
-    if (signingConfigs == null) {
-      signingConfigs = new SigningConfigsDslElement(myDslElement);
-      myDslElement.addNewElementAt(0, signingConfigs);
-    }
-
-    SigningConfigDslElement configElement = signingConfigs.getPropertyElement(config, SigningConfigDslElement.class);
-    if (configElement == null) {
-      GradleNameElement name = GradleNameElement.create(config);
-      configElement = new SigningConfigDslElement(signingConfigs, name);
-      signingConfigs.setNewElement(configElement);
-    }
+    SigningConfigsDslElement signingConfigs =
+      myDslElement.ensurePropertyElementAt(SIGNING_CONFIGS_BLOCK_NAME, SigningConfigsDslElement.class, 0);
+    SigningConfigDslElement configElement = signingConfigs.ensureNamedPropertyElement(config, SigningConfigDslElement.class);
     return new SigningConfigModelImpl(configElement);
   }
 
@@ -378,18 +309,8 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public SourceSetModel addSourceSet(@NotNull String sourceSet) {
-    SourceSetsDslElement sourceSets = myDslElement.getPropertyElement(SOURCE_SETS_BLOCK_NAME, SourceSetsDslElement.class);
-    if (sourceSets == null) {
-      sourceSets = new SourceSetsDslElement(myDslElement);
-      myDslElement.setNewElement(sourceSets);
-    }
-
-    SourceSetDslElement sourceSetElement = sourceSets.getPropertyElement(sourceSet, SourceSetDslElement.class);
-    if (sourceSetElement == null) {
-      GradleNameElement name = GradleNameElement.create(sourceSet);
-      sourceSetElement = new SourceSetDslElement(sourceSets, name);
-      sourceSets.setNewElement(sourceSetElement);
-    }
+    SourceSetsDslElement sourceSets = myDslElement.ensurePropertyElement(SOURCE_SETS_BLOCK_NAME, SourceSetsDslElement.class);
+    SourceSetDslElement sourceSetElement = sourceSets.ensureNamedPropertyElement(sourceSet, SourceSetDslElement.class);
     return new SourceSetModelImpl(sourceSetElement);
   }
 
@@ -404,22 +325,14 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public SplitsModel splits() {
-    SplitsDslElement splitsDslElement = myDslElement.getPropertyElement(SPLITS_BLOCK_NAME, SplitsDslElement.class);
-    if (splitsDslElement == null) {
-      splitsDslElement = new SplitsDslElement(myDslElement);
-      myDslElement.setNewElement(splitsDslElement);
-    }
+    SplitsDslElement splitsDslElement = myDslElement.ensurePropertyElement(SPLITS_BLOCK_NAME, SplitsDslElement.class);
     return new SplitsModelImpl(splitsDslElement);
   }
 
   @Override
   @NotNull
   public TestOptionsModel testOptions() {
-    TestOptionsDslElement testOptionsDslElement = myDslElement.getPropertyElement(TEST_OPTIONS_BLOCK_NAME, TestOptionsDslElement.class);
-    if (testOptionsDslElement == null) {
-      testOptionsDslElement = new TestOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(testOptionsDslElement);
-    }
+    TestOptionsDslElement testOptionsDslElement = myDslElement.ensurePropertyElement(TEST_OPTIONS_BLOCK_NAME, TestOptionsDslElement.class);
     return new TestOptionsModelImpl(testOptionsDslElement);
   }
 
@@ -438,11 +351,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public ViewBindingModel viewBinding() {
-    ViewBindingDslElement viewBindingElement = myDslElement.getPropertyElement(VIEW_BINDING_BLOCK_NAME, ViewBindingDslElement.class);
-    if (viewBindingElement == null) {
-      viewBindingElement = new ViewBindingDslElement(myDslElement);
-      myDslElement.setNewElement(viewBindingElement);
-    }
+    ViewBindingDslElement viewBindingElement = myDslElement.ensurePropertyElement(VIEW_BINDING_BLOCK_NAME, ViewBindingDslElement.class);
     return new ViewBindingModelImpl(viewBindingElement);
   }
 }

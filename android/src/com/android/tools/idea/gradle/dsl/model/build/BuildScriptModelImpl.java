@@ -49,22 +49,16 @@ public class BuildScriptModelImpl extends GradleDslBlockModel implements BuildSc
   @NotNull
   @Override
   public DependenciesModel dependencies() {
-    DependenciesDslElement dependenciesDslElement = myDslElement.getPropertyElement(DEPENDENCIES_BLOCK_NAME, DependenciesDslElement.class);
-    if (dependenciesDslElement == null) {
-      dependenciesDslElement = new DependenciesDslElement(myDslElement);
-      myDslElement.setNewElement(dependenciesDslElement);
-    }
+    DependenciesDslElement dependenciesDslElement =
+      myDslElement.ensurePropertyElement(DEPENDENCIES_BLOCK_NAME, DependenciesDslElement.class);
     return new DependenciesModelImpl(dependenciesDslElement);
   }
 
   @NotNull
   @Override
   public RepositoriesModel repositories() {
-    RepositoriesDslElement repositoriesDslElement = myDslElement.getPropertyElement(REPOSITORIES_BLOCK_NAME, RepositoriesDslElement.class);
-    if (repositoriesDslElement == null) {
-      repositoriesDslElement = new RepositoriesDslElement(myDslElement);
-      myDslElement.setNewElement(repositoriesDslElement);
-    }
+    RepositoriesDslElement repositoriesDslElement =
+      myDslElement.ensurePropertyElement(REPOSITORIES_BLOCK_NAME, RepositoriesDslElement.class);
     return new RepositoriesModelImpl(repositoriesDslElement);
   }
 
@@ -80,13 +74,12 @@ public class BuildScriptModelImpl extends GradleDslBlockModel implements BuildSc
   @NotNull
   @Override
   public ExtModel ext() {
-    ExtDslElement extDslElement = myDslElement.getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
-    if (extDslElement == null) {
-      extDslElement = new ExtDslElement(myDslElement);
-      List<GradleDslElement> elements = myDslElement.getAllElements();
-      int index = (!elements.isEmpty() && elements.get(0) instanceof ApplyDslElement) ? 1 : 0;
-      myDslElement.addNewElementAt(index, extDslElement);
+    int at = 0;
+    List<GradleDslElement> elements = myDslElement.getAllElements();
+    if (!elements.isEmpty() && elements.get(0) instanceof ApplyDslElement) {
+      at += 1;
     }
+    ExtDslElement extDslElement = myDslElement.ensurePropertyElementAt(EXT_BLOCK_NAME, ExtDslElement.class, at);
     return new ExtModelImpl(extDslElement);
   }
 

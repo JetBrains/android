@@ -124,11 +124,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
   @Override
   public void addModulePath(@NotNull String modulePath) {
     modulePath = standardiseModulePath(modulePath);
-    IncludeDslElement includeDslElement = myGradleDslFile.getPropertyElement(INCLUDE, IncludeDslElement.class);
-    if (includeDslElement == null) {
-      includeDslElement = new IncludeDslElement(myGradleDslFile);
-      myGradleDslFile.setNewElement(includeDslElement);
-    }
+    IncludeDslElement includeDslElement = myGradleDslFile.ensurePropertyElement(INCLUDE, IncludeDslElement.class);
     GradleDslLiteral literal = new GradleDslLiteral(includeDslElement, GradleNameElement.create(INCLUDE));
     literal.setValue(modulePath);
     includeDslElement.setNewElement(literal);

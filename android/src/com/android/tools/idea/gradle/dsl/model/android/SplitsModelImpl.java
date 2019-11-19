@@ -44,11 +44,7 @@ public class SplitsModelImpl extends GradleDslBlockModel implements SplitsModel 
   @Override
   @NotNull
   public AbiModel abi() {
-    AbiDslElement abiDslElement = myDslElement.getPropertyElement(ABI_BLOCK_NAME, AbiDslElement.class);
-    if (abiDslElement == null) {
-      abiDslElement = new AbiDslElement(myDslElement);
-      myDslElement.setNewElement(abiDslElement);
-    }
+    AbiDslElement abiDslElement = myDslElement.ensurePropertyElement(ABI_BLOCK_NAME, AbiDslElement.class);
     return new AbiModelImpl(abiDslElement);
   }
 
@@ -61,11 +57,7 @@ public class SplitsModelImpl extends GradleDslBlockModel implements SplitsModel 
   @Override
   @NotNull
   public DensityModel density() {
-    DensityDslElement densityDslElement = myDslElement.getPropertyElement(DENSITY_BLOCK_NAME, DensityDslElement.class);
-    if (densityDslElement == null) {
-      densityDslElement = new DensityDslElement(myDslElement);
-      myDslElement.setNewElement(densityDslElement);
-    }
+    DensityDslElement densityDslElement = myDslElement.ensurePropertyElement(DENSITY_BLOCK_NAME, DensityDslElement.class);
     return new DensityModelImpl(densityDslElement);
   }
 
@@ -77,11 +69,7 @@ public class SplitsModelImpl extends GradleDslBlockModel implements SplitsModel 
   @Override
   @NotNull
   public LanguageModel language() {
-    LanguageDslElement languageDslElement = myDslElement.getPropertyElement(LANGUAGE_BLOCK_NAME, LanguageDslElement.class);
-    if (languageDslElement == null) {
-      languageDslElement = new LanguageDslElement(myDslElement);
-      myDslElement.setNewElement(languageDslElement);
-    }
+    LanguageDslElement languageDslElement = myDslElement.ensurePropertyElement(LANGUAGE_BLOCK_NAME, LanguageDslElement.class);
     return new LanguageModelImpl(languageDslElement);
   }
 

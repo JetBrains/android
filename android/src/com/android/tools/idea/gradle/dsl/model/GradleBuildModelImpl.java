@@ -21,6 +21,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement.CONFIGURATIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA_BLOCK_NAME;
@@ -358,22 +359,14 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   @NotNull
   public AndroidModel android() {
-    AndroidDslElement androidDslElement = myGradleDslFile.getPropertyElement(ANDROID_BLOCK_NAME, AndroidDslElement.class);
-    if (androidDslElement == null) {
-      androidDslElement = new AndroidDslElement(myGradleDslFile);
-      myGradleDslFile.setNewElement(androidDslElement);
-    }
+    AndroidDslElement androidDslElement = myGradleDslFile.ensurePropertyElement(ANDROID_BLOCK_NAME, AndroidDslElement.class);
     return new AndroidModelImpl(androidDslElement);
   }
 
   @NotNull
   @Override
   public BuildScriptModel buildscript() {
-    BuildScriptDslElement buildScriptDslElement = myGradleDslFile.getPropertyElement(BUILDSCRIPT_BLOCK_NAME, BuildScriptDslElement.class);
-    if (buildScriptDslElement == null) {
-      buildScriptDslElement = new BuildScriptDslElement(myGradleDslFile);
-      myGradleDslFile.setNewElement(buildScriptDslElement);
-    }
+    BuildScriptDslElement buildScriptDslElement = myGradleDslFile.ensurePropertyElement(BUILDSCRIPT_BLOCK_NAME, BuildScriptDslElement.class);
     return new BuildScriptModelImpl(buildScriptDslElement);
   }
 
@@ -381,11 +374,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   public ConfigurationsModel configurations() {
     ConfigurationsDslElement configurationsDslElement =
-      myGradleDslFile.getPropertyElement(ConfigurationsDslElement.CONFIGURATIONS_BLOCK_NAME, ConfigurationsDslElement.class);
-    if (configurationsDslElement == null) {
-      configurationsDslElement = new ConfigurationsDslElement(myGradleDslFile);
-      myGradleDslFile.addNewElementBeforeAllOfClass(configurationsDslElement, DependenciesDslElement.class);
-    }
+      myGradleDslFile.ensurePropertyElementBefore(CONFIGURATIONS_BLOCK_NAME, ConfigurationsDslElement.class, DependenciesDslElement.class);
     return new ConfigurationsModelImpl(configurationsDslElement);
   }
 
@@ -393,36 +382,26 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   public DependenciesModel dependencies() {
     DependenciesDslElement dependenciesDslElement =
-      myGradleDslFile.getPropertyElement(DEPENDENCIES_BLOCK_NAME, DependenciesDslElement.class);
-    if (dependenciesDslElement == null) {
-      dependenciesDslElement = new DependenciesDslElement(myGradleDslFile);
-      myGradleDslFile.setNewElement(dependenciesDslElement);
-    }
+      myGradleDslFile.ensurePropertyElement(DEPENDENCIES_BLOCK_NAME, DependenciesDslElement.class);
     return new DependenciesModelImpl(dependenciesDslElement);
   }
 
   @Override
   @NotNull
   public ExtModel ext() {
-    ExtDslElement extDslElement = myGradleDslFile.getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
-    if (extDslElement == null) {
-      extDslElement = new ExtDslElement(myGradleDslFile);
-      // Place the Ext element just after the applied plugins, if present.
-      List<GradleDslElement> elements = myGradleDslFile.getAllElements();
-      int index = (!elements.isEmpty() && elements.get(0) instanceof ApplyDslElement) ? 1 : 0;
-      myGradleDslFile.addNewElementAt(index, extDslElement);
+    int at = 0;
+    List<GradleDslElement> elements = myGradleDslFile.getAllElements();
+    if (!elements.isEmpty() && elements.get(0) instanceof ApplyDslElement) {
+      at += 1;
     }
+    ExtDslElement extDslElement = myGradleDslFile.ensurePropertyElementAt(EXT_BLOCK_NAME, ExtDslElement.class, at);
     return new ExtModelImpl(extDslElement);
   }
 
   @NotNull
   @Override
   public JavaModel java() {
-    JavaDslElement javaDslElement = myGradleDslFile.getPropertyElement(JAVA_BLOCK_NAME, JavaDslElement.class);
-    if (javaDslElement == null) {
-      javaDslElement = new JavaDslElement(myGradleDslFile);
-      myGradleDslFile.setNewElement(javaDslElement);
-    }
+    JavaDslElement javaDslElement = myGradleDslFile.ensurePropertyElement(JAVA_BLOCK_NAME, JavaDslElement.class);
     return new JavaModelImpl(javaDslElement);
   }
 
@@ -430,11 +409,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   public RepositoriesModel repositories() {
     RepositoriesDslElement repositoriesDslElement =
-      myGradleDslFile.getPropertyElement(REPOSITORIES_BLOCK_NAME, RepositoriesDslElement.class);
-    if (repositoriesDslElement == null) {
-      repositoriesDslElement = new RepositoriesDslElement(myGradleDslFile);
-      myGradleDslFile.setNewElement(repositoriesDslElement);
-    }
+      myGradleDslFile.ensurePropertyElement(REPOSITORIES_BLOCK_NAME, RepositoriesDslElement.class);
     return new RepositoriesModelImpl(repositoriesDslElement);
   }
 
