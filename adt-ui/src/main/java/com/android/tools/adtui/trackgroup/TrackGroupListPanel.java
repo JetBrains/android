@@ -88,7 +88,11 @@ public class TrackGroupListPanel implements TrackGroupMover {
 
   public <T> void registerMultiSelectionModel(@NotNull MultiSelectionModel<T> multiSelectionModel) {
     myTrackGroups.forEach(
-      trackGroup -> trackGroup.getTrackList().addListSelectionListener(new TrackGroupSelectionListener<>(trackGroup, multiSelectionModel))
+      trackGroup -> {
+        if (trackGroup.getModel().isTrackSelectable()) {
+          trackGroup.getTrackList().addListSelectionListener(new TrackGroupSelectionListener<>(trackGroup, multiSelectionModel));
+        }
+      }
     );
   }
 
