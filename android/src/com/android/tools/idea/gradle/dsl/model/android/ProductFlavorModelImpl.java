@@ -90,12 +90,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @NotNull
   public ExternalNativeBuildOptionsModel externalNativeBuild() {
     ExternalNativeBuildOptionsDslElement externalNativeBuildOptionsDslElement =
-      myDslElement.getPropertyElement(EXTERNAL_NATIVE_BUILD_BLOCK_NAME,
-                                      ExternalNativeBuildOptionsDslElement.class);
-    if (externalNativeBuildOptionsDslElement == null) {
-      externalNativeBuildOptionsDslElement = new ExternalNativeBuildOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(externalNativeBuildOptionsDslElement);
-    }
+      myDslElement.ensurePropertyElement(EXTERNAL_NATIVE_BUILD_BLOCK_NAME, ExternalNativeBuildOptionsDslElement.class);
     return new ExternalNativeBuildOptionsModelImpl(externalNativeBuildOptionsDslElement);
   }
 
@@ -165,11 +160,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @Override
   @NotNull
   public NdkOptionsModel ndk() {
-    NdkOptionsDslElement ndkOptionsDslElement = myDslElement.getPropertyElement(NDK_BLOCK_NAME, NdkOptionsDslElement.class);
-    if (ndkOptionsDslElement == null) {
-      ndkOptionsDslElement = new NdkOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(ndkOptionsDslElement);
-    }
+    NdkOptionsDslElement ndkOptionsDslElement = myDslElement.ensurePropertyElement(NDK_BLOCK_NAME, NdkOptionsDslElement.class);
     return new NdkOptionsModelImpl(ndkOptionsDslElement);
   }
 
@@ -260,11 +251,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @Override
   public VectorDrawablesOptionsModel vectorDrawables() {
     VectorDrawablesOptionsDslElement vectorDrawableElement =
-      myDslElement.getPropertyElement(VECTOR_DRAWABLES_OPTIONS_BLOCK_NAME, VectorDrawablesOptionsDslElement.class);
-    if (vectorDrawableElement == null) {
-      vectorDrawableElement = new VectorDrawablesOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(vectorDrawableElement);
-    }
+      myDslElement.ensurePropertyElement(VECTOR_DRAWABLES_OPTIONS_BLOCK_NAME, VectorDrawablesOptionsDslElement.class);
     return new VectorDrawablesOptionsModelImpl(vectorDrawableElement);
   }
 

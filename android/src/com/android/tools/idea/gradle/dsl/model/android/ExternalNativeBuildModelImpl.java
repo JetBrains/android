@@ -37,11 +37,7 @@ public class ExternalNativeBuildModelImpl extends GradleDslBlockModel implements
   @NotNull
   @Override
   public CMakeModel cmake() {
-    CMakeDslElement cMakeDslElement = myDslElement.getPropertyElement(CMAKE_BLOCK_NAME, CMakeDslElement.class);
-    if (cMakeDslElement == null) {
-      cMakeDslElement = new CMakeDslElement(myDslElement);
-      myDslElement.setNewElement(cMakeDslElement);
-    }
+    CMakeDslElement cMakeDslElement = myDslElement.ensurePropertyElement(CMAKE_BLOCK_NAME, CMakeDslElement.class);
     return new CMakeModelImpl(cMakeDslElement);
   }
 
@@ -55,11 +51,7 @@ public class ExternalNativeBuildModelImpl extends GradleDslBlockModel implements
   @NotNull
   @Override
   public NdkBuildModel ndkBuild() {
-    NdkBuildDslElement ndkBuildDslElement = myDslElement.getPropertyElement(NDK_BUILD_BLOCK_NAME, NdkBuildDslElement.class);
-    if (ndkBuildDslElement == null) {
-      ndkBuildDslElement = new NdkBuildDslElement(myDslElement);
-      myDslElement.setNewElement(ndkBuildDslElement);
-    }
+    NdkBuildDslElement ndkBuildDslElement = myDslElement.ensurePropertyElement(NDK_BUILD_BLOCK_NAME, NdkBuildDslElement.class);
     return new NdkBuildModelImpl(ndkBuildDslElement);
   }
 

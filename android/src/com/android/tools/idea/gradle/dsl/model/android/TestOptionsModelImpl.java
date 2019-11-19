@@ -52,11 +52,7 @@ public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOpt
   @Override
   @NotNull
   public UnitTestsModel unitTests() {
-    UnitTestsDslElement unitTestsDslElement = myDslElement.getPropertyElement(UNIT_TESTS_BLOCK_NAME, UnitTestsDslElement.class);
-    if (unitTestsDslElement == null) {
-      unitTestsDslElement = new UnitTestsDslElement(myDslElement);
-      myDslElement.setNewElement(unitTestsDslElement);
-    }
+    UnitTestsDslElement unitTestsDslElement = myDslElement.ensurePropertyElement(UNIT_TESTS_BLOCK_NAME, UnitTestsDslElement.class);
     return new UnitTestsModelImpl(unitTestsDslElement);
   }
 

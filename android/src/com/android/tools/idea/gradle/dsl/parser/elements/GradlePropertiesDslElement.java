@@ -22,7 +22,9 @@ import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ElementSort;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
+import java.lang.reflect.InvocationTargetException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -372,6 +374,65 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   public <T extends GradleDslElement> T getPropertyElement(@NotNull String property, @NotNull Class<T> clazz) {
     GradleDslElement propertyElement = getPropertyElement(property);
     return clazz.isInstance(propertyElement) ? clazz.cast(propertyElement) : null;
+  }
+
+  @NotNull
+  public <T extends GradleDslElement> T ensurePropertyElement(@NotNull String property, @NotNull Class<T> clazz) {
+    return ensurePropertyElement(property, clazz, false, null);
+  }
+
+  @NotNull
+  public <T extends GradleDslElement> T ensurePropertyElementAt(@NotNull String property, @NotNull Class<T> clazz, Integer at) {
+    return ensurePropertyElement(property, clazz, false, at);
+  }
+
+  @NotNull
+  public <T extends GradleDslElement, U> T ensurePropertyElementBefore(@NotNull String property, @NotNull Class<T> clazz, Class<U> before) {
+    Integer at = null;
+    List<GradleDslElement> elements = getAllElements();
+    for (int i = 0; i < elements.size(); i++) {
+      if (before.isInstance(elements.get(i))) {
+        at = i;
+        break;
+      }
+    }
+    return ensurePropertyElement(property, clazz, false, at);
+  }
+
+  @NotNull
+  public <T extends GradleDslElement> T ensureNamedPropertyElement(@NotNull String property, @NotNull Class<T> clazz) {
+    return ensurePropertyElement(property, clazz, true, null);
+  }
+
+  @NotNull
+  public <T extends GradleDslElement> T ensurePropertyElement(
+    @NotNull String property,
+    @NotNull Class<T> clazz,
+    boolean named,
+    Integer at
+  ) {
+    T propertyElement = getPropertyElement(property, clazz);
+    if (propertyElement != null) return propertyElement;
+    T newElement;
+    try {
+      if (named) {
+        GradleNameElement name = GradleNameElement.create(property);
+        newElement = clazz.getDeclaredConstructor(GradleDslElement.class, GradleNameElement.class).newInstance(this, name);
+      }
+      else {
+        newElement = clazz.getDeclaredConstructor(GradleDslElement.class).newInstance(this);
+      }
+    } catch (ReflectiveOperationException e) {
+      Logger.getInstance(GradlePropertiesDslElement.class).error(e);
+      throw new RuntimeException(e);
+    }
+    if (at != null) {
+      addNewElementAt(at, newElement);
+    }
+    else {
+      setNewElement(newElement);
+    }
+    return newElement;
   }
 
   @Nullable
