@@ -50,6 +50,7 @@ import com.android.tools.idea.templates.findModule
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.SourceSetType
 import com.android.tools.idea.wizard.template.findResource
 import com.android.utils.XmlUtils.XML_PROLOG
@@ -89,7 +90,8 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
   private val io: RecipeIO = if (context.dryRun) DryRunRecipeIO() else RecipeIO()
   private val readonlyStatusHandler: ReadonlyStatusHandler = ReadonlyStatusHandler.getInstance(project)
 
-  private val templateData: ModuleTemplateData get() = context.templateData
+  private val projectTemplateData: ProjectTemplateData get() = context.projectTemplateData
+  private val moduleTemplateData: ModuleTemplateData? get() = context.templateData as? ModuleTemplateData
 
   @Suppress("DEPRECATION")
   override fun hasDependency(mavenCoordinate: String, configuration: String?): Boolean {
@@ -223,14 +225,13 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
    */
   override fun addDependency(mavenCoordinate: String, configuration: String) {
     // Translate from "compile" to "implementation" based on the parameter map context
-    val newConfiguration = convertConfiguration(templateData.projectTemplateData.gradlePluginVersion, configuration)
+    val newConfiguration = convertConfiguration(projectTemplateData.gradlePluginVersion, configuration)
     referencesExecutor.addDependency(newConfiguration, mavenCoordinate)
-    //context.dependencies.put(newConfiguration, mavenCoordinate)
 
     val buildFile = getBuildFilePath(context)
 
-    val configuration = GradleUtil.mapConfigurationName(configuration, context.templateData.projectTemplateData.gradlePluginVersion, false)
-    val mavenCoordinate = resolveDependency(RepositoryUrlManager.get(), convertToAndroidX (mavenCoordinate), null)
+    val configuration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
+    val mavenCoordinate = resolveDependency(RepositoryUrlManager.get(), convertToAndroidX(mavenCoordinate), null)
 
     if (hasDependency(mavenCoordinate)) {
       return
@@ -388,14 +389,14 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
       updateCompatibility(sourceCompatibility())
       updateCompatibility(targetCompatibility())
     }
-    if (kotlinSupport && !context.templateData.isDynamic) {
+    if (kotlinSupport && (context.templateData as? ModuleTemplateData)?.isDynamic != true) {
       updateCompatibility(buildModel.android().kotlinOptions().jvmTarget())
     }
     io.applyChanges(buildModel)
   }
 
   private fun convertToAndroidX(mavenCoordinate: String): String =
-    if (templateData.projectTemplateData.androidXSupport)
+    if (projectTemplateData.androidXSupport)
       AndroidxNameUtils.getVersionedCoordinateMapping(mavenCoordinate)
     else
       mavenCoordinate
@@ -445,7 +446,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     File(context.outputRoot, file.path)
 
   private fun readTextFile(file: File): String? =
-    if (templateData.isNew)
+    if (moduleTemplateData?.isNew != false)
       readTextFromDisk(file)
     else
       readTextFromDocument(project, file)
@@ -460,7 +461,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
       return content
     }
 
-    val packageName: String? = templateData.projectTemplateData.applicationPackage ?: templateData.packageName
+    val packageName: String? = projectTemplateData.applicationPackage ?: moduleTemplateData?.packageName
 
     val factory = XmlElementFactory.getInstance(project)
     val root = factory.createTagFromText(content)
@@ -608,7 +609,7 @@ fun getBuildModel(buildFile: File, project: Project): GradleBuildModel? {
 private fun getBuildFilePath(context: RenderingContext2): File {
   val module = context.module
   val moduleBuildFile = if (module == null) null else getGradleBuildFile(module)
-  return moduleBuildFile?.let { virtualToIoFile(it) } ?: findGradleBuildFile(context.moduleRoot)
+  return moduleBuildFile?.let { virtualToIoFile(it) } ?: findGradleBuildFile(context.moduleRoot!!)
 }
 
 // TODO(qumeric): make private

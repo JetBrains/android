@@ -68,6 +68,7 @@ import com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesFor
 import com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.util.toIoFile
+import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.BooleanParameter
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -232,14 +233,7 @@ data class ProjectChecker(
     val projectRoot = VfsUtilCore.virtualToIoFile(project.guessProjectDir()!!)
     val moduleRoot = File(projectRoot, moduleName)
     val projectTemplateDataBuilder = ProjectTemplateDataBuilder(activityCreationMode == ActivityCreationMode.WITHOUT_PROJECT).apply {
-      minApi = activityState.getString(ATTR_MIN_API)
-      minApiLevel = activityState.getInt(ATTR_MIN_API_LEVEL)
-      buildApi = activityState.getInt(ATTR_BUILD_API)
       androidXSupport = activityState.getBoolean(ATTR_ANDROIDX_SUPPORT)
-      buildApiString = activityState.getString(ATTR_BUILD_API_STRING)
-      buildApiRevision = 0
-      targetApi = activityState.getInt(ATTR_TARGET_API)
-      targetApiString = activityState.getString(ATTR_TARGET_API_STRING)
       gradlePluginVersion = GradleVersion.tryParse(activityState.getString(ATTR_GRADLE_PLUGIN_VERSION))
       javaVersion = JavaVersion.parse("1.8")
       sdkDir = File(activityState.getString(ATTR_SDK_DIR))
@@ -249,6 +243,17 @@ data class ProjectChecker(
       topOut = File(activityState.getString(ATTR_TOP_OUT))
       applicationPackage = null
     }
+
+    val apis = ApiTemplateData(
+      minApi = activityState.getString(ATTR_MIN_API),
+      minApiLevel = activityState.getInt(ATTR_MIN_API_LEVEL),
+      buildApi = activityState.getInt(ATTR_BUILD_API),
+      buildApiString = activityState.getString(ATTR_BUILD_API_STRING),
+      buildApiRevision = 0,
+      targetApi = activityState.getInt(ATTR_TARGET_API),
+      targetApiString = activityState.getString(ATTR_TARGET_API_STRING)
+    )
+
     val moduleTemplateData = ModuleTemplateData(
       projectTemplateDataBuilder.build(),
       File(activityState.getString(ATTR_SRC_OUT)),
@@ -266,8 +271,10 @@ data class ProjectChecker(
       packageName,
       FormFactor.Mobile,
       ThemesData(),
-      null
+      null,
+      apis
     )
+
     val context = RenderingContext2(
       project = project,
       module = null,
@@ -277,6 +284,7 @@ data class ProjectChecker(
       dryRun = false,
       showErrors = true
     )
+
     val executor = DefaultRecipeExecutor2(context)
     // Updates wizardParameterData for all parameters.
     if (newTemplate != null) {
@@ -393,7 +401,7 @@ data class ProjectChecker(
      * Set of relative file paths that are going to be excluded from the comparison of [compareFilesBetweenNewAndOldRenderingContexts].
      */
     private val comparisonExcludedPaths = setOf(
-      "gradle/wrapper/gradle-wrapper.properties" // Created time should be different
+      "gradle/wrapper/gradle-wrapper.properties" // Creation time may be different
     )
 
     // It is fine to do comparison ignoring whitespace because we do format all files after rendering anyway.

@@ -20,8 +20,8 @@ import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.template.Language
-import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
+import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.Template
 import com.google.common.annotations.VisibleForTesting
@@ -51,7 +51,7 @@ fun Template.render(c: RenderingContext2, e: RecipeExecutor): Boolean {
     }
 
   if (!c.dryRun && this != Template.NoActivity) {
-    logRendering(c.templateData, c.project)
+    logRendering(c.projectTemplateData, c.project)
   }
 
   if (!c.dryRun) {
@@ -180,15 +180,15 @@ internal fun titleToTemplateRenderer(title: String): AndroidStudioEvent.Template
   else -> AndroidStudioEvent.TemplateRenderer.CUSTOM_TEMPLATE_RENDERER
 }
 
-fun Template.logRendering(moduleTemplateData: ModuleTemplateData, project: Project) {
+fun Template.logRendering(projectTemplateData: ProjectTemplateData, project: Project) {
   val aseBuilder = AndroidStudioEvent.newBuilder()
     .setCategory(AndroidStudioEvent.EventCategory.TEMPLATE)
     .setKind(AndroidStudioEvent.EventKind.TEMPLATE_RENDER)
     .setTemplateRenderer(titleToTemplateRenderer(this.name))
     .setKotlinSupport(
       KotlinSupport.newBuilder()
-        .setIncludeKotlinSupport(moduleTemplateData.projectTemplateData.language == Language.Kotlin)
-        .setKotlinSupportVersion(moduleTemplateData.projectTemplateData.kotlinVersion))
+        .setIncludeKotlinSupport(projectTemplateData.language == Language.Kotlin)
+        .setKotlinSupportVersion(projectTemplateData.kotlinVersion))
   UsageTracker.log(aseBuilder.withProjectId(project))
 
   /*TODO(qumeric)

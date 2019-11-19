@@ -19,10 +19,12 @@ import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.repository.io.FileOpUtils
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleWrapper
+/* TODO(uncomment in next cl): import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectRecipe */
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.platform.Language.JAVA
 import com.android.tools.idea.npw.platform.Language.KOTLIN
@@ -41,9 +43,15 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_CPP_FLAGS
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_CPP_SUPPORT
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_PROJECT
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_TOP_OUT
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
+import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
 import com.android.tools.idea.templates.recipe.RenderingContext
+import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.WizardConstants
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.ProjectTemplateData
+import com.android.tools.idea.wizard.template.Recipe
+import com.android.tools.idea.wizard.template.TemplateData
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
@@ -70,6 +78,8 @@ import java.util.Optional
 import java.util.regex.Pattern
 
 private val logger: Logger get() = logger<NewProjectModel>()
+
+typealias AndroidProjectRecipe = (String, Language, Boolean) -> Recipe
 
 interface ProjectModelData {
   val projectSyncInvoker: ProjectSyncInvoker
@@ -176,6 +186,20 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     lateinit var projectTemplate: Template
     @WorkerThread
     override fun init() {
+      if (StudioFlags.NPW_NEW_PROJECT_TEMPLATE.get()) {
+        projectTemplateDataBuilder.apply {
+          // TODO(qumeric)
+          // cppSupport = this@NewProjectModel.cppSupport.get()
+          // cppFlags = this@NewProjectModel.cppFlags.get()
+          topOut = File(project.value.basePath ?: "")
+          androidXSupport = !useAppCompat.get()
+
+          setProjectDefaults(project.value)
+          language = this@NewProjectModel.language.value
+        }
+        return
+      }
+
       projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME)
       // Cpp Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
       projectTemplateValues[ATTR_CPP_SUPPORT] = enableCppSupport.get()
@@ -219,6 +243,25 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     }
 
     private fun performCreateProject(dryRun: Boolean) {
+      if (StudioFlags.NPW_NEW_PROJECT_TEMPLATE.get()) {
+        val context = RenderingContext2(
+          project.value,
+          null,
+          "New Project",
+          projectTemplateDataBuilder.build(),
+          showErrors = true,
+          dryRun = dryRun,
+          moduleRoot = null
+        )
+        val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
+        val recipe: AndroidProjectRecipe = { appTitle, language, useAndroidX ->
+          { data: TemplateData -> /* TODO(uncomment in next cl): androidProjectRecipe(data as ProjectTemplateData, appTitle, language, useAndroidX)*/ }
+        }
+
+        recipe(applicationName.get(), language.value, !useAppCompat.get()).doRender(context, executor)
+        return
+      }
+
       val context = RenderingContext.Builder.newContext(projectTemplate, project.value)
         .withCommandName("New Project")
         .withDryRun(dryRun)

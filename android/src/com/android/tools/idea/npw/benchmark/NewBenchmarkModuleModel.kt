@@ -41,7 +41,7 @@ class NewBenchmarkModuleModel(
       super.init()
       val modulePaths = createDefaultTemplateAt(project.basePath!!, moduleName.get()).paths
 
-      val newValues = mutableMapOf<String, Any>(
+      val newValues = mutableMapOf(
           ATTR_APP_TITLE to moduleName.get(),
           ATTR_IS_NEW_MODULE to true,
           ATTR_IS_LIBRARY_MODULE to true
