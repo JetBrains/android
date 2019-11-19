@@ -93,6 +93,8 @@ public class NewModuleTest {
       .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
+    String gradleFileContents = guiTest.getProjectFileText("mylib/build.gradle");
+    assertThat(gradleFileContents).contains("apply plugin: 'kotlin'");
     assertAbout(file()).that(guiTest.getProjectPath("mylib/src/main/java/my/test/MyClass.kt")).isFile();
   }
 

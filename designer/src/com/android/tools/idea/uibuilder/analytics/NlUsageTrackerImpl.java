@@ -22,6 +22,7 @@ import static com.android.SdkConstants.SEEK_BAR;
 import static com.android.tools.idea.common.analytics.UsageTrackerUtil.convertTagName;
 
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.common.analytics.CommonUsageTrackerKt;
 import com.android.tools.idea.common.analytics.CommonUsageTracker;
 import com.android.tools.idea.common.analytics.CommonUsageTrackerImpl;
 import com.android.tools.idea.common.analytics.UsageTrackerUtil;
@@ -81,7 +82,17 @@ public class NlUsageTrackerImpl implements NlUsageTracker {
   NlUsageTrackerImpl(@NotNull Executor executor,
                      @Nullable DesignSurface surface,
                      @NotNull Consumer<AndroidStudioEvent.Builder> eventLogger) {
-    myCommonTracker = new CommonUsageTrackerImpl(executor, surface, eventLogger);
+
+    if (surface == null || surface.getModel() == null) {
+      myCommonTracker = new CommonUsageTrackerImpl(executor, surface, eventLogger);
+    }
+    else {
+      Consumer<AndroidStudioEvent.Builder> builder = delegatingBuilder -> {
+        CommonUsageTrackerKt.setApplicationId(delegatingBuilder, surface.getModel().getFacet());
+        eventLogger.accept(delegatingBuilder);
+      };
+      myCommonTracker = new CommonUsageTrackerImpl(executor, surface, builder);
+    }
   }
 
   @Override

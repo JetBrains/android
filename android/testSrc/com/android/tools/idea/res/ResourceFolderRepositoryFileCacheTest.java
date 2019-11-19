@@ -102,7 +102,7 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     assertNull(cachingData);
 
     // Remove the invalidation stamp. We can use the cache again.
-    cache.delete();
+    cache.clear();
     resCacheDir = cache.getCachingData(getProject(), resDir, null).getCacheFile();
     assertNotNull(resCacheDir);
     assertTrue(cache.isValid());
