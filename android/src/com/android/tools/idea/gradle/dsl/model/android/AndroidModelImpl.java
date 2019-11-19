@@ -53,6 +53,7 @@ import com.android.tools.idea.gradle.dsl.api.android.ViewBindingModel;
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.AdbOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
@@ -237,7 +238,9 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public ResolvedPropertyModel dynamicFeatures() {
-    return getModelForProperty(DYNAMIC_FEATURES);
+    // TODO(xof): if we tabulated the information, we could look up the set-like nature or otherwise of properties from myDslElement.
+    //  - or keep it in the property itself, by not having a bare string identifier.
+    return GradlePropertyModelBuilder.create(myDslElement, DYNAMIC_FEATURES).asSet(true).buildResolved();
   }
 
   @NotNull

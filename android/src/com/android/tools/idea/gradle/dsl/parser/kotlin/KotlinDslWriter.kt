@@ -168,7 +168,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       }
       else if (element.name.isEmpty()){
         // This is the case where we are handling a list element
-        statementText += "listOf()"
+        statementText += if (element.isSet) "mutableSetOf()" else "listOf()"
         isRealList = true
       }
       else {
@@ -474,8 +474,9 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
 
     if (psiElement is KtCallExpression) return psiElement
 
+    val emptyListText = if (expressionList.isSet) "mutableSetOf()" else "listOf()"
     if (psiElement is KtBinaryExpression) {
-      val emptyList = KtPsiFactory(psiElement.project).createExpression("listOf()")
+      val emptyList = KtPsiFactory(psiElement.project).createExpression(emptyListText)
       val added = psiElement.addAfter(emptyList, psiElement.lastChild)
       expressionList.psiElement = added
       return expressionList.psiElement
@@ -492,14 +493,14 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       if (psiElement.hasDelegate()) {
         // This is the case of a property with a delegate (ex: extra property).
         val delegateExpressionArgs = (psiElement.delegateExpression as? KtCallExpression)?.valueArgumentList ?: return null
-        val valueArgument = KtPsiFactory(psiElement.project).createArgument("listOf()")
+        val valueArgument = KtPsiFactory(psiElement.project).createArgument(emptyListText)
         val listElement = delegateExpressionArgs.addArgument(valueArgument).getArgumentExpression() ?: return null
         expressionList.psiElement = listElement
         return expressionList.psiElement
       }
       else {
         // This should be the case of a property with an initializer (ex: val prop = listOf()).
-        val emptyList = KtPsiFactory(psiElement.project).createExpression("listOf()")
+        val emptyList = KtPsiFactory(psiElement.project).createExpression(emptyListText)
         val added = psiElement.addAfter(emptyList, psiElement.lastChild)
         expressionList.psiElement = added
         return expressionList.psiElement
