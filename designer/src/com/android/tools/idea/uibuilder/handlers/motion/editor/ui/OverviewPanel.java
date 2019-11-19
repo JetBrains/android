@@ -213,7 +213,7 @@ class OverviewPanel extends JPanel {
 
                            case KeyEvent.VK_DELETE:
                            case KeyEvent.VK_BACK_SPACE:
-                             if (mConstraintSetSelected > 0) {
+                             if (mConstraintSetSelected > 0 && (mConstraintSetSelected - 1) < mConstraintSet.length) {
                                mListener.delete(new MTag[]{mConstraintSet[mConstraintSetSelected - 1]}, 0);
                              }
                              return;
@@ -602,8 +602,9 @@ class OverviewPanel extends JPanel {
     }
     maxStringWidth = fm.stringWidth(maxString);
     int margin = MEUI.scale(1);
+    g.setFont(ourBaseFont);
     while (csWidth < maxStringWidth + margin) {
-      float f = ourBaseFont.getSize() / 1.4f;
+      float f = g.getFont().getSize() / 1.4f;
       g.setFont(g.getFont().deriveFont(f));
       fm = g.getFontMetrics();
       maxStringWidth = fm.stringWidth(maxString);

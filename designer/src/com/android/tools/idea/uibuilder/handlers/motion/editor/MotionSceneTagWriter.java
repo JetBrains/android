@@ -97,7 +97,7 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
       update(root, commandName);
     }
     else {
-      myXmlTag = createConstraint(mType, this, root);
+      myXmlTag = createTag(mType, this, root, commandName);
     }
     MotionSceneTag result = new MotionSceneTag(myXmlTag, mParent);
     for (MTag child : myChildren) {
@@ -169,9 +169,9 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
       .withName(commandName).withGroupId(null).compute(() -> computable.compute());
   }
 
-  public static XmlTag createConstraint(String type, MotionSceneTagWriter tag, MotionSceneTag.Root root) {
+  public static XmlTag createTag(String type, MotionSceneTagWriter tag, MotionSceneTag.Root root, String commandName) {
 
-    XmlTag createdTag = writeAction(root, "Create Constraints", () -> {
+    XmlTag createdTag = writeAction(root, commandName, () -> {
       CommandProcessor.getInstance().addAffectedFiles(root.mProject, root.mModel.getFile().getVirtualFile());
       CommandProcessor.getInstance().addAffectedFiles(root.mProject, root.mXmlFile.getVirtualFile());
       XmlTag transitionTag = ((MotionSceneTag)tag.getParent()).myXmlTag;
