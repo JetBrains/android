@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.model.java.LanguageLevelPropertyModelIm
 import com.android.tools.idea.gradle.dsl.model.kotlin.JvmTargetPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,6 +74,7 @@ public class GradlePropertyModelBuilder {
   @NotNull
   private PropertyType myType = REGULAR;
   private boolean myIsMethod = false;
+  private boolean myIsSet = false;
   @NotNull
   private List<PropertyTransform> myTransforms = new ArrayList<>();
 
@@ -87,6 +89,9 @@ public class GradlePropertyModelBuilder {
     myName = element.getName();
     myElement = element;
     myIsMethod = !myElement.shouldUseAssignment();
+    if (element instanceof GradleDslExpressionList) {
+      myIsSet = ((GradleDslExpressionList) element).isSet();
+    }
   }
 
   /**
@@ -106,6 +111,11 @@ public class GradlePropertyModelBuilder {
    */
   public GradlePropertyModelBuilder asMethod(boolean bool) {
     myIsMethod = bool;
+    return this;
+  }
+
+  public GradlePropertyModelBuilder asSet(boolean bool) {
+    myIsSet = bool;
     return this;
   }
 
@@ -212,6 +222,10 @@ public class GradlePropertyModelBuilder {
   private <T extends GradlePropertyModelImpl> T setUpModel(@NotNull T model) {
     if (myIsMethod) {
       model.markAsMethodCall();
+    }
+
+    if (myIsSet) {
+      model.markAsSet();
     }
 
     for (PropertyTransform t : myTransforms) {
