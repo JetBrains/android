@@ -42,7 +42,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
 
   fun testHoverToShowToolTips() {
     val surface = myModel.surface
-    val tooltips = surface.focusedSceneView!!.sceneManager.model.configuration.toDisplayName()
+    val tooltips = surface.focusedSceneView!!.sceneManager.model.configuration.toTooltips()
     val interactionHandler = VisualizationInteractionHandler(surface) { PixelDeviceModelsProvider }
 
     val view = surface.sceneManager!!.sceneView
