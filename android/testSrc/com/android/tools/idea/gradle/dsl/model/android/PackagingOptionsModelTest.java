@@ -117,8 +117,9 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
     applyChangesAndReparse(buildModel);
     // TODO(b/144280051): we emit Dsl with syntax errors here
-    // verifyFileContents(myBuildFile, PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED);
-
+    if(!isGroovy()) {
+      verifyFileContents(myBuildFile, PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED);
+    }
     android = buildModel.android();
     assertNotNull(android);
 
@@ -153,6 +154,7 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
+    // TODO(b/143762234): enable this for KotlinScript once the bug is fixed
     assertEquals("excludes", ImmutableList.of("exclude1", "exclude2"), packagingOptions.excludes());
     assertEquals("merges", ImmutableList.of("merge1", "merge2"), packagingOptions.merges());
     assertEquals("pickFirsts", ImmutableList.of("pickFirst1", "pickFirst2"), packagingOptions.pickFirsts());
