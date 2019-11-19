@@ -16,15 +16,17 @@
 package com.android.tools.idea.npw
 
 import com.android.tools.idea.observable.BindingsManager
+import com.android.tools.idea.observable.ObservableValue
 import com.android.tools.idea.observable.SettableValue
 import com.android.tools.idea.observable.expressions.Expression
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 
-fun <T> BindingsManager.bindExpression(dest: SettableValue<T>, supplier: () -> T) {
-  bind(dest, object: Expression<T>() {
+fun <T, O> BindingsManager.bindExpression(dest: SettableValue<T>, listenTo: ObservableValue<O>, supplier: () -> T) {
+  bind(dest, object: Expression<T>(listenTo) {
     override fun get(): T = supplier()
   })
 }
 
-fun invokeLater(modalityState: ModalityState = ModalityState.any(), f: () -> Unit) = ApplicationManager.getApplication().invokeLater(f, ModalityState.any())
+fun invokeLater(modalityState: ModalityState = ModalityState.any(), f: () -> Unit) =
+  ApplicationManager.getApplication().invokeLater(f, modalityState)

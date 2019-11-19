@@ -199,9 +199,9 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     val thumbVisibility = VisibleProperty(templateThumbLabel)
     val parameterDescription = TextProperty(parameterDescriptionLabel)
     bindings.apply {
-      bindExpression(thumb) { thumbnailsCache.getUnchecked(newTemplate.thumb().path) }
-      bindExpression(thumbVisibility) { thumb.get().isPresent }
-      bindExpression(VisibleProperty(footerSeparator)) { parameterDescription.get().isNotEmpty() }
+      bindExpression(thumb, thumbPath) { thumbnailsCache.getUnchecked(newTemplate.thumb().path) }
+      bindExpression(thumbVisibility, thumb) { thumb.get().isPresent }
+      bindExpression(VisibleProperty(footerSeparator), thumb) { parameterDescription.get().isNotEmpty() }
     }
     thumbPath.set(thumbnailPath)
     templateThumbLabel.text = newTemplate.name
