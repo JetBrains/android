@@ -24,7 +24,6 @@ import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonComboBox
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
 import com.android.tools.idea.configurations.LocaleMenuAction
@@ -61,17 +60,16 @@ private const val DEFAULT_CUSTOM_PREVIEW_NAME = "Preview"
 private const val HORIZONTAL_BORDER = 12
 private const val FIELD_VERTICAL_BORDER = 3
 
-private const val DEFAULT_DEVICE_ID = "pixel_3"
-
 /**
- * The panel for creating a custom [Configuration]. When a [Configuration] is created the [createdCallback] is triggered.
+ * The panel for creating a [CustomConfigurationAttribute]. When a [CustomConfigurationAttribute] is created the
+ * [createdCallback] is triggered.
  */
-class ConfigurationCreationPalette(private val file: PsiFile,
-                                   private val facet: AndroidFacet,
-                                   private val createdCallback: (name: String, newConfig: Configuration) -> Unit)
+class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
+                                                  private val facet: AndroidFacet,
+                                                  private val createdCallback: (CustomConfigurationAttribute) -> Unit)
   : AdtPrimaryPanel(BorderLayout()) {
 
-  private var configurationName: String? = null
+  private var configurationName: String = DEFAULT_CUSTOM_PREVIEW_NAME
   private var selectedDevice: Device? = null
   private var selectedApiTarget: IAndroidTarget? = null
   private var selectedOrientation: ScreenOrientation? = null
@@ -84,32 +82,14 @@ class ConfigurationCreationPalette(private val file: PsiFile,
 
   private val createAction = object : AbstractAction() {
     override fun actionPerformed(e: ActionEvent?) {
-      val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
-      val defaultConfig = configurationManager.getConfiguration(file.virtualFile)
-
-      val device = selectedDevice ?: configurationManager.getDeviceById(DEFAULT_DEVICE_ID) ?: configurationManager.defaultDevice!!
-      val apiTarget = selectedApiTarget ?: defaultConfig.target ?: configurationManager.defaultTarget
-      val orientation = selectedOrientation ?: ScreenOrientation.PORTRAIT
-      val locale = selectedLocale ?: configurationManager.locale
-
-      val state = device.defaultState.deepCopy()
-      state.orientation = orientation
-
-      val theme = selectedTheme ?: configurationManager.computePreferredTheme(defaultConfig)
-
-      val uiMode = selectedUiMode ?: defaultConfig.uiMode
-      val nightMode = selectedNightMode ?: defaultConfig.nightMode
-
-      val newConfig = Configuration.create(defaultConfig, file.virtualFile)
-      newConfig.setEffectiveDevice(device, state)
-      newConfig.target = apiTarget
-      newConfig.locale = locale
-      newConfig.setTheme(theme)
-      newConfig.nightMode = nightMode
-      newConfig.uiMode = uiMode
-
-      val modelName = configurationName ?: "Custom: " + newConfig.toDisplayName()
-      createdCallback.invoke(modelName, newConfig)
+      createdCallback(CustomConfigurationAttribute(configurationName,
+                                                   selectedDevice?.id,
+                                                   selectedApiTarget?.version?.apiLevel,
+                                                   selectedOrientation,
+                                                   selectedLocale?.toString(),
+                                                   selectedTheme,
+                                                   selectedUiMode,
+                                                   selectedNightMode))
     }
   }
 
@@ -165,13 +145,12 @@ class ConfigurationCreationPalette(private val file: PsiFile,
   private fun createNameOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
     // It is okay to have duplicated name
-    val editTextField = JBTextField(DEFAULT_CUSTOM_PREVIEW_NAME)
+    val editTextField = JBTextField(configurationName)
     editTextField.document.addDocumentListener(object : DocumentAdapter() {
       override fun textChanged(e: DocumentEvent) {
         configurationName = e.document.getText(0, e.document.length)
       }
     })
-    configurationName = DEFAULT_CUSTOM_PREVIEW_NAME
 
     editTextField.isFocusable = true
     panel.add(editTextField, BorderLayout.CENTER)
@@ -371,15 +350,3 @@ private val DeviceGroup?.orderOfOption: Int
     DeviceGroup.OTHER -> 7
     else -> 8
   }
-
-fun Configuration.toDisplayName(): String {
-  val builder = StringBuilder()
-  device?.let { builder.append(it.displayName) }
-  deviceState?.let { builder.append(", ${it.orientation.name}") }
-  target?.let { builder.append(", API ${it.version.apiLevel}") }
-  builder.append(", ${LocaleMenuAction.getLocaleLabel(locale, false)}")
-  builder.append(", $theme")
-  builder.append(", ${uiMode.longDisplayValue}")
-  builder.append(", ${nightMode.longDisplayValue}")
-  return builder.toString()
-}

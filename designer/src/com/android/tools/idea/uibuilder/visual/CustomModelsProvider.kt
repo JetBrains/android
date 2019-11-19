@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.resources.NightMode
+import com.android.resources.ScreenOrientation
+import com.android.resources.UiMode
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
@@ -27,28 +30,52 @@ import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.facet.AndroidFacet
+import java.util.WeakHashMap
 import java.util.function.Consumer
 
-data class CustomConfiguration(val name: String, val config: Configuration)
+data class NamedConfiguration(val name: String, val config: Configuration)
+
+/**
+ * The name with attributes which are used to create [Configuration].
+ * Note that [name] never be null. If there is no given name then the name is treated as empty string.
+ */
+data class CustomConfigurationAttribute(var name: String,
+                                        var deviceId: String?,
+                                        var apiLevel: Int?,
+                                        var orientation: ScreenOrientation?,
+                                        var localeString: String?,
+                                        var theme: String?,
+                                        var uiMode: UiMode?,
+                                        var nightMode: NightMode?)
 
 /**
  * This class provides the [NlModel]s with custom [Configuration] for [VisualizationForm].<br>
  * The custom [Configuration] is added by [AddCustomConfigurationAction].
  */
 class CustomModelsProvider(private val configurationSetListener: ConfigurationSetListener): VisualizationModelsProvider {
+  private val _configurationsAttributes = VisualizationToolSettings.getInstance().globalState.customConfigurationAttributes.toMutableList()
+  val configurationAttributes: List<CustomConfigurationAttribute>
+    get() = _configurationsAttributes
 
-  private val _customConfigurations = mutableListOf<CustomConfiguration>()
-  val customConfigurations: List<CustomConfiguration> = _customConfigurations
+  /**
+   * Map for recording ([Configuration], [CustomConfigurationAttribute]) pairs. Which is used for removing [CustomConfigurationAttribute].
+   * We use [WeakHashMap] here to avoid leaking [Configuration].
+   */
+  private val configurationToConfigurationAttributesMap = WeakHashMap<Configuration, CustomConfigurationAttribute>()
 
-  fun addConfiguration(config: CustomConfiguration) {
-    _customConfigurations.add(config)
+  fun addCustomConfigurationAttributes(config: CustomConfigurationAttribute) {
+    _configurationsAttributes.add(config)
+    VisualizationToolSettings.getInstance().globalState.customConfigurationAttributes = _configurationsAttributes
     configurationSetListener.onCurrentConfigurationSetUpdated()
   }
 
-  fun removeConfiguration(config: CustomConfiguration) {
-    _customConfigurations.remove(config)
+  fun removeCustomConfigurationAttributes(model: NlModel) {
+    val config = configurationToConfigurationAttributesMap[model.configuration] ?: return
+    _configurationsAttributes.remove(config)
+    VisualizationToolSettings.getInstance().globalState.customConfigurationAttributes = _configurationsAttributes
     configurationSetListener.onCurrentConfigurationSetUpdated()
   }
 
@@ -77,20 +104,46 @@ class CustomModelsProvider(private val configurationSetListener: ConfigurationSe
                               Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
 
     // Custom Configurations
-    for (customConfig in customConfigurations) {
+    for (attributes in configurationAttributes) {
+      val customConfig = attributes.toNamedConfiguration(currentFileConfig) ?: continue
+
       val config = customConfig.config
       val betterFile = ConfigurationMatcher.getBetterMatch(currentFileConfig,
                                                            config.device,
                                                            config.deviceState?.name,
                                                            config.locale,
                                                            config.target) ?: currentFile
-      models.add(NlModel.create(parentDisposable,
-                                customConfig.name,
-                                facet,
-                                betterFile,
-                                config,
-                                Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
+
+      val model = NlModel.create(parentDisposable,
+                                 customConfig.name,
+                                 facet,
+                                 betterFile,
+                                 config,
+                                 Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+      models.add(model)
+      Disposer.register(model, config)
+      configurationToConfigurationAttributesMap[config] = attributes
     }
     return models
   }
+}
+
+private fun CustomConfigurationAttribute.toNamedConfiguration(defaultConfig: Configuration): NamedConfiguration? {
+  val configurationManager = defaultConfig.configurationManager
+  val device = if (deviceId != null) configurationManager.getDeviceById(deviceId!!) else return null
+  val target = configurationManager.targets.firstOrNull { it.version.apiLevel == apiLevel } ?: return null
+  val state = device?.defaultState?.deepCopy()
+  if (state != null) {
+    state.orientation = orientation
+  }
+
+  val newConfig = Configuration.create(defaultConfig, defaultConfig.file!!)
+  newConfig.setEffectiveDevice(device, state)
+  newConfig.target = target
+  newConfig.locale = if (localeString != null) Locale.create(localeString!!) else configurationManager.locale
+  newConfig.setTheme(theme)
+  newConfig.nightMode = nightMode ?: defaultConfig.nightMode
+  newConfig.uiMode = uiMode ?: defaultConfig.uiMode
+  // When the custom configuration has empty name, show its tooltips instead of leave it blank.
+  return NamedConfiguration(if (name != "") name else newConfig.toTooltips(), newConfig)
 }

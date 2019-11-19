@@ -16,18 +16,15 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import org.mockito.Mockito
 import java.awt.event.ActionEvent
-import java.util.function.BiFunction
 import java.util.function.Consumer
 import javax.swing.JButton
 import javax.swing.JPanel
 
-class ConfigurationCreationPaletteTest : LayoutTestCase() {
+class CustomConfigurationAttributeCreationPaletteTest : LayoutTestCase() {
   override fun setUp() {
     DesignerTypeRegistrar.register(LayoutFileType)
     super.setUp()
@@ -45,7 +42,7 @@ class ConfigurationCreationPaletteTest : LayoutTestCase() {
     open class MyConsumer: Consumer<String> { override fun accept(t: String) = Unit }
     val mockedConsumer = Mockito.mock(MyConsumer::class.java)
 
-    val palette = ConfigurationCreationPalette(file, myFacet) { name, _ -> mockedConsumer.accept(name) }
+    val palette = CustomConfigurationAttributeCreationPalette(file, myFacet) { mockedConsumer.accept(it.name) }
 
     val addButton = (palette.components[2] as JPanel).components.filterIsInstance<JButton>().first { it.text == "Add"}
     addButton.action.actionPerformed(Mockito.mock(ActionEvent::class.java))

@@ -54,7 +54,7 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
   override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) {
     val sceneView = surface.getHoverSceneView(mouseX, mouseY)
     if (sceneView != null) {
-      val name = sceneView.sceneManager.model.configuration.toDisplayName()
+      val name = sceneView.sceneManager.model.configuration.toTooltips()
       surface.setDesignToolTip(name)
     }
     else {
@@ -77,9 +77,7 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
     val group = DefaultActionGroup().apply {
       if (model.modelDisplayName != "Default") {
         add(object : AnAction("Remove Configuration", "Remove a custom configuration", null) {
-          override fun actionPerformed(e: AnActionEvent) {
-            customModelsProvider.removeConfiguration(CustomConfiguration(model.modelDisplayName!!, model.configuration))
-          }
+          override fun actionPerformed(e: AnActionEvent) = customModelsProvider.removeCustomConfigurationAttributes(model)
         })
       }
       // TODO: add edit and copy options.
