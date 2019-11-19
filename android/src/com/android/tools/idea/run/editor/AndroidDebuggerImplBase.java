@@ -41,7 +41,7 @@ public abstract class AndroidDebuggerImplBase<S extends AndroidDebuggerState> im
   @Nullable
   protected static DebuggerSession findJdwpDebuggerSession(@NotNull Project project, @NotNull String debugPort) {
     for (DebuggerSession session : DebuggerManagerEx.getInstanceEx(project).getSessions()) {
-      if (debugPort.equals(session.getProcess().getConnection().getDebuggerPort().trim())) {
+      if (debugPort.equals(session.getProcess().getConnection().getDebuggerAddress().trim())) {
         return session;
       }
     }
