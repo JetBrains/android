@@ -226,7 +226,7 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
 
     if (activityCreationMode == ActivityCreationMode.DO_NOT_CREATE) {
       val projectName = "${projectNameBase}_no_activity"
-      return checkProject(projectName, projectState, activityState.apply { putAll(templateOverrides) }, activityCreationMode)
+      return checkProject(projectName, projectState, activityState.apply { putAll(templateOverrides) }, activityCreationMode, false)
     }
 
     val templateState = when (activityCreationMode) {
@@ -253,7 +253,7 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
       fun checkAndRestore(parameterValue: Any) {
         templateState.put(p.id!!, parameterValue)
         val projectName = "${projectNameBase}_${p.id}_$parameterValue"
-        checkProject(projectName, projectState, activityState, activityCreationMode)
+        checkProject(projectName, projectState, activityState, activityCreationMode, true)
         templateState.put(p.id!!, initial)
       }
 
@@ -274,7 +274,7 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
       }
     }
     val projectName = "${projectNameBase}_default"
-    checkProject(projectName, projectState, activityState, activityCreationMode)
+    checkProject(projectName, projectState, activityState, activityCreationMode, false)
   }
 
   /**
@@ -287,7 +287,8 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
     projectName: String,
     projectState: TestNewProjectWizardState,
     activityState: TestTemplateWizardState,
-    activityCreationMode: ActivityCreationMode
+    activityCreationMode: ActivityCreationMode,
+    onlyAndroidX: Boolean
   ) {
     val moduleState = projectState.moduleTemplateState
     val templateMetadata = activityState.template.metadata
@@ -296,15 +297,15 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
     val language = Language.fromName(moduleState[ATTR_LANGUAGE] as String?, Language.JAVA)
     val projectChecker = ProjectChecker(CHECK_LINT, projectState, activityState, usageTracker, language, activityCreationMode)
 
-    if (templateMetadata != null && templateMetadata.constraints.contains(ANDROIDX)) {
-      enableAndroidX(moduleState, activityState)
-    }
-    if (moduleState[ATTR_ANDROIDX_SUPPORT] != true) {
+    val supportLibIsNotSupported = templateMetadata != null && templateMetadata.constraints.contains(ANDROIDX)
+
+    if (!supportLibIsNotSupported && !onlyAndroidX) {
       // Make sure we test all templates against androidx
-      enableAndroidX(moduleState, activityState)
-      projectChecker.checkProject(projectName + "_x")
       disableAndroidX(moduleState, activityState)
+      projectChecker.checkProject(projectName + "_android_support")
     }
+
+    enableAndroidX(moduleState, activityState)
     projectChecker.checkProject(projectName)
     // check that new Activities can be created on lib modules as well as app modules.
     if (checkLib) {
