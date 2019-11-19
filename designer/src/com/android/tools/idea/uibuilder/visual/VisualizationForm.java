@@ -25,6 +25,7 @@ import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.editor.ActionToolbarUtil;
+import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.res.ResourceHelper;
@@ -57,6 +58,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.DefaultFocusTraversalPolicy;
+import java.awt.event.AdjustmentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -79,7 +81,7 @@ import org.jetbrains.annotations.Nullable;
  * Most of the codes are copied from {@link NlPreviewForm} instead of sharing, because {@link NlPreviewForm} is being
  * removed after we enable split editor.
  */
-public class VisualizationForm implements Disposable, ConfigurationSetListener {
+public class VisualizationForm implements Disposable, ConfigurationSetListener, PanZoomListener {
 
   public static final String VISUALIZATION_DESIGN_SURFACE = "VisualizationFormDesignSurface";
 
@@ -121,8 +123,8 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
 
   private FileEditor myEditor;
 
-  @NotNull private ConfigurationSet myCurrentConfigurationSet = ConfigurationSet.PIXEL_DEVICES;
-  @NotNull private VisualizationModelsProvider myCurrentModelsProvider = myCurrentConfigurationSet.getModelsProviderCreator().invoke(this);
+  @NotNull private ConfigurationSet myCurrentConfigurationSet;
+  @NotNull private VisualizationModelsProvider myCurrentModelsProvider;
 
   /**
    * {@link CompletableFuture} of the next model load. This is kept so the load can be cancelled.
@@ -131,6 +133,9 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
 
   public VisualizationForm(@NotNull Project project) {
     myProject = project;
+    myCurrentConfigurationSet = VisualizationToolSettings.getInstance().getGlobalState().getConfigurationSet();
+    myCurrentModelsProvider = myCurrentConfigurationSet.getModelsProviderCreator().invoke(this);
+
     mySurface = NlDesignSurface.builder(myProject, myProject)
       .showModelNames()
       .setIsPreview(false)
@@ -142,6 +147,8 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
                                                      HORIZONTAL_SCREEN_DELTA,
                                                      VERTICAL_SCREEN_DELTA))
       .build();
+    mySurface.addPanZoomListener(this);
+
     updateScreenMode();
     Disposer.register(this, mySurface);
     mySurface.setCentered(true);
@@ -229,6 +236,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
     if (editor != myEditor) {
       myEditor = editor;
       mySurface.setFileEditorDelegate(editor);
+      updateActionToolbar();
     }
   }
 
@@ -256,7 +264,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
     for (NlModel model : models) {
       model.deactivate(this);
       mySurface.removeModel(model);
-      mySurface.zoomToFit();
       Disposer.dispose(model);
     }
   }
@@ -395,7 +402,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
         addModelFuture.thenRunAsync(() -> {
           if (!isRequestCancelled.get() && !facet.isDisposed() && !isAddingModelCanceled.get()) {
             activeModels(models);
-            mySurface.setScale(0.25 / mySurface.getScreenScalingFactor());
+            mySurface.setScale(VisualizationToolSettings.getInstance().getGlobalState().getScale() / mySurface.getScreenScalingFactor());
             myWorkBench.showContent();
           }
           else {
@@ -442,7 +449,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
     }
     else {
       myFile = models.get(0).getVirtualFile();
-      mySurface.zoomToFit();
       setEditor(myPendingEditor);
       myPendingEditor = null;
 
@@ -495,6 +501,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   public void onSelectedConfigurationSetChanged(@NotNull ConfigurationSet newConfigurationSet) {
     if (myCurrentConfigurationSet != newConfigurationSet) {
       myCurrentConfigurationSet = newConfigurationSet;
+      VisualizationToolSettings.getInstance().getGlobalState().setConfigurationSet(newConfigurationSet);
       myCurrentModelsProvider = newConfigurationSet.getModelsProviderCreator().invoke(this);
       refresh();
     }
@@ -522,6 +529,16 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   @Nullable
   public final FileEditor getEditor() {
     return myEditor;
+  }
+
+  @Override
+  public void zoomChanged() {
+    VisualizationToolSettings.getInstance().getGlobalState().setScale(mySurface.getScale());
+  }
+
+  @Override
+  public void panningChanged(AdjustmentEvent adjustmentEvent) {
+    // Do nothing.
   }
 
   private static class VisualizationTraversalPolicy extends DefaultFocusTraversalPolicy {
