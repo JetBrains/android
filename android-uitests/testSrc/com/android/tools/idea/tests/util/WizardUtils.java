@@ -52,8 +52,5 @@ public final class WizardUtils {
       .getProjectView()
       .selectAndroidPane()
       .clickPath("app"); // Focus "app" in "Android Pane" to allow adding Activities through the menus (instead of right click)
-
-    // Hide Gradle tool window if needed, as it takes too much space at the right of the editors and might grab the focus (b/138841171)
-    frame.getGradleToolWindow().hide();
   }
 }

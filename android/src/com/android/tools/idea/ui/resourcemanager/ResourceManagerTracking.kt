@@ -88,12 +88,12 @@ object ResourceManagerTracking {
   /**
    * Called when the user toggles the 'android resources' filter
    */
-  fun logShowFrameworkToggle(state: Boolean) = log(if (state) Kind.LIBRARIES_SHOWN else Kind.LIBRARIES_HIDDEN)
+  fun logShowFrameworkToggle(state: Boolean) = log(if (state) Kind.FRAMEWORK_SHOWN else Kind.FRAMEWORK_HIDDEN)
 
   /**
    * Called when the user toggles the 'theme attributes' filter
    */
-  fun logShowThemeAttributesToggle(state: Boolean) = log(if (state) Kind.THEME_ATTR_HIDDEN else Kind.THEME_ATTR_SHOWN)
+  fun logShowThemeAttributesToggle(state: Boolean) = log(if (state) Kind.THEME_ATTR_SHOWN else Kind.THEME_ATTR_HIDDEN)
 
   /**
    * Called when users drop or paste a resource from the Resource Manager onto a blank area

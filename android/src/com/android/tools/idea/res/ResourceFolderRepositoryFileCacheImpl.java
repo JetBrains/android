@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -164,27 +165,42 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
   }
 
   /**
-   * Deletes the cache from disk, clearing the invalidation stamp.
+   * Deletes the cache files from disk, clearing the invalidation stamp.
    */
   @VisibleForTesting
-  void delete() {
+  void clear() {
     Path rootDir = getRootDir();
     if (rootDir == null) {
       return;
     }
-    // First delete all the subdirectories except for the stamp.
-    try {
-      Files.list(rootDir).forEach(subCache -> {
+    // First delete all the subdirectories but leave the invalidation marker intact.
+    boolean[] errorDeletingDirectories = new boolean[1];
+    try (Stream<Path> stream = Files.list(rootDir)) {
+      stream.forEach(subCache -> {
         if (!subCache.getFileName().toString().equals(INVALIDATION_MARKER_FILE)) {
-          FileUtil.delete(subCache.toFile());
+          try {
+            FileUtil.delete(subCache);
+          }
+          catch (IOException e) {
+            getLogger().error("Failed to delete " + subCache + " directory", e);
+            errorDeletingDirectories[0] = true;
+          }
         }
       });
     }
     catch (IOException ignored) {
     }
 
-    // Finally, delete the stamp and the directory.
-    FileUtil.delete(rootDir.toFile());
+    if (!errorDeletingDirectories[0]) {
+      // Finally, delete the invalidation marker file.
+      Path invalidationMarker = rootDir.resolve(INVALIDATION_MARKER_FILE);
+      try {
+        FileUtil.delete(invalidationMarker);
+      }
+      catch (IOException e) {
+        getLogger().error("Failed to delete " + invalidationMarker + " file", e);
+      }
+    }
   }
 
   /**
@@ -237,7 +253,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
       }
       // If invalid, clear the whole cache directory (including any invalidation stamps).
       if (!cache.isValid()) {
-        cache.delete();
+        cache.clear();
         return;
       }
 
@@ -339,8 +355,8 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
           usedCacheDirectories.add(dir);
         }
       }
-      try {
-        Files.list(projectCacheBase).forEach(file -> {
+      try (Stream<Path> stream = Files.list(projectCacheBase)) {
+        stream.forEach(file -> {
           if (!usedCacheDirectories.contains(file) && !FileUtil.delete(file.toFile())) {
             getLogger().error("Failed to delete " + file);
           }
