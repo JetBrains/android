@@ -68,6 +68,8 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     myReporter = new UnresolvedDependenciesReporter();
     myUsageReporter = new TestSyncIssueUsageReporter();
+    IdeInfo ideInfo = IdeComponents.mockApplicationService(IdeInfo.class, getTestRootDisposable());
+    when(ideInfo.isAndroidStudio()).thenReturn(true);
   }
 
   @Override
@@ -119,9 +121,6 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   }
 
   public void testReportWithConstraintLayout() throws Exception {
-    IdeInfo ideInfo = IdeComponents.mockApplicationService(IdeInfo.class, getTestRootDisposable());
-    when(ideInfo.isAndroidStudio()).thenReturn(true);
-
     loadSimpleApplication();
     mySyncMessagesStub.clearReportedMessages();
 
