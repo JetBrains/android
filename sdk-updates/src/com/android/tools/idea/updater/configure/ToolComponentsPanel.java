@@ -64,7 +64,7 @@ public class ToolComponentsPanel {
 
   // TODO: Add more fine-grained support for ChromeOS to SDK repo infrastructure (b/131738330)
   private static final Set<String> CHROME_OS_INCOMPATIBLE_PATHS =
-    ImmutableSet.of(SdkConstants.FD_EMULATOR, Haxm.HAXM_REPO_PACKAGE_PATH, Gvm.GVM_REPO_PACKAGE_PATH);
+    ImmutableSet.of(SdkConstants.FD_EMULATOR, Haxm.InstallerInfo.getRepoPackagePath(), Gvm.InstallerInfo.getRepoPackagePath());
 
   private TreeTableView myToolsSummaryTable;
   private JCheckBox myToolsDetailsCheckbox;

@@ -205,8 +205,7 @@ public class VmWizard extends DynamicWizard {
           try {
             // The intention was to install VM, but the installation failed. Ensure we don't leave the SDK package behind
             sdkHandler.getSdkManager(myProgressIndicator).reloadLocalIfNeeded(myProgressIndicator);
-            componentInstaller
-              .ensureSdkPackagesUninstalled(myVm.getRequiredSdkPackages(), myProgressIndicator);
+            componentInstaller.ensureSdkPackagesUninstalled(myVm.getRequiredSdkPackages(), myProgressIndicator);
           }
           catch (WizardException e) {
             LOG.warn(myType + " SDK package cleanup failed due to an exception", e);
