@@ -246,7 +246,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
    * is allowed to be a directory, in which case the whole directory is copied recursively)
    */
   override fun copy(from: File, to: File) {
-    val sourceUrl = getResource(from.path)
+    val sourceUrl = getResource(context.templateData.javaClass, "/${from.path}")
     val target = getTargetFile(to)
 
     val sourceFile = findFileByURL(sourceUrl) ?: error("$from ($sourceUrl)")
