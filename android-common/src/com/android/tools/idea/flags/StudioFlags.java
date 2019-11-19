@@ -325,6 +325,15 @@ public final class StudioFlags {
     false);
   //endregion
 
+  //region Resource Manager
+  private static final FlagGroup RES_MANAGER = new FlagGroup(FLAGS, "res.manager", "Resource Manager");
+  public static final Flag<Boolean> EXTENDED_TYPE_FILTERS = Flag.create(
+    RES_MANAGER, "extended.filters", "Enable extended filters for resources",
+    "Adds more filter options for resources based on the selected ResourceType. Includes options to filter by resource XML tag or "
+    + "File extension.",
+    true);
+  //endregion
+
   //region Run/Debug
   private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
