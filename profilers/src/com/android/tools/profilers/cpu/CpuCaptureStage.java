@@ -348,7 +348,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     for (int cpuId = 0; cpuId < cpuCount; ++cpuId) {
       cores.addTrackModel(
         TrackModel.newBuilder(
-          new CpuCoreTrackModel(selectionRange, capture, cpuId, getStudioProfilers().getSession().getPid()),
+          new CpuCoreTrackModel(selectionRange, capture, cpuId),
           ProfilerTrackRendererType.CPU_CORE,
           "CPU " + cpuId));
     }
