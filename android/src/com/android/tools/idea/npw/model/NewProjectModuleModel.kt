@@ -42,6 +42,9 @@ import java.util.Locale
 
 private val log: Logger get() = logger<NewProjectModuleModel>()
 
+/**
+ * Orchestrates creation of the new project. Creates three steps (Project, Model, Activity) and renders them in a proper order.
+ */
 class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardModel() {
   @JvmField
   val formFactor = ObjectValueProperty(FormFactor.MOBILE)

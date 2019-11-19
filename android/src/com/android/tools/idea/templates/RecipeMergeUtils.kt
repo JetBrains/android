@@ -61,7 +61,7 @@ private const val MERGE_ATTR_STRATEGY_PRESERVE = "preserve"
 
 data class RenderingContextAdapter(
   val project: Project,
-  val moduleRoot: File,
+  val moduleRoot: File?,
   val warningsToAdd: MutableCollection<String>
 ) {
   constructor(c: RenderingContext): this(c.project, c.moduleRoot, c.warnings)
@@ -79,7 +79,7 @@ fun mergeXml(context: RenderingContextAdapter, sourceXml: String, targetXml: Str
   fun mergeManifest(): String? {
     XmlUtils.parseDocumentSilently(targetXml, true) ?: error("$targetXml failed to parse")
     XmlUtils.parseDocumentSilently(sourceXml, true) ?: error("$sourceXml failed to parse")
-    val report = mergeManifest(context.moduleRoot, targetFile, targetXml, sourceXml) ?: return null
+    val report = mergeManifest(context.moduleRoot!!, targetFile, targetXml, sourceXml) ?: return null
     if (report.result.isSuccess) {
       return report.getMergedDocument(MergingReport.MergedManifestKind.MERGED)
     }

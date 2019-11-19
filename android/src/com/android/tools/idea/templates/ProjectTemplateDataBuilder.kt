@@ -17,24 +17,19 @@ package com.android.tools.idea.templates
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision
-import com.android.sdklib.AndroidVersion.VersionCodes.P
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.templates.TemplateMetadata.getBuildApiString
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.PackageName
 import com.android.tools.idea.wizard.template.ProjectTemplateData
-import com.android.tools.idea.wizard.template.Version
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -43,9 +38,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl
 import com.intellij.openapi.roots.LanguageLevelProjectExtension
 import com.intellij.util.lang.JavaVersion
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.isAndroidx
-import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.kotlin.idea.versions.bundledRuntimeVersion
 import java.io.File
 
@@ -57,14 +50,7 @@ val log: Logger get() = logger<ProjectTemplateDataBuilder>()
  * Extracts information from various data sources.
  */
 class ProjectTemplateDataBuilder(private val isNew: Boolean) {
-  var minApi: String? = null
-  var minApiLevel: Version? = null
-  var buildApi: Version? = null
   var androidXSupport: Boolean? = null
-  var buildApiString: String? = null
-  var buildApiRevision: Int = 0
-  var targetApi: Version? = null
-  var targetApiString: String? = null
   var gradlePluginVersion: GradleVersion? = null
   var javaVersion: JavaVersion? = null
   var sdkDir: File? = null
@@ -76,7 +62,7 @@ class ProjectTemplateDataBuilder(private val isNew: Boolean) {
   var applicationPackage: PackageName? = null
   val includedFormFactorNames = mutableMapOf<FormFactor, MutableList<String>>()
 
-  private fun setEssentials(project: Project) {
+  internal fun setEssentials(project: Project) {
     kotlinVersion = bundledRuntimeVersion()
     gradlePluginVersion = determineGradlePluginVersion(project)
     javaVersion = determineJavaVersion(project)
@@ -106,55 +92,13 @@ class ProjectTemplateDataBuilder(private val isNew: Boolean) {
   }
 
   /**
-   * Sets information available in the facet.
-   *
-   * Used when the Module exists.
-   */
-  fun setFacet(facet: AndroidFacet) {
-    val module = facet.module
-    val platform = AndroidPlatform.getInstance(module)
-    if (platform != null) {
-      val target = platform.target
-      buildApi = target.version.featureLevel
-      buildApiString = getBuildApiString(target.version)
-      // For parity with the value set in #setBuildVersion, the revision is set to 0 if the release is not a preview.
-      buildApiRevision = if (target.version.isPreview) target.revision else 0
-    }
-
-    val moduleInfo = AndroidModuleInfo.getInstance(facet)
-    val minSdkVersion = moduleInfo.minSdkVersion
-
-    minApi = minSdkVersion.apiString
-    targetApi = moduleInfo.targetSdkVersion.apiLevel
-    targetApiString = moduleInfo.targetSdkVersion.codename
-    minApiLevel = minSdkVersion.featureLevel
-
-    setEssentials(module.project)
-  }
-
-  /**
    * Same as [setFacet], but uses a [AndroidVersionsInfo.VersionItem]. This version is used when the Module is not created yet.
    *
    * @param buildVersion Build version information for the new Module being created.
    * @param project      Used to find the Gradle Dependencies versions. If null, it will use the most recent values known.
    */
   fun setBuildVersion(buildVersion: AndroidVersionsInfo.VersionItem, project: Project) {
-    minApiLevel = buildVersion.minApiLevel
-    minApi = buildVersion.minApiLevelStr
-    buildApi = buildVersion.buildApiLevel
-    if (project.hasAndroidxSupport()) {
-      // The highest supported/recommended appCompact version is P(28)
-      buildApi = buildApi!!.coerceAtLeast(P)
-    }
-    buildApiString = buildVersion.buildApiLevelStr
-    targetApi = buildVersion.targetApiLevel
-    targetApiString = buildVersion.targetApiLevelStr
-    val target = buildVersion.androidTarget
-
-    // Note here that the target is null for a non-preview release, see VersionItem.getAndroidTarget()
-    buildApiRevision = target?.revision ?: 0
-
-    val info = target?.buildToolInfo // for preview release
+    val info = buildVersion.androidTarget?.buildToolInfo // for preview release
     if (info != null) {
       addBuildToolVersion(project, info.revision)
     }
@@ -193,17 +137,10 @@ class ProjectTemplateDataBuilder(private val isNew: Boolean) {
     this == null || isNew || this.isAndroidx()
 
   fun build() = ProjectTemplateData(
-    minApi!!,
-    minApiLevel!!,
-    buildApi!!,
     androidXSupport!!,
-    targetApi!!,
-    targetApiString,
-    buildApiString!!,
-    buildApiRevision,
     gradlePluginVersion!!.toString(),
     javaVersion!!.toString(),
-    sdkDir!!,
+    sdkDir,
     com.android.tools.idea.wizard.template.Language.valueOf(language!!.toString()),
     kotlinVersion!!,
     buildToolsVersion!!.toString(),

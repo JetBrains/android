@@ -187,10 +187,6 @@ class NewModuleModel(
           if (language.get().isPresent) { // For new Projects, we have a different UI, so no Language should be present
             projectTemplateDataBuilder.language = language.value
           }
-          if (useAppCompat.get()) {
-            // The highest supported/recommended appCompact version is P(28)
-            projectTemplateDataBuilder.buildApi = androidSdkInfo.value.buildApiLevel.coerceAtMost(P)
-          }
         }
         val tff = formFactor.get().toTemplateFormFactor()
         projectTemplateDataBuilder.includedFormFactorNames.putIfAbsent(tff, mutableListOf(moduleName.get()))?.add(moduleName.get())

@@ -81,10 +81,11 @@ fun RecipeExecutor.generateAndroidModule(
   val isLibraryProject = data.isLibrary
   val packageName = data.packageName
   val topOut = projectData.rootDir
-  val buildApi = projectData.buildApi
-  val targetApi = projectData.targetApi
+  val apis = data.apis
+  val buildApi = apis.buildApi!!
+  val targetApi = apis.targetApi
+  val minApi = apis.minApiLevel
   val useAndroidX = projectData.androidXSupport
-  val minApi = projectData.minApiLevel
 
   createDirectory(moduleOut.resolve("libs"))
   createDirectory(resOut.resolve("drawable"))
@@ -99,7 +100,7 @@ fun RecipeExecutor.generateAndroidModule(
     isLibraryProject,
     data.baseFeature != null,
     packageName,
-    projectData.buildApiString,
+    apis.buildApiString!!,
     needsExplicitBuildToolsVersion(GradleVersion.parse(projectData.gradlePluginVersion), Revision.parseRevision(buildToolsVersion)),
     buildToolsVersion,
     minApi,
