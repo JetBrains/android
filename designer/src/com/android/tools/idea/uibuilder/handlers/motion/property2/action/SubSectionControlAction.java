@@ -48,6 +48,7 @@ public class SubSectionControlAction extends AnAction {
   public void update(@NotNull AnActionEvent event) {
     boolean isPresent = check();
     Presentation presentation = event.getPresentation();
+    presentation.setDescription(getCommandName(isPresent));
     presentation.setIcon(isPresent ? AllIcons.Diff.GutterCheckBoxSelected : AllIcons.Diff.GutterCheckBox);
     if (myLineModel != null) {
       myLineModel.setEnabled(isPresent);
@@ -57,16 +58,20 @@ public class SubSectionControlAction extends AnAction {
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
     boolean isPresent = check();
+    String commandName = getCommandName(isPresent);
+    if (commandName == null) {
+      return;
+    }
     if (isPresent) {
       MTag.TagWriter tagWriter = myLookupResult.subTag.getTagWriter();
       tagWriter.deleteTag();
-      tagWriter.commit("Remove " + myLookupResult.subTagName);
+      tagWriter.commit(commandName);
     }
     else {
       MTag.TagWriter tagWriter = MotionLayoutAttributesModel.createSubTag(myLookupResult.selection,
                                                                           myLookupResult.tag,
                                                                           myLookupResult.subTagName);
-      tagWriter.commit(String.format("Create %1$s tag", myLookupResult.subTagName));
+      tagWriter.commit(commandName);
     }
   }
 
@@ -92,6 +97,20 @@ public class SubSectionControlAction extends AnAction {
     myLookupResult.subTag = subTag;
 
     return subTag != null;
+  }
+
+  @Nullable
+  private String getCommandName(boolean isPresent) {
+    String subTagName = myLookupResult.subTagName;
+    if (subTagName == null) {
+      return null;
+    }
+    if (!isPresent) {
+      return String.format("Create %1$s tag", subTagName);
+    }
+    else {
+      return String.format("Remove %1$s tag", subTagName);
+    }
   }
 
   private static class LookupResult {
