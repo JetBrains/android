@@ -409,7 +409,9 @@ private fun ProjectDumper.dump(compilerSettings: CompilerSettings) {
   }
 }
 
-private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?: (System.getProperty("user.home") + "/.gradle"))
+private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?:
+                                            System.getenv("GRADLE_USER_HOME") ?:
+                                            (System.getProperty("user.home") + "/.gradle"))
 
 private fun getAdtLocation() : File {
   val alternatives = listOf(
