@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.semantics;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
 public abstract class ArityHelper {
   /**
    * A value of null encodes "this is not a method" (i.e. it is a property)
@@ -27,7 +30,8 @@ public abstract class ArityHelper {
    * @param n
    * @return n
    */
-  public static Integer exactly(Integer n) {
+  @NotNull @Contract(pure = true, value = "_ -> param1")
+  public static Integer exactly(@NotNull Integer n) {
     assert (n >= 0);
     return n;
   }
@@ -45,7 +49,8 @@ public abstract class ArityHelper {
    * @param n
    * @return the bitwise complement of n
    */
-  public static Integer atLeast(Integer n) {
+  @NotNull @Contract(pure = true)
+  public static Integer atLeast(@NotNull Integer n) {
     assert (n >= 0);
     return ~n;
   }
