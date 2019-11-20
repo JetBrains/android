@@ -29,6 +29,7 @@ import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.diagnostic.Logger
@@ -46,9 +47,9 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import icons.StudioIcons
 
-internal fun findComposePreviewManagerForAction(e: AnActionEvent): ComposePreviewManager? {
-  val project = e.project ?: return null
-  val file = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return null
+internal fun findComposePreviewManagerForContext(context: DataContext): ComposePreviewManager? {
+  val project = context.getData(CommonDataKeys.PROJECT) ?: return null
+  val file = context.getData(CommonDataKeys.VIRTUAL_FILE) ?: return null
   return FileEditorManager.getInstance(project)?.getEditors(file)
     ?.filterIsInstance<ComposeTextEditorWithPreview>()
     ?.map { it.preview }
@@ -75,7 +76,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       if (settings.showDecorations != state) {
         // We also persist the settings to the RenderSettings
         settings.showDecorations = state
-        findComposePreviewManagerForAction(e)?.refresh()
+        findComposePreviewManagerForContext(e.dataContext)?.refresh()
       }
     }
 

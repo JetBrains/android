@@ -42,7 +42,7 @@ class ForceCompileAndRefreshAction(val surface: DesignSurface) :
   override fun update(e: AnActionEvent) {
     val project = e.project ?: return
     val presentation = e.presentation
-    val isRefreshing = findComposePreviewManagerForAction(e)?.status()?.isRefreshing == true
+    val isRefreshing = findComposePreviewManagerForContext(e.dataContext)?.status()?.isRefreshing == true
     presentation.isEnabled = !isRefreshing && !GradleBuildState.getInstance(project).isBuildInProgress
   }
 }

@@ -56,6 +56,7 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -735,7 +736,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
 
     @Override
-    protected boolean updateActions() {
+    protected boolean updateActions(@NotNull DataContext context) {
       removeAll();
       List<List<ViewAction>> rows = myAction.getActions();
       if (rows.size() == 1) {
