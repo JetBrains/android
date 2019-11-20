@@ -154,21 +154,6 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
   }
 
-  @Nullable
-  public static ClassLoader create(IAndroidTarget target, Module module) throws Exception {
-    AndroidPlatform androidPlatform = AndroidPlatform.getInstance(module);
-    if (androidPlatform == null) {
-      return null;
-    }
-    AndroidTargetData targetData = androidPlatform.getSdkData().getTargetData(target);
-    LayoutLibrary library = targetData.getLayoutLibrary(module.getProject());
-    if (library == null) {
-      return null;
-    }
-
-    return get(library, module);
-  }
-
   @Override
   @NotNull
   protected Class<?> load(@NotNull String name) throws ClassNotFoundException {
