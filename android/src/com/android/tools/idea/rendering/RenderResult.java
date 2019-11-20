@@ -126,14 +126,30 @@ public class RenderResult {
    */
   @NotNull
   public static RenderResult createBlank(@NotNull PsiFile file) {
+    return createErrorResult(file, Result.Status.ERROR_UNKNOWN.createResult(""), null);
+  }
+
+  /**
+   * Creates a blank {@link RenderResult} to report render task creation errors
+   *
+   * @param file the PSI file the render result corresponds to
+   * @param logger the logger containing the errors to surface to the user
+   */
+  @NotNull
+  public static RenderResult createRenderTaskErrorResult(@NotNull PsiFile file, @NotNull RenderLogger logger) {
+    return createErrorResult(file, Result.Status.ERROR_RENDER_TASK.createResult(), logger);
+  }
+
+  @NotNull
+  private static RenderResult createErrorResult(@NotNull PsiFile file, @NotNull Result errorResult, @Nullable RenderLogger logger) {
     Module module = ModuleUtilCore.findModuleForPsiElement(file);
     assert module != null;
     return new RenderResult(
       file,
       module,
-      new RenderLogger(null, module),
+      logger != null ? logger : new RenderLogger(null, module),
       null,
-      Result.Status.ERROR_UNKNOWN.createResult(""),
+      errorResult,
       ImmutableList.of(),
       ImmutableList.of(),
       ImagePool.NULL_POOLED_IMAGE,
