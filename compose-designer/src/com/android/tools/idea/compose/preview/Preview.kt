@@ -273,7 +273,7 @@ internal class PreviewEditor(private val psiFile: PsiFile,
     setupChangeListener(
       project,
       psiFile,
-      { refresh() },
+      { ApplicationManager.getApplication().invokeLater { refresh() } },
       this)
   }
 
