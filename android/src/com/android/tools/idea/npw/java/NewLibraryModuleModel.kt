@@ -25,7 +25,7 @@ import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.model.doRender
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.getModuleRoot
-/*import com.android.tools.idea.npw.module.recipes.pureLibrary.generatePureLibrary*/
+import com.android.tools.idea.npw.module.recipes.pureLibrary.generatePureLibrary
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
@@ -107,7 +107,7 @@ class NewLibraryModuleModel(
         )
 
         val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
-        val recipe: Recipe = { td: TemplateData -> /*generatePureLibrary(td as ModuleTemplateData, className.get())*/ }
+        val recipe: Recipe = { td: TemplateData -> generatePureLibrary(td as ModuleTemplateData, className.get()) }
 
         return recipe.doRender(context, executor)
       }
