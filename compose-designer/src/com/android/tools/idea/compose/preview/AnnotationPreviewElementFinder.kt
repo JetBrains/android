@@ -78,7 +78,7 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
       private fun visitPreviewAnnotation(previewAnnotation: UAnnotation, annotatedMethod: UMethod) {
         val uClass: UClass = annotatedMethod.uastParent as UClass
         val composableMethod = "${uClass.qualifiedName}.${annotatedMethod.name}"
-        val previewName = previewAnnotation.findAttributeValue("name")?.evaluateString() ?: ""
+        val previewName = previewAnnotation.findDeclaredAttributeValue("name")?.evaluateString() ?: annotatedMethod.name
 
         // If the same composable functions is found multiple times, only keep the first one. This usually will happen during
         // copy & paste and both the compiler and Studio will flag it as an error.
