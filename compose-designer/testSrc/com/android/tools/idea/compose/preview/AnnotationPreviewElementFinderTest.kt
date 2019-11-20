@@ -100,7 +100,7 @@ class AnnotationPreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTes
     }
 
     elements[0].let {
-      assertEquals("", it.displayName)
+      assertEquals("Preview1", it.displayName)
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
@@ -134,7 +134,7 @@ class AnnotationPreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTes
     val elements = AnnotationPreviewElementFinder.findPreviewMethods(composeTest)
     assertEquals(1, elements.size)
     // Check that we keep the first element
-    assertEmpty(elements[0].displayName)
+    assertEquals("Preview1", elements[0].displayName)
   }
 
   fun testFindPreviewPackage() {
