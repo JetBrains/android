@@ -17,6 +17,10 @@ package com.android.tools.idea.npw.module.recipes.androidProject
 
 import com.android.tools.idea.wizard.template.renderIf
 
-fun androidProjectGradleSettings(appTitle: String) = renderIf(appTitle.isNotBlank()) {
-  "rootProject.name = \"$appTitle\""
+fun androidProjectGradleSettings(appTitle: String): String {
+  require(!appTitle.contains("\\")) { "Backslash should not be present in the application title"}
+  return renderIf(appTitle.isNotBlank()) {
+    val escapedAppTitle = appTitle.replace("$", "\\$")
+    "rootProject.name = \"$escapedAppTitle\""
+  }
 }
