@@ -47,13 +47,12 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import icons.StudioIcons
 
-internal fun findComposePreviewManagerForContext(context: DataContext): ComposePreviewManager? {
-  val project = context.getData(CommonDataKeys.PROJECT) ?: return null
-  val file = context.getData(CommonDataKeys.VIRTUAL_FILE) ?: return null
+internal fun findComposePreviewManagersForContext(context: DataContext): List<ComposePreviewManager> {
+  val project = context.getData(CommonDataKeys.PROJECT) ?: return emptyList()
+  val file = context.getData(CommonDataKeys.VIRTUAL_FILE) ?: return emptyList()
   return FileEditorManager.getInstance(project)?.getEditors(file)
     ?.filterIsInstance<ComposeTextEditorWithPreview>()
-    ?.map { it.preview }
-    ?.firstOrNull()
+    ?.map { it.preview } ?: emptyList()
 }
 
 /**
@@ -76,7 +75,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       if (settings.showDecorations != state) {
         // We also persist the settings to the RenderSettings
         settings.showDecorations = state
-        findComposePreviewManagerForContext(e.dataContext)?.refresh()
+        findComposePreviewManagersForContext(e.dataContext).forEach { it.refresh() }
       }
     }
 
