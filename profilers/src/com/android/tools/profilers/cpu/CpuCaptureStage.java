@@ -307,10 +307,10 @@ public class CpuCaptureStage extends Stage<Timeline> {
         new RangedSeries<>(selectionRange, new LifecycleEventDataSeries(getStudioProfilers(), true)));
     interaction.addTrackModel(
       TrackModel.newBuilder(userEventEventModel, ProfilerTrackRendererType.USER_INTERACTION, "User")
-        .setTooltipModel(new UserEventTooltip(getTimeline(), userEventEventModel)));
+        .setDefaultTooltipModel(new UserEventTooltip(getTimeline(), userEventEventModel)));
     interaction.addTrackModel(
       TrackModel.newBuilder(lifecycleEventModel, ProfilerTrackRendererType.APP_LIFECYCLE, "Lifecycle")
-        .setTooltipModel(new LifecycleTooltip(getTimeline(), lifecycleEventModel)));
+        .setDefaultTooltipModel(new LifecycleTooltip(getTimeline(), lifecycleEventModel)));
     return interaction;
   }
 
@@ -320,7 +320,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
       new CpuFramesModel.FrameState("Main", atraceCapture.getMainThreadId(), AtraceFrame.FrameThread.MAIN, atraceCapture, selectionRange);
     CpuFrameTooltip mainFrameTooltip = new CpuFrameTooltip(myTrackGroupTimeline);
     mainFrameTooltip.setFrameSeries(mainFrames.getSeries());
-    display.addTrackModel(TrackModel.newBuilder(mainFrames, ProfilerTrackRendererType.FRAMES, "Frames").setTooltipModel(mainFrameTooltip));
+    display.addTrackModel(
+      TrackModel.newBuilder(mainFrames, ProfilerTrackRendererType.FRAMES, "Frames").setDefaultTooltipModel(mainFrameTooltip));
     display.addTrackModel(
       TrackModel.newBuilder(
         new StateChartModel<EventAction>(),
@@ -345,14 +346,13 @@ public class CpuCaptureStage extends Stage<Timeline> {
                                      getStudioProfilers().getSession().getPid(),
                                      threadInfo.getId(),
                                      capture);
-      CpuThreadsTooltip threadTooltip = new CpuThreadsTooltip(getTimeline());
-      threadTooltip.setThread(threadInfo.getName(), threadStateDataSeries);
+      // Since thread tracks display multiple elements with different tooltip we don't set a default tooltip model here but defer to the
+      // track renderer to switch between its various tooltip models.
       threads.addTrackModel(
         TrackModel.newBuilder(
-          new CpuThreadTrackModel(threadStateDataSeries, selectionRange, capture, threadInfo),
+          new CpuThreadTrackModel(threadStateDataSeries, selectionRange, capture, threadInfo, getTimeline()),
           ProfilerTrackRendererType.CPU_THREAD,
-          threadInfo.getName())
-          .setTooltipModel(threadTooltip));
+          threadInfo.getName()));
     }
     return threads;
   }
@@ -372,7 +372,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
           new CpuCoreTrackModel(dataSeries, selectionRange, atraceCapture),
           ProfilerTrackRendererType.CPU_CORE,
           "CPU " + cpuId)
-          .setTooltipModel(kernelTooltip));
+          .setDefaultTooltipModel(kernelTooltip));
     }
     return cores;
   }
