@@ -41,17 +41,17 @@ class LayoutlibSceneManagerTest: SceneTest() {
     val nlSurface = myScene.designSurface as NlDesignSurface
     val sceneManager = nlSurface.sceneManager!!
 
-    Mockito.`when`(nlSurface.sceneMode).thenReturn(SceneMode.SCREEN_ONLY)
+    Mockito.`when`(nlSurface.sceneMode).thenReturn(SceneMode.RENDER)
     sceneManager.updateSceneView()
     assertNotNull(sceneManager.sceneView)
     assertNull(sceneManager.secondarySceneView)
 
-    Mockito.`when`(nlSurface.sceneMode).thenReturn(SceneMode.BLUEPRINT_ONLY)
+    Mockito.`when`(nlSurface.sceneMode).thenReturn(SceneMode.BLUEPRINT)
     sceneManager.updateSceneView()
     assertNotNull(sceneManager.sceneView)
     assertNull(sceneManager.secondarySceneView)
 
-    Mockito.`when`(nlSurface.sceneMode).thenReturn(SceneMode.BOTH)
+    Mockito.`when`(nlSurface.sceneMode).thenReturn(SceneMode.RENDER_AND_BLUEPRINT)
     sceneManager.updateSceneView()
     assertNotNull(sceneManager.sceneView)
     assertNotNull(sceneManager.secondarySceneView)

@@ -174,7 +174,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   private void updateScreenMode() {
     switch (myCurrentConfigurationSet) {
       case COLOR_BLIND_MODE:
-        mySurface.setScreenMode(SceneMode.COLOR_BLIND_MODE, false);
+        mySurface.setScreenMode(SceneMode.COLOR_BLIND, false);
         break;
       default:
         mySurface.setScreenMode(SceneMode.VISUALIZATION, false);

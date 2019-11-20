@@ -80,17 +80,17 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
                                         .matchParentHeight());
     NlModel model = modelBuilder.build();
     mySurface.setModel(model);
-    mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
+    mySurface.setScreenMode(SceneMode.RENDER, false);
     assertEquals(5, mySurface.myLayers.size());
 
     droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
-    mySurface.setScreenMode(SceneMode.BLUEPRINT_ONLY, false);
+    mySurface.setScreenMode(SceneMode.BLUEPRINT, false);
     assertEquals(5, mySurface.myLayers.size());
     // Make sure all dropped layers are disposed.
     assertEmpty(droppedLayers.stream().filter(Disposer::isDisposed).collect(Collectors.toList()));
 
     droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
-    mySurface.setScreenMode(SceneMode.BOTH, false);
+    mySurface.setScreenMode(SceneMode.RENDER_AND_BLUEPRINT, false);
     assertEquals(9, mySurface.myLayers.size());
     // Make sure all dropped layers are disposed.
     assertEmpty(droppedLayers.stream().filter(Disposer::isDisposed).collect(Collectors.toList()));
@@ -122,9 +122,9 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertEquals(SceneMode.Companion.loadPreferredMode(), SceneMode.Companion.getDEFAULT_SCREEN_MODE());
 
     // Test next() function
-    assertEquals(SceneMode.SCREEN_ONLY.next(), SceneMode.BLUEPRINT_ONLY);
-    assertEquals(SceneMode.BLUEPRINT_ONLY.next(), SceneMode.BOTH);
-    assertEquals(SceneMode.BOTH.next(), SceneMode.SCREEN_ONLY);
+    assertEquals(SceneMode.RENDER.next(), SceneMode.BLUEPRINT);
+    assertEquals(SceneMode.BLUEPRINT.next(), SceneMode.RENDER_AND_BLUEPRINT);
+    assertEquals(SceneMode.RENDER_AND_BLUEPRINT.next(), SceneMode.RENDER);
   }
 
   public void testEmptyRenderSuccess() {
@@ -204,13 +204,13 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.setModel(model);
     assertNull(mySurface.getSceneManager().getRenderResult());
 
-    mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
+    mySurface.setScreenMode(SceneMode.RENDER, false);
     mySurface.requestRender();
     assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
     assertNotNull(mySurface.getFocusedSceneView());
     assertNull(mySurface.getSceneManager().getSecondarySceneView());
 
-    mySurface.setScreenMode(SceneMode.BOTH, false);
+    mySurface.setScreenMode(SceneMode.RENDER_AND_BLUEPRINT, false);
     mySurface.requestRender();
     assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
 
@@ -606,9 +606,9 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
    * Regression test for b/144829328
    */
   public void testComposeScreenModeBlacklist() {
-    mySurface.setScreenMode(SceneMode.SCREEN_COMPOSE_ONLY, true);
+    mySurface.setScreenMode(SceneMode.COMPOSE, true);
 
     NlDesignSurface otherSurface = NlDesignSurface.build(getProject(), getTestRootDisposable());
-    assertNotSame(SceneMode.SCREEN_COMPOSE_ONLY, otherSurface.getSceneMode());
+    assertNotSame(SceneMode.COMPOSE, otherSurface.getSceneMode());
   }
 }

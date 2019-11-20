@@ -40,7 +40,7 @@ class NlAnalyticsManagerTest : AndroidTestBase() {
   override fun setUp() {
     super.setUp()
     surface = mock(NlDesignSurface::class.java)
-    `when`(surface.sceneMode).thenReturn(SceneMode.BOTH)
+    `when`(surface.sceneMode).thenReturn(SceneMode.RENDER_AND_BLUEPRINT)
     analyticsManager = NlAnalyticsManager(surface)
   }
 
@@ -69,7 +69,7 @@ class NlAnalyticsManagerTest : AndroidTestBase() {
   fun testSurfaceType() {
     assertThat(analyticsManager.surfaceType).isEqualTo(LayoutEditorState.Surfaces.BOTH) // Set in setup
 
-    `when`(surface.sceneMode).thenReturn(SceneMode.BLUEPRINT_ONLY)
+    `when`(surface.sceneMode).thenReturn(SceneMode.BLUEPRINT)
     assertThat(analyticsManager.surfaceType).isEqualTo(LayoutEditorState.Surfaces.BLUEPRINT_SURFACE)
   }
 

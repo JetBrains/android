@@ -35,13 +35,13 @@ class NlAnalyticsManager(surface: DesignSurface) : DesignerAnalyticsManager(surf
 
   override val surfaceType
     get() = when (nlSurface.sceneMode) {
-      SceneMode.SCREEN_ONLY -> LayoutEditorState.Surfaces.SCREEN_SURFACE
-      SceneMode.BLUEPRINT_ONLY -> LayoutEditorState.Surfaces.BLUEPRINT_SURFACE
-      SceneMode.BOTH -> LayoutEditorState.Surfaces.BOTH
-      SceneMode.SCREEN_COMPOSE_ONLY -> LayoutEditorState.Surfaces.SCREEN_SURFACE
+      SceneMode.RENDER -> LayoutEditorState.Surfaces.SCREEN_SURFACE
+      SceneMode.BLUEPRINT -> LayoutEditorState.Surfaces.BLUEPRINT_SURFACE
+      SceneMode.RENDER_AND_BLUEPRINT -> LayoutEditorState.Surfaces.BOTH
+      SceneMode.COMPOSE -> LayoutEditorState.Surfaces.SCREEN_SURFACE
       SceneMode.RESIZABLE_PREVIEW -> LayoutEditorState.Surfaces.SCREEN_SURFACE
       SceneMode.VISUALIZATION -> LayoutEditorState.Surfaces.SCREEN_SURFACE
-      SceneMode.COLOR_BLIND_MODE -> LayoutEditorState.Surfaces.SCREEN_SURFACE
+      SceneMode.COLOR_BLIND -> LayoutEditorState.Surfaces.SCREEN_SURFACE
     }
 
   override val surfaceMode

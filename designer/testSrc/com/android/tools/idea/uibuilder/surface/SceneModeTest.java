@@ -40,8 +40,8 @@ public class SceneModeTest extends AndroidTestCase {
     when(model.getType()).thenReturn(LayoutFileType.INSTANCE);
     when(manager.getModel()).thenReturn(model);
 
-    SceneView primary = SceneMode.BOTH.createPrimarySceneView(surface, manager);
-    SceneView secondary = SceneMode.BOTH.createSecondarySceneView(surface, manager);
+    SceneView primary = SceneMode.RENDER_AND_BLUEPRINT.createPrimarySceneView(surface, manager);
+    SceneView secondary = SceneMode.RENDER_AND_BLUEPRINT.createSecondarySceneView(surface, manager);
     assertThat(primary, instanceOf(ScreenView.class));
     assertThat(secondary, instanceOf(BlueprintView.class));
   }
