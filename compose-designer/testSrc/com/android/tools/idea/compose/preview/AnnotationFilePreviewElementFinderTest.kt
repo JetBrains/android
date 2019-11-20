@@ -48,7 +48,7 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
       }
 
       @Composable
-      @Preview(name = "preview2", apiLevel = 12)
+      @Preview(name = "preview2", apiLevel = 12, group = "groupA")
       fun Preview2() {
       }
 
@@ -79,6 +79,7 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
     assertEquals(4, elements.size)
     elements[1].let {
       assertEquals("preview2", it.displayName)
+      assertEquals("groupA", it.groupName)
       assertEquals(12, it.configuration.apiLevel)
       assertNull(it.configuration.theme)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
@@ -86,11 +87,12 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
       assertEquals(1f, it.configuration.fontScale)
 
       assertMethodTextRange(composeTest, "Preview2", it.previewBodyPsi?.psiRange?.range!!)
-      assertEquals("@Preview(name = \"preview2\", apiLevel = 12)", it.previewElementDefinitionPsi?.element?.text)
+      assertEquals("@Preview(name = \"preview2\", apiLevel = 12, group = \"groupA\")", it.previewElementDefinitionPsi?.element?.text)
     }
 
     elements[2].let {
       assertEquals("preview3", it.displayName)
+      assertNull(it.groupName)
       assertEquals(1, it.configuration.width)
       assertEquals(2, it.configuration.height)
       assertEquals(0.2f, it.configuration.fontScale)

@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
+import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.requestBuild
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
@@ -37,7 +40,7 @@ internal fun requestBuildForSurface(surface: DesignSurface) {
  * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh
  * of the surface.
  */
-class ForceCompileAndRefreshAction(val surface: DesignSurface) :
+class ForceCompileAndRefreshAction(private val surface: DesignSurface) :
   AnAction(message("notification.action.build.and.refresh"), null, GREEN_REFRESH_BUTTON) {
   override fun actionPerformed(e: AnActionEvent) = requestBuildForSurface(surface)
 

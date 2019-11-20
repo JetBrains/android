@@ -15,27 +15,25 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.common.actions.IssueNotificationAction
 import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
+import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
+import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
+import com.android.tools.idea.compose.preview.actions.ViewOptionsAction
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
-import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -49,7 +47,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import icons.StudioIcons
 
 /**
  * Returns a list of all [ComposePreviewManager]s related to the current context (which is implied to be bound to a particular file).
@@ -66,48 +63,10 @@ internal fun findComposePreviewManagersForContext(context: DataContext): List<Co
  */
 private class ComposePreviewToolbar(private val surface: DesignSurface) :
   ToolbarActionGroups(surface) {
-  private inner class ViewOptionsAction : DropDownAction(message("action.view.options.title"), null, StudioIcons.Common.VISIBILITY_INLINE) {
-    init {
-      add(ToggleShowDecorationAction())
-      add(ToggleAutoBuildAction())
-    }
-  }
-
-  private inner class ToggleShowDecorationAction :
-    ToggleAction(message("action.show.decorations.title"), message("action.show.decorations.description"), null) {
-
-    override fun setSelected(e: AnActionEvent, state: Boolean) {
-      val settings = RenderSettings.getProjectSettings(surface.project)
-
-      if (settings.showDecorations != state) {
-        // We also persist the settings to the RenderSettings
-        settings.showDecorations = state
-        findComposePreviewManagersForContext(e.dataContext).forEach { it.refresh() }
-      }
-    }
-
-    override fun isSelected(e: AnActionEvent): Boolean = RenderSettings.getProjectSettings(surface.project).showDecorations
-  }
-
-  private inner class ToggleAutoBuildAction :
-    ToggleAction(message("action.auto.build.title"), message("action.auto.build.description"), null) {
-
-    override fun update(e: AnActionEvent) {
-      super.update(e)
-
-      e.presentation.isEnabledAndVisible = COMPOSE_PREVIEW_AUTO_BUILD.get()
-    }
-
-    override fun setSelected(e: AnActionEvent, state: Boolean) {
-      findComposePreviewManagersForContext(e.dataContext).forEach { it.isAutoBuildEnabled = state }
-    }
-
-    override fun isSelected(e: AnActionEvent): Boolean = findComposePreviewManagersForContext(e.dataContext)
-      .any { it.isAutoBuildEnabled }
-  }
 
   override fun getNorthGroup(): ActionGroup = DefaultActionGroup(listOf(
-    ViewOptionsAction(),
+    GroupSwitchAction(),
+    ViewOptionsAction(surface.project),
     ForceCompileAndRefreshAction(surface)
   ))
 

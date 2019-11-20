@@ -47,4 +47,14 @@ interface ComposePreviewManager {
    * When true, a build will automatically be triggered when the user makes a source code change.
    */
   var isAutoBuildEnabled: Boolean
+
+  /**
+   * List of available groups in this preview. The editor can contain multiple groups and only will be displayed at a given time.
+   */
+  val availableGroups: Collection<String>
+
+  /**
+   * Group name from [availableGroups] currently selected or null if we do not want to do group filtering.
+   */
+  var groupNameFilter: String?
 }

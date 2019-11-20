@@ -18,19 +18,13 @@ package com.android.tools.idea.compose.preview
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-private class StaticPreviewProvider(private val list: List<PreviewElement>): PreviewElementProvider {
-  override val previewElements: List<PreviewElement>
-    get() = list
-
-}
-
 class PreviewElementProviderTest {
   @Test
   fun testFilteredProvider() {
     val staticPreviewProvider = StaticPreviewProvider(listOf(
-      previewElementFromMethodName("com.sample.TestClass.PreviewMethod1"),
-      previewElementFromMethodName("com.sample.TestClass.PreviewMethod2"),
-      previewElementFromMethodName("internal.com.sample.TestClass.AMethod")
+      PreviewElement.forTesting("com.sample.TestClass.PreviewMethod1"),
+      PreviewElement.forTesting("com.sample.TestClass.PreviewMethod2"),
+      PreviewElement.forTesting("internal.com.sample.TestClass.AMethod")
     ))
 
     var filterWord = "internal"

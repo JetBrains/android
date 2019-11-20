@@ -113,13 +113,21 @@ class ComposeDocumentationProvider() : DocumentationProviderEx() {
 
   private fun renderImage(previewElement: KtNamedFunction): CompletableFuture<BufferedImage?> {
     val facet = AndroidFacet.getInstance(previewElement) ?: return CompletableFuture.completedFuture(null)
-    val previewElementName = getFullNameForPreview(previewElement) ?: return CompletableFuture.completedFuture(null)
+    val previewElementName = getFullNameForPreview(previewElement)
     return renderPreviewElement(facet, previewFromMethodName(previewElementName))
   }
 
   private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null)
 
-  private fun previewFromMethodName(fqName: String) = PreviewElement("", fqName, null, null, nullConfiguration)
+  private fun previewFromMethodName(fqName: String) =
+    PreviewElement(
+      displayName = "",
+      groupName = null,
+      composableMethodFqn = fqName,
+      previewElementDefinitionPsi = null,
+      previewBodyPsi = null,
+      configuration = nullConfiguration
+    )
 
   /**
    * Returns KtNamedFunction after @sample tag in JavaDoc for given element or null if there is no such tag or function is not valid.
