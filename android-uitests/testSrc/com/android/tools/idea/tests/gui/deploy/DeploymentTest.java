@@ -33,18 +33,18 @@ import com.android.tools.idea.run.deployable.DeviceBinder;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.run.deployment.DeviceSelectorFixture;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.ui.RunContentManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
 import java.io.IOException;
@@ -64,7 +64,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-@RunIn(TestGroup.EXCLUDED)
 @RunWith(GuiTestRemoteRunner.class)
 public class DeploymentTest {
   // Project name for studio deployment dashboards
@@ -283,10 +282,17 @@ public class DeploymentTest {
       }
 
       VirtualFile apkFile = VfsUtil.findFileByIoFile(TestUtils.getWorkspaceFile(new File(APKS_LOCATION, apk.myFileName).getPath()), true);
-      GuiTask.execute(() -> WriteAction.run(() -> {
-        VirtualFile targetApkCopy = VfsUtilCore.copyFile(this, apkFile, baseDir, DEPLOY_APK_NAME);
-        assertThat(targetApkCopy.isValid()).isTrue();
-      }));
+      ApplicationManager.getApplication().invokeLater(() -> {
+        try {
+          WriteAction.run(() -> {
+            VirtualFile targetApkCopy = VfsUtilCore.copyFile(this, apkFile, baseDir, DEPLOY_APK_NAME);
+            assertThat(targetApkCopy.isValid()).isTrue();
+            VirtualFileManager.getInstance().syncRefresh();
+          });
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
     }
     finally {
       // We need to refresh the VFS because we're modifying files here and some listeners may fire
