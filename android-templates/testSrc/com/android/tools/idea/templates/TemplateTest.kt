@@ -573,46 +573,22 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testNewAidlFolder() {
+  fun testNewFolders() {
     checkCreateTemplate("other", "AidlFolder", false, false, withNewLocation("foo"))
+    checkCreateTemplate("other", "AssetsFolder", false, false, withNewLocation("src/main/assets"))
+    checkCreateTemplate("other", "FontFolder", false, false, withNewLocation( "src/main/res/font"))
+    checkCreateTemplate("other", "JavaFolder", false, false, withNewLocation("src/main/java"))
+    checkCreateTemplate("other", "JniFolder", false, false, withNewLocation( "src/main/jni"))
+    checkCreateTemplate("other", "RawFolder", false, false, withNewLocation( "src/main/res/raw"))
+    checkCreateTemplate("other", "ResFolder", false, false, withNewLocation( "src/main/res"))
+    checkCreateTemplate("other", "ResourcesFolder", false, false, withNewLocation( "src/main/resources"))
+    checkCreateTemplate("other", "RsFolder", false, false, withNewLocation( "src/main/rs"))
+    checkCreateTemplate("other", "XmlFolder", false, false, withNewLocation( "src/main/res/xml"))
   }
 
   @TemplateCheck
   fun testAndroidManifest() {
     checkCreateTemplate("other", "AndroidManifest", false, false, withNewLocation("src/foo/AndroidManifest.xml"))
-  }
-
-  @TemplateCheck
-  fun testAssetsFolder() {
-    checkCreateTemplate("other", "AssetsFolder", false, false, withNewLocation("src/main/assets"))
-  }
-
-  @TemplateCheck
-  fun testJavaAndJniFolder() {
-    checkCreateTemplate("other", "JavaFolder", false, false, withNewLocation("src/main/java"))
-    checkCreateTemplate("other", "JniFolder", false, false, withNewLocation( "src/main/jni"))
-  }
-
-  @TemplateCheck
-  fun testFontFolder() {
-    checkCreateTemplate("other", "FontFolder", false, false, withNewLocation( "src/main/res/font"))
-  }
-
-  @TemplateCheck
-  fun testRawFolder() {
-    checkCreateTemplate("other", "RawFolder", false, false, withNewLocation( "src/main/res/raw"))
-  }
-
-  @TemplateCheck
-  fun testXmlFolder() {
-    checkCreateTemplate("other", "XmlFolder", false, false, withNewLocation( "src/main/res/xml"))
-  }
-
-  @TemplateCheck
-  fun testRenderSourceFolder() {
-    checkCreateTemplate("other", "RsFolder", false, false, withNewLocation( "src/main/rs"))
-    checkCreateTemplate("other", "ResFolder", false, false, withNewLocation( "src/main/res"))
-    checkCreateTemplate("other", "ResourcesFolder", false, false, withNewLocation( "src/main/resources"))
   }
 
   @TemplateCheck
