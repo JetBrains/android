@@ -47,7 +47,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
     val surface: (panel: DesignerEditorPanel) -> DesignSurface = {
       NlDesignSurface.build(myProject, this).apply {
         setCentered(true)
-        setScreenMode(SceneMode.SCREEN_ONLY, false)
+        setScreenMode(SceneMode.RENDER, false)
       }
     }
 

@@ -271,19 +271,19 @@ public class NlPreviewTest {
       .getLayoutPreview(true)
       .waitForRenderToFinish()
       .showOnlyBlueprintView()
-      .waitForScreenMode(SceneMode.BLUEPRINT_ONLY);
+      .waitForScreenMode(SceneMode.BLUEPRINT);
     guiTest.ideFrame()
       .getEditor()
       .open("app/src/main/res/drawable/vector.xml", EditorFixture.Tab.EDITOR)
       .getLayoutPreview(true)
       .waitForRenderToFinish()
-      .waitForScreenMode(SceneMode.SCREEN_ONLY);
+      .waitForScreenMode(SceneMode.RENDER);
     guiTest.ideFrame()
       .getEditor()
       .switchToTab("activity_my.xml")
       .getLayoutPreview(false)
       .waitForRenderToFinish()
-      .waitForScreenMode(SceneMode.BLUEPRINT_ONLY);
+      .waitForScreenMode(SceneMode.BLUEPRINT);
   }
 
   @Test

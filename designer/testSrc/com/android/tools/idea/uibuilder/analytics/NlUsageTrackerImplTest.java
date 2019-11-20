@@ -353,7 +353,7 @@ public class NlUsageTrackerImplTest extends BaseUsageTrackerImplTest {
   private NlUsageTracker getUsageTracker() {
     NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getLayoutType()).thenReturn(LayoutFileType.INSTANCE);
-    when(surface.getSceneMode()).thenReturn(SceneMode.BOTH);
+    when(surface.getSceneMode()).thenReturn(SceneMode.RENDER_AND_BLUEPRINT);
     surface.setState(DesignSurface.State.SPLIT);
     NlAnalyticsManager analyticsManager = new NlAnalyticsManager(surface);
     when(surface.getAnalyticsManager()).thenReturn(analyticsManager);

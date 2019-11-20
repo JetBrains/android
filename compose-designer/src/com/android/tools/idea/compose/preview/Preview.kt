@@ -168,7 +168,7 @@ internal class PreviewEditor(private val psiFile: PsiFile,
     .setEditable(true)
     .build()
     .apply {
-      setScreenMode(SceneMode.SCREEN_COMPOSE_ONLY, false)
+      setScreenMode(SceneMode.COMPOSE, false)
       setMaxFitIntoScale(2f) // Set fit into limit to 200%
     }
 

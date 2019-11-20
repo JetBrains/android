@@ -431,7 +431,7 @@ public class LayoutlibSceneManager extends SceneManager {
     public void modelDerivedDataChanged(@NotNull NlModel model) {
       NlDesignSurface surface = getDesignSurface();
       // TODO: this is the right behavior, but seems to unveil repaint issues. Turning it off for now.
-      if (false && surface.getSceneMode() == SceneMode.BLUEPRINT_ONLY) {
+      if (false && surface.getSceneMode() == SceneMode.BLUEPRINT) {
         requestLayout(true);
       }
       else {
@@ -570,7 +570,7 @@ public class LayoutlibSceneManager extends SceneManager {
   @NotNull
   public CompletableFuture<Void> requestLayoutAndRender(boolean animate) {
     // Don't render if we're just showing the blueprint
-    if (getDesignSurface().getSceneMode() == SceneMode.BLUEPRINT_ONLY) {
+    if (getDesignSurface().getSceneMode() == SceneMode.BLUEPRINT) {
       return requestLayout(animate);
     }
 
