@@ -468,6 +468,7 @@ java_test(
 # sanity test
 java_test(
     name = "AddKotlinTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/LinkProjectWithKotlin/**",
     ]),
