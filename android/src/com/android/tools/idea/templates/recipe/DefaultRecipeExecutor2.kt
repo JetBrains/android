@@ -51,11 +51,11 @@ import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.SourceSetType
+import com.android.tools.idea.wizard.template.findResource
 import com.android.utils.XmlUtils.XML_PROLOG
 import com.android.utils.findGradleBuildFile
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Strings.nullToEmpty
-import com.google.common.io.Resources.getResource
 import com.intellij.diff.comparison.ComparisonManager
 import com.intellij.diff.comparison.ComparisonPolicy.IGNORE_WHITESPACES
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -246,7 +246,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
    * is allowed to be a directory, in which case the whole directory is copied recursively)
    */
   override fun copy(from: File, to: File) {
-    val sourceUrl = getResource(context.templateData.javaClass, "/${from.path}")
+    val sourceUrl = findResource(context.templateData.javaClass, from)
     val target = getTargetFile(to)
 
     val sourceFile = findFileByURL(sourceUrl) ?: error("$from ($sourceUrl)")
