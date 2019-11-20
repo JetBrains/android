@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.resources.aar.AarResourceRepository;
@@ -39,6 +40,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
@@ -226,21 +228,15 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   }
 
   @NotNull
-  @Override
-  protected ResourceTable getFullTable() {
+  private ResourceTable getFullTable() {
     synchronized (ITEM_MAP_LOCK) {
       if (myFullTable == null) {
-        if (myLocalResources.size() == 1 && myLibraryResources.isEmpty()) {
-          myFullTable = myLocalResources.get(0).getFullTablePackageAccessible();
-        }
-        else {
-          myFullTable = new ResourceTable();
-          for (ResourceNamespace namespace : getNamespaces()) {
-            for (ResourceType type : ResourceType.values()) {
-              ListMultimap<String, ResourceItem> map = getMap(namespace, type, false);
-              if (map != null) {
-                myFullTable.put(namespace, type, map);
-              }
+        myFullTable = new ResourceTable();
+        for (ResourceNamespace namespace : getNamespaces()) {
+          for (ResourceType type : ResourceType.values()) {
+            ListMultimap<String, ResourceItem> map = getMap(namespace, type);
+            if (map != null) {
+              myFullTable.put(namespace, type, map);
             }
           }
         }
@@ -251,60 +247,73 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   }
 
   @Override
-  @Nullable
-  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace,
-                                                      @NotNull ResourceType type,
-                                                      boolean create) {
+  @NotNull
+  public ResourceVisitor.VisitResult accept(@NotNull ResourceVisitor visitor) {
     synchronized (ITEM_MAP_LOCK) {
-      // Should I assert !create here? If we try to manipulate the cache it won't work right...
-      ListMultimap<String, ResourceItem> map = myCachedMaps.get(namespace, type);
-      if (map != null) {
-        return map;
-      }
-
-      if (myLocalResources.size() == 1 && myLibraryResources.isEmpty()) {
-        return myLocalResources.get(0).getOrCreateMapPackageAccessible(namespace, type);
-      }
-
-      ImmutableList<SingleNamespaceResourceRepository> repositoriesForNamespace = myLeafsByNamespace.get(namespace);
-      if (repositoriesForNamespace.size() == 1) {
-        return ArrayListMultimap.create(repositoriesForNamespace.get(0).getResources(namespace, type));
-      } else {
-        // Merge all items of the given type.
-        Stopwatch stopwatch = LOG.isDebugEnabled() ? Stopwatch.createStarted() : null;
-
-        map = ArrayListMultimap.create();
-        SetMultimap<String, String> seenQualifiers = HashMultimap.create();
-        for (ResourceRepository child : repositoriesForNamespace) {
-          ListMultimap<String, ResourceItem> items = child.getResources(namespace, type);
-          for (ResourceItem item : items.values()) {
-            String name = item.getName();
-            String qualifiers = item.getConfiguration().getQualifierString();
-            if (type == ResourceType.STYLEABLE || type == ResourceType.ID || !map.containsKey(name) ||
-                !seenQualifiers.containsEntry(name, qualifiers)) {
-              // We only add a duplicate item if there isn't an item with the same qualifiers and it is
-              // not a styleable or an id. Styleables and ids are allowed to be defined in multiple
-              // places even with the same qualifiers.
-              map.put(name, item);
-              seenQualifiers.put(name, qualifiers);
-            }
+      for (Map.Entry<ResourceNamespace, Map<ResourceType, ListMultimap<String, ResourceItem>>> entry : getFullTable().rowMap().entrySet()) {
+        if (visitor.shouldVisitNamespace(entry.getKey())) {
+          if (acceptByResources(entry.getValue(), visitor) == ResourceVisitor.VisitResult.ABORT) {
+            return ResourceVisitor.VisitResult.ABORT;
           }
         }
+      }
+    }
 
-        if (stopwatch != null) {
-          LOG.debug(String.format(Locale.US,
-                                  "Merged %d resources of type %s in %s for %s.",
-                                  map.size(),
-                                  type,
-                                  stopwatch,
-                                  getClass().getSimpleName()));
+    return ResourceVisitor.VisitResult.CONTINUE;
+  }
+
+  @GuardedBy("ITEM_MAP_LOCK")
+  @Override
+  @Nullable
+  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace,
+                                                      @NotNull ResourceType type) {
+    ListMultimap<String, ResourceItem> map = myCachedMaps.get(namespace, type);
+    if (map != null) {
+      return map;
+    }
+
+    if (myLocalResources.size() == 1 && myLibraryResources.isEmpty()) {
+      return myLocalResources.get(0).getMapPackageAccessible(namespace, type);
+    }
+
+    ImmutableList<SingleNamespaceResourceRepository> repositoriesForNamespace = myLeafsByNamespace.get(namespace);
+    if (repositoriesForNamespace.size() == 1) {
+      return ArrayListMultimap.create(repositoriesForNamespace.get(0).getResources(namespace, type));
+    } else {
+      // Merge all items of the given type.
+      Stopwatch stopwatch = LOG.isDebugEnabled() ? Stopwatch.createStarted() : null;
+
+      map = ArrayListMultimap.create();
+      SetMultimap<String, String> seenQualifiers = HashMultimap.create();
+      for (ResourceRepository child : repositoriesForNamespace) {
+        ListMultimap<String, ResourceItem> items = child.getResources(namespace, type);
+        for (ResourceItem item : items.values()) {
+          String name = item.getName();
+          String qualifiers = item.getConfiguration().getQualifierString();
+          if (type == ResourceType.STYLEABLE || type == ResourceType.ID || !map.containsKey(name) ||
+              !seenQualifiers.containsEntry(name, qualifiers)) {
+            // We only add a duplicate item if there isn't an item with the same qualifiers and it is
+            // not a styleable or an id. Styleables and ids are allowed to be defined in multiple
+            // places even with the same qualifiers.
+            map.put(name, item);
+            seenQualifiers.put(name, qualifiers);
+          }
         }
       }
 
-      myCachedMaps.put(namespace, type, map);
-
-      return map;
+      if (stopwatch != null) {
+        LOG.debug(String.format(Locale.US,
+                                "Merged %d resources of type %s in %s for %s.",
+                                map.size(),
+                                type,
+                                stopwatch,
+                                getClass().getSimpleName()));
+      }
     }
+
+    myCachedMaps.put(namespace, type, map);
+
+    return map;
   }
 
   @Override
