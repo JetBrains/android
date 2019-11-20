@@ -1194,11 +1194,11 @@ java_test(
 
 # fast test
 java_test(
-    name = "NameWithSpaceTest",
+    name = "NameWithSpaceAndDollarTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NameWithSpaceTest"],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NameWithSpaceAndDollarTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
         "qa_unreliable",  # b/111889561
