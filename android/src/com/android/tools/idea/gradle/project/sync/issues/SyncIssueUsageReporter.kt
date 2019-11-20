@@ -18,7 +18,6 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue
-import com.android.tools.idea.gradle.project.sync.compatibility.version.BuildFileComponentVersionReader
 import com.android.tools.idea.gradle.project.sync.errors.NdkIntegrationDeprecatedErrorHandler
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.BuildProjectHyperlink
@@ -130,7 +129,6 @@ private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.Grad
       is InstallPlatformHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_PLATFORM_HYPERLINK
       is InstallSdkPackageHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_SDK_PACKAGE_HYPERLINK
       is OpenAndroidSdkManagerHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_ANDROID_SDK_MANAGER_HYPERLINK
-      is BuildFileComponentVersionReader.OpenBuildFileHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_BUILD_FILE_HYPERLINK
       is OpenFileHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK
       is OpenGradleSettingsHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_GRADLE_SETTINGS_HYPERLINK
       is OpenHttpSettingsHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_HTTP_SETTINGS_HYPERLINK

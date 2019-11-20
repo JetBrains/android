@@ -42,7 +42,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.DisposedModules;
@@ -109,7 +108,6 @@ public class PostSyncProjectSetup {
   @NotNull private final ProjectSetup myProjectSetup;
   @NotNull private final ModuleSetup myModuleSetup;
   @NotNull private final PluginVersionUpgrade myPluginVersionUpgrade;
-  @NotNull private final VersionCompatibilityChecker myVersionCompatibilityChecker;
   @NotNull private final GradleProjectBuilder myProjectBuilder;
   @NotNull private final RunManagerEx myRunManager;
 
@@ -128,10 +126,9 @@ public class PostSyncProjectSetup {
                               @NotNull GradleSyncMessages syncMessages,
                               @NotNull DependencySetupIssues dependencySetupIssues,
                               @NotNull PluginVersionUpgrade pluginVersionUpgrade,
-                              @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
     this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
-         new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, RunManagerEx.getInstanceEx(project));
+         new ModuleSetup(project), pluginVersionUpgrade, projectBuilder, RunManagerEx.getInstanceEx(project));
   }
 
   @VisibleForTesting
@@ -145,7 +142,6 @@ public class PostSyncProjectSetup {
                        @NotNull ProjectSetup projectSetup,
                        @NotNull ModuleSetup moduleSetup,
                        @NotNull PluginVersionUpgrade pluginVersionUpgrade,
-                       @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                        @NotNull GradleProjectBuilder projectBuilder,
                        @NotNull RunManagerEx runManager) {
     myProject = project;
@@ -158,7 +154,6 @@ public class PostSyncProjectSetup {
     myProjectSetup = projectSetup;
     myModuleSetup = moduleSetup;
     myPluginVersionUpgrade = pluginVersionUpgrade;
-    myVersionCompatibilityChecker = versionCompatibilityChecker;
     myProjectBuilder = projectBuilder;
     myRunManager = runManager;
   }
@@ -183,7 +178,6 @@ public class PostSyncProjectSetup {
       }
 
       myDependencySetupIssues.reportIssues();
-      myVersionCompatibilityChecker.checkAndReportComponentIncompatibilities(myProject);
 
       if (mySyncState.lastSyncFailed()) {
         failTestsIfSyncIssuesPresent();
