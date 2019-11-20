@@ -350,6 +350,7 @@ public class NlEditorTest {
     assertThat(editor.getSelectedTab()).isEqualTo("Text");
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/124109589
   @Test
   public void scrollWhileZoomed() throws Exception {
     NlEditorFixture layoutEditor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
