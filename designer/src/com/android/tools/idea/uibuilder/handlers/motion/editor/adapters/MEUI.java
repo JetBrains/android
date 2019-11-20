@@ -46,7 +46,7 @@ import javax.swing.KeyStroke;
 public class MEUI {
 
   static float userScaleFactor = 1;
-  public static final Color ourMySelectedTextColor = new JBColor(0xEAEAEA, 0xff333333);
+  public static final Color ourMySelectedTextColor = new JBColor(0xEAEAEA, 0xCCCCCC);
 
   public static int scale(int i) {
     return JBUI.scale(i);
@@ -84,10 +84,10 @@ public class MEUI {
 
   public static final Color ourErrorColor = makeColor("UIDesigner.motion.ErrorColor", 0x8f831b, 0xffa31b);
   public static final Color ourBannerColor = makeColor("UIDesigner.motion.NotificationBackground", 0xfff8d1, 0x1d3857);
-  public static final Color myTimeCursorColor = makeColor("UIDesigner.motion.TimeCursorColor", 0xff3d81e1, 0xff3d81e1);
+  public static final Color myTimeCursorColor = makeColor("UIDesigner.motion.TimeCursorColor", 0xFF4A81FF, 0xFFB4D7FF);
   public static final Color myTimeCursorStartColor = makeColor("UIDesigner.motion.TimeCursorStartColor", 0xff3da1f1, 0xff3dd1f1);
   public static final Color myTimeCursorEndColor = makeColor("UIDesigner.motion.TimeCursorEndColor", 0xff3da1f1, 0xff3dd1f1);
-  public static final Color myGridColor = makeColor("UIDesigner.motion.gridColor", 0x888888, 0x9e9e9e);
+  public static final Color myGridColor = makeColor("UIDesigner.motion.timeLineGridColor", 0xDDDDDD, 0x555555);
   public static final Color myUnSelectedLineColor = new Color(0xe0759a);
   public static final Color ourMySelectedKeyColor = makeColor("UIDesigner.motion.SelectedKeyColor", 0xff3da1f1, 0xff3dd1f1);
   public static final Color ourMySelectedLineColor = new Color(0x3879d9);
@@ -150,8 +150,10 @@ public class MEUI {
   }
 
   public static class Graph {
-    public static final Color ourG_Background = makeColor("UIDesigner.motion.motionGraphBackground", 0xd8d8d8, 0x4f5658);
-    public static final Color ourG_line = makeColor("UIDesigner.motion.graphLine", 0xE66F9A, 0x97b1c0);
+    public static final Color ourG_Background = makeColor("UIDesigner.motion.motionGraphBackground", 0xfcfcfc, 0x313334);
+    public static final Color ourG_line = makeColor("UIDesigner.motion.graphLine", 0xE66F9A, 0xA04E6C);
+    public static final Color ourCursorTextColor = makeColor("UIDesigner.motion.CursorTextColor", 0xFFFFFF, 0x000000);
+
   }
 
   public static final Color ourSelectedSetColor = new JBColor(0xE1E2E1, 0xF0F1F0);
