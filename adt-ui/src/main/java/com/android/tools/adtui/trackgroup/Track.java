@@ -19,6 +19,9 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.intellij.util.ui.JBEmptyBorder;
+import com.intellij.util.ui.MouseEventHandler;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -32,24 +35,30 @@ public class Track {
   /**
    * The first column displays the title header. The second column displays the track content.
    */
-  public static final String COL_SIZES = "150px,*";
+  private static final int DEFAULT_TITLE_COL_PX = 150;
+  public static final String COL_SIZES = DEFAULT_TITLE_COL_PX + "px,*";
 
   private final JPanel myComponent;
 
-  private Track(@NotNull TrackModel trackModel, @NotNull JComponent trackComponent) {
+  private Track(@NotNull TrackModel trackModel, @NotNull JComponent trackContent) {
     JLabel titleLabel = new JLabel(trackModel.getTitle());
     titleLabel.setBorder(new JBEmptyBorder(4, 36, 4, 0));
     titleLabel.setVerticalAlignment(SwingConstants.TOP);
 
-    trackComponent.setBorder(new JBEmptyBorder(4, 0, 4, 0));
+    trackContent.setBorder(new JBEmptyBorder(4, 0, 4, 0));
 
     myComponent = new JPanel(new TabularLayout(COL_SIZES, "Fit"));
     if (trackModel.getHideHeader()) {
-      myComponent.add(trackComponent, new TabularLayout.Constraint(0, 0, 2));
+      myComponent.add(trackContent, new TabularLayout.Constraint(0, 0, 2));
+      MouseAdapter adapter = new TrackMouseEventHandler(trackContent, 0, 0);
+      myComponent.addMouseMotionListener(adapter);
     }
     else {
       myComponent.add(titleLabel, new TabularLayout.Constraint(0, 0));
-      myComponent.add(trackComponent, new TabularLayout.Constraint(0, 1));
+      myComponent.add(trackContent, new TabularLayout.Constraint(0, 1));
+      // Offsets mouse event using width of the title column.
+      MouseAdapter adapter = new TrackMouseEventHandler(trackContent, -DEFAULT_TITLE_COL_PX, 0);
+      myComponent.addMouseMotionListener(adapter);
     }
   }
 
@@ -84,5 +93,26 @@ public class Track {
   @NotNull
   public JComponent getComponent() {
     return myComponent;
+  }
+
+  /**
+   * Mouse adapter for dispatching mouse events to the track content. Translates the mouse point using provided offsets.
+   */
+  private static class TrackMouseEventHandler extends MouseEventHandler {
+    @NotNull private final JComponent myTrackContent;
+    private final int myXOffset;
+    private final int myYOffset;
+
+    TrackMouseEventHandler(@NotNull JComponent trackContent, int XOffset, int yOffset) {
+      myTrackContent = trackContent;
+      myXOffset = XOffset;
+      myYOffset = yOffset;
+    }
+
+    @Override
+    protected void handle(MouseEvent event) {
+      event.translatePoint(myXOffset, myYOffset);
+      myTrackContent.dispatchEvent(event);
+    }
   }
 }

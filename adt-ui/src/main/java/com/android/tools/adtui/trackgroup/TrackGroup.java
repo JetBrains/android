@@ -59,6 +59,7 @@ public class TrackGroup {
   private final CommonButton myFilterButton;
   private final CommonDropDownButton myActionsDropdown;
   private final CommonButton myCollapseButton;
+  private final Map<Integer, Track> myTrackMap;
 
   /**
    * @param groupModel      {@link TrackGroup} data model
@@ -68,7 +69,7 @@ public class TrackGroup {
     myModel = groupModel;
 
     // Caches Tracks for the list cell renderer.
-    Map<Integer, Track> trackModelToComponentMap = new HashMap<>();
+    myTrackMap = new HashMap<>();
 
     // Initializes UI components.
     myTrackList = new DragAndDropList<>(groupModel);
@@ -79,7 +80,7 @@ public class TrackGroup {
                                                     int index,
                                                     boolean isSelected,
                                                     boolean cellHasFocus) {
-        return trackModelToComponentMap
+        return myTrackMap
           .computeIfAbsent(value.getId(), id -> Track.create(value, rendererFactory.createRenderer(value.getRendererType())))
           .updateSelected(groupModel.isTrackSelectable() && isSelected)
           .getComponent();
@@ -152,9 +153,20 @@ public class TrackGroup {
     return this;
   }
 
+  /**
+   * @return the underlying JList that displays all tracks.
+   */
   @NotNull
   public DragAndDropList<TrackModel> getTrackList() {
     return myTrackList;
+  }
+
+  /**
+   * @return a mapping from track ID to a track.
+   */
+  @NotNull
+  public Map<Integer, Track> getTrackMap() {
+    return myTrackMap;
   }
 
   private void initShowMoreDropdown() {

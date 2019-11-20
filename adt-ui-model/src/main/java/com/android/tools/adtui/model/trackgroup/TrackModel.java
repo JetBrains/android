@@ -32,7 +32,12 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
   private final String myTitle;
   private final boolean myHideHeader;
   private final int myId;
-  private final TooltipModel myTooltipModel;
+
+  /**
+   * A track may have display different tooltips for its child components, so we need to provide a way to change the currently active
+   * tooltip model.
+   */
+  @Nullable private TooltipModel myActiveTooltipModel;
 
   private TrackModel(@NotNull Builder<M, R> builder) {
     myDataModel = builder.myDataModel;
@@ -40,7 +45,7 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
     myTitle = builder.myTitle;
     myHideHeader = builder.myHideHeader;
     myId = builder.myId;
-    myTooltipModel = builder.myTooltipModel;
+    myActiveTooltipModel = builder.myDefaultTooltipModel;
   }
 
   @NotNull
@@ -74,8 +79,12 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
   }
 
   @Nullable
-  public TooltipModel getTooltipModel() {
-    return myTooltipModel;
+  public TooltipModel getActiveTooltipModel() {
+    return myActiveTooltipModel;
+  }
+
+  public void setActiveTooltipModel(@Nullable TooltipModel tooltipModel) {
+    myActiveTooltipModel = tooltipModel;
   }
 
   /**
@@ -95,7 +104,7 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
     private final String myTitle;
     private boolean myHideHeader;
     private int myId;
-    private TooltipModel myTooltipModel;
+    private TooltipModel myDefaultTooltipModel;
 
     private Builder(@NotNull M dataModel, @NotNull R rendererType, @NotNull String title) {
       myDataModel = dataModel;
@@ -103,7 +112,7 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
       myTitle = title;
       myHideHeader = false;
       myId = -1;
-      myTooltipModel = null;
+      myDefaultTooltipModel = null;
     }
 
     public Builder<M, R> setHideHeader(boolean hideHeader) {
@@ -119,8 +128,11 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
       return this;
     }
 
-    public Builder<M, R> setTooltipModel(TooltipModel tooltipModel) {
-      myTooltipModel = tooltipModel;
+    /**
+     * Sets the default tooltip model for the track when it's instantiated.
+     */
+    public Builder<M, R> setDefaultTooltipModel(TooltipModel defaultTooltipModel) {
+      myDefaultTooltipModel = defaultTooltipModel;
       return this;
     }
 
