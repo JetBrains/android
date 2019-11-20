@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.model.kotlin.JvmTargetPropertyModelImpl
 import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslGlobalValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,6 +72,8 @@ public class GradlePropertyModelBuilder {
   private final String myName;
   @Nullable
   private final GradleDslElement myElement;
+  @Nullable
+  private GradleDslElement myDefault;
   @NotNull
   private PropertyType myType = REGULAR;
   private boolean myIsMethod = false;
@@ -127,6 +130,18 @@ public class GradlePropertyModelBuilder {
    */
   public GradlePropertyModelBuilder withType(@NotNull PropertyType type) {
     myType = type;
+    return this;
+  }
+
+  /**
+   * Arranges that the model will provide a default value if there is no Dsl element, for cases where there is a known default (and
+   * it is useful for the model to be able to provide it).
+   *
+   * @param value
+   * @return this model builder
+   */
+  public GradlePropertyModelBuilder withDefault(Object value) {
+    myDefault = new GradleDslGlobalValue(getParentElement(), value, myName);
     return this;
   }
 
@@ -226,6 +241,10 @@ public class GradlePropertyModelBuilder {
 
     if (myIsSet) {
       model.markAsSet();
+    }
+
+    if (myDefault != null) {
+      model.setDefaultElement(myDefault);
     }
 
     for (PropertyTransform t : myTransforms) {
