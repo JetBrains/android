@@ -73,11 +73,20 @@ enum class SceneMode(val displayName: String,
         DEFAULT_SCREEN_MODE
       }
 
+      // Blacklist SCREEN_COMPOSE_ONLY as default mode.
+      // SCREEN_COMPOSE_ONLY should not be saved as default mode but it was for a while. This is just a
+      // workaround to avoid setting that mode for users that had it saved at one point.
+      // b/144829328
+      if (cachedSceneMode == SCREEN_COMPOSE_ONLY) {
+        cachedSceneMode = DEFAULT_SCREEN_MODE
+      }
+
       return cachedSceneMode!!
     }
 
     @Synchronized  fun savePreferredMode(mode: SceneMode) {
-      if (cachedSceneMode == mode) {
+      // See comment about SCREEN_COMPOSE_ONLY on loadPreferredMode
+      if (cachedSceneMode == mode || mode == SCREEN_COMPOSE_ONLY) {
         return
       }
 

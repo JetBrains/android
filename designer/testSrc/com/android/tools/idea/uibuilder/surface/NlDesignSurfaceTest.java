@@ -22,6 +22,7 @@ import static com.android.SdkConstants.LINEAR_LAYOUT;
 
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.resources.Density;
+import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.Coordinates;
@@ -30,13 +31,11 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
-import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.util.PropertiesComponent;
@@ -601,5 +600,15 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.getLayout().layoutContainer(surface);
     surface.zoomToFit();
     assertEquals(0.01, surface.getScale());
+  }
+
+  /**
+   * Regression test for b/144829328
+   */
+  public void testComposeScreenModeBlacklist() {
+    mySurface.setScreenMode(SceneMode.SCREEN_COMPOSE_ONLY, true);
+
+    NlDesignSurface otherSurface = NlDesignSurface.build(getProject(), getTestRootDisposable());
+    assertNotSame(SceneMode.SCREEN_COMPOSE_ONLY, otherSurface.getSceneMode());
   }
 }
