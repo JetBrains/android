@@ -82,22 +82,6 @@
     </issue>
 
     <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/gradle/project/sync/compatibility/VersionCompatibilityChecker.java"
-            line="92"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/gradle/project/sync/compatibility/VersionCompatibilityChecker.java"
-            line="92"/>
-    </issue>
-
-    <issue
         id="UseValueOf"
         message="Use `Double.valueOf(COLUMN_COUNT)` instead">
         <location
