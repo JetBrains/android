@@ -744,8 +744,6 @@ public class TimeLinePanel extends JPanel {
     int y = 0;
     int x = timeStart + (int)(mMotionProgress * (timeWidth));
     Color lineColor = MEUI.myTimeCursorColor;
-
-    lineColor = lineColor.brighter();
     int inset = 2;
     int d = (int)(mMotionProgress * 100);
     String digits = Integer.toString(d);
@@ -781,7 +779,7 @@ public class TimeLinePanel extends JPanel {
       myYPoints[4] = 0;
 
       g2.fillPolygon(myXPoints, myYPoints, 5);
-      g.setColor(orig);
+      g.setColor(MEUI.Graph.ourCursorTextColor);
       g2.drawString(digits, (int)(x - bounds.getWidth() / 2), (int)(fm.getAscent() + inset));
     }
     else {
