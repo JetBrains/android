@@ -186,6 +186,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
       if (targetSdkVersion != null) {
         return targetSdkVersion;
       }
+
       // Else: not specified in gradle files; fall back to manifest
     }
 
