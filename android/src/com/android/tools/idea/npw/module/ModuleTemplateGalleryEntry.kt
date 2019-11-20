@@ -33,7 +33,6 @@ interface ModuleTemplateGalleryEntry : ModuleGalleryEntry {
    * Used instead of [templateFile] if [StudioFlags.NPW_NEW_MODULE_TEMPLATES] is enabled.
    */
   val recipe: NewAndroidModuleRecipe?
-
   /**
    * Form factor associated with this template.
    */
