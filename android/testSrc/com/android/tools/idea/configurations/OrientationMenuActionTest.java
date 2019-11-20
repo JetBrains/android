@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.util.io.FileUtil;
@@ -54,7 +55,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
 
   public void testAction() {
     OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
-    action.updateActions();
+    action.updateActions(DataContext.EMPTY_CONTEXT);
     AnAction[] actions = action.getChildren(null);
     checkAction(actions[0], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
     checkAction(actions[1], OrientationMenuAction.SetDeviceStateAction.class, "Landscape");
@@ -73,7 +74,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-land/layout1.xml");
     OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
     Presentation presentation = action.getTemplatePresentation().clone();
-    action.updateActions();
+    action.updateActions(DataContext.EMPTY_CONTEXT);
     AnAction[] actions = action.getChildren(null);
     checkAction(actions[0], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
     checkAction(actions[1], OrientationMenuAction.SetDeviceStateAction.class,
@@ -95,7 +96,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-land/layout1.xml");
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-sw600dp/layout1.xml");
     OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
-    action.updateActions();
+    action.updateActions(DataContext.EMPTY_CONTEXT);
     AnAction[] actions = action.getChildren(null);
     checkAction(actions[0], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
     checkAction(actions[1], OrientationMenuAction.SetDeviceStateAction.class,
