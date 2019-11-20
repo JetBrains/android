@@ -24,6 +24,7 @@ import com.android.tools.idea.ui.resourcemanager.model.DesignAssetMetadata.FILE_
 import com.android.tools.idea.ui.resourcemanager.model.DesignAssetMetadata.FILE_SIZE
 import com.android.tools.idea.ui.resourcemanager.model.DesignAssetMetadata.FILE_TYPE
 import com.google.common.truth.Truth
+import com.intellij.openapi.util.SystemInfo
 import org.junit.Rule
 import org.junit.Test
 
@@ -48,6 +49,6 @@ class MetadataHelperKtTest {
     Truth.assertThat(vector.getMetadata()).containsExactly(FILE_NAME, "vector_drawable.xml",
                                                            FILE_TYPE, "Vector drawable",
                                                            DENSITY, "Any Density",
-                                                           FILE_SIZE, "4.34 kB")
+                                                           FILE_SIZE, if (SystemInfo.isWindows) "4.47 kB" else "4.34 kB")
   }
 }
