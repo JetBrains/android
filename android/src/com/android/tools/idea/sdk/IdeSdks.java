@@ -216,7 +216,7 @@ public class IdeSdks {
       File canonicalPath = resolvePath(path);
       Sdk chosenJdk = null;
 
-      if (myIdeInfo.isAndroidStudio()) {
+      if (isAndroidStudio()) {
         // Delete all JDKs in Android Studio. We want to have only one.
         List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance());
         for (final Sdk jdk : jdks) {
@@ -491,7 +491,7 @@ public class IdeSdks {
    * @return true if the embedded JDK is used
    */
   public boolean isUsingEmbeddedJdk() {
-    if (!myIdeInfo.isAndroidStudio()) {
+    if (!isAndroidStudio()) {
       return false;
     }
     File jdkPath = doGetJdkPath(false);
@@ -502,7 +502,7 @@ public class IdeSdks {
    * Makes the IDE use its embedded JDK or a JDK selected by the user. This JDK is used to invoke Gradle.
    */
   public void setUseEmbeddedJdk() {
-    checkState(myIdeInfo.isAndroidStudio(), "This method is for use in Android Studio only.");
+    checkState(isAndroidStudio(), "This method is for use in Android Studio only.");
     File embeddedJdkPath = getEmbeddedJdkPath();
     assert embeddedJdkPath != null;
     setJdkPath(embeddedJdkPath);
@@ -510,7 +510,7 @@ public class IdeSdks {
 
   @Nullable
   public File getEmbeddedJdkPath() {
-    if (!myIdeInfo.isAndroidStudio()) {
+    if (!isAndroidStudio()) {
       return null;
     }
     return myEmbeddedDistributionPaths.getEmbeddedJdkPath();
@@ -527,12 +527,17 @@ public class IdeSdks {
 
   @VisibleForTesting
   boolean isUsingJavaHomeJdk(boolean assumeUnitTest) {
-    if (!myIdeInfo.isAndroidStudio()) {
+    if (!isAndroidStudio()) {
       return false;
     }
     // Do not create Jdk in ProjectJDKTable when running from unit tests, to prevent leaking
     File jdkPath =  assumeUnitTest ? doGetJdkPath(false) : getJdkPath();
     return isSameAsJavaHomeJdk(jdkPath);
+  }
+
+  @VisibleForTesting
+  boolean isAndroidStudio() {
+    return myIdeInfo.isAndroidStudio();
   }
 
   /**
@@ -629,7 +634,7 @@ public class IdeSdks {
     }
 
     // This happens when user has a fresh installation of Android Studio, and goes through the 'First Run' Wizard.
-    if (myIdeInfo.isAndroidStudio()) {
+    if (isAndroidStudio()) {
       Sdk jdk = myJdks.createEmbeddedJdk();
       if (jdk != null) {
         assert isJdkCompatible(jdk, preferredVersion);
