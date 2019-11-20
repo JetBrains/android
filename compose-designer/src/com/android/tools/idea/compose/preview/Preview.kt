@@ -26,6 +26,8 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.BuildListener
 import com.android.tools.idea.common.util.setupBuildListener
 import com.android.tools.idea.common.util.setupChangeListener
+import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
+import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
@@ -150,11 +152,21 @@ private fun updateSurfaceWithNewModels(surface: NlDesignSurface,
  * @param previewProvider [PreviewElementProvider] to obtain the [PreviewElement]s.
  */
 class ComposePreviewRepresentation(psiFile: PsiFile,
-                                   private val previewProvider: PreviewElementProvider) :
+                                   previewProvider: PreviewElementProvider) :
   PreviewRepresentation, ComposePreviewManager {
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
   private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
+
+  private val previewProvider = GroupNameFilteredPreviewProvider(previewProvider)
+
+  override var groupNameFilter: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
+    if (oldValue != newValue) {
+      this.previewProvider.groupName = newValue
+      refresh()
+    }
+  }
+  override val availableGroups: Set<String> get() = previewProvider.availableGroups
 
   private val navigationHandler = PreviewNavigationHandler()
   private val surface = NlDesignSurface.builder(project, this)

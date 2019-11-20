@@ -46,6 +46,7 @@ fun CodeInsightTestFixture.stubPreviewAnnotation() {
 
     annotation class Preview(
       val name: String = "",
+      val group: String = "",
       val apiLevel: Int = -1,
       val theme: String = "",
       val widthDp: Int = -1,

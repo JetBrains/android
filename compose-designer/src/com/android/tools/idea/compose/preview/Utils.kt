@@ -39,6 +39,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.LightVirtualFile
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
@@ -181,18 +182,32 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
   }
 }
 
+/** Configuration equivalent to defining a `@Preview` annotation with no parameters */
+private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null)
+
 /**
  * @param displayName display name of this preview element
+ * @param groupName name that allows multiple previews in separate groups
  * @param composableMethodFqn Fully Qualified Name of the composable method
  * @param previewElementDefinitionPsi [SmartPsiElementPointer] to the preview element definition
  * @param previewBodyPsi [SmartPsiElementPointer] to the preview body. This is the code that will be ran during preview
  * @param configuration the preview element configuration
  */
 data class PreviewElement(val displayName: String,
+                          val groupName: String?,
                           val composableMethodFqn: String,
                           val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
                           val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
-                          val configuration: PreviewConfiguration)
+                          val configuration: PreviewConfiguration) {
+  companion object {
+    @JvmStatic
+    @TestOnly
+    fun forTesting(composableMethodFqn: String,
+                   displayName: String = "", groupName: String? = null,
+                   configuration: PreviewConfiguration = nullConfiguration) =
+      PreviewElement(displayName, groupName, composableMethodFqn, null, null, configuration)
+  }
+}
 
 /**
  * Interface to be implemented by classes able to find [PreviewElement]s on [VirtualFile]s.
