@@ -16,6 +16,7 @@
 
 package com.android.tools.profilers.cpu.capturedetails;
 
+import com.android.tools.adtui.common.DataVisualizationColors;
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
@@ -68,8 +69,8 @@ class AtraceNodeModelHChartColors {
     validateModel(model);
     Color color;
     if (chartType == CaptureDetails.Type.CALL_CHART) {
-      threadColors.setColorIndex(isFocused ? 1 : 0);
-      color = threadColors.getColor(CpuProfilerStage.ThreadState.RUNNING_CAPTURED);
+      int index = model.getFullName().hashCode();
+      color = DataVisualizationColors.INSTANCE.getColor(index + (isFocused ? 1 : 0));
     }
     else {
       // Atrace captures do not know where calls come from so we always use APP.

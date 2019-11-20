@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.cpu.capturedetails
 
+import com.android.testutils.TestUtils
+import com.android.tools.adtui.common.DataVisualizationColors
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.nodemodel.*
@@ -22,12 +24,18 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.Graphics2DDelegate
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.fail
+import org.junit.Before
 import org.junit.Test
 import java.awt.*
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
 
 class CaptureNodeHRendererTest {
+
+  @Before
+  fun setup() {
+    DataVisualizationColors.initialize(TestUtils.getWorkspaceFile("tools/adt/idea/profilers-ui/testData/data-colors.json"));
+  }
 
   @Test
   fun renderIdleCpuTime() {
@@ -187,24 +195,27 @@ class CaptureNodeHRendererTest {
     }
 
     val model = AtraceNodeModel("SomeName")
+    val model2 = AtraceNodeModel("Different Color")
+    val model3 = AtraceNodeModel("Color 1234")
+    val model4 = AtraceNodeModel("Color 4321")
 
-    var color = AtraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.CALL_CHART, false, false)
-    assertThat(color).isEqualTo(ProfilerColors.CPU_USAGE_CAPTURED)
+    val notFocused = AtraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.CALL_CHART, false, false)
+    val focused = AtraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.CALL_CHART, false, true)
+    assertThat(notFocused).isNotEqualTo(focused)
 
-    color = AtraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.CALL_CHART, false, true)
-    assertThat(color).isEqualTo(ProfilerColors.CPU_USAGE_CAPTURED_HOVER)
+    val colorModel = AtraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.CALL_CHART, false, false)
+    val colorModel2 = AtraceNodeModelHChartColors.getFillColor(model2, CaptureDetails.Type.CALL_CHART, false, false)
+    assertThat(colorModel).isNotEqualTo(colorModel2)
 
-    color = AtraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.FLAME_CHART, false, false)
+    val colorModel3 = AtraceNodeModelHChartColors.getFillColor(model3, CaptureDetails.Type.CALL_CHART, false, false)
+    val colorModel4 = AtraceNodeModelHChartColors.getFillColor(model4, CaptureDetails.Type.CALL_CHART, false, false)
+    assertThat(colorModel3).isEqualTo(colorModel4)
+
+    var color = AtraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.FLAME_CHART, false, false)
     assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP)
 
     color = AtraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.FLAME_CHART, false, true)
     assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP_HOVER)
-
-    color = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureDetails.Type.CALL_CHART, false, false)
-    assertThat(color).isEqualTo(ProfilerColors.CPU_TRACE_IDLE)
-
-    color = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureDetails.Type.CALL_CHART, false, true)
-    assertThat(color).isEqualTo(ProfilerColors.CPU_TRACE_IDLE_HOVER)
 
     color = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureDetails.Type.FLAME_CHART, false, false)
     assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP_IDLE)
