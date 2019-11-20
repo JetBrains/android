@@ -18,9 +18,10 @@ package com.android.tools.idea.res;
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
@@ -35,6 +36,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -56,8 +58,10 @@ import org.jetbrains.annotations.TestOnly;
 public class DynamicValueResourceRepository extends LocalResourceRepository
     implements Disposable, BuildVariantView.BuildVariantSelectionChangeListener, SingleNamespaceResourceRepository {
   private final AndroidFacet myFacet;
-  private final ResourceTable myFullTable = new ResourceTable();
   @NotNull private final ResourceNamespace myNamespace;
+  @SuppressWarnings("InstanceGuardedByStatic")
+  @GuardedBy("ITEM_MAP_LOCK")
+  @NotNull private final Map<ResourceType, ListMultimap<String, ResourceItem>> myResourceTable = new EnumMap<>(ResourceType.class);
 
   private DynamicValueResourceRepository(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
     super("Gradle Dynamic");
@@ -116,44 +120,35 @@ public class DynamicValueResourceRepository extends LocalResourceRepository
                                                              @NotNull ResourceNamespace namespace,
                                                              @NotNull Map<String, DynamicResourceValue> values) {
     DynamicValueResourceRepository repository = new DynamicValueResourceRepository(facet, namespace);
-    repository.addValues(values);
+    synchronized (ITEM_MAP_LOCK) {
+      repository.addValues(values);
+    }
     Disposer.register(facet, repository);
     return repository;
   }
 
-  @Override
-  @NonNull
-  protected ResourceTable getFullTable() {
-    if (myFullTable.isEmpty()) {
-      AndroidModel androidModel = AndroidModel.get(myFacet.getModule());
-      if (androidModel == null) {
-        return myFullTable;
-      }
-
-      addValues(androidModel.getResValues());
-    }
-
-    return myFullTable;
-  }
-
   private void notifyProjectSynced() {
-    myFullTable.clear(); // compute lazily in getMap
-    super.invalidateParentCaches();
+    synchronized (ITEM_MAP_LOCK) {
+      myResourceTable.clear(); // Computed lazily in getMap.
+      invalidateParentCaches();
+    }
   }
 
-  private void addValues(Map<String, DynamicResourceValue> resValues) {
+  @SuppressWarnings("InstanceGuardedByStatic")
+  @GuardedBy("ITEM_MAP_LOCK")
+  private void addValues(@NotNull Map<String, DynamicResourceValue> resValues) {
     for (Map.Entry<String, DynamicResourceValue> entry : resValues.entrySet()) {
       DynamicResourceValue field = entry.getValue();
       String name = entry.getKey();
 
       ResourceType type = field.getType();
-      ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, type);
+      ListMultimap<String, ResourceItem> map = myResourceTable.get(type);
       if (map == null) {
         map = ArrayListMultimap.create();
-        myFullTable.put(myNamespace, type, map);
+        myResourceTable.put(type, map);
       }
       else if (map.containsKey(name)) {
-        // Masked by higher priority source provider
+        // Masked by higher priority source provider.
         continue;
       }
       ResourceItem item = new DynamicValueResourceItem(myNamespace, type, name, field.getValue());
@@ -161,29 +156,50 @@ public class DynamicValueResourceRepository extends LocalResourceRepository
     }
   }
 
+  @SuppressWarnings("InstanceGuardedByStatic")
+  @GuardedBy("ITEM_MAP_LOCK")
   @Override
   @Nullable
-  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, boolean create) {
+  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
     if (!namespace.equals(myNamespace)) {
-      return create ? ArrayListMultimap.create() : null;
+      return null;
     }
 
-    if (myFullTable.isEmpty()) {
-      // Force lazy initialization
-      getFullTable();
-    }
-    ListMultimap<String, ResourceItem> multimap = myFullTable.get(namespace, type);
-    if (multimap == null && create) {
-      multimap = ArrayListMultimap.create();
-      myFullTable.put(namespace, type, multimap);
-    }
-    return multimap;
+    return getResourceTable().get(type);
   }
 
   @Override
   @NotNull
   public ResourceNamespace getNamespace() {
     return myNamespace;
+  }
+
+  @Override
+  @NotNull
+  public ResourceVisitor.VisitResult accept(@NotNull ResourceVisitor visitor) {
+    if (visitor.shouldVisitNamespace(myNamespace)) {
+      synchronized (ITEM_MAP_LOCK) {
+        if (acceptByResources(myResourceTable, visitor) == ResourceVisitor.VisitResult.ABORT) {
+          return ResourceVisitor.VisitResult.ABORT;
+        }
+      }
+    }
+
+    return ResourceVisitor.VisitResult.CONTINUE;
+  }
+
+  @SuppressWarnings("InstanceGuardedByStatic")
+  @GuardedBy("ITEM_MAP_LOCK")
+  @NonNull
+  private Map<ResourceType, ListMultimap<String, ResourceItem>> getResourceTable() {
+    if (myResourceTable.isEmpty()) {
+      AndroidModel androidModel = AndroidModel.get(myFacet.getModule());
+      if (androidModel != null) {
+        addValues(androidModel.getResValues());
+      }
+    }
+
+    return myResourceTable;
   }
 
   // ---- Implements BuildVariantView.BuildVariantSelectionChangeListener ----
