@@ -16,7 +16,7 @@
 package com.android.tools.idea.templates.recipe
 
 import com.android.tools.idea.wizard.template.SourceSetType
-import com.google.common.io.Resources.getResource
+import com.android.tools.idea.wizard.template.findResource
 import com.intellij.openapi.vfs.VfsUtil
 import com.android.tools.idea.wizard.template.RecipeExecutor as RecipeExecutor2
 import java.io.File
@@ -42,7 +42,7 @@ internal class FindReferencesRecipeExecutor2(private val context: RenderingConte
   }
 
   override fun copy(from: File, to: File) {
-    val sourceUrl = getResource(context.templateData.javaClass, "/${from.path}")
+    val sourceUrl = findResource(context.templateData.javaClass, from)
     val sourceFile = VfsUtil.findFileByURL(sourceUrl) ?: error("$from ($sourceUrl)")
     if (sourceFile.isDirectory) {
       throw RuntimeException("Directories not supported for Find References")
