@@ -14,6 +14,10 @@
 package com.android.tools.idea.naveditor.editor
 
 import com.android.SdkConstants
+import com.android.SdkConstants.ATTR_LABEL
+import com.android.SdkConstants.ATTR_MODULE_NAME
+import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.TAG_INCLUDE
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
@@ -150,7 +154,7 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
   data class RegularDestination @JvmOverloads constructor(
     override val parent: NlComponent, val tag: String, private val destinationLabel: String? = null, val destinationClass: PsiClass,
     val idBase: String = destinationClass.name ?: tag, private val layoutFile: XmlFile? = null,
-    override val inProject: Boolean = true)
+    override val inProject: Boolean = true, val dynamicModuleName: String? = null)
     : ScreenShapedDestination(parent) {
 
     override fun drawThumbnailContents(model: NlModel, thumbnailDimension: Dimension, graphics: Graphics2D,
@@ -189,8 +193,9 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
       val newComponent = createComponent(tag) ?: return
 
       newComponent.assignId(idBase)
-      newComponent.setAndroidAttribute(SdkConstants.ATTR_NAME, destinationClass.qualifiedName)
-      newComponent.setAndroidAttribute(SdkConstants.ATTR_LABEL, label)
+      newComponent.setAndroidAttribute(ATTR_NAME, destinationClass.qualifiedName)
+      newComponent.setAttribute(AUTO_URI, ATTR_MODULE_NAME, dynamicModuleName)
+      newComponent.setAndroidAttribute(ATTR_LABEL, label)
       if (parent.startDestinationId == null) {
         newComponent.setAsStartDestination()
       }

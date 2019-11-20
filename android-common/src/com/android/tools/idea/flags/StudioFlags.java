@@ -317,6 +317,10 @@ public final class StudioFlags {
     NAV_EDITOR, "new.component", "Enable the new Component Tree",
     "Enable the new Component Tree",
     true);
+  public static final Flag<Boolean> NAV_DYNAMIC_SUPPORT = Flag.create(
+    NAV_EDITOR, "dynamic.support", "Support for Dynamic Feature Modules",
+    "Support for Dynamic Feature Modules",
+    false);
   //endregion
 
   //region Resource Manager
