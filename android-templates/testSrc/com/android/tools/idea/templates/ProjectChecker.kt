@@ -211,14 +211,13 @@ data class ProjectChecker(
   }
 
   private fun createProjectForNewRenderingContext(
-    project: Project, activityState: TestTemplateWizardState, newTemplate: Template2
+    project: Project, moduleName: String, activityState: TestTemplateWizardState, newTemplate: Template2
   ) {
     val isLauncher = activityState.getBoolean(ATTR_IS_LAUNCHER)
     val packageName = activityState.getString(ATTR_PACKAGE_NAME)
     val generateLayout = activityState["generateLayout"] as Boolean?
     val projectRoot = VfsUtilCore.virtualToIoFile(project.guessProjectDir()!!)
-    val modifiedModuleName = getModifiedModuleName(project.name, activityState, true)
-    val moduleRoot = File(projectRoot, modifiedModuleName)
+    val moduleRoot = File(projectRoot, moduleName)
     val projectTemplateDataBuilder = ProjectTemplateDataBuilder(!createActivityWithProject).apply {
       minApi = activityState.getString(ATTR_MIN_API)
       minApiLevel = activityState.getInt(ATTR_MIN_API_LEVEL)
@@ -340,7 +339,7 @@ data class ProjectChecker(
       if (isNewRenderingContext) {
         val newTemplates = TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
         val newTemplate = newTemplates.find { it.name == template.metadata?.title }!!
-        createProjectForNewRenderingContext(this, activityState, newTemplate)
+        createProjectForNewRenderingContext(this, moduleName, activityState, newTemplate)
       }
       else {
         template.renderAndCheck(activityState.templateValues)
