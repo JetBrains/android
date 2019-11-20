@@ -20,6 +20,8 @@ import static com.android.SdkConstants.FD_EXTRAS;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_TEMPLATES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
+import static com.android.tools.idea.actions.NewAndroidComponentActionKt.FRAGMENT_CATEGORY;
+import static com.android.tools.idea.actions.NewAndroidComponentActionKt.NEW_WIZARD_CATEGORIES;
 import static com.android.tools.idea.flags.StudioFlags.COMPOSE_WIZARD_TEMPLATES;
 import static com.android.tools.idea.npw.project.AndroidPackageUtils.getModuleTemplates;
 import static com.android.tools.idea.npw.project.AndroidPackageUtils.getPackageForPath;
@@ -333,7 +335,7 @@ public class TemplateManager {
    */
   @NotNull
   public List<TemplateHandle> getTemplateList(@NotNull FormFactor formFactor) {
-    return getTemplateList(formFactor, NewAndroidComponentAction.NEW_WIZARD_CATEGORIES, EXCLUDED_TEMPLATES);
+    return getTemplateList(formFactor, NEW_WIZARD_CATEGORIES, EXCLUDED_TEMPLATES);
   }
 
   /**
@@ -341,7 +343,7 @@ public class TemplateManager {
    */
   @NotNull
   public List<TemplateHandle> getFragmentTemplateList(@NotNull FormFactor formFactor) {
-    return getTemplateList(formFactor, NewAndroidComponentAction.FRAGMENT_CATEGORY, EXCLUDED_TEMPLATES);
+    return getTemplateList(formFactor, FRAGMENT_CATEGORY, EXCLUDED_TEMPLATES);
   }
 
   @NotNull
@@ -548,6 +550,7 @@ public class TemplateManager {
 
     // Automotive category includes Car category templates. If a template is in both categories, use the automotive one.
     Map<String, String> templateCategoryMap = categoryRow.keySet().stream().collect(toMap(it -> it, it -> category));
+
     for (Map.Entry<String, String> templateNameAndCategory : templateCategoryMap.entrySet()) {
       String templateName = templateNameAndCategory.getKey();
       String templateCategory = templateNameAndCategory.getValue();
