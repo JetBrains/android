@@ -2078,7 +2078,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           parseValueResourceFile(file, configuration);
         }
       }
-      else {
+      else if (isValidResourceName(file.getFileName())) {
         if (isXmlFile(file) && folderInfo.isIdGenerating) {
           parseIdGeneratingResourceFile(file, configuration);
         }
