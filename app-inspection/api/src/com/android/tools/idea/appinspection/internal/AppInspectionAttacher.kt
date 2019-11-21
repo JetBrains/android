@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.api
+package com.android.tools.idea.appinspection.internal
 
-import com.android.ddmlib.IDevice
+import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
+import com.android.tools.idea.appinspection.api.AutoPreferredProcess
 import com.android.tools.idea.transport.TransportClient
-import com.android.tools.idea.transport.TransportServiceProxy
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.idea.transport.poller.TransportEventPoller
 import com.android.tools.profiler.proto.Common
@@ -33,8 +33,8 @@ typealias AttachCallback = (Common.Stream, Common.Process) -> Unit
 // TODO(b/143628758): This Discovery must be called only behind the flag SQLITE_APP_INSPECTOR_ENABLED
 // This  copy pasted from layout inspector (DefaultInspectorClient.kt) with minor changes
 internal class AppInspectionAttacher(private val executor: ScheduledExecutorService,
-                                     transportChannel: AppInspectionDiscoveryHost.TransportChannel) {
-  private var client = TransportClient(transportChannel.channelName)
+                                     channel: AppInspectionDiscoveryHost.Channel) {
+  private var client = TransportClient(channel.name)
   private var transportPoller = TransportEventPoller.createPoller(client.transportStub,
                                                                   TimeUnit.MILLISECONDS.toNanos(100),
                                                                   Comparator.comparing(Common.Event::getTimestamp).reversed())
@@ -138,26 +138,4 @@ private fun Transport.EventGroup.lastEventOrNull(predicate: (Common.Event) -> Bo
 
 private fun List<Transport.EventGroup>.filterNotEnded(): List<Transport.EventGroup> {
   return filterNot { group -> group.getEvents(group.eventsCount - 1).isEnded }
-}
-
-data class AutoPreferredProcess(
-  val manufacturer: String,
-  val model: String,
-  val serialNumber: String,
-  val packageName: String?
-) {
-
-  constructor(device: IDevice, packageName: String?)
-    : this(TransportServiceProxy.getDeviceManufacturer(device),
-           TransportServiceProxy.getDeviceModel(device),
-           device.serialNumber, packageName)
-
-  /**
-   * Returns true if a device from the transport layer matches the device profile stored.
-   */
-  fun isDeviceMatch(device: Common.Device): Boolean {
-    return device.manufacturer == manufacturer &&
-           device.model == model &&
-           device.serial == serialNumber
-  }
 }

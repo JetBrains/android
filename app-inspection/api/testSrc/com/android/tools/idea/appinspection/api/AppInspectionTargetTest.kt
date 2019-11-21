@@ -16,7 +16,12 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.idea.appinspection.api.AppInspectionTestUtils.createSuccessfulServiceResponse
+import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
+import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
+import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createSuccessfulServiceResponse
+import com.android.tools.idea.appinspection.test.INSPECTOR_ID
+import com.android.tools.idea.appinspection.test.TEST_JAR
+import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
@@ -33,11 +38,11 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 
-class AppInspectionPipelineConnectionTest {
+class AppInspectionTargetTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
-  private val gRpcServerRule = FakeGrpcServer.createFakeGrpcServer("InspectorPipelineConnectionTest", transportService, transportService)!!
+  private val gRpcServerRule = FakeGrpcServer.createFakeGrpcServer("InspectorTargetTest", transportService, transportService)!!
   private val appInspectionRule = AppInspectionServiceRule(timer, transportService, gRpcServerRule)
 
   @get:Rule
@@ -49,9 +54,9 @@ class AppInspectionPipelineConnectionTest {
   @Test
   fun launchInspector() {
     val clientFuture = Futures.transformAsync(
-      appInspectionRule.launchPipelineConnection(),
-      AsyncFunction<AppInspectionPipelineConnection, TestInspectorClient> { pipelineConnection ->
-        pipelineConnection!!.launchInspector(INSPECTOR_ID, TEST_JAR) { commandMessenger ->
+      appInspectionRule.launchTarget(),
+      AsyncFunction<AppInspectionTarget, TestInspectorClient> { target ->
+        target!!.launchInspector(INSPECTOR_ID, TEST_JAR) { commandMessenger ->
           assertThat(appInspectionRule.jarCopier.copiedJar).isEqualTo(TEST_JAR)
           TestInspectorClient(commandMessenger)
         }
@@ -62,7 +67,7 @@ class AppInspectionPipelineConnectionTest {
 
   @Test
   fun launchInspectorReturnsCorrectConnection() {
-    val connection = appInspectionRule.launchPipelineConnection().get()
+    val target = appInspectionRule.launchTarget().get()
 
     val latch = CountDownLatch(1)
     // Don't let command handler reply to any commands. We'll manually add events.
@@ -75,7 +80,7 @@ class AppInspectionPipelineConnectionTest {
       })
 
     val inspectorConnection =
-      connection.launchInspector(INSPECTOR_ID, TEST_JAR) { commandMessenger ->
+      target.launchInspector(INSPECTOR_ID, TEST_JAR) { commandMessenger ->
         TestInspectorClient(commandMessenger)
       }
 
