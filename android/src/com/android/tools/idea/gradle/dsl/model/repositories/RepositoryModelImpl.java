@@ -46,7 +46,7 @@ public abstract class RepositoryModelImpl implements RepositoryModel {
   @NotNull
   @Override
   public ResolvedPropertyModel name() {
-    return GradlePropertyModelBuilder.create(myDslElement).asMethod(true)
-                                     .addTransform(new RepositoryClosureTransform(myHolder, NAME, myDefaultRepoName)).buildResolved();
+    return GradlePropertyModelBuilder.create(myDslElement).asMethod(true).withDefault(myDefaultRepoName)
+      .addTransform(new RepositoryClosureTransform(NAME)).buildResolved();
   }
 }
