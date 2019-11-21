@@ -59,13 +59,10 @@ public class TaskIssueInfoPanel extends JBPanel {
 
     c.gridy = 1;
     c.fill = GridBagConstraints.HORIZONTAL;
-    add(createRecommendation(), c);
-
-    c.gridy = 2;
     add(createTaskInfo(), c);
 
     //add bottom space filler
-    c.gridy = 3;
+    c.gridy = 2;
     c.weighty = 1.0;
     c.fill = GridBagConstraints.BOTH;
     add(new JBPanel(), c);
