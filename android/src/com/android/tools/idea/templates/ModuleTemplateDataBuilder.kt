@@ -16,6 +16,8 @@
 package com.android.tools.idea.templates
 
 import com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
+import com.android.SdkConstants.FD_TEST
+import com.android.SdkConstants.FD_UNIT_TEST
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes.P
@@ -71,7 +73,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
   var testDir: File? = null
   var unitTestDir: File? = null
   var aidlDir: File? = null
-  var projectOut: File? = null
+  var rootDir: File? = null
   var themeExists: Boolean = false
   var isNew: Boolean? = null
   var hasApplicationTheme: Boolean = true
@@ -92,8 +94,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
     val moduleRoot = paths.moduleRoot!!
 
     // Register the resource directories associated with the active source provider
-    projectOut = File(FileUtil.toSystemIndependentName(moduleRoot.absolutePath))
-
+    rootDir = File(FileUtil.toSystemIndependentName(moduleRoot.absolutePath))
     srcDir = paths.getSrcDirectory(packageName)
     testDir = paths.getTestDirectory(packageName)
     unitTestDir = paths.getUnitTestDirectory(packageName)
@@ -226,10 +227,10 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
     srcDir!!,
     resDir!!,
     manifestDir!!,
-    testDir!!,
-    unitTestDir!!,
+    testDir ?: srcDir!!.resolve(FD_TEST),
+    unitTestDir ?: srcDir!!.resolve(FD_UNIT_TEST),
     aidlDir!!,
-    projectOut!!,
+    rootDir!!,
     themeExists,
     isNew!!,
     hasApplicationTheme,
