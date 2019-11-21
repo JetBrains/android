@@ -42,6 +42,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.Vector;
+import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -442,6 +446,28 @@ class ConstraintSetPanel extends JPanel {
     }
   }
 
+  private void updateModelIfNecessary() {
+    Set<String> ids = Arrays.stream(mConstraintSet.getChildTags(MotionSceneAttrs.Tags.CONSTRAINT))
+      .map(view -> view.getAttributeValue(MotionSceneAttrs.ATTR_ANDROID_ID))
+      .filter(Objects::nonNull)
+      .collect(Collectors.toSet());
+    if (showAll && mMeModel.layout != null) {
+      Arrays.stream(mMeModel.layout.getChildTags())
+        .map(view -> Utils.stripID(view.getAttributeValue(MotionSceneAttrs.ATTR_ANDROID_ID)))
+        .filter(Objects::nonNull)
+        .forEach(ids::add);
+    }
+
+    //noinspection unchecked
+    Set<String> found = (Set<String>)mConstraintSetModel.getDataVector().stream()
+      .map(row -> ((Vector)row).get(1))
+      .collect(Collectors.toSet());
+
+    if (!ids.equals(found)) {
+      buildTable();
+    }
+  }
+
   private String findFirstDefOfView(String viewId, MTag constraintSet) {
     MTag[] sets = constraintSet.getChildTags("Constraint");
     for (int i = 0; i < sets.length; i++) {
@@ -588,6 +614,7 @@ class ConstraintSetPanel extends JPanel {
   }
 
   public void selectById(String[] ids) {
+    updateModelIfNecessary();
     HashSet<String> selectedSet = new HashSet<>(Arrays.asList(ids));
     mConstraintSetTable.clearSelection();
     for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
