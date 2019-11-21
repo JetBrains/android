@@ -24,6 +24,7 @@ import static com.intellij.util.ThreeState.YES;
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.AnyThread;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
@@ -154,6 +155,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         @Override
         @Nullable
         NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
+          if (!IdeInfo.getInstance().isAndroidStudio()) return null;
           if (ProjectStructureConfigurable.isNewPsdEnabled() &&
               (System.currentTimeMillis() -
                Long.parseLong(
