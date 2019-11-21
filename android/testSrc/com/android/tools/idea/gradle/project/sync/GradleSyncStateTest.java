@@ -26,12 +26,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
-import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
 import org.mockito.Mock;
@@ -56,6 +54,7 @@ public class GradleSyncStateTest extends JavaProjectTestCase {
 
     MessageBus messageBus = mock(MessageBus.class);
 
+    ServiceContainerUtil.replaceService(myProject,  GradleFiles.class, myGradleFiles, getTestRootDisposable());
     mySyncState = new GradleSyncState(myProject, myGradleFiles, messageBus, myProjectStructure, myChangeNotification, mySummary);
 
     when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(myGradleSyncListener);
