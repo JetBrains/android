@@ -38,6 +38,7 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.android.tools.idea.projectsystem.ClassFileFinder
+import com.android.tools.idea.projectsystem.CodeShrinker
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.MergedManifestContributors
@@ -74,6 +75,7 @@ import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.util.ArrayDeque
 import java.util.Collections
+import com.android.builder.model.CodeShrinker as BuildModelCodeShrinker
 
 /**
  * Make [.getRegisteredDependency] return the direct module dependencies.
@@ -471,6 +473,13 @@ class GradleModuleSystem(
   }
 
   override val usesCompose: Boolean get() = readFromAgpFlags { it.usesCompose } ?: false
+
+  override val codeShrinker: CodeShrinker?
+    get() = when (AndroidModuleModel.get(module)?.selectedVariant?.mainArtifact?.codeShrinker) {
+      BuildModelCodeShrinker.PROGUARD -> CodeShrinker.PROGUARD
+      BuildModelCodeShrinker.R8 -> CodeShrinker.R8
+      null -> null
+    }
 
   override val isRClassTransitive: Boolean get() = readFromAgpFlags { it.transitiveRClasses } ?: true
 
