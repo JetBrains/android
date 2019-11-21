@@ -17,10 +17,15 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.adtui.ui.AdtUiCursors;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionInformation;
@@ -28,7 +33,9 @@ import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
-import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
@@ -36,24 +43,25 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.common.CommonDragHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutGuidelineHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
-import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
+import java.awt.Cursor;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
+import java.util.Collections;
 import java.util.EventObject;
+import java.util.List;
+import java.util.function.Predicate;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Predicate;
 
 /**
  * Interaction where you insert a new component into a parent layout (which can vary
@@ -241,8 +249,8 @@ public class DragDropInteraction extends Interaction {
       // Update the scene hierarchy to add the new targets
       mySceneView.getSceneManager().update();
       myDragReceiver.updateTargets();
-      // Select the dragged components
-      mySceneView.getSelectionModel().setSelection(myDraggedComponents);
+      // Do not select the dragged components here
+      // These components are either already selected, or they are being created will be selected later
     }
     myDesignSurface.stopDragDropInteraction();
   }
@@ -370,8 +378,13 @@ public class DragDropInteraction extends Interaction {
         // TODO: Run this *after* making a copy
         myDragHandler.commit(ax, ay, modifiers, insertType);
         model.notifyModified(NlModel.ChangeType.DND_COMMIT);
-        // Select newly dropped components
-        myDesignSurface.getSelectionModel().setSelection(added);
+
+        // Do not select the created component at this point see b/124231532.
+        // The commit above is executed asynchronously and may not have completed yet.
+        // The selection should not be moved before the components are properly created and placed under its new parent.
+        // Other tools like the attributes panel may rely on the component being fully completed.
+
+        // Move the focus to the design area in case this component is created from the palette see b/69394814
         myDesignSurface.getLayeredPane().requestFocus();
       }
       mySceneView.getSurface().repaint();
