@@ -41,8 +41,7 @@ import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.parser.BuildFileKey;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -403,10 +402,10 @@ public class GradleSyncTest {
     Project project = ideFrame.getProject();
 
     Module appModule = ideFrame.getModule("app");
-    GradleBuildFile buildFile = GradleBuildFile.get(appModule);
+    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(ideFrame.getProject());
+    projectBuildModel.getModuleBuildModel(appModule).android().compileSdkVersion().setValue("Google Inc.:Google APIs:24");
 
-    ApplicationManager.getApplication().invokeAndWait(() -> runWriteCommandAction(
-      project, () -> buildFile.setValue(BuildFileKey.COMPILE_SDK_VERSION, "Google Inc.:Google APIs:24")));
+    ApplicationManager.getApplication().invokeAndWait(() -> runWriteCommandAction(project, () -> projectBuildModel.applyChanges()));
 
     ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
