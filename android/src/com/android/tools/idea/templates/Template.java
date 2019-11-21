@@ -28,6 +28,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.TAG_FORM_FACTOR;
 import static com.android.tools.idea.templates.TemplateUtils.hasExtension;
 import static com.android.tools.idea.templates.parse.SaxUtils.getPath;
 
+import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.platform.Language;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.SdkVersionInfo;
@@ -247,7 +248,7 @@ public class Template {
         AndroidStudioEvent.newBuilder()
                           .setCategory(EventCategory.TEMPLATE)
                           .setKind(AndroidStudioEvent.EventKind.TEMPLATE_RENDER)
-                          .setTemplateRenderer(titleToTemplateRenderer(title))
+                          .setTemplateRenderer(titleToTemplateRenderer(title, myMetadata.getFormFactor()))
                           .setKotlinSupport(
                             KotlinSupport.newBuilder()
                                          .setIncludeKotlinSupport(kotlinSupport)
@@ -271,7 +272,7 @@ public class Template {
   }
 
   @VisibleForTesting
-  static TemplateRenderer titleToTemplateRenderer(String title) {
+  static TemplateRenderer titleToTemplateRenderer(String title, @Nullable String formFactor) {
     switch (title) {
       case "":
         return TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER;
@@ -282,7 +283,7 @@ public class Template {
       case "Empty Activity":
         return TemplateRenderer.EMPTY_ACTIVITY;
       case "Blank Activity":
-        return TemplateRenderer.BLANK_ACTIVITY;
+        return FormFactor.WEAR.id.equals(formFactor) ? TemplateRenderer.BLANK_WEAR_ACTIVITY : TemplateRenderer.BLANK_ACTIVITY;
       case "Layout XML File":
         return TemplateRenderer.LAYOUT_XML_FILE;
       case "Fragment (Blank)":
@@ -337,8 +338,6 @@ public class Template {
         return TemplateRenderer.RES_FOLDER;
       case "Android TV Activity":
         return TemplateRenderer.ANDROID_TV_ACTIVITY;
-      case "Blank Wear Activity":
-        return TemplateRenderer.BLANK_WEAR_ACTIVITY;
       case "Basic Activity":
         return TemplateRenderer.BASIC_ACTIVITIY;
       case "App Widget":

@@ -19,6 +19,7 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.recipe.RenderingContext2
+import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.Recipe
@@ -137,12 +138,12 @@ fun formatWarningMessage(context: RenderingContext2): String {
 }
 
 @VisibleForTesting
-internal fun titleToTemplateRenderer(title: String): TemplateRenderer = when (title) {
+internal fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRenderer = when (title) {
   "" -> TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER
   "Android Module" -> TemplateRenderer.ANDROID_MODULE
   "Android Project" -> TemplateRenderer.ANDROID_PROJECT
   "Empty Activity" -> TemplateRenderer.EMPTY_ACTIVITY
-  "Blank Activity" -> TemplateRenderer.BLANK_ACTIVITY
+  "Blank Activity" -> if (formFactor == FormFactor.Wear) TemplateRenderer.BLANK_WEAR_ACTIVITY else TemplateRenderer.BLANK_ACTIVITY
   "Layout XML File" -> TemplateRenderer.LAYOUT_XML_FILE
   "Fragment (Blank)" -> TemplateRenderer.FRAGMENT_BLANK
   "Navigation Drawer Activity" -> TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY
@@ -170,7 +171,6 @@ internal fun titleToTemplateRenderer(title: String): TemplateRenderer = when (ti
   "Always On Wear Activity" -> TemplateRenderer.ALWAYS_ON_WEAR_ACTIVITY
   "Res Folder" -> TemplateRenderer.RES_FOLDER
   "Android TV Activity" -> TemplateRenderer.ANDROID_TV_ACTIVITY
-  "Blank Wear Activity" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
   "Basic Activity" -> TemplateRenderer.BASIC_ACTIVITIY
   "App Widget" -> TemplateRenderer.APP_WIDGET
   "Instant App Project" -> TemplateRenderer.ANDROID_INSTANT_APP_PROJECT
@@ -185,7 +185,7 @@ fun Template.logRendering(projectTemplateData: ProjectTemplateData, project: Pro
   val aseBuilder = AndroidStudioEvent.newBuilder()
     .setCategory(AndroidStudioEvent.EventCategory.TEMPLATE)
     .setKind(AndroidStudioEvent.EventKind.TEMPLATE_RENDER)
-    .setTemplateRenderer(titleToTemplateRenderer(this.name))
+    .setTemplateRenderer(titleToTemplateRenderer(this.name, this.formFactor))
     .setKotlinSupport(
       KotlinSupport.newBuilder()
         .setIncludeKotlinSupport(projectTemplateData.language == Language.Kotlin)
