@@ -77,9 +77,20 @@ class IncorrectScopeInspectionTest : AndroidGradleTestCase() {
     myFixture.moveCaret("assertEquals(4, 2 + 2)|")
     myFixture.type("\nInstrumentationRegistry.getTargetContext()")
     PsiDocumentManager.getInstance(project).commitDocument(myFixture.editor.document)
+    val expectedErrorMessage = "Unresolved reference: InstrumentationRegistry"
+    assertThat(myFixture.doHighlighting().stream().anyMatch {
+      it.description == expectedErrorMessage && it.severity == HighlightSeverity.ERROR
+    }).isTrue()
+  }
 
-    // This should be marked as an error, but because it is possible for this library to be in both androidTest and test source sets but
-    // only one of the scopes, we don't mark it as an error.
+  fun testCorrectScopeDifferentModuleAndroidTest() {
+    val unitTestPath = "app/src/androidTest/java/com/example/android/kotlin/ExampleInstrumentedTest.kt"
+    val file = project.guessProjectDir()!!.findFileByRelativePath(unitTestPath)
+    myFixture.openFileInEditor(file!!)
+    myFixture.moveCaret("\nimport android.support.test.InstrumentationRegistry|")
+    // JUnit has been added to the androidTest scope as an indirect dependency on com.android.support.test:runner:1.0.2
+    myFixture.moveCaret("\nimport org.junit.Test|")
+    PsiDocumentManager.getInstance(project).commitDocument(myFixture.editor.document)
     val highlightInfo = myFixture.doHighlighting(HighlightSeverity.WARNING)
     assertThat(highlightInfo).isEmpty()
   }
@@ -101,8 +112,7 @@ class IncorrectScopeInspectionTest : AndroidGradleTestCase() {
 
     val expectedErrorMessage = "Unresolved reference: ExampleInstrumentedTest"
     assertThat(myFixture.doHighlighting().stream().anyMatch {
-      it.description == expectedErrorMessage
-      && it.severity == HighlightSeverity.ERROR
+      it.description == expectedErrorMessage && it.severity == HighlightSeverity.ERROR
     }).isTrue()
   }
 }
