@@ -31,6 +31,7 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_JAVA_VERSION
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API_LEVEL
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_OVERRIDE_PATH_CHECK
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_THEME_EXISTS
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_TOP_OUT
 import com.android.tools.idea.ui.wizard.WizardUtils
@@ -53,6 +54,7 @@ class TestNewProjectWizardState(moduleTemplate: Template) {
     put(ATTR_IS_NEW_MODULE, true)
     put(ATTR_THEME_EXISTS, true)
     put(ATTR_IS_LIBRARY_MODULE, false)
+    put(ATTR_OVERRIDE_PATH_CHECK, true)
     put(ATTR_TOP_OUT, WizardUtils.getProjectLocationParent().path)
     put(ATTR_MIN_API_LEVEL, defaultMinApi)
     put(ATTR_MIN_API, defaultMinApi.toString())
