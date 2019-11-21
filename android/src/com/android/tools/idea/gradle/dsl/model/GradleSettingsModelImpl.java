@@ -62,12 +62,17 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     return file != null ? parseBuildFile(file, project, "settings") : null;
   }
 
-  /**
-   * @deprecated Use {@link ProjectBuildModel#getProjectSettingsModel()} instead.
-   */
-  @Deprecated
   @NotNull
-  public static GradleSettingsModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
+  public static GradleSettingsModel get(@NotNull VirtualFile settingsFile, @NotNull Project hostProject) {
+    return parseBuildFile(settingsFile, hostProject, "settings");
+  }
+
+  /**
+   * This method is left here to ensure that when needed we can construct a settings model with only the virtual file.
+   * In most cases {@link GradleSettingsModel}s should be obtained from the {@link ProjectBuildModel}.
+   */
+  @NotNull
+  private static GradleSettingsModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
     GradleSettingsFile settingsFile = new GradleSettingsFile(file, project, moduleName, BuildModelContext.create(project));
     settingsFile.parse();
     return new GradleSettingsModelImpl(settingsFile);

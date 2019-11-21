@@ -34,6 +34,16 @@ public interface GradleSettingsModel extends GradleFileModel {
     return GradleModelProvider.get().getSettingsModel(project);
   }
 
+  /**
+   * Obtains ONLY the model for the Gradle settings.gradle file. DO NOT use this unless you are sure you need to.
+   * Use {@link ProjectBuildModel#getProjectSettingsModel()} instead. You should not attempt to obtain
+   * {@link GradleBuildModel}s from the returns settings model.
+   */
+  @NotNull
+  static GradleSettingsModel get(@NotNull VirtualFile settingFile, @NotNull Project hostProject) {
+    return GradleModelProvider.get().getSettingsModel(settingFile, hostProject);
+  }
+
   @NotNull
   List<String> modulePaths();
 
