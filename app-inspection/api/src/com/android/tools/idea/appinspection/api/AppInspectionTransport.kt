@@ -64,11 +64,11 @@ class AppInspectionTransport(
   fun createEventListener(
     filter: (Common.Event) -> Boolean = { true },
     eventKind: Common.Event.Kind = Common.Event.Kind.APP_INSPECTION,
-    startTimeNs: Long = Long.MIN_VALUE,
+    startTimeNs: () -> Long = { Long.MIN_VALUE },
     callback: (Common.Event) -> Boolean
   ) = TransportEventListener(eventKind = eventKind,
                              executor = executorService,
-                             startTime = { startTimeNs },
+                             startTime = startTimeNs,
                              streamId = stream::getStreamId,
                              filter = filter,
                              processId = process::getPid,

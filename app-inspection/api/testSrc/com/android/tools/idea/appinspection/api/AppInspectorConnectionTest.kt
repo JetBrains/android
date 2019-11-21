@@ -340,4 +340,37 @@ class AppInspectorConnectionTest {
     assertThat(listener.rawEvents).hasSize(1)
     assertThat(listener.rawEvents[0]).isEqualTo(freshEventData)
   }
+
+  @Test
+  fun connectionDoesNotReceiveAlreadyReceivedEvents() {
+    val firstLatch = CountDownLatch(1)
+    val secondLatch = CountDownLatch(1)
+    val firstEventData = byteArrayOf(0x12, 0x15)
+    val secondEventData = byteArrayOf(0x01, 0x02)
+    val listener = object : AppInspectionServiceRule.TestInspectorEventListener() {
+      override fun onRawEvent(eventData: ByteArray) {
+        super.onRawEvent(eventData)
+        if (firstLatch.count > 0) {
+          firstLatch.countDown()
+        } else {
+          secondLatch.countDown()
+        }
+      }
+    }
+
+    appInspectionRule.launchInspectorConnection(eventListener = listener)
+
+    appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(firstEventData))
+
+    firstLatch.await()
+    assertThat(listener.rawEvents).hasSize(1)
+
+    timer.currentTimeNs = 3
+    appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(secondEventData))
+
+    secondLatch.await()
+    assertThat(listener.rawEvents).hasSize(2)
+    assertThat(listener.rawEvents[0]).isEqualTo(firstEventData)
+    assertThat(listener.rawEvents[1]).isEqualTo(secondEventData)
+  }
 }
