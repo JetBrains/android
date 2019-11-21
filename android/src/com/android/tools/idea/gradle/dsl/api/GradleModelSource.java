@@ -74,6 +74,12 @@ public class GradleModelSource extends GradleModelProvider {
 
   @NotNull
   @Override
+  public GradleSettingsModel getSettingsModel(@NotNull VirtualFile settingsFile, @NotNull Project hostProject) {
+    return GradleSettingsModelImpl.get(settingsFile, hostProject);
+  }
+
+  @NotNull
+  @Override
   public ArtifactDependencySpec getArtifactDependencySpec(@NotNull String name, @Nullable String group, @Nullable String version) {
     return new ArtifactDependencySpecImpl(name, group, version);
   }
