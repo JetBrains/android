@@ -16,6 +16,8 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.appinspection.internal.AppInspectionTransport
+import com.android.tools.idea.appinspection.internal.attachAppInspectionTarget
 import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileCopier
@@ -25,9 +27,9 @@ import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.ExecutorService
 
 /**
- * Represents the connection interface between studio and the app-inspection pipeline per process.
+ * Represents an app-inspection target process (on the device) being connected to from the host.
  */
-interface AppInspectionPipelineConnection {
+interface AppInspectionTarget {
   /**
    * Creates an inspector in the connected process.
    *
@@ -45,10 +47,9 @@ interface AppInspectionPipelineConnection {
     @WorkerThread creator: (AppInspectorClient.CommandMessenger) -> T
   ): ListenableFuture<T>
 
-
   companion object {
     /**
-     * Creates a [AppInspectionPipelineConnection] to the given [process] on the given device ([stream])
+     * Creates an [AppInspectionTarget] for the given [process] on the given device ([stream])
      */
     @WorkerThread
     fun attach(
@@ -58,6 +59,6 @@ interface AppInspectionPipelineConnection {
       executorService: ExecutorService,
       fileCopier: TransportFileCopier,
       transport: AppInspectionTransport = AppInspectionTransport(TransportClient(channelName), stream, process, executorService)
-    ): ListenableFuture<AppInspectionPipelineConnection> = attachAppInspectionPipelineConnection(stream, process, transport, fileCopier)
+    ): ListenableFuture<AppInspectionTarget> = attachAppInspectionTarget(stream, process, transport, fileCopier)
   }
 }

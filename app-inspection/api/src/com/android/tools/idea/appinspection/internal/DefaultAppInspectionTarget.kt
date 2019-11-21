@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.api
+package com.android.tools.idea.appinspection.internal
 
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
 import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Status.SUCCESS
 import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
+import com.android.tools.idea.appinspection.api.AppInspectionTarget
+import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.idea.transport.TransportFileCopier
@@ -40,16 +42,16 @@ import com.google.common.util.concurrent.SettableFuture
 import java.nio.file.Path
 
 /**
- * Sends ATTACH command to transport daemon, that makes sure perfa is running and is ready to receive
- * app-inspection-specific commands.
+ * Sends ATTACH command to the transport daemon, that makes sure an agent is running and is ready
+ * to receive app-inspection-specific commands.
  */
-internal fun attachAppInspectionPipelineConnection(
+internal fun attachAppInspectionTarget(
   stream: Stream,
   process: Process,
   transport: AppInspectionTransport,
   fileCopier: TransportFileCopier
-): ListenableFuture<AppInspectionPipelineConnection> {
-  val connectionFuture = SettableFuture.create<AppInspectionPipelineConnection>()
+): ListenableFuture<AppInspectionTarget> {
+  val targetFuture = SettableFuture.create<AppInspectionTarget>()
 
   // The device daemon takes care of the case if and when the agent is previously attached already.
   val attachCommand = Command.newBuilder()
@@ -65,15 +67,16 @@ internal fun attachAppInspectionPipelineConnection(
   transport.registerEventListener(
     transport.createEventListener(eventKind = AGENT, filter = { it.agentData.status == ATTACHED }
     ) {
-      connectionFuture.set(DefaultAppInspectionPipelineConnection(transport, fileCopier))
+      targetFuture.set(DefaultAppInspectionTarget(transport, fileCopier))
       true
     })
+
   transport.client.transportStub.execute(ExecuteRequest.newBuilder().setCommand(attachCommand).build())
-  return connectionFuture
+  return targetFuture
 }
 
-private class DefaultAppInspectionPipelineConnection(val processTransport: AppInspectionTransport,
-                                                     private val fileCopier: TransportFileCopier) : AppInspectionPipelineConnection {
+private class DefaultAppInspectionTarget(val processTransport: AppInspectionTransport,
+                                         private val fileCopier: TransportFileCopier) : AppInspectionTarget {
   override fun <T : AppInspectorClient> launchInspector(
     inspectorId: String,
     inspectorJar: DeployableFile,

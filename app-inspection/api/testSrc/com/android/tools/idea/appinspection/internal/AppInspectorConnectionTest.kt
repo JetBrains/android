@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.api
+package com.android.tools.idea.appinspection.internal
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection.AppInspectionEvent
 import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Status.ERROR
 import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Status.SUCCESS
 import com.android.tools.app.inspection.AppInspection.CrashEvent
-import com.android.tools.idea.appinspection.api.AppInspectionTestUtils.createRawAppInspectionEvent
-import com.android.tools.idea.appinspection.api.AppInspectionTestUtils.createRawEvent
+import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
+import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
+import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
+import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createRawAppInspectionEvent
+import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createRawEvent
+import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService

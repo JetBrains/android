@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.api
+package com.android.tools.idea.appinspection.test
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
+import com.android.tools.idea.appinspection.api.AppInspectionTarget
+import com.android.tools.idea.appinspection.api.AppInspectorClient
+import com.android.tools.idea.appinspection.api.TestInspectorClient
+import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
+import com.android.tools.idea.appinspection.internal.launchInspectorForTest
+import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.idea.transport.TransportClient
@@ -80,14 +86,14 @@ class AppInspectionServiceRule(
   }
 
   /**
-   * Launches a new [AppInspectionPipelineConnection] and sets the optional [commandHandler].
+   * Launches a new [AppInspectionTarget] and sets the optional [commandHandler].
    */
-  fun launchPipelineConnection(
+  fun launchTarget(
     commandHandler: CommandHandler = TestInspectorCommandHandler(timer)
-  ): ListenableFuture<AppInspectionPipelineConnection> {
+  ): ListenableFuture<AppInspectionTarget> {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    return AppInspectionPipelineConnection.attach(stream, process, grpcServer.name, executorService, jarCopier, transport)
+    return AppInspectionTarget.attach(stream, process, grpcServer.name, executorService, jarCopier, transport)
   }
 
   /**
@@ -110,7 +116,7 @@ class AppInspectionServiceRule(
   }
 
   /**
-   * Generate a fake [Common.Event] using the provided [appInspectionResponse] in transport pipeline.
+   * Generate a fake [Common.Event] using the provided [appInspectionResponse].
    */
   fun addAppInspectionResponse(appInspectionResponse: AppInspection.AppInspectionResponse) {
     transportService.addEventToStream(
@@ -125,7 +131,7 @@ class AppInspectionServiceRule(
   }
 
   /**
-   * Generate a fake [Common.Event] using the provided [appInspectionEvent] in transport pipeline.
+   * Generate a fake [Common.Event] using the provided [appInspectionEvent].
    */
   fun addAppInspectionEvent(appInspectionEvent: AppInspection.AppInspectionEvent) {
     transportService.addEventToStream(
