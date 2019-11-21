@@ -21,7 +21,6 @@ import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toPaddedSho
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toShortStringAsCount
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toShortStringAsSize
 import com.android.tools.idea.diagnostics.hprof.util.TruncatingPrintBuffer
-import com.intellij.openapi.util.objectTree.ObjectTree
 import com.intellij.util.ExceptionUtil
 import gnu.trove.TIntArrayList
 import gnu.trove.TLongArrayList
