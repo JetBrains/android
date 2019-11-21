@@ -27,16 +27,14 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class DataBindingDslElement extends GradleDslBlockElement {
-  @NonNls public static final String DATA_BINDING_BLOCK_NAME = "dataBinding";
-
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"addDefaultAdapters", property, ADD_DEFAULT_ADAPTERS, VAR},
@@ -53,6 +51,8 @@ public class DataBindingDslElement extends GradleDslBlockElement {
     {"version", property, VERSION, VAR},
     {"version", exactly(1), VERSION, SET},
   }).collect(toModelMap());
+  public static final PropertiesElementDescription<DataBindingDslElement> DATA_BINDING =
+    new PropertiesElementDescription<>("dataBinding", DataBindingDslElement.class, DataBindingDslElement::new);
 
   @Override
   @NotNull
@@ -69,6 +69,6 @@ public class DataBindingDslElement extends GradleDslBlockElement {
   }
 
   public DataBindingDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(DATA_BINDING_BLOCK_NAME));
+    super(parent, GradleNameElement.create(DATA_BINDING.name));
   }
 }

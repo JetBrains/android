@@ -28,16 +28,14 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public final class BuildFeaturesDslElement extends GradleDslBlockElement {
-  @NonNls public static final String BUILD_FEATURES_BLOCK_NAME = "buildFeatures";
-
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"compose", property, COMPOSE, VAR},
@@ -48,6 +46,8 @@ public final class BuildFeaturesDslElement extends GradleDslBlockElement {
     {"compose", property, COMPOSE, VAR},
     {"compose", exactly(1), COMPOSE, SET},
   }).collect(toModelMap());
+  public static final PropertiesElementDescription<BuildFeaturesDslElement> BUILD_FEATURES =
+    new PropertiesElementDescription<>("buildFeatures", BuildFeaturesDslElement.class, BuildFeaturesDslElement::new);
 
   @Override
   @NotNull
@@ -64,6 +64,6 @@ public final class BuildFeaturesDslElement extends GradleDslBlockElement {
   }
 
   public BuildFeaturesDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(BUILD_FEATURES_BLOCK_NAME));
+    super(parent, GradleNameElement.create(BUILD_FEATURES.name));
   }
 }

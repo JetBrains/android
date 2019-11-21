@@ -29,16 +29,14 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class AaptOptionsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String AAPT_OPTIONS_BLOCK_NAME = "aaptOptions";
-
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"additionalParameters", property, ADDITIONAL_PARAMETERS, VAR},
@@ -75,6 +73,8 @@ public class AaptOptionsDslElement extends GradleDslBlockElement {
     {"namespaced", property, NAMESPACED, VAR},
     {"namespaced", exactly(1), NAMESPACED, SET}
   }).collect(toModelMap());
+  public static final PropertiesElementDescription<AaptOptionsDslElement> AAPT_OPTIONS =
+    new PropertiesElementDescription<>("aaptOptions", AaptOptionsDslElement.class, AaptOptionsDslElement::new);
 
   @Override
   @NotNull
@@ -91,7 +91,7 @@ public class AaptOptionsDslElement extends GradleDslBlockElement {
   }
 
   public AaptOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(AAPT_OPTIONS_BLOCK_NAME));
+    super(parent, GradleNameElement.create(AAPT_OPTIONS.name));
   }
 
   @Override

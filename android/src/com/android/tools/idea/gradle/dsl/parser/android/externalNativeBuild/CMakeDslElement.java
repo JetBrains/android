@@ -17,13 +17,14 @@ package com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
 public final class CMakeDslElement extends AbstractBuildDslElement {
-  @NonNls public static final String CMAKE_BLOCK_NAME = "cmake";
+  public static final PropertiesElementDescription<CMakeDslElement> CMAKE =
+    new PropertiesElementDescription<>("cmake", CMakeDslElement.class, CMakeDslElement::new);
 
   public CMakeDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(CMAKE_BLOCK_NAME));
+    super(parent, GradleNameElement.create(CMAKE.name));
   }
 }

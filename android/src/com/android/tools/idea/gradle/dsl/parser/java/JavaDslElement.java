@@ -27,12 +27,12 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,7 +40,8 @@ import org.jetbrains.annotations.Nullable;
  * Holds the data in addition to the project element, which added by Java plugin
  */
 public class JavaDslElement extends BaseCompileOptionsDslElement {
-  @NonNls public static final String JAVA_BLOCK_NAME = "java";
+  public static final PropertiesElementDescription<JavaDslElement> JAVA =
+    new PropertiesElementDescription<>("java", JavaDslElement.class, JavaDslElement::new);
 
   // The Java Dsl element has a different mapping of external names to functionality than the BaseCompileOptionsDslElement, even though
   // the corresponding models are identical.  This suggests that JavaDslElement should probably not in fact be a
@@ -75,7 +76,7 @@ public class JavaDslElement extends BaseCompileOptionsDslElement {
   }
 
   public JavaDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(JAVA_BLOCK_NAME));
+    super(parent, GradleNameElement.create(JAVA.name));
   }
 
   @Override

@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement.BUILD_FEATURES_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement.DATA_BINDING_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement.DEX_OPTIONS_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement.KOTLIN_OPTIONS_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement.LINT_OPTIONS_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement.PACKAGING_OPTIONS_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement.SIGNING_CONFIGS_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement.SOURCE_SETS_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement.SPLITS_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement.TEST_OPTIONS_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement.VIEW_BINDING_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.COMPILE_OPTIONS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS;
+import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS;
+import static com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement.BUILD_FEATURES;
+import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES;
+import static com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement.COMPILE_OPTIONS;
+import static com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement.DATA_BINDING;
+import static com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement.DEX_OPTIONS;
+import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD;
+import static com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement.KOTLIN_OPTIONS;
+import static com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement.LINT_OPTIONS;
+import static com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement.PACKAGING_OPTIONS;
+import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS;
+import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement.SIGNING_CONFIGS;
+import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement.SOURCE_SETS;
+import static com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement.SPLITS;
+import static com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement.TEST_OPTIONS;
+import static com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement.VIEW_BINDING;
 
 import com.android.tools.idea.gradle.dsl.api.ExternalNativeBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AaptOptionsModel;
@@ -77,7 +77,6 @@ import com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 import org.jetbrains.annotations.NonNls;
@@ -105,22 +104,21 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public AaptOptionsModel aaptOptions() {
-    AaptOptionsDslElement aaptOptionsElement = myDslElement.ensurePropertyElement(AAPT_OPTIONS_BLOCK_NAME, AaptOptionsDslElement.class);
+    AaptOptionsDslElement aaptOptionsElement = myDslElement.ensurePropertyElement(AAPT_OPTIONS);
     return new AaptOptionsModelImpl(aaptOptionsElement);
   }
 
   @Override
   @NotNull
   public AdbOptionsModel adbOptions() {
-    AdbOptionsDslElement adbOptionsElement = myDslElement.ensurePropertyElement(ADB_OPTIONS_BLOCK_NAME, AdbOptionsDslElement.class);
+    AdbOptionsDslElement adbOptionsElement = myDslElement.ensurePropertyElement(ADB_OPTIONS);
     return new AdbOptionsModelImpl(adbOptionsElement);
   }
 
   @Override
   @NotNull
   public BuildFeaturesModel buildFeatures() {
-    BuildFeaturesDslElement buildFeaturesDslElement =
-      myDslElement.ensurePropertyElement(BUILD_FEATURES_BLOCK_NAME, BuildFeaturesDslElement.class);
+    BuildFeaturesDslElement buildFeaturesDslElement = myDslElement.ensurePropertyElement(BUILD_FEATURES);
     return new BuildFeaturesModelImpl(buildFeaturesDslElement);
   }
 
@@ -139,21 +137,21 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     @NotNull
   @Override
   public List<BuildTypeModel> buildTypes() {
-    BuildTypesDslElement buildTypes = myDslElement.getPropertyElement(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);
+    BuildTypesDslElement buildTypes = myDslElement.getPropertyElement(BUILD_TYPES);
     return buildTypes == null ? ImmutableList.of() : buildTypes.get();
   }
 
   @NotNull
   @Override
   public BuildTypeModel addBuildType(@NotNull String buildType) {
-    BuildTypesDslElement buildTypes = myDslElement.ensurePropertyElement(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);
+    BuildTypesDslElement buildTypes = myDslElement.ensurePropertyElement(BUILD_TYPES);
     BuildTypeDslElement buildTypeElement = buildTypes.ensureNamedPropertyElement(buildType, BuildTypeDslElement.class);
     return new BuildTypeModelImpl(buildTypeElement);
   }
 
   @Override
   public void removeBuildType(@NotNull String buildType) {
-    BuildTypesDslElement buildTypes = myDslElement.getPropertyElement(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);
+    BuildTypesDslElement buildTypes = myDslElement.getPropertyElement(BUILD_TYPES);
     if (buildTypes != null) {
       buildTypes.removeProperty(buildType);
     }
@@ -162,7 +160,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NotNull
   @Override
   public CompileOptionsModel compileOptions() {
-    CompileOptionsDslElement element = myDslElement.ensurePropertyElement(COMPILE_OPTIONS_BLOCK_NAME, CompileOptionsDslElement.class);
+    CompileOptionsDslElement element = myDslElement.ensurePropertyElement(COMPILE_OPTIONS);
     return new CompileOptionsModelImpl(element);
   }
 
@@ -175,7 +173,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public DataBindingModel dataBinding() {
-    DataBindingDslElement dataBindingElement = myDslElement.ensurePropertyElement(DATA_BINDING_BLOCK_NAME, DataBindingDslElement.class);
+    DataBindingDslElement dataBindingElement = myDslElement.ensurePropertyElement(DATA_BINDING);
     return new DataBindingModelImpl(dataBindingElement);
   }
 
@@ -195,7 +193,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public DexOptionsModel dexOptions() {
-    DexOptionsDslElement dexOptionsElement = myDslElement.ensurePropertyElement(DEX_OPTIONS_BLOCK_NAME, DexOptionsDslElement.class);
+    DexOptionsDslElement dexOptionsElement = myDslElement.ensurePropertyElement(DEX_OPTIONS);
     return new DexOptionsModelImpl(dexOptionsElement);
   }
 
@@ -210,8 +208,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NotNull
   @Override
   public ExternalNativeBuildModel externalNativeBuild() {
-    ExternalNativeBuildDslElement externalNativeBuildDslElement =
-      myDslElement.ensurePropertyElement(EXTERNAL_NATIVE_BUILD_BLOCK_NAME, ExternalNativeBuildDslElement.class);
+    ExternalNativeBuildDslElement externalNativeBuildDslElement = myDslElement.ensurePropertyElement(EXTERNAL_NATIVE_BUILD);
     return new ExternalNativeBuildModelImpl(externalNativeBuildDslElement);
   }
 
@@ -229,47 +226,43 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
 
   @Override
   @NotNull
+  public KotlinOptionsModel kotlinOptions() {
+    KotlinOptionsDslElement kotlinOptionsDslElement = myDslElement.ensurePropertyElement(KOTLIN_OPTIONS);
+    return new KotlinOptionsModelImpl(kotlinOptionsDslElement);
+  }
+
+  @Override
+  @NotNull
   public LintOptionsModel lintOptions() {
-    LintOptionsDslElement lintOptionsDslElement = myDslElement.ensurePropertyElement(LINT_OPTIONS_BLOCK_NAME, LintOptionsDslElement.class);
+    LintOptionsDslElement lintOptionsDslElement = myDslElement.ensurePropertyElement(LINT_OPTIONS);
     return new LintOptionsModelImpl(lintOptionsDslElement);
   }
 
   @Override
   @NotNull
-  public KotlinOptionsModel kotlinOptions() {
-    KotlinOptionsDslElement kotlinOptionsDslElement =
-      myDslElement.ensurePropertyElement(KOTLIN_OPTIONS_BLOCK_NAME, KotlinOptionsDslElement.class);
-    return new KotlinOptionsModelImpl(kotlinOptionsDslElement);
-  }
-
-
-  @Override
-  @NotNull
   public PackagingOptionsModel packagingOptions() {
-    PackagingOptionsDslElement packagingOptionsDslElement =
-      myDslElement.ensurePropertyElement(PACKAGING_OPTIONS_BLOCK_NAME, PackagingOptionsDslElement.class);
+    PackagingOptionsDslElement packagingOptionsDslElement = myDslElement.ensurePropertyElement(PACKAGING_OPTIONS);
     return new PackagingOptionsModelImpl(packagingOptionsDslElement);
   }
 
   @Override
   @NotNull
   public List<ProductFlavorModel> productFlavors() {
-    ProductFlavorsDslElement productFlavors = myDslElement.getPropertyElement(PRODUCT_FLAVORS_BLOCK_NAME, ProductFlavorsDslElement.class);
+    ProductFlavorsDslElement productFlavors = myDslElement.getPropertyElement(PRODUCT_FLAVORS);
     return productFlavors == null ? ImmutableList.of() : productFlavors.get();
   }
 
   @Override
   @NotNull
   public ProductFlavorModel addProductFlavor(@NotNull String flavor) {
-    ProductFlavorsDslElement productFlavors =
-      myDslElement.ensurePropertyElement(PRODUCT_FLAVORS_BLOCK_NAME, ProductFlavorsDslElement.class);
+    ProductFlavorsDslElement productFlavors = myDslElement.ensurePropertyElement(PRODUCT_FLAVORS);
     ProductFlavorDslElement flavorElement = productFlavors.ensureNamedPropertyElement(flavor, ProductFlavorDslElement.class);
     return new ProductFlavorModelImpl(flavorElement);
   }
 
   @Override
   public void removeProductFlavor(@NotNull String flavor) {
-    ProductFlavorsDslElement productFlavors = myDslElement.getPropertyElement(PRODUCT_FLAVORS_BLOCK_NAME, ProductFlavorsDslElement.class);
+    ProductFlavorsDslElement productFlavors = myDslElement.getPropertyElement(PRODUCT_FLAVORS);
     if (productFlavors != null) {
       productFlavors.removeProperty(flavor);
     }
@@ -278,22 +271,21 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public List<SigningConfigModel> signingConfigs() {
-    SigningConfigsDslElement signingConfigs = myDslElement.getPropertyElement(SIGNING_CONFIGS_BLOCK_NAME, SigningConfigsDslElement.class);
+    SigningConfigsDslElement signingConfigs = myDslElement.getPropertyElement(SIGNING_CONFIGS);
     return signingConfigs == null ? ImmutableList.of() : signingConfigs.get();
   }
 
   @Override
   @NotNull
   public SigningConfigModel addSigningConfig(@NotNull String config) {
-    SigningConfigsDslElement signingConfigs =
-      myDslElement.ensurePropertyElementAt(SIGNING_CONFIGS_BLOCK_NAME, SigningConfigsDslElement.class, 0);
+    SigningConfigsDslElement signingConfigs = myDslElement.ensurePropertyElementAt(SIGNING_CONFIGS, 0);
     SigningConfigDslElement configElement = signingConfigs.ensureNamedPropertyElement(config, SigningConfigDslElement.class);
     return new SigningConfigModelImpl(configElement);
   }
 
   @Override
   public void removeSigningConfig(@NotNull String configName) {
-    SigningConfigsDslElement signingConfig = myDslElement.getPropertyElement(SIGNING_CONFIGS_BLOCK_NAME, SigningConfigsDslElement.class);
+    SigningConfigsDslElement signingConfig = myDslElement.getPropertyElement(SIGNING_CONFIGS);
     if (signingConfig != null) {
       signingConfig.removeProperty(configName);
     }
@@ -302,21 +294,21 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public List<SourceSetModel> sourceSets() {
-    SourceSetsDslElement sourceSets = myDslElement.getPropertyElement(SOURCE_SETS_BLOCK_NAME, SourceSetsDslElement.class);
+    SourceSetsDslElement sourceSets = myDslElement.getPropertyElement(SOURCE_SETS);
     return sourceSets == null ? ImmutableList.of() : sourceSets.get();
   }
 
   @Override
   @NotNull
   public SourceSetModel addSourceSet(@NotNull String sourceSet) {
-    SourceSetsDslElement sourceSets = myDslElement.ensurePropertyElement(SOURCE_SETS_BLOCK_NAME, SourceSetsDslElement.class);
+    SourceSetsDslElement sourceSets = myDslElement.ensurePropertyElement(SOURCE_SETS);
     SourceSetDslElement sourceSetElement = sourceSets.ensureNamedPropertyElement(sourceSet, SourceSetDslElement.class);
     return new SourceSetModelImpl(sourceSetElement);
   }
 
   @Override
   public void removeSourceSet(@NotNull String sourceSet) {
-    SourceSetsDslElement sourceSets = myDslElement.getPropertyElement(SOURCE_SETS_BLOCK_NAME, SourceSetsDslElement.class);
+    SourceSetsDslElement sourceSets = myDslElement.getPropertyElement(SOURCE_SETS);
     if (sourceSets != null) {
       sourceSets.removeProperty(sourceSet);
     }
@@ -325,14 +317,14 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public SplitsModel splits() {
-    SplitsDslElement splitsDslElement = myDslElement.ensurePropertyElement(SPLITS_BLOCK_NAME, SplitsDslElement.class);
+    SplitsDslElement splitsDslElement = myDslElement.ensurePropertyElement(SPLITS);
     return new SplitsModelImpl(splitsDslElement);
   }
 
   @Override
   @NotNull
   public TestOptionsModel testOptions() {
-    TestOptionsDslElement testOptionsDslElement = myDslElement.ensurePropertyElement(TEST_OPTIONS_BLOCK_NAME, TestOptionsDslElement.class);
+    TestOptionsDslElement testOptionsDslElement = myDslElement.ensurePropertyElement(TEST_OPTIONS);
     return new TestOptionsModelImpl(testOptionsDslElement);
   }
 
@@ -351,7 +343,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public ViewBindingModel viewBinding() {
-    ViewBindingDslElement viewBindingElement = myDslElement.ensurePropertyElement(VIEW_BINDING_BLOCK_NAME, ViewBindingDslElement.class);
+    ViewBindingDslElement viewBindingElement = myDslElement.ensurePropertyElement(VIEW_BINDING);
     return new ViewBindingModelImpl(viewBindingElement);
   }
 }

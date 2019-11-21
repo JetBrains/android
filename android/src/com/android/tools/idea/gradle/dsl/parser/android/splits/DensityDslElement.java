@@ -26,15 +26,16 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class DensityDslElement extends BaseSplitOptionsDslElement {
-  @NonNls public static final String DENSITY_BLOCK_NAME = "density";
+  public static final PropertiesElementDescription<DensityDslElement> DENSITY =
+    new PropertiesElementDescription<>("density", DensityDslElement.class, DensityDslElement::new);
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap =
@@ -75,7 +76,7 @@ public class DensityDslElement extends BaseSplitOptionsDslElement {
   }
 
   public DensityDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(DENSITY_BLOCK_NAME));
+    super(parent, GradleNameElement.create(DENSITY.name));
   }
 
   @Override

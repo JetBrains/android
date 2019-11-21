@@ -29,9 +29,9 @@ import com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement.ABI_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement.DENSITY_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement.LANGUAGE_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement.ABI;
+import static com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement.DENSITY;
+import static com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement.LANGUAGE;
 
 public class SplitsModelImpl extends GradleDslBlockModel implements SplitsModel {
 
@@ -44,37 +44,37 @@ public class SplitsModelImpl extends GradleDslBlockModel implements SplitsModel 
   @Override
   @NotNull
   public AbiModel abi() {
-    AbiDslElement abiDslElement = myDslElement.ensurePropertyElement(ABI_BLOCK_NAME, AbiDslElement.class);
+    AbiDslElement abiDslElement = myDslElement.ensurePropertyElement(ABI);
     return new AbiModelImpl(abiDslElement);
   }
 
   @Override
   public void removeAbi() {
-    myDslElement.removeProperty(ABI_BLOCK_NAME);
+    myDslElement.removeProperty(ABI.name);
   }
 
 
   @Override
   @NotNull
   public DensityModel density() {
-    DensityDslElement densityDslElement = myDslElement.ensurePropertyElement(DENSITY_BLOCK_NAME, DensityDslElement.class);
+    DensityDslElement densityDslElement = myDslElement.ensurePropertyElement(DENSITY);
     return new DensityModelImpl(densityDslElement);
   }
 
   @Override
   public void removeDensity() {
-    myDslElement.removeProperty(DENSITY_BLOCK_NAME);
+    myDslElement.removeProperty(DENSITY.name);
   }
 
   @Override
   @NotNull
   public LanguageModel language() {
-    LanguageDslElement languageDslElement = myDslElement.ensurePropertyElement(LANGUAGE_BLOCK_NAME, LanguageDslElement.class);
+    LanguageDslElement languageDslElement = myDslElement.ensurePropertyElement(LANGUAGE);
     return new LanguageModelImpl(languageDslElement);
   }
 
   @Override
   public void removeLanguage() {
-    myDslElement.removeProperty(LANGUAGE_BLOCK_NAME);
+    myDslElement.removeProperty(LANGUAGE.name);
   }
 }

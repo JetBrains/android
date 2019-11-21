@@ -28,15 +28,16 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public final class AndroidDslElement extends GradleDslBlockElement {
-  @NonNls public static final String ANDROID_BLOCK_NAME = "android";
+  public static final PropertiesElementDescription<AndroidDslElement> ANDROID =
+    new PropertiesElementDescription<>("android", AndroidDslElement.class, AndroidDslElement::new);
 
   @NotNull
   private static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
@@ -91,7 +92,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
   }
 
   public AndroidDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(ANDROID_BLOCK_NAME));
+    super(parent, GradleNameElement.create(ANDROID.name));
   }
 
   @Override

@@ -27,15 +27,16 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class LanguageDslElement extends GradleDslBlockElement {
-  @NonNls public static final String LANGUAGE_BLOCK_NAME = "language";
+  public static final PropertiesElementDescription<LanguageDslElement> LANGUAGE =
+    new PropertiesElementDescription<>("language", LanguageDslElement.class, LanguageDslElement::new);
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
@@ -68,7 +69,7 @@ public class LanguageDslElement extends GradleDslBlockElement {
   }
 
   public LanguageDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(LANGUAGE_BLOCK_NAME));
+    super(parent, GradleNameElement.create(LANGUAGE.name));
   }
 
   @Override

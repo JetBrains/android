@@ -26,8 +26,8 @@ import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkB
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement.CMAKE_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement.NDK_BUILD_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement.CMAKE;
+import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement.NDK_BUILD;
 
 public class ExternalNativeBuildModelImpl extends GradleDslBlockModel implements ExternalNativeBuildModel {
   public ExternalNativeBuildModelImpl(@NotNull GradlePropertiesDslElement dslElement) {
@@ -37,28 +37,28 @@ public class ExternalNativeBuildModelImpl extends GradleDslBlockModel implements
   @NotNull
   @Override
   public CMakeModel cmake() {
-    CMakeDslElement cMakeDslElement = myDslElement.ensurePropertyElement(CMAKE_BLOCK_NAME, CMakeDslElement.class);
+    CMakeDslElement cMakeDslElement = myDslElement.ensurePropertyElement(CMAKE);
     return new CMakeModelImpl(cMakeDslElement);
   }
 
   @NotNull
   @Override
   public ExternalNativeBuildModel removeCMake() {
-    myDslElement.removeProperty(CMAKE_BLOCK_NAME);
+    myDslElement.removeProperty(CMAKE.name);
     return this;
   }
 
   @NotNull
   @Override
   public NdkBuildModel ndkBuild() {
-    NdkBuildDslElement ndkBuildDslElement = myDslElement.ensurePropertyElement(NDK_BUILD_BLOCK_NAME, NdkBuildDslElement.class);
+    NdkBuildDslElement ndkBuildDslElement = myDslElement.ensurePropertyElement(NDK_BUILD);
     return new NdkBuildModelImpl(ndkBuildDslElement);
   }
 
   @NotNull
   @Override
   public ExternalNativeBuildModel removeNdkBuild() {
-    myDslElement.removeProperty(NDK_BUILD_BLOCK_NAME);
+    myDslElement.removeProperty(NDK_BUILD.name);
     return this;
   }
 }

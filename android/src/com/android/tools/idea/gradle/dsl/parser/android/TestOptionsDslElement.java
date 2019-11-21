@@ -27,16 +27,14 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class TestOptionsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String TEST_OPTIONS_BLOCK_NAME = "testOptions";
-
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"reportDir", property, REPORT_DIR, VAR},
@@ -53,6 +51,8 @@ public class TestOptionsDslElement extends GradleDslBlockElement {
     {"execution", property, EXECUTION, VAR},
     {"execution", exactly(1), EXECUTION, SET}
   }).collect(toModelMap());
+  public static final PropertiesElementDescription<TestOptionsDslElement> TEST_OPTIONS =
+    new PropertiesElementDescription<>("testOptions", TestOptionsDslElement.class, TestOptionsDslElement::new);
 
   @Override
   @NotNull
@@ -69,6 +69,6 @@ public class TestOptionsDslElement extends GradleDslBlockElement {
   }
 
   public TestOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(TEST_OPTIONS_BLOCK_NAME));
+    super(parent, GradleNameElement.create(TEST_OPTIONS.name));
   }
 }

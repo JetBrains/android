@@ -18,13 +18,14 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
 public class SplitsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String SPLITS_BLOCK_NAME = "splits";
+  public static final PropertiesElementDescription<SplitsDslElement> SPLITS =
+    new PropertiesElementDescription<>("splits", SplitsDslElement.class, SplitsDslElement::new);
 
   public SplitsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(SPLITS_BLOCK_NAME));
+    super(parent, GradleNameElement.create(SPLITS.name));
   }
 }

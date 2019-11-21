@@ -28,16 +28,14 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class AdbOptionsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String ADB_OPTIONS_BLOCK_NAME = "adbOptions";
-
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"installOptions", property, INSTALL_OPTIONS, VAL},
@@ -54,6 +52,8 @@ public class AdbOptionsDslElement extends GradleDslBlockElement {
     {"timeOutInMs", property, TIME_OUT_IN_MS, VAR},
     {"timeOutInMs", exactly(1), TIME_OUT_IN_MS, SET}
   }).collect(toModelMap());
+  public static final PropertiesElementDescription<AdbOptionsDslElement> ADB_OPTIONS =
+    new PropertiesElementDescription<>("adbOptions", AdbOptionsDslElement.class, AdbOptionsDslElement::new);
 
   @Override
   @NotNull
@@ -69,7 +69,7 @@ public class AdbOptionsDslElement extends GradleDslBlockElement {
     }
   }
   public AdbOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(ADB_OPTIONS_BLOCK_NAME));
+    super(parent, GradleNameElement.create(ADB_OPTIONS.name));
   }
 
   @Override

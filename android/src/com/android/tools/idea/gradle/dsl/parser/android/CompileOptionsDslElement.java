@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslEl
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
@@ -57,6 +58,8 @@ public class CompileOptionsDslElement extends BaseCompileOptionsDslElement {
         {"incremental", property, INCREMENTAL, VAR},
         {"incremental", exactly(1), INCREMENTAL, SET},
       })).collect(toModelMap());
+  public static final PropertiesElementDescription<CompileOptionsDslElement> COMPILE_OPTIONS =
+    new PropertiesElementDescription<>("compileOptions", CompileOptionsDslElement.class, CompileOptionsDslElement::new);
 
   @Override
   @NotNull
