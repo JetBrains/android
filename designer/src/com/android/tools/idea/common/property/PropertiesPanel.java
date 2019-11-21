@@ -30,7 +30,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public abstract class PropertiesPanel<PropMgr extends PropertiesManager<PropMgr>>
+public abstract class PropertiesPanel
   extends JPanel
   implements Disposable, DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
   public PropertiesPanel(LayoutManager layout) {
