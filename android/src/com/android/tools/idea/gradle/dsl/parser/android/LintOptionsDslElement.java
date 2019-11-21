@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
@@ -34,8 +35,6 @@ import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public class LintOptionsDslElement extends GradleDslBlockElement {
-  public static final String LINT_OPTIONS_BLOCK_NAME = "lintOptions";
-
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"isAbortOnError", property, ABORT_ON_ERROR, VAR},
@@ -126,6 +125,8 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
     // TODO(b/144403889): {"informational", atLeast(0), INFORMATIONAL, OTHER},
     {"warning", atLeast(0), WARNING, OTHER},
   }).collect(toModelMap());
+  public static final PropertiesElementDescription<LintOptionsDslElement> LINT_OPTIONS =
+    new PropertiesElementDescription<>("lintOptions", LintOptionsDslElement.class, LintOptionsDslElement::new);
 
   @Override
   @NotNull
@@ -143,7 +144,7 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
 
 
   public LintOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(LINT_OPTIONS_BLOCK_NAME));
+    super(parent, GradleNameElement.create(LINT_OPTIONS.name));
   }
 
   @Override

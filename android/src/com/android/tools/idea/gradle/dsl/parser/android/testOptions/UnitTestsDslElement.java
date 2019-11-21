@@ -27,15 +27,16 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class UnitTestsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String UNIT_TESTS_BLOCK_NAME = "unitTests";
+  public static final PropertiesElementDescription<UnitTestsDslElement> UNIT_TESTS =
+    new PropertiesElementDescription<>("unitTests", UnitTestsDslElement.class, UnitTestsDslElement::new);
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
@@ -63,6 +64,6 @@ public class UnitTestsDslElement extends GradleDslBlockElement {
   }
 
   public UnitTestsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(UNIT_TESTS_BLOCK_NAME));
+    super(parent, GradleNameElement.create(UNIT_TESTS.name));
   }
 }

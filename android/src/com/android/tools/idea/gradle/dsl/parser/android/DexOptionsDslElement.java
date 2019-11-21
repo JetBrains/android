@@ -28,16 +28,14 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class DexOptionsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String DEX_OPTIONS_BLOCK_NAME = "dexOptions";
-
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"additionalParameters", property, ADDITIONAL_PARAMETERS, VAR},
@@ -77,6 +75,8 @@ public class DexOptionsDslElement extends GradleDslBlockElement {
     {"threadCount", property, THREAD_COUNT, VAR},
     {"threadCount", exactly(1), THREAD_COUNT, SET}
   }).collect(toModelMap());
+  public static final PropertiesElementDescription<DexOptionsDslElement> DEX_OPTIONS =
+    new PropertiesElementDescription<>("dexOptions", DexOptionsDslElement.class, DexOptionsDslElement::new);
 
   @Override
   @NotNull
@@ -93,7 +93,7 @@ public class DexOptionsDslElement extends GradleDslBlockElement {
   }
 
   public DexOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(DEX_OPTIONS_BLOCK_NAME));
+    super(parent, GradleNameElement.create(DEX_OPTIONS.name));
   }
 
   @Override

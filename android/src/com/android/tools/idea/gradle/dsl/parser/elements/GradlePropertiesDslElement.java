@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
@@ -25,7 +26,6 @@ import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
-import java.lang.reflect.InvocationTargetException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -377,18 +377,21 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     return clazz.isInstance(propertyElement) ? clazz.cast(propertyElement) : null;
   }
 
-  @NotNull
-  public <T extends GradleDslElement> T ensurePropertyElement(@NotNull String property, @NotNull Class<T> clazz) {
-    return ensurePropertyElement(property, clazz, false, null);
+  @Nullable
+  public <T extends GradlePropertiesDslElement> T getPropertyElement(@NotNull PropertiesElementDescription<T> description) {
+    return getPropertyElement(description.name, description.clazz);
   }
 
   @NotNull
-  public <T extends GradleDslElement> T ensurePropertyElementAt(@NotNull String property, @NotNull Class<T> clazz, Integer at) {
-    return ensurePropertyElement(property, clazz, false, at);
+  public <T extends GradlePropertiesDslElement> T ensurePropertyElement(@NotNull PropertiesElementDescription<T> description) {
+    return ensurePropertyElementAt(description, null);
   }
 
   @NotNull
-  public <T extends GradleDslElement, U> T ensurePropertyElementBefore(@NotNull String property, @NotNull Class<T> clazz, Class<U> before) {
+  public <T extends GradlePropertiesDslElement, U> T ensurePropertyElementBefore(
+    @NotNull PropertiesElementDescription<T> description,
+    Class<U> before
+  ) {
     Integer at = null;
     List<GradleDslElement> elements = getAllElements();
     for (int i = 0; i < elements.size(); i++) {
@@ -397,7 +400,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
         break;
       }
     }
-    return ensurePropertyElement(property, clazz, false, at);
+    return ensurePropertyElementAt(description, at);
   }
 
   @NotNull
@@ -427,6 +430,21 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       Logger.getInstance(GradlePropertiesDslElement.class).error(e);
       throw new RuntimeException(e);
     }
+    if (at != null) {
+      addNewElementAt(at, newElement);
+    }
+    else {
+      setNewElement(newElement);
+    }
+    return newElement;
+  }
+
+  @NotNull
+  public <T extends GradlePropertiesDslElement> T ensurePropertyElementAt(PropertiesElementDescription<T> description, Integer at) {
+    T propertyElement = getPropertyElement(description);
+    if (propertyElement != null) return propertyElement;
+    T newElement;
+    newElement = description.constructor.construct(this);
     if (at != null) {
       addNewElementAt(at, newElement);
     }

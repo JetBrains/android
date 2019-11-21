@@ -28,16 +28,14 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class ViewBindingDslElement extends GradleDslBlockElement {
-  @NonNls public static final String VIEW_BINDING_BLOCK_NAME = "viewBinding";
-
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"isEnabled", property, ENABLED, VAR}
@@ -48,6 +46,8 @@ public class ViewBindingDslElement extends GradleDslBlockElement {
     {"enabled", property, ENABLED, VAR},
     {"enabled", exactly(1), ENABLED, SET}
   }).collect(toModelMap());
+  public static final PropertiesElementDescription<ViewBindingDslElement> VIEW_BINDING =
+    new PropertiesElementDescription<>("viewBinding", ViewBindingDslElement.class, ViewBindingDslElement::new);
 
   @Override
   @NotNull
@@ -64,6 +64,6 @@ public class ViewBindingDslElement extends GradleDslBlockElement {
   }
 
   public ViewBindingDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(VIEW_BINDING_BLOCK_NAME));
+    super(parent, GradleNameElement.create(VIEW_BINDING.name));
   }
 }

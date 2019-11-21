@@ -26,21 +26,20 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class KotlinOptionsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String KOTLIN_OPTIONS_BLOCK_NAME = "kotlinOptions";
-  @NonNls public static final String JVM_TARGET_ATTRIBUTE_NAME = "jvmTarget";
-
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> modelNameMap = Stream.of(new Object[][]{
-    {JVM_TARGET_ATTRIBUTE_NAME, property, JVM_TARGET, VAR},
+    {"jvmTarget", property, JVM_TARGET, VAR},
   }).collect(toModelMap());
+  public static final PropertiesElementDescription<KotlinOptionsDslElement> KOTLIN_OPTIONS =
+    new PropertiesElementDescription<>("kotlinOptions", KotlinOptionsDslElement.class, KotlinOptionsDslElement::new);
 
   @Override
   @NotNull
@@ -54,6 +53,6 @@ public class KotlinOptionsDslElement extends GradleDslBlockElement {
   }
 
   public KotlinOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(KOTLIN_OPTIONS_BLOCK_NAME));
+    super(parent, GradleNameElement.create(KOTLIN_OPTIONS.name));
   }
 }

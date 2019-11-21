@@ -40,7 +40,6 @@ import java.util.*;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isNonExpressionPropertiesElement;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.*;
-import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
 
 public abstract class GradleDslElementImpl implements GradleDslElement, ModificationAware {
   @NotNull protected GradleNameElement myName;
@@ -349,7 +348,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
     if (currentElement instanceof GradleDslFile) {
       GradleDslFile file = (GradleDslFile)currentElement;
       while (file != null) {
-        ExtDslElement ext = file.getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
+        ExtDslElement ext = file.getPropertyElement(ExtDslElement.EXT);
         if (ext != null) {
           results.putAll(ext.getPropertyElements());
         }
@@ -363,9 +362,9 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
           results.putAll(filteredProperties);
         }
         // Add BuildScriptExt properties.
-        BuildScriptDslElement buildScriptElement = file.getPropertyElement(BUILDSCRIPT_BLOCK_NAME, BuildScriptDslElement.class);
+        BuildScriptDslElement buildScriptElement = file.getPropertyElement(BUILDSCRIPT);
         if (buildScriptElement != null) {
-          ExtDslElement buildScriptExt = buildScriptElement.getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
+          ExtDslElement buildScriptExt = buildScriptElement.getPropertyElement(ExtDslElement.EXT);
           if (buildScriptExt != null) {
             results.putAll(buildScriptExt.getPropertyElements());
           }

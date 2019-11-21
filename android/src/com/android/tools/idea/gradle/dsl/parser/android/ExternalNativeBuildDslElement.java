@@ -18,13 +18,14 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
 public final class ExternalNativeBuildDslElement extends GradleDslBlockElement {
-  @NonNls public static final String EXTERNAL_NATIVE_BUILD_BLOCK_NAME = "externalNativeBuild";
+  public static final PropertiesElementDescription<ExternalNativeBuildDslElement> EXTERNAL_NATIVE_BUILD =
+    new PropertiesElementDescription<>("externalNativeBuild", ExternalNativeBuildDslElement.class, ExternalNativeBuildDslElement::new);
 
   public ExternalNativeBuildDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(EXTERNAL_NATIVE_BUILD_BLOCK_NAME));
+    super(parent, GradleNameElement.create(EXTERNAL_NATIVE_BUILD.name));
   }
 }

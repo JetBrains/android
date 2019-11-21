@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
@@ -40,7 +41,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class VectorDrawablesOptionsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String VECTOR_DRAWABLES_OPTIONS_BLOCK_NAME = "vectorDrawables";
+  public static final PropertiesElementDescription<VectorDrawablesOptionsDslElement> VECTOR_DRAWABLES_OPTIONS =
+    new PropertiesElementDescription<>("vectorDrawables", VectorDrawablesOptionsDslElement.class, VectorDrawablesOptionsDslElement::new);
 
   @NotNull
   private static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
@@ -73,6 +75,6 @@ public class VectorDrawablesOptionsDslElement extends GradleDslBlockElement {
   }
 
   public VectorDrawablesOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(VECTOR_DRAWABLES_OPTIONS_BLOCK_NAME));
+    super(parent, GradleNameElement.create(VECTOR_DRAWABLES_OPTIONS.name));
   }
 }

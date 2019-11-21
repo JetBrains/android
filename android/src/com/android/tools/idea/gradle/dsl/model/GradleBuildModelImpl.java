@@ -17,16 +17,16 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement.CONFIGURATIONS_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement.CONFIGURATIONS;
+import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES;
+import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
+import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA;
 import static com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement.PLUGINS_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
@@ -359,14 +359,14 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   @NotNull
   public AndroidModel android() {
-    AndroidDslElement androidDslElement = myGradleDslFile.ensurePropertyElement(ANDROID_BLOCK_NAME, AndroidDslElement.class);
+    AndroidDslElement androidDslElement = myGradleDslFile.ensurePropertyElement(ANDROID);
     return new AndroidModelImpl(androidDslElement);
   }
 
   @NotNull
   @Override
   public BuildScriptModel buildscript() {
-    BuildScriptDslElement buildScriptDslElement = myGradleDslFile.ensurePropertyElement(BUILDSCRIPT_BLOCK_NAME, BuildScriptDslElement.class);
+    BuildScriptDslElement buildScriptDslElement = myGradleDslFile.ensurePropertyElement(BUILDSCRIPT);
     return new BuildScriptModelImpl(buildScriptDslElement);
   }
 
@@ -374,15 +374,14 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   public ConfigurationsModel configurations() {
     ConfigurationsDslElement configurationsDslElement =
-      myGradleDslFile.ensurePropertyElementBefore(CONFIGURATIONS_BLOCK_NAME, ConfigurationsDslElement.class, DependenciesDslElement.class);
+      myGradleDslFile.ensurePropertyElementBefore(CONFIGURATIONS, DependenciesDslElement.class);
     return new ConfigurationsModelImpl(configurationsDslElement);
   }
 
   @NotNull
   @Override
   public DependenciesModel dependencies() {
-    DependenciesDslElement dependenciesDslElement =
-      myGradleDslFile.ensurePropertyElement(DEPENDENCIES_BLOCK_NAME, DependenciesDslElement.class);
+    DependenciesDslElement dependenciesDslElement = myGradleDslFile.ensurePropertyElement(DEPENDENCIES);
     return new DependenciesModelImpl(dependenciesDslElement);
   }
 
@@ -394,22 +393,21 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     if (!elements.isEmpty() && elements.get(0) instanceof ApplyDslElement) {
       at += 1;
     }
-    ExtDslElement extDslElement = myGradleDslFile.ensurePropertyElementAt(EXT_BLOCK_NAME, ExtDslElement.class, at);
+    ExtDslElement extDslElement = myGradleDslFile.ensurePropertyElementAt(EXT, at);
     return new ExtModelImpl(extDslElement);
   }
 
   @NotNull
   @Override
   public JavaModel java() {
-    JavaDslElement javaDslElement = myGradleDslFile.ensurePropertyElement(JAVA_BLOCK_NAME, JavaDslElement.class);
+    JavaDslElement javaDslElement = myGradleDslFile.ensurePropertyElement(JAVA);
     return new JavaModelImpl(javaDslElement);
   }
 
   @NotNull
   @Override
   public RepositoriesModel repositories() {
-    RepositoriesDslElement repositoriesDslElement =
-      myGradleDslFile.ensurePropertyElement(REPOSITORIES_BLOCK_NAME, RepositoriesDslElement.class);
+    RepositoriesDslElement repositoriesDslElement = myGradleDslFile.ensurePropertyElement(REPOSITORIES);
     return new RepositoriesModelImpl(repositoriesDslElement);
   }
 
@@ -434,11 +432,11 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   }
 
   /**
-   * Removes property {@link RepositoriesDslElement#REPOSITORIES_BLOCK_NAME}.
+   * Removes property {@link RepositoriesDslElement#REPOSITORIES}.
    */
   @Override
   @TestOnly
   public void removeRepositoriesBlocks() {
-    myGradleDslFile.removeProperty(REPOSITORIES_BLOCK_NAME);
+    myGradleDslFile.removeProperty(REPOSITORIES.name);
   }
 }

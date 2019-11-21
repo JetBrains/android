@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import static com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl.*;
+import static com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement.COMPILE_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
@@ -28,15 +29,12 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Base class for representing compileOptions block or other blocks which have sourceCompatibility / targetCompatibility fields.
  */
 public abstract class BaseCompileOptionsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String COMPILE_OPTIONS_BLOCK_NAME = "compileOptions";
-
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"sourceCompatibility", property, SOURCE_COMPATIBILITY, VAR},
@@ -72,7 +70,7 @@ public abstract class BaseCompileOptionsDslElement extends GradleDslBlockElement
   }
 
   public BaseCompileOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(COMPILE_OPTIONS_BLOCK_NAME));
+    super(parent, GradleNameElement.create(COMPILE_OPTIONS.name));
   }
 
   @Override

@@ -27,15 +27,16 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class AbiDslElement extends BaseSplitOptionsDslElement {
-  @NonNls public static final String ABI_BLOCK_NAME = "abi";
+  public static final PropertiesElementDescription<AbiDslElement> ABI =
+    new PropertiesElementDescription<>("abi", AbiDslElement.class, AbiDslElement::new);
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap =
@@ -73,7 +74,7 @@ public class AbiDslElement extends BaseSplitOptionsDslElement {
   }
 
   public AbiDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(ABI_BLOCK_NAME));
+    super(parent, GradleNameElement.create(ABI.name));
   }
 
 }

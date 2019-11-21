@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
@@ -39,7 +40,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class NdkOptionsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String NDK_BLOCK_NAME = "ndk";
+  public static final PropertiesElementDescription<NdkOptionsDslElement> NDK_OPTIONS =
+    new PropertiesElementDescription<>("ndk", NdkOptionsDslElement.class, NdkOptionsDslElement::new);
 
   @NotNull
   private static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
@@ -69,7 +71,7 @@ public class NdkOptionsDslElement extends GradleDslBlockElement {
     }
   }
   public NdkOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(NDK_BLOCK_NAME));
+    super(parent, GradleNameElement.create(NDK_OPTIONS.name));
   }
 
   @Override

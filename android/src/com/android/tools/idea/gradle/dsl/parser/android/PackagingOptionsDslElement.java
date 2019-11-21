@@ -27,16 +27,14 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class PackagingOptionsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String PACKAGING_OPTIONS_BLOCK_NAME = "packagingOptions";
-
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"excludes", property, EXCLUDES, VAR},
@@ -56,6 +54,8 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
     {"pickFirsts", property, PICK_FIRSTS, VAR},
     {"pickFirst", exactly(1), PICK_FIRSTS, OTHER}
   }).collect(toModelMap());
+  public static final PropertiesElementDescription<PackagingOptionsDslElement> PACKAGING_OPTIONS =
+    new PropertiesElementDescription<>("packagingOptions", PackagingOptionsDslElement.class, PackagingOptionsDslElement::new);
 
   @Override
   @NotNull
@@ -72,7 +72,7 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
   }
 
   public PackagingOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(PACKAGING_OPTIONS_BLOCK_NAME));
+    super(parent, GradleNameElement.create(PACKAGING_OPTIONS.name));
   }
 
   @Override

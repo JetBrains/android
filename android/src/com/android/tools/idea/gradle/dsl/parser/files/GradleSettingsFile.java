@@ -34,8 +34,8 @@ public class GradleSettingsFile extends GradleDslFile {
 
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
-    if (INCLUDE.equals(element.getName())) {
-      IncludeDslElement includeDslElement = getPropertyElement(INCLUDE, IncludeDslElement.class);
+    if (INCLUDE.name.equals(element.getName())) {
+      IncludeDslElement includeDslElement = getPropertyElement(INCLUDE);
       if (includeDslElement == null) {
         includeDslElement = new IncludeDslElement(this);
         super.addParsedElement(includeDslElement);

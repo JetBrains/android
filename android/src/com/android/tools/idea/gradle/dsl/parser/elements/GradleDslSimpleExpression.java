@@ -46,8 +46,8 @@ import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
-import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT;
+import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.getStandardProjectKey;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -479,7 +479,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
         // If it is then we have already checked the ExtElement of this object.
         if (!(lastElement instanceof ExtDslElement) && checkExt) {
           GradleDslElement extElement =
-            ((GradlePropertiesDslElement)element).getPropertyElementBefore(lastElement, EXT_BLOCK_NAME, false);
+            ((GradlePropertiesDslElement)element).getPropertyElementBefore(lastElement, EXT.name, false);
           if (extElement instanceof ExtDslElement) {
             GradleDslElement extPropertyElement =
               resolveReferenceOnPropertiesElement((ExtDslElement)extElement, nameParts, converter, elementTrace);
@@ -491,7 +491,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
 
         if (!(lastElement instanceof BuildScriptDslElement)) {
           GradleDslElement bsDslElement =
-            ((GradlePropertiesDslElement)element).getPropertyElementBefore(element, BUILDSCRIPT_BLOCK_NAME, false);
+            ((GradlePropertiesDslElement)element).getPropertyElementBefore(element, BUILDSCRIPT.name, false);
           if (bsDslElement instanceof BuildScriptDslElement) {
             GradleDslElement bsElement =
               resolveReferenceOnElement(bsDslElement, nameParts, converter, true /* Must be true or we just jump between buildscript -> parent */,
@@ -542,7 +542,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
     }
 
     // Ensure we check the buildscript as well.
-    BuildScriptDslElement bsDslElement = dslFile.getPropertyElement(BUILDSCRIPT_BLOCK_NAME, BuildScriptDslElement.class);
+    BuildScriptDslElement bsDslElement = dslFile.getPropertyElement(BUILDSCRIPT);
     if (bsDslElement != null) {
       GradleDslElement bsElement = resolveReferenceOnElement(bsDslElement, referenceText, converter, false, true, -1);
       if (bsElement != null) {
@@ -575,7 +575,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
   ) {
     GradleDslFile parentDslFile = dslFile.getParentModuleDslFile();
     while (parentDslFile != null) {
-      ExtDslElement extDslElement = parentDslFile.getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
+      ExtDslElement extDslElement = parentDslFile.getPropertyElement(EXT);
       if (extDslElement != null) {
         GradleDslElement extPropertyElement = resolveReferenceOnPropertiesElement(extDslElement, referenceText, converter, new Stack<>());
         if (extPropertyElement != null) {
@@ -583,7 +583,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
         }
       }
 
-      BuildScriptDslElement bsDslElement = parentDslFile.getPropertyElement(BUILDSCRIPT_BLOCK_NAME, BuildScriptDslElement.class);
+      BuildScriptDslElement bsDslElement = parentDslFile.getPropertyElement(BUILDSCRIPT);
       if (bsDslElement != null) {
         GradleDslElement bsElement = resolveReferenceOnElement(bsDslElement, referenceText, converter, false, true, -1);
         if (bsElement != null) {

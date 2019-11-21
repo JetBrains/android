@@ -36,9 +36,9 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
-import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES;
+import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES;
 
 public class BuildScriptModelImpl extends GradleDslBlockModel implements BuildScriptModel {
 
@@ -49,26 +49,24 @@ public class BuildScriptModelImpl extends GradleDslBlockModel implements BuildSc
   @NotNull
   @Override
   public DependenciesModel dependencies() {
-    DependenciesDslElement dependenciesDslElement =
-      myDslElement.ensurePropertyElement(DEPENDENCIES_BLOCK_NAME, DependenciesDslElement.class);
+    DependenciesDslElement dependenciesDslElement = myDslElement.ensurePropertyElement(DEPENDENCIES);
     return new DependenciesModelImpl(dependenciesDslElement);
   }
 
   @NotNull
   @Override
   public RepositoriesModel repositories() {
-    RepositoriesDslElement repositoriesDslElement =
-      myDslElement.ensurePropertyElement(REPOSITORIES_BLOCK_NAME, RepositoriesDslElement.class);
+    RepositoriesDslElement repositoriesDslElement = myDslElement.ensurePropertyElement(REPOSITORIES);
     return new RepositoriesModelImpl(repositoriesDslElement);
   }
 
   /**
-   * Removes property {@link RepositoriesDslElement#REPOSITORIES_BLOCK_NAME}.
+   * Removes property {@link RepositoriesDslElement#REPOSITORIES}.
    */
   @Override
   @TestOnly
   public void removeRepositoriesBlocks() {
-    myDslElement.removeProperty(REPOSITORIES_BLOCK_NAME);
+    myDslElement.removeProperty(REPOSITORIES.name);
   }
 
   @NotNull
@@ -79,7 +77,7 @@ public class BuildScriptModelImpl extends GradleDslBlockModel implements BuildSc
     if (!elements.isEmpty() && elements.get(0) instanceof ApplyDslElement) {
       at += 1;
     }
-    ExtDslElement extDslElement = myDslElement.ensurePropertyElementAt(EXT_BLOCK_NAME, ExtDslElement.class, at);
+    ExtDslElement extDslElement = myDslElement.ensurePropertyElementAt(EXT, at);
     return new ExtModelImpl(extDslElement);
   }
 

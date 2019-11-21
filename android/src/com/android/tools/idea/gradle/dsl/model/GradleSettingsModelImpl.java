@@ -99,7 +99,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     List<String> result = Lists.newArrayList();
     result.add(":"); // Indicates the root module.
 
-    IncludeDslElement includePaths = myGradleDslFile.getPropertyElement(INCLUDE, IncludeDslElement.class);
+    IncludeDslElement includePaths = myGradleDslFile.getPropertyElement(INCLUDE);
     if (includePaths == null) {
       return result;
     }
@@ -129,15 +129,15 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
   @Override
   public void addModulePath(@NotNull String modulePath) {
     modulePath = standardiseModulePath(modulePath);
-    IncludeDslElement includeDslElement = myGradleDslFile.ensurePropertyElement(INCLUDE, IncludeDslElement.class);
-    GradleDslLiteral literal = new GradleDslLiteral(includeDslElement, GradleNameElement.create(INCLUDE));
+    IncludeDslElement includeDslElement = myGradleDslFile.ensurePropertyElement(INCLUDE);
+    GradleDslLiteral literal = new GradleDslLiteral(includeDslElement, GradleNameElement.create(INCLUDE.name));
     literal.setValue(modulePath);
     includeDslElement.setNewElement(literal);
   }
 
   @Override
   public void removeModulePath(@NotNull String modulePath) {
-    IncludeDslElement includeDslElement = myGradleDslFile.getPropertyElement(INCLUDE, IncludeDslElement.class);
+    IncludeDslElement includeDslElement = myGradleDslFile.getPropertyElement(INCLUDE);
     if (includeDslElement != null) {
       // Try to remove the module path whether it has ":" prefix or not.
       if (!modulePath.startsWith(":")) {
@@ -149,7 +149,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
 
   @Override
   public void replaceModulePath(@NotNull String oldModulePath, @NotNull String newModulePath) {
-    IncludeDslElement includeDslElement = myGradleDslFile.getPropertyElement(INCLUDE, IncludeDslElement.class);
+    IncludeDslElement includeDslElement = myGradleDslFile.getPropertyElement(INCLUDE);
     if (includeDslElement != null) {
       // Try to replace the module path whether it has ":" prefix or not.
       if (!newModulePath.startsWith(":")) {
