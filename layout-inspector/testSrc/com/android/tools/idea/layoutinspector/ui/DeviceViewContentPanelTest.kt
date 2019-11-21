@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -30,8 +29,6 @@ import org.mockito.Mockito.mock
 import java.awt.Dimension
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import javax.imageio.ImageIO
-
-private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class DeviceViewContentPanelTest {
 
@@ -88,14 +85,15 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
 
     ImageDiffUtil.assertImageSimilar("testPaint.png",
-                                     ImageIO.read(TestUtils.getWorkspaceFile("$TEST_DATA_PATH/testPaint.png")), generatedImage, 0.1)
+                                     ImageIO.read(getTestFile("testPaint.png")), generatedImage, 0.1)
 
     panel.scale = 0.5
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
 
     ImageDiffUtil.assertImageSimilar("testPaint_scaled.png",
-                                     ImageIO.read(TestUtils.getWorkspaceFile("$TEST_DATA_PATH/testPaint_scaled.png")), generatedImage, 0.1)
+                                     ImageIO.read(getTestFile("testPaint_scaled.png")), generatedImage,
+                                     0.1)
     panel.scale = 1.0
 
     panel.model.rotate(0.3, 0.2)
@@ -103,8 +101,11 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
 
     ImageDiffUtil.assertImageSimilar("testPaint_rotated.png",
-                                     ImageIO.read(TestUtils.getWorkspaceFile("$TEST_DATA_PATH/testPaint_rotated.png")), generatedImage, 0.1)
+                                     ImageIO.read(getTestFile("testPaint_rotated.png")),
+                                     generatedImage, 0.1)
   }
+
+  private fun getTestFile(testFileName: String) = LayoutInspector::class.java.getResourceAsStream("/$testFileName")
 
   @Test
   fun testDrag() {

@@ -17,7 +17,6 @@ package com.android.tools.idea.resources.aar;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
 import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.ide.common.rendering.api.AttrResourceValue;
@@ -40,15 +39,16 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.util.AndroidTestPaths;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.intellij.openapi.application.PathManager;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -56,7 +56,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
@@ -69,7 +68,12 @@ import org.jetbrains.annotations.Nullable;
 public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   /** Enables printing of repository statistics. */
   private static final boolean PRINT_STATS = false;
-  private static final String FRAMEWORK_RES_JAR_PATH = "tools/adt/idea/resources-aar/framework_res.jar";
+  private static final List<String> FRAMEWORK_RES_JAR_PATHS = Arrays.asList(
+    "../../tools/adt/idea/resources-aar/framework_res.jar", // For running from Bazel.
+    "../../bazel-genfiles/tools/adt/idea/resources-aar/framework_res.jar", // For running from IntelliJ.
+    "community/build/dependencies/build/android-sdk/prebuilts/studio/layoutlib/data/framework_res.jar", // For running from Idea Ultimate.
+    "build/dependencies/build/android-sdk/prebuilts/studio/layoutlib/data/framework_res.jar" // For running from Idea Community.
+  );
 
   private Path myResourceFolder;
 
@@ -98,18 +102,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
    */
   @NotNull
   private static Path getFrameworkResJar() {
-    Path rootPath = Paths.get(PathManager.getHomePath()).getParent().getParent();
-    // For running from Bazel.
-    Path path = rootPath.resolve(FRAMEWORK_RES_JAR_PATH).normalize();
-    if (Files.exists(path)) {
-      return path;
-    }
-    // For running from IntelliJ.
-    path = rootPath.resolve("bazel-genfiles/" + FRAMEWORK_RES_JAR_PATH);
-    if (Files.exists(path)) {
-      return path;
-    }
-    throw new AssertionFailedError("Could not find " + FRAMEWORK_RES_JAR_PATH);
+    return AndroidTestPaths.selectExistingDir(FRAMEWORK_RES_JAR_PATHS, "Could not find framework_res.jar");
   }
 
   private static void assertVisibility(
