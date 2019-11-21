@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_EXISTING_VARIABLE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_EXISTING_VARIABLE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_ADD_AND_APPLY_ALL_MODULE_PATHS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_ADD_AND_APPLY_ALL_MODULE_PATHS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_ADD_AND_APPLY_MODULE_PATHS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_ADD_AND_APPLY_MODULE_PATHS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_ADD_AND_RESET_MODULE_PATHS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_EXISTING_VARIABLE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_EXISTING_VARIABLE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_GET_BUILD_FILE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_GET_MODULE_DIRECTORY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_GET_MODULE_WITH_DIRECTORY;
@@ -38,6 +38,11 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MOD
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_REPLACE_AND_APPLY_MODULE_PATHS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_REPLACE_AND_APPLY_MODULE_PATHS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_REPLACE_AND_RESET_MODULE_PATHS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_FROM_EXISTING;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_FROM_EXISTING_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_NON_RELATIVE_EXPECTED;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -98,7 +103,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib1"), settingsModel.modulePaths());
 
     settingsModel.reparse();
-    assertEquals("include", ImmutableList.of(":", ":app", ":lib", ":lib1"), settingsModel.modulePaths());
+    assertEquals("include", ImmutableList.of(":", ":lib1", ":app", ":lib"), settingsModel.modulePaths());
 
     verifyFileContents(mySettingsFile, GRADLE_SETTINGS_MODEL_ADD_AND_APPLY_MODULE_PATHS_EXPECTED);
   }
@@ -266,13 +271,75 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testSetProjectDir() throws Exception {
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR);
+
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+
+    settingsModel.setModuleDirectory(":app", new File(myProjectBasePath.getPath(), "newAppLocation"));
+    applyChanges(settingsModel);
+
+    // Failure currently expected, the writing format and parsing format for this property don't match.
+    //File preParseAppLocation = settingsModel.moduleDirectory(":app");
+    //assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "newAppLocation"), preParseAppLocation);
+
+    // Re-parsing should change the property into a readable format.
+    settingsModel.reparse();
+    File appLocation = settingsModel.moduleDirectory(":app");
+    assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "newAppLocation"), appLocation);
+
+    verifyFileContents(mySettingsFile, GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_EXPECTED);
+  }
+
+  @Test
+  public void testSetProjectDirFromExisting() throws Exception {
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_FROM_EXISTING);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+
+    settingsModel.setModuleDirectory(":lib", new File(myProjectBasePath.getPath(), "libLocation"));
+    applyChanges(settingsModel);
+
+    // Failure currently expected, the writing format and parsing format for this property don't match.
+    //File preParseAppLocation = settingsModel.moduleDirectory(":app");
+    //assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "newAppLocation"), preParseAppLocation);
+
+    // Re-parsing should change the property into a readable format.
+    settingsModel.reparse();
+    File appLocation = settingsModel.moduleDirectory(":lib");
+    assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "libLocation"), appLocation);
+
+    verifyFileContents(mySettingsFile, GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_FROM_EXISTING_EXPECTED);
+  }
+
+  @Test
+  public void testSetProjectDirNonRelativePath() throws Exception {
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR);
+
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+
+    settingsModel.setModuleDirectory(":app", new File("/cool/app"));
+    applyChanges(settingsModel);
+
+    // Failure currently expected, the writing format and parsing format for this property don't match.
+    //File preParseAppLocation = settingsModel.moduleDirectory(":app");
+    //assertEquals(new File(settingsModel.getVirtualFile().getParent().getPath(), "newAppLocation"), preParseAppLocation);
+
+    // Re-parsing should change the property into a readable format.
+    settingsModel.reparse();
+    File appLocation = settingsModel.moduleDirectory(":app");
+    assertEquals(new File("/cool/app"), appLocation);
+
+    verifyFileContents(mySettingsFile, GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_NON_RELATIVE_EXPECTED);
+  }
+
+  @Test
   public void testExistingVariable() throws Exception {
-    writeToSettingsFile(GRADLE_SETTINGS_EXISTING_VARIABLE);
+    writeToSettingsFile(GRADLE_SETTINGS_MODEL_EXISTING_VARIABLE);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
     settingsModel.addModulePath("lib1");
     applyChanges(settingsModel);
 
-    verifyFileContents(mySettingsFile, GRADLE_SETTINGS_EXISTING_VARIABLE_EXPECTED);
+    verifyFileContents(mySettingsFile, GRADLE_SETTINGS_MODEL_EXISTING_VARIABLE_EXPECTED);
   }
 
   private void applyChanges(@NotNull final GradleSettingsModel settingsModel) {

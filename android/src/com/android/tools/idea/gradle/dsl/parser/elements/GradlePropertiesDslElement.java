@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
@@ -618,8 +619,14 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
         return lastElement;
       }
 
-      if (item.myElementState != TO_BE_REMOVED && item.myElementState != HIDDEN && item.myElementState != APPLIED &&
-          item.myElement.getNameElement().qualifyingParts().equals(element.getNameElement().qualifyingParts())) {
+      if (item.myElementState != TO_BE_REMOVED && item.myElementState != HIDDEN && item.myElementState != APPLIED) {
+        GradleDslElement currentElement = item.myElement;
+        // Don't count empty ProjectPropertiesModel, this can cause the properties to be added at the top of the file where
+        // we require that they be below other properties (e.g project(':lib')... should be after include: 'lib').
+        if (currentElement instanceof ProjectPropertiesDslElement &&
+            ((ProjectPropertiesDslElement)currentElement).getAllPropertyElements().isEmpty()) {
+          continue;
+        }
         if (item.myElement instanceof ApplyDslElement) {
           lastElement = item.myElement.requestAnchor(element);
         }

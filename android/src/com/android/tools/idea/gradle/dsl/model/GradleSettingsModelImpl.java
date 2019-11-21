@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_METHOD_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement.INCLUDE;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.BUILD_FILE_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.PROJECT_DIR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
 import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
@@ -28,10 +30,12 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
@@ -41,6 +45,7 @@ import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslEle
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.List;
@@ -165,6 +170,55 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
       return null;
     }
     return moduleDirectoryNoCheck(modulePath);
+  }
+
+  /**
+   * WARNING: This method does not write in the same format as it is read, this means that the changes from this method
+   * WON'T be visible until the file as been re-parsed.
+   *
+   * For example:
+   *   gradleSettingsModel.setModuleDirectory(":app", new File("/cool/file"))
+   *   File moduleDir = gradleSettingModel.moduleDirectory(":app") // returns projectDir/app not /cool/file
+   *
+   * TODO: FIX THIS
+   */
+  @Override
+  public void setModuleDirectory(@NotNull String modulePath, @NotNull File moduleDir) {
+    String projectKey = "project('" + modulePath + "')";
+    String projectDirPropertyName = projectKey + "." + PROJECT_DIR;
+    // If the property already exists on file then delete it and then re-create with a new value.
+    ProjectPropertiesDslElement projectProperties = myGradleDslFile.getPropertyElement(projectKey, ProjectPropertiesDslElement.class);
+    if (projectProperties != null) {
+      projectProperties.removeProperty(PROJECT_DIR);
+    }
+
+    // If the property has already been set by this method, remove it and recreate it.
+    myGradleDslFile.removeProperty(projectDirPropertyName);
+
+    // Create the GradleDslMethodCall that represents that method.
+    GradleNameElement gradleNameElement = GradleNameElement.create(projectDirPropertyName);
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(myGradleDslFile, gradleNameElement, FILE_METHOD_NAME);
+    methodCall.setUseAssignment(true);
+    myGradleDslFile.setNewElement(methodCall);
+
+    // Make the method call new File(rootDir, <PATH>) if possible.
+    String dirPath = moduleDir.getAbsolutePath();
+    File rootDir = virtualToIoFile(myGradleDslFile.getFile().getParent());
+    if (VfsUtilCore.isAncestor(rootDir, moduleDir, false)) {
+      GradleDslLiteral rootDirArg = new GradleDslLiteral(methodCall, GradleNameElement.empty());
+      rootDirArg.setValue(new ReferenceTo("rootDir"));
+      methodCall.addNewArgument(rootDirArg);
+      // TODO: This is definitely not the best way to achieve this.
+      methodCall.setMethodName("new File");
+
+      dirPath = rootDir.toURI().relativize(moduleDir.toURI()).getPath();
+    }
+
+    if (dirPath != null && !dirPath.isEmpty()) {
+      GradleDslLiteral extraArg = new GradleDslLiteral(methodCall, GradleNameElement.empty());
+      extraArg.setValue(dirPath);
+      methodCall.addNewArgument(extraArg);
+    }
   }
 
   @Nullable

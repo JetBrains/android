@@ -56,6 +56,8 @@ public interface GradleSettingsModel extends GradleFileModel {
   @Nullable
   File moduleDirectory(String modulePath);
 
+  void setModuleDirectory(@NotNull String modulePath, @NotNull File moduleDir);
+
   @Nullable
   String moduleWithDirectory(@NotNull File moduleDir);
 
