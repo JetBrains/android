@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.diagnostics.hprof
 
-import com.android.testutils.TestUtils
 import com.android.tools.idea.diagnostics.hprof.analysis.HProfAnalysis
+import com.android.tools.idea.util.AndroidTestPaths
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
 import org.junit.After
 import org.junit.Assert
@@ -49,7 +49,7 @@ class HeapAnalysisTest {
 
   private fun getBaselineContents(fileName: String): String {
     return String(Files.readAllBytes(
-      TestUtils.getWorkspaceFile("tools/adt/idea/android/testData/profiling/analysis-baseline/$fileName").toPath()), StandardCharsets.UTF_8)
+      AndroidTestPaths.adtSources().resolve("android/testData/profiling/analysis-baseline/$fileName")), StandardCharsets.UTF_8)
   }
 
   private fun compareReportToBaseline(hprofFile: File, baselineReport: String) {

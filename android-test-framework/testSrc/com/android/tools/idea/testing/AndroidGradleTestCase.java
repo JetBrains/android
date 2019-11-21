@@ -21,7 +21,6 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.testutils.TestUtils.getSdk;
-import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
@@ -56,6 +55,7 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.util.AndroidTestPaths;
 import com.google.common.collect.Lists;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.idea.IdeaTestApplication;
@@ -474,7 +474,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot);
     File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
     if (path == null) {
-      path = getWorkspaceFile("tools/external/gradle/gradle-" + gradleVersion + "-bin.zip");
+      path = AndroidTestPaths.toolsExternal().resolve("gradle/gradle-" + gradleVersion + "-bin.zip").toFile();
     }
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);
