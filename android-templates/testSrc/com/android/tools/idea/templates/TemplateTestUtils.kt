@@ -209,7 +209,6 @@ internal fun getModifiedModuleName(
   moduleName: String, activityState: TestTemplateWizardState?, isNewRenderingContext: Boolean = false
 ): String =
   when {
-    SystemInfo.isWindows -> if (isNewRenderingContext) moduleName.substringBefore('_') else "app"
     // Bug 137161906
     usesSafeArgs(moduleName) && activityState != null && Language.KOTLIN.toString() == activityState.getString(
       ATTR_LANGUAGE) -> moduleName
