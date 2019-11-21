@@ -66,7 +66,7 @@ abstract class ChooseGalleryItemStep(
   private val emptyItemLabel: String
 ) : SkippableWizardStep<NewModuleModel>(moduleModel, message(messageKeys.addMessage, formFactor.id), formFactor.icon) {
 
-  abstract val templateRenders: List<TemplateRenderer>
+  abstract val templateRenderers: List<TemplateRenderer>
   private val itemGallery = WizardGallery(title, { t: TemplateRenderer? -> t!!.icon }, { t: TemplateRenderer? -> t!!.label })
   private val validatorPanel = ValidatorPanel(this, JBScrollPane(itemGallery)).also {
     FormScalingUtil.scaleComponentTree(this.javaClass, it)
@@ -126,8 +126,8 @@ abstract class ChooseGalleryItemStep(
     }
 
     itemGallery.run {
-      model = JBList.createDefaultListModel(templateRenders)
-      selectedIndex = getDefaultSelectedTemplateIndex(templateRenders, emptyItemLabel)
+      model = JBList.createDefaultListModel(templateRenderers)
+      selectedIndex = getDefaultSelectedTemplateIndex(templateRenderers, emptyItemLabel)
     }
   }
 
