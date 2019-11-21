@@ -37,12 +37,6 @@ public class IncludeDslElement extends GradlePropertiesDslElement {
     return myParent != null ? myParent.create() : null;
   }
 
-  @Override
-  @Nullable
-  public PsiElement getPsiElement() {
-    return myParent != null ? myParent.getPsiElement() : null;
-  }
-
   public void removeModule(@NotNull Object value) {
     for (GradleDslElement module : getPropertyElements(GradleDslElement.class)) {
       if (module instanceof GradleDslSimpleExpression) {

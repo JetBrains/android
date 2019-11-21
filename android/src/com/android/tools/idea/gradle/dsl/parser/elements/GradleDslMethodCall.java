@@ -233,7 +233,6 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
    * property/dependency. It has to be called before changing the name of the property/dependency.
    */
   public void setMethodName(@NotNull String newMethodName) {
-    assert getNameElement().name().equals(getMethodName());
     myMethodName = newMethodName;
   }
 
