@@ -47,7 +47,7 @@ private val STUB_CLIENT_EVENT_LISTENER = object : AppInspectorClient.EventListen
 internal class AppInspectorConnection(
   private val transport: AppInspectionTransport,
   private val inspectorId: String,
-  private val startTimeNs: Long
+  private var lastEventTimestampNs: Long
 ) : AppInspectorClient.CommandMessenger {
   private val pendingCommands = ConcurrentHashMap<Int, SettableFuture<ByteArray>>()
   private val connectionClosedMessage = "Failed to send a command because the $inspectorId connection is already closed."
@@ -73,8 +73,9 @@ internal class AppInspectorConnection(
        && event.appInspectionEvent.rawEvent.inspectorId == inspectorId)
       || (event.appInspectionEvent.hasCrashEvent() && event.appInspectionEvent.crashEvent.inspectorId == inspectorId)
     },
-    startTimeNs = startTimeNs
+    startTimeNs = { lastEventTimestampNs }
   ) { event ->
+    updateLastResponseTime(event.timestamp)
     val appInspectionEvent = event.appInspectionEvent
     when {
       appInspectionEvent.hasRawEvent() -> {
@@ -92,15 +93,16 @@ internal class AppInspectorConnection(
 
   private val responsesListener = transport.createEventListener(
     filter = { it.appInspectionEvent.commandId != 0 && it.appInspectionEvent.hasRawEvent() },
-    startTimeNs = startTimeNs
+    startTimeNs = { lastEventTimestampNs }
   ) { event ->
+    updateLastResponseTime(event.timestamp)
     pendingCommands.remove(event.appInspectionEvent.commandId)?.set(event.appInspectionEvent.rawEvent.content.toByteArray())
     false
   }
 
   private val processEndListener = transport.createEventListener(
     eventKind = PROCESS,
-    startTimeNs = startTimeNs
+    startTimeNs = { lastEventTimestampNs }
   ) {
     if (it.isEnded) {
       cleanup("Inspector $inspectorId was disposed, because app process terminated.")
@@ -113,6 +115,13 @@ internal class AppInspectorConnection(
     transport.poller.registerListener(processEndListener)
   }
 
+  @Synchronized
+  private fun updateLastResponseTime(newResponseTimeNs: Long) {
+    if (newResponseTimeNs >= lastEventTimestampNs) {
+      lastEventTimestampNs = newResponseTimeNs + 1
+    }
+  }
+
   override fun disposeInspector(): ListenableFuture<ServiceResponse> {
     return disposeFuture.also {
       if (disposeCalled.compareAndSet(false, true)) {
@@ -121,7 +130,7 @@ internal class AppInspectorConnection(
         val commandId = transport.executeCommand(appInspectionCommand)
         val listener = transport.createEventListener(
           filter = { it.appInspectionEvent.commandId == commandId },
-          startTimeNs = startTimeNs
+          startTimeNs = { lastEventTimestampNs }
         ) {
           cleanup("Inspector $inspectorId was disposed.", it.appInspectionEvent.response)
           // we manually call unregister, because future can be completed from other places, so we clean up the listeners there
