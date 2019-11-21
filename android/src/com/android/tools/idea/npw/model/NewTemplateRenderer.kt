@@ -20,12 +20,13 @@ import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.template.Language
-import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.ProjectTemplateData
+import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.Template
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer
 import com.google.wireless.android.sdk.stats.KotlinSupport
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -136,48 +137,48 @@ fun formatWarningMessage(context: RenderingContext2): String {
 }
 
 @VisibleForTesting
-internal fun titleToTemplateRenderer(title: String): AndroidStudioEvent.TemplateRenderer = when (title) {
-  "" -> AndroidStudioEvent.TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER
-  "Android Module" -> AndroidStudioEvent.TemplateRenderer.ANDROID_MODULE
-  "Android Project" -> AndroidStudioEvent.TemplateRenderer.ANDROID_PROJECT
-  "Empty Activity" -> AndroidStudioEvent.TemplateRenderer.EMPTY_ACTIVITY
-  "Blank Activity" -> AndroidStudioEvent.TemplateRenderer.BLANK_ACTIVITY
-  "Layout XML File" -> AndroidStudioEvent.TemplateRenderer.LAYOUT_XML_FILE
-  "Fragment (Blank)" -> AndroidStudioEvent.TemplateRenderer.FRAGMENT_BLANK
-  "Navigation Drawer Activity" -> AndroidStudioEvent.TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY
-  "Values XML File" -> AndroidStudioEvent.TemplateRenderer.VALUES_XML_FILE
-  "Google Maps Activity" -> AndroidStudioEvent.TemplateRenderer.GOOGLE_MAPS_ACTIVITY
-  "Login Activity" -> AndroidStudioEvent.TemplateRenderer.LOGIN_ACTIVITY
-  "Assets Folder" -> AndroidStudioEvent.TemplateRenderer.ASSETS_FOLDER
-  "Tabbed Activity" -> AndroidStudioEvent.TemplateRenderer.TABBED_ACTIVITY
-  "Scrolling Activity" -> AndroidStudioEvent.TemplateRenderer.SCROLLING_ACTIVITY
-  "Fullscreen Activity" -> AndroidStudioEvent.TemplateRenderer.FULLSCREEN_ACTIVITY
-  "Service" -> AndroidStudioEvent.TemplateRenderer.SERVICE
-  "Java Library" -> AndroidStudioEvent.TemplateRenderer.JAVA_LIBRARY
-  "Settings Activity" -> AndroidStudioEvent.TemplateRenderer.SETTINGS_ACTIVITY
-  "Fragment (List)" -> AndroidStudioEvent.TemplateRenderer.FRAGMENT_LIST
-  "Master/Detail Flow" -> AndroidStudioEvent.TemplateRenderer.MASTER_DETAIL_FLOW
-  "Wear OS Module" -> AndroidStudioEvent.TemplateRenderer.ANDROID_WEAR_MODULE
-  "Broadcast Receiver" -> AndroidStudioEvent.TemplateRenderer.BROADCAST_RECEIVER
-  "AIDL File" -> AndroidStudioEvent.TemplateRenderer.AIDL_FILE
-  "Service (IntentService)" -> AndroidStudioEvent.TemplateRenderer.INTENT_SERVICE
-  "JNI Folder" -> AndroidStudioEvent.TemplateRenderer.JNI_FOLDER
-  "Java Folder" -> AndroidStudioEvent.TemplateRenderer.JAVA_FOLDER
-  "Custom View" -> AndroidStudioEvent.TemplateRenderer.CUSTOM_VIEW
-  "Android TV Module" -> AndroidStudioEvent.TemplateRenderer.ANDROID_TV_MODULE
-  "Google AdMob Ads Activity" -> AndroidStudioEvent.TemplateRenderer.GOOGLE_ADMOBS_ADS_ACTIVITY
-  "Always On Wear Activity" -> AndroidStudioEvent.TemplateRenderer.ALWAYS_ON_WEAR_ACTIVITY
-  "Res Folder" -> AndroidStudioEvent.TemplateRenderer.RES_FOLDER
-  "Android TV Activity" -> AndroidStudioEvent.TemplateRenderer.ANDROID_TV_ACTIVITY
-  "Blank Wear Activity" -> AndroidStudioEvent.TemplateRenderer.BLANK_WEAR_ACTIVITY
-  "Basic Activity" -> AndroidStudioEvent.TemplateRenderer.BASIC_ACTIVITIY
-  "App Widget" -> AndroidStudioEvent.TemplateRenderer.APP_WIDGET
-  "Instant App Project" -> AndroidStudioEvent.TemplateRenderer.ANDROID_INSTANT_APP_PROJECT
-  "Instant App" -> AndroidStudioEvent.TemplateRenderer.ANDROID_INSTANT_APP_MODULE
-  "Dynamic Feature (Instant App)" -> AndroidStudioEvent.TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE
-  "Benchmark Module" -> AndroidStudioEvent.TemplateRenderer.BENCHMARK_LIBRARY_MODULE
-  "Empty Compose Activity" -> AndroidStudioEvent.TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
-  else -> AndroidStudioEvent.TemplateRenderer.CUSTOM_TEMPLATE_RENDERER
+internal fun titleToTemplateRenderer(title: String): TemplateRenderer = when (title) {
+  "" -> TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER
+  "Android Module" -> TemplateRenderer.ANDROID_MODULE
+  "Android Project" -> TemplateRenderer.ANDROID_PROJECT
+  "Empty Activity" -> TemplateRenderer.EMPTY_ACTIVITY
+  "Blank Activity" -> TemplateRenderer.BLANK_ACTIVITY
+  "Layout XML File" -> TemplateRenderer.LAYOUT_XML_FILE
+  "Fragment (Blank)" -> TemplateRenderer.FRAGMENT_BLANK
+  "Navigation Drawer Activity" -> TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY
+  "Values XML File" -> TemplateRenderer.VALUES_XML_FILE
+  "Google Maps Activity" -> TemplateRenderer.GOOGLE_MAPS_ACTIVITY
+  "Login Activity" -> TemplateRenderer.LOGIN_ACTIVITY
+  "Assets Folder" -> TemplateRenderer.ASSETS_FOLDER
+  "Tabbed Activity" -> TemplateRenderer.TABBED_ACTIVITY
+  "Scrolling Activity" -> TemplateRenderer.SCROLLING_ACTIVITY
+  "Fullscreen Activity" -> TemplateRenderer.FULLSCREEN_ACTIVITY
+  "Service" -> TemplateRenderer.SERVICE
+  "Java Library" -> TemplateRenderer.JAVA_LIBRARY
+  "Settings Activity" -> TemplateRenderer.SETTINGS_ACTIVITY
+  "Fragment (List)" -> TemplateRenderer.FRAGMENT_LIST
+  "Master/Detail Flow" -> TemplateRenderer.MASTER_DETAIL_FLOW
+  "Wear OS Module" -> TemplateRenderer.ANDROID_WEAR_MODULE
+  "Broadcast Receiver" -> TemplateRenderer.BROADCAST_RECEIVER
+  "AIDL File" -> TemplateRenderer.AIDL_FILE
+  "Service (IntentService)" -> TemplateRenderer.INTENT_SERVICE
+  "JNI Folder" -> TemplateRenderer.JNI_FOLDER
+  "Java Folder" -> TemplateRenderer.JAVA_FOLDER
+  "Custom View" -> TemplateRenderer.CUSTOM_VIEW
+  "Android TV Module" -> TemplateRenderer.ANDROID_TV_MODULE
+  "Google AdMob Ads Activity" -> TemplateRenderer.GOOGLE_ADMOBS_ADS_ACTIVITY
+  "Always On Wear Activity" -> TemplateRenderer.ALWAYS_ON_WEAR_ACTIVITY
+  "Res Folder" -> TemplateRenderer.RES_FOLDER
+  "Android TV Activity" -> TemplateRenderer.ANDROID_TV_ACTIVITY
+  "Blank Wear Activity" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
+  "Basic Activity" -> TemplateRenderer.BASIC_ACTIVITIY
+  "App Widget" -> TemplateRenderer.APP_WIDGET
+  "Instant App Project" -> TemplateRenderer.ANDROID_INSTANT_APP_PROJECT
+  "Instant App" -> TemplateRenderer.ANDROID_INSTANT_APP_MODULE
+  "Dynamic Feature (Instant App)" -> TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE
+  "Benchmark Module" -> TemplateRenderer.BENCHMARK_LIBRARY_MODULE
+  "Empty Compose Activity" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
+  else -> TemplateRenderer.CUSTOM_TEMPLATE_RENDERER
 }
 
 fun Template.logRendering(projectTemplateData: ProjectTemplateData, project: Project) {
