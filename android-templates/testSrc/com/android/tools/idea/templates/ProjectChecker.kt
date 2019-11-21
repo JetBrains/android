@@ -341,7 +341,7 @@ data class ProjectChecker(
     fun Template.renderAndCheck(templateValues: Map<String, Any>) {
       val context = createRenderingContext(this, this@create, projectRoot, moduleRoot, templateValues)
       render(context, false)
-      verifyLastLoggedUsage(usageTracker, titleToTemplateRenderer(metadata!!.title), templateValues)
+      verifyLastLoggedUsage(usageTracker, titleToTemplateRenderer(metadata!!.title, metadata!!.formFactor), templateValues)
     }
 
     // TODO(qumeric): should it be projectState.templateValues?
