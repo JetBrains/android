@@ -195,6 +195,10 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
   @JvmDefault
   val usesCompose: Boolean get() = false
 
+  /** Shrinker type in selected variant or null if minification is disabled or shrinker cannot be determined.**/
+  @JvmDefault
+  val codeShrinker: CodeShrinker? get() = null
+
   /**
    * Whether the R class generated for this module is transitive.
    *
