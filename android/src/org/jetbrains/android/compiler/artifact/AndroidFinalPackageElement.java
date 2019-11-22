@@ -1,16 +1,11 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler.artifact;
 
-import com.intellij.compiler.ant.Generator;
 import com.intellij.facet.pointers.FacetPointer;
 import com.intellij.facet.pointers.FacetPointersManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.packaging.artifacts.ArtifactType;
-import com.intellij.packaging.elements.AntCopyInstructionCreator;
-import com.intellij.packaging.elements.ArtifactAntGenerationContext;
 import com.intellij.packaging.elements.PackagingElement;
 import com.intellij.packaging.elements.PackagingElementResolvingContext;
 import com.intellij.packaging.impl.elements.FacetBasedPackagingElement;
@@ -19,16 +14,12 @@ import com.intellij.packaging.impl.ui.DelegatedPackagingElementPresentation;
 import com.intellij.packaging.ui.ArtifactEditorContext;
 import com.intellij.packaging.ui.PackagingElementPresentation;
 import com.intellij.util.xmlb.annotations.Attribute;
+import java.util.Collection;
+import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
@@ -51,39 +42,6 @@ public class AndroidFinalPackageElement extends PackagingElement<AndroidFinalPac
   @Override
   public PackagingElementPresentation createPresentation(@NotNull ArtifactEditorContext context) {
     return new DelegatedPackagingElementPresentation(new AndroidFinalPackagePresentation(myFacetPointer));
-  }
-
-  @Nullable
-  private String getApkPath() {
-    if (myFacetPointer == null) {
-      return null;
-    }
-
-    final AndroidFacet facet = myFacetPointer.getFacet();
-    if (facet == null) {
-      return null;
-    }
-
-    final String apkPath = AndroidRootUtil.getApkPath(facet);
-    final String path = apkPath != null
-                        ? AndroidCommonUtils.addSuffixToFileName(apkPath, AndroidCommonUtils.ANDROID_FINAL_PACKAGE_FOR_ARTIFACT_SUFFIX)
-                        : null;
-    return path != null
-           ? FileUtil.toSystemIndependentName(path) + "!/"
-           : null;
-  }
-
-  @NotNull
-  @Override
-  public List<? extends Generator> computeAntInstructions(@NotNull PackagingElementResolvingContext resolvingContext,
-                                                          @NotNull AntCopyInstructionCreator creator,
-                                                          @NotNull ArtifactAntGenerationContext generationContext,
-                                                          @NotNull ArtifactType artifactType) {
-    final String apkPath = getApkPath();
-    if (apkPath != null) {
-      return Collections.singletonList(creator.createExtractedDirectoryInstruction(apkPath));
-    }
-    return Collections.emptyList();
   }
 
   @Nullable
