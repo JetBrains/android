@@ -36,6 +36,7 @@ import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
+import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.google.common.util.concurrent.Futures
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.Disposable
@@ -57,6 +58,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.backend.common.pop
 import java.awt.BorderLayout
 import java.util.concurrent.CompletableFuture
+import java.util.function.Consumer
 import java.util.function.Supplier
 import javax.swing.Box
 import javax.swing.JComponent
@@ -276,6 +278,11 @@ internal class PreviewEditor(private val psiFile: PsiFile,
       psiFile,
       { if (isAutoBuildEnabled) requestBuildForSurface(surface) else ApplicationManager.getApplication().invokeLater { refresh() } },
       this)
+
+    // When the preview is opened we must trigger an initial refresh. We wait for the project to be smart and synched to do it.
+    project.runWhenSmartAndSyncedOnEdt(this, Consumer {
+      refresh()
+    })
   }
 
   override var isAutoBuildEnabled: Boolean = COMPOSE_PREVIEW_AUTO_BUILD.get()
