@@ -48,6 +48,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )
 

@@ -22,6 +22,8 @@ import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.android.tools.idea.lang.databinding.model.PsiModelClass.MemberAccess
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
+import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.utils.usLocaleCapitalize
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.patterns.PlatformPatterns
@@ -99,21 +101,12 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
       }
     }
 
-    private val bindingAdapterAnnotation = facade.findClass(
-      mode.bindingAdapter,
-      facet.module.getModuleWithDependenciesAndLibrariesScope(false))
+    private val moduleScope = facet.getModuleSystem().getResolveScope(ScopeType.MAIN)
 
-    private val bindingMethodsAnnotation = facade.findClass(
-      mode.bindingMethods,
-      facet.module.getModuleWithDependenciesAndLibrariesScope(false))
-
-    private val inverseBindingAdapterAnnotation = facade.findClass(
-      mode.inverseBindingAdapter,
-      facet.module.getModuleWithDependenciesAndLibrariesScope(false))
-
-    private val inverseBindingMethodsAnnotation = facade.findClass(
-      mode.inverseBindingMethods,
-      facet.module.getModuleWithDependenciesAndLibrariesScope(false))
+    private val bindingAdapterAnnotation = facade.findClass(mode.bindingAdapter, moduleScope)
+    private val bindingMethodsAnnotation = facade.findClass(mode.bindingMethods, moduleScope)
+    private val inverseBindingAdapterAnnotation = facade.findClass(mode.inverseBindingAdapter, moduleScope)
+    private val inverseBindingMethodsAnnotation = facade.findClass(mode.inverseBindingMethods, moduleScope)
 
     fun isAttributeNameMatched(name: String): Boolean {
       // local name should be matched
@@ -138,7 +131,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
       }
       val referenceList = mutableListOf<PsiReference>()
       AnnotatedElementsSearch.searchElements(
-        bindingAdapterAnnotation, facet.module.getModuleWithDependenciesAndLibrariesScope(false), PsiMethod::class.java)
+        bindingAdapterAnnotation, moduleScope, PsiMethod::class.java)
         .forEach { annotatedMethod ->
           val annotation = AnnotationUtil.findAnnotation(annotatedMethod, mode.bindingAdapter) ?: return@forEach
           val annotationValue = annotation.findAttributeValue("value") ?: return@forEach
@@ -177,7 +170,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
       }
       val referenceList = mutableListOf<PsiReference>()
       AnnotatedElementsSearch.searchElements(
-        bindingMethodsAnnotation, facet.module.getModuleWithDependenciesAndLibrariesScope(false), PsiClass::class.java)
+        bindingMethodsAnnotation, moduleScope, PsiClass::class.java)
         .forEach { bindingMethodsAnnotatedElements ->
           val bindingMethodsAnnotation = AnnotationUtil.findAnnotation(bindingMethodsAnnotatedElements, mode.bindingMethods)
                                          ?: return@forEach
@@ -237,7 +230,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
       }
       val referenceList = mutableListOf<PsiReference>()
       AnnotatedElementsSearch.searchElements(
-        inverseBindingAdapterAnnotation, facet.module.getModuleWithDependenciesAndLibrariesScope(false), PsiMethod::class.java)
+        inverseBindingAdapterAnnotation, moduleScope, PsiMethod::class.java)
         .forEach { annotatedMethod ->
           val annotation = AnnotationUtil.findAnnotation(annotatedMethod, mode.inverseBindingAdapter) ?: return@forEach
           val annotationAttributeName = (annotation.findAttributeValue("attribute") as? PsiLiteralExpression)
@@ -271,7 +264,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
       }
       val referenceList = mutableListOf<PsiReference>()
       AnnotatedElementsSearch.searchElements(
-        inverseBindingMethodsAnnotation, facet.module.getModuleWithDependenciesAndLibrariesScope(false), PsiClass::class.java)
+        inverseBindingMethodsAnnotation, moduleScope, PsiClass::class.java)
         .forEach { inverseBindingMethodsAnnotatedElements ->
           val inverseBindingMethodsAnnotation = AnnotationUtil.findAnnotation(inverseBindingMethodsAnnotatedElements,
                                                                               mode.inverseBindingMethods)

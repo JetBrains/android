@@ -18,6 +18,8 @@ package com.android.tools.idea.lang.databinding.completion
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.lang.databinding.DataBindingCompletionSupport
 import com.android.tools.idea.lang.databinding.config.DbFileType
+import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.AutoPopupController
 import com.intellij.codeInsight.TailType
@@ -111,6 +113,7 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
     val file = domManager.getFileElement(containingFile, Layout::class.java) ?: return
     val facade = JavaPsiFacade.getInstance(project)
 
+    val moduleScope = module.getModuleSystem().getResolveScope(ScopeType.MAIN)
     for (data in file.rootElement.dataElements) {
       if (packagePrefix.isEmpty()) {
         // If here, we're trying to autocomplete an unqualified name, e.g. "" or "Lis". Include all
@@ -120,7 +123,7 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
 
           val type = import.type.xmlAttributeValue ?: continue
           val typeValue = type.value.replace('$', '.')
-          val aClass = facade.findClass(typeValue, module.getModuleWithDependenciesAndLibrariesScope(false))
+          val aClass = facade.findClass(typeValue, moduleScope)
           if (aClass != null) {
             resultSet.addElement(getClassReferenceElement(alias, aClass))
           }
@@ -142,7 +145,7 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
         // <variable type="MyMap.Entry">
         // fqcn <- "java.util.Map.Entry"
         val fqcn = packagePrefix.replaceFirst(alias, type)
-        val aClass = facade.findClass(fqcn, module.getModuleWithDependenciesAndLibrariesScope(false)) ?: continue
+        val aClass = facade.findClass(fqcn, moduleScope) ?: continue
         aClass.innerClasses.asSequence()
           .filter { innerClass -> innerClass.name != null }
           .forEach { innerClass -> resultSet.addElement(getClassReferenceElement(innerClass.name!!, innerClass)) }
@@ -156,7 +159,7 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
     val project = module.project
     val javaPsiFacade = JavaPsiFacade.getInstance(project)
     val rootPackage = javaPsiFacade.findPackage(packagePrefix)
-    val moduleScope = module.getModuleWithDependenciesAndLibrariesScope(false)
+    val moduleScope = module.getModuleSystem().getResolveScope(ScopeType.MAIN)
     if (rootPackage == null) {
       // If here, it's because we are specifying the path to an inner class, e.g. "a.b.c.Outer.Inner"
       // "a.b.c.Outer" is treated as an invalid package (thus, rootPackage is null), but that means we

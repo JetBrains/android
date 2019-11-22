@@ -53,6 +53,7 @@ iml_module(
         "//tools/idea/.idea/libraries:NanoXML",
         "//tools/idea/.idea/libraries:jcip",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )
 
