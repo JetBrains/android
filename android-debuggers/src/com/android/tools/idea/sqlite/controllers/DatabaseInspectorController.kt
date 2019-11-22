@@ -112,7 +112,7 @@ class DatabaseInspectorControllerImpl(
     view.removeDatabaseSchema(database)
 
     model.remove(database)
-    Disposer.dispose(database)
+    Disposer.dispose(database.databaseConnection)
   }
 
   override fun dispose() {

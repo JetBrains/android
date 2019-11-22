@@ -44,6 +44,6 @@ interface DatabaseConnection : Disposable {
   fun executeUpdate(sqLiteStatement: SqliteStatement): ListenableFuture<Int>
 
   override fun dispose() {
-    close()
+    close().get()
   }
 }

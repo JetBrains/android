@@ -18,19 +18,19 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.device.fs.DownloadProgress
+import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
-import com.android.tools.idea.sqlite.mocks.MockSchemaProvider
-import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
-import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorView
-import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
+import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorView
+import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
+import com.android.tools.idea.sqlite.mocks.MockSchemaProvider
+import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.tableView.TableView
-import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -102,10 +102,6 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
     sqliteDatabase1 = SqliteDatabase("db1", mockDatabaseConnection)
     sqliteDatabase2 = SqliteDatabase("db2", mockDatabaseConnection)
     sqliteDatabase3 = SqliteDatabase("db", mockDatabaseConnection)
-
-    Disposer.register(project, sqliteDatabase1)
-    Disposer.register(project, sqliteDatabase2)
-    Disposer.register(project, sqliteDatabase3)
 
     orderVerifier = inOrder(mockSqliteView, mockDatabaseConnection)
   }
@@ -315,10 +311,9 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(mockDatabaseConnection).close()
+    verify(mockDatabaseConnection).dispose()
     verify(evaluatorView).removeDatabase(0)
     verify(mockSqliteView).removeDatabaseSchema(sqliteDatabase1)
-    assert(Disposer.isDisposed(sqliteDatabase1))
   }
 
   fun testTablesAreRemovedWhenDatabasedIsRemoved() {

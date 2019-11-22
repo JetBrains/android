@@ -214,7 +214,6 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
       Disposer.register(project, databaseConnection)
 
       val database = SqliteDatabase(name, databaseConnection)
-      Disposer.register(project, database)
 
       return@transform database
     }
