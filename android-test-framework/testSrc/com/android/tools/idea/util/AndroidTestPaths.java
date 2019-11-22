@@ -54,7 +54,7 @@ public class AndroidTestPaths {
       "android" // IC
     );
 
-    return selectExistingDir(alternatives, "Could not find path for ADT sources (tools/adt/idea)");
+    return selectExisting(alternatives, "Could not find path for ADT sources (tools/adt/idea)");
   }
 
   /**
@@ -67,12 +67,12 @@ public class AndroidTestPaths {
       "build/dependencies/build/android-sdk/tools/external" // IC
     );
 
-    return selectExistingDir(alternatives, "Could not find path for tools/external");
+    return selectExisting(alternatives, "Could not find path for tools/external");
   }
 
   /**
    * Resolve alternatives (relative to {@code PathManager.getHomePath()}) and return absolute path of the first one which resolves to
-   * existing <b>directory</b>
+   * existing file or directory
    *
    * @param alternatives   alternative relative paths to check (relative to ${code PathManager.getHomePath()})
    * @param failureMessage exception message
@@ -80,11 +80,11 @@ public class AndroidTestPaths {
    * @throws AssertionError with {@code message:=failureMessage} when neither of the alternatives resolves to existing directory
    */
   @NotNull
-  public static Path selectExistingDir(List<String> alternatives, String failureMessage) {
+  public static Path selectExisting(List<String> alternatives, String failureMessage) {
     Path home = Paths.get(PathManager.getHomePath());
     for (String alternative : alternatives) {
       Path altPath = home.resolve(alternative);
-      if (Files.isDirectory(altPath)) {
+      if (Files.exists(altPath)) {
         return altPath;
       }
     }

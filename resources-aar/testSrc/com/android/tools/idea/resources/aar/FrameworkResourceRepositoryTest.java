@@ -102,7 +102,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
    */
   @NotNull
   private static Path getFrameworkResJar() {
-    return AndroidTestPaths.selectExistingDir(FRAMEWORK_RES_JAR_PATHS, "Could not find framework_res.jar");
+    return AndroidTestPaths.selectExisting(FRAMEWORK_RES_JAR_PATHS, "Could not find framework_res.jar");
   }
 
   private static void assertVisibility(
