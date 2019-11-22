@@ -20,10 +20,12 @@ import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginContainer
+import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
+import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
 interface BuildEventsAnalysisResult {
   fun getAnnotationProcessorsData(): List<AnnotationProcessorData>
@@ -32,6 +34,8 @@ interface BuildEventsAnalysisResult {
   fun getTotalBuildTimeMs(): Long
   fun getCriticalPathTasks(): List<TaskData>
   fun getCriticalPathPlugins(): List<PluginBuildData>
+  fun getTasksDeterminingBuildDuration(): List<TaskData>
+  fun getPluginsDeterminingBuildDuration(): List<PluginBuildData>
   fun getProjectsConfigurationData(): List<ProjectConfigurationData>
   fun getAlwaysRunTasks(): List<AlwaysRunTaskData>
   fun getNonCacheableTasks(): List<TaskData>
@@ -74,20 +78,40 @@ class BuildEventsAnalyzersProxy(
     return annotationProcessorsAnalyzer.getNonIncrementalAnnotationProcessorsData()
   }
 
+  // TODO: delete this method when UI is updated to show the tasks determining the build duration
   override fun getCriticalPathDurationMs(): Long {
-    return criticalPathAnalyzer.criticalPathDuration
+    return getCriticalPathTasks().sumByLong { it.executionTime }
   }
 
   override fun getTotalBuildTimeMs(): Long {
     return criticalPathAnalyzer.totalBuildTime
   }
 
+  // TODO: delete this method when UI is updated to show the tasks determining the build duration
   override fun getCriticalPathTasks(): List<TaskData> {
-    return criticalPathAnalyzer.tasksCriticalPath
+    return criticalPathAnalyzer.tasksDeterminingBuildDuration.filter(TaskData::isOnTheCriticalPath)
   }
 
+  // TODO: delete this method when UI is updated to show the plugins determining the build duration
   override fun getCriticalPathPlugins(): List<PluginBuildData> {
-    return criticalPathAnalyzer.pluginsCriticalPath
+    // Group tasks in the critical path by plugin to get the plugins critical path
+    val pluginBuildDurationMap = HashMap<PluginData, Long>()
+    getCriticalPathTasks().forEach { task ->
+      val currentDuration = pluginBuildDurationMap.getOrDefault(task.originPlugin, 0L)
+      pluginBuildDurationMap[task.originPlugin] = currentDuration + task.executionTime
+    }
+
+    return pluginBuildDurationMap.map { (plugin, duration) ->
+      PluginBuildData(plugin, duration)
+    }.sortedByDescending { it.buildDuration }
+  }
+
+  override fun getTasksDeterminingBuildDuration(): List<TaskData> {
+    return criticalPathAnalyzer.tasksDeterminingBuildDuration
+  }
+
+  override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> {
+    return criticalPathAnalyzer.pluginsDeterminingBuildDuration
   }
 
   override fun getProjectsConfigurationData(): List<ProjectConfigurationData> {

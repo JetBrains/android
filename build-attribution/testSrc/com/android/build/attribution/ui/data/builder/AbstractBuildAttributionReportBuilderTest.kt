@@ -47,6 +47,8 @@ open class AbstractBuildAttributionReportBuilderTest {
     override fun getTotalBuildTimeMs(): Long = 0
     override fun getCriticalPathTasks(): List<TaskData> = emptyList()
     override fun getCriticalPathPlugins(): List<PluginBuildData> = emptyList()
+    override fun getTasksDeterminingBuildDuration(): List<TaskData> = emptyList()
+    override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = emptyList()
     override fun getProjectsConfigurationData(): List<ProjectConfigurationData> = emptyList()
     override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> = emptyList()
     override fun getNonCacheableTasks(): List<TaskData> = emptyList()

@@ -27,10 +27,10 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
 
   @Test
   fun testTasksCriticalPath() {
-    val taskA = TaskData("taskA", ":app", pluginA, 100, TaskData.TaskExecutionMode.FULL, emptyList())
-    val taskB = TaskData("taskB", ":app", pluginB, 400, TaskData.TaskExecutionMode.FULL, emptyList())
-    val taskC = TaskData("taskC", ":lib", pluginA, 300, TaskData.TaskExecutionMode.FULL, emptyList())
-    val taskD = TaskData("taskD", ":app", pluginB, 200, TaskData.TaskExecutionMode.FULL, emptyList())
+    val taskA = TaskData("taskA", ":app", pluginA, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList())
+    val taskB = TaskData("taskB", ":app", pluginB, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList())
+    val taskC = TaskData("taskC", ":lib", pluginA, 0, 300, TaskData.TaskExecutionMode.FULL, emptyList())
+    val taskD = TaskData("taskD", ":app", pluginB, 0, 200, TaskData.TaskExecutionMode.FULL, emptyList())
 
 
     val analyzerResults = object : MockResultsProvider() {
@@ -58,10 +58,10 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
 
   @Test
   fun testPluginsCriticalPath() {
-    val taskA = TaskData("taskA", ":app", pluginA, 100, TaskData.TaskExecutionMode.FULL, emptyList())
-    val taskB = TaskData("taskB", ":app", pluginB, 400, TaskData.TaskExecutionMode.FULL, emptyList())
-    val taskC = TaskData("taskC", ":lib", pluginA, 300, TaskData.TaskExecutionMode.FULL, emptyList())
-    val taskD = TaskData("taskD", ":app", pluginB, 200, TaskData.TaskExecutionMode.FULL, emptyList())
+    val taskA = TaskData("taskA", ":app", pluginA, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList())
+    val taskB = TaskData("taskB", ":app", pluginB, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList())
+    val taskC = TaskData("taskC", ":lib", pluginA, 0, 300, TaskData.TaskExecutionMode.FULL, emptyList())
+    val taskD = TaskData("taskD", ":app", pluginB, 0, 200, TaskData.TaskExecutionMode.FULL, emptyList())
 
 
     val analyzerResults = object : MockResultsProvider() {
