@@ -18,16 +18,21 @@ package com.android.tools.idea.gradle.dsl.model.android;
 import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement.BUILD_FEATURES;
+import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement.BUILD_TYPE;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES;
 import static com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement.COMPILE_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement.DATA_BINDING;
+import static com.android.tools.idea.gradle.dsl.parser.android.DefaultConfigDslElement.DEFAULT_CONFIG;
 import static com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement.DEX_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD;
 import static com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement.KOTLIN_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement.LINT_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement.PACKAGING_OPTIONS;
+import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement.PRODUCT_FLAVOR;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS;
+import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigDslElement.SIGNING_CONFIG;
 import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement.SIGNING_CONFIGS;
+import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetDslElement.SOURCE_SET;
 import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement.SOURCE_SETS;
 import static com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement.SPLITS;
 import static com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement.TEST_OPTIONS;
@@ -77,6 +82,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 import org.jetbrains.annotations.NonNls;
@@ -93,9 +99,6 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NonNls public static final String PUBLISH_NON_DEFAULT = "mPublishNonDefault";
   @NonNls public static final String RESOURCE_PREFIX = "mResourcePrefix";
   // TODO(xof): Add support for useLibrary
-
-  // defaultConfig names a block rather than a property
-  @NonNls public static final String DEFAULT_CONFIG = "defaultConfig";
 
   public AndroidModelImpl(@NotNull AndroidDslElement dslElement) {
     super(dslElement);
@@ -145,7 +148,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   public BuildTypeModel addBuildType(@NotNull String buildType) {
     BuildTypesDslElement buildTypes = myDslElement.ensurePropertyElement(BUILD_TYPES);
-    BuildTypeDslElement buildTypeElement = buildTypes.ensureNamedPropertyElement(buildType, BuildTypeDslElement.class);
+    BuildTypeDslElement buildTypeElement = buildTypes.ensureNamedPropertyElement(BUILD_TYPE, GradleNameElement.create(buildType));
     return new BuildTypeModelImpl(buildTypeElement);
   }
 
@@ -180,7 +183,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public ProductFlavorModel defaultConfig() {
-    DefaultConfigDslElement defaultConfigElement = myDslElement.ensureNamedPropertyElement(DEFAULT_CONFIG, DefaultConfigDslElement.class);
+    DefaultConfigDslElement defaultConfigElement = myDslElement.ensurePropertyElement(DEFAULT_CONFIG);
     return new ProductFlavorModelImpl(defaultConfigElement);
   }
 
@@ -256,7 +259,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NotNull
   public ProductFlavorModel addProductFlavor(@NotNull String flavor) {
     ProductFlavorsDslElement productFlavors = myDslElement.ensurePropertyElement(PRODUCT_FLAVORS);
-    ProductFlavorDslElement flavorElement = productFlavors.ensureNamedPropertyElement(flavor, ProductFlavorDslElement.class);
+    ProductFlavorDslElement flavorElement = productFlavors.ensureNamedPropertyElement(PRODUCT_FLAVOR, GradleNameElement.create(flavor));
     return new ProductFlavorModelImpl(flavorElement);
   }
 
@@ -279,7 +282,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NotNull
   public SigningConfigModel addSigningConfig(@NotNull String config) {
     SigningConfigsDslElement signingConfigs = myDslElement.ensurePropertyElementAt(SIGNING_CONFIGS, 0);
-    SigningConfigDslElement configElement = signingConfigs.ensureNamedPropertyElement(config, SigningConfigDslElement.class);
+    SigningConfigDslElement configElement = signingConfigs.ensureNamedPropertyElement(SIGNING_CONFIG, GradleNameElement.create(config));
     return new SigningConfigModelImpl(configElement);
   }
 
@@ -302,7 +305,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NotNull
   public SourceSetModel addSourceSet(@NotNull String sourceSet) {
     SourceSetsDslElement sourceSets = myDslElement.ensurePropertyElement(SOURCE_SETS);
-    SourceSetDslElement sourceSetElement = sourceSets.ensureNamedPropertyElement(sourceSet, SourceSetDslElement.class);
+    SourceSetDslElement sourceSetElement = sourceSets.ensureNamedPropertyElement(SOURCE_SET, GradleNameElement.create(sourceSet));
     return new SourceSetModelImpl(sourceSetElement);
   }
 

@@ -18,10 +18,14 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ProductFlavorDslElement extends AbstractProductFlavorDslElement implements GradleDslNamedDomainElement {
+  public static final PropertiesElementDescription<ProductFlavorDslElement> PRODUCT_FLAVOR =
+    new PropertiesElementDescription<>(null, ProductFlavorDslElement.class, ProductFlavorDslElement::new);
+
   @Nullable
   private String methodName;
 

@@ -17,9 +17,13 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
 public class DefaultConfigDslElement extends AbstractProductFlavorDslElement {
+  public static final PropertiesElementDescription<DefaultConfigDslElement> DEFAULT_CONFIG =
+    new PropertiesElementDescription<>("defaultConfig", DefaultConfigDslElement.class, DefaultConfigDslElement::new);
+
   public DefaultConfigDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }

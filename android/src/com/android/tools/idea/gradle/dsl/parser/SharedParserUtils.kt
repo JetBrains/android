@@ -36,14 +36,16 @@ import com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement.SPLITS
 import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement.TEST_OPTIONS
 import com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement.VIEW_BINDING
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement
+import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement.BUILD_TYPE
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.DefaultConfigDslElement
+import com.android.tools.idea.gradle.dsl.parser.android.DefaultConfigDslElement.DEFAULT_CONFIG
 import com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement
+import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement.PRODUCT_FLAVOR
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigDslElement
+import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigDslElement.SIGNING_CONFIG
 import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.SourceSetDslElement
+import com.android.tools.idea.gradle.dsl.parser.android.SourceSetDslElement.SOURCE_SET
 import com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement
@@ -56,7 +58,14 @@ import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDra
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.CMakeOptionsDslElement.CMAKE_OPTIONS
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.NdkBuildOptionsDslElement.NDK_BUILD_OPTIONS
 import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceFileDslElement
+import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement.AIDL
+import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement.ASSETS
+import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement.JNI
+import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement.JNI_LIBS
+import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement.RENDERSCRIPT
+import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement.RES
+import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement.RESOURCES
+import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceFileDslElement.MANIFEST
 import com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement.ABI
 import com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement.DENSITY
 import com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement.LANGUAGE
@@ -162,15 +171,14 @@ fun GradleDslFile.getBlockElement(
         else -> return null
       }
       is AndroidDslElement -> when (nestedElementName) {
-        "defaultConfig" -> DefaultConfigDslElement(resultElement, elementName)
         // TODO(xof): these should be (resultElement.blockMap.get(nestedElementName) ?: return null).constructor.construct(resultElement, elementName)
-        //  (think also about how to make the "defaultConfig" case fit into a map lookup given that the interface must be different).
         AAPT_OPTIONS.name -> AAPT_OPTIONS.constructor.construct(resultElement, elementName)
         ADB_OPTIONS.name -> ADB_OPTIONS.constructor.construct(resultElement, elementName)
         BUILD_FEATURES.name -> BUILD_FEATURES.constructor.construct(resultElement, elementName)
         BUILD_TYPES.name -> BUILD_TYPES.constructor.construct(resultElement, elementName)
         COMPILE_OPTIONS.name -> COMPILE_OPTIONS.constructor.construct(resultElement, elementName)
         DATA_BINDING.name -> DATA_BINDING.constructor.construct(resultElement, elementName)
+        DEFAULT_CONFIG.name -> DEFAULT_CONFIG.constructor.construct(resultElement, elementName)
         DEX_OPTIONS.name -> DEX_OPTIONS.constructor.construct(resultElement, elementName)
         EXTERNAL_NATIVE_BUILD.name -> EXTERNAL_NATIVE_BUILD.constructor.construct(resultElement, elementName)
         KOTLIN_OPTIONS.name -> KOTLIN_OPTIONS.constructor.construct(resultElement, elementName)
@@ -189,7 +197,7 @@ fun GradleDslFile.getBlockElement(
         NDK_BUILD.name -> NDK_BUILD.constructor.construct(resultElement, elementName)
         else -> return null
       }
-      is ProductFlavorsDslElement -> ProductFlavorDslElement(resultElement, elementName)
+      is ProductFlavorsDslElement -> PRODUCT_FLAVOR.constructor.construct(resultElement, elementName)
       is AbstractProductFlavorDslElement -> when (nestedElementName) {
         "manifestPlaceholders" -> GradleDslExpressionMap(resultElement, elementName)
         "testInstrumentationRunnerArguments" -> GradleDslExpressionMap(resultElement, elementName)
@@ -198,16 +206,24 @@ fun GradleDslFile.getBlockElement(
         VECTOR_DRAWABLES_OPTIONS.name -> VECTOR_DRAWABLES_OPTIONS.constructor.construct(resultElement, elementName)
         else -> return null
       }
-      is BuildTypesDslElement -> BuildTypeDslElement(resultElement, elementName)
+      is BuildTypesDslElement -> BUILD_TYPE.constructor.construct(resultElement, elementName)
       is BuildTypeDslElement -> when (nestedElementName) {
         "manifestPlaceholders" -> GradleDslExpressionMap(resultElement, elementName)
         else -> return null
       }
-      is SigningConfigsDslElement -> SigningConfigDslElement(resultElement, elementName)
-      is SourceSetsDslElement -> SourceSetDslElement(resultElement, elementName)
+      is SigningConfigsDslElement -> SIGNING_CONFIG.constructor.construct(resultElement, elementName)
+      is SourceSetsDslElement -> SOURCE_SET.constructor.construct(resultElement, elementName)
       is SourceSetDslElement -> when (nestedElementName) {
-        "manifest" -> SourceFileDslElement(resultElement, elementName)
-        else -> SourceDirectoryDslElement(resultElement, elementName)
+        AIDL.name -> AIDL.constructor.construct(resultElement, elementName)
+        ASSETS.name -> ASSETS.constructor.construct(resultElement, elementName)
+        SourceDirectoryDslElement.JAVA.name -> SourceDirectoryDslElement.JAVA.constructor.construct(resultElement, elementName)
+        JNI.name -> JNI.constructor.construct(resultElement, elementName)
+        JNI_LIBS.name -> JNI_LIBS.constructor.construct(resultElement, elementName)
+        MANIFEST.name -> MANIFEST.constructor.construct(resultElement, elementName)
+        RENDERSCRIPT.name -> RENDERSCRIPT.constructor.construct(resultElement, elementName)
+        RES.name -> RES.constructor.construct(resultElement, elementName)
+        RESOURCES.name -> RESOURCES.constructor.construct(resultElement, elementName)
+        else -> return null
       }
       is ExternalNativeBuildOptionsDslElement -> when (nestedElementName) {
         CMAKE_OPTIONS.name -> CMAKE_OPTIONS.constructor.construct(resultElement, elementName)
