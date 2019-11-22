@@ -29,6 +29,7 @@ import com.android.tools.idea.common.util.setupChangeListener
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
+import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.run.util.StopWatch
@@ -197,7 +198,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   var previewElements: List<PreviewElement> = emptyList()
 
-  var isRefreshingPreview = false
+  private var isContentBeingRendered = false
 
   /**
    * This field will be false until the preview has rendered at least once. If the preview has not rendered once
@@ -273,12 +274,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
       override fun buildFailed() {
         LOG.debug("buildFailed")
-        isRefreshingPreview = false
         updateSurfaceVisibilityAndNotifications()
       }
 
       override fun buildStarted() {
-        isRefreshingPreview = true
         if (workbench.isMessageVisible) {
           workbench.showLoading(message("panel.building"))
           workbench.hideContent()
@@ -333,7 +332,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     return lastBuildTimestamp in 1 until modificationStamp
   }
 
-  override fun status(): ComposePreviewManager.Status = if (isRefreshingPreview || DumbService.isDumb(project))
+  override fun status(): ComposePreviewManager.Status = if (isContentBeingRendered ||
+                                                            DumbService.isDumb(project) ||
+                                                            GradleBuildState.getInstance(project).isBuildInProgress)
     REFRESHING_STATUS
   else
     ComposePreviewManager.Status(hasErrorsAndNeedsBuild(), hasSyntaxErrors(), isOutOfDate(), false)
@@ -506,7 +507,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           LOG.warn(ex)
         }
 
-        isRefreshingPreview = false
+        isContentBeingRendered = false
         hasRenderedAtLeastOnce = true
         savedIsShowingDecorations = showDecorations
         updateSurfaceVisibilityAndNotifications()
@@ -520,7 +521,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
   override fun refresh() {
-    isRefreshingPreview = true
+    isContentBeingRendered = true
     val filePreviewElements = previewProvider.previewElements
 
     if (filePreviewElements == previewElements && savedIsShowingDecorations == RenderSettings.getProjectSettings(project).showDecorations) {
@@ -539,7 +540,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
       // There are not elements, skip model creation
       surface.requestRender().whenComplete { _, _ ->
-        isRefreshingPreview = false
+        isContentBeingRendered = false
         updateSurfaceVisibilityAndNotifications()
       }
       return
