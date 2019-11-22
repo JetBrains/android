@@ -317,6 +317,11 @@ public final class StudioFlags {
     "Enable Visualisation Tool to preview layouts in multiple color blind modes at the same time",
     true);
 
+  public static final Flag<Boolean> NELE_LARGE_FONT_MODE = Flag.create(
+    NELE, "large.font.mode", "Large Font Mode",
+    "Enable Visualisation Tool to preview layouts in multiple font sizes at the same time",
+    false);
+
   public static final Flag<Boolean> NELE_NEW_INTERACTION_INTERFACE = Flag.create(
     NELE, "new.interaction.interface", "New Interaction Interface",
     "Enable new interaction interface in design surface.",
