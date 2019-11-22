@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
 import com.intellij.openapi.project.Project;
+import java.util.Objects;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -101,5 +102,31 @@ final class ConnectedDevice extends Device {
   @Override
   void addTo(@NotNull DeviceFutures futures, @NotNull Project project) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean equals(@Nullable Object object) {
+    if (!(object instanceof ConnectedDevice)) {
+      return false;
+    }
+
+    Device device = (Device)object;
+
+    return getName().equals(device.getName()) &&
+           isValid() == device.isValid() &&
+           Objects.equals(getValidityReason(), device.getValidityReason()) &&
+           getKey().equals(device.getKey()) &&
+           Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
+           getAndroidDevice().equals(device.getAndroidDevice());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getName(),
+                        isValid(),
+                        getValidityReason(),
+                        getKey(),
+                        getConnectionTime(),
+                        getAndroidDevice());
   }
 }
