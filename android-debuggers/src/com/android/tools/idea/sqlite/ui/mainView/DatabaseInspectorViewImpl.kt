@@ -97,7 +97,7 @@ class DatabaseInspectorViewImpl(
     openSqliteEvaluatorButton.addActionListener { listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() } }
 
     tabs.apply {
-      isTabDraggingEnabled = true
+      setTabDraggingEnabled(true)
       setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(4, 10)) }
       addTabMouseListener(TabMouseListener())
     }
