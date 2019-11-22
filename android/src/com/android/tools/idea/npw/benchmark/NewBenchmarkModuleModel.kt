@@ -90,14 +90,13 @@ class NewBenchmarkModuleModel(
 
     // TODO(qumeric): move it to ModuleModel when all modules will support the new system
     override fun renderTemplate(dryRun: Boolean, project: Project, runFromTemplateRenderer: Boolean): Boolean {
-      val moduleRoot = getModuleRoot(project.basePath!!, moduleName.get())
       if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
         val context = RenderingContext2(
           project = project,
           module = null,
           commandName = "New Benchmark Module",
           templateData = moduleTemplateDataBuilder.build(),
-          moduleRoot = moduleRoot,
+          moduleRoot = getModuleRoot(project.basePath!!, moduleName.get()),
           dryRun = dryRun,
           showErrors = true
         )

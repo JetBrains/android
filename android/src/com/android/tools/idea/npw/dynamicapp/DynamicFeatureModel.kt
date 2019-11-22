@@ -15,11 +15,18 @@
  */
 package com.android.tools.idea.npw.dynamicapp
 
+import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
+import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
+import com.android.tools.idea.npw.model.doRender
 import com.android.tools.idea.npw.module.ModuleModel
+import com.android.tools.idea.npw.module.getModuleRoot
+import com.android.tools.idea.npw.module.recipes.benchmarkModule.generateBenchmarkModule
+import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
@@ -39,8 +46,16 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_DYNAMIC_FEATU
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_SIMPLE_NAME
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
+import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
+import com.android.tools.idea.templates.recipe.RenderingContext2
+import com.android.tools.idea.wizard.template.BaseFeature
+import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.Recipe
+import com.android.tools.idea.wizard.template.TemplateData
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.util.lang.JavaVersion
 
 class DynamicFeatureModel(
   project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker, isInstant: Boolean
@@ -85,6 +100,38 @@ class DynamicFeatureModel(
         .setBaseFeature(baseApplication.value)
 
       templateValues.putAll(newValues)
+
+      if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
+        moduleTemplateDataBuilder.apply {
+          projectTemplateDataBuilder.apply {
+            setProjectDefaults(project)
+            language = this@DynamicFeatureModel.language.value
+            javaVersion = JavaVersion.parse("1.8")
+          }
+          isLibrary = false
+          setModuleRoots(modulePaths, project.basePath!!, moduleName.get(), this@DynamicFeatureModel.packageName.get())
+          setBuildVersion(androidSdkInfo.value, project)
+        }
+      }
+    }
+
+    // TODO(qumeric): move it to ModuleModel when all modules will support the new system
+    override fun renderTemplate(dryRun: Boolean, project: Project, runFromTemplateRenderer: Boolean): Boolean {
+      if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
+        val context = RenderingContext2(
+          project = project,
+          module = null,
+          commandName = "New Dynamic Feature Module",
+          templateData = moduleTemplateDataBuilder.build(),
+          moduleRoot = getModuleRoot(project.basePath!!, moduleName.get()),
+          dryRun = dryRun,
+          showErrors = true
+        )
+        val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
+        val recipe: Recipe = { td: TemplateData -> /* TODO generateDynamicFeatureModel(td as ModuleTemplateData) */ }
+        return recipe.doRender(context, executor)
+      }
+      return super.renderTemplate(dryRun, project, runFromTemplateRenderer)
     }
   }
 }
