@@ -33,7 +33,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
-import com.android.tools.idea.gradle.parser.NamedObject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleVersions;
@@ -954,16 +953,6 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     XmlTag tag = manifestFile.getRootTag();
     assert tag != null;
     tag.setAttribute("package", null);
-  }
-
-  @Nullable/*item not found*/
-  static NamedObject find(@NotNull List<NamedObject> items, @NotNull String name) {
-    for (NamedObject item : items) {
-      if (name.equals(item.getName())) {
-        return item;
-      }
-    }
-    return null;
   }
 
   static void addToolsAttribute(final @NotNull XmlFile file,
