@@ -688,6 +688,12 @@ public final class StudioFlags {
     "If enabled, a visual preview will be available for Compose.",
     true);
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD = Flag.create(
+    COMPOSE, "preview.fast.build.enabled", "Enable the use of \"compileDebugKotlin\" for the preview refresh",
+    "If enabled, the refresh button will only trigger the \"compileDebugKotlin\" task as opposed to others like" +
+    "\"generateDebugSources\" or \"compileJava\".",
+    true);
+
   public static final Flag<Boolean> COMPOSE_COMPLETION_PRESENTATION = Flag.create(
     COMPOSE, "completion.presentation",
     "Custom presentation for code completion items for composable functions",

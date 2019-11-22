@@ -18,8 +18,11 @@ package com.android.tools.idea.compose.preview
 import com.android.SdkConstants
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.ShortcutSet
@@ -61,6 +64,9 @@ private const val COMPOSABLE_NAME_ATTR = "tools:composableName"
 
 /** Action ID of the IDE declared force refresh action (see PlatformActions.xml). This allows us to re-use the shortcut of the declared action. */
 private const val FORCE_REFRESH_ACTION_ID = "ForceRefresh"
+
+/** Task used for [requestBuild] */
+private const val REBUILD_PREVIEW_BUILD_TASK = "compileDebugKotlin"
 
 /** [ShortcutSet] that triggers a build and refreshes the preview */
 internal fun getBuildAndRefreshShortcut(): ShortcutSet = KeymapUtil.getActiveKeymapShortcuts(FORCE_REFRESH_ACTION_ID)
@@ -217,6 +223,39 @@ interface PreviewElementFinder {
   fun findPreviewMethods(uFile: UFile): List<PreviewElement>
 }
 
+/**
+ * Triggers the build of the given [modules] by calling the compileKotlinDebug task
+ */
+private fun requestKotlinBuild(project: Project, modules: Set<Module>) {
+  fun createBuildTasks(module: Module, taskName: String): String? {
+    val gradleFacet = GradleFacet.getInstance(module) ?: return null
+
+    return "${gradleFacet.configuration.GRADLE_PROJECT_PATH}:$taskName"
+  }
+
+  fun createBuildTasks(modules: Collection<Module>, taskName: String): Map<Module, List<String>> =
+    modules
+      .mapNotNull {
+        Pair(it, listOf(createBuildTasks(it, taskName) ?: return@mapNotNull null))
+      }
+      .filter { it.second.isNotEmpty() }
+      .toMap()
+
+  val moduleFinder = ProjectStructure.getInstance(project).moduleFinder
+
+  createBuildTasks(modules, REBUILD_PREVIEW_BUILD_TASK)
+    .forEach {
+      val path = moduleFinder.getRootProjectPath(it.key)
+      GradleBuildInvoker.getInstance(project).executeTasks(path.toFile(), it.value)
+    }
+}
+
+/**
+ * Triggers the build of the given [modules] by calling the compileSourcesDebug task
+ */
+private fun requestCompileJavaBuild(project: Project, modules: Set<Module>) =
+  GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray(), TestCompileType.NONE)
+
 internal fun requestBuild(project: Project, module: Module) {
   if (project.isDisposed || module.isDisposed) {
     return
@@ -224,7 +263,15 @@ internal fun requestBuild(project: Project, module: Module) {
 
   val modules = mutableSetOf(module)
   ModuleUtil.collectModulesDependsOn(module, modules)
-  GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray(), TestCompileType.NONE)
+
+  // When COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD is enabled, we just trigger the module:compileDebugKotlin task. This avoids executing
+  // a few extra tasks that are not required for the preview to refresh.
+  if (StudioFlags.COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD.get()) {
+    requestKotlinBuild(project, modules)
+  }
+  else {
+    requestCompileJavaBuild(project, modules)
+  }
 }
 
 fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
