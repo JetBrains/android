@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.logger
@@ -122,11 +123,13 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
     }
     renderRunner { project ->
       log.info("Generating sources.")
+      assert(!ApplicationManager.getApplication().isDispatchThread)
       multiRenderingStarted(project)
 
       // Some models need to access other models data, during doDryRun/render phase. By calling init() in all of them first,
       // we make sure they are properly initialized when doDryRun/render is called below.
       with(templateRenderers) {
+
         forEach(TemplateRenderer::init)
         if (all(TemplateRenderer::doDryRun)) {
           forEach(TemplateRenderer::render)

@@ -29,6 +29,8 @@ import com.android.tools.idea.templates.recipe.RenderingContext.Builder
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Recipe
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
@@ -44,7 +46,11 @@ abstract class ModuleModel(
   val templateValues = mutableMapOf<String, Any>()
   val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false))
   private val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
-    renderer(project)
+    object : Task.Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
+      override fun run(indicator: ProgressIndicator) {
+        renderer(project)
+      }
+    }.queue()
     projectSyncInvoker.syncProject(project)
   }
   protected abstract val renderer: MultiTemplateRenderer.TemplateRenderer
