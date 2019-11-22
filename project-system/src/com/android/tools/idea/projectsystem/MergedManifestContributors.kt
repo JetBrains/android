@@ -61,6 +61,9 @@ fun AndroidFacet.getFlavorAndBuildTypeManifests(): List<VirtualFile> {
   val sourceProviderManager = sourceProviders
   val defaultSourceProvider = sourceProviderManager.mainIdeaSourceProvider
   return sourceProviderManager.currentSourceProviders
+    // currentSourceProviders is in overlay order (later files override earlier ones),
+    // but the manifest merger expects *reverse* overlay order (earlier files take priority).
+    .asReversed()
     .filter { it != defaultSourceProvider }
     .mapNotNull(IdeaSourceProvider::manifestFile)
 }

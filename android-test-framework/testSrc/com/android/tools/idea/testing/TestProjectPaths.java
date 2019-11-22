@@ -36,6 +36,7 @@ public final class TestProjectPaths {
   public static final String LOCAL_JARS_AS_MODULES = "projects/localJarsAsModules";
   public static final String MANIFEST_CONFLICT_ATTRIBUTE = "projects/manifestConflict/attribute";
   public static final String MANIFEST_CONFLICT_BUILD_PACKAGE = "projects/manifestConflict/buildPackage";
+  public static final String MANIFEST_CONFLICT_BUILD_TYPE_AND_FLAVOR = "projects/manifestConflict/buildTypeAndFlavorConflict";
   public static final String MANIFEST_CONFLICT_FLAVOR_PACKAGE = "projects/manifestConflict/flavorPackage";
   public static final String MANIFEST_CONFLICT_MIN_SDK = "projects/manifestConflict/minSdk";
   public static final String MIGRATE_TO_ANDROID_X = "projects/migrateToAndroidX";
