@@ -15,11 +15,28 @@
  */
 package com.android.tools.idea.startup;
 
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
+import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
+import static com.android.tools.idea.startup.Actions.hideAction;
+import static com.android.tools.idea.startup.Actions.moveAction;
+import static com.android.tools.idea.startup.Actions.replaceAction;
+import static com.intellij.openapi.actionSystem.Anchor.AFTER;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
+
 import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.UiThread;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.actions.*;
+import com.android.tools.idea.actions.AndroidActionGroupRemover;
+import com.android.tools.idea.actions.AndroidImportModuleAction;
+import com.android.tools.idea.actions.AndroidImportProjectAction;
+import com.android.tools.idea.actions.AndroidNewModuleAction;
+import com.android.tools.idea.actions.AndroidNewModuleInGroupAction;
+import com.android.tools.idea.actions.AndroidNewProjectAction;
+import com.android.tools.idea.actions.AndroidOpenFileAction;
+import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.npw.PathValidationResult;
@@ -34,8 +51,17 @@ import com.android.utils.Pair;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
-import com.intellij.notification.*;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationDisplayType;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.Constraints;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
@@ -47,26 +73,17 @@ import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
+import java.io.File;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.List;
+import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.event.HyperlinkEvent;
-import java.io.File;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.List;
-
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
-import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
-import static com.android.tools.idea.startup.Actions.*;
-import static com.intellij.openapi.actionSystem.Anchor.AFTER;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
 /**
  * Performs Gradle-specific IDE initialization
@@ -205,7 +222,6 @@ public class GradleSpecificInitializer implements Runnable {
     replaceAction("CreateLibraryFromFile", new CreateLibraryFromFilesAction());
     replaceAction("ImportModule", new AndroidImportModuleAction());
 
-    hideAction(IdeActions.ACTION_GENERATE_ANT_BUILD);
     hideAction("AddFrameworkSupport");
     hideAction("BuildArtifact");
     hideAction("RunTargetAction");
