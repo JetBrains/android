@@ -46,6 +46,7 @@ import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import org.jetbrains.ide.PooledThreadExecutor
 import java.util.TreeMap
 import java.util.concurrent.Executor
@@ -187,8 +188,10 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
       return@transform database
     }
 
-    toolWindowManager.getToolWindow(DatabaseInspectorToolWindowFactory.TOOL_WINDOW_ID).show {
-      controller.addSqliteDatabase(openSqliteServiceFuture)
+    invokeLaterIfNeeded {
+      toolWindowManager.getToolWindow(DatabaseInspectorToolWindowFactory.TOOL_WINDOW_ID).show {
+        controller.addSqliteDatabase(openSqliteServiceFuture)
+      }
     }
 
     return openSqliteServiceFuture
