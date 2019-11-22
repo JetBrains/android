@@ -24,11 +24,11 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.model.ExtIdeaContentRoot;
 
 /**
  * Content root of a Java module.
@@ -56,11 +56,13 @@ public class JavaModuleContentRoot implements Serializable {
 
     Collection<File> resourceDirPaths = Collections.emptySet();
     Collection<File> testResourceDirPaths = Collections.emptySet();
-    if (original instanceof ExtIdeaContentRoot) {
-      ExtIdeaContentRoot extContentRoot = (ExtIdeaContentRoot)original;
-      resourceDirPaths = copy(extContentRoot.getResourceDirectories());
-      testResourceDirPaths = copy(extContentRoot.getTestResourceDirectories());
+    try {
+      resourceDirPaths = copy(original.getResourceDirectories());
+      testResourceDirPaths = copy(original.getTestResourceDirectories());
     }
+    catch (UnsupportedMethodException ignore) {
+    }
+
     Collection<File> excludeDirPaths = Collections.emptySet();
     Set<File> exclude = original.getExcludeDirectories();
     if (exclude != null) {
