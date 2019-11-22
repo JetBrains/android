@@ -45,7 +45,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
   override fun createEditorPanel(): DesignerEditorPanel {
     val workBench = WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this, this)
     val surface: (panel: DesignerEditorPanel) -> DesignSurface = {
-      NlDesignSurface.build(myProject, this).apply {
+      NlDesignSurface.builder(myProject, this).setDefaultSurfaceState(DesignSurface.State.SPLIT).build().apply {
         setCentered(true)
         setScreenMode(SceneMode.RENDER, false)
       }

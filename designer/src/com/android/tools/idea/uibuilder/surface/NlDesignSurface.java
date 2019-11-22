@@ -98,6 +98,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private boolean myIsEditable = true;
     private SurfaceLayoutManager myLayoutManager;
     private NavigationHandler myNavigationHandler;
+    @NotNull private State myDefaultSurfaceState = State.FULL;
 
     /**
      * Factory to create an action manager for the NlDesignSurface
@@ -193,6 +194,16 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     /**
+     * Specify the default {@link State} of this {@link NlDesignSurface}, which will be set for newly created files or if the {@link State}
+     * is not overridden somewhere else (e.g. {@link State} saved before closing the file).
+     */
+    @NotNull
+    public Builder setDefaultSurfaceState(@NotNull State surfaceState) {
+      myDefaultSurfaceState = surfaceState;
+      return this;
+    }
+
+    /**
      * When the surface is clicked, it can delegate navigation related task to the given handler.
      * @param navigationHandler handles the navigation when the surface is clicked.
      */
@@ -214,6 +225,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  layoutManager,
                                  myActionManagerProvider,
                                  myInteractionHandlerProvider,
+                                 myDefaultSurfaceState,
                                  myNavigationHandler);
     }
   }
@@ -270,8 +282,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @NotNull SurfaceLayoutManager layoutManager,
                           @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
                           @NotNull Function<DesignSurface, InteractionHandler> interactionHandlerProvider,
+                          @NotNull State defaultSurfaceMode,
                           @Nullable NavigationHandler navigationHandler) {
-    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable);
+    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, defaultSurfaceMode, isEditable);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;

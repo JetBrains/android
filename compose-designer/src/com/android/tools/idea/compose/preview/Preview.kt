@@ -154,6 +154,7 @@ internal class PreviewEditor(private val psiFile: PsiFile,
     .setIsPreview(true)
     .showModelNames()
     .setNavigationHandler(navigationHandler)
+    .setDefaultSurfaceState(DesignSurface.State.SPLIT)
     .setSceneManagerProvider { surface, model ->
       val currentRenderSettings = RenderSettings.getProjectSettings(project)
 
