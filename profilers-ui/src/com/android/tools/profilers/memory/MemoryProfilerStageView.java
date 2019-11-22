@@ -167,8 +167,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     getStage().enableSelectLatestCapture(true, SwingUtilities::invokeLater);
 
     getTooltipBinder().bind(MemoryUsageTooltip.class, MemoryUsageTooltipView::new);
-    getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
-    getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
+    getTooltipBinder().bind(LifecycleTooltip.class, (stageView, tooltip) -> new LifecycleTooltipView(stageView.getComponent(), tooltip));
+    getTooltipBinder().bind(UserEventTooltip.class, (stageView, tooltip) -> new UserEventTooltipView(stageView.getComponent(), tooltip));
 
     myMainSplitter.getDivider().setBorder(DEFAULT_VERTICAL_BORDERS);
     myChartCaptureSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);

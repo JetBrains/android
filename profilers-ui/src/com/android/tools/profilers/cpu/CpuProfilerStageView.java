@@ -163,11 +163,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
          .onChange(ProfilerAspect.MODE, this::updateCaptureViewVisibility);
 
     getTooltipBinder().bind(CpuProfilerStageCpuUsageTooltip.class, CpuProfilerStageCpuUsageTooltipView::new);
-    getTooltipBinder().bind(CpuKernelTooltip.class, (view, tooltip) -> new CpuKernelTooltipView(view.getComponent(), tooltip));
-    getTooltipBinder().bind(CpuThreadsTooltip.class, (view, tooltip) -> new CpuThreadsTooltipView(view.getComponent(), tooltip));
-    getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
-    getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
-    getTooltipBinder().bind(CpuFrameTooltip.class, (view, tooltip) -> new CpuFrameTooltipView(view.getComponent(), tooltip));
+    getTooltipBinder().bind(CpuKernelTooltip.class, (stageView, tooltip) -> new CpuKernelTooltipView(stageView.getComponent(), tooltip));
+    getTooltipBinder().bind(CpuThreadsTooltip.class, (stageView, tooltip) -> new CpuThreadsTooltipView(stageView.getComponent(), tooltip));
+    getTooltipBinder().bind(CpuFrameTooltip.class, (stageView, tooltip) -> new CpuFrameTooltipView(stageView.getComponent(), tooltip));
+    getTooltipBinder().bind(LifecycleTooltip.class, (stageView, tooltip) -> new LifecycleTooltipView(stageView.getComponent(), tooltip));
+    getTooltipBinder().bind(UserEventTooltip.class, (stageView, tooltip) -> new UserEventTooltipView(stageView.getComponent(), tooltip));
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
     if (!myStage.isImportTraceMode()) {

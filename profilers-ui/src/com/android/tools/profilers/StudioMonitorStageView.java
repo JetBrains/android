@@ -103,14 +103,14 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     // Use FlowLayout instead of the usual BorderLayout since BorderLayout doesn't respect min/preferred sizes.
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
-    RangeTooltipComponent tooltip =
+    RangeTooltipComponent tooltipComponent =
       new RangeTooltipComponent(getStage().getTimeline(), getTooltipPanel(), getProfilersView().getComponent(), () -> true);
 
     getTooltipBinder().bind(NetworkMonitorTooltip.class, NetworkMonitorTooltipView::new);
     getTooltipBinder().bind(CpuMonitorTooltip.class, CpuMonitorTooltipView::new);
     getTooltipBinder().bind(MemoryMonitorTooltip.class, MemoryMonitorTooltipView::new);
-    getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
-    getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
+    getTooltipBinder().bind(LifecycleTooltip.class, (stageView, tooltip) -> new LifecycleTooltipView(stageView.getComponent(), tooltip));
+    getTooltipBinder().bind(UserEventTooltip.class, (stageView, tooltip) -> new UserEventTooltipView(stageView.getComponent(), tooltip));
     if (isEnergyProfilerEnabled) {
       getTooltipBinder().bind(EnergyMonitorTooltip.class, EnergyMonitorTooltipView::new);
     }
@@ -122,7 +122,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     int rowIndex = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
       ProfilerMonitorView view = binder.build(profilersView, monitor);
-      view.registerTooltip(tooltip, stage);
+      view.registerTooltip(tooltipComponent, stage);
       JComponent component = view.getComponent();
       component.addMouseListener(new MouseAdapter() {
         @Override
@@ -173,7 +173,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     StudioProfilers profilers = stage.getStudioProfilers();
     JComponent timeAxis = buildTimeAxis(profilers);
 
-    topPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
+    topPanel.add(tooltipComponent, new TabularLayout.Constraint(0, 0));
     topPanel.add(monitors, new TabularLayout.Constraint(0, 0));
     topPanel.add(timeAxis, new TabularLayout.Constraint(1, 0));
 
