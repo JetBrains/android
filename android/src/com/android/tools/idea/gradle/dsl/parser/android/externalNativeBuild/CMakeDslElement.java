@@ -24,7 +24,7 @@ public final class CMakeDslElement extends AbstractBuildDslElement {
   public static final PropertiesElementDescription<CMakeDslElement> CMAKE =
     new PropertiesElementDescription<>("cmake", CMakeDslElement.class, CMakeDslElement::new);
 
-  public CMakeDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(CMAKE.name));
+  public CMakeDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

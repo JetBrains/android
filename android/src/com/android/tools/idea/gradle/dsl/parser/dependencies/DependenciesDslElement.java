@@ -28,8 +28,8 @@ public class DependenciesDslElement extends GradleDslBlockElement {
 
   public static final Comparator comparator = Comparator.comparing(GradleDslElement::getName, GradleFileMergers.CONFIGURATION_ORDERING);
 
-  public DependenciesDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(DEPENDENCIES.name));
+  public DependenciesDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

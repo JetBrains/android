@@ -68,7 +68,7 @@ public class DataBindingDslElement extends GradleDslBlockElement {
     }
   }
 
-  public DataBindingDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(DATA_BINDING.name));
+  public DataBindingDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

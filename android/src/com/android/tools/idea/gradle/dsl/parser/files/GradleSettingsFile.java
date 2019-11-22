@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.files;
 
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -37,7 +38,7 @@ public class GradleSettingsFile extends GradleDslFile {
     if (INCLUDE.name.equals(element.getName())) {
       IncludeDslElement includeDslElement = getPropertyElement(INCLUDE);
       if (includeDslElement == null) {
-        includeDslElement = new IncludeDslElement(this);
+        includeDslElement = new IncludeDslElement(this, GradleNameElement.create(INCLUDE.name));
         super.addParsedElement(includeDslElement);
       }
       includeDslElement.addParsedElement(element);

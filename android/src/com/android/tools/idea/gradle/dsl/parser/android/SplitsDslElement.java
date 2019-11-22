@@ -25,7 +25,7 @@ public class SplitsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<SplitsDslElement> SPLITS =
     new PropertiesElementDescription<>("splits", SplitsDslElement.class, SplitsDslElement::new);
 
-  public SplitsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(SPLITS.name));
+  public SplitsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

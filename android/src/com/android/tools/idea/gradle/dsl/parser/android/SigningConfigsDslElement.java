@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.model.android.SigningConfigModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.Lists;
 import java.util.Arrays;
@@ -37,8 +38,8 @@ public final class SigningConfigsDslElement extends GradleDslElementMap implemen
     return implicitSigningConfigs.contains(name);
   }
 
-  public SigningConfigsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, SIGNING_CONFIGS.name);
+  public SigningConfigsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

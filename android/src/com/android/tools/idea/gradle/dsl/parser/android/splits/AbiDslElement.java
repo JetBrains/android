@@ -73,8 +73,8 @@ public class AbiDslElement extends BaseSplitOptionsDslElement {
     }
   }
 
-  public AbiDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(ABI.name));
+  public AbiDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
 }

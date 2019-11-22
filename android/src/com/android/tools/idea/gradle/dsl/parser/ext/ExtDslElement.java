@@ -38,8 +38,8 @@ public final class ExtDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<ExtDslElement> EXT =
     new PropertiesElementDescription<>("ext", ExtDslElement.class, ExtDslElement::new);
 
-  public ExtDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(EXT.name));
+  public ExtDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   /*

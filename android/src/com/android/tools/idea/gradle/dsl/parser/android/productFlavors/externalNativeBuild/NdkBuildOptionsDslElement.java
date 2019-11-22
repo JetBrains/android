@@ -24,7 +24,7 @@ public final class NdkBuildOptionsDslElement extends AbstractBuildOptionsDslElem
   public static final PropertiesElementDescription<NdkBuildOptionsDslElement> NDK_BUILD_OPTIONS =
     new PropertiesElementDescription<>("ndkBuild", NdkBuildOptionsDslElement.class, NdkBuildOptionsDslElement::new);
 
-  public NdkBuildOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(NDK_BUILD_OPTIONS.name));
+  public NdkBuildOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

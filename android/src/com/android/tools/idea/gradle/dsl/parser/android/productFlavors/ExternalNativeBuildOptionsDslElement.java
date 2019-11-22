@@ -26,7 +26,7 @@ public class ExternalNativeBuildOptionsDslElement extends GradleDslBlockElement 
     new PropertiesElementDescription<>(
       "externalNativeBuild", ExternalNativeBuildOptionsDslElement.class, ExternalNativeBuildOptionsDslElement::new);
 
-  public ExternalNativeBuildOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(EXTERNAL_NATIVE_BUILD_OPTIONS.name));
+  public ExternalNativeBuildOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

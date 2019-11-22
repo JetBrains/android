@@ -75,8 +75,8 @@ public class JavaDslElement extends BaseCompileOptionsDslElement {
     }
   }
 
-  public JavaDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(JAVA.name));
+  public JavaDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

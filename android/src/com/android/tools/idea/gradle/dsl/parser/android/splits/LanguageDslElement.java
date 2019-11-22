@@ -68,8 +68,8 @@ public class LanguageDslElement extends GradleDslBlockElement {
     }
   }
 
-  public LanguageDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(LANGUAGE.name));
+  public LanguageDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

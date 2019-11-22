@@ -444,7 +444,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     T propertyElement = getPropertyElement(description);
     if (propertyElement != null) return propertyElement;
     T newElement;
-    newElement = description.constructor.construct(this);
+    newElement = description.constructor.construct(this, GradleNameElement.create(description.name));
     if (at != null) {
       addNewElementAt(at, newElement);
     }

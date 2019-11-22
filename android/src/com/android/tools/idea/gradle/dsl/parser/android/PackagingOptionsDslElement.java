@@ -71,8 +71,8 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
     }
   }
 
-  public PackagingOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(PACKAGING_OPTIONS.name));
+  public PackagingOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

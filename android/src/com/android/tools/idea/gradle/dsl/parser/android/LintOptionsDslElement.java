@@ -143,8 +143,8 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
   }
 
 
-  public LintOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(LINT_OPTIONS.name));
+  public LintOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

@@ -25,7 +25,7 @@ public class RepositoriesDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<RepositoriesDslElement> REPOSITORIES =
     new PropertiesElementDescription<>("repositories", RepositoriesDslElement.class, RepositoriesDslElement::new);
 
-  public RepositoriesDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(REPOSITORIES.name));
+  public RepositoriesDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

@@ -92,8 +92,8 @@ public class DexOptionsDslElement extends GradleDslBlockElement {
     }
   }
 
-  public DexOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(DEX_OPTIONS.name));
+  public DexOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override
