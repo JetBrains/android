@@ -81,7 +81,7 @@ class NewLibraryModuleModel(
           // TODO(qumeric): will it fail if there are no SDKs installed?
           val anyTargetVersion = AndroidVersionsInfo().apply { loadLocalVersions() }
             .getKnownTargetVersions(FormFactor.MOBILE, LOWEST_ACTIVE_API)
-            .first() // we dot'tn care which one do we use, we just have to pass something, it is not going to be used
+            .first() // we don't care which one do we use, we just have to pass something, it is not going to be used
 
           setBuildVersion(anyTargetVersion, project)
           isLibrary = true
@@ -90,6 +90,7 @@ class NewLibraryModuleModel(
       }
     }
 
+    // TODO(qumeric): move it to ModuleModel when all modules will support the new system
     override fun renderTemplate(dryRun: Boolean, project: Project, runFromTemplateRenderer: Boolean): Boolean {
       val moduleRoot = getModuleRoot(project.basePath!!, moduleName.get())
 

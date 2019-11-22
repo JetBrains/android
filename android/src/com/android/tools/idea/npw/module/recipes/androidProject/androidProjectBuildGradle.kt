@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidProject
 
+import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.renderIf
 
 fun androidProjectBuildGradle(
   generateKotlin: Boolean,
   kotlinVersion: String,
   includeKotlinEapRepo: Boolean,
-  gradlePluginVersion: String
+  gradlePluginVersion: GradlePluginVersion
 ): String {
   val kotlinEapRepoBlock = renderIf(includeKotlinEapRepo) { """maven { url "https://dl.bintray.com/kotlin/kotlin-eap"""" }
 
