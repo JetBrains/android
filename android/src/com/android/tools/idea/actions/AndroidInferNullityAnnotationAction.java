@@ -33,6 +33,7 @@ import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.codeInsight.FileModificationService;
@@ -253,7 +254,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       public void onFailure(@Nullable Throwable t) {
         throw new RuntimeException(t);
       }
-    });
+    }, MoreExecutors.directExecutor());
   }
 
   // Intellij code from InferNullityAnnotationsAction.
