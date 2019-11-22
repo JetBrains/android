@@ -28,6 +28,7 @@ import com.android.tools.idea.common.util.setupBuildListener
 import com.android.tools.idea.common.util.setupChangeListener
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.rendering.RefreshRenderAction.clearCacheAndRefreshSurface
 import com.android.tools.idea.rendering.RenderSettings
@@ -273,9 +274,12 @@ internal class PreviewEditor(private val psiFile: PsiFile,
     setupChangeListener(
       project,
       psiFile,
-      { ApplicationManager.getApplication().invokeLater { refresh() } },
+      { if (isAutoBuildEnabled) requestBuildForSurface(surface) else ApplicationManager.getApplication().invokeLater { refresh() } },
       this)
   }
+
+  override var isAutoBuildEnabled: Boolean = COMPOSE_PREVIEW_AUTO_BUILD.get()
+    get() = COMPOSE_PREVIEW_AUTO_BUILD.get() && field
 
   private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce || surface.models.asSequence()
       .mapNotNull { surface.getSceneManager(it) }

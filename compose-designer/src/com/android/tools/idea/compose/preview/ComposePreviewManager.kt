@@ -42,4 +42,9 @@ interface ComposePreviewManager {
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
   fun refresh()
+
+  /**
+   * When true, a build will automatically be triggered when the user makes a source code change.
+   */
+  var isAutoBuildEnabled: Boolean
 }

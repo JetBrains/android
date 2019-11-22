@@ -694,6 +694,11 @@ public final class StudioFlags {
     "\"generateDebugSources\" or \"compileJava\".",
     true);
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_AUTO_BUILD = Flag.create(
+    COMPOSE, "preview.auto.build.enabled", "Enable the compose auto-build",
+    "If enabled, the preview will automatically trigger a build after the user finishes typing.",
+    false);
+
   public static final Flag<Boolean> COMPOSE_COMPLETION_PRESENTATION = Flag.create(
     COMPOSE, "completion.presentation",
     "Custom presentation for code completion items for composable functions",

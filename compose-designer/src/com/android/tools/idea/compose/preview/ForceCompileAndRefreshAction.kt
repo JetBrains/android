@@ -27,17 +27,19 @@ private val GREEN_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllI
                                                                             JBColor(0x59A869, 0x499C54))
 
 
+internal fun requestBuildForSurface(surface: DesignSurface) {
+  surface.models.map { it.module }.distinct().forEach {
+    requestBuild(surface.project, it)
+  }
+}
+
 /**
  * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh
  * of the surface.
  */
 class ForceCompileAndRefreshAction(val surface: DesignSurface) :
   AnAction(message("notification.action.build.and.refresh"), null, GREEN_REFRESH_BUTTON) {
-  override fun actionPerformed(e: AnActionEvent) {
-    surface.models.map { it.module }.distinct().forEach {
-      requestBuild(surface.project, it)
-    }
-  }
+  override fun actionPerformed(e: AnActionEvent) = requestBuildForSurface(surface)
 
   override fun update(e: AnActionEvent) {
     val project = e.project ?: return
