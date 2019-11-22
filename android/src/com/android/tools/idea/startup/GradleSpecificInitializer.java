@@ -54,7 +54,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
@@ -156,7 +155,6 @@ public class GradleSpecificInitializer implements Runnable {
     Actions.replaceAction(actionManager, "CreateLibraryFromFile", new CreateLibraryFromFilesAction());
     Actions.replaceAction(actionManager, "ImportModule", new AndroidImportModuleAction());
 
-    Actions.hideAction(actionManager, IdeActions.ACTION_GENERATE_ANT_BUILD);
     Actions.hideAction(actionManager, "AddFrameworkSupport");
     Actions.hideAction(actionManager, "BuildArtifact");
     Actions.hideAction(actionManager, "RunTargetAction");
