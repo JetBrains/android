@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.module.recipes
 
-import com.android.tools.idea.gradle.util.GradleUtil
+package com.android.tools.idea.npw.module.recipes.benchmarkModule.src.main
 
-fun getConfigurationName(c: String, agpVersion: String) = GradleUtil.mapConfigurationName(c, agpVersion, false)
-// TODO(qumeric): move everything under  to a proper place
-fun kotlinDependencies(agpVersion: String) =
-  "${getConfigurationName("compile", agpVersion)} \"org.jetbrains.kotlin:kotlin-stdlib-jdk7:${'$'}kotlin_version\""
+fun androidManifestXml(packageName: String) =
+"""<?xml version="1.0" encoding="utf-8"?>
+<manifest package="$packageName"/>"""

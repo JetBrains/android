@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.module.recipes.androidModule
 
 import com.android.tools.idea.npw.module.recipes.androidConfig
 import com.android.tools.idea.npw.module.recipes.getConfigurationName
+import com.android.tools.idea.npw.module.recipes.kotlinDependencies
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.wizard.template.GradlePluginVersion
@@ -114,8 +115,4 @@ fun buildGradle(
     $dependenciesBlock
   """
 }
-
-// TODO(qumeric): move everything under  to a proper place
-private fun kotlinDependencies(agpVersion: String) =
-  "${getConfigurationName("compile", agpVersion)} \"org.jetbrains.kotlin:kotlin-stdlib-jdk7:${'$'}kotlin_version\""
 
