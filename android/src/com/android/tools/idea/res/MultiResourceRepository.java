@@ -28,7 +28,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.Disposable;
@@ -40,11 +39,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A super class for several of the other repositories. Its only purpose is to be able to combine
@@ -76,9 +73,6 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
   @GuardedBy("ITEM_MAP_LOCK")
   private long[] myModificationCounts;
-
-  @GuardedBy("ITEM_MAP_LOCK")
-  private ResourceTable myFullTable;
 
   @GuardedBy("ITEM_MAP_LOCK")
   private final ResourceTable myCachedMaps = new ResourceTable();
@@ -121,7 +115,6 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
         child.addParent(this);
         myModificationCounts[i++] = child.getModificationCount();
       }
-      myFullTable = null;
       myCachedMaps.clear();
 
       invalidateParentCaches();
@@ -178,8 +171,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   }
 
   /**
-   * Returns resource repositories for the given namespace. Each of the returned repositories is guaranteed to implement
-   * the {@link SingleNamespaceResourceRepository} interface. In case of nested single-namespace repositories only the outermost
+   * Returns resource repositories for the given namespace. In case of nested single-namespace repositories only the outermost
    * repositories are returned. Collectively the returned repositories are guaranteed to contain all resources in the given namespace
    * contained in this repository.
    *
@@ -187,9 +179,9 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
    * @return a list of namespaces for the given namespace
    */
   @NotNull
-  public final List<ResourceRepository> getRepositoriesForNamespace(@NotNull ResourceNamespace namespace) {
+  public final List<SingleNamespaceResourceRepository> getRepositoriesForNamespace(@NotNull ResourceNamespace namespace) {
     synchronized (ITEM_MAP_LOCK) {
-      return ImmutableList.copyOf(myRepositoriesByNamespace.get(namespace));
+      return myRepositoriesByNamespace.get(namespace);
     }
   }
 
@@ -223,26 +215,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   @NotNull
   public Set<ResourceNamespace> getNamespaces() {
     synchronized (ITEM_MAP_LOCK) {
-      return ImmutableSet.copyOf(myRepositoriesByNamespace.keySet());
-    }
-  }
-
-  @NotNull
-  private ResourceTable getFullTable() {
-    synchronized (ITEM_MAP_LOCK) {
-      if (myFullTable == null) {
-        myFullTable = new ResourceTable();
-        for (ResourceNamespace namespace : getNamespaces()) {
-          for (ResourceType type : ResourceType.values()) {
-            ListMultimap<String, ResourceItem> map = getMap(namespace, type);
-            if (map != null) {
-              myFullTable.put(namespace, type, map);
-            }
-          }
-        }
-      }
-
-      return myFullTable;
+      return myRepositoriesByNamespace.keySet();
     }
   }
 
@@ -250,10 +223,17 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   @NotNull
   public ResourceVisitor.VisitResult accept(@NotNull ResourceVisitor visitor) {
     synchronized (ITEM_MAP_LOCK) {
-      for (Map.Entry<ResourceNamespace, Map<ResourceType, ListMultimap<String, ResourceItem>>> entry : getFullTable().rowMap().entrySet()) {
-        if (visitor.shouldVisitNamespace(entry.getKey())) {
-          if (acceptByResources(entry.getValue(), visitor) == ResourceVisitor.VisitResult.ABORT) {
-            return ResourceVisitor.VisitResult.ABORT;
+      for (ResourceNamespace namespace : getNamespaces()) {
+        if (visitor.shouldVisitNamespace(namespace)) {
+          for (ResourceType type : ResourceType.values()) {
+            if (visitor.shouldVisitResourceType(type)) {
+              ListMultimap<String, ResourceItem> map = getMap(namespace, type);
+              for (ResourceItem item : map.values()) {
+                if (visitor.visit(item) == ResourceVisitor.VisitResult.ABORT) {
+                  return ResourceVisitor.VisitResult.ABORT;
+                }
+              }
+            }
           }
         }
       }
@@ -264,51 +244,51 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
   @GuardedBy("ITEM_MAP_LOCK")
   @Override
-  @Nullable
-  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace,
-                                                      @NotNull ResourceType type) {
+  @NotNull
+  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
     ListMultimap<String, ResourceItem> map = myCachedMaps.get(namespace, type);
     if (map != null) {
       return map;
     }
 
-    if (myLocalResources.size() == 1 && myLibraryResources.isEmpty()) {
-      return myLocalResources.get(0).getMapPackageAccessible(namespace, type);
-    }
-
     ImmutableList<SingleNamespaceResourceRepository> repositoriesForNamespace = myLeafsByNamespace.get(namespace);
     if (repositoriesForNamespace.size() == 1) {
-      return ArrayListMultimap.create(repositoriesForNamespace.get(0).getResources(namespace, type));
-    } else {
-      // Merge all items of the given type.
-      Stopwatch stopwatch = LOG.isDebugEnabled() ? Stopwatch.createStarted() : null;
+      SingleNamespaceResourceRepository repository = repositoriesForNamespace.get(0);
+      if (repository instanceof LocalResourceRepository) {
+        map = ((LocalResourceRepository)repository).getMapPackageAccessible(namespace, type);
+        return map == null ? ImmutableListMultimap.of() : map;
+      }
+      return repository.getResources(namespace, type);
+    }
 
-      map = ArrayListMultimap.create();
-      SetMultimap<String, String> seenQualifiers = HashMultimap.create();
-      for (ResourceRepository child : repositoriesForNamespace) {
-        ListMultimap<String, ResourceItem> items = child.getResources(namespace, type);
-        for (ResourceItem item : items.values()) {
-          String name = item.getName();
-          String qualifiers = item.getConfiguration().getQualifierString();
-          if (type == ResourceType.STYLEABLE || type == ResourceType.ID || !map.containsKey(name) ||
-              !seenQualifiers.containsEntry(name, qualifiers)) {
-            // We only add a duplicate item if there isn't an item with the same qualifiers and it is
-            // not a styleable or an id. Styleables and ids are allowed to be defined in multiple
-            // places even with the same qualifiers.
-            map.put(name, item);
-            seenQualifiers.put(name, qualifiers);
-          }
+    // Merge all items of the given type.
+    Stopwatch stopwatch = LOG.isDebugEnabled() ? Stopwatch.createStarted() : null;
+
+    map = ArrayListMultimap.create();
+    SetMultimap<String, String> seenQualifiers = HashMultimap.create();
+    for (ResourceRepository child : repositoriesForNamespace) {
+      ListMultimap<String, ResourceItem> items = child.getResources(namespace, type);
+      for (ResourceItem item : items.values()) {
+        String name = item.getName();
+        String qualifiers = item.getConfiguration().getQualifierString();
+        if (type == ResourceType.STYLEABLE || type == ResourceType.ID || !map.containsKey(name) ||
+            !seenQualifiers.containsEntry(name, qualifiers)) {
+          // We only add a duplicate item if there isn't an item with the same qualifiers and it is
+          // not a styleable or an id. Styleables and ids are allowed to be defined in multiple
+          // places even with the same qualifiers.
+          map.put(name, item);
+          seenQualifiers.put(name, qualifiers);
         }
       }
+    }
 
-      if (stopwatch != null) {
-        LOG.debug(String.format(Locale.US,
-                                "Merged %d resources of type %s in %s for %s.",
-                                map.size(),
-                                type,
-                                stopwatch,
-                                getClass().getSimpleName()));
-      }
+    if (stopwatch != null) {
+      LOG.debug(String.format(Locale.US,
+                              "Merged %d resources of type %s in %s for %s.",
+                              map.size(),
+                              type,
+                              stopwatch,
+                              getClass().getSimpleName()));
     }
 
     myCachedMaps.put(namespace, type, map);
@@ -361,7 +341,6 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
       assert myChildren.contains(repository) : repository;
 
       myCachedMaps.clear();
-      myFullTable = null;
       setModificationCount(ourModificationCounter.incrementAndGet());
 
       invalidateParentCaches();
@@ -381,7 +360,6 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
         myCachedMaps.remove(namespace, type);
       }
 
-      myFullTable = null;
       setModificationCount(ourModificationCounter.incrementAndGet());
 
       invalidateParentCaches(namespace, types);
