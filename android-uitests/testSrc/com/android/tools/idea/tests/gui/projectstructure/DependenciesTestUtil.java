@@ -131,9 +131,7 @@ public class DependenciesTestUtil {
 
     AddModuleDependencyDialogFixture addModuleDependencyFixture = dependenciesFixture.findDependenciesPanel().clickAddModuleDependency();
     addModuleDependencyFixture.toggleModule(moduleName);
-    String scopeValue =
-      Arrays.stream(Dependency.Scope.values()).filter(it -> scope.equalsIgnoreCase(it.getDisplayName())).findFirst().get().getGroovyMethodCall();
-    addModuleDependencyFixture.findConfigurationCombo().selectItem(scopeValue);
+    addModuleDependencyFixture.findConfigurationCombo().selectItem(scope);
     addModuleDependencyFixture.clickOk();
 
     dialogFixture.clickOk();
@@ -154,10 +152,7 @@ public class DependenciesTestUtil {
     addLibraryDependencyFixture.findSearchQueryTextBox().enterText(library);
     addLibraryDependencyFixture.findSearchButton().click();
     addLibraryDependencyFixture.findVersionsView(true); // Wait for search to complete.
-    String scopeValue =
-      Arrays.stream(Dependency.Scope.values()).filter(it -> scope.equalsIgnoreCase(it.getDisplayName())).findFirst().get()
-        .getGroovyMethodCall();
-    addLibraryDependencyFixture.findConfigurationCombo().selectItem(scopeValue);
+    addLibraryDependencyFixture.findConfigurationCombo().selectItem(scope);
     addLibraryDependencyFixture.clickOk();
     dialogFixture.clickOk();
   }
