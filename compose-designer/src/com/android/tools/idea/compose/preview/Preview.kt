@@ -141,10 +141,10 @@ private fun updateSurfaceWithNewModels(surface: NlDesignSurface,
  * For every preview element a small XML is generated that allows Layoutlib to render a `@Composable` functions.
  *
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
- * @param previewProvider call to obtain the [PreviewElement]s from the file.
+ * @param previewProvider [PreviewElementProvider] to obtain the [PreviewElement]s.
  */
 internal class PreviewEditor(private val psiFile: PsiFile,
-                            private val previewProvider: () -> List<PreviewElement>) : ComposePreviewManager, Disposable, DesignFileEditor(
+                             private val previewProvider: PreviewElementProvider) : ComposePreviewManager, Disposable, DesignFileEditor(
   psiFile.virtualFile!!) {
   private val LOG = Logger.getInstance(PreviewEditor::class.java)
   private val project = psiFile.project
@@ -498,7 +498,7 @@ internal class PreviewEditor(private val psiFile: PsiFile,
    */
   override fun refresh() {
     isRefreshingPreview = true
-    val filePreviewElements = previewProvider()
+    val filePreviewElements = previewProvider.previewElements
 
     if (filePreviewElements == previewElements && savedIsShowingDecorations == RenderSettings.getProjectSettings(project).showDecorations) {
       LOG.debug("No updates on the PreviewElements, just refreshing the existing ones")

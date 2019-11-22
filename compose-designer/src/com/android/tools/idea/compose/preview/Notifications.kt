@@ -72,7 +72,7 @@ private fun createBuildNotificationPanel(project: Project,
  * the current editor and open one with the preview.
  */
 internal class ComposeNewPreviewNotificationProvider @JvmOverloads constructor(
-  private val previewElementProvider: () -> PreviewElementFinder = ::defaultPreviewElementFinder) : EditorNotifications.Provider<EditorNotificationPanel>() {
+  private val filePreviewElementProvider: () -> FilePreviewElementFinder = ::defaultFilePreviewElementFinder) : EditorNotifications.Provider<EditorNotificationPanel>() {
   private val COMPONENT_KEY = Key.create<EditorNotificationPanel>("android.tools.compose.preview.new.notification")
 
   override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? =
@@ -80,7 +80,7 @@ internal class ComposeNewPreviewNotificationProvider @JvmOverloads constructor(
       !StudioFlags.COMPOSE_PREVIEW.get() -> null
       // Not a Kotlin file or already a Compose Preview Editor
       !file.isKotlinFileType() || fileEditor.getComposePreviewManager() != null -> null
-      previewElementProvider().hasPreviewMethods(project, file) -> EditorNotificationPanel().apply {
+      filePreviewElementProvider().hasPreviewMethods(project, file) -> EditorNotificationPanel().apply {
         setText(message("notification.new.preview"))
         createActionLabel(message("notification.new.preview.action")) {
           if (fileEditor.isValid) {

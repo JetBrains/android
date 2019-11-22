@@ -53,9 +53,9 @@ private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
 }
 
 /**
- * [PreviewElementFinder] that uses `@Preview` annotations.
+ * [FilePreviewElementFinder] that uses `@Preview` annotations.
  */
-object AnnotationPreviewElementFinder : PreviewElementFinder {
+object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
   override fun hasPreviewMethods(project: Project, file: VirtualFile): Boolean = ReadAction.compute<Boolean, Throwable> {
     PsiTreeUtil.findChildrenOfType(PsiManager.getInstance(project).findFile(file), KtImportDirective::class.java)
       .any { PREVIEW_ANNOTATION_FQN == it.importedFqName?.asString() }
@@ -96,7 +96,7 @@ object AnnotationPreviewElementFinder : PreviewElementFinder {
           uMethod?.let {
             if (it.uastParameters.isNotEmpty()) {
               // We do not fail here. The ComposeViewAdapter will throw an exception that will be surfaced to the user
-              Logger.getInstance(AnnotationPreviewElementFinder::class.java).debug("Preview functions must not have any parameters")
+              Logger.getInstance(AnnotationFilePreviewElementFinder::class.java).debug("Preview functions must not have any parameters")
             }
 
             // The method must also be annotated with @Composable

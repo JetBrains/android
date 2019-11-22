@@ -21,22 +21,16 @@ import com.android.tools.idea.compose.preview.NoSecurityManagerRenderService
 import com.android.tools.idea.compose.preview.PreviewConfiguration
 import com.android.tools.idea.compose.preview.PreviewElement
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.preview.previewElementFromMethodName
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
-
-/** Configuration equivalent to defining a `@Preview` annotation with no parameters */
-private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null)
-
-private fun previewFromMethodName(fqn: String): PreviewElement =
-  PreviewElement("", fqn, null, null, nullConfiguration)
 
 class SinglePreviewElementRendererTest {
   @get:Rule
@@ -65,7 +59,7 @@ class SinglePreviewElementRendererTest {
   @Test
   fun testInvalidPreview() {
     assertNull(renderPreviewElement(projectRule.androidFacet,
-                                    previewFromMethodName("google.simpleapplication.MainActivityKt.InvalidPreview")).get())
+                                    previewElementFromMethodName("google.simpleapplication.MainActivityKt.InvalidPreview")).get())
   }
 
   /**
@@ -74,7 +68,7 @@ class SinglePreviewElementRendererTest {
   @Test
   fun testDefaultPreviewRendering() {
     val defaultRender = renderPreviewElement(projectRule.androidFacet,
-                                             previewFromMethodName("google.simpleapplication.MainActivityKt.DefaultPreview")).get()
+                                             previewElementFromMethodName("google.simpleapplication.MainActivityKt.DefaultPreview")).get()
     ImageDiffUtil.assertImageSimilar(File("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"),
                                      defaultRender!!,
                                      0.0)
@@ -87,7 +81,7 @@ class SinglePreviewElementRendererTest {
   @Test
   fun testEmptyRender() {
     val defaultRender = renderPreviewElement(projectRule.androidFacet,
-                                             previewFromMethodName("google.simpleapplication.OtherPreviewsKt.EmptyPreview")).get()
+                                             previewElementFromMethodName("google.simpleapplication.OtherPreviewsKt.EmptyPreview")).get()
 
     assertTrue(defaultRender!!.width > 0 && defaultRender.height > 0)
   }

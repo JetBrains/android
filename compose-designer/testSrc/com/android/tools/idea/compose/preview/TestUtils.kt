@@ -39,3 +39,9 @@ internal class NoSecurityManagerRenderService(project: Project) : RenderService(
       .disableSecurityManager()
   }
 }
+
+/** Configuration equivalent to defining a `@Preview` annotation with no parameters */
+private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null)
+
+internal fun previewElementFromMethodName(fqn: String, displayName: String = ""): PreviewElement =
+  PreviewElement(displayName, fqn, null, null, nullConfiguration)

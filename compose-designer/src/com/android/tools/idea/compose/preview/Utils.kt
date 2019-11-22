@@ -194,7 +194,10 @@ data class PreviewElement(val displayName: String,
                           val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
                           val configuration: PreviewConfiguration)
 
-interface PreviewElementFinder {
+/**
+ * Interface to be implemented by classes able to find [PreviewElement]s on [VirtualFile]s.
+ */
+interface FilePreviewElementFinder {
   /**
    * Returns whether this Preview element finder might apply to the given Kotlin file.
    * The main difference with [findPreviewMethods] is that method might be called on Dumb mode so it must not use any indexes.
