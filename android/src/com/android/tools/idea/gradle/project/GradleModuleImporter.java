@@ -25,7 +25,8 @@ import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.parser.GradleSettingsFile;
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleProjects;
@@ -48,10 +49,14 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -186,7 +191,7 @@ public final class GradleModuleImporter extends ModuleImporter {
         dependencyComputer = Suppliers.compose(parser, Suppliers.ofInstance(location));
       }
       else {
-        dependencyComputer = Suppliers.ofInstance(ImmutableSet.<String>of());
+        dependencyComputer = Suppliers.ofInstance(ImmutableSet.of());
       }
       modulesSet.add(new ModuleToImport(entry.getKey(), location, dependencyComputer));
     }
@@ -195,8 +200,19 @@ public final class GradleModuleImporter extends ModuleImporter {
 
   @NotNull
   public static Map<String, VirtualFile> getSubProjects(@NotNull final VirtualFile settingsGradle, Project destinationProject) {
-    GradleSettingsFile settingsFile = new GradleSettingsFile(settingsGradle, destinationProject);
-    Map<String, File> allProjects = settingsFile.getModulesWithLocation();
+    GradleSettingsModel gradleSettingsModel = GradleSettingsModel.get(settingsGradle, destinationProject);
+    List<String> paths = gradleSettingsModel.modulePaths();
+    Map<String, File> allProjects = new LinkedHashMap<>();
+    for (String path : paths) {
+      // Exclude the root path.
+      if (path.equals(":")) {
+        continue;
+      }
+      File projectFile = gradleSettingsModel.moduleDirectory(path);
+      if (projectFile != null) {
+        allProjects.put(path, projectFile);
+      }
+    }
     return Maps.transformValues(allProjects, new ResolvePath(virtualToIoFile(settingsGradle.getParent())));
   }
 
@@ -286,6 +302,7 @@ public final class GradleModuleImporter extends ModuleImporter {
     if (projectRoot.findChild(SdkConstants.FN_SETTINGS_GRADLE) == null) {
       projectRoot.createChildData(requestor, SdkConstants.FN_SETTINGS_GRADLE);
     }
+    GradleSettingsModel gradleSettingsModel = ProjectBuildModel.get(project).getProjectSettingsModel();
     for (Map.Entry<String, VirtualFile> module : modules.entrySet()) {
       String name = module.getKey();
       File targetFile = GradleUtil.getModuleDefaultPath(projectRoot, name);
@@ -305,12 +322,22 @@ public final class GradleModuleImporter extends ModuleImporter {
           targetFile = virtualToIoFile(moduleSource);
         }
       }
-      GradleSettingsFile gradleSettingsFile = GradleSettingsFile.get(project);
-      assert gradleSettingsFile != null : "File should have been created";
-      gradleSettingsFile.addModule(name, targetFile);
+      if (gradleSettingsModel != null) {
+        gradleSettingsModel.addModulePath(name);
+        if (!FileUtil.filesEqual(GradleUtil.getModuleDefaultPath(projectRoot, name), targetFile)) {
+          gradleSettingsModel.setModuleDirectory(name, targetFile);
+        }
+      }
     }
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_IMPORT_MODULES_COPIED);
-    GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
+
+    if (gradleSettingsModel == null) {
+      Messages.showErrorDialog(project, "Couldn't add new paths to the Gradle settings file, please add them manually",
+                               "Gradle Module Import Error");
+    } else {
+      gradleSettingsModel.applyChanges();
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_IMPORT_MODULES_COPIED);
+      GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
+    }
   }
 
   /**
