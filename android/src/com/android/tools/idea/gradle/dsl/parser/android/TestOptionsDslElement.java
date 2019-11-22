@@ -68,7 +68,7 @@ public class TestOptionsDslElement extends GradleDslBlockElement {
     }
   }
 
-  public TestOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(TEST_OPTIONS.name));
+  public TestOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

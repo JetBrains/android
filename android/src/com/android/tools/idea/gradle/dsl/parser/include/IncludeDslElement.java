@@ -29,8 +29,8 @@ public class IncludeDslElement extends GradlePropertiesDslElement {
   public static final PropertiesElementDescription<IncludeDslElement> INCLUDE =
     new PropertiesElementDescription<>("include", IncludeDslElement.class, IncludeDslElement::new);
 
-  public IncludeDslElement(@Nullable GradleDslElement parent) {
-    super(parent, null, GradleNameElement.create(INCLUDE.name));
+  public IncludeDslElement(@Nullable GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, null, name);
   }
 
   @Override

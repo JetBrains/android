@@ -52,7 +52,7 @@ public class KotlinOptionsDslElement extends GradleDslBlockElement {
     }
   }
 
-  public KotlinOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(KOTLIN_OPTIONS.name));
+  public KotlinOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

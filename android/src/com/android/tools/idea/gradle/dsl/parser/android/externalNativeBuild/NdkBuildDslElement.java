@@ -24,7 +24,7 @@ public final class NdkBuildDslElement extends AbstractBuildDslElement {
   public static final PropertiesElementDescription<NdkBuildDslElement> NDK_BUILD =
     new PropertiesElementDescription<>("ndkBuild", NdkBuildDslElement.class, NdkBuildDslElement::new);
 
-  public NdkBuildDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(NDK_BUILD.name));
+  public NdkBuildDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

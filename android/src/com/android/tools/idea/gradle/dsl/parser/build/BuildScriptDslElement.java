@@ -25,7 +25,7 @@ public class BuildScriptDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<BuildScriptDslElement> BUILDSCRIPT =
     new PropertiesElementDescription<>("buildscript", BuildScriptDslElement.class, BuildScriptDslElement::new);
 
-  public BuildScriptDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(BUILDSCRIPT.name));
+  public BuildScriptDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

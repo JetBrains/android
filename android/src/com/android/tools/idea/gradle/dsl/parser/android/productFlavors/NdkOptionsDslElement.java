@@ -70,8 +70,9 @@ public class NdkOptionsDslElement extends GradleDslBlockElement {
       return super.getExternalToModelMap(converter);
     }
   }
-  public NdkOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(NDK_OPTIONS.name));
+
+  public NdkOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

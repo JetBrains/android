@@ -91,8 +91,8 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     }
   }
 
-  public AndroidDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(ANDROID.name));
+  public AndroidDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

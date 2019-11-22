@@ -74,7 +74,7 @@ public class VectorDrawablesOptionsDslElement extends GradleDslBlockElement {
     }
   }
 
-  public VectorDrawablesOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(VECTOR_DRAWABLES_OPTIONS.name));
+  public VectorDrawablesOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

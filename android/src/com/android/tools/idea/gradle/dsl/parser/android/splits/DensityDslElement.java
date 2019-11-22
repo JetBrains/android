@@ -75,8 +75,8 @@ public class DensityDslElement extends BaseSplitOptionsDslElement {
     }
   }
 
-  public DensityDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(DENSITY.name));
+  public DensityDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

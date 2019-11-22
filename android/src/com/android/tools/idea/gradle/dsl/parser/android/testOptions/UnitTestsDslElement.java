@@ -63,7 +63,7 @@ public class UnitTestsDslElement extends GradleDslBlockElement {
     }
   }
 
-  public UnitTestsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(UNIT_TESTS.name));
+  public UnitTestsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

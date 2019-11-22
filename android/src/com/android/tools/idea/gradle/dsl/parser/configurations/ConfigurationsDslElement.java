@@ -36,7 +36,7 @@ public class ConfigurationsDslElement extends GradleDslBlockElement implements G
     return false;
   }
 
-  public ConfigurationsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(CONFIGURATIONS.name));
+  public ConfigurationsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

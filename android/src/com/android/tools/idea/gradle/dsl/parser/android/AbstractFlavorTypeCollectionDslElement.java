@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -32,8 +33,7 @@ public abstract class AbstractFlavorTypeCollectionDslElement extends GradleDslEl
   @NotNull
   protected static final List<String> KNOWN_METHOD_NAMES = Arrays.asList(KNOWN_METHOD_NAMES_ARRAY);
 
-  protected AbstractFlavorTypeCollectionDslElement(@NotNull GradleDslElement parent,
-                                                   @NotNull String name) {
+  protected AbstractFlavorTypeCollectionDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }
 

@@ -63,7 +63,7 @@ public final class BuildFeaturesDslElement extends GradleDslBlockElement {
     }
   }
 
-  public BuildFeaturesDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(BUILD_FEATURES.name));
+  public BuildFeaturesDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

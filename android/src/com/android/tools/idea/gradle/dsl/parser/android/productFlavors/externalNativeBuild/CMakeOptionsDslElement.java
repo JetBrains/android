@@ -24,7 +24,7 @@ public final class CMakeOptionsDslElement extends AbstractBuildOptionsDslElement
   public static final PropertiesElementDescription<CMakeOptionsDslElement> CMAKE_OPTIONS =
     new PropertiesElementDescription<>("cmake", CMakeOptionsDslElement.class, CMakeOptionsDslElement::new);
 
-  public CMakeOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(CMAKE_OPTIONS.name));
+  public CMakeOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

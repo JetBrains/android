@@ -90,8 +90,8 @@ public class AaptOptionsDslElement extends GradleDslBlockElement {
     }
   }
 
-  public AaptOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(AAPT_OPTIONS.name));
+  public AaptOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

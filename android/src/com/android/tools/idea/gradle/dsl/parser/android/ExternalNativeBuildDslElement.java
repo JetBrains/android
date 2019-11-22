@@ -25,7 +25,7 @@ public final class ExternalNativeBuildDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<ExternalNativeBuildDslElement> EXTERNAL_NATIVE_BUILD =
     new PropertiesElementDescription<>("externalNativeBuild", ExternalNativeBuildDslElement.class, ExternalNativeBuildDslElement::new);
 
-  public ExternalNativeBuildDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(EXTERNAL_NATIVE_BUILD.name));
+  public ExternalNativeBuildDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

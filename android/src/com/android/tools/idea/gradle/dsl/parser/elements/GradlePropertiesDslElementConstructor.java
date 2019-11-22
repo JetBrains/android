@@ -16,5 +16,5 @@
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
 public interface GradlePropertiesDslElementConstructor<T extends GradlePropertiesDslElement> {
-  T construct(GradleDslElement parent);
+  T construct(GradleDslElement parent, GradleNameElement name);
 }

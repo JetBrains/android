@@ -68,8 +68,8 @@ public class AdbOptionsDslElement extends GradleDslBlockElement {
       return super.getExternalToModelMap(converter);
     }
   }
-  public AdbOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(ADB_OPTIONS.name));
+  public AdbOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

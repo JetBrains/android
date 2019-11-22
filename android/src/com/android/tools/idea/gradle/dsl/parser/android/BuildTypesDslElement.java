@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.Lists;
 import java.util.Arrays;
@@ -35,8 +36,8 @@ public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslE
     return implicitBuildTypes.contains(name);
   }
 
-  public BuildTypesDslElement(@NotNull GradleDslElement parent) {
-    super(parent, BUILD_TYPES.name);
+  public BuildTypesDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @NotNull

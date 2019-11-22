@@ -131,7 +131,7 @@ fun GradleDslFile.getBlockElement(
       // Ext element is supported for any Gradle domain object that implements ExtensionAware. Here we get or create
       // such an element if needed.
       EXT.name -> {
-        val newElement = EXT.constructor.construct(resultElement)
+        val newElement = EXT.constructor.construct(resultElement, elementName)
         resultElement.setParsedElement(newElement)
         return@fold newElement
       }
@@ -147,8 +147,8 @@ fun GradleDslFile.getBlockElement(
       is GradleDslFile -> createNewElementForFileOrSubProject(resultElement, nestedElementName) ?: return null
       is SubProjectsDslElement -> createNewElementForFileOrSubProject(resultElement, nestedElementName) ?: return null
       is BuildScriptDslElement -> when (nestedElementName) {
-        DEPENDENCIES.name -> DEPENDENCIES.constructor.construct(resultElement)
-        REPOSITORIES.name -> REPOSITORIES.constructor.construct(resultElement)
+        DEPENDENCIES.name -> DEPENDENCIES.constructor.construct(resultElement, elementName)
+        REPOSITORIES.name -> REPOSITORIES.constructor.construct(resultElement, elementName)
         else -> return null
       }
       is RepositoriesDslElement -> when (nestedElementName) {
@@ -163,39 +163,39 @@ fun GradleDslFile.getBlockElement(
       }
       is AndroidDslElement -> when (nestedElementName) {
         "defaultConfig" -> DefaultConfigDslElement(resultElement, elementName)
-        // TODO(xof): these should be (resultElement.blockMap.get(nestedElementName) ?: return null).constructor.construct(resultElement)
+        // TODO(xof): these should be (resultElement.blockMap.get(nestedElementName) ?: return null).constructor.construct(resultElement, elementName)
         //  (think also about how to make the "defaultConfig" case fit into a map lookup given that the interface must be different).
-        AAPT_OPTIONS.name -> AAPT_OPTIONS.constructor.construct(resultElement)
-        ADB_OPTIONS.name -> ADB_OPTIONS.constructor.construct(resultElement)
-        BUILD_FEATURES.name -> BUILD_FEATURES.constructor.construct(resultElement)
-        BUILD_TYPES.name -> BUILD_TYPES.constructor.construct(resultElement)
-        COMPILE_OPTIONS.name -> COMPILE_OPTIONS.constructor.construct(resultElement)
-        DATA_BINDING.name -> DATA_BINDING.constructor.construct(resultElement)
-        DEX_OPTIONS.name -> DEX_OPTIONS.constructor.construct(resultElement)
-        EXTERNAL_NATIVE_BUILD.name -> EXTERNAL_NATIVE_BUILD.constructor.construct(resultElement)
-        KOTLIN_OPTIONS.name -> KOTLIN_OPTIONS.constructor.construct(resultElement)
-        LINT_OPTIONS.name -> LINT_OPTIONS.constructor.construct(resultElement)
-        PACKAGING_OPTIONS.name -> PACKAGING_OPTIONS.constructor.construct(resultElement)
-        PRODUCT_FLAVORS.name -> PRODUCT_FLAVORS.constructor.construct(resultElement)
-        SIGNING_CONFIGS.name -> SIGNING_CONFIGS.constructor.construct(resultElement)
-        SOURCE_SETS.name -> SOURCE_SETS.constructor.construct(resultElement)
-        SPLITS.name -> SPLITS.constructor.construct(resultElement)
-        TEST_OPTIONS.name -> TEST_OPTIONS.constructor.construct(resultElement)
-        VIEW_BINDING.name -> VIEW_BINDING.constructor.construct(resultElement)
+        AAPT_OPTIONS.name -> AAPT_OPTIONS.constructor.construct(resultElement, elementName)
+        ADB_OPTIONS.name -> ADB_OPTIONS.constructor.construct(resultElement, elementName)
+        BUILD_FEATURES.name -> BUILD_FEATURES.constructor.construct(resultElement, elementName)
+        BUILD_TYPES.name -> BUILD_TYPES.constructor.construct(resultElement, elementName)
+        COMPILE_OPTIONS.name -> COMPILE_OPTIONS.constructor.construct(resultElement, elementName)
+        DATA_BINDING.name -> DATA_BINDING.constructor.construct(resultElement, elementName)
+        DEX_OPTIONS.name -> DEX_OPTIONS.constructor.construct(resultElement, elementName)
+        EXTERNAL_NATIVE_BUILD.name -> EXTERNAL_NATIVE_BUILD.constructor.construct(resultElement, elementName)
+        KOTLIN_OPTIONS.name -> KOTLIN_OPTIONS.constructor.construct(resultElement, elementName)
+        LINT_OPTIONS.name -> LINT_OPTIONS.constructor.construct(resultElement, elementName)
+        PACKAGING_OPTIONS.name -> PACKAGING_OPTIONS.constructor.construct(resultElement, elementName)
+        PRODUCT_FLAVORS.name -> PRODUCT_FLAVORS.constructor.construct(resultElement, elementName)
+        SIGNING_CONFIGS.name -> SIGNING_CONFIGS.constructor.construct(resultElement, elementName)
+        SOURCE_SETS.name -> SOURCE_SETS.constructor.construct(resultElement, elementName)
+        SPLITS.name -> SPLITS.constructor.construct(resultElement, elementName)
+        TEST_OPTIONS.name -> TEST_OPTIONS.constructor.construct(resultElement, elementName)
+        VIEW_BINDING.name -> VIEW_BINDING.constructor.construct(resultElement, elementName)
         else -> return null
       }
       is ExternalNativeBuildDslElement -> when (nestedElementName) {
-        CMAKE.name -> CMAKE.constructor.construct(resultElement)
-        NDK_BUILD.name -> NDK_BUILD.constructor.construct(resultElement)
+        CMAKE.name -> CMAKE.constructor.construct(resultElement, elementName)
+        NDK_BUILD.name -> NDK_BUILD.constructor.construct(resultElement, elementName)
         else -> return null
       }
       is ProductFlavorsDslElement -> ProductFlavorDslElement(resultElement, elementName)
       is AbstractProductFlavorDslElement -> when (nestedElementName) {
         "manifestPlaceholders" -> GradleDslExpressionMap(resultElement, elementName)
         "testInstrumentationRunnerArguments" -> GradleDslExpressionMap(resultElement, elementName)
-        EXTERNAL_NATIVE_BUILD_OPTIONS.name -> EXTERNAL_NATIVE_BUILD_OPTIONS.constructor.construct(resultElement)
-        NDK_OPTIONS.name -> NDK_OPTIONS.constructor.construct(resultElement)
-        VECTOR_DRAWABLES_OPTIONS.name -> VECTOR_DRAWABLES_OPTIONS.constructor.construct(resultElement)
+        EXTERNAL_NATIVE_BUILD_OPTIONS.name -> EXTERNAL_NATIVE_BUILD_OPTIONS.constructor.construct(resultElement, elementName)
+        NDK_OPTIONS.name -> NDK_OPTIONS.constructor.construct(resultElement, elementName)
+        VECTOR_DRAWABLES_OPTIONS.name -> VECTOR_DRAWABLES_OPTIONS.constructor.construct(resultElement, elementName)
         else -> return null
       }
       is BuildTypesDslElement -> BuildTypeDslElement(resultElement, elementName)
@@ -210,18 +210,18 @@ fun GradleDslFile.getBlockElement(
         else -> SourceDirectoryDslElement(resultElement, elementName)
       }
       is ExternalNativeBuildOptionsDslElement -> when (nestedElementName) {
-        CMAKE_OPTIONS.name -> CMAKE_OPTIONS.constructor.construct(resultElement)
-        NDK_BUILD_OPTIONS.name -> NDK_BUILD_OPTIONS.constructor.construct(resultElement)
+        CMAKE_OPTIONS.name -> CMAKE_OPTIONS.constructor.construct(resultElement, elementName)
+        NDK_BUILD_OPTIONS.name -> NDK_BUILD_OPTIONS.constructor.construct(resultElement, elementName)
         else -> return null
       }
       is SplitsDslElement -> when (nestedElementName) {
-        ABI.name -> ABI.constructor.construct(resultElement)
-        DENSITY.name-> DENSITY.constructor.construct(resultElement)
-        LANGUAGE.name -> LANGUAGE.constructor.construct(resultElement)
+        ABI.name -> ABI.constructor.construct(resultElement, elementName)
+        DENSITY.name-> DENSITY.constructor.construct(resultElement, elementName)
+        LANGUAGE.name -> LANGUAGE.constructor.construct(resultElement, elementName)
         else -> return null
       }
       is TestOptionsDslElement -> when (nestedElementName) {
-        UNIT_TESTS.name -> UNIT_TESTS.constructor.construct(resultElement)
+        UNIT_TESTS.name -> UNIT_TESTS.constructor.construct(resultElement, elementName)
         else -> return null
       }
       is ConfigurationsDslElement -> ConfigurationDslElement(resultElement, elementName)
@@ -238,14 +238,15 @@ fun GradleDslFile.getBlockElement(
 
 private fun createNewElementForFileOrSubProject(resultElement: GradlePropertiesDslElement,
                                                 nestedElementName: String): GradlePropertiesDslElement? {
+  val elementName = GradleNameElement.fake(nestedElementName)
   return when (nestedElementName) {
-    ANDROID.name -> ANDROID.constructor.construct(resultElement)
-    BUILDSCRIPT.name -> BUILDSCRIPT.constructor.construct(resultElement.dslFile)
-    CONFIGURATIONS.name -> CONFIGURATIONS.constructor.construct(resultElement)
-    DEPENDENCIES.name -> DEPENDENCIES.constructor.construct(resultElement)
-    EXT.name -> EXT.constructor.construct(resultElement)
-    JAVA.name -> JAVA.constructor.construct(resultElement)
-    REPOSITORIES.name -> REPOSITORIES.constructor.construct(resultElement)
+    ANDROID.name -> ANDROID.constructor.construct(resultElement, elementName)
+    BUILDSCRIPT.name -> BUILDSCRIPT.constructor.construct(resultElement.dslFile, elementName)
+    CONFIGURATIONS.name -> CONFIGURATIONS.constructor.construct(resultElement, elementName)
+    DEPENDENCIES.name -> DEPENDENCIES.constructor.construct(resultElement, elementName)
+    EXT.name -> EXT.constructor.construct(resultElement, elementName)
+    JAVA.name -> JAVA.constructor.construct(resultElement, elementName)
+    REPOSITORIES.name -> REPOSITORIES.constructor.construct(resultElement, elementName)
     SUBPROJECTS_BLOCK_NAME -> SubProjectsDslElement(resultElement)
     PLUGINS_BLOCK_NAME -> PluginsDslElement(resultElement)
     else -> {
