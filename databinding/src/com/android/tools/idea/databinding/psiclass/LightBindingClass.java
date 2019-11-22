@@ -32,6 +32,8 @@ import com.android.tools.idea.databinding.index.ViewIdData;
 import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil;
 import com.android.tools.idea.databinding.util.ViewBindingUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ScopeType;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.lang.Language;
@@ -67,6 +69,7 @@ import com.intellij.psi.impl.light.LightMethodBuilder;
 import com.intellij.psi.scope.ElementClassHint;
 import com.intellij.psi.scope.NameHint;
 import com.intellij.psi.scope.PsiScopeProcessor;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
@@ -243,8 +246,7 @@ public class LightBindingClass extends AndroidLightClassBase {
 
   @Override
   public PsiClass getSuperClass() {
-    return JavaPsiFacade.getInstance(getProject())
-        .findClass(myConfig.getSuperName(), myConfig.getFacet().getModule().getModuleWithDependenciesAndLibrariesScope(false));
+    return JavaPsiFacade.getInstance(getProject()).findClass(myConfig.getSuperName(), getModuleScope());
   }
 
   @Override
@@ -267,9 +269,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   @Override
   public PsiClassType[] getExtendsListTypes() {
     if (myExtendsListTypes == null) {
-      myExtendsListTypes = new PsiClassType[]{
-        PsiType.getTypeByName(myConfig.getSuperName(), getProject(),
-                              myConfig.getFacet().getModule().getModuleWithDependenciesAndLibrariesScope(false))};
+      myExtendsListTypes = new PsiClassType[]{PsiType.getTypeByName(myConfig.getSuperName(), getProject(), getModuleScope())};
     }
     return myExtendsListTypes;
   }
@@ -322,15 +322,18 @@ public class LightBindingClass extends AndroidLightClassBase {
           continue;
         }
 
-        Module module = myConfig.getFacet().getModule();
-        PsiClass aClass =
-            JavaPsiFacade.getInstance(getProject()).findClass(qName, module.getModuleWithDependenciesAndLibrariesScope(true));
+        PsiClass aClass = JavaPsiFacade.getInstance(getProject()).findClass(qName, getModuleScope());
         if (aClass != null && !processor.execute(aClass, state)) {
           return false; // Found it.
         }
       }
     }
     return true;
+  }
+
+  @NotNull
+  private GlobalSearchScope getModuleScope() {
+    return ProjectSystemUtil.getModuleSystem(myConfig.getFacet()).getResolveScope(ScopeType.MAIN);
   }
 
   /**
@@ -409,14 +412,11 @@ public class LightBindingClass extends AndroidLightClassBase {
 
     Project project = getProject();
     Module module = myConfig.getFacet().getModule();
-    PsiClassType viewGroupType =
-        PsiType.getTypeByName(SdkConstants.CLASS_VIEWGROUP, project, module.getModuleWithDependenciesAndLibrariesScope(true));
-    PsiClassType layoutInflaterType =
-        PsiType.getTypeByName(SdkConstants.CLASS_LAYOUT_INFLATER, project, module.getModuleWithDependenciesAndLibrariesScope(true));
-    PsiClassType dataBindingComponent =
-        PsiType.getJavaLangObject(getManager(), module.getModuleWithDependenciesAndLibrariesScope(true));
-    PsiClassType viewType =
-        PsiType.getTypeByName(SdkConstants.CLASS_VIEW, project, module.getModuleWithDependenciesAndLibrariesScope(true));
+    GlobalSearchScope moduleScope = getModuleScope();
+    PsiClassType viewGroupType = PsiType.getTypeByName(SdkConstants.CLASS_VIEWGROUP, project, moduleScope);
+    PsiClassType layoutInflaterType = PsiType.getTypeByName(SdkConstants.CLASS_LAYOUT_INFLATER, project, moduleScope);
+    PsiClassType dataBindingComponent = PsiType.getJavaLangObject(getManager(), moduleScope);
+    PsiClassType viewType = PsiType.getTypeByName(SdkConstants.CLASS_VIEW, project, moduleScope);
 
     List<PsiMethod> methods = new ArrayList<>();
 
