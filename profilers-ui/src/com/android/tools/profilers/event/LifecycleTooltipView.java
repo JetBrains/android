@@ -16,13 +16,12 @@
 package com.android.tools.profilers.event;
 
 import com.android.tools.adtui.ActivityComponent;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.event.LifecycleAction;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerMonitorTooltipView;
-import com.android.tools.profilers.StageView;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.util.ui.JBEmptyBorder;
 import java.awt.Color;
@@ -34,7 +33,7 @@ import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
-public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonitor> {
+public class LifecycleTooltipView extends TooltipView {
 
   private static final int HOVER_OVER_WIDTH_PX = ActivityComponent.EVENT_LINE_WIDTH_PX + ActivityComponent.EVENT_LINE_GAP_WIDTH_PX * 2;
 
@@ -53,14 +52,13 @@ public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonito
   @NotNull
   private JComponent myComponent;
 
-  public LifecycleTooltipView(@NotNull StageView parent, @NotNull LifecycleTooltip tooltip) {
-    super(tooltip.getMonitor());
+  public LifecycleTooltipView(@NotNull JComponent parent, @NotNull LifecycleTooltip tooltip) {
+    super(tooltip.getTimeline());
     myLifecycleTooltip = tooltip;
-    myComponent = parent.getComponent();
+    myComponent = parent;
 
     // Callback on the data range so the active event time gets updated properly.
     getTimeline().getDataRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
-    getTimeline().getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
 
     myActivityNameLabel = new JLabel();
     myDurationLabel = new JLabel();
@@ -71,6 +69,12 @@ public class LifecycleTooltipView extends ProfilerMonitorTooltipView<EventMonito
   public void dispose() {
     super.dispose();
     getTimeline().getDataRange().removeDependencies(this);
+  }
+
+  @Override
+  protected void updateTooltip() {
+    // Respond to tooltip range change.
+    timeChanged();
   }
 
   private void timeChanged() {

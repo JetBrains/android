@@ -17,24 +17,27 @@ package com.android.tools.profilers.event;
 
 import static icons.StudioIcons.Profiler.Events.ROTATE_EVENT;
 
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.ActivityComponent;
+import com.android.tools.adtui.EventComponent;
+import com.android.tools.adtui.RangeTooltipComponent;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.eventrenderer.EventIconRenderer;
-import com.android.tools.adtui.eventrenderer.KeyboardEventRenderer;
 import com.android.tools.adtui.eventrenderer.EventRenderer;
+import com.android.tools.adtui.eventrenderer.KeyboardEventRenderer;
 import com.android.tools.adtui.eventrenderer.TouchEventRenderer;
+import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.event.UserEvent;
-import com.android.tools.profilers.ProfilerMonitorTooltip;
 import com.android.tools.profilers.ProfilerMonitorView;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilersView;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
 
@@ -75,19 +78,25 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
 
   @Override
   public void registerTooltip(@NotNull RangeTooltipComponent tooltip, Stage stage) {
-    registerComponent(myUserEventComponent, () -> new UserEventTooltip(getMonitor()), tooltip, stage);
-    registerComponent(myActivityComponent, () -> new LifecycleTooltip(getMonitor()), tooltip, stage);
+    registerComponent(myUserEventComponent,
+                      () -> new UserEventTooltip(getMonitor().getTimeline(), getMonitor().getUserEvents()),
+                      tooltip,
+                      stage);
+    registerComponent(myActivityComponent,
+                      () -> new LifecycleTooltip(getMonitor().getTimeline(), getMonitor().getLifecycleEvents()),
+                      tooltip,
+                      stage);
   }
 
   private void registerComponent(JComponent component,
-                                 Supplier<ProfilerMonitorTooltip<EventMonitor>> tooltip,
+                                 Supplier<TooltipModel> tooltipBuilder,
                                  RangeTooltipComponent tooltipComponent,
                                  Stage stage) {
     component.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseEntered(MouseEvent e) {
         if (getMonitor().isEnabled()) {
-          getMonitor().setTooltipBuilder(tooltip);
+          getMonitor().setTooltipBuilder(tooltipBuilder);
           stage.setTooltip(getMonitor().buildTooltip());
         }
         else {

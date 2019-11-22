@@ -51,8 +51,7 @@ class UserEventTooltipViewTest {
     view.stageView.component.setBounds(0,0,1024,1024)
     profilers.timeline.viewRange.min = 0.0
     profilers.timeline.viewRange.max = TimeUnit.SECONDS.toNanos(1) * 1.0
-    mySimpleEventTooltipView = FakeUserEventTooltipView(view.stageView,
-                                                        UserEventTooltip(myMonitor!!))
+    mySimpleEventTooltipView = FakeUserEventTooltipView(view.stageView, UserEventTooltip(myMonitor!!.timeline, myMonitor!!.userEvents))
     val tooltipTime = TimeUnit.SECONDS.toMicros(1) + TimeUnit.MILLISECONDS.toMicros(1)
     val timelineRange = TimeUnit.SECONDS.toMicros(5)
     myMonitor!!.timeline.dataRange.set(0.0, timelineRange.toDouble())
@@ -96,7 +95,7 @@ class UserEventTooltipViewTest {
 
 
   private class FakeUserEventTooltipView(parent: StageView<*>, tooltip: UserEventTooltip) :
-    UserEventTooltipView(parent, tooltip) {
+    UserEventTooltipView(parent.component, tooltip) {
 
     init {
       createComponent()
