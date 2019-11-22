@@ -165,7 +165,8 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
       return null
     }
 
-    val previewStatus = fileEditor.getComposePreviewManager()?.status() ?: return null
+    val previewManager = fileEditor.getComposePreviewManager() ?: return null
+    val previewStatus = previewManager.status() ?: return null
     if (LOG.isDebugEnabled) {
       LOG.debug(previewStatus.toString())
     }
@@ -198,7 +199,8 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
         text = message("notification.needs.build.broken"),
         color = LightColors.RED)
 
-      previewStatus.isOutOfDate -> createBuildNotificationPanel(
+      // If the preview is out of date and auto-build is not enabled, display the notification explaining the user they need to refresh.
+      previewStatus.isOutOfDate && !previewManager.isAutoBuildEnabled -> createBuildNotificationPanel(
         project,
         file,
         text = message("notification.preview.out.of.date"),

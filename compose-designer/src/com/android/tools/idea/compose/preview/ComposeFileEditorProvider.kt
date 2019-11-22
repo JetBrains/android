@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
 import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
 import com.google.wireless.android.sdk.stats.LayoutEditorState
@@ -63,6 +64,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
   private inner class ViewOptionsAction : DropDownAction(message("action.view.options.title"), null, StudioIcons.Common.VISIBILITY_INLINE) {
     init {
       add(ToggleShowDecorationAction())
+      add(ToggleAutoBuildAction())
     }
   }
 
@@ -80,6 +82,23 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
     }
 
     override fun isSelected(e: AnActionEvent): Boolean = RenderSettings.getProjectSettings(surface.project).showDecorations
+  }
+
+  private inner class ToggleAutoBuildAction :
+    ToggleAction(message("action.auto.build.title"), message("action.auto.build.description"), null) {
+
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+
+      e.presentation.isEnabledAndVisible = COMPOSE_PREVIEW_AUTO_BUILD.get()
+    }
+
+    override fun setSelected(e: AnActionEvent, state: Boolean) {
+      findComposePreviewManagersForContext(e.dataContext).forEach { it.isAutoBuildEnabled = state }
+    }
+
+    override fun isSelected(e: AnActionEvent): Boolean = findComposePreviewManagersForContext(e.dataContext)
+      .any { it.isAutoBuildEnabled }
   }
 
   override fun getNorthGroup(): ActionGroup = DefaultActionGroup(listOf(
