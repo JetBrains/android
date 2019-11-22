@@ -33,6 +33,7 @@ import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
@@ -347,7 +348,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       public void onFailure(@Nullable Throwable t) {
         throw new RuntimeException(t);
       }
-    });
+    }, MoreExecutors.directExecutor());
   }
 
   private static Runnable applyRunnable(Project project, Computable<UsageInfo[]> computable) {

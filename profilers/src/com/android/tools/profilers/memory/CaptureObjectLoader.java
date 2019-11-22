@@ -56,7 +56,7 @@ public class CaptureObjectLoader {
       private void removeTask() {
         myOutstandingLoadingTask = null;
       }
-    });
+    }, MoreExecutors.directExecutor());
 
     myExecutorService.submit(task);
     return task;

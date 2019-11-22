@@ -52,6 +52,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.concurrency.EdtExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.util.ui.AnimatedIcon;
 import com.intellij.util.ui.AsyncProcessIcon;
 import icons.StudioIcons;
@@ -201,7 +202,7 @@ public class ApkViewPanel implements TreeSelectionListener {
                                                                  .setUncompressedSize(uncompressed)
                                                                  .build()));
                           }
-                        });
+                        }, MoreExecutors.directExecutor());
   }
 
   private void createUIComponents() {
