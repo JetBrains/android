@@ -42,5 +42,12 @@ class RefreshDesignAssetAction(private val refreshAssetsCallback: (Array<DesignA
     e.presentation.isEnabledAndVisible = canRefresh(e.getData(RESOURCE_DESIGN_ASSETS_KEY))
   }
 
-  private fun canRefresh(assets: Array<DesignAsset>?): Boolean = assets?.all { supportedResourceTypes.contains(it.type) } ?: false
+  private fun canRefresh(assets: Array<DesignAsset>?): Boolean {
+    return if (assets.isNullOrEmpty()) {
+      false
+    }
+    else {
+      assets.all { supportedResourceTypes.contains(it.type) }
+    }
+  }
 }
