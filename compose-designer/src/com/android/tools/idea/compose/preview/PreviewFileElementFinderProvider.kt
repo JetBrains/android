@@ -15,5 +15,5 @@
  */
 package com.android.tools.idea.compose.preview
 
-/** Default [PreviewElementFinder]. This will be used by default by production code */
-val defaultPreviewElementFinder = AnnotationPreviewElementFinder
+/** Default [FilePreviewElementFinder]. This will be used by default by production code */
+val defaultFilePreviewElementFinder = AnnotationFilePreviewElementFinder

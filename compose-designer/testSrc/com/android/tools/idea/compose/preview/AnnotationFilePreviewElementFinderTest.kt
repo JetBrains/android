@@ -35,7 +35,7 @@ private fun assertMethodTextRange(file: UFile, methodName: String, actualBodyRan
   Assert.assertEquals(range, actualBodyRange)
 }
 
-class AnnotationPreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTestCase() {
+class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTestCase() {
   fun testFindPreviewAnnotations() {
     @Language("kotlin")
     val composeTest = myFixture.addFileToProject("src/Test.kt", """
@@ -75,7 +75,7 @@ class AnnotationPreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTes
 
     """.trimIndent()).toUElement() as UFile
 
-    val elements = AnnotationPreviewElementFinder.findPreviewMethods(composeTest)
+    val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest)
     assertEquals(4, elements.size)
     elements[1].let {
       assertEquals("preview2", it.displayName)
@@ -131,7 +131,7 @@ class AnnotationPreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTes
       }
     """.trimIndent()).toUElement() as UFile
 
-    val elements = AnnotationPreviewElementFinder.findPreviewMethods(composeTest)
+    val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest)
     assertEquals(1, elements.size)
     // Check that we keep the first element
     assertEquals("Preview1", elements[0].displayName)
@@ -170,6 +170,6 @@ class AnnotationPreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTes
       }
     """.trimIndent())
 
-    assertEquals(0, AnnotationPreviewElementFinder.findPreviewMethods(composeTest.toUElement() as UFile).size)
+    assertEquals(0, AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest.toUElement() as UFile).size)
   }
 }

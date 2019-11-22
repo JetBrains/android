@@ -133,7 +133,7 @@ fun FileEditor.getComposePreviewManager(): ComposePreviewManager? = when (this) 
  * Provider for Compose Preview editors.
  */
 class ComposeFileEditorProvider @JvmOverloads constructor(
-  private val previewElementProvider: () -> PreviewElementFinder = ::defaultPreviewElementFinder) : FileEditorProvider, DumbAware {
+  private val filePreviewElementProvider: () -> FilePreviewElementFinder = ::defaultFilePreviewElementFinder) : FileEditorProvider, DumbAware {
   private val LOG = Logger.getInstance(ComposeFileEditorProvider::class.java)
 
   private object ComposeEditorFileType : LayoutEditorFileType() {
@@ -160,7 +160,7 @@ class ComposeFileEditorProvider @JvmOverloads constructor(
       return false
     }
 
-    val hasPreviewMethods = previewElementProvider().hasPreviewMethods(project, file)
+    val hasPreviewMethods = filePreviewElementProvider().hasPreviewMethods(project, file)
     if (LOG.isDebugEnabled) {
       LOG.debug("${file.path} hasPreviewMethods=${hasPreviewMethods}")
     }
@@ -174,8 +174,9 @@ class ComposeFileEditorProvider @JvmOverloads constructor(
     }
     val psiFile = PsiManager.getInstance(project).findFile(file)!!
     val textEditor = TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
-    val previewProvider = {
-      if (DumbService.isDumb(project)) emptyList() else previewElementProvider().findPreviewMethods(project, file)
+    val previewProvider = object: PreviewElementProvider {
+      override val previewElements: List<PreviewElement>
+        get() = if (DumbService.isDumb(project)) emptyList() else filePreviewElementProvider().findPreviewMethods(project, file)
     }
     val previewEditor = PreviewEditor(psiFile = psiFile, previewProvider = previewProvider)
     val composeEditorWithPreview = ComposeTextEditorWithPreview(textEditor, previewEditor)
