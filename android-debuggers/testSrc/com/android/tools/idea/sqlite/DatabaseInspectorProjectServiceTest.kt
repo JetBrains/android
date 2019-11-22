@@ -26,10 +26,10 @@ import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.MockSqliteController
-import com.android.tools.idea.sqlite.mocks.MockToolWindow
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -63,7 +63,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     mockSqliteController = spy(MockSqliteController(model))
 
     val mockToolWindowManager = mock(ToolWindowManager::class.java)
-    `when`(mockToolWindowManager.getToolWindow(any(String::class.java))).thenReturn(MockToolWindow())
+    `when`(mockToolWindowManager.getToolWindow(any(String::class.java))).thenReturn(mock(ToolWindow::class.java))
 
     mockDatabase = SqliteDatabase("db", mock(DatabaseConnection::class.java))
 
