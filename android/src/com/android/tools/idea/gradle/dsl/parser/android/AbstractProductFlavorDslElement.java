@@ -222,6 +222,6 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
   @Override
   public boolean isInsignificantIfEmpty() {
     // defaultConfig is special in that is can be deleted if it is empty.
-    return myName.name().equals(AndroidModelImpl.DEFAULT_CONFIG);
+    return this instanceof DefaultConfigDslElement;
   }
 }

@@ -18,14 +18,15 @@ package com.android.tools.idea.gradle.dsl.parser.semantics;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PropertiesElementDescription<T extends GradlePropertiesDslElement> {
-  @NotNull public final String name;
+  @Nullable public final String name;
   @NotNull public final Class<T> clazz;
   @NotNull public final GradlePropertiesDslElementConstructor<T> constructor;
 
   public PropertiesElementDescription(
-    @NotNull String name,
+    @Nullable String name,
     @NotNull Class<T> clazz,
     @NotNull GradlePropertiesDslElementConstructor<T> constructor
   ) {

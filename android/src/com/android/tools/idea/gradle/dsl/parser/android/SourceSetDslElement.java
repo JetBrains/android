@@ -19,10 +19,14 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SourceSetDslElement extends GradleDslBlockElement implements GradleDslNamedDomainElement {
+  public static final PropertiesElementDescription<SourceSetDslElement> SOURCE_SET =
+    new PropertiesElementDescription<>(null, SourceSetDslElement.class, SourceSetDslElement::new);
+
   public SourceSetDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }

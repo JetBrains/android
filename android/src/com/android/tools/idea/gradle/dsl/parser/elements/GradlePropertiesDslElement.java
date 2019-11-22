@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ElementSort;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -379,6 +378,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
 
   @Nullable
   public <T extends GradlePropertiesDslElement> T getPropertyElement(@NotNull PropertiesElementDescription<T> description) {
+    assert description.name != null;
     return getPropertyElement(description.name, description.clazz);
   }
 
@@ -404,38 +404,16 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   @NotNull
-  public <T extends GradleDslElement> T ensureNamedPropertyElement(@NotNull String property, @NotNull Class<T> clazz) {
-    return ensurePropertyElement(property, clazz, true, null);
-  }
-
-  @NotNull
-  public <T extends GradleDslElement> T ensurePropertyElement(
-    @NotNull String property,
-    @NotNull Class<T> clazz,
-    boolean named,
-    Integer at
+  public <T extends GradlePropertiesDslElement> T ensureNamedPropertyElement(
+    PropertiesElementDescription<T> description,
+    GradleNameElement name
   ) {
-    T propertyElement = getPropertyElement(property, clazz);
+    T propertyElement = getPropertyElement(name.name(), description.clazz);
     if (propertyElement != null) return propertyElement;
     T newElement;
-    try {
-      if (named) {
-        GradleNameElement name = GradleNameElement.create(property);
-        newElement = clazz.getDeclaredConstructor(GradleDslElement.class, GradleNameElement.class).newInstance(this, name);
-      }
-      else {
-        newElement = clazz.getDeclaredConstructor(GradleDslElement.class).newInstance(this);
-      }
-    } catch (ReflectiveOperationException e) {
-      Logger.getInstance(GradlePropertiesDslElement.class).error(e);
-      throw new RuntimeException(e);
-    }
-    if (at != null) {
-      addNewElementAt(at, newElement);
-    }
-    else {
-      setNewElement(newElement);
-    }
+    assert description.name == null;
+    newElement = description.constructor.construct(this, name);
+    setNewElement(newElement);
     return newElement;
   }
 
@@ -444,6 +422,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     T propertyElement = getPropertyElement(description);
     if (propertyElement != null) return propertyElement;
     T newElement;
+    assert description.name != null;
     newElement = description.constructor.construct(this, GradleNameElement.create(description.name));
     if (at != null) {
       addNewElementAt(at, newElement);
