@@ -28,16 +28,16 @@ import org.junit.Test
 class TaskIssueReportGeneratorTest : AbstractBuildAttributionReportBuilderTest() {
 
   val task1androidPlugin =
-    TaskData("compileDebugJavaWithJavac", ":module1", applicationPlugin, 400, TaskData.TaskExecutionMode.FULL, emptyList())
+    TaskData("compileDebugJavaWithJavac", ":module1", applicationPlugin, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList())
       .apply { setTaskType("org.gradle.api.tasks.compile.JavaCompile") }
 
-  val taskAmodule1 = TaskData("taskA", ":module1", pluginA, 400, TaskData.TaskExecutionMode.FULL, emptyList())
+  val taskAmodule1 = TaskData("taskA", ":module1", pluginA, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList())
 
-  val taskBmodule1 = TaskData("taskB", ":module1", pluginB, 300, TaskData.TaskExecutionMode.FULL, emptyList())
-  val taskBmodule2 = TaskData("taskB", ":module2", pluginB, 100, TaskData.TaskExecutionMode.INCREMENTAL, emptyList())
-  val taskBmodule3OtherPlugin = TaskData("taskB", ":module3", pluginC, 300, TaskData.TaskExecutionMode.FULL, emptyList())
+  val taskBmodule1 = TaskData("taskB", ":module1", pluginB, 0, 300, TaskData.TaskExecutionMode.FULL, emptyList())
+  val taskBmodule2 = TaskData("taskB", ":module2", pluginB, 0, 100, TaskData.TaskExecutionMode.INCREMENTAL, emptyList())
+  val taskBmodule3OtherPlugin = TaskData("taskB", ":module3", pluginC, 0, 300, TaskData.TaskExecutionMode.FULL, emptyList())
 
-  val taskCmodule2 = TaskData("taskC", ":module1", pluginC, 300, TaskData.TaskExecutionMode.FULL, emptyList())
+  val taskCmodule2 = TaskData("taskC", ":module1", pluginC, 0, 300, TaskData.TaskExecutionMode.FULL, emptyList())
 
   private val mockAnalysisResult = object : AbstractBuildAttributionReportBuilderTest.MockResultsProvider() {
     override fun getTotalBuildTimeMs(): Long = 10000

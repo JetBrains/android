@@ -77,8 +77,8 @@ class BuildAttributionAnalyticsManagerTest {
   }
 
   private fun getAnalyzersData(): BuildEventsAnalysisResult {
-    val pluginATask = TaskData("", "", pluginA, 0, TaskData.TaskExecutionMode.FULL, emptyList())
-    val buildScriptTask = TaskData("", "", buildScript, 0, TaskData.TaskExecutionMode.FULL, emptyList())
+    val pluginATask = TaskData("", "", pluginA, 0, 0, TaskData.TaskExecutionMode.FULL, emptyList())
+    val buildScriptTask = TaskData("", "", buildScript, 0, 0, TaskData.TaskExecutionMode.FULL, emptyList())
 
     return object : AbstractBuildAttributionReportBuilderTest.MockResultsProvider() {
 

@@ -34,10 +34,10 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
 
   @Test
   fun testIssuesOnTasksCriticalPath() {
-    val taskA = TaskData("taskA", ":app", pluginA, 400, TaskData.TaskExecutionMode.FULL, emptyList())
-    val taskB = TaskData("taskB", ":app", pluginB, 300, TaskData.TaskExecutionMode.FULL, emptyList())
-    val taskC = TaskData("taskC", ":lib", pluginA, 200, TaskData.TaskExecutionMode.FULL, emptyList())
-    val taskD = TaskData("taskD", ":app", pluginB, 100, TaskData.TaskExecutionMode.FULL, emptyList())
+    val taskA = TaskData("taskA", ":app", pluginA, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList())
+    val taskB = TaskData("taskB", ":app", pluginB, 0, 300, TaskData.TaskExecutionMode.FULL, emptyList())
+    val taskC = TaskData("taskC", ":lib", pluginA, 0, 200, TaskData.TaskExecutionMode.FULL, emptyList())
+    val taskD = TaskData("taskD", ":app", pluginB, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList())
 
     val analyzerResults = object : MockResultsProvider() {
       override fun getTotalBuildTimeMs(): Long = 1500
@@ -76,9 +76,9 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
 
   @Test
   fun testIssuesOnPluginsCriticalPath() {
-    val taskA = TaskData("taskA", ":app", pluginA, 400, TaskData.TaskExecutionMode.FULL, emptyList())
-    val taskB = TaskData("taskB", ":app", pluginB, 300, TaskData.TaskExecutionMode.FULL, emptyList())
-    val nonCritPathTask = TaskData("taskOther", ":app", pluginA, 100, TaskData.TaskExecutionMode.FULL, emptyList())
+    val taskA = TaskData("taskA", ":app", pluginA, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList())
+    val taskB = TaskData("taskB", ":app", pluginB, 0, 300, TaskData.TaskExecutionMode.FULL, emptyList())
+    val nonCritPathTask = TaskData("taskOther", ":app", pluginA, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList())
 
     val analyzerResults = object : MockResultsProvider() {
       override fun getTotalBuildTimeMs(): Long = 1500
@@ -123,9 +123,9 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
 
   @Test
   fun testIssuesNotOnCriticalPath() {
-    val taskA = TaskData("taskA", ":app", pluginA, 400, TaskData.TaskExecutionMode.FULL, emptyList())
-    val taskB = TaskData("taskB", ":app", pluginB, 300, TaskData.TaskExecutionMode.FULL, emptyList())
-    val nonCritPathTask = TaskData("taskOther", ":app", pluginA, 100, TaskData.TaskExecutionMode.FULL, emptyList())
+    val taskA = TaskData("taskA", ":app", pluginA, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList())
+    val taskB = TaskData("taskB", ":app", pluginB, 0, 300, TaskData.TaskExecutionMode.FULL, emptyList())
+    val nonCritPathTask = TaskData("taskOther", ":app", pluginA, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList())
 
     val analyzerResults = object : MockResultsProvider() {
       override fun getTotalBuildTimeMs(): Long = 1500
