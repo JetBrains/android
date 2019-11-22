@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:Suppress("NonDefaultConstructor")
 
 package com.android.tools.idea.sqlite
 
@@ -105,7 +104,7 @@ interface DatabaseInspectorProjectService {
 
 class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
   private val project: Project,
-  private val toolWindowManager: ToolWindowManager,
+  private val toolWindowManager: ToolWindowManager = ToolWindowManager.getInstance(project),
   edtExecutor: Executor = EdtExecutorService.getInstance(),
   taskExecutor: Executor = PooledThreadExecutor.INSTANCE,
   private val fileOpener: Consumer<VirtualFile> = Consumer { OpenFileAction.openFile(it, project) },
@@ -188,7 +187,9 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
       return@transform database
     }
 
-    toolWindowManager.getToolWindow(DatabaseInspectorToolWindowFactory.TOOL_WINDOW_ID).show { controller.addSqliteDatabase(openSqliteServiceFuture) }
+    toolWindowManager.getToolWindow(DatabaseInspectorToolWindowFactory.TOOL_WINDOW_ID).show {
+      controller.addSqliteDatabase(openSqliteServiceFuture)
+    }
 
     return openSqliteServiceFuture
   }
