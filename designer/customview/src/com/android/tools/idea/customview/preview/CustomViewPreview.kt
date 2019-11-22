@@ -117,13 +117,15 @@ internal class CustomViewPreview(private val psiFile: PsiFile, persistenceProvid
       }
     }
 
-  private val surface = NlDesignSurface.builder(project, this).setSceneManagerProvider { surface, model ->
-    NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
-      setShrinkRendering(true)
+  private val surface = NlDesignSurface.builder(project, this)
+    .setDefaultSurfaceState(DesignSurface.State.SPLIT)
+    .setSceneManagerProvider { surface, model ->
+      NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
+        setShrinkRendering(true)
+      }
+    }.build().apply {
+      setScreenMode(SceneMode.RESIZABLE_PREVIEW, false)
     }
-  }.build().apply {
-    setScreenMode(SceneMode.RESIZABLE_PREVIEW, false)
-  }
 
   private val actionsToolbar = ActionsToolbar(this@CustomViewPreview, surface)
 

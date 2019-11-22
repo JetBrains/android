@@ -28,6 +28,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
@@ -610,5 +611,12 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
 
     NlDesignSurface otherSurface = NlDesignSurface.build(getProject(), getTestRootDisposable());
     assertNotSame(SceneMode.COMPOSE, otherSurface.getSceneMode());
+  }
+
+  public void testDefaultSurfaceState() {
+    assertEquals(DesignSurface.State.FULL, mySurface.getState()); // If nothing is explicitly set, we should default to FULL mode
+
+    mySurface = NlDesignSurface.builder(getProject(), getTestRootDisposable()).setDefaultSurfaceState(DesignSurface.State.SPLIT).build();
+    assertEquals(DesignSurface.State.SPLIT, mySurface.getState());
   }
 }

@@ -152,6 +152,7 @@ private class TestDesignSurface(project: Project, disposible: Disposable)
                   disposible,
                   java.util.function.Function { TestActionManager(it) },
                   java.util.function.Function { TestInteractionHandler(it) },
+                  State.FULL,
                   true) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
