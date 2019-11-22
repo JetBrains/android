@@ -16,7 +16,6 @@
 package com.android.tools.idea.sqlite.model
 
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.intellij.openapi.Disposable
 import java.sql.JDBCType
 
 /**
@@ -24,13 +23,7 @@ import java.sql.JDBCType
  * @param name Human readable name of the database.
  * @param databaseConnection A connection to this database.
  */
-// TODO(b/144018531) add an ID to SqliteDatabase or DatabaseConnection.
-//  We cannot use the name as id, there is a conflict if the same app is opened on two different devices.
-data class SqliteDatabase(val name: String, val databaseConnection: DatabaseConnection) : Disposable {
-  override fun dispose() {
-    databaseConnection.close().get()
-  }
-}
+data class SqliteDatabase(val name: String, val databaseConnection: DatabaseConnection)
 
 /** Representation of the Sqlite database schema */
 data class SqliteSchema(val tables: List<SqliteTable>)
