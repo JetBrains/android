@@ -41,7 +41,9 @@ import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.event.LifecycleEventDataSeries;
+import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.UserEventDataSeries;
+import com.android.tools.profilers.event.UserEventTooltip;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -299,14 +301,16 @@ public class CpuCaptureStage extends Stage<Timeline> {
     TrackGroupModel interaction = TrackGroupModel.newBuilder().setTitle("Interaction").build();
     EventModel<UserEvent> userEventEventModel =
       new EventModel<>(new RangedSeries<>(selectionRange, new UserEventDataSeries(getStudioProfilers())));
-    interaction.addTrackModel(TrackModel.newBuilder(userEventEventModel, ProfilerTrackRendererType.USER_INTERACTION, "User"));
+    LifecycleEventModel lifecycleEventModel =
+      new LifecycleEventModel(
+        new RangedSeries<>(selectionRange, new LifecycleEventDataSeries(getStudioProfilers(), false)),
+        new RangedSeries<>(selectionRange, new LifecycleEventDataSeries(getStudioProfilers(), true)));
     interaction.addTrackModel(
-      TrackModel.newBuilder(
-        new LifecycleEventModel(
-          new RangedSeries<>(selectionRange, new LifecycleEventDataSeries(getStudioProfilers(), false)),
-          new RangedSeries<>(selectionRange, new LifecycleEventDataSeries(getStudioProfilers(), true))),
-        ProfilerTrackRendererType.APP_LIFECYCLE,
-        "Lifecycle"));
+      TrackModel.newBuilder(userEventEventModel, ProfilerTrackRendererType.USER_INTERACTION, "User")
+        .setTooltipModel(new UserEventTooltip(getTimeline(), userEventEventModel)));
+    interaction.addTrackModel(
+      TrackModel.newBuilder(lifecycleEventModel, ProfilerTrackRendererType.APP_LIFECYCLE, "Lifecycle")
+        .setTooltipModel(new LifecycleTooltip(getTimeline(), lifecycleEventModel)));
     return interaction;
   }
 
