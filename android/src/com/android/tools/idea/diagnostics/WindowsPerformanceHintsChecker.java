@@ -46,6 +46,12 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -59,11 +65,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class WindowsPerformanceHintsChecker {
   private static final Logger LOG = Logger.getInstance(WindowsPerformanceHintsChecker.class);
@@ -84,7 +85,7 @@ public class WindowsPerformanceHintsChecker {
   public void run() {
     if (SystemInfo.isWindows && (StudioFlags.ANTIVIRUS_METRICS_ENABLED.get() || StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.get())) {
       Application application = ApplicationManager.getApplication();
-      application.getMessageBus().connect(application).subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+      application.getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
         @Override
         public void projectOpened(@NotNull Project project) {
           // perform check, but do not show dialog, when project is opened.
