@@ -16,12 +16,15 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingEllipse
 import com.android.tools.adtui.common.SwingFont
 import com.android.tools.adtui.common.SwingLength
+import com.android.tools.adtui.common.SwingPath
 import com.android.tools.adtui.common.SwingPoint
 import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.adtui.common.SwingStroke
 import com.android.tools.adtui.common.scaledSwingLength
+import com.android.tools.adtui.common.times
 import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.model.scaledAndroidLength
 import com.android.tools.idea.common.model.times
@@ -34,8 +37,6 @@ import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
 import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
-import java.awt.geom.Ellipse2D
-import java.awt.geom.Path2D
 import kotlin.math.min
 
 @VisibleForTesting
@@ -81,16 +82,16 @@ fun createDrawImageCommand(rectangle: SwingRectangle, image: RefinableImage?): D
   }
 }
 
-fun makeCircle(center: SwingPoint, radius: SwingLength): Ellipse2D.Float {
+fun makeCircle(center: SwingPoint, radius: SwingLength): SwingEllipse {
   val x = center.x - radius
   val y = center.y - radius
-  return Ellipse2D.Float(x.value, y.value, 2 * radius.value, 2 * radius.value)
+  return SwingEllipse(x, y, 2 * radius, 2 * radius)
 }
 
 fun makeCircleLerp(center: SwingPoint, initialRadius: SwingLength, finalRadius: SwingLength, duration: Int): LerpEllipse {
   val initialCircle = makeCircle(center, initialRadius)
   val finalCircle = makeCircle(center, finalRadius)
-  return LerpEllipse(initialCircle, finalCircle, duration)
+  return LerpEllipse(initialCircle.value, finalCircle.value, duration)
 }
 
 fun getHeaderRect(context: SceneContext, rectangle: SwingRectangle): SwingRectangle {
@@ -106,25 +107,25 @@ enum class ArrowDirection {
 }
 
 fun makeDrawArrowCommand(rectangle: SwingRectangle, direction: ArrowDirection, color: Color): DrawCommand {
-  val left = rectangle.x.value
-  val right = left + rectangle.width.value
+  val left = rectangle.x
+  val right = left + rectangle.width
 
   val xValues = when (direction) {
-    ArrowDirection.LEFT -> floatArrayOf(right, left, right)
-    ArrowDirection.RIGHT -> floatArrayOf(left, right, left)
-    else -> floatArrayOf(left, (left + right) / 2, right)
+    ArrowDirection.LEFT -> arrayOf(right, left, right)
+    ArrowDirection.RIGHT -> arrayOf(left, right, left)
+    else -> arrayOf(left, left + (right - left) / 2, right)
   }
 
-  val top = rectangle.y.value
-  val bottom = top + rectangle.height.value
+  val top = rectangle.y
+  val bottom = top + rectangle.height
 
   val yValues = when (direction) {
-    ArrowDirection.UP -> floatArrayOf(bottom, top, bottom)
-    ArrowDirection.DOWN -> floatArrayOf(top, bottom, top)
-    else -> floatArrayOf(top, (top + bottom) / 2, bottom)
+    ArrowDirection.UP -> arrayOf(bottom, top, bottom)
+    ArrowDirection.DOWN -> arrayOf(top, bottom, top)
+    else -> arrayOf(top, top + (bottom - top) / 2, bottom)
   }
 
-  val path = Path2D.Float()
+  val path = SwingPath()
   path.moveTo(xValues[0], yValues[0])
 
   for (i in 1 until xValues.count()) {
@@ -132,6 +133,6 @@ fun makeDrawArrowCommand(rectangle: SwingRectangle, direction: ArrowDirection, c
   }
   path.closePath()
 
-  return FillShape(path, color)
+  return FillShape(path.value, color)
 }
 
