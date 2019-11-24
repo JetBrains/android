@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.tools.idea.lint.ParcelableQuickFix.Operation.IMPLEMENT;
+import static com.android.tools.idea.lint.ParcelableQuickFix.Operation.REIMPLEMENT;
+import static com.android.tools.idea.lint.ParcelableQuickFix.Operation.REMOVE;
+
 import com.intellij.diff.comparison.ComparisonManager;
 import com.intellij.diff.comparison.ComparisonManagerImpl;
 import com.intellij.diff.comparison.ComparisonPolicy;
@@ -28,14 +32,11 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.util.PsiTreeUtil;
+import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
-import static com.android.tools.idea.lint.ParcelableQuickFix.Operation.*;
 
 public class ParcelableQuickFixTest extends AndroidTestCase {
   private static DumbProgressIndicator INDICATOR = DumbProgressIndicator.INSTANCE;
@@ -89,9 +90,9 @@ public class ParcelableQuickFixTest extends AndroidTestCase {
     diff.append("\n");
     for (LineFragment fragment : fragments) {
       diff.append(String.format("Expected in line: %s >>>\n", fragment.getStartLine2()));
-      diff.append(expected.substring(fragment.getStartOffset2(), fragment.getEndOffset2()));
+      diff.append(expected, fragment.getStartOffset2(), fragment.getEndOffset2());
       diff.append("Actual: >>>\n");
-      diff.append(actual.substring(fragment.getStartOffset1(), fragment.getEndOffset1()));
+      diff.append(actual, fragment.getStartOffset1(), fragment.getEndOffset1());
       diff.append(">>>\n\n");
     }
     return diff.toString();
