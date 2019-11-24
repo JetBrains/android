@@ -20,7 +20,8 @@ import com.android.tools.app.inspection.AppInspection.DisposeInspectorCommand
 import com.android.tools.app.inspection.AppInspection.RawCommand
 import com.android.tools.app.inspection.AppInspection.ServiceResponse
 import com.android.tools.idea.protobuf.ByteString
-import com.android.tools.profiler.proto.Common.Event
+import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_EVENT
+import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
 import com.android.tools.profiler.proto.Common.Event.Kind.PROCESS
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -67,12 +68,8 @@ internal class AppInspectorConnection(
     }
 
   private val inspectorEventListener = transport.createEventListener(
-    filter = { event: Event ->
-      (event.appInspectionEvent.commandId == 0
-       && event.appInspectionEvent.hasRawEvent()
-       && event.appInspectionEvent.rawEvent.inspectorId == inspectorId)
-      || (event.appInspectionEvent.hasCrashEvent() && event.appInspectionEvent.crashEvent.inspectorId == inspectorId)
-    },
+    eventKind = APP_INSPECTION_EVENT,
+    filter = { event -> event.hasAppInspectionEvent() && event.appInspectionEvent.inspectorId == inspectorId },
     startTimeNs = { lastEventTimestampNs }
   ) { event ->
     updateLastResponseTime(event.timestamp)
@@ -92,11 +89,12 @@ internal class AppInspectorConnection(
   }
 
   private val responsesListener = transport.createEventListener(
-    filter = { it.appInspectionEvent.commandId != 0 && it.appInspectionEvent.hasRawEvent() },
+    eventKind = APP_INSPECTION_RESPONSE,
+    filter = { it.hasAppInspectionResponse() && it.appInspectionResponse.hasRawResponse() },
     startTimeNs = { lastEventTimestampNs }
   ) { event ->
     updateLastResponseTime(event.timestamp)
-    pendingCommands.remove(event.appInspectionEvent.commandId)?.set(event.appInspectionEvent.rawEvent.content.toByteArray())
+    pendingCommands.remove(event.appInspectionResponse.commandId)?.set(event.appInspectionResponse.rawResponse.content.toByteArray())
     false
   }
 
@@ -125,14 +123,18 @@ internal class AppInspectorConnection(
   override fun disposeInspector(): ListenableFuture<ServiceResponse> {
     return disposeFuture.also {
       if (disposeCalled.compareAndSet(false, true)) {
-        val disposeInspectorCommand = DisposeInspectorCommand.newBuilder().setInspectorId(inspectorId).build()
-        val appInspectionCommand = AppInspectionCommand.newBuilder().setDisposeInspectorCommand(disposeInspectorCommand).build()
+        val disposeInspectorCommand = DisposeInspectorCommand.newBuilder().build()
+        val appInspectionCommand = AppInspectionCommand.newBuilder()
+          .setInspectorId(inspectorId)
+          .setDisposeInspectorCommand(disposeInspectorCommand)
+          .build()
         val commandId = transport.executeCommand(appInspectionCommand)
         val listener = transport.createEventListener(
-          filter = { it.appInspectionEvent.commandId == commandId },
+          eventKind = APP_INSPECTION_RESPONSE,
+          filter = { it.hasAppInspectionResponse() && it.appInspectionResponse.commandId == commandId },
           startTimeNs = { lastEventTimestampNs }
         ) {
-          cleanup("Inspector $inspectorId was disposed.", it.appInspectionEvent.response)
+          cleanup("Inspector $inspectorId was disposed.", it.appInspectionResponse.serviceResponse)
           // we manually call unregister, because future can be completed from other places, so we clean up the listeners there
           false
         }
@@ -149,8 +151,12 @@ internal class AppInspectorConnection(
       return Futures.immediateFailedFuture(IllegalStateException(connectionClosedMessage))
     }
     val settableFuture = SettableFuture.create<ByteArray>()
-    val rawCommand = RawCommand.newBuilder().setInspectorId(inspectorId).setContent(ByteString.copyFrom(rawData)).build()
-    val appInspectionCommand = AppInspectionCommand.newBuilder().setRawInspectorCommand(rawCommand).build()
+    val rawCommand = RawCommand.newBuilder().setContent(ByteString.copyFrom(rawData)).build()
+    val appInspectionCommand =
+      AppInspectionCommand.newBuilder()
+        .setInspectorId(inspectorId)
+        .setRawInspectorCommand(rawCommand)
+        .build()
     val commandId = transport.executeCommand(appInspectionCommand)
     pendingCommands[commandId] = settableFuture
 

@@ -63,7 +63,7 @@ class AppInspectionTransport(
    */
   fun createEventListener(
     filter: (Common.Event) -> Boolean = { true },
-    eventKind: Common.Event.Kind = Common.Event.Kind.APP_INSPECTION,
+    eventKind: Common.Event.Kind,
     startTimeNs: () -> Long = { Long.MIN_VALUE },
     callback: (Common.Event) -> Boolean
   ) = TransportEventListener(eventKind = eventKind,
@@ -88,7 +88,7 @@ class AppInspectionTransport(
       .setPid(process.pid)
       .setAppInspectionCommand(appInspectionCommand.toBuilder().setCommandId(
         generateNextCommandId()).build())
-    executorService.submit{ client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build()) }
+    executorService.submit { client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build()) }
     return command.appInspectionCommand.commandId
   }
 }

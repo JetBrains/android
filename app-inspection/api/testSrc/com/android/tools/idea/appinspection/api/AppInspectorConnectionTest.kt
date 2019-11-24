@@ -152,9 +152,9 @@ class AppInspectorConnectionTest {
 
     appInspectionRule.addAppInspectionEvent(
       AppInspectionEvent.newBuilder()
+        .setInspectorId(INSPECTOR_ID)
         .setCrashEvent(
           CrashEvent.newBuilder()
-            .setInspectorId(INSPECTOR_ID)
             .setErrorMessage("error")
             .build()
         )
@@ -260,9 +260,9 @@ class AppInspectorConnectionTest {
 
     appInspectionRule.addAppInspectionEvent(
       AppInspectionEvent.newBuilder()
+        .setInspectorId(INSPECTOR_ID)
         .setCrashEvent(
           CrashEvent.newBuilder()
-            .setInspectorId(INSPECTOR_ID)
             .setErrorMessage("error")
             .build()
         )

@@ -17,7 +17,6 @@ package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
-import com.android.tools.app.inspection.AppInspection.AppInspectionEvent
 import com.android.tools.app.inspection.AppInspection.ServiceResponse
 import com.android.tools.app.inspection.AppInspection.ServiceResponse.Status.ERROR
 import com.android.tools.app.inspection.AppInspection.ServiceResponse.Status.SUCCESS
@@ -25,7 +24,7 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common.Event
-import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION
+import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
 
 /**
  * A convenient test class for [CommandHandler] for AppInspection service commands.
@@ -36,39 +35,37 @@ internal class TestInspectorCommandHandler(timer: FakeTimer,
   override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
     if (command.appInspectionCommand.hasCreateInspectorCommand() || command.appInspectionCommand.hasDisposeInspectorCommand()) {
       events.add(Event.newBuilder()
-                   .setKind(APP_INSPECTION)
+                   .setKind(APP_INSPECTION_RESPONSE)
                    .setPid(command.pid)
                    .setTimestamp(timer.currentTimeNs)
                    .setCommandId(command.commandId)
                    .setIsEnded(true)
-                   .setAppInspectionEvent(AppInspectionEvent.newBuilder()
-                                            .setCommandId(command.appInspectionCommand.commandId)
-                                            .setResponse(ServiceResponse.newBuilder()
-                                                           .setStatus(
-                                                             if (success) SUCCESS else ERROR)
-                                                           .setErrorMessage(error)
-                                                           .build())
-                                            .build())
+                   .setAppInspectionResponse(AppInspection.AppInspectionResponse.newBuilder()
+                                               .setCommandId(command.appInspectionCommand.commandId)
+                                               .setServiceResponse(ServiceResponse.newBuilder()
+                                                                     .setStatus(
+                                                                       if (success) SUCCESS else ERROR)
+                                                                     .setErrorMessage(error)
+                                                                     .build())
+                                               .build())
                    .build())
     }
     else if (command.appInspectionCommand.hasRawInspectorCommand()) {
       // If successful, response is a raw event containing the same content as command. Otherwise, event's content is set to provided error.
       events.add(Event.newBuilder()
-                   .setKind(APP_INSPECTION)
+                   .setKind(APP_INSPECTION_RESPONSE)
                    .setPid(command.pid)
                    .setTimestamp(timer.currentTimeNs)
                    .setCommandId(command.commandId)
                    .setIsEnded(true)
-                   .setAppInspectionEvent(AppInspectionEvent.newBuilder()
-                                            .setCommandId(command.appInspectionCommand.commandId)
-                                            .setRawEvent(AppInspection.RawEvent.newBuilder()
-                                                           .setInspectorId(
-                                                             command.appInspectionCommand.rawInspectorCommand.inspectorId)
-                                                           .setContent(
-                                                             if (success) command.appInspectionCommand.rawInspectorCommand.content
-                                                             else ByteString.copyFromUtf8(error))
-                                                           .build())
-                                            .build())
+                   .setAppInspectionResponse(AppInspection.AppInspectionResponse.newBuilder()
+                                               .setCommandId(command.appInspectionCommand.commandId)
+                                               .setRawResponse(AppInspection.RawResponse.newBuilder()
+                                                                 .setContent(
+                                                                   if (success) command.appInspectionCommand.rawInspectorCommand.content
+                                                                   else ByteString.copyFromUtf8(error))
+                                                                 .build())
+                                               .build())
                    .build())
     }
   }

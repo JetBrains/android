@@ -38,9 +38,9 @@ object AppInspectionTestUtils {
   /**
    * Creates a successful service response proto.
    */
-  fun createSuccessfulServiceResponse(commandId: Int): AppInspection.AppInspectionEvent = AppInspection.AppInspectionEvent.newBuilder()
+  fun createSuccessfulServiceResponse(commandId: Int): AppInspection.AppInspectionResponse = AppInspection.AppInspectionResponse.newBuilder()
     .setCommandId(commandId)
-    .setResponse(
+    .setServiceResponse(
       AppInspection.ServiceResponse.newBuilder()
         .setStatus(AppInspection.ServiceResponse.Status.SUCCESS)
         .build()
@@ -48,17 +48,15 @@ object AppInspectionTestUtils {
     .build()
 
   /**
-   * Creates an [AppInspectionEvent] with the provided [data], [commandId], and inspector [name].
+   * Creates an [AppInspectionEvent] with the provided [data] and inspector [name].
    */
   fun createRawAppInspectionEvent(
     data: ByteArray,
-    commandId: Int = 0,
     name: String = INSPECTOR_ID
   ): AppInspection.AppInspectionEvent = AppInspection.AppInspectionEvent.newBuilder()
-    .setCommandId(commandId)
+    .setInspectorId(name)
     .setRawEvent(
       AppInspection.RawEvent.newBuilder()
-        .setInspectorId(name)
         .setContent(ByteString.copyFrom(data))
         .build()
     )
@@ -69,7 +67,7 @@ object AppInspectionTestUtils {
    */
   fun createRawEvent(data: ByteString, ts: Long): Common.Event =
     Common.Event.newBuilder()
-      .setKind(Common.Event.Kind.APP_INSPECTION)
+      .setKind(Common.Event.Kind.APP_INSPECTION_EVENT)
       .setTimestamp(ts)
       .setIsEnded(true)
       .setAppInspectionEvent(createRawAppInspectionEvent(data.toByteArray(), name = "test.inspector"))

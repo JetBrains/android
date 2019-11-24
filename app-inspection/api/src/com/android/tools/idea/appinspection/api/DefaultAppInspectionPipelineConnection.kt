@@ -27,7 +27,7 @@ import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Commands.Command.CommandType.ATTACH_AGENT
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.Event.Kind.AGENT
-import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION
+import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
 import com.android.tools.profiler.proto.Common.Process
 import com.android.tools.profiler.proto.Common.Stream
 import com.android.tools.profiler.proto.Transport.ExecuteRequest
@@ -64,10 +64,10 @@ internal fun attachAppInspectionPipelineConnection(
 
   transport.registerEventListener(
     transport.createEventListener(eventKind = AGENT, filter = { it.agentData.status == ATTACHED }
-  ) {
-    connectionFuture.set(DefaultAppInspectionPipelineConnection(transport, fileCopier))
-    true
-  })
+    ) {
+      connectionFuture.set(DefaultAppInspectionPipelineConnection(transport, fileCopier))
+      true
+    })
   transport.client.transportStub.execute(ExecuteRequest.newBuilder().setCommand(attachCommand).build())
   return connectionFuture
 }
@@ -86,21 +86,22 @@ private class DefaultAppInspectionPipelineConnection(val processTransport: AppIn
       AsyncFunction<Path, AppInspectorConnection> { fileDevicePath ->
         val connectionFuture = SettableFuture.create<AppInspectorConnection>()
         val createInspectorCommand = CreateInspectorCommand.newBuilder()
-          .setInspectorId(inspectorId)
           .setDexPath(fileDevicePath.toString())
           .build()
-        val appInspectionCommand = AppInspectionCommand.newBuilder().setCreateInspectorCommand(
-          createInspectorCommand
-        ).build()
+        val appInspectionCommand = AppInspectionCommand.newBuilder()
+          .setInspectorId(inspectorId)
+          .setCreateInspectorCommand(createInspectorCommand)
+          .build()
         val commandId = processTransport.executeCommand(appInspectionCommand)
         processTransport.registerEventListener(
           processTransport.createEventListener(
-            eventKind = APP_INSPECTION,
-            filter = { it.appInspectionEvent.commandId == commandId }
+            eventKind = APP_INSPECTION_RESPONSE,
+            filter = { it.appInspectionResponse.commandId == commandId }
           ) { event ->
-            if (event.appInspectionEvent.response.status == SUCCESS) {
+            if (event.appInspectionResponse.serviceResponse.status == SUCCESS) {
               connectionFuture.set(AppInspectorConnection(processTransport, inspectorId, event.timestamp))
-            } else {
+            }
+            else {
               connectionFuture.setException(RuntimeException("Could not launch inspector $inspectorId"))
             }
             true

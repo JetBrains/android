@@ -110,13 +110,28 @@ class AppInspectionServiceRule(
   }
 
   /**
+   * Generate a fake [Common.Event] using the provided [appInspectionResponse] in transport pipeline.
+   */
+  fun addAppInspectionResponse(appInspectionResponse: AppInspection.AppInspectionResponse) {
+    transportService.addEventToStream(
+      stream.streamId,
+      Common.Event.newBuilder()
+        .setKind(Common.Event.Kind.APP_INSPECTION_RESPONSE)
+        .setTimestamp(timer.currentTimeNs)
+        .setIsEnded(true)
+        .setAppInspectionResponse(appInspectionResponse)
+        .build()
+    )
+  }
+
+  /**
    * Generate a fake [Common.Event] using the provided [appInspectionEvent] in transport pipeline.
    */
   fun addAppInspectionEvent(appInspectionEvent: AppInspection.AppInspectionEvent) {
     transportService.addEventToStream(
       stream.streamId,
       Common.Event.newBuilder()
-        .setKind(Common.Event.Kind.APP_INSPECTION)
+        .setKind(Common.Event.Kind.APP_INSPECTION_EVENT)
         .setTimestamp(timer.currentTimeNs)
         .setIsEnded(true)
         .setAppInspectionEvent(appInspectionEvent)
