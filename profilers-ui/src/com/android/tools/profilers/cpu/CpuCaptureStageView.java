@@ -127,18 +127,10 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
 
     // Track Groups
     loadTrackGroupModels();
-    // Track groups tooltip uses the track group timeline (based on minimap selection)
-    RangeTooltipComponent trackGroupTooltipComponent =
-      new RangeTooltipComponent(getStage().getTimeline(),
-                                myTrackGroupList.getTooltipPanel(),
-                                getProfilersView().getComponent(),
-                                () -> false);
-    trackGroupTooltipComponent.registerListenersOn(myTrackGroupList.getComponent());
 
     JPanel container = new JPanel(new TabularLayout("*", "Fit-,*"));
-    // The tooltip component should be first so it draws on top of all elements.
-    container.add(minimapTooltipComponent, new TabularLayout.Constraint(0, 0, 2, 1));
-    container.add(trackGroupTooltipComponent, new TabularLayout.Constraint(0, 0, 2, 1));
+    // The tooltip component should be first so it draws on top of all elements. It's only responsible for showing tooltip in the minimap.
+    container.add(minimapTooltipComponent, new TabularLayout.Constraint(0, 0));
     container.add(minimap.getComponent(), new TabularLayout.Constraint(0, 0));
     container.add(
       new JBScrollPane(myTrackGroupList.getComponent(),
@@ -158,6 +150,12 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   }
 
   private void loadTrackGroupModels() {
+    // Track groups tooltip uses the track group timeline (based on minimap selection)
+    myTrackGroupList.setRangeTooltipComponent(
+      new RangeTooltipComponent(getStage().getTimeline(),
+                                myTrackGroupList.getTooltipPanel(),
+                                getProfilersView().getComponent(),
+                                () -> false));
     myTrackGroupList.loadTrackGroups(getStage().getTrackGroupModels(), true);
     myTrackGroupList.registerMultiSelectionModel(myMultiSelectionModel);
   }
