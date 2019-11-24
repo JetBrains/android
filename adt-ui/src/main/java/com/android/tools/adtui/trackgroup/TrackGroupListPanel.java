@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.trackgroup;
 
+import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.common.StudioColorsKt;
@@ -49,9 +50,13 @@ public class TrackGroupListPanel implements TrackGroupMover {
 
   @Nullable private TooltipModel myActiveTooltip;
   @Nullable private TooltipView myActiveTooltipView;
+  @Nullable private RangeTooltipComponent myRangeTooltipComponent;
 
   public TrackGroupListPanel(@NotNull TrackRendererFactory trackRendererFactory) {
-    myPanel = new JPanel(new TabularLayout("*", "Fit"));
+    // The panel should match Track's column sizing in order for tooltip component to only cover the content column.
+    myPanel = new JPanel(new TabularLayout(Track.COL_SIZES, "Fit"));
+
+    // A dedicated tooltip panel to display tooltip content.
     myTooltipPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
     myTooltipPanel.setBackground(StudioColorsKt.getCanvasTooltipBackground());
 
@@ -124,6 +129,19 @@ public class TrackGroupListPanel implements TrackGroupMover {
     );
   }
 
+  /**
+   * Sets the range tooltip component that will overlay on top of all track groups. Setting it to null will clear it.
+   */
+  public void setRangeTooltipComponent(@Nullable RangeTooltipComponent rangeTooltipComponent) {
+    if (myRangeTooltipComponent == rangeTooltipComponent) {
+      return;
+    }
+    myRangeTooltipComponent = rangeTooltipComponent;
+    if (rangeTooltipComponent != null) {
+      rangeTooltipComponent.registerListenersOn(getComponent());
+    }
+  }
+
   @NotNull
   public JComponent getComponent() {
     return myPanel;
@@ -153,8 +171,23 @@ public class TrackGroupListPanel implements TrackGroupMover {
 
   private void initTrackGroups() {
     myPanel.removeAll();
+    if (myRangeTooltipComponent != null) {
+      // Tooltip component is an overlay on top of the second column to align with the content of the tracks.
+      // It occupies all rows to cover the track groups.
+      // Illustration:
+      // |Col 0  |Col 1           |
+      //         +----------------+
+      //         |TooltipComponent|
+      // +-------|---------------+|
+      // |[Title]|[Track Content]|| Row 0
+      // |[Title]|[Track Content]|| Row 1
+      // +-------|---------------+|
+      //         +----------------+
+      myPanel.add(myRangeTooltipComponent, new TabularLayout.Constraint(0, 1, myTrackGroups.size(), 1));
+    }
     for (int i = 0; i < myTrackGroups.size(); ++i) {
-      myPanel.add(myTrackGroups.get(i).getComponent(), new TabularLayout.Constraint(i, 0), i);
+      // Track groups occupy both columns regardless of whether we have a tooltip component.
+      myPanel.add(myTrackGroups.get(i).getComponent(), new TabularLayout.Constraint(i, 0, 1, 2), i);
     }
     myPanel.revalidate();
   }

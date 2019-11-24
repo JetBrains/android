@@ -88,7 +88,7 @@ class CpuCaptureStageViewTest {
   fun trackGroupListIsInitializedAfterParsing() {
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()
-    assertThat(stageView.trackGroupList.component.componentCount).isEqualTo(2)
+    assertThat(stageView.trackGroupList.component.componentCount).isEqualTo(3) // track groups + tooltip component
     val treeWalker = TreeWalker(stageView.trackGroupList.component)
 
     val titleStrings = treeWalker.descendants().filterIsInstance<JLabel>().map(JLabel::getText).toList()
