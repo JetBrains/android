@@ -25,7 +25,6 @@ import com.android.tools.profiler.proto.Common.Event
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.AsyncFunction
 import com.google.common.util.concurrent.Futures
-import junit.framework.TestCase
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -82,15 +81,15 @@ class AppInspectionPipelineConnectionTest {
 
     latch.await()
 
-    val incorrectEvent = createSuccessfulServiceResponse(12345)
-    appInspectionRule.addAppInspectionEvent(incorrectEvent)
+    val incorrectResponse = createSuccessfulServiceResponse(12345)
+    appInspectionRule.addAppInspectionResponse(incorrectResponse)
 
     appInspectionRule.poller.poll()
 
     assertThat(appInspectionRule.executorService.activeCount).isEqualTo(0)
     assertThat(inspectorConnection.isDone).isFalse()
 
-    appInspectionRule.addAppInspectionEvent(
+    appInspectionRule.addAppInspectionResponse(
       createSuccessfulServiceResponse(
         AppInspectionTransport.lastGeneratedCommandId()
       )
