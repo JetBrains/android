@@ -86,15 +86,15 @@ private java_keywords_ ::= interface|class|enum|public|final|abstract|static|vol
 
 private java_identifier_ ::= (JAVA_IDENTIFIER|JAVA_IDENTIFIER_WITH_WILDCARDS|ASTERISK|DOUBLE_ASTERISK|java_keywords_)
 
-qualifiedName ::= java_identifier_ ("." java_identifier_)* {
+qualifiedName ::= (java_identifier_ ("." java_identifier_)*)|quoted_identifier {
   methods=[getReferences resolveToPsiClass containsWildcards]
   extraRoot=true
 }
 
 annotation_name ::= AT qualifiedName
-private quoted_class_names ::= SINGLE_QUOTED_CLASS|DOUBLE_QUOTED_CLASS|UNTERMINATED_SINGLE_QUOTED_CLASS|UNTERMINATED_DOUBLE_QUOTED_CLASS
-super_class_name ::= ("!"? qualifiedName | quoted_class_names)
-class_name ::= ("!"? qualifiedName | quoted_class_names)
+private quoted_identifier ::= SINGLE_QUOTED_CLASS|DOUBLE_QUOTED_CLASS|UNTERMINATED_SINGLE_QUOTED_CLASS|UNTERMINATED_DOUBLE_QUOTED_CLASS
+super_class_name ::= "!"? qualifiedName
+class_name ::= "!"? qualifiedName
 class_member_name ::= java_identifier_ {
   methods=[getReference containsWildcards]
 }
@@ -105,7 +105,7 @@ java_primitive ::= boolean|byte|char|short|int|long|float|double|void {
 any_type ::= ANY_TYPE_
 any_primitive_type ::= ANY_PRIMITIVE_TYPE_
 any_not_primitive_type ::= DOUBLE_ASTERISK
-type ::= any_type|(any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName|quoted_class_names)array_type? {
+type ::= any_type|(any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName)array_type? {
   methods=[matchesPsiType]
 }
 array_type ::= "[]"+ {methods=[getNumberOfDimensions]}
