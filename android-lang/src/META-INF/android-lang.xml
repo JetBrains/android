@@ -97,6 +97,10 @@
                      implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8ArrayTypeInspection"
                      displayName="Invalid using of array type"/>
 
+    <lang.inspectionSuppressor
+        language="SHRINKER_CONFIG"
+        implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8InspectionSuppressor"/>
+
     <lang.syntaxHighlighterFactory language="PROGUARD"
                                    implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory"/>
     <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter"/>
