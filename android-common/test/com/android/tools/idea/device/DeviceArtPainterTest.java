@@ -228,6 +228,7 @@ public class DeviceArtPainterTest {
     InputStream stream = null;
     try {
       stream = DeviceSchemaTest.class.getResourceAsStream("devices_minimal.xml");
+      assert stream != null : "Invalid test configuration. This file is provided by sdklib-tests";
       devices = DeviceParser.parse(stream).values();
     } finally {
       if (stream != null) {
