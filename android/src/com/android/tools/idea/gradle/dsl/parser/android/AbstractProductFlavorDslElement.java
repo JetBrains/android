@@ -50,8 +50,9 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
       Stream.of(new Object[][]{
         {"applicationId", property, APPLICATION_ID, VAR},
         {"setApplicationId", exactly(1), APPLICATION_ID, SET},
+        {"dimension", property, DIMENSION, VAR},
         {"setDimension", exactly(1), DIMENSION, SET},
-        {"dimension", property, DIMENSION, VAL}, // VAL: can read but not assign
+        {"maxSdkVersion", property, MAX_SDK_VERSION, VAR},
         {"maxSdkVersion", exactly(1), MAX_SDK_VERSION, SET},
         {"minSdkVersion", exactly(1), MIN_SDK_VERSION, SET},
         {"missingDimensionStrategy", atLeast(1), MISSING_DIMENSION_STRATEGY, OTHER}, // ADD
@@ -64,10 +65,10 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
         {"targetSdkVersion", exactly(1), TARGET_SDK_VERSION, SET},
         {"testApplicationId", property, TEST_APPLICATION_ID, VAR},
         {"setTestApplicationId", exactly(1), TEST_APPLICATION_ID, SET},
+        {"testFunctionalTest", property, TEST_FUNCTIONAL_TEST, VAR},
         {"setTestFunctionalTest", exactly(1), TEST_FUNCTIONAL_TEST, SET},
-        {"testFunctionalTest", property, TEST_FUNCTIONAL_TEST, VAL},
+        {"testHandleProfiling", property, TEST_HANDLE_PROFILING, VAR},
         {"setTestHandleProfiling", exactly(1), TEST_HANDLE_PROFILING, SET},
-        {"testHandleProfiling", property, TEST_HANDLE_PROFILING, VAL},
         {"testInstrumentationRunner", property, TEST_INSTRUMENTATION_RUNNER, VAR},
         {"testInstrumentationRunner", exactly(1), TEST_INSTRUMENTATION_RUNNER, SET},
         {"testInstrumentationRunnerArguments", property, TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, VAR},
