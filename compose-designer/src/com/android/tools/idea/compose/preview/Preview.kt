@@ -127,7 +127,7 @@ private fun updateSurfaceWithNewModels(surface: NlDesignSurface,
       val modelAddedFutures = futureModels.map {
         // We call addModel even though the model might not be new. If we try to add an existing model,
         // this will trigger a new render which is exactly what we want.
-        surface.addModel(Futures.getDone(it));
+        surface.addModel(Futures.getDone(it))
       }
 
       CompletableFuture.allOf(*(modelAddedFutures.toTypedArray()))
@@ -198,7 +198,7 @@ internal class PreviewEditor(private val psiFile: PsiFile,
    * we do not have enough information about errors and the rendering to show the preview. Once it has rendered,
    * even with errors, we can display additional information about the state of the preview.
    */
-  var hasRenderedAtLeastOnce = false
+  private var hasRenderedAtLeastOnce = false
 
   /**
    * Callback called after refresh has happened
@@ -324,7 +324,7 @@ internal class PreviewEditor(private val psiFile: PsiFile,
   /**
    * Returns true if the surface has at least one correctly rendered preview.
    */
-  fun hasAtLeastOneValidPreview() = surface.models.asSequence()
+  private fun hasAtLeastOneValidPreview() = surface.models.asSequence()
     .mapNotNull { surface.getSceneManager(it) }
     .filterIsInstance<LayoutlibSceneManager>()
     .mapNotNull { it.renderResult }
