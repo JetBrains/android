@@ -29,6 +29,12 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class AndroidManifestIndexTest {
   @Test
+  fun indexer_reallyShortManifest() {
+    val manifest = AndroidManifestIndex.Indexer.computeValue(FakeXmlFileContent("<"))
+    assertThat(manifest).isNull()
+  }
+
+  @Test
   fun indexer_wellFormedManifest() {
     @Language("xml")
     val manifestContent = """

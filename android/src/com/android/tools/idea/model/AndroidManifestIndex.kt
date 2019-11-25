@@ -220,7 +220,7 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
     }
 
     private fun FileContent.toManifestReader(): Reader {
-      val inBinaryManifestFormat = Shorts.fromBytes(content[1], content[0]) == Chunk.Type.XML.code()
+      val inBinaryManifestFormat = content.size >= 2 && Shorts.fromBytes(content[1], content[0]) == Chunk.Type.XML.code()
       return if (inBinaryManifestFormat) {
         // There's an upstream IntelliJ issue where files in binary manifest format are
         // mistyped as regular XML files instead of binary files. This causes other indices
