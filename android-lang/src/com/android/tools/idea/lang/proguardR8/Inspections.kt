@@ -28,12 +28,13 @@ import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
+import com.intellij.psi.TokenType
 import com.intellij.psi.util.parentOfType
 
 /**
  *  Reports unresolved class members in Proguard/R8 files.
  */
-class ProguardR8ClassMemberInspection : LocalInspectionTool() {
+class ProguardR8ReferenceInspection : LocalInspectionTool() {
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
     return object : ProguardR8Visitor() {
       override fun visitClassMemberName(name: ProguardR8ClassMemberName) {
@@ -47,17 +48,26 @@ class ProguardR8ClassMemberInspection : LocalInspectionTool() {
         }
       }
 
-      override fun visitArrayType(o: ProguardR8ArrayType) {
-        super.visitArrayType(o)
-        if (o.textContains(' ')) {
-          holder.registerProblem(o, "White space is not allowed")
-        }
-      }
-
       override fun visitQualifiedName(name: ProguardR8QualifiedName) {
         super.visitQualifiedName(name)
         if (!name.containsWildcards() && name.resolveToPsiClass() == null) {
           holder.registerProblem(name, "Unresolved class name", ProblemHighlightType.LIKE_UNUSED_SYMBOL)
+        }
+      }
+    }
+  }
+}
+
+class ProguardR8ArrayTypeInspection : LocalInspectionTool() {
+  override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
+    return object : ProguardR8Visitor() {
+      override fun visitArrayType(o: ProguardR8ArrayType) {
+        super.visitArrayType(o)
+        if (o.node.findChildByType(TokenType.WHITE_SPACE) != null) {
+          holder.registerProblem(o, "White space is not allowed in array annotation, use 'type[]'")
+        }
+        else if (o.parent.node.findChildByType(TokenType.WHITE_SPACE) != null) {
+          holder.registerProblem(o.parent, "White space between type and array annotation is not allowed, use 'type[]'")
         }
       }
     }

@@ -480,7 +480,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
                       PsiElement(JAVA_IDENTIFIER)('lang')
                       PsiElement(dot)('.')
                       PsiElement(JAVA_IDENTIFIER)('StringBuilder')
-                  PsiErrorElement:<class member name>, '[]', dot or left parenthesis expected, got ';'
+                  PsiErrorElement:<class member name>, '[', dot or left parenthesis expected, got ';'
                     <empty list>
             PsiElement(semicolon)(';')
             ProguardR8JavaRuleImpl(JAVA_RULE)
@@ -791,7 +791,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
                       PsiElement(JAVA_IDENTIFIER)('not')
                       PsiElement(dot)('.')
                       PsiElement(JAVA_IDENTIFIER)('classMember')
-                  PsiErrorElement:<class member name>, '[]', dot or left parenthesis expected, got ';'
+                  PsiErrorElement:<class member name>, '[', dot or left parenthesis expected, got ';'
                     <empty list>
             PsiElement(semicolon)(';')
             PsiElement(closing brace)('}')
@@ -926,7 +926,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
                     ProguardR8ConstructorNameImpl(CONSTRUCTOR_NAME)
                       ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
                         PsiElement(JAVA_IDENTIFIER)('my')
-                    PsiErrorElement:<class member name>, '[]', dot or left parenthesis expected, got '}'
+                    PsiErrorElement:<class member name>, '[', dot or left parenthesis expected, got '}'
                       <empty list>
               PsiElement(closing brace)('}')
       """.trimIndent(),
@@ -960,7 +960,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
                       PsiElement(public)('public')
                     ProguardR8ClassMemberNameImpl(CLASS_MEMBER_NAME)
                       PsiElement(JAVA_IDENTIFIER)('my')
-              PsiErrorElement:<class member name>, '[]', dot or semicolon expected, got '}'
+              PsiErrorElement:<class member name>, '[', dot or semicolon expected, got '}'
                 <empty list>
               PsiElement(closing brace)('}')
       """.trimIndent(),
@@ -995,7 +995,7 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
                       PsiElement(volatile)('volatile')
                     ProguardR8ClassMemberNameImpl(CLASS_MEMBER_NAME)
                       PsiElement(JAVA_IDENTIFIER)('my')
-              PsiErrorElement:<class member name>, '[]', dot or semicolon expected, got '}'
+              PsiErrorElement:<class member name>, '[', dot or semicolon expected, got '}'
                 <empty list>
               PsiElement(closing brace)('}')
       """.trimIndent(),
@@ -1398,7 +1398,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
                       ProguardR8AnyNotPrimitiveTypeImpl(ANY_NOT_PRIMITIVE_TYPE)
                         PsiElement(DOUBLE_ASTERISK)('**')
                       ProguardR8ArrayTypeImpl(ARRAY_TYPE)
-                        PsiElement([])('[]')
+                        PsiElement([)('[')
+                        PsiElement(])(']')
                     ProguardR8ClassMemberNameImpl(CLASS_MEMBER_NAME)
                       PsiElement(JAVA_IDENTIFIER)('values')
                     ProguardR8ParametersImpl(PARAMETERS)
@@ -1442,7 +1443,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
                       ProguardR8AnyPrimitiveTypeImpl(ANY_PRIMITIVE_TYPE)
                         PsiElement(%)('%')
                       ProguardR8ArrayTypeImpl(ARRAY_TYPE)
-                        PsiElement([])('[]')
+                        PsiElement([)('[')
+                        PsiElement(])(']')
                     ProguardR8ClassMemberNameImpl(CLASS_MEMBER_NAME)
                       PsiElement(JAVA_IDENTIFIER)('values')
                     ProguardR8ParametersImpl(PARAMETERS)

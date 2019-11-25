@@ -22,9 +22,10 @@ abstract class ProguardR8TestCase : JavaCodeInsightFixtureTestCase() {
   override fun setUp() {
     StudioFlags.R8_SUPPORT_ENABLED.override(true)
     super.setUp()
-    myFixture.enableInspections(ProguardR8ClassMemberInspection::class.java)
+    myFixture.enableInspections(ProguardR8ReferenceInspection::class.java)
     myFixture.enableInspections(ProguardR8InvalidFlagInspection::class.java)
     myFixture.enableInspections(ProguardR8IgnoredFlagInspection::class.java)
+    myFixture.enableInspections(ProguardR8ArrayTypeInspection::class.java)
   }
 
   override fun tearDown() {

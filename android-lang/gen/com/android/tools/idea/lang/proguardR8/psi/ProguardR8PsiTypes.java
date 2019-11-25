@@ -66,7 +66,6 @@ public interface ProguardR8PsiTypes {
   IElementType ANY_PRIMITIVE_TYPE_ = new ProguardR8TokenType("%");
   IElementType ANY_TYPE_ = new ProguardR8TokenType("***");
   IElementType ANY_TYPE_AND_NUM_OF_ARGS = new ProguardR8TokenType("...");
-  IElementType ARRAY = new ProguardR8TokenType("[]");
   IElementType ASTERISK = new ProguardR8TokenType("*");
   IElementType AT = new ProguardR8TokenType("@");
   IElementType BOOLEAN = new ProguardR8TokenType("boolean");
@@ -74,6 +73,7 @@ public interface ProguardR8PsiTypes {
   IElementType CHAR = new ProguardR8TokenType("char");
   IElementType CLASS = new ProguardR8TokenType("class");
   IElementType CLOSE_BRACE = new ProguardR8TokenType("}");
+  IElementType CLOSE_BRACKET = new ProguardR8TokenType("]");
   IElementType COLON = new ProguardR8TokenType(":");
   IElementType COMMA = new ProguardR8TokenType(",");
   IElementType DOT = new ProguardR8TokenType(".");
@@ -100,6 +100,7 @@ public interface ProguardR8PsiTypes {
   IElementType LPAREN = new ProguardR8TokenType("(");
   IElementType NATIVE = new ProguardR8TokenType("native");
   IElementType OPEN_BRACE = new ProguardR8TokenType("{");
+  IElementType OPEN_BRACKET = new ProguardR8TokenType("[");
   IElementType PRIVATE = new ProguardR8TokenType("private");
   IElementType PROTECTED = new ProguardR8TokenType("protected");
   IElementType PUBLIC = new ProguardR8TokenType("public");
