@@ -264,7 +264,12 @@ b/137334921 */
   }
 
   private static void setupSdks() {
-    repairDuplicateAndroidSdks(); // TODO(b/143326468): Remove in Studio 4.1.
+    try {
+      repairDuplicateAndroidSdks(); // TODO(b/143326468): Remove in Studio 4.1.
+    }
+    catch (Throwable e) {
+      LOG.error("Failed to remove duplicate Android SDKs", e);
+    }
 
     IdeSdks ideSdks = IdeSdks.getInstance();
     File androidHome = ideSdks.getAndroidSdkPath();
@@ -354,12 +359,16 @@ b/137334921 */
 
     for (List<String> classes : androidSdksByClasses.keySet()) {
       Collection<Sdk> duplicateSdks = androidSdksByClasses.get(classes);
-      boolean firstSkipped = false;
-      for (Sdk sdk : duplicateSdks) {
-        if (firstSkipped) {
-          jdkTable.removeJdk(sdk);
-        }
-        firstSkipped = true;
+      if (duplicateSdks.size() > 1) {
+        ApplicationManager.getApplication().runWriteAction(() -> {
+          boolean firstSkipped = false;
+          for (Sdk sdk : duplicateSdks) {
+            if (firstSkipped) {
+              jdkTable.removeJdk(sdk);
+            }
+            firstSkipped = true;
+          }
+        });
       }
     }
   }
