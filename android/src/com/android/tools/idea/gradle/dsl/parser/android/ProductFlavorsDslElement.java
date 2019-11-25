@@ -31,6 +31,11 @@ public final class ProductFlavorsDslElement extends AbstractFlavorTypeCollection
     new PropertiesElementDescription<>("productFlavors", ProductFlavorsDslElement.class, ProductFlavorsDslElement::new);
 
   @Override
+  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
+    return ProductFlavorDslElement.PRODUCT_FLAVOR;
+  }
+
+  @Override
   public boolean implicitlyExists(@NotNull String name) {
     return false;
   }

@@ -20,8 +20,10 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
@@ -35,6 +37,19 @@ import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public class TestOptionsDslElement extends GradleDslBlockElement {
+  public static final PropertiesElementDescription<TestOptionsDslElement> TEST_OPTIONS =
+    new PropertiesElementDescription<>("testOptions", TestOptionsDslElement.class, TestOptionsDslElement::new);
+
+  public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+    {"unitTests", UnitTestsDslElement.UNIT_TESTS}
+  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
+
+  @Override
+  @NotNull
+  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+    return CHILD_PROPERTIES_ELEMENTS_MAP;
+  }
+
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"reportDir", property, REPORT_DIR, VAR},
@@ -51,8 +66,6 @@ public class TestOptionsDslElement extends GradleDslBlockElement {
     {"execution", property, EXECUTION, VAR},
     {"execution", exactly(1), EXECUTION, SET}
   }).collect(toModelMap());
-  public static final PropertiesElementDescription<TestOptionsDslElement> TEST_OPTIONS =
-    new PropertiesElementDescription<>("testOptions", TestOptionsDslElement.class, TestOptionsDslElement::new);
 
   @Override
   @NotNull

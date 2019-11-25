@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
@@ -38,6 +39,33 @@ import org.jetbrains.annotations.NotNull;
 public final class AndroidDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<AndroidDslElement> ANDROID =
     new PropertiesElementDescription<>("android", AndroidDslElement.class, AndroidDslElement::new);
+
+  public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+    {"aaptOptions", AaptOptionsDslElement.AAPT_OPTIONS},
+    {"adbOptions", AdbOptionsDslElement.ADB_OPTIONS},
+    {"buildFeatures", BuildFeaturesDslElement.BUILD_FEATURES},
+    {"buildTypes", BuildTypesDslElement.BUILD_TYPES},
+    {"compileOptions", CompileOptionsDslElement.COMPILE_OPTIONS},
+    {"dataBinding", DataBindingDslElement.DATA_BINDING},
+    {"defaultConfig", DefaultConfigDslElement.DEFAULT_CONFIG},
+    {"dexOptions", DexOptionsDslElement.DEX_OPTIONS},
+    {"externalNativeBuild", ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD},
+    {"kotlinOptions", KotlinOptionsDslElement.KOTLIN_OPTIONS},
+    {"lintOptions", LintOptionsDslElement.LINT_OPTIONS},
+    {"packagingOptions", PackagingOptionsDslElement.PACKAGING_OPTIONS},
+    {"productFlavors", ProductFlavorsDslElement.PRODUCT_FLAVORS},
+    {"signingConfigs", SigningConfigsDslElement.SIGNING_CONFIGS},
+    {"sourceSets", SourceSetsDslElement.SOURCE_SETS},
+    {"splits", SplitsDslElement.SPLITS},
+    {"testOptions", TestOptionsDslElement.TEST_OPTIONS},
+    {"viewBinding", ViewBindingDslElement.VIEW_BINDING}
+  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
+
+  @Override
+  @NotNull
+  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+    return CHILD_PROPERTIES_ELEMENTS_MAP;
+  }
 
   @NotNull
   private static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{

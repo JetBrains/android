@@ -31,6 +31,11 @@ public final class SourceSetsDslElement extends GradleDslElementMap implements G
   public static final PropertiesElementDescription<SourceSetsDslElement> SOURCE_SETS =
     new PropertiesElementDescription<>("sourceSets", SourceSetsDslElement.class, SourceSetsDslElement::new);
 
+  @Override
+  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
+    return SourceSetDslElement.SOURCE_SET;
+  }
+
   public SourceSetsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }

@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
+import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceFileDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.google.common.collect.ImmutableMap;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,6 +33,23 @@ public class SourceSetDslElement extends GradleDslBlockElement implements Gradle
   public static final PropertiesElementDescription<SourceSetDslElement> SOURCE_SET =
     new PropertiesElementDescription<>(null, SourceSetDslElement.class, SourceSetDslElement::new);
 
+  public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+    {"aidl", SourceDirectoryDslElement.AIDL},
+    {"assets", SourceDirectoryDslElement.ASSETS},
+    {"java", SourceDirectoryDslElement.JAVA},
+    {"jni", SourceDirectoryDslElement.JNI},
+    {"jniLibs", SourceDirectoryDslElement.JNI_LIBS},
+    {"manifest", SourceFileDslElement.MANIFEST},
+    {"renderscript", SourceDirectoryDslElement.RENDERSCRIPT},
+    {"res", SourceDirectoryDslElement.RES},
+    {"resources", SourceDirectoryDslElement.RESOURCES}
+  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
+
+  @Override
+  @NotNull
+  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+    return CHILD_PROPERTIES_ELEMENTS_MAP;
+  }
   public SourceSetDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }
