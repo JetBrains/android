@@ -28,9 +28,6 @@ import org.junit.runner.RunWith;
   com.android.tools.idea.rendering.RenderSecurityManagerTest.class,  // calls System.setSecurityManager
   com.android.tools.idea.testing.TestProjectPathsGeneratorTest.class, // This is for a standalone, test-only application
 
-  com.android.tools.idea.run.applychanges.ApplyChangesUtilsTest.class,  // b/144930626
-  com.android.tools.idea.run.applychanges.ExecutionEnvironmentExtTest.class,  // b/144930626
-
   // The following classes had failures when run in Bazel.
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
   com.android.tools.idea.gradle.project.sync.perf.GradleSyncPerfTest.class, // Sync performance test only runs on perf buildbot
