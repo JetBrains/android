@@ -70,6 +70,22 @@ class InspectionTest : ProguardR8TestCase() {
     myFixture.checkHighlighting()
   }
 
+  fun testSpacesInArrayType() {
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class java.lang.String {
+        ${"int []".highlightedAs(ERROR, "White space between type and array annotation is not allowed, use 'type[]'")} method;
+        int${"[\n]".highlightedAs(ERROR, "White space is not allowed in array annotation, use 'type[]'")} method;
+        int ${"[  ]".highlightedAs(ERROR, "White space is not allowed in array annotation, use 'type[]'")} method;
+        int[] method;
+      }
+      """.trimIndent())
+
+    // checks only errors
+    myFixture.checkHighlighting(false, false, false)
+  }
+
 }
 
 class ProguardR8IgnoredFlagInspectionTest : AndroidTestCase() {

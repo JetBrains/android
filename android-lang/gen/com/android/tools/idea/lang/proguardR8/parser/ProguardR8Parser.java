@@ -136,19 +136,29 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // "[]"+
+  // ("[" "]")+
   public static boolean array_type(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "array_type")) return false;
-    if (!nextTokenIs(builder, ARRAY)) return false;
+    if (!nextTokenIs(builder, OPEN_BRACKET)) return false;
     boolean result;
     Marker marker = enter_section_(builder);
-    result = consumeToken(builder, ARRAY);
+    result = array_type_0(builder, level + 1);
     while (result) {
       int pos = current_position_(builder);
-      if (!consumeToken(builder, ARRAY)) break;
+      if (!array_type_0(builder, level + 1)) break;
       if (!empty_element_parsed_guard_(builder, "array_type", pos)) break;
     }
     exit_section_(builder, marker, ARRAY_TYPE, result);
+    return result;
+  }
+
+  // "[" "]"
+  private static boolean array_type_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "array_type_0")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeTokens(builder, 0, OPEN_BRACKET, CLOSE_BRACKET);
+    exit_section_(builder, marker, null, result);
     return result;
   }
 
