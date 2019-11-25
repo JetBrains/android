@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -126,6 +127,11 @@ public class NlPreviewManager implements ProjectComponent {
   }
 
   protected void initToolWindow() {
+    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
+      // Only allow the Preview Tool Window initialization when the split editor flag is disabled.
+      return;
+    }
+
     myToolWindowForm = createPreviewForm();
     final String toolWindowId = getToolWindowId();
     myToolWindow =
@@ -227,8 +233,6 @@ public class NlPreviewManager implements ProjectComponent {
    */
   private HierarchyListener myHierarchyListener;
 
-  private boolean myRenderImmediately;
-
   private void processFileEditorChange(@Nullable final TextEditor newEditor) {
     if (myPendingShowComponent != null) {
       myPendingShowComponent.removeHierarchyListener(myHierarchyListener);
@@ -243,7 +247,6 @@ public class NlPreviewManager implements ProjectComponent {
         if (!myToolWindowReady || myToolWindowDisposed) {
           return;
         }
-        myRenderImmediately = false;
 
         final Editor activeEditor = newEditor != null ? newEditor.getEditor() : null;
 
@@ -401,26 +404,6 @@ public class NlPreviewManager implements ProjectComponent {
 
   public static NlPreviewManager getInstance(Project project) {
     return project.getComponent(NlPreviewManager.class);
-  }
-
-  /**
-   * Manually notify the manager that an editor is about to be shown; typically done right after
-   * switching to a file to show an update as soon as possible. This is used when we know
-   * the editor is about to be shown (because we've requested it). We don't have a way to
-   * add a listener which is called after the requested file has been opened, so instead we
-   * simply anticipate the change by calling this method first; the subsequent file open will
-   * then become a no-op since the file doesn't change.
-   */
-  public void notifyFileShown(@NotNull TextEditor editor, boolean renderImmediately) {
-    // Don't delete: should be invoked from ConfigurationAction#pickedBetterMatch when we can access designer code from there
-    // (or when ConfigurationAction moves here)
-    if (renderImmediately) {
-      myRenderImmediately = true;
-    }
-    processFileEditorChange(editor);
-    if (renderImmediately) {
-      myToolWindowUpdateQueue.sendFlush();
-    }
   }
 
   @NotNull
