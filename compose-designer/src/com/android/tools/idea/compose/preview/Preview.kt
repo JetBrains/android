@@ -30,7 +30,6 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
-import com.android.tools.idea.rendering.RefreshRenderAction.clearCacheAndRefreshSurface
 import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -46,6 +45,8 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -53,10 +54,12 @@ import com.intellij.pom.Navigatable
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.uipreview.ModuleClassLoader
 import org.jetbrains.kotlin.backend.common.pop
 import java.awt.BorderLayout
 import java.util.concurrent.CompletableFuture
@@ -145,12 +148,12 @@ private fun updateSurfaceWithNewModels(surface: NlDesignSurface,
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
  * @param previewProvider [PreviewElementProvider] to obtain the [PreviewElement]s.
  */
-class ComposePreviewRepresentation(private val psiFile: PsiFile,
+class ComposePreviewRepresentation(psiFile: PsiFile,
                                    private val previewProvider: PreviewElementProvider) :
   PreviewRepresentation, ComposePreviewManager {
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
-  private val file: VirtualFile = psiFile.virtualFile!!
+  private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
 
   private val navigationHandler = PreviewNavigationHandler()
   private val surface = NlDesignSurface.builder(project, this)
@@ -253,7 +256,18 @@ class ComposePreviewRepresentation(private val psiFile: PsiFile,
   init {
     setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
-        EditorNotifications.getInstance(project).updateNotifications(psiFile.virtualFile!!)
+        val file = psiFilePointer.element
+        if (file == null) {
+          LOG.debug("invalid PsiFile")
+          return
+        }
+
+        // Clean-up the class loading cache for all the possibly affected modules.
+        val module = ModuleUtil.findModuleForFile(file)!!
+        val modules = mutableSetOf<Module>()
+        ModuleUtil.collectModulesDependsOn(module, modules)
+        modules.forEach { ModuleClassLoader.clearCache(it) }
+        EditorNotifications.getInstance(project).updateNotifications(file.virtualFile!!)
         refresh()
       }
 
@@ -269,7 +283,7 @@ class ComposePreviewRepresentation(private val psiFile: PsiFile,
           workbench.showLoading(message("panel.building"))
           workbench.hideContent()
         }
-        EditorNotifications.getInstance(project).updateNotifications(psiFile.virtualFile!!)
+        EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
       }
     }, this)
 
@@ -301,16 +315,16 @@ class ComposePreviewRepresentation(private val psiFile: PsiFile,
         it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER == ex.className }
       }
 
-  private fun hasSyntaxErrors(): Boolean = WolfTheProblemSolver.getInstance(project).isProblemFile(file)
+  private fun hasSyntaxErrors(): Boolean = WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
 
   private fun isOutOfDate(): Boolean {
-    val isModified = FileDocumentManager.getInstance().isFileModified(file)
+    val isModified = FileDocumentManager.getInstance().isFileModified(psiFilePointer.virtualFile)
     if (isModified) {
       return true
     }
 
     // The file was saved, check the compilation time
-    val modificationStamp = file.timeStamp
+    val modificationStamp = psiFilePointer.virtualFile.timeStamp
     val lastBuildTimestamp = PostProjectBuildTasksExecutor.getInstance(project).lastBuildTimestamp ?: -1
     if (LOG.isDebugEnabled) {
       LOG.debug("modificationStamp=${modificationStamp}, lastBuildTimestamp=${lastBuildTimestamp}")
@@ -349,7 +363,7 @@ class ComposePreviewRepresentation(private val psiFile: PsiFile,
     notificationsPanel.removeAll()
     NOTIFICATIONS_EP_NAME.extensions()
       .asSequence()
-      .mapNotNull { it.createNotificationPanel(file, parentEditor, project) }
+      .mapNotNull { it.createNotificationPanel(psiFilePointer.virtualFile, parentEditor, project) }
       .forEach {
         notificationsPanel.add(it)
       }
@@ -381,7 +395,7 @@ class ComposePreviewRepresentation(private val psiFile: PsiFile,
     }
 
     // Make sure all notifications are cleared-up
-    EditorNotifications.getInstance(project).updateNotifications(file)
+    EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile)
   }
 
   /**
@@ -391,6 +405,11 @@ class ComposePreviewRepresentation(private val psiFile: PsiFile,
     if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.size} elements")
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
 
+    val psiFile = psiFilePointer.element
+    if (psiFile == null) {
+      LOG.warn("doRefresh with invalid PsiFile")
+      return
+    }
     val facet = AndroidFacet.getInstance(psiFile)!!
     val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
 
@@ -519,7 +538,7 @@ class ComposePreviewRepresentation(private val psiFile: PsiFile,
         }
 
       // There are not elements, skip model creation
-      clearCacheAndRefreshSurface(surface).whenComplete { _, _ ->
+      surface.requestRender().whenComplete { _, _ ->
         isRefreshingPreview = false
         updateSurfaceVisibilityAndNotifications()
       }
