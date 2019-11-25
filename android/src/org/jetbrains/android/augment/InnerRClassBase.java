@@ -7,7 +7,9 @@ import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
+import com.google.common.base.Verify;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFactory;
@@ -140,7 +142,15 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Recomputing fields for " + this);
           }
-          return CachedValueProvider.Result.create(doGetFields(), getFieldsDependencies());
+
+          ModificationTracker dependencies = getFieldsDependencies();
+
+          // When ResourceRepositoryManager's caches are dropped, new instances of repositories are created and the old ones
+          // stop incrementing their modification count. We need to make sure the CachedValue doesn't hold on to any particular repository
+          // instance and instead reads the modification count of the "current" instance.
+          Verify.verify(!(dependencies instanceof ResourceRepository), "Resource repository leaked in a CachedValue.");
+
+          return CachedValueProvider.Result.create(doGetFields(), dependencies);
         });
     }
     return myFieldsCache.getValue();
@@ -154,7 +164,7 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
    * {@link #doGetFields()}.
    */
   @NotNull
-  protected abstract Object[] getFieldsDependencies();
+  protected abstract ModificationTracker getFieldsDependencies();
 
   @NotNull
   public ResourceType getResourceType() {
