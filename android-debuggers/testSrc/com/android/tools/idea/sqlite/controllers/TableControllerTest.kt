@@ -123,7 +123,7 @@ class TableControllerTest : PlatformTestCase() {
 
   override fun tearDown() {
     try {
-      pumpEventsAndWaitForFuture(realDatabaseConnection.closeDatabase())
+      pumpEventsAndWaitForFuture(realDatabaseConnection.close())
       sqliteUtil.tearDown()
     } finally {
       super.tearDown()

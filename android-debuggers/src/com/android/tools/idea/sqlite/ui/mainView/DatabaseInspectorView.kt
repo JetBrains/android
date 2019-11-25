@@ -23,7 +23,7 @@ import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView.Listener
 import javax.swing.JComponent
 
 /**
- * Abstraction used by [com.android.tools.idea.sqlite.controllers.SqliteController] to avoid direct dependency on the
+ * Abstraction used by [com.android.tools.idea.sqlite.controllers.DatabaseInspectorController] to avoid direct dependency on the
  * UI implementation.
  *
  * @see [Listener] for the listener interface.

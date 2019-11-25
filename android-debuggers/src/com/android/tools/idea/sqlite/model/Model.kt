@@ -28,7 +28,7 @@ import java.sql.JDBCType
 //  We cannot use the name as id, there is a conflict if the same app is opened on two different devices.
 data class SqliteDatabase(val name: String, val databaseConnection: DatabaseConnection) : Disposable {
   override fun dispose() {
-    databaseConnection.closeDatabase().get()
+    databaseConnection.close().get()
   }
 }
 

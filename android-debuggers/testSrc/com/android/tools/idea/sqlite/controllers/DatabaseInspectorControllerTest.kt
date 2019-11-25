@@ -48,11 +48,11 @@ import org.mockito.Mockito.verify
 import java.util.concurrent.Executor
 import javax.swing.JComponent
 
-class SqliteControllerTest : PlatformTestCase() {
+class DatabaseInspectorControllerTest : PlatformTestCase() {
   private lateinit var mockSqliteView: MockDatabaseInspectorView
   private lateinit var edtExecutor: EdtExecutorService
   private lateinit var taskExecutor: Executor
-  private lateinit var sqliteController: SqliteControllerImpl
+  private lateinit var sqliteController: DatabaseInspectorControllerImpl
   private lateinit var orderVerifier: InOrder
 
   private lateinit var mockViewFactory: MockDatabaseInspectorViewsFactory
@@ -83,7 +83,7 @@ class SqliteControllerTest : PlatformTestCase() {
     edtExecutor = EdtExecutorService.getInstance()
     taskExecutor = SameThreadExecutor.INSTANCE
 
-    sqliteController = SqliteControllerImpl(
+    sqliteController = DatabaseInspectorControllerImpl(
       project,
       MockDatabaseInspectorModel(),
       mockViewFactory,
@@ -96,7 +96,7 @@ class SqliteControllerTest : PlatformTestCase() {
     `when`(sqliteResultSet.columns).thenReturn(Futures.immediateFuture(testSqliteTable.columns))
 
     mockDatabaseConnection = mock(DatabaseConnection::class.java)
-    `when`(mockDatabaseConnection.closeDatabase()).thenReturn(Futures.immediateFuture(null))
+    `when`(mockDatabaseConnection.close()).thenReturn(Futures.immediateFuture(null))
     `when`(mockDatabaseConnection.executeQuery(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
 
     sqliteDatabase1 = SqliteDatabase("db1", mockDatabaseConnection)
@@ -315,7 +315,7 @@ class SqliteControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(mockDatabaseConnection).closeDatabase()
+    verify(mockDatabaseConnection).close()
     verify(evaluatorView).removeDatabase(0)
     verify(mockSqliteView).removeDatabaseSchema(sqliteDatabase1)
     assert(Disposer.isDisposed(sqliteDatabase1))

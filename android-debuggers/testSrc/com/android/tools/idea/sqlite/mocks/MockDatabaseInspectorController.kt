@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
-import com.android.tools.idea.sqlite.controllers.SqliteController
+import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
 import javax.naming.OperationNotSupportedException
 import javax.swing.JComponent
 
-open class MockSqliteController(val model: SqliteController.Model) : SqliteController {
+open class MockDatabaseInspectorController(val model: DatabaseInspectorController.Model) : DatabaseInspectorController {
 
   override val component: JComponent
     get() = throw OperationNotSupportedException()
@@ -35,7 +35,7 @@ open class MockSqliteController(val model: SqliteController.Model) : SqliteContr
 
   override fun closeDatabase(database: SqliteDatabase) {
     model.remove(database)
-    database.databaseConnection.closeDatabase().get()
+    database.databaseConnection.close().get()
   }
 
   override fun dispose() { }
