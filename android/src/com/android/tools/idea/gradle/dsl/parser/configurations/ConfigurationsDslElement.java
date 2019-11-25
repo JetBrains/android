@@ -27,6 +27,11 @@ public class ConfigurationsDslElement extends GradleDslBlockElement implements G
     new PropertiesElementDescription<>("configurations", ConfigurationsDslElement.class, ConfigurationsDslElement::new);
 
   @Override
+  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
+    return ConfigurationDslElement.CONFIGURATION;
+  }
+
+  @Override
   public boolean implicitlyExists(@NotNull String name) {
     // TODO(xof): this is potentially quite complicated, and dependent on the state of the Dsl.  Since our main use at the moment is
     //  to create configurations to work around a *lack* of implicit creation, return false here, but we should probably account for

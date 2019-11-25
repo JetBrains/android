@@ -29,9 +29,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public final class SigningConfigsDslElement extends GradleDslElementMap implements GradleDslNamedDomainContainer {
-  public static final List<String> implicitSigningConfigs = Arrays.asList("debug");
   public static final PropertiesElementDescription<SigningConfigsDslElement> SIGNING_CONFIGS =
     new PropertiesElementDescription<>("signingConfigs", SigningConfigsDslElement.class, SigningConfigsDslElement::new);
+
+  public static final List<String> implicitSigningConfigs = Arrays.asList("debug");
+
+  @Override
+  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
+    return SigningConfigDslElement.SIGNING_CONFIG;
+  }
 
   @Override
   public boolean implicitlyExists(@NotNull String name) {
