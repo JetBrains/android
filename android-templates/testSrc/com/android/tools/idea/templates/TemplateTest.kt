@@ -197,6 +197,11 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareNavigationDrawerActivity() {
+    checkCreateTemplate("activities", "NavigationDrawerActivity", ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewNavigationDrawerActivityWithKotlin() {
     checkCreateTemplate("activities", "NavigationDrawerActivity", ActivityCreationMode.WITHOUT_PROJECT, true, withKotlin)
   }
