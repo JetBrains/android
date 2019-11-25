@@ -50,7 +50,7 @@ class JdbcDatabaseConnection(
     SequentialTaskExecutor.createSequentialApplicationPoolExecutor("Sqlite JDBC service", pooledExecutor)
   )
 
-  override fun closeDatabase(): ListenableFuture<Unit> = sequentialTaskExecutor.executeAsync {
+  override fun close(): ListenableFuture<Unit> = sequentialTaskExecutor.executeAsync {
     connection.close()
     logger.info("Successfully closed database: ${sqliteFile.path}")
   }

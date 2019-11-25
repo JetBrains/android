@@ -25,7 +25,7 @@ import com.android.tools.idea.device.fs.DownloadedFileData
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
-import com.android.tools.idea.sqlite.mocks.MockSqliteController
+import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorController
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.vfs.VirtualFile
@@ -44,7 +44,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
   private lateinit var sqliteFile1: VirtualFile
   private lateinit var mockDatabase: SqliteDatabase
   private lateinit var databaseInspectorProjectService: DatabaseInspectorProjectService
-  private lateinit var mockSqliteController: MockSqliteController
+  private lateinit var mockSqliteController: MockDatabaseInspectorController
   private lateinit var fileOpened: VirtualFile
 
   private var openedDatabase: SqliteDatabase? = null
@@ -60,7 +60,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     sqliteFile1.putUserData(DeviceFileId.KEY, DeviceFileId("deviceId", "filePath"))
 
     val model = MockDatabaseInspectorModel()
-    mockSqliteController = spy(MockSqliteController(model))
+    mockSqliteController = spy(MockDatabaseInspectorController(model))
 
     val mockToolWindowManager = mock(ToolWindowManager::class.java)
     `when`(mockToolWindowManager.getToolWindow(any(String::class.java))).thenReturn(mock(ToolWindow::class.java))
@@ -81,7 +81,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
   override fun tearDown() {
     try {
       if (openedDatabase != null) {
-        pumpEventsAndWaitForFuture(openedDatabase!!.databaseConnection.closeDatabase())
+        pumpEventsAndWaitForFuture(openedDatabase!!.databaseConnection.close())
       }
 
       sqliteUtil.tearDown()

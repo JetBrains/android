@@ -54,7 +54,7 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
 
   override fun tearDown() {
     try {
-      pumpEventsAndWaitForFuture(databaseConnection.closeDatabase())
+      pumpEventsAndWaitForFuture(databaseConnection.close())
       sqliteUtil.tearDown()
       DatabaseInspectorFlagController.enableFeature(previouslyEnabled)
     }
@@ -65,7 +65,7 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
 
   fun testReadSchemaFailsIfDatabaseNotOpened() {
     //Prepare
-    pumpEventsAndWaitForFuture(databaseConnection.closeDatabase())
+    pumpEventsAndWaitForFuture(databaseConnection.close())
 
     // Act
     val error = pumpEventsAndWaitForFutureException(databaseConnection.readSchema())
@@ -101,7 +101,7 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
 
     // Act
-    pumpEventsAndWaitForFuture(databaseConnection.closeDatabase())
+    pumpEventsAndWaitForFuture(databaseConnection.close())
     ApplicationManager.getApplication().runWriteAction {
       sqliteFile.delete(this)
     }

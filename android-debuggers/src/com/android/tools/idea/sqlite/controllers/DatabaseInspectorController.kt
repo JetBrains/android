@@ -43,13 +43,13 @@ import javax.swing.JComponent
  * All methods are assumed to run on the UI (EDT) thread.
  */
 @UiThread
-class SqliteControllerImpl(
+class DatabaseInspectorControllerImpl(
   private val project: Project,
-  private val model: SqliteController.Model,
+  private val model: DatabaseInspectorController.Model,
   private val viewFactory: DatabaseInspectorViewsFactory,
   edtExecutor: Executor,
   taskExecutor: Executor
-) : SqliteController {
+) : DatabaseInspectorController {
   private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
   private val taskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
 
@@ -76,7 +76,7 @@ class SqliteControllerImpl(
     view.startLoading("Getting database...")
     taskExecutor.addCallback(sqliteDatabaseFuture, object : FutureCallback<SqliteDatabase> {
       override fun onSuccess(sqliteDatabase: SqliteDatabase?) {
-        if (Disposer.isDisposed(this@SqliteControllerImpl)) return
+        if (Disposer.isDisposed(this@DatabaseInspectorControllerImpl)) return
         readDatabaseSchema(sqliteDatabase!!) { schema -> addNewDatabaseSchema(sqliteDatabase, schema) }
       }
 
@@ -128,7 +128,7 @@ class SqliteControllerImpl(
     val futureSchema = database.databaseConnection.readSchema()
 
     edtExecutor.addListener(futureSchema) {
-      if (!Disposer.isDisposed(this@SqliteControllerImpl)) {
+      if (!Disposer.isDisposed(this@DatabaseInspectorControllerImpl)) {
         view.stopLoading()
       }
     }
@@ -139,7 +139,7 @@ class SqliteControllerImpl(
       }
 
       override fun onFailure(t: Throwable) {
-        if (!Disposer.isDisposed(this@SqliteControllerImpl)) {
+        if (!Disposer.isDisposed(this@DatabaseInspectorControllerImpl)) {
           view.reportError("Error reading Sqlite database", t)
         }
       }
@@ -282,7 +282,7 @@ class SqliteControllerImpl(
 /**
  * Interface that defines the contract of a SqliteController.
  */
-interface SqliteController : Disposable {
+interface DatabaseInspectorController : Disposable {
   val component: JComponent
 
   fun setUp()

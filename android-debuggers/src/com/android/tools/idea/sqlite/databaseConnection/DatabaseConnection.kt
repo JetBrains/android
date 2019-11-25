@@ -26,7 +26,7 @@ import com.intellij.openapi.Disposable
  * All operations are asynchronous, where completion is communicated through [ListenableFuture] return values.
  */
 interface DatabaseConnection : Disposable {
-  fun closeDatabase(): ListenableFuture<Unit>
+  fun close(): ListenableFuture<Unit>
   fun readSchema(): ListenableFuture<SqliteSchema>
 
   /**
@@ -44,6 +44,6 @@ interface DatabaseConnection : Disposable {
   fun executeUpdate(sqLiteStatement: SqliteStatement): ListenableFuture<Int>
 
   override fun dispose() {
-    closeDatabase()
+    close()
   }
 }

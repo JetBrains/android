@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
-import com.android.tools.idea.sqlite.controllers.SqliteController
+import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import java.util.TreeMap
 
-class MockDatabaseInspectorModel : SqliteController.Model {
-  private val listeners = mutableListOf<SqliteController.Model.Listener>()
+class MockDatabaseInspectorModel : DatabaseInspectorController.Model {
+  private val listeners = mutableListOf<DatabaseInspectorController.Model.Listener>()
 
   override val openDatabases: TreeMap<SqliteDatabase, SqliteSchema> = TreeMap(
     Comparator.comparing { database: SqliteDatabase -> database.name }
@@ -39,7 +39,7 @@ class MockDatabaseInspectorModel : SqliteController.Model {
     listeners.forEach { it.onDatabaseRemoved(database) }
   }
 
-  override fun addListener(modelListener: SqliteController.Model.Listener) { listeners.add(modelListener) }
+  override fun addListener(modelListener: DatabaseInspectorController.Model.Listener) { listeners.add(modelListener) }
 
-  override fun removeListener(modelListener: SqliteController.Model.Listener) { listeners.remove(modelListener) }
+  override fun removeListener(modelListener: DatabaseInspectorController.Model.Listener) { listeners.remove(modelListener) }
 }

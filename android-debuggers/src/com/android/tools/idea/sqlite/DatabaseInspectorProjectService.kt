@@ -23,8 +23,8 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
-import com.android.tools.idea.sqlite.controllers.SqliteController
-import com.android.tools.idea.sqlite.controllers.SqliteControllerImpl
+import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
+import com.android.tools.idea.sqlite.controllers.DatabaseInspectorControllerImpl
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionFactoryImpl
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -56,7 +56,7 @@ import javax.swing.JComponent
 import kotlin.concurrent.withLock
 
 /**
- * Intellij Project Service that holds the reference to the [SqliteControllerImpl]
+ * Intellij Project Service that holds the reference to the [DatabaseInspectorControllerImpl]
  * and is the entry point for opening a Sqlite database in the Database Inspector tool window.
  */
 interface DatabaseInspectorProjectService {
@@ -110,9 +110,9 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
   taskExecutor: Executor = PooledThreadExecutor.INSTANCE,
   private val fileOpener: Consumer<VirtualFile> = Consumer { OpenFileAction.openFile(it, project) },
   private val viewFactory: DatabaseInspectorViewsFactory = DatabaseInspectorViewsFactoryImpl(),
-  private val model: SqliteController.Model = Model(),
-  private val createController: (SqliteController.Model) -> SqliteController = { myModel ->
-    SqliteControllerImpl(
+  private val model: DatabaseInspectorController.Model = Model(),
+  private val createController: (DatabaseInspectorController.Model) -> DatabaseInspectorController = { myModel ->
+    DatabaseInspectorControllerImpl(
       project,
       myModel,
       viewFactory,
@@ -132,7 +132,7 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
   @GuardedBy("lock")
   private val databaseToFile = mutableMapOf<SqliteDatabase, VirtualFile>()
 
-  private val controller: SqliteController by lazy @UiThread {
+  private val controller: DatabaseInspectorController by lazy @UiThread {
     ApplicationManager.getApplication().assertIsDispatchThread()
     createController(model)
   }
@@ -141,7 +141,7 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
     @UiThread get() = controller.component
 
   init {
-    model.addListener(object : SqliteController.Model.Listener {
+    model.addListener(object : DatabaseInspectorController.Model.Listener {
       override fun onDatabaseAdded(database: SqliteDatabase) { }
       override fun onDatabaseRemoved(database: SqliteDatabase) {
         lock.withLock { databaseToFile.remove(database) }
@@ -224,12 +224,12 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
   @AnyThread
   override fun getOpenDatabases(): Set<SqliteDatabase> = model.openDatabases.keys
 
-  private class Model : SqliteController.Model {
+  private class Model : DatabaseInspectorController.Model {
 
     private val lock = ReentrantLock()
 
     @GuardedBy("lock")
-    private val listeners = mutableListOf<SqliteController.Model.Listener>()
+    private val listeners = mutableListOf<DatabaseInspectorController.Model.Listener>()
 
     @GuardedBy("lock")
     override val openDatabases: TreeMap<SqliteDatabase, SqliteSchema> = TreeMap(
@@ -251,11 +251,11 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
       listeners.forEach { it.onDatabaseRemoved(database) }
     }
 
-    override fun addListener(modelListener: SqliteController.Model.Listener): Unit = lock.withLock {
+    override fun addListener(modelListener: DatabaseInspectorController.Model.Listener): Unit = lock.withLock {
       listeners.add(modelListener)
     }
 
-    override fun removeListener(modelListener: SqliteController.Model.Listener): Unit = lock.withLock {
+    override fun removeListener(modelListener: DatabaseInspectorController.Model.Listener): Unit = lock.withLock {
       listeners.remove(modelListener)
     }
   }

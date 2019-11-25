@@ -47,31 +47,31 @@ class SqliteEvaluatorViewImpl(
     evaluatorPanel.root.add(tableView.component, BorderLayout.CENTER)
     evaluatorPanel.evaluateButton.addActionListener {
       listeners.forEach {
-        it.evaluateSqlActionInvoked((evaluatorPanel.schemaComboBox.selectedItem as ComboBoxItem).database, editorTextField.text)
+        it.evaluateSqlActionInvoked((evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database, editorTextField.text)
       }
     }
 
-    evaluatorPanel.schemaComboBox.addActionListener { setSchemaFromSelectedItem() }
+    evaluatorPanel.databaseComboBox.addActionListener { setSchemaFromSelectedItem() }
   }
 
   private fun setSchemaFromSelectedItem() {
-    val database = (evaluatorPanel.schemaComboBox.selectedItem as ComboBoxItem).database
+    val database = (evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database
     val schema = schemaProvider.getSchema(database)
     FileDocumentManager.getInstance().getFile(editorTextField.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
   }
 
   override fun addDatabase(database: SqliteDatabase, index: Int) {
-    evaluatorPanel.schemaComboBox.insertItemAt(ComboBoxItem(database, database.name), index)
-    if (evaluatorPanel.schemaComboBox.selectedIndex == -1) evaluatorPanel.schemaComboBox.selectedIndex = 0
+    evaluatorPanel.databaseComboBox.insertItemAt(ComboBoxItem(database, database.name), index)
+    if (evaluatorPanel.databaseComboBox.selectedIndex == -1) evaluatorPanel.databaseComboBox.selectedIndex = 0
     setSchemaFromSelectedItem()
   }
 
   override fun selectDatabase(database: SqliteDatabase) {
-    evaluatorPanel.schemaComboBox.selectedItem = database
+    evaluatorPanel.databaseComboBox.selectedItem = database
   }
 
   override fun removeDatabase(index: Int) {
-    evaluatorPanel.schemaComboBox.removeItemAt(index)
+    evaluatorPanel.databaseComboBox.removeItemAt(index)
   }
 
   override fun addListener(listener: SqliteEvaluatorView.Listener) {
