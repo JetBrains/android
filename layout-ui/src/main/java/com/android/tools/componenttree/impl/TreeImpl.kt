@@ -17,6 +17,7 @@ package com.android.tools.componenttree.impl
 
 import com.android.tools.componenttree.api.BadgeItem
 import com.android.tools.componenttree.api.ContextPopupHandler
+import com.android.tools.componenttree.api.DoubleClickHandler
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.ex.WindowManagerEx
 import com.intellij.ui.AbstractExpandableItemsHandler
@@ -46,6 +47,7 @@ import javax.swing.tree.TreePath
 class TreeImpl(
   componentTreeModel: ComponentTreeModelImpl,
   private val contextPopup: ContextPopupHandler,
+  private val doubleClick: DoubleClickHandler,
   private val badges: List<BadgeItem>
 ) : Tree(componentTreeModel) {
 
@@ -61,7 +63,10 @@ class TreeImpl(
     TreeUtil.installActions(this)
     addMouseListener(object : PopupHandler() {
       override fun invokePopup(comp: Component, x: Int, y: Int) {
-        invokePopup(x, y)
+        val viewPort = this@TreeImpl.parent
+        val scrollPane = viewPort.parent
+        val point = SwingUtilities.convertPoint(comp, x, y, scrollPane)
+        invokePopup(point.x, point.y)
       }
     })
     addMouseListener(object: MouseAdapter() {
@@ -170,11 +175,15 @@ class TreeImpl(
   private fun mouseClicked(event: MouseEvent) {
     if (!event.isPopupTrigger &&
         event.button == BUTTON1 &&
-        event.clickCount == 1 &&
         (event.modifiers.and(InputEvent.SHIFT_MASK.or(InputEvent.CTRL_MASK))) == 0) {
-      val (component, item) = lookupRenderComponentAt(event.x, event.y) ?: return
-      val badge = component.getClientProperty(BADGE_ITEM) as? BadgeItem
-      badge?.performAction(item)
+      if (event.clickCount == 1) {
+        val (component, item) = lookupRenderComponentAt(event.x, event.y) ?: return
+        val badge = component.getClientProperty(BADGE_ITEM) as? BadgeItem
+        badge?.performAction(item)
+      }
+      else if (event.clickCount == 2) {
+        doubleClick()
+      }
     }
   }
 
