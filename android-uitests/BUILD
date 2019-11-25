@@ -1080,20 +1080,6 @@ java_test(
 
 # fast test
 java_test(
-    name = "DataBindingTest",
-    data = COMMON_DATA + glob([
-        "testData/DatabindingMethodsTest/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.DataBindingTest"],
-    tags = COMMON_TAGS + [
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-# fast test
-java_test(
     name = "JavaLibsDepTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
