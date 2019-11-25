@@ -413,7 +413,12 @@ open class TemplateTest : TemplateTestBase() {
 
   @TemplateCheck
   fun testCompareNewModule() {
-    checkCreateTemplate("gradle-projects","NewAndroidModule", ActivityCreationMode.DO_NOT_CREATE, false, withKotlin, withNewRenderingContext)
+    checkCreateTemplate("gradle-projects", "NewAndroidModule", ActivityCreationMode.DO_NOT_CREATE, false, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareNewBenchmarkModule() {
+    checkCreateTemplate("gradle-projects", "NewBenchmarkModule", ActivityCreationMode.DO_NOT_CREATE, false, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
