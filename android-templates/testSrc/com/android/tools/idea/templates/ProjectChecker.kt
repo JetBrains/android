@@ -29,6 +29,8 @@ import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.npw.model.doRender
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
+import com.android.tools.idea.npw.module.recipes.benchmarkModule.generateBenchmarkModule
+import com.android.tools.idea.npw.module.recipes.pureLibrary.generatePureLibrary
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.setGradleWrapperExecutable
 import com.android.tools.idea.npw.template.TemplateResolver
@@ -39,6 +41,7 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_TITLE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API_STRING
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_TOOLS_VERSION
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_CLASS_NAME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_GRADLE_PLUGIN_VERSION
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_HAS_APPLICATION_THEME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LAUNCHER
@@ -384,8 +387,16 @@ data class ProjectChecker(
       }
       ActivityCreationMode.DO_NOT_CREATE -> {
         if (isNewRenderingContext) {
-          val appTitle = moduleState.getString(ATTR_APP_TITLE)
-          val recipe: Recipe = { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle) }
+          val appTitle = moduleState[ATTR_APP_TITLE] as String?
+          val className = moduleState[ATTR_CLASS_NAME] as String?
+          val recipe: Recipe = { data: TemplateData ->
+            when {
+              moduleName.contains("NewAndroidModule") -> this.generateAndroidModule(data as ModuleTemplateData, appTitle!!)
+              moduleName.contains("NewJavaOrKotlinLibrary") -> this.generatePureLibrary(data as ModuleTemplateData, className!!)
+              moduleName.contains("NewBenchmarkModule") -> this.generateBenchmarkModule(data as ModuleTemplateData)
+              else -> throw IllegalArgumentException("given module name ($moduleName) is unknown")
+            }
+          }
           createProjectForNewRenderingContext(this, moduleName, activityState, recipe = recipe)
         } else {
           activityState.template.renderAndCheck(activityState.templateValues)
