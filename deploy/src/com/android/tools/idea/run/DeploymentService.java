@@ -22,6 +22,7 @@ import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.NotNullLazyValue;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,7 +39,7 @@ public class DeploymentService {
 
   private final TaskRunner runner;
 
-  private final SqlApkFileDatabase dexDatabase;
+  private final NotNullLazyValue<SqlApkFileDatabase> dexDatabase;
 
   private final DeploymentCacheDatabase deploymentCacheDatabase;
 
@@ -55,7 +56,7 @@ public class DeploymentService {
     service = Executors.newFixedThreadPool(5);
     runner = new TaskRunner(service);
     Path path = Paths.get(PathManager.getSystemPath(), ".deploy.db");
-    dexDatabase  = new SqlApkFileDatabase(new File(path.toString()), PathManager.getTempPath());
+    dexDatabase  = NotNullLazyValue.createValue(() -> new SqlApkFileDatabase(new File(path.toString()), PathManager.getTempPath()));
     deploymentCacheDatabase = new DeploymentCacheDatabase();
   }
 
@@ -64,7 +65,7 @@ public class DeploymentService {
   }
 
   public SqlApkFileDatabase getDexDatabase() {
-    return dexDatabase;
+    return dexDatabase.getValue();
   }
 
   public DeploymentCacheDatabase getDeploymentCacheDatabase() {
