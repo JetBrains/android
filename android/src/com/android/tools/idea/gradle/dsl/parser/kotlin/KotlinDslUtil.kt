@@ -500,6 +500,7 @@ internal fun createMapElement(expression : GradleDslSettableExpression) : PsiEle
  * Add an argument to a GradleDslList (parentDslElement). The PsiElement of the list (parentPsiElement) can either be :
  * KtCallExpression : for cases where we have a list in Kotlin (listOf())
  * KtBinaryExpression : for cases where we have binary expressions ( ex: map arguments or assignment expression)
+ * KtValueArgument : when we have constructed a DslExpressionList out of a single-argument method call (e.g. flavorDimensions("abi"))
  * KtValueArgumentList : for all the other cases (ex  : KtCallExpression arguments)
  * Others : not handled.
  */
@@ -510,6 +511,7 @@ internal fun createPsiElementInsideList(parentDslElement : GradleDslElement,
   val parentPsiElement = when (parentPsiElement){
     is KtCallExpression -> parentPsiElement.valueArgumentList ?: return null
     is KtBinaryExpression -> (parentPsiElement.right as? KtCallExpression)?.valueArgumentList ?: return null
+    is KtValueArgument -> parentPsiElement.parent as? KtValueArgumentList ?: return null
     is KtValueArgumentList -> parentPsiElement
     else -> return null
   }

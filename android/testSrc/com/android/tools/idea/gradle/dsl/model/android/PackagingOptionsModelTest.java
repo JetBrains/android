@@ -154,7 +154,6 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     packagingOptions = android.packagingOptions();
-    // TODO(b/143762234): enable this for KotlinScript once the bug is fixed
     assertEquals("excludes", ImmutableList.of("exclude1", "exclude2"), packagingOptions.excludes());
     assertEquals("merges", ImmutableList.of("merge1", "merge2"), packagingOptions.merges());
     assertEquals("pickFirsts", ImmutableList.of("pickFirst1", "pickFirst2"), packagingOptions.pickFirsts());
