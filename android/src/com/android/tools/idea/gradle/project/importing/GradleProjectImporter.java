@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -153,11 +152,11 @@ public final class GradleProjectImporter {
     return new GradleSyncListener() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
-        TransactionGuard.getInstance().submitTransactionLater(project, () -> {
+        ApplicationManager.getApplication().invokeLater(() -> {
           setLastOpenedFile(project, projectFolder);
           focusProjectWindow(project, false);
           activateProjectView(project);
-        });
+        }, project.getDisposed());
       }
     };
   }
