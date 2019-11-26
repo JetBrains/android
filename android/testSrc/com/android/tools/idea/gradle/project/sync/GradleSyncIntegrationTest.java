@@ -144,6 +144,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.jetbrains.plugins.gradle.util.GradleUtil;
 import org.mockito.ArgumentCaptor;
 
 /**
@@ -825,8 +826,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     // Verify that buildSrc modules exists.
     Module buildSrcModule = getModule(getName() + "_buildSrc");
     assertNotNull(buildSrcModule);
-/* b/144935972 ExternalSystemApiUtil.findModuleData is removed by commit c56d4d0
-    DataNode<ModuleData> moduleData = ExternalSystemApiUtil.findModuleData(buildSrcModule, GradleConstants.SYSTEM_ID);
+    DataNode<ModuleData> moduleData = GradleUtil.findGradleModuleData(buildSrcModule);
     assertNotNull(moduleData);
 
     // Verify that ContentRootData DataNode is created for buildSrc module.
@@ -834,7 +834,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     assertThat(contentRootData).hasSize(1);
     File buildSrcDir = new File(getProject().getBasePath(), "buildSrc");
     assertThat(contentRootData.iterator().next().getData().getRootPath()).isEqualTo(buildSrcDir.getPath());
-b/144935972 ExternalSystemApiUtil.findModuleData is removed by commit c56d4d0 */
 
     // Verify that buildSrc/lib1 has dependency on buildSrc/lib2.
     Module lib1Module = getModule(getName() + "_lib1");
