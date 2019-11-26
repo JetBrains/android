@@ -24,7 +24,6 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.containers.ObjectIntHashMap;
 import java.io.ByteArrayOutputStream;
@@ -77,24 +76,12 @@ public class ResourceSerializationUtil {
 
     // Write to a temporary file first, then rename it to the final name.
     Path tempFile;
-    // Retries on Windows are an attempt to work around b/139815367.
-    int triesLeft = SystemInfo.isWindows ? 5 : 1;
-    while (true) {
-      try {
-        tempFile = FileUtilRt.createTempFile(cacheFile.getParent().toFile(), cacheFile.getFileName().toString(), ".tmp").toPath();
-        break;
-      }
-      catch (IOException e) {
-        if (--triesLeft <= 0) {
-          LOG.error("Unable to create a temporary file in " + cacheFile.getParent().toString(), e);
-          return;
-        }
-        try {
-          Thread.sleep(5 + (long)(Math.random() * 10));
-        }
-        catch (InterruptedException e1) {
-        }
-      }
+    try {
+      tempFile = FileUtilRt.createTempFile(cacheFile.getParent().toFile(), cacheFile.getFileName().toString(), ".tmp").toPath();
+    }
+    catch (IOException e) {
+      LOG.error("Unable to create a temporary file in " + cacheFile.getParent().toString(), e);
+      return;
     }
 
     try (Base128OutputStream stream = new Base128OutputStream(tempFile)) {
