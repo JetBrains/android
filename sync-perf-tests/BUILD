@@ -49,6 +49,7 @@ iml_module(
         "block-network",
         "no_test_mac",
         "no_test_windows",
+        "perfgate",
     ],
     test_timeout = "eternal",
     visibility = ["//visibility:public"],
