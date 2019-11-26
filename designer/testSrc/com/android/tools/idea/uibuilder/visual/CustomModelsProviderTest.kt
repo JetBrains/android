@@ -93,6 +93,31 @@ class CustomModelsProviderTest : LayoutTestCase() {
     assertSize(1, nlModelsAfterRemoved)
     assertEquals(defaultConfig, nlModelsAfterRemoved[0].configuration)
   }
+
+  fun testAddCustomConfigLoadsCorrectFile() {
+    val defaultFile = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
+    val enFile = myFixture.addFileToProject("/res/layout-en/test.xml", LAYOUT_FILE_CONTENT)
+
+    val listener = Mockito.mock(ConfigurationSetListener::class.java)
+
+    val modelsProvider = CustomModelsProvider(listener)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(myFacet)
+    val defaultConfig = configurationManager.getConfiguration(defaultFile.virtualFile)
+
+    // Create additional config
+    val newConfig = Configuration.create(defaultConfig, defaultFile.virtualFile)
+    val device = configurationManager.getDeviceById("pixel_3")!!
+    val state = device.defaultState.deepCopy().apply { orientation = ScreenOrientation.PORTRAIT }
+    newConfig.setEffectiveDevice(device, state)
+    newConfig.locale = Locale.create("en")
+    newConfig.setTheme(configurationManager.computePreferredTheme(defaultConfig))
+    modelsProvider.addConfiguration(CustomConfiguration("", newConfig))
+
+    // Create models, first one is default one and second one is custom one, which should associate to en file.
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myFacet)
+    assertEquals(defaultFile.virtualFile, nlModels[0].virtualFile)
+    assertEquals(enFile.virtualFile, nlModels[1].virtualFile)
+  }
 }
 
 private const val LAYOUT_FILE_CONTENT = """

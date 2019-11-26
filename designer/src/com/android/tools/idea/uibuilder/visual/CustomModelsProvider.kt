@@ -20,6 +20,8 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.configurations.ConfigurationMatcher
+import com.android.tools.idea.rendering.Locale
 import com.android.tools.idea.uibuilder.model.NlComponentHelper
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
@@ -68,7 +70,7 @@ class CustomModelsProvider(private val configurationSetListener: ConfigurationSe
 
     // Default layout file. (Based on current configuration in Layout Editor)
     models.add(NlModel.create(parentDisposable,
-                              "Default",
+                              "Default (Current File)",
                               facet,
                               currentFile,
                               currentFileConfig,
@@ -76,11 +78,17 @@ class CustomModelsProvider(private val configurationSetListener: ConfigurationSe
 
     // Custom Configurations
     for (customConfig in customConfigurations) {
+      val config = customConfig.config
+      val betterFile = ConfigurationMatcher.getBetterMatch(currentFileConfig,
+                                                           config.device,
+                                                           config.deviceState?.name,
+                                                           config.locale,
+                                                           config.target) ?: currentFile
       models.add(NlModel.create(parentDisposable,
                                 customConfig.name,
                                 facet,
-                                file.virtualFile,
-                                customConfig.config,
+                                betterFile,
+                                config,
                                 Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
     }
     return models
