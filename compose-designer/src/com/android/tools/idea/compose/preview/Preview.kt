@@ -30,6 +30,7 @@ import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshActi
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
@@ -74,9 +75,6 @@ import javax.swing.JPanel
 import javax.swing.OverlayLayout
 import kotlin.properties.Delegates
 import kotlin.streams.asSequence
-
-private val NOTIFICATIONS_EP_NAME =
-  ExtensionPointName.create<EditorNotifications.Provider<EditorNotificationPanel>>("com.android.tools.idea.compose.preview.composeEditorNotificationProvider")
 
 /**
  * [ComposePreviewManager.Status] result for when the preview is refreshing. Only [ComposePreviewManager.Status.isRefreshing] will be true.
@@ -224,17 +222,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   var onRefresh: (() -> Unit)? = null
 
-  private val notificationsPanel: Box = Box.createVerticalBox().apply {
-    name = "NotificationsPanel"
-  }
-
-  // The notificationsWrapper helps pushing the notifications to the top of the layout. This whole panel will be hidden if no notifications
-  // are available.
-  private val notificationsWrapper = JPanel(BorderLayout()).apply {
-    isOpaque = false
-    isDoubleBuffered = false
-    add(notificationsPanel, BorderLayout.NORTH)
-  }
+  private val notificationsPanel = NotificationPanel(
+    ExtensionPointName.create<EditorNotifications.Provider<EditorNotificationPanel>>(
+      "com.android.tools.idea.compose.preview.composeEditorNotificationProvider"))
 
   /**
    * [WorkBench] used to contain all the preview elements.
@@ -253,7 +243,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       overlayPanel.apply {
         layout = OverlayLayout(this)
 
-        add(notificationsWrapper)
+        add(notificationsPanel)
         add(surface)
       }
 
@@ -373,22 +363,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * [ComposePreviewEditorNotificationAdapter] when the editor needs to refresh the notifications.
    */
   override fun updateNotifications(parentEditor: FileEditor) {
-    notificationsPanel.removeAll()
-    NOTIFICATIONS_EP_NAME.extensions()
-      .asSequence()
-      .mapNotNull { it.createNotificationPanel(psiFilePointer.virtualFile, parentEditor, project) }
-      .forEach {
-        notificationsPanel.add(it)
-      }
-
-    // If no notification panels were added, we will hide the notifications panel
-    if (notificationsPanel.componentCount > 0) {
-      notificationsWrapper.isVisible = true
-      notificationsPanel.revalidate()
-    }
-    else {
-      notificationsWrapper.isVisible = false
-    }
+    notificationsPanel.updateNotifications(psiFilePointer.virtualFile, parentEditor, project)
   }
 
   /**
