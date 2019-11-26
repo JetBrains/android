@@ -48,6 +48,16 @@ interface SqliteEvaluatorView {
   fun selectDatabase(database: SqliteDatabase)
   fun removeDatabase(index: Int)
 
+  /**
+   * Returns the [SqliteDatabase] currently selected in the UI.
+   */
+  fun getActiveDatabase(): SqliteDatabase
+
+  /**
+   * Returns the string corresponding to the SQLite statement currently visible in the UI.
+   */
+  fun getSqliteStatement(): String
+
   interface Listener {
     /**
      * Method invoked when an sql statement needs to be evaluated.

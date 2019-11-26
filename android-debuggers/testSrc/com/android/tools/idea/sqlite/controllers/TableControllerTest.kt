@@ -222,6 +222,46 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFutureException(tableController.setUp())
   }
 
+  fun testReloadData() {
+    // Prepare
+    `when`(mockDatabaseConnection.executeQuery(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      10, tableView, "tableName", mockDatabaseConnection, SqliteStatement(""), edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.refreshData())
+
+    // Assert
+    orderVerifier.verify(tableView).startTableLoading()
+    orderVerifier.verify(tableView).showTableColumns(mockResultSet._columns)
+    orderVerifier.verify(tableView).showTableRowBatch(mockResultSet.invocations[0])
+    orderVerifier.verify(tableView).stopTableLoading()
+
+    verify(tableView, times(0)).reportError(any(String::class.java), any(Throwable::class.java))
+  }
+
+  fun testReloadDataFailsWhenControllerIsDisposed() {
+    // Prepare
+    `when`(mockDatabaseConnection.executeQuery(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      10, tableView, "tableName", mockDatabaseConnection, SqliteStatement(""), edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    // Act
+    Disposer.dispose(tableController)
+    val future = tableController.refreshData()
+
+    // Assert
+    pumpEventsAndWaitForFutureException(future)
+  }
+
   fun `test Next UiIsDisabledWhenNoMoreRowsAvailableOnSetup`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(10)

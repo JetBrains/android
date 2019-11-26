@@ -74,6 +74,14 @@ class SqliteEvaluatorViewImpl(
     evaluatorPanel.databaseComboBox.removeItemAt(index)
   }
 
+  override fun getActiveDatabase(): SqliteDatabase {
+    return (evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database
+  }
+
+  override fun getSqliteStatement(): String {
+    return editorTextField.text
+  }
+
   override fun addListener(listener: SqliteEvaluatorView.Listener) {
     listeners.add(listener)
   }

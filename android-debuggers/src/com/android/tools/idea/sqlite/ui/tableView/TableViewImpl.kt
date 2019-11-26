@@ -65,6 +65,8 @@ class TableViewImpl : TableView {
 
   private val pageSizeComboBox = ComboBox<Int>()
 
+  private val refreshButton = CommonButton("Refresh table", AllIcons.Actions.Refresh)
+
   init {
     firstRowsPageButton.toolTipText = "First"
     panel.controlsPanel.add(firstRowsPageButton)
@@ -86,6 +88,10 @@ class TableViewImpl : TableView {
     lastRowsPageButton.toolTipText = "Last"
     panel.controlsPanel.add(lastRowsPageButton)
     lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() }}
+
+    refreshButton.toolTipText = "Sync table"
+    panel.controlsPanel.add(refreshButton)
+    refreshButton.addActionListener{ listeners.forEach { it.refreshDataInvoked() } }
 
     panel.table.tableHeader.defaultRenderer = HeaderRenderer()
 
