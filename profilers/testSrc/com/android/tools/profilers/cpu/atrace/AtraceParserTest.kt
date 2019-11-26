@@ -108,13 +108,14 @@ class AtraceParserTest {
   @Test
   fun testGetCpuUtilizationDataSeries() {
     val dataSeries = myParser.cpuUtilizationSeries
-    val size = 100 / myParser.cpuThreadSliceInfoStates.size.toDouble()
+    var avg = 0.0
     // No values should exceed the bounds
     for (data in dataSeries) {
       assertThat(data.value).isAtLeast(0)
       assertThat(data.value).isAtMost(100)
-      assertThat(data.value % size).isEqualTo(0.0)
+      avg += data.value.toDouble()
     }
+    assertThat(avg/dataSeries.size).isWithin(.01).of(23.05)
   }
 
   @Test
@@ -137,7 +138,8 @@ class AtraceParserTest {
     try {
       val parser = AtraceParser(AtraceParser.INVALID_PROCESS)
       parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
-    } catch (e: IllegalArgumentException) {
+    }
+    catch (e: IllegalArgumentException) {
       expectedExceptionCaught = true
     }
     assertThat(expectedExceptionCaught).isTrue()
@@ -210,6 +212,18 @@ class AtraceParserTest {
   fun perfettoCaptureGetsProcessList() {
     val parser = AtraceParser(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))
     assertThat(parser.getProcessList("")).isNotEmpty()
+  }
+
+  @Test
+  fun atraceCpuUtilizationBucketed() {
+    // Cpu utilization is computed at the same time cpu slices are generated, this makes it challenging to test in isolation.
+    // Here we take an already parsed capture and test it has utilization series, as well as the max value in the series.
+    val series = myParser.cpuUtilizationSeries
+    assertThat(series).hasSize(268)
+    // To test the bucketing we verify the delta of each point in the series is the bucket time.
+    for (i in 1 until series.size) {
+      assertThat(series[i].x - series[i - 1].x).isEqualTo(AtraceParser.UTILIZATION_BUCKET_LENGTH_US)
+    }
   }
 
   companion object {
