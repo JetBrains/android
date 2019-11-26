@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -101,7 +100,7 @@ public class IdeaSyncPopulateProjectTask {
         syncFinishedCallback.run();
       }
       else {
-        TransactionGuard.getInstance().submitTransactionLater(myProject, syncFinishedCallback);
+        ApplicationManager.getApplication().invokeLater(syncFinishedCallback, myProject.getDisposed());
       }
     }
     if (setupRequest != null) {
