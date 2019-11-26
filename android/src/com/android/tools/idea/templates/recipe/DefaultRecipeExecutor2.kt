@@ -36,6 +36,8 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleUtil.dependsOn
+import com.android.tools.idea.gradle.util.GradleUtil.dependsOnJavaLibrary
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.templates.RenderingContextAdapter
@@ -56,7 +58,6 @@ import com.android.tools.idea.wizard.template.findResource
 import com.android.utils.XmlUtils.XML_PROLOG
 import com.android.utils.findGradleBuildFile
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.base.Strings.nullToEmpty
 import com.intellij.diff.comparison.ComparisonManager
 import com.intellij.diff.comparison.ComparisonPolicy.IGNORE_WHITESPACES
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -108,8 +109,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     else
       defaultConfigurations
 
-    val buildFile = getBuildFilePath(context)
-    val buildModel = getBuildModel(buildFile, project)!!
+    val buildModel = getModuleBuildModel(context) ?: return false
 
     val isArtifactInDependencies = configurations.any { c ->
       buildModel.dependencies().containsArtifact(c, ArtifactDependencySpec.create(mavenCoordinate)!!)
@@ -128,19 +128,13 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
       val androidModel = AndroidModuleModel.get(facet) ?: return null
       return when (configurations[0]) {
         in defaultConfigurations ->
-          GradleUtil.dependsOn(androidModel, mavenCoordinate) || GradleUtil.dependsOnJavaLibrary(androidModel,
-                                                                                                 mavenCoordinate) // For Kotlin dependencies
+          dependsOn(androidModel, mavenCoordinate) || dependsOnJavaLibrary(androidModel, mavenCoordinate) // For Kotlin dependencies
         in defaultTestConfigurations -> GradleUtil.dependsOnAndroidTest(androidModel, mavenCoordinate)
         else -> throw TemplateModelException("Unknown dependency configuration " + configurations[0])
       }
     }
 
-    val isCorrespondingDefaultModuleFound = findCorrespondingModule()
-    if (isCorrespondingDefaultModuleFound != null) {
-      return isCorrespondingDefaultModuleFound
-    }
-
-    return false
+    return findCorrespondingModule() ?: false
   }
 
   /**
@@ -167,22 +161,12 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
   override fun applyPlugin(plugin: String) {
     referencesExecutor.applyPlugin(plugin)
 
-    val buildFile = getBuildFilePath(context)
-    val buildModel = getBuildModel(buildFile, project)
-    if (buildModel != null) {
+    getModuleBuildModel(context)?.let { buildModel ->
       if (buildModel.plugins().none { it.name().forceString() == plugin }) {
         buildModel.applyPlugin(plugin)
         io.applyChanges(buildModel)
       }
-      return
     }
-
-    mergeBuildFilesAndWrite(
-      dependencies = "apply plugin: '$plugin'",
-      content = if (buildFile.exists()) (readTextFile(buildFile) ?: "") else "",
-      project = project,
-      buildFile = buildFile
-    )
   }
 
   override fun addClasspathDependency(mavenCoordinate: String) {
@@ -193,17 +177,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     val toBeAddedDependency = ArtifactDependencySpec.create(resolvedCoordinate)
     check(toBeAddedDependency != null) { "$resolvedCoordinate is not a valid classpath dependency" }
 
-    val rootBuildFile = findGradleBuildFile(getBaseDirPath(project))
-    val buildModel = getBuildModel(rootBuildFile, project)
-    if (buildModel == null) {
-      mergeBuildFilesAndWrite(
-        dependencies = formatClasspath(resolvedCoordinate),
-        content = if (rootBuildFile.exists()) nullToEmpty(readTextFile(rootBuildFile)) else "",
-        project = project,
-        buildFile = rootBuildFile
-      )
-      return
-    }
+    val buildModel = getProjectBuildModel(context) ?: return
 
     val buildscriptDependencies = buildModel.buildscript().dependencies()
     val targetDependencyModel = buildscriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME).firstOrNull {
@@ -228,19 +202,17 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
   override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?) {
     // Translate from "compile" to "implementation" based on the parameter map context
     val newConfiguration = convertConfiguration(projectTemplateData.gradlePluginVersion, configuration)
-    referencesExecutor.addDependency(newConfiguration, mavenCoordinate, minRev)
+    referencesExecutor.addDependency(newConfiguration, mavenCoordinate)
 
-    val buildFile = getBuildFilePath(context)
+    val buildModel = getModuleBuildModel(context) ?: return
 
-    val resolvedConfiguration =
-      GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
+    val resolvedConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
     val resolvedMavenCoordinate = resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev)
 
     if (hasDependency(resolvedMavenCoordinate)) {
       return
     }
 
-    val buildModel = getBuildModel(buildFile, project) ?: return
     buildModel.dependencies().addArtifact(resolvedConfiguration, resolvedMavenCoordinate)
     io.applyChanges(buildModel)
   }
@@ -250,10 +222,9 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
       "incorrect module name (it should not be empty or include first ':')"
     }
     val configuration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
-    val buildFile = findGradleBuildFile(toModule)
 
     // TODO(qumeric) handle it in a better way?
-    val buildModel = getBuildModel(buildFile, context.project) ?: return
+    val buildModel = getModuleBuildModel(context, toModule) ?: return
     buildModel.dependencies().addModule(configuration, ":$moduleName")
     io.applyChanges(buildModel)
   }
@@ -311,9 +282,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
   }
 
   override fun addSourceSet(type: SourceSetType, name: String, dir: File) {
-    val buildFile = getBuildFilePath(context)
-    // TODO(qumeric) handle it in a better way?
-    val buildModel = getBuildModel(buildFile, context.project) ?: return
+    val buildModel = getModuleBuildModel(context) ?: return
     val sourceSet = buildModel.android().addSourceSet(name)
 
     if (type == SourceSetType.MANIFEST) {
@@ -346,9 +315,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
   }
 
   override fun setExtVar(name: String, value: Any) {
-    val rootBuildFile = findGradleBuildFile(getBaseDirPath(context.project))
-    // TODO(qumeric) handle it in more reliable way?
-    val buildModel = getBuildModel(rootBuildFile, context.project) ?: return
+    val buildModel = getProjectBuildModel(context) ?: return
     val property = buildModel.buildscript().ext().findProperty(name)
     if (property.valueType != GradlePropertyModel.ValueType.NONE) {
       return // we do not override property value if it exists. TODO(qumeric): ask user?
@@ -371,9 +338,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
    * Adds a new build feature to android block. For example, may enable compose.
    */
   override fun setBuildFeature(name: String, value: Boolean) {
-    val buildFile = getBuildFilePath(context)
-    // TODO(qumeric) handle it in a better way?
-    val buildModel = getBuildModel(buildFile, context.project) ?: return
+    val buildModel = getModuleBuildModel(context) ?: return
     val feature = when (name) {
       "compose" -> buildModel.android().buildFeatures().compose()
       else -> throw IllegalArgumentException("currently only compose build feature is supported")
@@ -390,9 +355,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
    */
   override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {
     val languageLevel = LanguageLevel.parse(version)!!
-    val buildFile = getBuildFilePath(context)
-    // TODO(qumeric) handle it in a better way?
-    val buildModel = getBuildModel(buildFile, context.project) ?: return
+    val buildModel = getModuleBuildModel(context) ?: return
 
     fun updateCompatibility(current: LanguageLevelPropertyModel) {
       if (current.valueType == GradlePropertyModel.ValueType.NONE ||
@@ -415,10 +378,9 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     require(name.isNotEmpty()) {
       "Module name cannot be empty"
     }
-    val buildFile = findGradleBuildFile(toModule)
-    // TODO(qumeric) handle it in a better way?
-    val buildModel = getBuildModel(buildFile, context.project) ?: return
-    buildModel.android().dynamicFeatures().addListValue().setValue(":$name")
+    val gradleName = ':' + name.trimStart(':')
+    val buildModel = getModuleBuildModel(context, toModule) ?: return
+    buildModel.android().dynamicFeatures().addListValue().setValue(gradleName)
     io.applyChanges(buildModel)
   }
 
@@ -493,7 +455,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     val factory = XmlElementFactory.getInstance(project)
     val root = factory.createTagFromText(content)
 
-    // Note: At the moment only root "context:tools" atribute needs to be shorten
+    // Note: At the moment only root "context:tools" attribute needs to be shorten
     val contextAttr = root.getAttribute(ATTR_CONTEXT, TOOLS_URI)
     val context = contextAttr?.value
     if (packageName == null || context == null || !context.startsWith("$packageName.")) {
@@ -533,15 +495,6 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
 
   private infix fun File.contentEquals(content: String): Boolean =
     ComparisonManager.getInstance().isEquals(content, readTextFile(this)!!, IGNORE_WHITESPACES)
-
-  // TODO why argument is called "dependencies"? This is very suspicious. Also maybe it should be removed.
-  private fun mergeBuildFilesAndWrite(
-    dependencies: String,
-    content: String,
-    project: Project,
-    buildFile: File,
-    supportLibVersionFilter: String = ""
-  ) = io.writeFile(this, io.mergeBuildFiles(dependencies, content, project, supportLibVersionFilter), buildFile)
 
   private fun addFileAlreadyExistWarning(targetFile: File) =
     context.warnings.add("The following file could not be created since it already exists: ${targetFile.path}")
@@ -616,7 +569,14 @@ const val CLASSPATH_CONFIGURATION_NAME = "classpath"
 
 private val LINE_SEPARATOR = LineSeparator.getSystemLineSeparator().separatorString
 
+private fun getModuleBuildModel(context: RenderingContext2, toModule: File? = null) =
+  getBuildModel(if (toModule == null) getBuildFilePath(context) else findGradleBuildFile(toModule), context.project)
+
+private fun getProjectBuildModel(context: RenderingContext2) =
+  getBuildModel(findGradleBuildFile(getBaseDirPath(context.project)), context.project)
+
 // TODO(qumeric): make private
+// TODO(qumeric) do something better then just returning null if there is no build model (throw exception?)
 fun getBuildModel(buildFile: File, project: Project): GradleBuildModel? {
   if (project.isDisposed || !buildFile.exists()) {
     return null
