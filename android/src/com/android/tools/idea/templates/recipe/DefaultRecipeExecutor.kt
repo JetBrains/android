@@ -230,7 +230,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
 
     val buildFile = findGradleBuildFile(File(toModule))
 
-    // TODO(qumeric) handle it in a better way?
     val buildModel = getBuildModel(buildFile, context.project) ?: return
     buildModel.dependencies().addModule(configuration, ":$moduleName")
     io.applyChanges(buildModel)

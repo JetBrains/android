@@ -64,6 +64,8 @@ internal class FindReferencesRecipeExecutor2(private val context: RenderingConte
     context.dependencies.put(configuration, mavenCoordinate)
   }
 
+  override fun addModuleDependency(configuration: String, moduleName: String, toModule: String) {}
+
   fun addTargetFile(file: File) {
     context.targetFiles.add(resolveTargetFile(file))
   }
