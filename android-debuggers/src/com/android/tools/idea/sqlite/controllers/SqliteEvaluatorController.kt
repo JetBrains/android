@@ -21,7 +21,8 @@ import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.google.common.util.concurrent.FutureCallback
-import com.intellij.openapi.Disposable
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.util.Disposer
 
 /**
@@ -33,7 +34,7 @@ import com.intellij.openapi.util.Disposer
 class SqliteEvaluatorController(
   private val view: SqliteEvaluatorView,
   private val edtExecutor: FutureCallbackExecutor
-) : Disposable {
+) : DatabaseInspectorController.TabController {
   private var currentTableController: TableController? = null
   private val sqliteEvaluatorViewListener: SqliteEvaluatorView.Listener = SqliteEvaluatorViewListenerImpl()
   private val listeners = mutableListOf<Listener>()
@@ -44,6 +45,10 @@ class SqliteEvaluatorController(
 
   fun removeDatabase(index: Int) {
     view.removeDatabase(index)
+  }
+
+  override fun refreshData(): ListenableFuture<Unit> {
+    return currentTableController?.refreshData() ?: Futures.immediateFuture(Unit)
   }
 
   override fun dispose() {

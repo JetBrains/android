@@ -66,6 +66,7 @@ interface TableView {
     fun loadNextRowsInvoked()
     fun loadFirstRowsInvoked()
     fun loadLastRowsInvoked()
+    fun refreshDataInvoked()
 
     /**
      * Invoked when the user changes the number of rows to display per page.

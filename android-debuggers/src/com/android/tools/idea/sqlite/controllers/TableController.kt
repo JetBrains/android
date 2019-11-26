@@ -18,14 +18,13 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
-import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
+import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.containers.ComparatorUtil.max
@@ -46,7 +45,7 @@ class TableController(
   private val databaseConnection: DatabaseConnection,
   private val sqliteStatement: SqliteStatement,
   private val edtExecutor: FutureCallbackExecutor
-) : Disposable {
+) : DatabaseInspectorController.TabController {
   private lateinit var resultSet: SqliteResultSet
   private val listener = TableViewListenerImpl()
   private var orderBy: OrderBy? = null
@@ -57,12 +56,34 @@ class TableController(
 
     return edtExecutor.transform(databaseConnection.executeQuery(sqliteStatement)) { newResultSet ->
       if (Disposer.isDisposed(this)) {
-        newResultSet.dispose()
+        Disposer.dispose(newResultSet)
         throw ProcessCanceledException()
       }
 
       view.showPageSizeValue(rowBatchSize)
       view.addListener(listener)
+
+      resultSet = newResultSet
+      Disposer.register(this, newResultSet)
+
+      fetchAndDisplayTableData()
+
+      return@transform
+    }
+  }
+
+  // TODO We should just reload the current page.
+  //  But live inspection doesn't support paging yet. So we need to reload everything.
+  override fun refreshData(): ListenableFuture<Unit> {
+    Disposer.dispose(resultSet)
+
+    view.startTableLoading()
+
+    return edtExecutor.transform(databaseConnection.executeQuery(sqliteStatement)) { newResultSet ->
+      if (Disposer.isDisposed(this)) {
+        Disposer.dispose(newResultSet)
+        throw ProcessCanceledException()
+      }
 
       resultSet = newResultSet
       Disposer.register(this, newResultSet)
@@ -204,6 +225,10 @@ class TableController(
         val future = updateDataAndButtons()
         handleFetchRowsError(future)
       }
+    }
+
+    override fun refreshDataInvoked() {
+      refreshData()
     }
   }
 }

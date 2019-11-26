@@ -61,7 +61,7 @@ class DatabaseInspectorControllerImpl(
    * <p>Multiple tables can be open at the same time in different tabs.
    * This map keeps track of corresponding controllers.
    */
-  private val resultSetControllers = mutableMapOf<TabId, Disposable>()
+  private val resultSetControllers = mutableMapOf<TabId, DatabaseInspectorController.TabController>()
 
   private val sqliteViewListener = SqliteViewListenerImpl()
 
@@ -310,6 +310,10 @@ interface DatabaseInspectorController : Disposable {
       fun onDatabaseAdded(database: SqliteDatabase)
       fun onDatabaseRemoved(database: SqliteDatabase)
     }
+  }
+
+  interface TabController : Disposable {
+    fun refreshData(): ListenableFuture<Unit>
   }
 }
 
