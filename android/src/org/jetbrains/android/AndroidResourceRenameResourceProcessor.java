@@ -71,6 +71,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.impl.PsiModificationTrackerImpl;
 import com.intellij.psi.impl.light.LightElement;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.InheritanceUtil;
@@ -232,12 +233,10 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
   public Runnable getPostRenameCallback(@NotNull PsiElement element,
                                         @NotNull String newName,
                                         @NotNull RefactoringElementListener elementListener) {
-    // As per b/134373997, there is an issue with string resources not resolving after a rename refactor.
-    // This is due to the resource repositories not being updated before the ResolveCache is calculated.
-    // Manually dropping the resolve caches for the project fixes this issue by forcing the ResolveCache to be re-calculated after the new
-    // resource has propagated through the ResourceFolderRepositories.
-    Project project = element.getProject();
-    return () -> PsiManager.getInstance(project).dropResolveCaches();
+    // After renaming, we need to wait for the new resource to be propagated through the resource repositories. After that we need the
+    // resolve caches to be invalidated and the highlighting to be triggered again.
+    PsiManager manager = PsiManager.getInstance(element.getProject());
+    return () -> AndroidResourceUtil.scheduleNewResolutionAndHighlighting(manager);
   }
 
   private static void prepareCustomViewRenaming(PsiClass cls, String newName, Map<PsiElement, String> allRenames, AndroidFacet facet) {
