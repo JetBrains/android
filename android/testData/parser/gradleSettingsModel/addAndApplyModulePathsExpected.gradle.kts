@@ -1,4 +1,3 @@
 include(":lib1")
-include(":app")
-include(":lib")
+include(":app", ":lib")
 

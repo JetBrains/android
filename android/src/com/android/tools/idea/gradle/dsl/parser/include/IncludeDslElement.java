@@ -17,11 +17,17 @@ package com.android.tools.idea.gradle.dsl.parser.include;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.intellij.psi.PsiElement;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,47 +45,36 @@ public class IncludeDslElement extends GradlePropertiesDslElement {
     return myParent != null ? myParent.create() : null;
   }
 
-  public void removeModule(@NotNull Object value) {
-    for (GradleDslElement module : getPropertyElements(GradleDslElement.class)) {
-      if (module instanceof GradleDslSimpleExpression) {
-        GradleDslSimpleExpression simpleModulePath = (GradleDslSimpleExpression)module;
-        if (value.equals(simpleModulePath.getValue())) {
-          super.removeProperty(simpleModulePath);
-          updateDependenciesOnRemoveElement(simpleModulePath);
-          return;
-        }
-      }
-      else if (module instanceof GradleDslExpressionList) {
-        GradleDslExpressionList listIncludePaths = (GradleDslExpressionList)module;
-        for (GradleDslSimpleExpression simpleModulePath : listIncludePaths.getSimpleExpressions()) {
-          if (value.equals(simpleModulePath.getValue())) {
-            listIncludePaths.removeProperty(simpleModulePath);
-            updateDependenciesOnRemoveElement(simpleModulePath);
-            return;
-          }
-        }
-      }
+  public List<GradleDslSimpleExpression> getModules() {
+    return getPropertyElements(GradleDslElement.class).stream().
+      filter( e -> e instanceof GradleDslMethodCall || e instanceof GradleDslExpressionList || e instanceof GradleDslLiteral).
+      flatMap(e -> (e instanceof GradleDslMethodCall) ?
+                   ((GradleDslMethodCall)e).getArgumentsElement().getSimpleExpressions().stream() :
+                   (e instanceof GradleDslExpressionList) ? ((GradleDslExpressionList)e).getSimpleExpressions().stream() :
+                   new ArrayList<GradleDslSimpleExpression>(Collections.singleton((GradleDslLiteral)e)).stream()).collect(Collectors.toList());
+  }
 
+  public void removeModule(@NotNull Object value) {
+    for (GradleDslSimpleExpression module : getModules()) {
+      if (value.equals(module.getValue())) {
+        if (module.getParent() instanceof GradleDslExpressionList) {
+          GradleDslExpressionList parent = ((GradleDslExpressionList)module.getParent());
+          parent.removeProperty(module);
+        }
+        else {
+          super.removeProperty(module);
+        }
+        updateDependenciesOnRemoveElement(module);
+        return;
+      }
     }
   }
 
   public void replaceModulePath(@NotNull Object oldValue, @NotNull Object newValue) {
-    for (GradleDslElement module : getPropertyElements(GradleDslElement.class)) {
-      if (module instanceof GradleDslSimpleExpression) {
-        GradleDslSimpleExpression simpleModulePath = (GradleDslSimpleExpression)module;
-        if (oldValue.equals(simpleModulePath.getValue())) {
-          simpleModulePath.setValue(newValue);
-          return;
-        }
-      }
-      else if (module instanceof GradleDslExpressionList) {
-        GradleDslExpressionList listIncludePaths = (GradleDslExpressionList)module;
-        for (GradleDslSimpleExpression simpleModulePath : listIncludePaths.getSimpleExpressions()) {
-          if (oldValue.equals(simpleModulePath.getValue())) {
-            simpleModulePath.setValue(newValue);
-            return;
-          }
-        }
+    for (GradleDslSimpleExpression module : getModules()) {
+      if (oldValue.equals(module.getValue())) {
+        module.setValue(newValue);
+        return;
       }
     }
   }

@@ -1,2 +1,1 @@
-include(":app")
-include(":lib")
+include(":app", ":lib")
