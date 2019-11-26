@@ -81,7 +81,6 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
-import com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY
 import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
@@ -521,7 +520,6 @@ fun setupTestProjectFromAndroidModel(
         modifiableModel.setModuleGroupPath(module, arrayOf(project.name))
       }
       modifiableModel.commit()
-      module.setOption(EXTERNAL_SYSTEM_ID_KEY, GRADLE_SYSTEM_ID.id)
       ExternalSystemModulePropertyManager
         .getInstance(module)
         .setExternalOptions(

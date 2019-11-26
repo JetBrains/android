@@ -15,23 +15,22 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.intellij.notification.NotificationType.ERROR;
+import static com.intellij.openapi.util.text.StringUtil.join;
+
 import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.intellij.notification.NotificationType.ERROR;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
-import static com.intellij.openapi.util.text.StringUtil.join;
+import org.jetbrains.annotations.NotNull;
 
 public class SupportedModuleChecker {
   @NotNull
@@ -55,7 +54,7 @@ public class SupportedModuleChecker {
     for (Module module : modules) {
       ModuleType moduleType = ModuleType.get(module);
       if (moduleType instanceof JavaModuleType) {
-        String externalSystemId = module.getOptionValue(EXTERNAL_SYSTEM_ID_KEY);
+        String externalSystemId = ExternalSystemModulePropertyManager.getInstance(module).getExternalSystemId();
         if (!GRADLE_SYSTEM_ID.getId().equals(externalSystemId)) {
           unsupportedModules.add(module);
         }
