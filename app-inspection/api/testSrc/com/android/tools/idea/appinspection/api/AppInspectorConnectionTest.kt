@@ -16,11 +16,10 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionEvent
+import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Status.ERROR
+import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Status.SUCCESS
 import com.android.tools.app.inspection.AppInspection.CrashEvent
-import com.android.tools.app.inspection.AppInspection.ServiceResponse.Status.ERROR
-import com.android.tools.app.inspection.AppInspection.ServiceResponse.Status.SUCCESS
 import com.android.tools.idea.appinspection.api.AppInspectionTestUtils.createRawAppInspectionEvent
 import com.android.tools.idea.appinspection.api.AppInspectionTestUtils.createRawEvent
 import com.android.tools.idea.protobuf.ByteString
@@ -57,12 +56,9 @@ class AppInspectorConnectionTest {
   fun disposeInspectorSucceedWithCallback() {
     val connection = appInspectionRule.launchInspectorConnection()
 
-    assertThat(connection.disposeInspector().get())
-      .isEqualTo(
-        AppInspection.ServiceResponse.newBuilder()
-          .setStatus(SUCCESS)
-          .build()
-      )
+    val response = connection.disposeInspector().get()
+    assertThat(response.status).isEqualTo(SUCCESS)
+    assertThat(response.hasServiceResponse()).isTrue()
   }
 
   @Test
@@ -71,13 +67,10 @@ class AppInspectorConnectionTest {
       commandHandler = TestInspectorCommandHandler(timer, false, "error")
     )
 
-    assertThat(connection.disposeInspector().get())
-      .isEqualTo(
-        AppInspection.ServiceResponse.newBuilder()
-          .setStatus(ERROR)
-          .setErrorMessage("error")
-          .build()
-      )
+    val response = connection.disposeInspector().get()
+    assertThat(response.status).isEqualTo(ERROR)
+    assertThat(response.errorMessage).isEqualTo("error")
+    assertThat(response.hasServiceResponse()).isTrue()
   }
 
   @Test
@@ -127,8 +120,9 @@ class AppInspectorConnectionTest {
   fun disposeConnectionClosesConnection() {
     val connection = appInspectionRule.launchInspectorConnection(INSPECTOR_ID)
 
-    assertThat(connection.disposeInspector().get()).isEqualTo(AppInspection.ServiceResponse.newBuilder().setStatus((SUCCESS)).build())
-
+    val response = connection.disposeInspector().get()
+    assertThat(response.status).isEqualTo(SUCCESS)
+    assertThat(response.hasServiceResponse()).isTrue()
     // connection should be closed
     try {
       connection.sendRawCommand("Test".toByteArray()).get()

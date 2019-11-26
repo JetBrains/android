@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.appinspection.api
 
+import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
 import com.android.tools.app.inspection.AppInspection.DisposeInspectorCommand
 import com.android.tools.app.inspection.AppInspection.RawCommand
-import com.android.tools.app.inspection.AppInspection.ServiceResponse
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_EVENT
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
@@ -54,7 +54,7 @@ internal class AppInspectorConnection(
   private val connectionClosedMessage = "Failed to send a command because the $inspectorId connection is already closed."
   private val disposeCalled = AtomicBoolean(false)
   private var isDisposed = AtomicBoolean(false)
-  private val disposeFuture = SettableFuture.create<ServiceResponse>()
+  private val disposeFuture = SettableFuture.create<AppInspection.AppInspectionResponse>()
 
   /**
    * The active [AppInspectorClient.EventListener] for this connection.
@@ -120,7 +120,7 @@ internal class AppInspectorConnection(
     }
   }
 
-  override fun disposeInspector(): ListenableFuture<ServiceResponse> {
+  override fun disposeInspector(): ListenableFuture<AppInspection.AppInspectionResponse> {
     return disposeFuture.also {
       if (disposeCalled.compareAndSet(false, true)) {
         val disposeInspectorCommand = DisposeInspectorCommand.newBuilder().build()
@@ -134,7 +134,7 @@ internal class AppInspectorConnection(
           filter = { it.hasAppInspectionResponse() && it.appInspectionResponse.commandId == commandId },
           startTimeNs = { lastEventTimestampNs }
         ) {
-          cleanup("Inspector $inspectorId was disposed.", it.appInspectionResponse.serviceResponse)
+          cleanup("Inspector $inspectorId was disposed.", it.appInspectionResponse)
           // we manually call unregister, because future can be completed from other places, so we clean up the listeners there
           false
         }
@@ -178,7 +178,7 @@ internal class AppInspectorConnection(
    * All futures are completed exceptionally with [futureExceptionMessage]. In the case this is
    * called as part of the dispose code path, [disposeFuture] is completed with [disposeResponse].
    */
-  private fun cleanup(futureExceptionMessage: String, disposeResponse: ServiceResponse? = null) {
+  private fun cleanup(futureExceptionMessage: String, disposeResponse: AppInspection.AppInspectionResponse? = null) {
     if (isDisposed.compareAndSet(false, true)) {
       transport.poller.unregisterListener(inspectorEventListener)
       transport.poller.unregisterListener(processEndListener)

@@ -40,9 +40,9 @@ object AppInspectionTestUtils {
    */
   fun createSuccessfulServiceResponse(commandId: Int): AppInspection.AppInspectionResponse = AppInspection.AppInspectionResponse.newBuilder()
     .setCommandId(commandId)
+    .setStatus(AppInspection.AppInspectionResponse.Status.SUCCESS)
     .setServiceResponse(
       AppInspection.ServiceResponse.newBuilder()
-        .setStatus(AppInspection.ServiceResponse.Status.SUCCESS)
         .build()
     )
     .build()
