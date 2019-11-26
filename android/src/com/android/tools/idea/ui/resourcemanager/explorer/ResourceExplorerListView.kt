@@ -73,6 +73,7 @@ import java.awt.event.MouseEvent
 import java.awt.font.TextAttribute
 import java.util.Locale
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import java.util.function.BiConsumer
 import javax.swing.BorderFactory
@@ -150,6 +151,7 @@ class ResourceExplorerListView(
 
   /** Reference to the last [CompletableFuture] used to search for filtered resources in other modules */
   private var searchFuture: CompletableFuture<List<ResourceSection>>? = null
+  private var showLoadingFuture: ScheduledFuture<*>? = null
 
   private var fileToSelect: VirtualFile? = null
   private var resourceToSelect: String? = null
@@ -495,14 +497,17 @@ class ResourceExplorerListView(
       }, EdtExecutorService.getInstance())
 
     if (populateResourcesFuture?.isDone == false) {
-      JobScheduler.getScheduler().schedule(
-        { GuiUtils.invokeLaterIfNeeded(this::displayLoading, ModalityState.defaultModalityState()) },
-        MS_DELAY_BEFORE_LOADING_STATE,
-        UNIT_DELAY_BEFORE_LOADING_STATE)
+      if (showLoadingFuture == null) {
+        showLoadingFuture = JobScheduler.getScheduler().schedule(
+          { GuiUtils.invokeLaterIfNeeded(this::displayLoading, ModalityState.defaultModalityState()) },
+          MS_DELAY_BEFORE_LOADING_STATE,
+          UNIT_DELAY_BEFORE_LOADING_STATE)
+      }
     }
   }
 
   private fun displayLoading() {
+    showLoadingFuture = null
     if (populateResourcesFuture?.isDone?: true) {
       return
     }
@@ -691,6 +696,7 @@ class ResourceExplorerListView(
     DnDManager.getInstance().unregisterTarget(resourceImportDragTarget, this)
     populateResourcesFuture?.cancel(true)
     searchFuture?.cancel(true)
+    showLoadingFuture?.cancel(true)
   }
 
   private fun createBottomActions(): DefaultActionGroup {
