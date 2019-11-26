@@ -127,7 +127,8 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
       val androidModel = AndroidModuleModel.get(facet) ?: return null
       return when (configurations[0]) {
         in defaultConfigurations ->
-          GradleUtil.dependsOn(androidModel, mavenCoordinate) || GradleUtil.dependsOnJavaLibrary(androidModel, mavenCoordinate) // For Kotlin dependencies
+          GradleUtil.dependsOn(androidModel, mavenCoordinate) || GradleUtil.dependsOnJavaLibrary(androidModel,
+                                                                                                 mavenCoordinate) // For Kotlin dependencies
         in defaultTestConfigurations -> GradleUtil.dependsOnAndroidTest(androidModel, mavenCoordinate)
         else -> throw TemplateModelException("Unknown dependency configuration " + configurations[0])
       }
@@ -371,7 +372,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     val buildFile = getBuildFilePath(context)
     // TODO(qumeric) handle it in a better way?
     val buildModel = getBuildModel(buildFile, context.project) ?: return
-    val feature = when(name) {
+    val feature = when (name) {
       "compose" -> buildModel.android().buildFeatures().compose()
       else -> throw IllegalArgumentException("currently only compose build feature is supported")
     }
@@ -405,6 +406,18 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     if (kotlinSupport && (context.templateData as? ModuleTemplateData)?.isDynamic != true) {
       updateCompatibility(buildModel.android().kotlinOptions().jvmTarget())
     }
+    io.applyChanges(buildModel)
+  }
+
+  override fun addDynamicFeature(name: String, toModule: String) {
+    require(name.isNotEmpty() && toModule.isNotEmpty()) {
+      "Module name cannot be empty"
+    }
+    val buildFile = findGradleBuildFile(File(toModule))
+    val gradleName = ':' + name.trimStart(':')
+    // TODO(qumeric) handle it in a better way?
+    val buildModel = getBuildModel(buildFile, context.project) ?: return
+    buildModel.android().dynamicFeatures().addListValue().setValue(gradleName)
     io.applyChanges(buildModel)
   }
 
