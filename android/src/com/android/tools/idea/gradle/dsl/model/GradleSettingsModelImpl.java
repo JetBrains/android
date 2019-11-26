@@ -104,24 +104,11 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
       return result;
     }
 
-    for (GradleDslElement includePath : includePaths.getPropertyElements(GradleDslElement.class)) {
-      if (includePath instanceof GradleDslSimpleExpression) {
-        GradleDslSimpleExpression simpleIncludePath = (GradleDslSimpleExpression)includePath;
-        String value = simpleIncludePath.getValue(String.class);
-        if (value != null) {
-          result.add(standardiseModulePath(value));
-        }
+    for (GradleDslSimpleExpression includePath : includePaths.getModules()) {
+      String value = includePath.getValue(String.class);
+      if (value != null) {
+        result.add(standardiseModulePath(value));
       }
-      else if (includePath instanceof GradleDslExpressionList) {
-        GradleDslExpressionList listIncludePath = (GradleDslExpressionList)includePath;
-        for (GradleDslSimpleExpression simpleIncludePath : listIncludePath.getSimpleExpressions()) {
-          String value = simpleIncludePath.getValue(String.class);
-          if (value != null) {
-            result.add(standardiseModulePath(value));
-          }
-        }
-      }
-
     }
     return result;
   }
