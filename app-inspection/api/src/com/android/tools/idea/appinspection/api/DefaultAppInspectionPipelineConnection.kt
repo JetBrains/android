@@ -16,8 +16,8 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
+import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Status.SUCCESS
 import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
-import com.android.tools.app.inspection.AppInspection.ServiceResponse.Status.SUCCESS
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.idea.transport.TransportFileCopier
@@ -98,7 +98,7 @@ private class DefaultAppInspectionPipelineConnection(val processTransport: AppIn
             eventKind = APP_INSPECTION_RESPONSE,
             filter = { it.appInspectionResponse.commandId == commandId }
           ) { event ->
-            if (event.appInspectionResponse.serviceResponse.status == SUCCESS) {
+            if (event.appInspectionResponse.status == SUCCESS) {
               connectionFuture.set(AppInspectorConnection(processTransport, inspectorId, event.timestamp))
             }
             else {

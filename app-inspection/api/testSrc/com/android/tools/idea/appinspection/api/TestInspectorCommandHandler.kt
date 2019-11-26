@@ -17,9 +17,9 @@ package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
+import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Status.ERROR
+import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Status.SUCCESS
 import com.android.tools.app.inspection.AppInspection.ServiceResponse
-import com.android.tools.app.inspection.AppInspection.ServiceResponse.Status.ERROR
-import com.android.tools.app.inspection.AppInspection.ServiceResponse.Status.SUCCESS
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
@@ -42,11 +42,10 @@ internal class TestInspectorCommandHandler(timer: FakeTimer,
                    .setIsEnded(true)
                    .setAppInspectionResponse(AppInspection.AppInspectionResponse.newBuilder()
                                                .setCommandId(command.appInspectionCommand.commandId)
-                                               .setServiceResponse(ServiceResponse.newBuilder()
-                                                                     .setStatus(
-                                                                       if (success) SUCCESS else ERROR)
-                                                                     .setErrorMessage(error)
-                                                                     .build())
+                                               .setStatus(
+                                                 if (success) SUCCESS else ERROR)
+                                               .setErrorMessage(error)
+                                               .setServiceResponse(ServiceResponse.getDefaultInstance())
                                                .build())
                    .build())
     }
