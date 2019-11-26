@@ -11,6 +11,7 @@ import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
@@ -2233,6 +2234,25 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     )
 
     myFixture.configureFromExistingVirtualFile(layout.virtualFile)
+    myFixture.checkHighlighting()
+  }
+
+  fun testFramework9Patch() {
+    myFixture.loadNewFile(
+      "res/layout/my_layout.xml",
+      // language=xml
+      """
+      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent">
+        <ImageView
+          android:src="@android:drawable/dark_header"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent" />
+      </LinearLayout>
+      """.trimIndent()
+    )
+
     myFixture.checkHighlighting()
   }
 

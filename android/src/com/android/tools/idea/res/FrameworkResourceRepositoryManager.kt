@@ -17,7 +17,6 @@ package com.android.tools.idea.res
 
 import com.android.SdkConstants.DOT_JAR
 import com.android.tools.idea.concurrency.AndroidIoManager
-import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.idea.resources.aar.CachingData
 import com.android.tools.idea.resources.aar.FrameworkResourceRepository
 import com.android.tools.idea.resources.aar.RESOURCE_CACHE_DIRECTORY
@@ -39,7 +38,9 @@ class FrameworkResourceRepositoryManager {
     @JvmStatic fun getInstance() = ServiceManager.getService(FrameworkResourceRepositoryManager::class.java)!!
   }
 
-  private val cache = ConcurrentHashMap<Path, FrameworkResourceRepository>()
+  private data class CacheKey(val path: Path, val useCompiled9Patches: Boolean)
+
+  private val cache = ConcurrentHashMap<CacheKey, FrameworkResourceRepository>()
 
   /**
    * Returns a [FrameworkResourceRepository] for the given "res" directory or a jar file. The `languages` parameter
@@ -48,13 +49,20 @@ class FrameworkResourceRepositoryManager {
    * languages than was requested. The repository loads faster if the set of languages is smaller.
    *
    * @param resourceDirectoryOrFile the res directory or a jar file containing resources of the Android framework
-   * @param languages the set of ISO 639 language codes
+   * @param useCompiled9Patches whether the created directory should use compiled 9-patch files
+   * @param languages the set of ISO 639 language codes that the repository should contain. The returned repository may contain data for
+   *                  more languages.
    */
-  fun getFrameworkResources(resourceDirectoryOrFile: File, languages: Set<String>): FrameworkResourceRepository {
+  fun getFrameworkResources(
+    resourceDirectoryOrFile: File,
+    useCompiled9Patches: Boolean,
+    languages: Set<String>
+  ): FrameworkResourceRepository {
     val path = resourceDirectoryOrFile.toPath()
+    val cacheKey = CacheKey(path, useCompiled9Patches)
     val cachingData = createCachingData(path)
-    val cached = cache.computeIfAbsent(path) {
-       FrameworkResourceRepository.create(it, languages, cachingData, LayoutLibrary.isNative())
+    val cached = cache.computeIfAbsent(cacheKey) {
+       FrameworkResourceRepository.create(path, languages, cachingData, useCompiled9Patches)
     }
     if (languages.isEmpty()) {
       return cached
@@ -62,7 +70,7 @@ class FrameworkResourceRepositoryManager {
 
     val repository = cached.loadMissingLanguages(languages, cachingData)
     if (repository !== cached) {
-      cache[path] = repository
+      cache[cacheKey] = repository
     }
     return repository
   }

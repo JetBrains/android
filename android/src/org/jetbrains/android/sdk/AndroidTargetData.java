@@ -271,7 +271,9 @@ public class AndroidTargetData {
       return null;
     }
 
-    return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(resFolderOrJar, languages);
+    return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(resFolderOrJar,
+                                                                                  myTarget instanceof CompatibilityRenderTarget,
+                                                                                  languages);
   }
 
   /**
