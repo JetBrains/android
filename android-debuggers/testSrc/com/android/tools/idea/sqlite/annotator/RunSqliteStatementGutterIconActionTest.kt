@@ -19,8 +19,9 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.mocks.MockPopupChooserBuilder
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
+import com.android.tools.idea.sqlite.mocks.MockPopupChooserBuilder
+import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.testing.IdeComponents
@@ -53,8 +54,9 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   override fun setUp() {
     super.setUp()
-    sqliteDatabase1 = SqliteDatabase("db1", mock(DatabaseConnection::class.java))
-    sqliteDatabase2 = SqliteDatabase("d2", mock(DatabaseConnection::class.java))
+
+    sqliteDatabase1 = LiveSqliteDatabase("db1", mock(DatabaseConnection::class.java))
+    sqliteDatabase2 = LiveSqliteDatabase("db2", mock(DatabaseConnection::class.java))
 
     ideComponents = IdeComponents(myFixture)
     mockDatabaseInspectorProjectService = ideComponents.mockProjectService(DatabaseInspectorProjectService::class.java)

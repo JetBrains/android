@@ -21,6 +21,7 @@ import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.SchemaProvider
+import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -248,7 +249,7 @@ class DatabaseInspectorControllerImpl(
       closeDatabase(database)
     }
 
-    override fun reDownloadDatabaseFileActionInvoked(database: SqliteDatabase) {
+    override fun reDownloadDatabaseFileActionInvoked(database: FileSqliteDatabase) {
       val downloadFuture = DatabaseInspectorProjectService.getInstance(project).reDownloadAndOpenFile(database, object : DownloadProgress {
         override val isCancelled: Boolean
           get() = false
