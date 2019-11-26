@@ -337,6 +337,10 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
+  public void testSrcCompat() throws Throwable {
+    doTestHighlighting();
+  }
+
   public void testIds() throws Throwable {
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
     copyFileToProject("ids.xml");
