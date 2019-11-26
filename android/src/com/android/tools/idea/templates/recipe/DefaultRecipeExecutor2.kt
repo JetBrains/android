@@ -242,6 +242,19 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     io.applyChanges(buildModel)
   }
 
+  override fun addModuleDependency(configuration: String, moduleName: String, toModule: String) {
+    require(moduleName.isNotEmpty() && moduleName.first() != ':') {
+      "incorrect module name (it should not be empty or include first ':')"
+    }
+    val configuration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
+    val buildFile = findGradleBuildFile(File(toModule))
+
+    // TODO(qumeric) handle it in a better way?
+    val buildModel = getBuildModel(buildFile, context.project) ?: return
+    buildModel.dependencies().addModule(configuration, ":$moduleName")
+    io.applyChanges(buildModel)
+  }
+
   /**
    * Copies the given source file into the given destination file (where the source
    * is allowed to be a directory, in which case the whole directory is copied recursively)
