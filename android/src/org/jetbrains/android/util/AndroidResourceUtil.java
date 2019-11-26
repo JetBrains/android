@@ -121,6 +121,7 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.ResolveResult;
 import com.intellij.psi.XmlElementFactory;
+import com.intellij.psi.impl.PsiModificationTrackerImpl;
 import com.intellij.psi.search.PsiElementProcessor;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
@@ -247,6 +248,22 @@ public class AndroidResourceUtil {
       findResourceFieldsFromClass(rClass, resClassName, resourceNames, result);
     }
     return result.toArray(PsiField.EMPTY_ARRAY);
+  }
+
+  /**
+   * Clears the reference resolution cache and triggers the highlighting in the project.
+   *
+   * <p>
+   * This is necessary after a complex Android Resource refactor where the ResourceFolderRepository needs to rescan files to stay up to
+   * date. This must be called after the ResourceFolderRepository has scheduled the scan (at the end of the refactor) so that the caches
+   * are dropped after the repository is updated.
+   * </p>
+   */
+  public static void scheduleNewResolutionAndHighlighting(@NotNull PsiManager psiManager) {
+    ApplicationManager.getApplication().invokeLater(() -> {
+      psiManager.dropResolveCaches();
+      ((PsiModificationTrackerImpl)psiManager.getModificationTracker()).incCounter();
+    });
   }
 
   private static void findResourceFieldsFromClass(@NotNull PsiClass rClass,

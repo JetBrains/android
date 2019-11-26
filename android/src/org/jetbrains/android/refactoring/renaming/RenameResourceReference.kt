@@ -32,7 +32,9 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiReference
+import com.intellij.psi.impl.PsiModificationTrackerImpl
 import com.intellij.psi.search.SearchScope
 import com.intellij.refactoring.listeners.RefactoringElementListener
 import com.intellij.refactoring.rename.RenameDialog
@@ -104,7 +106,10 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
   }
 
   override fun getPostRenameCallback(element: PsiElement, newName: String, elementListener: RefactoringElementListener): Runnable? {
-    return Runnable { (element as? ResourceReferencePsiElement)?.psiManager?.dropResolveCaches() }
+    val psiManager = (element as? ResourceReferencePsiElement)?.psiManager ?: return null
+    return Runnable {
+      AndroidResourceUtil.scheduleNewResolutionAndHighlighting(psiManager)
+    }
   }
 }
 
