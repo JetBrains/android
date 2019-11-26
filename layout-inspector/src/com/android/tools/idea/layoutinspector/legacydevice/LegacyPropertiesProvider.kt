@@ -26,15 +26,15 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 
-private const val ATTR_TOP = "top"
-private const val ATTR_BOTTOM = "bottom"
-private const val ATTR_LEFT = "left"
-private const val ATTR_RIGHT = "right"
-private const val ATTR_SCROLL_X = "scrollX"
-private const val ATTR_SCROLL_Y = "scrollY"
-private const val ATTR_X = "x"
-private const val ATTR_Y = "y"
-private const val ATTR_Z = "z"
+internal const val ATTR_TOP = "top"
+internal const val ATTR_BOTTOM = "bottom"
+internal const val ATTR_LEFT = "left"
+internal const val ATTR_RIGHT = "right"
+internal const val ATTR_SCROLL_X = "scrollX"
+internal const val ATTR_SCROLL_Y = "scrollY"
+internal const val ATTR_X = "x"
+internal const val ATTR_Y = "y"
+internal const val ATTR_Z = "z"
 
 /**
  * A [PropertiesProvider] that can handle pre-api 29 devices.
@@ -67,20 +67,23 @@ class LegacyPropertiesProvider : PropertiesProvider {
         val index = data.indexOf('=', start)
         val fullName = data.substring(start, index)
         val colonIndex = fullName.indexOf(':')
-        val group = fullName.substring(0, Integer.max(0, colonIndex))
+        // TODO: Use the group for grouping all layout attributes together
+        // val group = fullName.substring(0, Integer.max(0, colonIndex))
         val rawName = fullName.substring(colonIndex + 1)
-        val name = PropertyMapper.mapPropertyName(rawName)
         val index2 = data.indexOf(',', index + 1)
         val length = Integer.parseInt(data.substring(index + 1, index2))
+        val rawValue = data.substring(index2 + 1, index2 + 1 + length)
         start = index2 + 1 + length
 
-        val rawValue = data.substring(index2 + 1, index2 + 1 + length)
-        val type = PropertyMapper.mapPropertyType(rawName, name, rawValue)
-        val value = PropertyMapper.mapPropertyValue(name, type, rawValue)
-        if (group != "theme" && !PropertyMapper.exclude(rawName)) {
+        val definition = PropertyMapper.mapPropertyName(rawName)
+        if (definition != null) {
+          val name = definition.name
+          val type = definition.type
+          val value = definition.value_mapper(rawValue)
           val property = InspectorPropertyItem(SdkConstants.ANDROID_URI, name, name, type, value, false, null, view, null)
           table.put(property.namespace, property.name, property)
         }
+
         stop = start >= data.length
         if (!stop) {
           start += 1

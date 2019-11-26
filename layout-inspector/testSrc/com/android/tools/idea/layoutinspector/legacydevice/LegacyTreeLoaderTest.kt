@@ -54,7 +54,7 @@ DONE.
     assertThat(root.viewId.toString()).isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=textView}")
     assertThat(properties[ANDROID_URI, ATTR_ID].value).isEqualTo("@id/textView")
     assertThat(properties[ANDROID_URI, ATTR_TEXT].value).isEqualTo("Hello\\nWorld , =  @ :")
-    assertThat(properties[ANDROID_URI, ATTR_TEXT_COLOR].value).isEqualTo("#8a000000")
+    assertThat(properties[ANDROID_URI, ATTR_TEXT_COLOR].value).isEqualTo("#8A000000")
     assertThat(properties[ANDROID_URI, ATTR_ALPHA].value).isEqualTo("1.0")
     assertThat(properties[ANDROID_URI, ATTR_GRAVITY].value).isEqualTo("top|start")
     assertThat(properties[ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP].value).isEqualTo("0")
