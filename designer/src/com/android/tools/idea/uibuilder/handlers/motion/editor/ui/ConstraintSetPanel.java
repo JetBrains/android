@@ -145,7 +145,6 @@ class ConstraintSetPanel extends JPanel {
     JPanel top = new JPanel(new BorderLayout());
     top.add(left, BorderLayout.WEST);
     top.add(right, BorderLayout.EAST);
-    mConstraintSetTable.setRowHeight(MEUI.scale(18));
     mConstraintSetTable.setShowHorizontalLines(false);
     mConstraintSetTable.setAlignmentY(0.0f);
     mConstraintSetTable.getColumnModel().getColumn(0).setPreferredWidth(MEUI.scale(32));
@@ -179,7 +178,6 @@ class ConstraintSetPanel extends JPanel {
         return myLabel;
       }
     });
-    top.setPreferredSize(new Dimension(0, MEUI.scale(32)));
 
 
     JLabel label;
