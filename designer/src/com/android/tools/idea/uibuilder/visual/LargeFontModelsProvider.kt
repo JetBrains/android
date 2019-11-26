@@ -30,9 +30,10 @@ import java.util.function.Consumer
 
 object LargeFontModelsProvider : VisualizationModelsProvider {
 
-  private const val SCALE_LARGER = 1.14f
-  private const val SCALE_SMALLER = 1f / SCALE_LARGER
-  private const val SCALE_LARGEST = SCALE_LARGER * SCALE_LARGER
+  // scale factors here matches the framework.
+  private const val SCALE_LARGER = 1.15f
+  private const val SCALE_SMALLER = 0.85f
+  private const val SCALE_LARGEST = 1.3f
 
   override fun createNlModels(parentDisposable: Disposable, file: PsiFile, facet: AndroidFacet): List<NlModel> {
 
@@ -47,7 +48,7 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
 
     val models = mutableListOf<NlModel>()
     models.add(NlModel.create(parentDisposable,
-                              "Default",
+                              "Default Font (Normal)",
                               facet,
                               virtualFile,
                               defaultConfig,
@@ -61,21 +62,21 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
     largestFontConfig.fontScale = SCALE_LARGEST
 
     models.add(NlModel.create(parentDisposable,
-                              "Smaller",
+                              "Smaller Font (85%)",
                               facet,
                               virtualFile,
                               smallerFontConfig,
                               Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
 
     models.add(NlModel.create(parentDisposable,
-                              "Larger",
+                              "Larger Font (115%)",
                               facet,
                               virtualFile,
                               largerFontConfig,
                               Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
 
     models.add(NlModel.create(parentDisposable,
-                              "Largest",
+                              "Largest Font (130%)",
                               facet,
                               virtualFile,
                               largestFontConfig,
