@@ -453,6 +453,20 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     io.applyChanges(buildModel)
   }
 
+  override fun addDynamicFeature(name: String, toModule: String) {
+    require(name.isNotEmpty() && toModule.isNotEmpty()) {
+      "Module name cannot be empty"
+    }
+    // Translate from "configuration" to "implementation" based on the parameter map context
+    val buildFile = findGradleBuildFile(File(toModule))
+
+    val gradleName = ':' + name.trimStart(':')
+    // TODO(qumeric) handle it in a better way?
+    val buildModel = getBuildModel(buildFile, context.project) ?: return
+    buildModel.android().dynamicFeatures().addListValue().setValue(gradleName)
+    io.applyChanges(buildModel)
+  }
+
   /**
    * Update the project's gradle build file and sync, if necessary. This should only be called
    * once and after all dependencies are already added.

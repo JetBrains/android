@@ -68,6 +68,8 @@ internal class FindReferencesRecipeExecutor(private val myContext: RenderingCont
 
   override fun addModuleDependency(configuration: String, moduleName: String, toModule: String) {}
 
+  override fun addDynamicFeature(name: String, toModule: String) {}
+
   override fun updateAndSync() {}
 
   override fun pushFolder(folder: String) {}
