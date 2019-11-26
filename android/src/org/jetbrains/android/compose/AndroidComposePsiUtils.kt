@@ -25,6 +25,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
 const val COMPOSABLE_SHORT_NAME = "Composable"
@@ -33,19 +34,20 @@ const val COMPOSABLE_FQ_NAME = "androidx.compose.$COMPOSABLE_SHORT_NAME"
 fun PsiElement.isComposableFunction(): Boolean {
   if (this !is KtNamedFunction) return false
 
-  return ReadAction.compute<Boolean, Throwable> {
-    CachedValuesManager.getCachedValue(this) {
-      val hasComposableAnnotation =
-        annotationEntries.any { it.shortName?.asString() == COMPOSABLE_SHORT_NAME && it.getQualifiedName() == COMPOSABLE_FQ_NAME }
-      val containingKtFile = this.containingKtFile
-
-      CachedValueProvider.Result.create(
-        // TODO: see if we can handle alias imports without ruining performance.
-        hasComposableAnnotation,
-        containingKtFile,
-        ProjectRootModificationTracker.getInstance(project)
-      )
+  return CachedValuesManager.getCachedValue(this) {
+    val hasComposableAnnotation = ReadAction.compute<Boolean, Throwable> {
+      annotationEntries.any { it.shortName?.asString() == COMPOSABLE_SHORT_NAME && it.getQualifiedName() == COMPOSABLE_FQ_NAME }
     }
+    val containingKtFile = ReadAction.compute<KtFile, Throwable> {
+      this.containingKtFile
+    }
+
+    CachedValueProvider.Result.create(
+      // TODO: see if we can handle alias imports without ruining performance.
+      hasComposableAnnotation,
+      containingKtFile,
+      ProjectRootModificationTracker.getInstance(project)
+    )
   }
 }
 
