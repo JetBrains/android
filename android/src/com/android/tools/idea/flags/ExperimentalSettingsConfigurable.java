@@ -47,6 +47,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private TitledSeparator myNewPsdSeparator;
   private JCheckBox myLayoutInspectorCheckbox;
   private TitledSeparator myLayoutInspectorSeparator;
+  private JCheckBox mySkipGradleTasksList;
 
   @SuppressWarnings("unused") // called by IDE
   public ExperimentalSettingsConfigurable(@NotNull Project project) {
@@ -113,6 +114,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   public boolean isModified() {
     return mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
            mySettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
+           mySettings.SKIP_GRADLE_TASKS_LIST != skipGradleTasksList() ||
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            mySettings.USE_NEW_PSD != isUseNewPsd() ||
            myLayoutInspectorCheckbox.isSelected() != LayoutInspectorSettingsKt.getEnableLiveLayoutInspector();
@@ -126,6 +128,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   public void apply() throws ConfigurationException {
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isUseL2DependenciesInSync();
     mySettings.USE_SINGLE_VARIANT_SYNC = isUseSingleVariantSync();
+    mySettings.SKIP_GRADLE_TASKS_LIST = skipGradleTasksList();
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
     mySettings.USE_NEW_PSD = isUseNewPsd();
@@ -152,6 +155,15 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myUseSingleVariantSyncCheckbox.setSelected(value);
   }
 
+  boolean skipGradleTasksList() {
+    return mySkipGradleTasksList.isSelected();
+  }
+
+  @TestOnly
+  void setSkipGradleTasksList(boolean value) {
+    mySkipGradleTasksList.setSelected(value);
+  }
+
   boolean isUseNewPsd() {
     return myNewPsdCheckbox.isSelected();
   }
@@ -165,6 +177,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   public void reset() {
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     myUseSingleVariantSyncCheckbox.setSelected(mySettings.USE_SINGLE_VARIANT_SYNC);
+    mySkipGradleTasksList.setSelected(mySettings.SKIP_GRADLE_TASKS_LIST);
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
     myNewPsdCheckbox.setSelected(mySettings.USE_NEW_PSD);
     myLayoutInspectorCheckbox.setSelected(LayoutInspectorSettingsKt.getEnableLiveLayoutInspector());
