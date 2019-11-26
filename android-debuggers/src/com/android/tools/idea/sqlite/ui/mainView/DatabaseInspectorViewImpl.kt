@@ -25,6 +25,7 @@ import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.sqlite.controllers.TabId
+import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
@@ -302,7 +303,10 @@ class DatabaseInspectorViewImpl(
       schemaPanel.controlsPanel.add(reDownloadButton)
 
       reDownloadButton.addActionListener {
-        val databaseToSync = tree?.selectionPaths?.mapNotNull { findDatabaseNode(it) }?.first() ?: return@addActionListener
+        val databaseToSync = tree?.selectionPaths
+                               ?.mapNotNull { findDatabaseNode(it) }
+                               ?.filterIsInstance(FileSqliteDatabase::class.java)
+                               ?.first() ?: return@addActionListener
         listeners.forEach { it.reDownloadDatabaseFileActionInvoked(databaseToSync) }
       }
 

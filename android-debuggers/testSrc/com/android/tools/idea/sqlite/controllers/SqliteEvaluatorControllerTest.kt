@@ -22,6 +22,7 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.mocks.MockSqliteEvaluatorView
+import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
@@ -50,7 +51,8 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     edtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
     sqliteEvaluatorController = SqliteEvaluatorController(sqliteEvaluatorView, edtExecutor)
     Disposer.register(testRootDisposable, sqliteEvaluatorController)
-    sqliteDatabase = SqliteDatabase("db", databaseConnection)
+
+    sqliteDatabase = LiveSqliteDatabase("db", databaseConnection)
   }
 
   fun testSetUp() {

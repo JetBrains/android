@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.tools.idea.sqlite.controllers.TabId
+import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
@@ -77,6 +78,6 @@ interface DatabaseInspectorView {
     /** Called when the user wants to remove a database from the list of open databases */
     fun removeDatabaseActionInvoked(database: SqliteDatabase)
     /** Called when the user wants to sync a database */
-    fun reDownloadDatabaseFileActionInvoked(database: SqliteDatabase)
+    fun reDownloadDatabaseFileActionInvoked(database: FileSqliteDatabase)
   }
 }

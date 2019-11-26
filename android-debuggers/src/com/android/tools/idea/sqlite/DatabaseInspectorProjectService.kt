@@ -29,6 +29,10 @@ import com.android.tools.idea.sqlite.controllers.DatabaseInspectorControllerImpl
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionFactory
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionFactoryImpl
+import com.android.tools.idea.sqlite.databaseConnection.jdbc.JdbcDatabaseConnection
+import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
+import com.android.tools.idea.sqlite.model.FileSqliteDatabase
+import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -99,10 +103,10 @@ interface DatabaseInspectorProjectService {
   fun runSqliteStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement)
 
   /**
-   * Re-downloads and opens the file associated with the [SqliteDatabase] passed as argument.
+   * Re-downloads and opens the file associated with the [FileSqliteDatabase] passed as argument.
    */
   @AnyThread
-  fun reDownloadAndOpenFile(database: SqliteDatabase, progress: DownloadProgress): ListenableFuture<Unit>
+  fun reDownloadAndOpenFile(database: FileSqliteDatabase, progress: DownloadProgress): ListenableFuture<Unit>
 
   /**
    * Returns true if the Sqlite Inspector has an open database, false otherwise.
@@ -212,9 +216,11 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
     val openSqliteServiceFuture = taskExecutor.transform(databaseConnectionFuture) { databaseConnection ->
       Disposer.register(project, databaseConnection)
 
-      val database = SqliteDatabase(name, databaseConnection)
-
-      return@transform database
+      return@transform when (databaseConnection) {
+        is JdbcDatabaseConnection -> FileSqliteDatabase(name, databaseConnection)
+        is LiveDatabaseConnection -> LiveSqliteDatabase(name, databaseConnection)
+        else -> error("Unknown type of connection.")
+      }
     }
 
     invokeLaterIfNeeded {
@@ -232,7 +238,7 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
   }
 
   @AnyThread
-  override fun reDownloadAndOpenFile(database: SqliteDatabase, progress: DownloadProgress): ListenableFuture<Unit> {
+  override fun reDownloadAndOpenFile(database: FileSqliteDatabase, progress: DownloadProgress): ListenableFuture<Unit> {
     val virtualFile = lock.withLock {
       databaseToFile[database] ?: return Futures.immediateFailedFuture(IllegalStateException("DB not found"))
     }

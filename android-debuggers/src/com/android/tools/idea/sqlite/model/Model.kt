@@ -20,10 +20,21 @@ import java.sql.JDBCType
 
 /**
  * Representation of a database instance.
- * @param name Human readable name of the database.
- * @param databaseConnection A connection to this database.
  */
-data class SqliteDatabase(val name: String, val databaseConnection: DatabaseConnection)
+sealed class SqliteDatabase {
+  /**
+   * Human readable name of the database.
+   */
+  abstract val name: String
+
+  /**
+   * A connection to the database.
+   */
+  abstract val databaseConnection: DatabaseConnection
+}
+
+data class LiveSqliteDatabase(override val name: String, override val databaseConnection: DatabaseConnection) : SqliteDatabase()
+data class FileSqliteDatabase(override val name: String, override val databaseConnection: DatabaseConnection) : SqliteDatabase()
 
 /** Representation of the Sqlite database schema */
 data class SqliteSchema(val tables: List<SqliteTable>)

@@ -16,7 +16,6 @@
 package com.android.tools.idea.sqlite
 
 import com.android.testutils.MockitoKt.any
-import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
@@ -25,8 +24,9 @@ import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.device.fs.DownloadedFileData
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
-import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorController
+import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
+import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.vfs.VirtualFile
@@ -43,12 +43,11 @@ import java.util.function.Consumer
 class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
   private lateinit var sqliteFile1: VirtualFile
-  private lateinit var mockDatabase: SqliteDatabase
   private lateinit var databaseInspectorProjectService: DatabaseInspectorProjectService
   private lateinit var mockSqliteController: MockDatabaseInspectorController
   private lateinit var fileOpened: VirtualFile
 
-  private var openedDatabase: SqliteDatabase? = null
+  private var databaseToClose: SqliteDatabase? = null
 
   override fun setUp() {
     super.setUp()
@@ -66,8 +65,6 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     val mockToolWindowManager = mock(ToolWindowManager::class.java)
     `when`(mockToolWindowManager.getToolWindow(any(String::class.java))).thenReturn(mock(ToolWindow::class.java))
 
-    mockDatabase = SqliteDatabase("db", mock(DatabaseConnection::class.java))
-
     val fileOpener = Consumer<VirtualFile> { vf -> fileOpened = vf }
 
     databaseInspectorProjectService = DatabaseInspectorProjectServiceImpl(
@@ -81,8 +78,8 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
 
   override fun tearDown() {
     try {
-      if (openedDatabase != null) {
-        pumpEventsAndWaitForFuture(openedDatabase!!.databaseConnection.close())
+      if (databaseToClose != null) {
+        pumpEventsAndWaitForFuture(databaseToClose!!.databaseConnection.close())
       }
 
       sqliteUtil.tearDown()
@@ -106,7 +103,8 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
 
   fun testReDownloadOpensFile() {
     // Prepare
-    openedDatabase = pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(sqliteFile1))
+    val openedDatabase = pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(sqliteFile1)) as FileSqliteDatabase
+    databaseToClose = openedDatabase
 
     val mockDownloaderService = mock(DeviceFileDownloaderService::class.java)
     `when`(mockDownloaderService.downloadFile(any(DeviceFileId::class.java), any(DownloadProgress::class.java)))
@@ -119,7 +117,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     project.registerServiceInstance(DeviceFileDownloaderService::class.java, mockDownloaderService)
 
     // Act
-    pumpEventsAndWaitForFuture(databaseInspectorProjectService.reDownloadAndOpenFile(openedDatabase!!, mock(DownloadProgress::class.java)))
+    pumpEventsAndWaitForFuture(databaseInspectorProjectService.reDownloadAndOpenFile(openedDatabase, mock(DownloadProgress::class.java)))
 
     // Assert
     assertEquals(sqliteFile1, fileOpened)
@@ -127,6 +125,8 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
 
   fun testReDownloadFileIfFileNotOpened() {
     // Prepare
+    val mockDatabase = FileSqliteDatabase("db", mock(DatabaseConnection::class.java))
+
     val mockDownloaderService = mock(DeviceFileDownloaderService::class.java)
     `when`(mockDownloaderService.downloadFile(any(DeviceFileId::class.java), any(DownloadProgress::class.java)))
       .thenReturn(Futures.immediateFuture(
@@ -146,7 +146,8 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
   fun testReDownloadFileHasNoMetadata() {
     // Prepare
     sqliteFile1.putUserData(DeviceFileId.KEY, null)
-    openedDatabase = pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(sqliteFile1))
+    val openedDatabase = pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(sqliteFile1)) as FileSqliteDatabase
+    databaseToClose = openedDatabase
 
     val mockDownloaderService = mock(DeviceFileDownloaderService::class.java)
     `when`(mockDownloaderService.downloadFile(any(DeviceFileId::class.java), any(DownloadProgress::class.java)))
@@ -160,21 +161,6 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
 
     // Act/Assert
     pumpEventsAndWaitForFutureException(
-      databaseInspectorProjectService.reDownloadAndOpenFile(openedDatabase!!, mock(DownloadProgress::class.java)))
-  }
-
-  fun testReDownloadFileDoesNotWorkWithLiveDatabase() {
-    // Prepare
-    openedDatabase = pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(
-      mock(AppInspectorClient.CommandMessenger::class.java),
-      1,
-      "live db"
-    ))
-
-    // Act
-    pumpEventsAndWaitForFutureException(databaseInspectorProjectService.reDownloadAndOpenFile(
-      openedDatabase!!,
-      mock(DownloadProgress::class.java)
-    ))
+      databaseInspectorProjectService.reDownloadAndOpenFile(openedDatabase, mock(DownloadProgress::class.java)))
   }
 }

@@ -26,6 +26,7 @@ import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorView
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockSchemaProvider
+import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -99,9 +100,9 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
     `when`(mockDatabaseConnection.close()).thenReturn(Futures.immediateFuture(null))
     `when`(mockDatabaseConnection.executeQuery(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
 
-    sqliteDatabase1 = SqliteDatabase("db1", mockDatabaseConnection)
-    sqliteDatabase2 = SqliteDatabase("db2", mockDatabaseConnection)
-    sqliteDatabase3 = SqliteDatabase("db", mockDatabaseConnection)
+    sqliteDatabase1 = FileSqliteDatabase("db1", mockDatabaseConnection)
+    sqliteDatabase2 = FileSqliteDatabase("db2", mockDatabaseConnection)
+    sqliteDatabase3 = FileSqliteDatabase("db", mockDatabaseConnection)
 
     orderVerifier = inOrder(mockSqliteView, mockDatabaseConnection)
   }
@@ -362,17 +363,19 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
 
   fun testReDownloadFileUpdatesView() {
     // Prepare
+    val mockFileDatabase = FileSqliteDatabase("db", mockDatabaseConnection)
+
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     val mockSqliteExplorerProjectService = mock(DatabaseInspectorProjectService::class.java)
-    `when`(mockSqliteExplorerProjectService.reDownloadAndOpenFile(any(SqliteDatabase::class.java), any(DownloadProgress::class.java)))
+    `when`(mockSqliteExplorerProjectService.reDownloadAndOpenFile(any(FileSqliteDatabase::class.java), any(DownloadProgress::class.java)))
       .thenReturn(Futures.immediateFuture(null))
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, mockSqliteExplorerProjectService)
 
     // Act
-    mockSqliteView.viewListeners.single().reDownloadDatabaseFileActionInvoked(sqliteDatabase1)
+    mockSqliteView.viewListeners.single().reDownloadDatabaseFileActionInvoked(mockFileDatabase)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert

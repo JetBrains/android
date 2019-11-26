@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
+import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
@@ -44,8 +45,8 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     super.setUp()
     StudioFlags.DATABASE_INSPECTOR_ENABLED.override(true)
 
-    sqliteDatabase1 = SqliteDatabase("db1", mock(DatabaseConnection::class.java))
-    sqliteDatabase2 = SqliteDatabase("db2", mock(DatabaseConnection::class.java))
+    sqliteDatabase1 = LiveSqliteDatabase("db1", mock(DatabaseConnection::class.java))
+    sqliteDatabase2 = LiveSqliteDatabase("db2", mock(DatabaseConnection::class.java))
 
     ideComponents = IdeComponents(myFixture)
     mockDatabaseInspectorProjectService = ideComponents.mockProjectService(DatabaseInspectorProjectService::class.java)
