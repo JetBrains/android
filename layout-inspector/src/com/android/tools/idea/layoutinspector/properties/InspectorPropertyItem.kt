@@ -18,12 +18,16 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.res.RESOURCE_ICON_SIZE
+import com.android.tools.idea.res.parseColor
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.android.tools.property.panel.api.ActionIconButton
 import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.utils.HashCodes
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.ui.scale.JBUIScale
+import com.intellij.util.ui.ColorIcon
 import javax.swing.Icon
 
 /**
@@ -89,6 +93,12 @@ open class InspectorPropertyItem(
     override val actionButtonFocusable = false
     override val action: AnAction? = null
     override val actionIcon: Icon?
-      get() = property.resourceLookup?.resolveAsIcon(property)
+      get() {
+        property.resourceLookup?.let { return it.resolveAsIcon(property) }
+        val value = property.value
+        val color = value?.let { parseColor(value) } ?: return null
+        // TODO: Convert this into JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, color, false)) when JBCachingScalableIcon extends JBScalableIcon
+        return ColorIcon(RESOURCE_ICON_SIZE, color, false).scale(JBUIScale.scale(1f))
+      }
   }
 }
