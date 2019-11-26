@@ -222,9 +222,10 @@ private class MergedManifestSupplier(private val facet: AndroidFacet) :
    */
   @AnyThread
   private fun snapshotUpToDate(snapshot: MergedManifestSnapshot): Boolean {
-    // The only way the snapshot's merged manifest info could be null is if the facet
-    // is disposed, in which case there's no need to try and recalculate it.
-    val mergedManifestInfo = snapshot.mergedManifestInfo ?: return true
+    if (Disposer.isDisposed(snapshot.module)) {
+      return true
+    }
+    val mergedManifestInfo = snapshot.mergedManifestInfo ?: return false
     return runReadAction(mergedManifestInfo::isUpToDate)
   }
 }
