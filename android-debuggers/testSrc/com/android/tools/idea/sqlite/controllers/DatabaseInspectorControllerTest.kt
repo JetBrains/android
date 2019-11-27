@@ -98,7 +98,7 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
 
     mockDatabaseConnection = mock(DatabaseConnection::class.java)
     `when`(mockDatabaseConnection.close()).thenReturn(Futures.immediateFuture(null))
-    `when`(mockDatabaseConnection.executeQuery(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
 
     sqliteDatabase1 = FileSqliteDatabase("db1", mockDatabaseConnection)
     sqliteDatabase2 = FileSqliteDatabase("db2", mockDatabaseConnection)
@@ -342,7 +342,7 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
     val evaluatorView = mockViewFactory.sqliteEvaluatorView
 
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
-    `when`(mockDatabaseConnection.executeUpdate(SqliteStatement("INSERT"))).thenReturn(Futures.immediateFuture(0))
+    `when`(mockDatabaseConnection.execute(SqliteStatement("INSERT"))).thenReturn(Futures.immediateFuture(null))
 
     sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
 

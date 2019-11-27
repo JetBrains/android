@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
@@ -87,8 +88,8 @@ class SqliteEvaluatorController(
 
   private fun executeUpdate(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
     val databaseConnection = database.databaseConnection
-    edtExecutor.addCallback(databaseConnection.executeUpdate(sqliteStatement), object : FutureCallback<Int> {
-      override fun onSuccess(result: Int?) {
+    edtExecutor.addCallback(databaseConnection.execute(sqliteStatement), object : FutureCallback<SqliteResultSet?> {
+      override fun onSuccess(result: SqliteResultSet?) {
         view.tableView.resetView()
         listeners.forEach { it.onSchemaUpdated(database) }
       }

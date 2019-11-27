@@ -66,8 +66,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
   fun testEvaluateSqlActionQuerySuccess() {
     // Prepare
     val sqlStatement = SqliteStatement("SELECT")
-    `when`(databaseConnection.executeQuery(sqlStatement)).thenReturn(Futures.immediateFuture(any(
-      SqliteResultSet::class.java)))
+    `when`(databaseConnection.execute(sqlStatement)).thenReturn(Futures.immediateFuture(any(SqliteResultSet::class.java)))
 
     sqliteEvaluatorController.setUp()
 
@@ -75,14 +74,14 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, sqlStatement)
 
     // Assert
-    verify(databaseConnection).executeQuery(sqlStatement)
+    verify(databaseConnection).execute(sqlStatement)
   }
 
   fun testEvaluateSqlActionQueryFailure() {
     // Prepare
     val sqlStatement = SqliteStatement("SELECT")
     val throwable = Throwable()
-    `when`(databaseConnection.executeQuery(sqlStatement)).thenReturn(Futures.immediateFailedFuture(throwable))
+    `when`(databaseConnection.execute(sqlStatement)).thenReturn(Futures.immediateFailedFuture(throwable))
 
     sqliteEvaluatorController.setUp()
 
@@ -91,7 +90,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(databaseConnection).executeQuery(sqlStatement)
+    verify(databaseConnection).execute(sqlStatement)
     verify(sqliteEvaluatorView.tableView).reportError(eq("Error executing sqlQueryCommand"), refEq(throwable))
   }
 
@@ -145,7 +144,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
   private fun evaluateSqlActionSuccess(action: String) {
     // Prepare
-    `when`(databaseConnection.executeUpdate(SqliteStatement(action))).thenReturn(Futures.immediateFuture(0))
+    `when`(databaseConnection.execute(SqliteStatement(action))).thenReturn(Futures.immediateFuture(null))
 
     sqliteEvaluatorController.setUp()
 
@@ -154,14 +153,14 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(databaseConnection).executeUpdate(SqliteStatement(action))
+    verify(databaseConnection).execute(SqliteStatement(action))
     verify(sqliteEvaluatorView.tableView).resetView()
   }
 
   private fun evaluateSqlActionFailure(action: String) {
     // Prepare
     val throwable = Throwable()
-    `when`(databaseConnection.executeUpdate(SqliteStatement(action))).thenReturn(Futures.immediateFailedFuture(throwable))
+    `when`(databaseConnection.execute(SqliteStatement(action))).thenReturn(Futures.immediateFailedFuture(throwable))
 
     sqliteEvaluatorController.setUp()
 
@@ -170,7 +169,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(databaseConnection).executeUpdate(SqliteStatement(action))
+    verify(databaseConnection).execute(SqliteStatement(action))
     verify(sqliteEvaluatorView.tableView).reportError(eq("Error executing update"), refEq(throwable))
   }
 }

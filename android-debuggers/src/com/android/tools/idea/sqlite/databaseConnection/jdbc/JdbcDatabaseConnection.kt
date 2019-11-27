@@ -22,7 +22,6 @@ import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
-import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
@@ -91,16 +90,17 @@ class JdbcDatabaseConnection(
     return columns
   }
 
-  override fun executeQuery(sqLiteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
-    val newSqliteResultSet = JdbcSqliteResultSet(this, connection, sqLiteStatement)
-    return Futures.immediateFuture(newSqliteResultSet)
-  }
-
-  override fun executeUpdate(sqLiteStatement: SqliteStatement): ListenableFuture<Int> {
+  override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet?> {
     return sequentialTaskExecutor.executeAsync {
-      val preparedStatement = connection.resolvePreparedStatement(sqLiteStatement)
-      return@executeAsync preparedStatement.executeUpdate().also {
-        logger.info("SQL statement \"${sqLiteStatement.sqliteStatementText}\" executed with success.")
+      val preparedStatement = connection.resolvePreparedStatement(sqliteStatement)
+      val hasResultSet = preparedStatement.execute().also {
+        logger.info("SQL statement \"${sqliteStatement.sqliteStatementText}\" executed with success.")
+      }
+
+      if (hasResultSet) {
+        JdbcSqliteResultSet(this, connection, sqliteStatement)
+      } else {
+        null
       }
     }
   }
