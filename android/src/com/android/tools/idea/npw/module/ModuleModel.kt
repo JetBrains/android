@@ -18,7 +18,9 @@ package com.android.tools.idea.npw.module
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.ExistingProjectModelData
+import com.android.tools.idea.npw.model.ModuleModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectModelData
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -28,11 +30,14 @@ import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
+import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
+import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
 import com.android.tools.idea.templates.ProjectTemplateDataBuilder
+import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateUtils.openEditors
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
@@ -40,8 +45,10 @@ import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
 import com.android.tools.idea.templates.recipe.RenderingContext.Builder
 import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.model.WizardModel
-import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Recipe
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbService
@@ -49,22 +56,29 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
 
+
+private val log: Logger get() = logger<ModuleModel>()
+
 abstract class ModuleModel(
   project: Project,
   val templateHandle: TemplateHandle,
   projectSyncInvoker: ProjectSyncInvoker,
   moduleName: String,
   private val commandName: String = "New Module",
-  val isLibrary: Boolean,
+  override val isLibrary: Boolean,
   projectModelData: ProjectModelData = ExistingProjectModelData(project, projectSyncInvoker)
-) : WizardModel(), ProjectModelData by projectModelData {
-  val formFactor = ObjectValueProperty(FormFactor.Generic)
+) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
+  override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(
+    NamedModuleTemplate("", GradleAndroidModuleTemplate.createDefaultTemplateAt(project.basePath!!, moduleName).paths)
+  )
+  override val templateFile: OptionalValueProperty<File> get() = OptionalValueProperty(templateHandle.rootPath)
+  override val formFactor = ObjectValueProperty(FormFactor.MOBILE)
   override val packageName = StringValueProperty()
-  val moduleName = StringValueProperty(moduleName)
-  open val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
+  override val moduleName = StringValueProperty(moduleName).apply { addConstraint(String::trim) }
+  override val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
   override val language = OptionalValueProperty(getInitialSourceLanguage(project))
-  val templateValues = mutableMapOf<String, Any>()
-  val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false))
+  override val moduleTemplateValues = mutableMapOf<String, Any>()
+  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false))
   override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
     object : Task.Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
       override fun run(indicator: ProgressIndicator) {
@@ -84,6 +98,8 @@ abstract class ModuleModel(
   }
 
   protected abstract inner class ModuleTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
+    // TODO(qumeric): get rid of it...
+    protected var customTemplate: Template? = null
     /**
      * A new system recipe which will should be run from [render] if the new system is used.
      */
@@ -91,15 +107,14 @@ abstract class ModuleModel(
 
     @WorkerThread
     override fun init() {
-      val modulePaths = GradleAndroidModuleTemplate.createDefaultTemplateAt(project.basePath!!, moduleName.get()).paths
-
-      TemplateValueInjector(templateValues)
+      TemplateValueInjector(moduleTemplateValues)
         .setProjectDefaults(project, false)
-        .setModuleRoots(modulePaths, project.basePath!!, moduleName.get(), packageName.get())
+        .setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), packageName.get())
         .setLanguage(language.value)
         .setJavaVersion(project)
+        .setBuildVersion(androidSdkInfo.value, project, false)
 
-      templateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary
+      moduleTemplateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary
 
       if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
         moduleTemplateDataBuilder.apply {
@@ -107,24 +122,37 @@ abstract class ModuleModel(
             setProjectDefaults(project)
             language = this@ModuleModel.language.value
           }
-          formFactor = this@ModuleModel.formFactor.get()
+          formFactor = this@ModuleModel.formFactor.get().toTemplateFormFactor()
           isNew = true
           setBuildVersion(androidSdkInfo.value, project)
-          setModuleRoots(modulePaths, project.basePath!!, moduleName.get(), this@ModuleModel.packageName.get())
+          setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@ModuleModel.packageName.get())
           isLibrary = this@ModuleModel.isLibrary
         }
       }
     }
 
     @WorkerThread
-    override fun doDryRun(): Boolean = renderTemplate(true, project)
+    override fun doDryRun(): Boolean {
+      // This is done because module needs to know about all included form factors, and currently we know about them only after init run,
+      // so we need to set it again after all inits (thus in dryRun) TODO(qumeric): remove after adding formFactors to the project
+      moduleTemplateValues.putAll(projectTemplateValues)
+
+      // Returns false if there was a render conflict and the user chose to cancel creating the template
+      return renderTemplate(true)
+    }
 
     @WorkerThread
     override fun render() {
-      renderTemplate(false, project)
+      val success = WriteCommandAction.writeCommandAction(project).withName(commandName).compute<Boolean, Exception> {
+        renderTemplate(false)
+      }
+
+      if (!success) {
+        log.warn("A problem occurred while creating a new Module. Please check the log file for possible errors.")
+      }
     }
 
-    protected open fun renderTemplate(dryRun: Boolean, project: Project, runFromTemplateRenderer: Boolean = false): Boolean {
+    protected open fun renderTemplate(dryRun: Boolean): Boolean {
       val moduleRoot = getModuleRoot(project.basePath!!, moduleName.get())
 
       if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
@@ -143,25 +171,25 @@ abstract class ModuleModel(
       }
 
       val projectRoot = File(project.basePath!!)
-      val template = templateHandle.template
+      val template = customTemplate ?: templateHandle.template
       val filesToOpen = mutableListOf<File>()
 
       val context = Builder.newContext(template, project)
-        .withCommandName(message("android.wizard.module.new.module.command"))
+        .withCommandName(commandName)
         .withDryRun(dryRun)
         .withShowErrors(true)
         .withOutputRoot(projectRoot)
         .withModuleRoot(moduleRoot)
-        .withParams(templateValues)
+        .withParams(moduleTemplateValues)
         .intoOpenFiles(filesToOpen)
         .build()
 
       return template.render(context!!, dryRun).also {
         if (it && !dryRun) {
           // calling smartInvokeLater will make sure that files are open only when the project is ready
-          DumbService.getInstance(project).smartInvokeLater { openEditors(project, filesToOpen, true) }
-          // TODO(qumeric): remove after moving to moduleTemplateRenderer
-          if (!runFromTemplateRenderer) {
+          DumbService.getInstance(project).smartInvokeLater { openEditors(project, filesToOpen, false) }
+          // TODO(qumeric): should we remove it?
+          if (customTemplate == null) {
             projectSyncInvoker.syncProject(project)
           }
         }

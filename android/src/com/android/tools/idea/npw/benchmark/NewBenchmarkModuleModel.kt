@@ -46,7 +46,7 @@ class NewBenchmarkModuleModel(
       TemplateValueInjector(newValues)
         .setBuildVersion(androidSdkInfo.value, project, false)
 
-      templateValues.putAll(newValues)
+      moduleTemplateValues.putAll(newValues)
 
       if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
         moduleTemplateDataBuilder.apply {

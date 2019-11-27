@@ -38,7 +38,7 @@ import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.npw.model.NewModuleModel;
+import com.android.tools.idea.npw.model.NewAndroidModuleModel;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
@@ -600,7 +600,7 @@ public class TemplateManager {
       facet, null, initialPackageSuggestion, moduleTemplates.get(0),
       commandName, projectSyncInvoker, true);
 
-    NewModuleModel moduleModel = new NewModuleModel(project, null, projectSyncInvoker, moduleTemplates.get(0), false);
+    NewAndroidModuleModel moduleModel = new NewAndroidModuleModel(project, null, projectSyncInvoker, moduleTemplates.get(0), false);
     SkippableWizardStep chooseTypeStep;
     if (category.equals(CATEGORY_ACTIVITY)) {
       chooseTypeStep =

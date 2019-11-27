@@ -20,10 +20,11 @@ import com.android.sdklib.AndroidVersion.VersionCodes.P
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
-import com.android.tools.idea.npw.module.getModuleRoot
+import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
+import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectProperty
@@ -39,27 +40,15 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_INCLUDE_FORM_FACTOR
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_NAME
-import com.android.tools.idea.templates.TemplateUtils
-import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
-import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
-import com.android.tools.idea.templates.recipe.RenderingContext
-import com.android.tools.idea.templates.recipe.RenderingContext2
-import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
-import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
-import java.util.ArrayList
 
-private val log: Logger get() = logger<NewModuleModel>()
 
 class ExistingProjectModelData(
   override var project: Project,
@@ -91,7 +80,7 @@ class ExistingProjectModelData(
 
 interface ModuleModelData : ProjectModelData {
   val template: ObjectProperty<NamedModuleTemplate>
-  val formFactor: ObjectValueProperty<FormFactor>
+  val formFactor: ObjectProperty<FormFactor>
   val isLibrary: Boolean
   val moduleTemplateValues: MutableMap<String, Any>
   val moduleName: StringValueProperty
@@ -107,22 +96,33 @@ interface ModuleModelData : ProjectModelData {
   val moduleTemplateDataBuilder: ModuleTemplateDataBuilder
 }
 
-class NewModuleModel(
-  private val projectModelData: ProjectModelData,
+open class NewAndroidModuleModel(
+  projectModelData: ProjectModelData,
   override val template: ObjectProperty<NamedModuleTemplate>,
   val moduleParent: String?,
   override val formFactor: ObjectValueProperty<FormFactor>,
-  private val commandName: String = "New Module",
+  commandName: String = "New Module",
   override val isLibrary: Boolean = false
-) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
+) : ModuleModel(
+  projectModelData.project,
+  TemplateHandle(File("")),
+  projectModelData.projectSyncInvoker,
+  "",
+  commandName,
+  isLibrary,
+  projectModelData
+) {
   override val moduleTemplateValues = mutableMapOf<String, Any>()
-  override val moduleName = StringValueProperty().apply { addConstraint(String::trim) }
   override val templateFile = OptionalValueProperty<File>()
-  override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
+  override val renderer = ModuleTemplateRenderer()
 
   init {
-    updateApplicationName()
+    val msgId: String = when {
+      isLibrary -> "android.wizard.module.config.new.library"
+      else -> "android.wizard.module.config.new.application"
+    }
+    applicationName.set(message(msgId))
   }
 
   // TODO(qumeric): replace constructors by factories
@@ -155,31 +155,14 @@ class NewModuleModel(
     multiTemplateRenderer.incrementRenders()
   }
 
-  public override fun handleFinished() {
-    multiTemplateRenderer.requestRender(ModuleTemplateRenderer())
-  }
-
-  override fun handleSkipped() {
-    multiTemplateRenderer.skipRender()
-  }
-
-  private inner class ModuleTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
-    val recipe: Recipe get() = { data: TemplateData -> generateAndroidModule(data as ModuleTemplateData, applicationName.get()) }
+  protected inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
+    override val recipe: Recipe get() = { data: TemplateData -> generateAndroidModule(data as ModuleTemplateData, applicationName.get()) }
     @WorkerThread
     override fun init() {
+      super.init()
       if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
         moduleTemplateDataBuilder.apply {
-          formFactor = this@NewModuleModel.formFactor.get().toTemplateFormFactor()
-          isNew = true
-          isLibrary = this@NewModuleModel.isLibrary
-          projectTemplateDataBuilder.setProjectDefaults(project)
-          setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@NewModuleModel.packageName.get())
-          if (androidSdkInfo.isPresent.get()) {
-            setBuildVersion(androidSdkInfo.value, project)
-          }
-          if (language.get().isPresent) { // For new Projects, we have a different UI, so no Language should be present
-            projectTemplateDataBuilder.language = language.value
-          }
+          setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@NewAndroidModuleModel.packageName.get())
         }
         val tff = formFactor.get().toTemplateFormFactor()
         projectTemplateDataBuilder.includedFormFactorNames.putIfAbsent(tff, mutableListOf(moduleName.get()))?.add(moduleName.get())
@@ -192,17 +175,11 @@ class NewModuleModel(
       }
 
       moduleTemplateValues[ATTR_APP_TITLE] = applicationName.get()
-      moduleTemplateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary
 
       TemplateValueInjector(moduleTemplateValues).apply {
         setProjectDefaults(project, isNewProject)
         setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), packageName.get())
-        if (androidSdkInfo.isPresent.get()) {
-          setBuildVersion(androidSdkInfo.value, project, isNewProject)
-        }
-        if (language.get().isPresent) { // For new Projects, we have a different UI, so no Language should be present
-          setLanguage(language.value)
-        }
+        setBuildVersion(androidSdkInfo.value, project, isNewProject)
       }
 
       if (useAppCompat.get()) {
@@ -213,73 +190,9 @@ class NewModuleModel(
       moduleTemplateValues.putAll(projectTemplateValues)
     }
 
-    @WorkerThread
-    override fun doDryRun(): Boolean {
-      // This is done because module needs to know about all included form factors, and currently we know about them only after init run,
-      // so we need to set it again after all inits (thus in dryRun) TODO(qumeric): remove after adding formFactors to the project
-      moduleTemplateValues.putAll(projectTemplateValues)
-
-      // Returns false if there was a render conflict and the user chose to cancel creating the template
-      return renderModule(true)
+    override fun renderTemplate(dryRun: Boolean): Boolean {
+      customTemplate = Template.createFromPath(templateFile.value)
+      return super.renderTemplate(dryRun)
     }
-
-    @WorkerThread
-    override fun render() {
-      val success = WriteCommandAction.writeCommandAction(project).withName(commandName).compute<Boolean, Exception> {
-        renderModule(false)
-      }
-
-      if (!success) {
-        log.warn("A problem occurred while creating a new Module. Please check the log file for possible errors.")
-      }
-    }
-
-    private fun renderModule(dryRun: Boolean): Boolean {
-      val projectRoot = File(project.basePath!!)
-      val moduleRoot = getModuleRoot(project.basePath!!, moduleName.get())
-      val filesToOpen = ArrayList<File>()
-
-      if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
-        val context = RenderingContext2(
-          project = project,
-          module = null,
-          commandName = commandName,
-          templateData = moduleTemplateDataBuilder.build(),
-          moduleRoot = moduleRoot,
-          dryRun = dryRun,
-          showErrors = true
-        )
-
-        val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
-
-        return recipe.doRender(context, executor)
-      }
-
-      val template = Template.createFromPath(templateFile.value)
-      val context = RenderingContext.Builder.newContext(template, project)
-        .withCommandName(commandName)
-        .withDryRun(dryRun)
-        .withShowErrors(true)
-        .withOutputRoot(projectRoot)
-        .withModuleRoot(moduleRoot)
-        .intoOpenFiles(filesToOpen)
-        .withParams(moduleTemplateValues)
-        .build()
-
-      return template.render(context, dryRun).also {
-        if (it && !dryRun) {
-          // calling smartInvokeLater will make sure that files are open only when the project is ready
-          DumbService.getInstance(project).smartInvokeLater { TemplateUtils.openEditors(project, filesToOpen, false) }
-        }
-      }
-    }
-  }
-
-  private fun updateApplicationName() {
-    val msgId: String = when {
-      isLibrary -> "android.wizard.module.config.new.library"
-      else -> "android.wizard.module.config.new.application"
-    }
-    applicationName.set(message(msgId))
   }
 }

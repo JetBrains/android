@@ -99,7 +99,7 @@ class DynamicFeatureModel(
         .setBuildVersion(androidSdkInfo.value, project, false)
         .setBaseFeature(baseApplication.value)
 
-      templateValues.putAll(newValues)
+      moduleTemplateValues.putAll(newValues)
 
       if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
         moduleTemplateDataBuilder.apply {

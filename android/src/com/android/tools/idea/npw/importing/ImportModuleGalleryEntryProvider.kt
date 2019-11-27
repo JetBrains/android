@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.importing
 
-import com.android.tools.idea.npw.model.NewModuleModel
+import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
 import com.android.tools.idea.npw.template.TemplateHandle
@@ -41,7 +41,7 @@ class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
     override val icon: Icon? = getTemplateIcon(templateHandle)
     override val name: String = templateHandle.metadata.title!!
     override val description: String? = templateHandle.metadata.description
-    override fun createStep(model: NewModuleModel): SkippableWizardStep<*> =
+    override fun createStep(model: NewAndroidModuleModel): SkippableWizardStep<*> =
       SourceToGradleModuleStep(SourceToGradleModuleModel(model.project, model.projectSyncInvoker))
   }
 
@@ -54,7 +54,7 @@ class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
 
     override val name: String = message("android.wizard.module.import.title")
     override val description: String = message("android.wizard.module.import.description")
-    override fun createStep(model: NewModuleModel): SkippableWizardStep<*> =
+    override fun createStep(model: NewAndroidModuleModel): SkippableWizardStep<*> =
       ArchiveToGradleModuleStep(ArchiveToGradleModuleModel(model.project, model.projectSyncInvoker))
   }
 }

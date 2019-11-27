@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.template
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.model.NewModuleModel
+import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
@@ -31,7 +31,7 @@ import com.intellij.openapi.vfs.VirtualFile
  * Step for the gallery for Activity templates.
  */
 class ChooseActivityTypeStep(
-  moduleModel: NewModuleModel,
+  moduleModel: NewAndroidModuleModel,
   renderModel: RenderTemplateModel,
   formFactor: FormFactor,
   moduleTemplates: List<NamedModuleTemplate>
@@ -40,7 +40,7 @@ class ChooseActivityTypeStep(
   messageKeys = activityGalleryStepMessageKeys,
   emptyItemLabel = "Empty Activity"
 ) {
-  constructor(moduleModel: NewModuleModel, renderModel: RenderTemplateModel, formFactor: FormFactor, targetDirectory: VirtualFile)
+  constructor(moduleModel: NewAndroidModuleModel, renderModel: RenderTemplateModel, formFactor: FormFactor, targetDirectory: VirtualFile)
     : this(moduleModel, renderModel, formFactor, renderModel.androidFacet!!.getModuleTemplates(targetDirectory))
 
   override val templateRenderers: List<TemplateRenderer>

@@ -57,7 +57,7 @@ class NewLibraryModuleModel(
         ATTR_IS_NEW_MODULE to true
       )
 
-      templateValues.putAll(newValues)
+      moduleTemplateValues.putAll(newValues)
 
       if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
         moduleTemplateDataBuilder.apply {

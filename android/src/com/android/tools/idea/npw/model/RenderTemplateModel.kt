@@ -25,8 +25,6 @@ import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getPackageForApplication
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
-import com.android.tools.idea.observable.core.BoolProperty
-import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
@@ -288,7 +286,7 @@ class RenderTemplateModel private constructor(
 
     @JvmStatic
     fun fromModuleModel(
-      moduleModel: NewModuleModel, templateHandle: TemplateHandle?, commandName: String = moduleModel.formFactor.get().id
+      moduleModel: NewAndroidModuleModel, templateHandle: TemplateHandle?, commandName: String = moduleModel.formFactor.get().id
     ) = RenderTemplateModel(
       moduleModelData = moduleModel,
       androidFacet = null,

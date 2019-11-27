@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.benchmark
 
-import com.android.tools.idea.npw.model.NewModuleModel
+import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
 import com.android.tools.idea.npw.template.TemplateHandle
@@ -38,7 +38,7 @@ class NewBenchmarkModuleDescriptionProvider : ModuleDescriptionProvider {
     override val name: String = message("android.wizard.module.new.benchmark.module.app")
     override val description: String? = templateHandle.metadata.description
     override fun toString(): String = name
-    override fun createStep(model: NewModuleModel): SkippableWizardStep<*> {
+    override fun createStep(model: NewAndroidModuleModel): SkippableWizardStep<*> {
       val benchmarkModuleModel = NewBenchmarkModuleModel(model.project, templateHandle, model.projectSyncInvoker)
       return ConfigureBenchmarkModuleStep(benchmarkModuleModel, name, templateHandle.metadata.minSdk)
     }
