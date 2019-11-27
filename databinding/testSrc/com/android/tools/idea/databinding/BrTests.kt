@@ -141,7 +141,7 @@ class BrTests(private val mode: DataBindingMode) {
       import test.db.BR
 
       class MainActivity : Activity() {
-        override fun onCreate(savedInstanceState: Bundle) {
+        override fun onCreate(savedInstanceState: Bundle?) {
           BR.aStr
         }
       }
