@@ -7,7 +7,7 @@
 
     <uses-sdk
         android:minSdkVersion="26"
-        android:targetSdkVersion="28" />
+        android:targetSdkVersion="29" />
 
     <application
         android:label="@ref/0x7f050000"

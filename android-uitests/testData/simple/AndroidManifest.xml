@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:versionCode="1"
     android:versionName="1.0"
-    android:compileSdkVersion="28"
+    android:compileSdkVersion="29"
     android:compileSdkVersionCodename="9"
     package="com.example.simpleapp"
     android:platformBuildVersionCode="1"
@@ -11,7 +11,7 @@
 
     <uses-sdk
         android:minSdkVersion="19"
-        android:targetSdkVersion="28" />
+        android:targetSdkVersion="29" />
 
     <application
         android:label="A Hello Android">
