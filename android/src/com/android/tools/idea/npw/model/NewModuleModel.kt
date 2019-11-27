@@ -25,7 +25,6 @@ import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidMo
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateValueInjector
-import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
@@ -93,7 +92,7 @@ class ExistingProjectModelData(
 interface ModuleModelData : ProjectModelData {
   val template: ObjectProperty<NamedModuleTemplate>
   val formFactor: ObjectValueProperty<FormFactor>
-  val isLibrary: BoolProperty
+  val isLibrary: Boolean
   val moduleTemplateValues: MutableMap<String, Any>
   val moduleName: StringValueProperty
   /**
@@ -113,26 +112,33 @@ class NewModuleModel(
   override val template: ObjectProperty<NamedModuleTemplate>,
   val moduleParent: String?,
   override val formFactor: ObjectValueProperty<FormFactor>,
-  private val commandName: String = "New Module"
+  private val commandName: String = "New Module",
+  override val isLibrary: Boolean = false
 ) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
-  override val isLibrary: BoolProperty = BoolValueProperty()
   override val moduleTemplateValues = mutableMapOf<String, Any>()
   override val moduleName = StringValueProperty().apply { addConstraint(String::trim) }
   override val templateFile = OptionalValueProperty<File>()
   override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
 
+  init {
+    updateApplicationName()
+  }
+
   // TODO(qumeric): replace constructors by factories
   constructor(
-    project: Project, moduleParent: String?, projectSyncInvoker: ProjectSyncInvoker, template: NamedModuleTemplate
+    project: Project,
+    moduleParent: String?,
+    projectSyncInvoker: ProjectSyncInvoker,
+    template: NamedModuleTemplate,
+    isLibrary: Boolean = false
   ) : this(
     projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
     template = ObjectValueProperty(template),
     moduleParent = moduleParent,
-    formFactor = ObjectValueProperty(FormFactor.MOBILE)
-  ) {
-    isLibrary.addListener { updateApplicationName() }
-  }
+    formFactor = ObjectValueProperty(FormFactor.MOBILE),
+    isLibrary = isLibrary
+  )
 
   constructor(
     projectModel: NewProjectModel, templateFile: File?, template: NamedModuleTemplate,
@@ -165,7 +171,7 @@ class NewModuleModel(
         moduleTemplateDataBuilder.apply {
           formFactor = this@NewModuleModel.formFactor.get().toTemplateFormFactor()
           isNew = true
-          isLibrary = this@NewModuleModel.isLibrary.get()
+          isLibrary = this@NewModuleModel.isLibrary
           projectTemplateDataBuilder.setProjectDefaults(project)
           setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@NewModuleModel.packageName.get())
           if (androidSdkInfo.isPresent.get()) {
@@ -186,7 +192,7 @@ class NewModuleModel(
       }
 
       moduleTemplateValues[ATTR_APP_TITLE] = applicationName.get()
-      moduleTemplateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary.get()
+      moduleTemplateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary
 
       TemplateValueInjector(moduleTemplateValues).apply {
         setProjectDefaults(project, isNewProject)
@@ -271,7 +277,7 @@ class NewModuleModel(
 
   private fun updateApplicationName() {
     val msgId: String = when {
-      isLibrary.get() -> "android.wizard.module.config.new.library"
+      isLibrary -> "android.wizard.module.config.new.library"
       else -> "android.wizard.module.config.new.application"
     }
     applicationName.set(message(msgId))

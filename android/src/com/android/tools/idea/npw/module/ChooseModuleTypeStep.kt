@@ -57,9 +57,9 @@ class ChooseModuleTypeStep(
   public override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
     moduleDescriptionToStepMap.clear()
     return moduleGalleryEntryList.map { moduleGalleryEntry ->
-      val model = NewModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate())
+      val isLibrary = (moduleGalleryEntry as? ModuleTemplateGalleryEntry)?.isLibrary == true
+      val model = NewModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate(), isLibrary)
       if (moduleGalleryEntry is ModuleTemplateGalleryEntry) {
-        model.isLibrary.set(moduleGalleryEntry.isLibrary)
         moduleGalleryEntry.templateFile?.let {
           model.templateFile.value = it
        }

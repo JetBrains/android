@@ -26,7 +26,6 @@ import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_CLASS_NAME
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
@@ -36,7 +35,7 @@ import com.intellij.util.lang.JavaVersion
 
 class NewLibraryModuleModel(
   project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker
-) : ModuleModel(project, templateHandle, projectSyncInvoker, "lib", "New Library Module") {
+) : ModuleModel(project, templateHandle, projectSyncInvoker, "lib", "New Library Module", true) {
   @JvmField
   val className = StringValueProperty("MyClass")
 
@@ -55,8 +54,7 @@ class NewLibraryModuleModel(
 
       val newValues = mutableMapOf(
         ATTR_CLASS_NAME to className.get(),
-        ATTR_IS_NEW_MODULE to true,
-        ATTR_IS_LIBRARY_MODULE to true
+        ATTR_IS_NEW_MODULE to true
       )
 
       templateValues.putAll(newValues)
@@ -66,7 +64,6 @@ class NewLibraryModuleModel(
           projectTemplateDataBuilder.apply {
             javaVersion = JavaVersion.parse("1.7")
           }
-          isLibrary = true
         }
       }
     }

@@ -22,7 +22,6 @@ import com.android.tools.idea.npw.module.recipes.benchmarkModule.generateBenchma
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_TITLE
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
@@ -32,7 +31,7 @@ import com.intellij.util.lang.JavaVersion
 
 class NewBenchmarkModuleModel(
   project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker
-) : ModuleModel(project, templateHandle, projectSyncInvoker, "benchmark", "New Benchmark Module") {
+) : ModuleModel(project, templateHandle, projectSyncInvoker, "benchmark", "New Benchmark Module", true) {
   override val renderer = object : ModuleTemplateRenderer() {
     override val recipe: Recipe get() = { td: TemplateData -> generateBenchmarkModule(td as ModuleTemplateData) }
 
@@ -41,8 +40,7 @@ class NewBenchmarkModuleModel(
 
       val newValues = mutableMapOf(
         ATTR_APP_TITLE to moduleName.get(),
-        ATTR_IS_NEW_MODULE to true,
-        ATTR_IS_LIBRARY_MODULE to true
+        ATTR_IS_NEW_MODULE to true
       )
 
       TemplateValueInjector(newValues)
@@ -55,7 +53,6 @@ class NewBenchmarkModuleModel(
           projectTemplateDataBuilder.apply {
             javaVersion = JavaVersion.parse("1.8")
           }
-          isLibrary = true
         }
       }
     }
