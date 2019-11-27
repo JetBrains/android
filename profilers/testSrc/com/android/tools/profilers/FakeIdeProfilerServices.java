@@ -269,11 +269,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isMemoryCaptureFilterEnabled() {
-        return false;
-      }
-
-      @Override
       public boolean isMemorySnapshotEnabled() {
         return myMemorySnapshotEnabled;
       }
