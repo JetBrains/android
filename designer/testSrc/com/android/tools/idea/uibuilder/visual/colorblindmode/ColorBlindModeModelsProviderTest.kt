@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.visual
+package com.android.tools.idea.uibuilder.visual.colorblindmode
 
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.type.ZoomableDrawableFileType
-import com.intellij.openapi.util.Disposer
-import junit.framework.TestCase
+import com.android.tools.idea.uibuilder.visual.ColorBlindModeModelsProvider
 import org.intellij.lang.annotations.Language
 
-class PixelDeviceModelsProviderTest : LayoutTestCase() {
+class ColorBlindModeModelsProviderTest : LayoutTestCase() {
 
   override fun setUp() {
     DesignerTypeRegistrar.register(LayoutFileType)
-    DesignerTypeRegistrar.register(ZoomableDrawableFileType)
     super.setUp()
   }
 
@@ -37,34 +34,17 @@ class PixelDeviceModelsProviderTest : LayoutTestCase() {
     DesignerTypeRegistrar.clearRegisteredTypes()
   }
 
-  fun testCreatePixelModels() {
+  fun testCreateColorBlindModeModels() {
     val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
 
-    val modelsProvider = PixelDeviceModelsProvider
+    val modelsProvider = ColorBlindModeModelsProvider
     val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
 
     assertNotEmpty(nlModels)
-    for (nlModel in nlModels) {
-      assertTrue(DEVICES_TO_DISPLAY.contains(nlModel.configuration.device!!.displayName))
+    val displayNames = ColorBlindMode.values().map { it.displayName }
+    nlModels.forEach {
+      assertTrue(displayNames.contains(it.modelDisplayName))
     }
-  }
-
-  fun testNotCreatePixelModelsForNonLayoutFile() {
-    val file = myFixture.addFileToProject("/res/drawable/test.xml", DRAWABLE_FILE_CONTENT)
-
-    val modelsProvider = PixelDeviceModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
-    assertEmpty(nlModels)
-  }
-
-  fun testDisposedConfigurationManagerShouldCleanTheCached() {
-    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
-    val modelsProvider = PixelDeviceModelsProvider
-    val manager = ConfigurationManager.getOrCreateInstance(myFacet)
-    modelsProvider.createNlModels(testRootDisposable, file, myFacet)
-    TestCase.assertTrue(modelsProvider.deviceCaches.containsKey(manager))
-    Disposer.dispose(manager)
-    TestCase.assertFalse(modelsProvider.deviceCaches.containsKey(manager))
   }
 }
 
@@ -76,12 +56,4 @@ private const val LAYOUT_FILE_CONTENT = """
   android:layout_height="match_parent"
   android:orientation="vertical">
 </LinearLayout>
-"""
-
-@Language("Xml")
-private const val DRAWABLE_FILE_CONTENT = """
-<?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-  android:shape="line">
-</shape>
 """
