@@ -337,13 +337,13 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
                                                                boolean sameScope,
                                                                @Nullable GradleDslElement childElement,
                                                                boolean includeSelf) {
-    String modelName = converter.modelNameForParent(name, properties);
 
     // First check if any indexing has been done.
     Matcher indexMatcher = GradleNameElement.INDEX_PATTERN.matcher(name);
 
     // If the index matcher doesn't give us anything, just attempt to find the property on the element;
     if (!indexMatcher.find()) {
+      String modelName = converter.modelNameForParent(name, properties);
       return sameScope
              ? properties.getElementBefore(childElement, modelName, includeSelf)
              : properties.getPropertyElementBefore(childElement, modelName, includeSelf);
@@ -354,14 +354,12 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
       return null;
     }
 
-    // We have some index present, find the element we need to index. The first group is always the whole match.
-    //
-    // TODO(xof): if the first group is the whole match, why are we getting the whole match rather than the element?
+    // We have some index present, find the element we need to index. The first match, the property, is always the whole match.
     String elementName = indexMatcher.group(0);
     if (elementName == null) {
       return null;
     }
-    modelName = converter.modelNameForParent(elementName, properties);
+    String modelName = converter.modelNameForParent(elementName, properties);
 
     GradleDslElement element =
       sameScope
@@ -370,12 +368,12 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
 
     // Construct a list of all of the index parts
     Deque<String> indexParts = new ArrayDeque<>();
-    // Note: groupCount returns the number of groups other than the match. So we need to add one here.
     while (indexMatcher.find()) {
       // Sanity check
       if (indexMatcher.groupCount() != 2) {
         return null;
       }
+      // second and subsequent matches of INDEX_PATTERN have .group(0) being "[...]", and .group(1) the text inside the brackets.
       indexParts.add(indexMatcher.group(1));
     }
 
