@@ -159,10 +159,10 @@ class ResourceLookupResolverTest {
     val resolver = createResourceLookupResolver(data.theme)
     val locations = resolver.findFileLocations(data.textColor, data.textStyleMaterialBody1, 10)
     checkLocation(locations[0], "styles_material.xml:230", "<item name=\"textColor\">?attr/textColorPrimary</item>")
-    checkLocation(locations[1], "themes_material.xml:430", "<item name=\"textColorPrimary\">@color/text_color_primary</item>")
+    checkLocation(locations[1], "themes_material.xml:436", "<item name=\"textColorPrimary\">@color/text_color_primary</item>")
     checkLocation(locations[2], "text_color_primary.xml:21", "<item android:alpha=\"?attr/primaryContentAlpha\"\n" +
                                                              "        android:color=\"?attr/colorForeground\"/>")
-    checkLocation(locations[3], "themes_material.xml:415", "<item name=\"colorForeground\">@color/foreground_material_light</item>")
+    checkLocation(locations[3], "themes_material.xml:418", "<item name=\"colorForeground\">@color/foreground_material_light</item>")
     checkLocation(locations[4], "colors_material.xml:20", "<color name=\"foreground_material_light\">@color/black</color>")
     checkLocation(locations[5], "colors.xml:39", "<color name=\"black\">#ff000000</color>")
     assertThat(locations.size).isEqualTo(6)
@@ -175,7 +175,7 @@ class ResourceLookupResolverTest {
     val resolver = createResourceLookupResolver(data.theme)
     val locations = resolver.findFileLocations(data.textColor, data.textStyleMaterial, 2)
     checkLocation(locations[0], "styles_material.xml:156", "<item name=\"textColor\">?attr/textColorPrimary</item>")
-    checkLocation(locations[1], "themes_material.xml:430", "<item name=\"textColorPrimary\">@color/text_color_primary</item>")
+    checkLocation(locations[1], "themes_material.xml:436", "<item name=\"textColorPrimary\">@color/text_color_primary</item>")
     assertThat(locations.size).isEqualTo(2) // 3 lines omitted because a limit of 2 was specified
     assertThat(resolver.findAttributeValue(data.textColor, data.textStyleMaterial)).isEqualTo("#DD000000")
   }
