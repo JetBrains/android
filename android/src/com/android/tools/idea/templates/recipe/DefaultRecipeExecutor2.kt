@@ -243,12 +243,12 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     io.applyChanges(buildModel)
   }
 
-  override fun addModuleDependency(configuration: String, moduleName: String, toModule: String) {
+  override fun addModuleDependency(configuration: String, moduleName: String, toModule: File) {
     require(moduleName.isNotEmpty() && moduleName.first() != ':') {
       "incorrect module name (it should not be empty or include first ':')"
     }
     val configuration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
-    val buildFile = findGradleBuildFile(File(toModule))
+    val buildFile = findGradleBuildFile(toModule)
 
     // TODO(qumeric) handle it in a better way?
     val buildModel = getBuildModel(buildFile, context.project) ?: return
@@ -409,15 +409,14 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     io.applyChanges(buildModel)
   }
 
-  override fun addDynamicFeature(name: String, toModule: String) {
-    require(name.isNotEmpty() && toModule.isNotEmpty()) {
+  override fun addDynamicFeature(name: String, toModule: File) {
+    require(name.isNotEmpty()) {
       "Module name cannot be empty"
     }
-    val buildFile = findGradleBuildFile(File(toModule))
-    val gradleName = ':' + name.trimStart(':')
+    val buildFile = findGradleBuildFile(toModule)
     // TODO(qumeric) handle it in a better way?
     val buildModel = getBuildModel(buildFile, context.project) ?: return
-    buildModel.android().dynamicFeatures().addListValue().setValue(gradleName)
+    buildModel.android().dynamicFeatures().addListValue().setValue(":$name")
     io.applyChanges(buildModel)
   }
 

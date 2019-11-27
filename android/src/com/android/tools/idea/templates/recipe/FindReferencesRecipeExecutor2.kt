@@ -64,7 +64,7 @@ internal class FindReferencesRecipeExecutor2(private val context: RenderingConte
     context.dependencies.put(configuration, mavenCoordinate)
   }
 
-  override fun addModuleDependency(configuration: String, moduleName: String, toModule: String) {}
+  override fun addModuleDependency(configuration: String, moduleName: String, toModule: File) {}
 
   fun addTargetFile(file: File) {
     context.targetFiles.add(resolveTargetFile(file))
@@ -83,5 +83,5 @@ internal class FindReferencesRecipeExecutor2(private val context: RenderingConte
   override fun setBuildFeature(name: String, value: Boolean) {}
 
   override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {}
-  override fun addDynamicFeature(name: String, toModule: String) {}
+  override fun addDynamicFeature(name: String, toModule: File) {}
 }
