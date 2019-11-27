@@ -45,7 +45,7 @@ import org.junit.runner.RunWith;
 public class TerminateAdbIfNotUsedTest {
   private static final String PROJECT_NAME = "simple";
   private static final String SERIAL = "test_device_001";
-  private static final String SDK = "28";
+  private static final String SDK = "29";
   private static final int WAIT_TIME = 30;
 
   @Rule public final GuiTestRule myGuiTest = new GuiTestRule();
