@@ -57,7 +57,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     sqliteUtil.setUp()
 
     sqliteFile1 = sqliteUtil.createTestSqliteDatabase("db1.db")
-    sqliteFile1.putUserData(DeviceFileId.KEY, DeviceFileId("deviceId", "filePath"))
+    DeviceFileId("deviceId", "filePath").storeInVirtualFile(sqliteFile1)
 
     val model = MockDatabaseInspectorModel()
     mockSqliteController = spy(MockDatabaseInspectorController(model))
@@ -145,7 +145,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
 
   fun testReDownloadFileHasNoMetadata() {
     // Prepare
-    sqliteFile1.putUserData(DeviceFileId.KEY, null)
+    DeviceFileId.removeFromVirtualFile(sqliteFile1)
     val openedDatabase = pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(sqliteFile1)) as FileSqliteDatabase
     databaseToClose = openedDatabase
 
