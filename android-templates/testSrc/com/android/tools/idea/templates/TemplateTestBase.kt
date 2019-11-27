@@ -299,7 +299,7 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
 
     val supportLibIsNotSupported = templateMetadata != null && templateMetadata.constraints.contains(ANDROIDX)
 
-    if (!supportLibIsNotSupported && !onlyAndroidX) {
+    if (!supportLibIsNotSupported && !onlyAndroidX && moduleState.getInt(ATTR_BUILD_API) < 29) {
       // Make sure we test all templates against androidx
       disableAndroidX(moduleState, activityState)
       projectChecker.checkProject(projectName + "_android_support")
