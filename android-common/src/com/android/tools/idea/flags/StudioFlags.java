@@ -150,10 +150,6 @@ public final class StudioFlags {
     "For Android O or newer, allows users to configure the sampling mode of live allocation tracking",
     true);
 
-  public static final Flag<Boolean> PROFILER_USE_ATRACE = Flag.create(
-    PROFILER, "atrace", "Show the atrace option in CPU profiler",
-    "Toggles if atrace is a valid option to choose from the CPU profiling dropdown.",
-    true);
 
   public static final Flag<Boolean> PROFILER_USE_PERFETTO = Flag.create(
     PROFILER, "perfetto", "Allows importing and recording of perfetto traces.",

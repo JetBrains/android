@@ -224,11 +224,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
-      public boolean isAtraceEnabled() {
-        return StudioFlags.PROFILER_USE_ATRACE.get();
-      }
-
-      @Override
       public boolean isCpuApiTracingEnabled() {
         return StudioFlags.PROFILER_CPU_API_TRACING.get();
       }
