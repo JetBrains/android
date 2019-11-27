@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
 public class DeployActionsInitializer implements StartupActivity {
   @Override
   public void runActivity(@NotNull Project project) {
-    MessageBusConnection projectConnection = project.getMessageBus().connect(project);
+    MessageBusConnection projectConnection = project.getMessageBus().connect();
     projectConnection.subscribe(RunManagerListener.TOPIC, new RunManagerListener() {
       @Override
       public void runConfigurationSelected() {

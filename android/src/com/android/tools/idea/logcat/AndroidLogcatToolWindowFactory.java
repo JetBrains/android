@@ -74,7 +74,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
     AndroidLogcatView logcatView = logcatPanel.getLogcatView();
 
     ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new MyToolWindowManagerListener(project, logcatView));
-    project.getMessageBus().connect(project).subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(logcatView));
+    project.getMessageBus().connect().subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(logcatView));
 
     final ContentManager contentManager = toolWindow.getContentManager();
     Content c = contentManager.getFactory().createContent(logcatPanel, "", true);

@@ -55,7 +55,7 @@ class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware, Condition<Proj
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     createContent(toolWindow, project)
-    project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, MyToolWindowManagerListener(project))
+    project.messageBus.connect().subscribe(ToolWindowManagerListener.TOPIC, MyToolWindowManagerListener(project))
   }
 
   override fun shouldBeAvailable(project: Project) = StudioFlags.RESOURCE_MANAGER_ENABLED.get() && AndroidUtils.hasAndroidFacets(project)

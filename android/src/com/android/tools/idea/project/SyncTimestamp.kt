@@ -37,7 +37,7 @@ class SyncTimestamp(private val project: Project) : ProjectComponent {
   fun getLastSyncTimestamp() = lastSyncTimestamp.get()
 
   override fun projectOpened() {
-    project.messageBus.connect(project).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : SyncResultListener {
+    project.messageBus.connect().subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : SyncResultListener {
       override fun syncEnded(result: SyncResult) {
         if (result != SyncResult.CANCELLED) {
           lastSyncTimestamp.set(Clock.getTime())

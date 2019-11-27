@@ -21,9 +21,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.*
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -48,7 +46,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     val syncResult = SettableFuture.create<SyncResult>()
 
     // Listen for the next sync result.
-    val connection = project.messageBus.connect(project).apply {
+    val connection = project.messageBus.connect().apply {
       subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : SyncResultListener {
         override fun syncEnded(result: SyncResult) {
           disconnect()

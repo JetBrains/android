@@ -38,7 +38,7 @@ import com.intellij.util.Processor
 
 class ProjectSizeUsageTracker(private val project: Project) : ProjectComponent {
   override fun projectOpened() {
-    val connection = project.messageBus.connect(project)
+    val connection = project.messageBus.connect()
     connection.subscribe<ProjectSystemSyncManager.SyncResultListener>(
       PROJECT_SYSTEM_SYNC_TOPIC,
       object : ProjectSystemSyncManager.SyncResultListener {

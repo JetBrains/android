@@ -59,7 +59,7 @@ class GradleProjectSystemSyncManagerTest : JavaProjectTestCase() {
     gradleBuildState = GradleBuildState.getInstance(myProject)
     gradleSyncState = GradleSyncState.getInstance(myProject)
 
-    syncTopicConnection = project.messageBus.connect(project)
+    syncTopicConnection = project.messageBus.connect()
     syncTopicListener = mock(SyncResultListener::class.java)
     syncTopicConnection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, syncTopicListener)
   }

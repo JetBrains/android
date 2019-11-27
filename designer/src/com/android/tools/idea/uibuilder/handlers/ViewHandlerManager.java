@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -40,17 +41,18 @@ import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
 import com.android.tools.idea.uibuilder.menu.GroupHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.menu.MenuViewHandlerManager;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.statelist.ItemHandler;
 import com.android.tools.idea.uibuilder.statelist.SelectorHandler;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -68,7 +70,7 @@ import static com.android.SdkConstants.*;
 /**
  * Tracks and provides {@link ViewHandler} instances in this project
  */
-public class ViewHandlerManager implements ProjectComponent {
+public class ViewHandlerManager implements Disposable {
   /**
    * View handlers are named the same as the class for the view they represent, plus this suffix
    */
@@ -89,7 +91,6 @@ public class ViewHandlerManager implements ProjectComponent {
   public static ViewHandlerManager get(@NotNull Project project) {
     ViewHandlerManager manager = project.getComponent(ViewHandlerManager.class);
     assert manager != null;
-
     return manager;
   }
 
@@ -103,6 +104,14 @@ public class ViewHandlerManager implements ProjectComponent {
 
   public ViewHandlerManager(@NotNull Project project) {
     myProject = project;
+    ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+      @Override
+      public void projectClosed(@NotNull Project project) {
+        if (project == myProject) {
+          myHandlers.clear();
+        }
+      }
+    });
   }
 
   /**
@@ -584,18 +593,7 @@ public class ViewHandlerManager implements ProjectComponent {
   }
 
   @Override
-  public void projectClosed() {
+  public void dispose() {
     myHandlers.clear();
-  }
-
-  @Override
-  public void disposeComponent() {
-    myHandlers.clear();
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return "ViewHandlerManager";
   }
 }

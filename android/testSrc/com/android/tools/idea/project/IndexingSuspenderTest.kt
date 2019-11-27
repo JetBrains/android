@@ -104,7 +104,7 @@ class IndexingSuspenderTest : JavaProjectTestCase() {
   }
 
   private fun setUpIndexingSpecificExpectations(batchUpdateCount: Int, batchFileUpdateCount: Int) {
-    batchUpdateConnection = project.messageBus.connect(project)
+    batchUpdateConnection = project.messageBus.connect()
     batchUpdateConnection.subscribe<BatchUpdateListener>(BatchUpdateListener.TOPIC, object : BatchUpdateListener {
       override fun onBatchUpdateStarted() {
         actualBatchUpdateCount += 1
@@ -116,7 +116,7 @@ class IndexingSuspenderTest : JavaProjectTestCase() {
       }
     })
 
-    batchFileUpdateConnection = project.messageBus.connect(project)
+    batchFileUpdateConnection = project.messageBus.connect()
     batchFileUpdateConnection.subscribe<BatchFileChangeListener>(BatchFileChangeListener.TOPIC, object : BatchFileChangeListener {
       override fun batchChangeStarted(project: Project, activityName: String?) {
         actualBatchFileUpdateCount += 1
