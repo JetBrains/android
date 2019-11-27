@@ -76,44 +76,35 @@ class SqliteEvaluatorController(
   fun evaluateSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
     view.showSqliteStatement(sqliteStatement.toString())
     view.selectDatabase(database)
-
-    if (sqliteStatement.isUpdateStatement()) {
-      executeUpdate(database, sqliteStatement)
-    } else {
-      executeQuery(database, sqliteStatement) {
-        view.tableView.reportError("Error executing sqlQueryCommand", it)
-      }
-    }
+    execute(database, sqliteStatement)
   }
 
-  private fun executeUpdate(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
+  private fun execute(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
     val databaseConnection = database.databaseConnection
     edtExecutor.addCallback(databaseConnection.execute(sqliteStatement), object : FutureCallback<SqliteResultSet?> {
-      override fun onSuccess(result: SqliteResultSet?) {
-        view.tableView.resetView()
-        listeners.forEach { it.onSchemaUpdated(database) }
+      override fun onSuccess(resultSet: SqliteResultSet?) {
+        if (resultSet != null) {
+          // query statement
+          currentTableController = TableController(
+            view = view.tableView,
+            tableName = null,
+            databaseConnection = databaseConnection,
+            sqliteStatement = sqliteStatement,
+            edtExecutor = edtExecutor
+          )
+          Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
+          currentTableController!!.setUp()
+        } else {
+          // update statement
+          view.tableView.resetView()
+          listeners.forEach { it.onSchemaUpdated(database) }
+        }
       }
 
       override fun onFailure(t: Throwable) {
-        view.tableView.reportError("Error executing update", t)
+        view.tableView.reportError("Error executing SQLite statement", t)
       }
     })
-  }
-
-  private fun executeQuery(database: SqliteDatabase, sqliteStatement: SqliteStatement, doOnFailure: (Throwable) -> Unit) {
-    val databaseConnection = database.databaseConnection
-
-    currentTableController = TableController(
-      view = view.tableView,
-      tableName = null,
-      databaseConnection = databaseConnection,
-      sqliteStatement = sqliteStatement,
-      edtExecutor = edtExecutor
-    ).also { Disposer.register(this, it) }
-
-    edtExecutor.catching(currentTableController!!.setUp(), Throwable::class.java) { throwable ->
-      doOnFailure(throwable)
-    }
   }
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {

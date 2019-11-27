@@ -63,19 +63,6 @@ data class SqliteColumn(val name: String, val type: JDBCType)
 data class SqliteStatement(val sqliteStatementText: String, val parametersValues: List<Any>) {
   constructor(sqliteStatement: String) : this(sqliteStatement, emptyList<Any>())
 
-  fun isUpdateStatement(): Boolean {
-    // TODO(b/137259344) after introducing the SQL parser this bit should become a bit nicer
-    return when {
-      sqliteStatementText.startsWith("CREATE", ignoreCase = true) or
-        sqliteStatementText.startsWith("DROP", ignoreCase = true) or
-        sqliteStatementText.startsWith("ALTER", ignoreCase = true) or
-        sqliteStatementText.startsWith("INSERT", ignoreCase = true) or
-        sqliteStatementText.startsWith("UPDATE", ignoreCase = true) or
-        sqliteStatementText.startsWith("DELETE", ignoreCase = true) -> true
-      else -> false
-    }
-  }
-
   override fun toString(): String {
     var renderedStatement = sqliteStatementText
     parametersValues.forEach {
