@@ -120,7 +120,9 @@ abstract class CpuUsageView extends JBPanel {
       add(createAxisPanel(), new TabularLayout.Constraint(0, 0));
       add(createLegendPanel(), new TabularLayout.Constraint(0, 0));
       add(myOverlayComponent, new TabularLayout.Constraint(0, 0));
-      add(myRangeSelectionComponent, new TabularLayout.Constraint(0, 0));
+      if (!stage.getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
+        add(myRangeSelectionComponent, new TabularLayout.Constraint(0, 0));
+      }
       add(createLineChartPanel(), new TabularLayout.Constraint(0, 0));
     }
 
@@ -175,6 +177,7 @@ abstract class CpuUsageView extends JBPanel {
           .setIconMapper(info -> info.getDurationUs() != Long.MAX_VALUE ? StudioIcons.Profiler.Toolbar.CAPTURE_CLOCK : null)
           .setLabelProvider(info -> info.getDurationUs() == Long.MAX_VALUE ? "In progress" : "")
           .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
+          .setBackgroundClickable(myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled())
           .setClickHander(traceInfo -> {
             if (traceInfo.getDurationUs() != Long.MAX_VALUE) {
               myStage.setAndSelectCapture(traceInfo.getTraceId());

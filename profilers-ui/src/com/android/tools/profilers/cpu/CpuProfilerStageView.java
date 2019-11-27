@@ -53,6 +53,7 @@ import java.awt.event.MouseListener;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private enum PanelSizing {
@@ -122,10 +123,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   /**
    * The action listener of the capture button changes depending on the state of the profiler.
    * It can be either "start capturing" or "stop capturing".
+   * This will be null if {@link FeatureConfig::isCpuCaptureStageEnabled}
    */
-  @NotNull private final JBSplitter mySplitter;
+  @Nullable private JBSplitter mySplitter;
 
-  @NotNull private final CpuCaptureView myCaptureView;
+  @Nullable private CpuCaptureView myCaptureView;
 
   @NotNull private final RangeTooltipComponent myTooltipComponent;
 
@@ -136,8 +138,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   public CpuProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CpuProfilerStage stage) {
     super(profilersView, stage);
     myStage = stage;
-    myCaptureView = new CpuCaptureView(this);
-
     myThreads = new CpuThreadsView(myStage);
     myCpus = new CpuKernelsView(myStage);
     myFrames = new CpuFramesView(myStage);
@@ -158,9 +158,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     stage.getAspect().addDependency(this)
          .onChange(CpuProfilerAspect.CAPTURE_STATE, myToolbar::update)
          .onChange(CpuProfilerAspect.CAPTURE_SELECTION, myToolbar::update);
-
-    stage.getStudioProfilers().addDependency(this)
-         .onChange(ProfilerAspect.MODE, this::updateCaptureViewVisibility);
 
     getTooltipBinder().bind(CpuProfilerStageCpuUsageTooltip.class, CpuProfilerStageCpuUsageTooltipView::new);
     getTooltipBinder().bind(CpuKernelTooltip.class, (stageView, tooltip) -> new CpuKernelTooltipView(stageView.getComponent(), tooltip));
@@ -204,11 +201,23 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     details.add(new ProfilerScrollbar(myStage.getTimeline(), details), new TabularLayout.Constraint(4, 0));
 
     // The first component in the splitter is the L2 components, the 2nd component is the L3 components.
-    mySplitter = new JBSplitter(true);
-    mySplitter.setFirstComponent(details);
-    mySplitter.setSecondComponent(null);
-    mySplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
-    getComponent().add(mySplitter, BorderLayout.CENTER);
+    if (!getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
+      myCaptureView = new CpuCaptureView(this);
+
+      mySplitter = new JBSplitter(true);
+      mySplitter.setFirstComponent(details);
+      mySplitter.setSecondComponent(null);
+      mySplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
+      getComponent().add(mySplitter, BorderLayout.CENTER);
+
+      stage.getStudioProfilers().addDependency(this)
+        .onChange(ProfilerAspect.MODE, this::updateCaptureViewVisibility);
+
+      updateCaptureViewVisibility();
+    }
+    else {
+      getComponent().add(details, BorderLayout.CENTER);
+    }
 
     CpuProfilerContextMenuInstaller.install(myStage, getIdeComponents(), myUsageView, getComponent());
     // Add the profilers common menu items
@@ -217,7 +226,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     if (!getStage().hasUserUsedCpuCapture() && !getStage().isImportTraceMode()) {
       installProfilingInstructions(myUsageView);
     }
-    updateCaptureViewVisibility();
 
     SessionsManager sessions = getStage().getStudioProfilers().getSessionsManager();
     sessions.addDependency(this).onChange(SessionAspect.SELECTED_SESSION, myToolbar::update);
@@ -303,6 +311,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   private void updateCaptureViewVisibility() {
+    assert mySplitter != null;
+    assert myCaptureView != null;
     if (myStage.getProfilerMode() == ProfilerMode.EXPANDED) {
       mySplitter.setSecondComponent(myCaptureView.getComponent());
     }

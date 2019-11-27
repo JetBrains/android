@@ -404,6 +404,17 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
     assertThat(splitter.secondComponent).isNotNull()
   }
 
+  @Test
+  fun splitterNotVisibleWithCaptureStageEnabled() {
+    myIdeServices.enableCpuNewRecordingWorkflow(true)
+    myIdeServices.enableCpuCaptureStage(true)
+
+    val stageView = CpuProfilerStageView(myProfilersView, myStage)
+
+    assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.NORMAL)
+    assertThat(TreeWalker(stageView.component).descendants().filterIsInstance<JBSplitter>()).isEmpty()
+  }
+
   private fun getUsageView(stageView: CpuProfilerStageView) = TreeWalker(stageView.component)
     .descendants()
     .filterIsInstance<CpuUsageView>()
