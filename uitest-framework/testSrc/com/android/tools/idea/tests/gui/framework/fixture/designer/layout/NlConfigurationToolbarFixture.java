@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItemMatching;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
+
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.TextAccessors;
 import com.android.tools.adtui.actions.DropDownActionTestUtil;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.TargetMenuAction;
 import com.android.tools.idea.configurations.ThemeMenuAction;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
@@ -30,15 +34,11 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testFramework.TestActionEvent;
+import java.util.Arrays;
+import java.util.function.Predicate;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Arrays;
-import java.util.function.Predicate;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItemMatching;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
 
 /**
  * Fixture representing the configuration toolbar above an associated layout editor
@@ -88,20 +88,16 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
 
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> requireApiLevel(@NotNull String apiLevel) {
-    Wait.seconds(1).expecting("API level to be updated").until(() -> apiLevel.equals(getApiLevel()));
+    Wait.seconds(1).expecting("API level to be updated").until(() -> {
+      Configuration configuration = mySurface.getConfiguration();
+      return configuration != null && apiLevel.equals(TargetMenuAction.getRenderingTargetLabel(configuration.getTarget(), true));
+    });
     return this;
   }
 
   public void requireTheme(@NotNull String theme) {
     Wait.seconds(1).expecting("theme to be updated")
       .until(() -> theme.equals(TextAccessors.getTextAccessor(findToolbarButton("Theme for Preview")).getText()));
-  }
-
-  /**
-   * Returns the current API level of the toolbar's configuration as a String
-   */
-  public String getApiLevel() {
-    return TextAccessors.getTextAccessor(findToolbarButton("API Version for Preview")).getText();
   }
 
   /**
