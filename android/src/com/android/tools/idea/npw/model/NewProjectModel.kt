@@ -89,7 +89,7 @@ interface ProjectModelData {
   val enableCppSupport: BoolValueProperty
   val useAppCompat: BoolValueProperty
   val cppFlags: StringValueProperty
-  val project: OptionalValueProperty<Project>
+  var project: Project
   val isNewProject: Boolean
   val projectTemplateValues: MutableMap<String, Any>
   val language: OptionalValueProperty<Language>
@@ -105,24 +105,23 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val enableCppSupport = BoolValueProperty(PropertiesComponent.getInstance().isTrueValue(PROPERTIES_CPP_SUPPORT_KEY))
   override val useAppCompat = BoolValueProperty()
   override val cppFlags = StringValueProperty()
-  override val project = OptionalValueProperty<Project>()
+  override lateinit var project: Project
   override val isNewProject = true
   override val projectTemplateValues = mutableMapOf<String, Any>()
   override val language = OptionalValueProperty<Language>()
   override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
     run {
-      assert(project.valueOrNull == null)
+      assert(!::project.isInitialized)
       val projectName = applicationName.get()
       val projectLocation = projectLocation.get()
-      val newProject = GradleProjectImporter.getInstance().createProject(projectName, File(projectLocation))
-      project.value = newProject
-      AndroidNewProjectInitializationStartupActivity.setProjectInitializer(newProject) {
+      project = GradleProjectImporter.getInstance().createProject(projectName, File(projectLocation))
+      AndroidNewProjectInitializationStartupActivity.setProjectInitializer(project) {
         logger.info("Rendering a new project.")
         NonProjectFileWritingAccessProvider.disableChecksDuring {
-          renderer(newProject)
+          renderer(project)
         }
       }
-      ProjectManagerEx.getInstanceEx().openProject(newProject)
+      ProjectManagerEx.getInstanceEx().openProject(project)
     }
   }
   override val projectTemplateDataBuilder = ProjectTemplateDataBuilder(true)
@@ -190,7 +189,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       // Cpp Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
       projectTemplateValues[ATTR_CPP_SUPPORT] = enableCppSupport.get()
       projectTemplateValues[ATTR_CPP_FLAGS] = cppFlags.get()
-      projectTemplateValues[ATTR_TOP_OUT] = project.value.basePath ?: ""
+      projectTemplateValues[ATTR_TOP_OUT] = project.basePath ?: ""
       projectTemplateValues[ATTR_IS_NEW_PROJECT] = true
       projectTemplateValues[ATTR_APP_TITLE] = applicationName.get()
 
@@ -199,7 +198,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       }
 
       TemplateValueInjector(projectTemplateValues)
-        .setProjectDefaults(project.value, isNewProject)
+        .setProjectDefaults(project, isNewProject)
         .setLanguage(language.value)
 
       // It is slightly slower but safer to initialize it after setting template values because they may be reused in later stages
@@ -208,10 +207,10 @@ class NewProjectModel : WizardModel(), ProjectModelData {
           // TODO(qumeric)
           // cppSupport = this@NewProjectModel.cppSupport.get()
           // cppFlags = this@NewProjectModel.cppFlags.get()
-          topOut = File(project.value.basePath ?: "")
+          topOut = File(project.basePath ?: "")
           androidXSupport = !useAppCompat.get()
 
-          setProjectDefaults(project.value)
+          setProjectDefaults(project)
           language = this@NewProjectModel.language.value
         }
         return
@@ -221,7 +220,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
     @WorkerThread
     override fun doDryRun(): Boolean {
-      if (project.valueOrNull == null) {
+      if(!::project.isInitialized) {
         return false
       }
 
@@ -234,7 +233,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       performCreateProject(false)
 
       try {
-        val projectRoot = VfsUtilCore.virtualToIoFile(project.value.baseDir)
+        val projectRoot = VfsUtilCore.virtualToIoFile(project.baseDir)
         setGradleWrapperExecutable(projectRoot)
       }
       catch (e: IOException) {
@@ -247,7 +246,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     private fun performCreateProject(dryRun: Boolean) {
       if (StudioFlags.NPW_NEW_PROJECT_TEMPLATE.get()) {
         val context = RenderingContext2(
-          project.value,
+          project,
           null,
           "New Project",
           projectTemplateDataBuilder.build(),
@@ -264,7 +263,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         return
       }
 
-      val context = RenderingContext.Builder.newContext(projectTemplate, project.value)
+      val context = RenderingContext.Builder.newContext(projectTemplate, project)
         .withCommandName("New Project")
         .withDryRun(dryRun)
         .withShowErrors(true)
@@ -303,7 +302,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
           sdkData != null && sdk != null && jdk.getVersion(sdk)?.isAtLeast(JavaSdkVersion.JDK_1_7) == true
         }
 
-        val request = GradleProjectImporter.Request(project.value).apply {
+        val request = GradleProjectImporter.Request(project).apply {
           isNewProject = true
           javaLanguageLevel = initialLanguageLevel
         }

@@ -149,7 +149,7 @@ abstract class ChooseGalleryItemStep(
     val moduleApiLevel = androidSdkInfo?.minApiLevel ?: facet?.getModuleInfo()?.minSdkVersion?.featureLevel ?: Integer.MAX_VALUE
     val moduleBuildApiLevel = androidSdkInfo?.buildApiLevel ?: facet?.getModuleInfo()?.buildSdkVersion?.featureLevel ?: Integer.MAX_VALUE
 
-    val project = model.project.valueOrNull
+    val project = model.project
     val isAndroidxProject = project != null && project.isAndroidx()
 
     invalidParameterMessage.set(

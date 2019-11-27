@@ -350,7 +350,6 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
   }
 
   private fun validateAllParameters(): String? {
-    val project = model.project.valueOrNull
     val sourceProvider = model.template.get().getSourceProvider()
 
     return parameters.firstNotNullResult { parameter ->
@@ -360,7 +359,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
       }
       when (parameter) {
         is StringParameter -> parameter.validate(
-          project, model.module, sourceProvider, model.packageName.get(), property.get(), getRelatedValues(parameter))
+          model.project, model.module, sourceProvider, model.packageName.get(), property.get(), getRelatedValues(parameter))
         else -> null
       }
     }
@@ -447,7 +446,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     val filenameJoiner = Joiner.on('.').skipNulls()
 
     var suffix = 2
-    val project = model.project.valueOrNull
+    val project = model.project
     val relatedValues = getRelatedValues(parameter)
     val sourceProvider = model.template.get().getSourceProvider()
     while (!parameter.uniquenessSatisfied(project, model.module, sourceProvider, model.packageName.get(), suggested, relatedValues)) {

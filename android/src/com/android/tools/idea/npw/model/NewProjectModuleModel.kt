@@ -126,7 +126,7 @@ private fun createCompanionModuleModel(projectModel: NewProjectModel): NewModule
   val moduleTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_MODULE)
   val moduleName = getModuleName(FormFactor.MOBILE)
   val namedModuleTemplate = createDefaultTemplateAt(projectModel.projectLocation.get(), moduleName)
-  val companionModuleModel = NewModuleModel(projectModel, moduleTemplateFile!!, namedModuleTemplate)
+  val companionModuleModel = NewModuleModel(projectModel, moduleTemplateFile!!, null, namedModuleTemplate)
   companionModuleModel.moduleName.set(moduleName)
 
   return companionModuleModel
