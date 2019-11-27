@@ -15,16 +15,27 @@
  */
 package com.android.tools.adtui.chart.linechart;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.*;
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.DurationData;
+import com.android.tools.adtui.model.DurationDataModel;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.SeriesData;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.ColorUtil;
+import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
@@ -33,8 +44,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A custom renderer to support drawing {@link DurationData} over line charts
@@ -42,6 +59,9 @@ import java.util.function.Function;
 public final class DurationDataRenderer<E extends DurationData> extends AspectObserver implements LineChartCustomRenderer {
 
   static final float EPSILON = 1e-6f;
+
+  static final JBColor BACKGROUND_HIGHLIGHT_COLOR =
+    new JBColor(ColorUtil.withAlpha(JBColor.BLACK, 0.2f), ColorUtil.withAlpha(JBColor.WHITE, 0.2f));
 
   @NotNull private DurationDataModel<E> myModel;
 
@@ -73,6 +93,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
   private float myLineStrokeOffset;
   private float myLabelXOffset;
   private float myLabelYOffset;
+  private boolean myBackgroundClickable;
   @NotNull private final Insets myHostInsets;
   /**
    * Percentage of screen dimension the icon+label for the DurationData will be offset. Initial values are defaults.
@@ -109,6 +130,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     myHostInsets = builder.myHostInsets;
     myClickRegionPaddingX = builder.myClickRegionPaddingX;
     myClickRegionPaddingY = builder.myClickRegionPaddingY;
+    myBackgroundClickable = builder.myBackgroundClickable;
     if (myStroke instanceof BasicStroke) {
       BasicStroke stroke = (BasicStroke)myStroke;
       myLineStrokeOffset = stroke.getLineWidth() / 2f;
@@ -280,6 +302,14 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
           }
           LineChart.drawLine(g2d, transformedPaths.get(j), configs.get(j));
         }
+        if (myBackgroundClickable &&
+            myMousePosition != null &&
+            myMousePosition.x > scaledXStart &&
+            myMousePosition.x < scaledXStart + scaledXDuration) {
+
+          g2d.setColor(BACKGROUND_HIGHLIGHT_COLOR);
+          g2d.fill(clipRect);
+        }
         g2d.setClip(originalClip);
       }
     }
@@ -302,7 +332,8 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     }
   }
 
-  @VisibleForTesting Rectangle2D.Float getScaledClickRegion(@NotNull Rectangle2D.Float rect, int componentWidth, int componentHeight) {
+  @VisibleForTesting
+  Rectangle2D.Float getScaledClickRegion(@NotNull Rectangle2D.Float rect, int componentWidth, int componentHeight) {
     float paddedHeight = rect.height + myClickRegionPaddingY * 2;
     float paddedWidth = rect.width + myClickRegionPaddingX * 2;
     int totalXInsets = myHostInsets.left + myHostInsets.right;
@@ -344,13 +375,13 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
   }
 
   private boolean isHoveringOverClickRegion(@NotNull Component overlayComponent, @NotNull MouseEvent event) {
-    for (int i = 0; i < myClickRegionCache.size(); ++i) {
-      Rectangle2D.Float rect = getScaledClickRegion(myClickRegionCache.get(i), overlayComponent.getWidth(), overlayComponent.getHeight());
+    for (Rectangle2D.Float region : myClickRegionCache) {
+      Rectangle2D.Float rect = getScaledClickRegion(region, overlayComponent.getWidth(), overlayComponent.getHeight());
       if (myMousePosition != null && rect.contains(myMousePosition)) {
         return true;
       }
     }
-    return false;
+    return myBackgroundClickable && calculateBackgroundData() != null;
   }
 
   public boolean handleMouseEvent(@NotNull Component overlayComponent, @NotNull Component selectionComponent, @NotNull MouseEvent event) {
@@ -368,11 +399,17 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     if (myHoverHandler != null) {
       myHoverHandler.accept(pickData);
     }
-
     myClick = event.getClickCount() > 0;
-    if (myClickHandler != null && myClick && pickData != null) {
-      myClickHandler.accept(pickData);
-      return true;
+    if (myClickHandler != null && myClick) {
+      // If we didn't click an item see if we clicked a clickable background.
+      if (pickData == null && myBackgroundClickable) {
+        pickData = calculateBackgroundData();
+      }
+      // If we have an item trigger the handler and return handled.
+      if (pickData != null) {
+        myClickHandler.accept(pickData);
+        return true;
+      }
     }
 
     if (isHoveringOverClickRegion(overlayComponent, event)) {
@@ -381,6 +418,21 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     }
 
     return false;
+  }
+
+  @Nullable
+  private E calculateBackgroundData() {
+    assert myMousePosition != null;
+    for (int i = 0; i < myPathCache.size(); i++) {
+      Rectangle2D.Float rect = myPathCache.get(i);
+      Dimension dim = myMouseComponent.getSize();
+      double scaledXStart = rect.x * dim.getWidth();
+      double scaledXWidth = rect.width * dim.getWidth();
+      if (myMousePosition.x >= scaledXStart && myMousePosition.x < scaledXStart + scaledXWidth) {
+        return myDataCache.get(i).value;
+      }
+    }
+    return null;
   }
 
   /**
@@ -464,9 +516,10 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     @Nullable private Color myLabelTextColor = null;
     private float myLabelXOffset;
     private float myLabelYOffset;
-    @NotNull private Insets myHostInsets = new Insets(0, 0, 0, 0);
+    @NotNull private Insets myHostInsets = JBUI.emptyInsets();
     private int myClickRegionPaddingX = 4;
     private int myClickRegionPaddingY = 2;
+    private boolean myBackgroundClickable = false;
 
     public Builder(@NotNull DurationDataModel<E> model, @NotNull Color color) {
       myModel = model;
@@ -554,6 +607,11 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     public Builder<E> setClickRegionPadding(int xPadding, int yPadding) {
       myClickRegionPaddingX = xPadding;
       myClickRegionPaddingY = yPadding;
+      return this;
+    }
+
+    public Builder<E> setBackgroundClickable(boolean clickable) {
+      myBackgroundClickable = clickable;
       return this;
     }
 

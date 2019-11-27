@@ -224,6 +224,35 @@ class DurationDataRendererTest {
     assertThat(durationDataRenderer.getIcon(DurationData { 0 })).isEqualTo(dummyIcon2)
   }
 
+  @Test
+  fun backgroundClickable() {
+    // Setup some data for the attached data seres
+    val xRange = Range(0.0, 10.0)
+    val yRange = Range(0.0, 10.0)
+    val attachedSeries = DefaultDataSeries<Long>()
+    attachedSeries.add(4, 4)
+    val attachedRangeSeries = RangedContinuousSeries("attached", xRange, yRange, attachedSeries)
+    var clicked = false
+
+    // Setup the duration data series
+    val dataSeries = DefaultDataSeries<DurationData>()
+    dataSeries.add(5, DurationData { 1 })
+    val durationData = DurationDataModel(RangedSeries(xRange, dataSeries))
+    durationData.setAttachedSeries(attachedRangeSeries, Interpolatable.SegmentInterpolator)
+    durationData.setAttachPredicate { data -> data.x == 6L }
+    val durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK).setBackgroundClickable(
+      true).setClickHander { clicked = true }.build()
+    val underneathComponent = JPanel()
+    val overlayComponent = OverlayComponent(underneathComponent)
+    overlayComponent.bounds = Rectangle(0, 0, 200, 50)
+    overlayComponent.addDurationDataRenderer(durationDataRenderer)
+
+    durationData.update(1) // Forces duration data renderer to update
+    val fakeUi = FakeUi(overlayComponent)
+    fakeUi.mouse.click(100, 0)
+    assertThat(clicked).isTrue()
+  }
+
   private fun validateRegion(rect: Rectangle2D.Float, xStart: Float, yStart: Float, width: Float, height: Float) {
     assertThat(rect.x).isWithin(EPSILON).of(xStart)
     assertThat(rect.y).isWithin(EPSILON).of(yStart)
