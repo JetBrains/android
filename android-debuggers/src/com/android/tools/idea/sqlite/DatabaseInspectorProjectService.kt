@@ -243,8 +243,8 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
       databaseToFile[database] ?: return Futures.immediateFailedFuture(IllegalStateException("DB not found"))
     }
 
-    val deviceFileId: DeviceFileId = virtualFile.getUserData(DeviceFileId.KEY)
-                                     ?: return Futures.immediateFailedFuture(IllegalStateException("DeviceFileId not found"))
+    val deviceFileId = DeviceFileId.fromVirtualFile(virtualFile)
+                       ?: return Futures.immediateFailedFuture(IllegalStateException("DeviceFileId not found"))
     val downloadFuture = DeviceFileDownloaderService.getInstance(project).downloadFile(deviceFileId, progress)
 
     return edtExecutor.transform(downloadFuture) { downloadedFileData ->
