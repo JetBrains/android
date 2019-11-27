@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.tools.idea.npw.model.NewModuleModel
+import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import javax.swing.Icon
 
@@ -35,5 +35,5 @@ interface ModuleGalleryEntry {
   /**
    * Returns a new instance of a wizard step that will allow the user to edit the details of this module entry
    */
-  fun createStep(model: NewModuleModel): SkippableWizardStep<*>
+  fun createStep(model: NewAndroidModuleModel): SkippableWizardStep<*>
 }

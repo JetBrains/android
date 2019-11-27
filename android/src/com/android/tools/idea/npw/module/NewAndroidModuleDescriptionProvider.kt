@@ -19,17 +19,14 @@ import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.FormFactor.Companion.get
-import com.android.tools.idea.npw.model.NewModuleModel
+import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
-import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.templates.Template.ANDROID_PROJECT_TEMPLATE
 import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
-import com.android.tools.idea.wizard.template.ModuleTemplateData
-import com.android.tools.idea.wizard.template.TemplateData
 import com.intellij.openapi.project.Project
 import icons.AndroidIcons
 import org.jetbrains.android.util.AndroidBundle.message
@@ -88,7 +85,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   ) : ModuleTemplateGalleryEntry {
     override fun toString(): String = name
 
-    override fun createStep(model: NewModuleModel): SkippableWizardStep<*> {
+    override fun createStep(model: NewAndroidModuleModel): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
       return ConfigureAndroidModuleStep(model, formFactor, minSdkLevel, basePackage, name)
     }

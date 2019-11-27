@@ -19,7 +19,6 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TooltipLabel
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getSourceProvider
