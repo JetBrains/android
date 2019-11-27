@@ -25,9 +25,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.google.common.truth.Truth
 import org.junit.Test
 
-class TaskIssueBuganizerReporterTest : AbstractBuildAttributionReportBuilderTest() {
-
-  val expectedUrlPrefix = "https://d.android.com/r/tools/build-attribution/bug"
+class TaskIssueReportGeneratorTest : AbstractBuildAttributionReportBuilderTest() {
 
   val task1androidPlugin =
     TaskData("compileDebugJavaWithJavac", ":module1", applicationPlugin, 400, TaskData.TaskExecutionMode.FULL, emptyList())
@@ -70,7 +68,7 @@ class TaskIssueBuganizerReporterTest : AbstractBuildAttributionReportBuilderTest
   // 2019-11-19 17:12:13
   private val buildFinishedTimestamp = 1574183533000
   private val buildReportData = BuildAttributionReportBuilder(mockAnalysisResult, buildFinishedTimestamp).build()
-  private val reporter = TaskIssueBuganizerGenerator(
+  private val reporter = TaskIssueReportGenerator(
     buildReportData,
     { "AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s.r.o, OS Linux(amd64) v4.19.67-2rodete2-amd64, screens 2560x1440, 1440x2560" },
     { listOf(GradleVersion.parse("4.0.0-dev")) }
@@ -104,7 +102,6 @@ AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s
 """.trimIndent()
 
     val issue = buildReportData.findIssueFor(task1androidPlugin, TaskIssueType.ALWAYS_RUN_TASKS)
-    Truth.assertThat(reporter.generateUrl(issue)).startsWith(expectedUrlPrefix)
     Truth.assertThat(reporter.generateReportTitle(issue)).isEqualTo(expectedTitle)
     Truth.assertThat(reporter.generateIssueKey(issue)).isEqualTo(expectedKey)
     Truth.assertThat(reporter.generateReportText(issue)).isEqualTo(expectedText)
@@ -139,7 +136,6 @@ AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s
 
 
     val issue = buildReportData.findIssueFor(taskAmodule1, TaskIssueType.ALWAYS_RUN_TASKS)
-    Truth.assertThat(reporter.generateUrl(issue)).startsWith(expectedUrlPrefix)
     Truth.assertThat(reporter.generateReportTitle(issue)).isEqualTo(expectedTitle)
     Truth.assertThat(reporter.generateIssueKey(issue)).isEqualTo(expectedKey)
     Truth.assertThat(reporter.generateReportText(issue)).isEqualTo(expectedText)
@@ -174,7 +170,6 @@ AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s
 
 
     val issue = buildReportData.findIssueFor(taskAmodule1, TaskIssueType.TASK_SETUP_ISSUE)
-    Truth.assertThat(reporter.generateUrl(issue)).startsWith(expectedUrlPrefix)
     Truth.assertThat(reporter.generateReportTitle(issue)).isEqualTo(expectedTitle)
     Truth.assertThat(reporter.generateIssueKey(issue)).isEqualTo(expectedKey)
     Truth.assertThat(reporter.generateReportText(issue)).isEqualTo(expectedText)
@@ -182,7 +177,7 @@ AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s
 
   @Test
   fun testSeveralVersionsOfAgpInProjects() {
-    val reporter = TaskIssueBuganizerGenerator(
+    val reporter = TaskIssueReportGenerator(
       buildReportData,
       { "" },
       { listOf(GradleVersion.parse("4.0.0-dev"), GradleVersion.parse("4.0.0-dev"), GradleVersion.parse("3.0.0-dev")) }
@@ -222,7 +217,6 @@ AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s
 """.trim()
 
     val issue = buildReportData.findIssueFor(taskBmodule1, TaskIssueType.ALWAYS_RUN_TASKS)
-    Truth.assertThat(reporter.generateUrl(issue)).startsWith(expectedUrlPrefix)
     Truth.assertThat(reporter.generateReportTitle(issue)).isEqualTo(expectedTitle)
     Truth.assertThat(reporter.generateIssueKey(issue)).isEqualTo(expectedKey)
     Truth.assertThat(reporter.generateReportText(issue)).isEqualTo(expectedText)
