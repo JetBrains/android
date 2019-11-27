@@ -67,13 +67,13 @@ public class ConfigureLibraryModuleStep extends SkippableWizardStep<NewLibraryMo
     myValidatorPanel = new ValidatorPanel(this, myPanel);
 
     ModuleValidator moduleValidator = new ModuleValidator(model.getProject());
-    myLibraryName.setText(WizardUtils.getUniqueName(model.moduleName.get(), moduleValidator));
+    myLibraryName.setText(WizardUtils.getUniqueName(model.getModuleName().get(), moduleValidator));
     TextProperty libraryNameText = new TextProperty(myLibraryName);
-    myBindings.bind(model.moduleName, libraryNameText, myValidatorPanel.hasErrors().not());
+    myBindings.bind(model.getModuleName(), libraryNameText, myValidatorPanel.hasErrors().not());
     myBindings.bindTwoWay(new TextProperty(myClassName), model.className);
 
     Expression<String> computedPackageName =
-      new DomainToPackageExpression(new StringValueProperty(getInitialDomain()), model.moduleName);
+      new DomainToPackageExpression(new StringValueProperty(getInitialDomain()), model.getModuleName());
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
 
     TextProperty packageNameText = new TextProperty(myPackageName);

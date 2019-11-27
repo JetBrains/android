@@ -56,7 +56,6 @@ abstract class ModuleModel(
   projectModelData: ProjectModelData = ExistingProjectModelData(project, projectSyncInvoker)
 ) : WizardModel(), ProjectModelData by projectModelData {
   override val packageName = StringValueProperty()
-  @JvmField
   val moduleName = StringValueProperty(moduleName)
   open val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
   override val language = OptionalValueProperty(getInitialSourceLanguage(project))
