@@ -67,9 +67,12 @@ class ComposeDocumentationProvider() : DocumentationProviderEx() {
   fun generateDocAsync(element: PsiElement?, originalElement: PsiElement?): CompletableFuture<String> {
     if (!StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION.get()) return CompletableFuture.completedFuture(null)
 
-    if (element == null || !element.isComposableFunction()) return CompletableFuture.completedFuture(null)
+    val isComposableFunction = ReadAction.compute<Boolean, Throwable> {
+      return@compute element != null && element.isValid && element.isComposableFunction()
+    }
+    if (!isComposableFunction) return CompletableFuture.completedFuture(null)
 
-    val previewElement = getPreviewElement(element) ?: return CompletableFuture.completedFuture(null)
+    val previewElement = getPreviewElement(element!!) ?: return CompletableFuture.completedFuture(null)
 
     val future = CachedValuesManager.getCachedValue(previewElement, previewImageKey) {
       CachedValueProvider.Result.create(renderImage(previewElement), PsiModificationTracker.MODIFICATION_COUNT)

@@ -35,12 +35,9 @@ fun PsiElement.isComposableFunction(): Boolean {
   if (this !is KtNamedFunction) return false
 
   return CachedValuesManager.getCachedValue(this) {
-    val hasComposableAnnotation = ReadAction.compute<Boolean, Throwable> {
+    val hasComposableAnnotation =
       annotationEntries.any { it.shortName?.asString() == COMPOSABLE_SHORT_NAME && it.getQualifiedName() == COMPOSABLE_FQ_NAME }
-    }
-    val containingKtFile = ReadAction.compute<KtFile, Throwable> {
-      this.containingKtFile
-    }
+    val containingKtFile = this.containingKtFile
 
     CachedValueProvider.Result.create(
       // TODO: see if we can handle alias imports without ruining performance.
