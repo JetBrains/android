@@ -9,7 +9,7 @@ import android.os.*
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-class Foo(val a: String) : Parcelable {
+class Foo(val a: String?) : Parcelable {
     constructor(parcel: Parcel) : this(parcel.readString()) {
     }
 

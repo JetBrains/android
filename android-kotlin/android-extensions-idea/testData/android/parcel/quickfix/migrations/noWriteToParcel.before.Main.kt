@@ -8,7 +8,7 @@ import android.os.*
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-class Foo(val firstName: String, val age: Int) : Parcelable {
+class Foo(val firstName: String?, val age: Int) : Parcelable {
     constructor(parcel: Parcel) : this(
             parcel.readString(),
             parcel.readInt()) {

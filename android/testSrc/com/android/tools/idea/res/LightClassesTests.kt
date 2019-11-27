@@ -118,7 +118,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         import android.os.Bundle
 
         class MainActivity : Activity() {
-            override fun onCreate(savedInstanceState: Bundle) {
+            override fun onCreate(savedInstanceState: Bundle?) {
                 super.onCreate(savedInstanceState)
                 resources.getString(R.string.appString)
             }
@@ -167,7 +167,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         import android.os.Bundle
 
         class MainActivity : Activity() {
-            override fun onCreate(savedInstanceState: Bundle) {
+            override fun onCreate(savedInstanceState: Bundle?) {
                 super.onCreate(savedInstanceState)
                 resources.getString(p1.p2.${caret})
             }
@@ -217,7 +217,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         import android.os.Bundle
 
         class MainActivity : Activity() {
-            override fun onCreate(savedInstanceState: Bundle) {
+            override fun onCreate(savedInstanceState: Bundle?) {
                 super.onCreate(savedInstanceState)
                 resources.getString(R.${caret})
             }
@@ -267,7 +267,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         import android.os.Bundle
 
         class MainActivity : Activity() {
-            override fun onCreate(savedInstanceState: Bundle) {
+            override fun onCreate(savedInstanceState: Bundle?) {
                 super.onCreate(savedInstanceState)
                 resources.getString(R.string.${caret})
             }
@@ -360,7 +360,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         import android.util.Log
 
         class MainActivity : Activity() {
-            override fun onCreate(savedInstanceState: Bundle) {
+            override fun onCreate(savedInstanceState: Bundle?) {
                 super.onCreate(savedInstanceState)
                 Log.d("tag", Manifest.permission.${caret}SEND_MESSAGE)
             }
