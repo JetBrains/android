@@ -374,7 +374,8 @@ public final class GradleModuleImportTest extends AndroidTestBase {
             Disposer.dispose(project);
             ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
             if (projectManager instanceof ProjectManagerImpl) {
-              Collection<Project> projectsStillOpen = projectManager.closeTestProject(project);
+              projectManager.forceCloseProject(project, true);
+              Collection<Project> projectsStillOpen = Arrays.asList(projectManager.getOpenProjects());
               if (!projectsStillOpen.isEmpty()) {
                 Project project = projectsStillOpen.iterator().next();
                 projectsStillOpen.clear();
@@ -397,6 +398,9 @@ public final class GradleModuleImportTest extends AndroidTestBase {
           }
         });
       }
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();
