@@ -19,9 +19,9 @@ import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.duration
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.issueIcon;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.percentageString;
 
+import com.android.build.attribution.ui.TaskIssueReporter;
 import com.android.build.attribution.ui.data.InterTaskIssueUiData;
 import com.android.build.attribution.ui.data.PluginSourceType;
-import com.android.build.attribution.ui.data.TaskIssueBuganizerReporter;
 import com.android.build.attribution.ui.data.TaskIssueUiData;
 import com.android.build.attribution.ui.data.TaskUiData;
 import com.android.utils.HtmlBuilder;
@@ -41,9 +41,9 @@ import javax.swing.SwingConstants;
 public class TaskIssueInfoPanel extends JBPanel {
   private final TaskUiData myTaskData;
   private final TaskIssueUiData myIssue;
-  private final TaskIssueBuganizerReporter myIssueReporter;
+  private final TaskIssueReporter myIssueReporter;
 
-  public TaskIssueInfoPanel(TaskIssueUiData issue, TaskIssueBuganizerReporter reporter) {
+  public TaskIssueInfoPanel(TaskIssueUiData issue, TaskIssueReporter reporter) {
     super(new GridBagLayout());
     myIssue = issue;
     myTaskData = issue.getTask();
@@ -59,10 +59,13 @@ public class TaskIssueInfoPanel extends JBPanel {
 
     c.gridy = 1;
     c.fill = GridBagConstraints.HORIZONTAL;
+    add(createRecommendation(), c);
+
+    c.gridy = 2;
     add(createTaskInfo(), c);
 
     //add bottom space filler
-    c.gridy = 2;
+    c.gridy = 3;
     c.weighty = 1.0;
     c.fill = GridBagConstraints.BOTH;
     add(new JBPanel(), c);
@@ -103,7 +106,7 @@ public class TaskIssueInfoPanel extends JBPanel {
     }
     HyperlinkLabel recommendationLabel = new HyperlinkLabel();
     recommendationLabel.addHyperlinkListener(e -> myIssueReporter.reportIssue(myIssue));
-    recommendationLabel.setHyperlinkText("Consider filing a bug to report this issue to Google. ", "File a Bug.", "");
+    recommendationLabel.setHyperlinkText("Consider filing a bug to report this issue to the plugin developer. ", "Generate report.", "");
 
     JPanel panel = new JPanel(new VerticalLayout(5));
     panel.add(new JBLabel("Recommendation").withFont(JBFont.label().asBold()));

@@ -17,7 +17,6 @@ package com.android.build.attribution.ui
 
 import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
-import com.android.build.attribution.ui.data.TaskIssueBuganizerReporter
 import com.intellij.build.BuildContentManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -57,7 +56,7 @@ class BuildAttributionUiManager(
 
   private fun createNewView() {
     buildAttributionTreeView?.let { treeView -> Disposer.dispose(treeView) }
-    buildAttributionTreeView = BuildAttributionTreeView(reportUiData, TaskIssueBuganizerReporter(reportUiData, project))
+    buildAttributionTreeView = BuildAttributionTreeView(reportUiData, TaskIssueReporter(reportUiData, project))
       .also { newView -> newView.setInitialSelection() }
   }
 

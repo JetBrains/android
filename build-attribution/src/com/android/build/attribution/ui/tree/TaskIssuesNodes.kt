@@ -15,8 +15,8 @@
  */
 package com.android.build.attribution.ui.tree
 
+import com.android.build.attribution.ui.TaskIssueReporter
 import com.android.build.attribution.ui.TreeNodeSelector
-import com.android.build.attribution.ui.data.TaskIssueBuganizerReporter
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.durationString
@@ -36,7 +36,7 @@ class TaskIssuesRoot(
   val issuesGroup: TaskIssuesGroup,
   parent: SimpleNode,
   private val nodeSelector: TreeNodeSelector,
-  private val issueReporter: TaskIssueBuganizerReporter
+  private val issueReporter: TaskIssueReporter
 ) : AbstractBuildAttributionNode(parent, issuesGroup.type.uiName) {
 
   override val presentationIcon: Icon? = null
@@ -76,7 +76,7 @@ class TaskIssuesRoot(
 class TaskIssueNode(
   val issue: TaskIssueUiData,
   parent: SimpleNode,
-  private val issueReporter: TaskIssueBuganizerReporter
+  private val issueReporter: TaskIssueReporter
 ) : AbstractBuildAttributionNode(parent, issue.task.taskPath) {
 
   override val presentationIcon: Icon? = issueIcon(issue.type)

@@ -16,7 +16,6 @@
 package com.android.build.attribution.ui
 
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
-import com.android.build.attribution.ui.data.TaskIssueBuganizerReporter
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.panels.TreeLinkListener
@@ -60,7 +59,7 @@ private const val SPLITTER_PROPERTY = "BuildAttribution.Splitter.Proportion"
 
 class BuildAttributionTreeView(
   private val reportData: BuildAttributionReportUiData,
-  private val issueReporter: TaskIssueBuganizerReporter
+  private val issueReporter: TaskIssueReporter
 ) : ComponentContainer, TreeNodeSelector {
 
   private val disposed = AtomicBoolean()

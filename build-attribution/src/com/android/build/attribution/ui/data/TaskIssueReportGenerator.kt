@@ -18,56 +18,18 @@ package com.android.build.attribution.ui.data
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.percentageString
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.actions.SendFeedbackAction
-import com.android.tools.idea.gradle.project.ProjectStructure
-import com.intellij.ide.BrowserUtil
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.runModalTask
-import com.intellij.openapi.project.Project
 import com.intellij.util.text.DateFormatUtil
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.Comparator
 import java.util.Date
 import java.util.Locale
 
-class TaskIssueBuganizerReporter(
-  reportData: BuildAttributionReportUiData,
-  private val project: Project
-) {
-
-  private val generator = TaskIssueBuganizerGenerator(
-    reportData,
-    { SendFeedbackAction.getDescription(project) },
-    { ProjectStructure.getInstance(project).androidPluginVersions.allVersions }
-  )
-
-  fun reportIssue(taskIssue: TaskIssueUiData) {
-    runModalTask("Collecting Data", project, true) {
-      it.text = "Collecting feedback information"
-      it.isIndeterminate = true
-      val url = generator.generateUrl(taskIssue)
-      Logger.getInstance(TaskIssueBuganizerReporter::class.java).debug("Bug reporting url clicked $url")
-      BrowserUtil.browse(url, project)
-    }
-  }
-
-}
-
-class TaskIssueBuganizerGenerator(
+class TaskIssueReportGenerator(
   private val reportData: BuildAttributionReportUiData,
   private val platformInformationProvider: () -> String,
   private val agpVersionsProvider: () -> List<GradleVersion>
 ) {
-
-  fun generateUrl(taskIssue: TaskIssueUiData) =
-    // Use redirect defined in http://cl/281105303.
-    "https://d.android.com/r/tools/build-attribution/bug?component=778729&template=1371325" +
-    "&title=${URLEncoder.encode(generateReportTitle(taskIssue), StandardCharsets.UTF_8.name())}" +
-    "&customFields=534281:${URLEncoder.encode(generateIssueKey(taskIssue), StandardCharsets.UTF_8.name())}" +
-    "&description=${URLEncoder.encode(generateReportText(taskIssue), StandardCharsets.UTF_8.name())}"
 
   fun generateReportTitle(taskIssue: TaskIssueUiData): String {
     return "${taskIssue.bugReportTitle}: ${taskIssue.task.pluginName} ${taskIssue.task.name}"
@@ -92,7 +54,8 @@ ${generatePlatformInformationText()}
   }
 
   private fun generateHeaderText(pluginName: String): String {
-    val date = SimpleDateFormat("HH:mm, MMM dd, yyyy", Locale.US).format(Date(reportData.buildSummary.buildFinishedTimestamp))
+    val date = SimpleDateFormat("HH:mm, MMM dd, yyyy", Locale.US).format(
+      Date(reportData.buildSummary.buildFinishedTimestamp))
     return "At ${date}, Android Studio detected an issue with Gradle plugin ${pluginName}"
   }
 

@@ -19,7 +19,7 @@ import com.android.build.attribution.ui.TreeNodeSelector
 import com.android.build.attribution.ui.colorIcon
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
-import com.android.build.attribution.ui.data.TaskIssueBuganizerReporter
+import com.android.build.attribution.ui.TaskIssueReporter
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
@@ -50,7 +50,7 @@ class CriticalPathPluginsRoot(
   private val criticalPathUiData: CriticalPathPluginsUiData,
   parent: SimpleNode,
   private val nodeSelector: TreeNodeSelector,
-  private val issueReporter: TaskIssueBuganizerReporter
+  private val issueReporter: TaskIssueReporter
 ) : AbstractBuildAttributionNode(parent, "Plugins With Critical Path Tasks") {
 
   private val chartItems: List<ChartDataItem<CriticalPathPluginUiData>> = createPluginChartItems(criticalPathUiData)
@@ -102,7 +102,7 @@ private class PluginNode(
   private val selectedChartItem: ChartDataItem<CriticalPathPluginUiData>,
   parent: SimpleNode,
   private val nodeSelector: TreeNodeSelector,
-  private val issueReporter: TaskIssueBuganizerReporter
+  private val issueReporter: TaskIssueReporter
 ) : AbstractBuildAttributionNode(parent, pluginData.name) {
 
   private val issueRoots = HashMap<TaskIssueType, PluginIssueRootNode>()
@@ -197,7 +197,7 @@ private class PluginIssueRootNode(
   private val pluginUiData: CriticalPathPluginUiData,
   parent: SimpleNode,
   private val nodeSelector: TreeNodeSelector,
-  private val issueReporter: TaskIssueBuganizerReporter
+  private val issueReporter: TaskIssueReporter
 ) : AbstractBuildAttributionNode(parent, issuesGroup.type.uiName), TreeLinkListener<TaskIssueUiData> {
 
   override val presentationIcon: Icon? = null
