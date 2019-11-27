@@ -37,6 +37,7 @@ class ResolutionStackEditorProvider(
   override fun createEditor(property: InspectorPropertyItem, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
     val (model, editor) = editorProvider.createEditor(property, asTableCellEditor)
     model.readOnly = true
+    model.isUsedInRendererWithSelection = true
     return Pair(model, ResolutionElementEditor(resolutionStackModel, model, editor))
   }
 }
