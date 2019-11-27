@@ -806,7 +806,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/1.3.20:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-build-common/1.3.20:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.20:jar",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.60-dev-withExperimentalGoogleExtensions-20191016:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-compiler-embeddable/1.3.61-dev-withExperimentalGoogleExtensions-20191127:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-compiler-runner/1.3.20:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-daemon-client/1.3.20:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-gradle-plugin-api/1.3.20:jar",
