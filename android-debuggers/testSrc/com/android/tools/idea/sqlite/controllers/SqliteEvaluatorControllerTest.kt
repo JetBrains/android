@@ -91,7 +91,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(databaseConnection).execute(sqlStatement)
-    verify(sqliteEvaluatorView.tableView).reportError(eq("Error executing sqlQueryCommand"), refEq(throwable))
+    verify(sqliteEvaluatorView.tableView).reportError(eq("Error executing SQLite statement"), refEq(throwable))
   }
 
   fun testEvaluateSqlActionCreateSuccess() {
@@ -170,6 +170,6 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(databaseConnection).execute(SqliteStatement(action))
-    verify(sqliteEvaluatorView.tableView).reportError(eq("Error executing update"), refEq(throwable))
+    verify(sqliteEvaluatorView.tableView).reportError(eq("Error executing SQLite statement"), refEq(throwable))
   }
 }
