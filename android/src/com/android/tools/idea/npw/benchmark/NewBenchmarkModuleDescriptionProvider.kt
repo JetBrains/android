@@ -39,7 +39,7 @@ class NewBenchmarkModuleDescriptionProvider : ModuleDescriptionProvider {
     override val description: String? = templateHandle.metadata.description
     override fun toString(): String = name
     override fun createStep(model: NewModuleModel): SkippableWizardStep<*> {
-      val benchmarkModuleModel = NewBenchmarkModuleModel(model.project.value, templateHandle, model.projectSyncInvoker)
+      val benchmarkModuleModel = NewBenchmarkModuleModel(model.project, templateHandle, model.projectSyncInvoker)
       return ConfigureBenchmarkModuleStep(benchmarkModuleModel, name, templateHandle.metadata.minSdk)
     }
   }

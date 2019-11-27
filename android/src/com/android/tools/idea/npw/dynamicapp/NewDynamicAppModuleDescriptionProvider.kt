@@ -27,8 +27,6 @@ import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
-import com.android.tools.idea.wizard.template.Recipe
-import com.android.tools.idea.wizard.template.Template
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
@@ -57,7 +55,7 @@ class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
     override fun createStep(model: NewModuleModel): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
       return ConfigureDynamicModuleStep(
-        DynamicFeatureModel(model.project.value, templateHandle, model.projectSyncInvoker, isInstant), basePackage, isInstant)
+        DynamicFeatureModel(model.project, templateHandle, model.projectSyncInvoker, isInstant), basePackage, isInstant)
     }
   }
 }

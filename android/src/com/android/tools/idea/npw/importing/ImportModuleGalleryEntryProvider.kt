@@ -42,7 +42,7 @@ class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
     override val name: String = templateHandle.metadata.title!!
     override val description: String? = templateHandle.metadata.description
     override fun createStep(model: NewModuleModel): SkippableWizardStep<*> =
-      SourceToGradleModuleStep(SourceToGradleModuleModel(model.project.value, model.projectSyncInvoker))
+      SourceToGradleModuleStep(SourceToGradleModuleModel(model.project, model.projectSyncInvoker))
   }
 
   private class ArchiveImportModuleGalleryEntry : ModuleGalleryEntry {
@@ -55,6 +55,6 @@ class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
     override val name: String = message("android.wizard.module.import.title")
     override val description: String = message("android.wizard.module.import.description")
     override fun createStep(model: NewModuleModel): SkippableWizardStep<*> =
-      ArchiveToGradleModuleStep(ArchiveToGradleModuleModel(model.project.value, model.projectSyncInvoker))
+      ArchiveToGradleModuleStep(ArchiveToGradleModuleModel(model.project, model.projectSyncInvoker))
   }
 }

@@ -78,18 +78,18 @@ public class ConfigureLibraryModuleStep extends SkippableWizardStep<NewLibraryMo
 
     TextProperty packageNameText = new TextProperty(myPackageName);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
-    myBindings.bind(model.packageName, packageNameText);
+    myBindings.bind(model.getPackageName(), packageNameText);
     myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
     myValidatorPanel.registerValidator(libraryNameText, moduleValidator);
-    myValidatorPanel.registerValidator(model.packageName,
+    myValidatorPanel.registerValidator(model.getPackageName(),
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
     myValidatorPanel.registerValidator(model.className, new ClassNameValidator());
 
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
 
     SelectedItemProperty<Language> language = new SelectedItemProperty<>(myLanguageComboBox);
-    myBindings.bindTwoWay(language, model.language);
+    myBindings.bindTwoWay(language, model.getLanguage());
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 

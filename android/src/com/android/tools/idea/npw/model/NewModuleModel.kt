@@ -59,14 +59,16 @@ import java.util.ArrayList
 
 private val log: Logger get() = logger<NewModuleModel>()
 
-class ExistingNewProjectModelData(project: Project, override val projectSyncInvoker: ProjectSyncInvoker) : ProjectModelData {
+class ExistingProjectModelData(
+  override var project: Project,
+  override val projectSyncInvoker: ProjectSyncInvoker
+) : ProjectModelData {
   override val applicationName: StringValueProperty = StringValueProperty(message("android.wizard.module.config.new.application"))
   override val packageName: StringValueProperty = StringValueProperty()
   override val projectLocation: StringValueProperty = StringValueProperty(project.basePath!!)
   override val enableCppSupport: BoolValueProperty = BoolValueProperty()
   override val cppFlags: StringValueProperty = StringValueProperty("")
   override val useAppCompat = BoolValueProperty()
-  override val project: OptionalValueProperty<Project> = OptionalValueProperty(project)
   override val isNewProject = false
   override val projectTemplateValues: MutableMap<String, Any> = mutableMapOf()
   override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
@@ -87,7 +89,6 @@ class ExistingNewProjectModelData(project: Project, override val projectSyncInvo
 
 interface ModuleModelData : ProjectModelData {
   val template: ObjectProperty<NamedModuleTemplate>
-  val moduleParent: String?
   val formFactor: ObjectValueProperty<FormFactor>
   val isLibrary: BoolProperty
   val moduleTemplateValues: MutableMap<String, Any>
@@ -108,8 +109,9 @@ interface ModuleModelData : ProjectModelData {
 class NewModuleModel(
   private val projectModelData: ProjectModelData,
   override val template: ObjectProperty<NamedModuleTemplate>,
-  override val moduleParent: String?,
-  override val formFactor: ObjectValueProperty<FormFactor>
+  val moduleParent: String?,
+  override val formFactor: ObjectValueProperty<FormFactor>,
+  private val commandName: String = "New Module"
 ) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
   override val isLibrary: BoolProperty = BoolValueProperty()
   override val moduleTemplateValues = mutableMapOf<String, Any>()
@@ -123,19 +125,13 @@ class NewModuleModel(
   constructor(
     project: Project, moduleParent: String?, projectSyncInvoker: ProjectSyncInvoker, template: NamedModuleTemplate
   ) : this(
-    projectModelData = ExistingNewProjectModelData(project, projectSyncInvoker),
+    projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
     template = ObjectValueProperty(template),
     moduleParent = moduleParent,
     formFactor = ObjectValueProperty(FormFactor.MOBILE)
   ) {
     isLibrary.addListener { updateApplicationName() }
   }
-
-  // TODO(qumeric): remove when new templates will be supported at project level
-  constructor(
-    projectModel: NewProjectModel, templateFile: File?, template: NamedModuleTemplate,
-    formFactor: ObjectValueProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
-  ) : this(projectModel, templateFile, null, template, formFactor)
 
   constructor(
     projectModel: NewProjectModel, templateFile: File?, recipe: NewAndroidModuleRecipe?, template: NamedModuleTemplate,
@@ -166,13 +162,6 @@ class NewModuleModel(
   private inner class ModuleTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
     @WorkerThread
     override fun init() {
-      // By the time we run handleFinished(), we must have a Project
-      if (!project.get().isPresent) {
-        log.error("NewModuleModel did not collect expected information and will not complete. Please report this error.")
-      }
-
-      val project = project.value
-
       if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
         moduleTemplateDataBuilder.apply {
           formFactor = this@NewModuleModel.formFactor.get().toTemplateFormFactor()
@@ -229,15 +218,13 @@ class NewModuleModel(
       }
 
       // Returns false if there was a render conflict and the user chose to cancel creating the template
-      return renderModule(true, project.value)
+      return renderModule(true)
     }
 
     @WorkerThread
     override fun render() {
-      val project = project.value
-
-      val success = WriteCommandAction.writeCommandAction(project).withName("New Module").compute<Boolean, Exception> {
-        renderModule(false, project)
+      val success = WriteCommandAction.writeCommandAction(project).withName(commandName).compute<Boolean, Exception> {
+        renderModule(false)
       }
 
       if (!success) {
@@ -245,7 +232,7 @@ class NewModuleModel(
       }
     }
 
-    private fun renderModule(dryRun: Boolean, project: Project): Boolean {
+    private fun renderModule(dryRun: Boolean): Boolean {
       val projectRoot = File(project.basePath!!)
       val moduleRoot = getModuleRoot(project.basePath!!, moduleName.get())
       val filesToOpen = ArrayList<File>()
@@ -254,7 +241,7 @@ class NewModuleModel(
         val context = RenderingContext2(
           project = project,
           module = null,
-          commandName = "New Module",
+          commandName = commandName,
           templateData = moduleTemplateDataBuilder.build(),
           moduleRoot = moduleRoot,
           dryRun = dryRun,
@@ -268,7 +255,7 @@ class NewModuleModel(
 
       val template = Template.createFromPath(templateFile.value)
       val context = RenderingContext.Builder.newContext(template, project)
-        .withCommandName("New Module")
+        .withCommandName(commandName)
         .withDryRun(dryRun)
         .withShowErrors(true)
         .withOutputRoot(projectRoot)

@@ -39,6 +39,6 @@ class NewLibraryModuleDescriptionProvider : ModuleDescriptionProvider {
     override val description: String? = templateHandle.metadata.description
     override fun toString() = name
     override fun createStep(model: NewModuleModel): SkippableWizardStep<*> =
-      ConfigureLibraryModuleStep(NewLibraryModuleModel(model.project.value, templateHandle, model.projectSyncInvoker), name)
+      ConfigureLibraryModuleStep(NewLibraryModuleModel(model.project, templateHandle, model.projectSyncInvoker), name)
   }
 }

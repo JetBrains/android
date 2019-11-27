@@ -125,7 +125,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
 
     // Project should never be null (we are adding a new module to an existing project)
     NewModuleModel moduleModel = getModel();
-    Project project = moduleModel.getProject().getValue();
+    Project project = moduleModel.getProject();
 
     Expression<String> computedModuleName = new AppNameToModuleNameExpression(project, model.getApplicationName(), model.getModuleParent());
     BoolProperty isModuleNameSynced = new BoolValueProperty(true);
@@ -211,7 +211,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
 
     // At this point, the validator panel should have no errors, and the user has typed a valid Module Name
     getModel().getModuleName().set(myModuleName.getText());
-    Project project = moduleModel.getProject().getValue();
+    Project project = moduleModel.getProject();
     getModel().getTemplate().set(createDefaultTemplateAt(project.getBasePath(), moduleModel.getModuleName().get()));
 
     myInstallRequests.clear();

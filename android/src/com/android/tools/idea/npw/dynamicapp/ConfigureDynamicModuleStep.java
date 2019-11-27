@@ -116,7 +116,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
     };
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
-    myBindings.bind(model.packageName, packageNameText);
+    myBindings.bind(model.getPackageName(), packageNameText);
 
     myInstantInfoIcon.setIcon(AllIcons.General.BalloonInformation);
     if (isInstant) {
@@ -168,11 +168,11 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
       .transform(appName -> format("%s.%s", basePackage, nameToJavaPackage(appName)));
     TextProperty packageNameText = new TextProperty(myPackageName);
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
-    myBindings.bind(getModel().packageName, packageNameText);
+    myBindings.bind(getModel().getPackageName(), packageNameText);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
     myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
-    myBindings.bindTwoWay(new SelectedItemProperty<>(myLanguageCombo), getModel().language);
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myLanguageCombo), getModel().getLanguage());
 
     OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo = getModel().getAndroidSdkInfo();
     myBindings.bind(androidSdkInfo, new SelectedItemProperty<>(myApiLevelCombo));
@@ -188,7 +188,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
     myValidatorPanel.registerValidator(modelName, value ->
       value.isEmpty() ? new Validator.Result(ERROR, message("android.wizard.validate.empty.module.name")) : OK);
 
-    myValidatorPanel.registerValidator(getModel().packageName,
+    myValidatorPanel.registerValidator(getModel().getPackageName(),
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
     myValidatorPanel.registerValidator(androidSdkInfo, value ->

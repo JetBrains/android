@@ -18,7 +18,9 @@ package com.android.tools.idea.npw.module
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.npw.model.ExistingProjectModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
+import com.android.tools.idea.npw.model.ProjectModelData
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.model.doRender
@@ -46,22 +48,21 @@ import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
 
 abstract class ModuleModel(
-  val project: Project,
+  project: Project,
   val templateHandle: TemplateHandle,
-  private val projectSyncInvoker: ProjectSyncInvoker,
+  projectSyncInvoker: ProjectSyncInvoker,
   moduleName: String,
-  private val commandName: String = "New Module"
-) : WizardModel() {
-  @JvmField
-  val packageName = StringValueProperty()
+  private val commandName: String = "New Module",
+  projectModelData: ProjectModelData = ExistingProjectModelData(project, projectSyncInvoker)
+) : WizardModel(), ProjectModelData by projectModelData {
+  override val packageName = StringValueProperty()
   @JvmField
   val moduleName = StringValueProperty(moduleName)
   open val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
-  @JvmField
-  val language = OptionalValueProperty(getInitialSourceLanguage(project))
+  override val language = OptionalValueProperty(getInitialSourceLanguage(project))
   val templateValues = mutableMapOf<String, Any>()
   val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false))
-  private val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
+  override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
     object : Task.Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
       override fun run(indicator: ProgressIndicator) {
         renderer(project)
