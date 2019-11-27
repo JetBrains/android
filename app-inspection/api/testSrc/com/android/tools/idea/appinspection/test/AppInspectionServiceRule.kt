@@ -21,8 +21,8 @@ import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.appinspection.api.TestInspectorClient
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
-import com.android.tools.idea.appinspection.internal.launchInspectorForTest
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
+import com.android.tools.idea.appinspection.internal.launchInspectorForTest
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.idea.transport.TransportClient
@@ -93,7 +93,7 @@ class AppInspectionServiceRule(
   ): ListenableFuture<AppInspectionTarget> {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    return AppInspectionTarget.attach(stream, process, grpcServer.name, executorService, jarCopier, transport)
+    return AppInspectionTarget.attach(transport, jarCopier)
   }
 
   /**
@@ -101,9 +101,10 @@ class AppInspectionServiceRule(
    *
    * [commandHandler], and [eventListener] can be provided to customize behavior of how commands and events are received.
    */
-  fun launchInspectorConnection(inspectorId: String = INSPECTOR_ID,
-                                commandHandler: CommandHandler = TestInspectorCommandHandler(timer),
-                                eventListener: AppInspectorClient.EventListener = TestInspectorEventListener()
+  fun launchInspectorConnection(
+    inspectorId: String = INSPECTOR_ID,
+    commandHandler: CommandHandler = TestInspectorCommandHandler(timer),
+    eventListener: AppInspectorClient.EventListener = TestInspectorEventListener()
   ): AppInspectorClient.CommandMessenger {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
     return launchInspectorForTest(inspectorId, transport, timer.currentTimeNs) {

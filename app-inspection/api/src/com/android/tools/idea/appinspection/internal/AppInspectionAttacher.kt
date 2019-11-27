@@ -102,6 +102,8 @@ internal class AppInspectionAttacher(private val executor: ScheduledExecutorServ
    * Attempt to connect to the specified [preferredProcess].
    *
    * The method called will retry itself up to MAX_RETRY_COUNT times.
+   *
+   * TODO(b/145303836): wrap in future or find some way to let caller know about errors.
    */
   fun attach(preferredProcess: AutoPreferredProcess, callback: AttachCallback) {
     executor.execute { attachWithRetry(preferredProcess, callback, 0) }

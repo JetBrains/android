@@ -19,12 +19,9 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.appinspection.internal.attachAppInspectionTarget
 import com.android.tools.idea.transport.DeployableFile
-import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileCopier
-import com.android.tools.profiler.proto.Common.Process
-import com.android.tools.profiler.proto.Common.Stream
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
-import java.util.concurrent.ExecutorService
 
 /**
  * Represents an app-inspection target process (on the device) being connected to from the host.
@@ -51,14 +48,11 @@ interface AppInspectionTarget {
     /**
      * Creates an [AppInspectionTarget] for the given [process] on the given device ([stream])
      */
+    @VisibleForTesting
     @WorkerThread
     fun attach(
-      stream: Stream,
-      process: Process,
-      channelName: String,
-      executorService: ExecutorService,
-      fileCopier: TransportFileCopier,
-      transport: AppInspectionTransport = AppInspectionTransport(TransportClient(channelName), stream, process, executorService)
-    ): ListenableFuture<AppInspectionTarget> = attachAppInspectionTarget(stream, process, transport, fileCopier)
+      transport: AppInspectionTransport,
+      fileCopier: TransportFileCopier
+    ): ListenableFuture<AppInspectionTarget> = attachAppInspectionTarget(transport, fileCopier)
   }
 }
