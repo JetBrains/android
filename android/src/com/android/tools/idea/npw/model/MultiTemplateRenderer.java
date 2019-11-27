@@ -77,7 +77,7 @@ public final class MultiTemplateRenderer {
 
   @NotNull
   public static MessageBusConnection subscribe(@NotNull Project project, @NotNull TemplateRendererListener listener) {
-    MessageBusConnection connection = project.getMessageBus().connect(project);
+    MessageBusConnection connection = project.getMessageBus().connect();
     connection.subscribe(TEMPLATE_RENDERER_TOPIC, listener);
     return connection;
   }

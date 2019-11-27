@@ -130,7 +130,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
     myProject = project;
     myFileEditorManager = filedEditorManager;
 
-    final MessageBusConnection connection = project.getMessageBus().connect(project);
+    final MessageBusConnection connection = project.getMessageBus().connect();
     connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
 
     myToolWindowUpdateQueue = new MergingUpdateQueue("android.style.preview", 150, true, null, project);
