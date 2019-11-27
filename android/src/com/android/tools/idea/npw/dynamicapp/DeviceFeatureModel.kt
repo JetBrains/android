@@ -23,7 +23,7 @@ import com.android.tools.idea.observable.core.StringValueProperty
  */
 class DeviceFeatureModel {
   @JvmField
-  val deviceFeatureType = ObjectValueProperty( DeviceFeatureKind.NAME)
+  val deviceFeatureType = ObjectValueProperty(DeviceFeatureKind.NAME)
   @JvmField
   val deviceFeatureValue = StringValueProperty( "")
 

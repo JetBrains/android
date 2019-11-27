@@ -56,6 +56,7 @@ import com.android.tools.idea.wizard.template.TemplateData
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.util.lang.JavaVersion
+import generateDynamicFeatureModule
 
 class DynamicFeatureModel(
   project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker, isInstant: Boolean
@@ -111,6 +112,7 @@ class DynamicFeatureModel(
           isLibrary = false
           setModuleRoots(modulePaths, project.basePath!!, moduleName.get(), this@DynamicFeatureModel.packageName.get())
           setBuildVersion(androidSdkInfo.value, project)
+          setBaseFeature(baseApplication.value)
         }
       }
     }
@@ -128,7 +130,16 @@ class DynamicFeatureModel(
           showErrors = true
         )
         val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
-        val recipe: Recipe = { td: TemplateData -> /* TODO generateDynamicFeatureModel(td as ModuleTemplateData) */ }
+        val recipe: Recipe = { td: TemplateData ->
+          generateDynamicFeatureModule(
+            td as ModuleTemplateData,
+            instantModule.get(),
+            featureTitle.get(),
+            featureFusing.get(),
+            downloadInstallKind.value,
+            deviceFeatures
+          )
+        }
         return recipe.doRender(context, executor)
       }
       return super.renderTemplate(dryRun, project, runFromTemplateRenderer)
