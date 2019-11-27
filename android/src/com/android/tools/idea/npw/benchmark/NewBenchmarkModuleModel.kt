@@ -34,7 +34,7 @@ class NewBenchmarkModuleModel(
   project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker
 ) : ModuleModel(project, templateHandle, projectSyncInvoker, "benchmark", "New Benchmark Module") {
   override val renderer = object : ModuleTemplateRenderer() {
-    override val recipe: Recipe = { td: TemplateData -> generateBenchmarkModule(td as ModuleTemplateData) }
+    override val recipe: Recipe get() = { td: TemplateData -> generateBenchmarkModule(td as ModuleTemplateData) }
 
     override fun init() {
       super.init()

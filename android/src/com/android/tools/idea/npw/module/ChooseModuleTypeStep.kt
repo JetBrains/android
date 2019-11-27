@@ -60,11 +60,9 @@ class ChooseModuleTypeStep(
       val model = NewModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate())
       if (moduleGalleryEntry is ModuleTemplateGalleryEntry) {
         model.isLibrary.set(moduleGalleryEntry.isLibrary)
-        when {
-          moduleGalleryEntry.templateFile != null -> model.templateFile.value = moduleGalleryEntry.templateFile!!
-          moduleGalleryEntry.recipe != null -> model.moduleRecipe = moduleGalleryEntry.recipe!!
-          else -> throw IllegalStateException("Module Gallery Entry should have either an old or a new template")
-        }
+        moduleGalleryEntry.templateFile?.let {
+          model.templateFile.value = it
+       }
       }
 
       moduleGalleryEntry.createStep(model).also { step ->

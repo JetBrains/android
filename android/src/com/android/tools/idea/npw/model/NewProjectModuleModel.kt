@@ -51,7 +51,6 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
   private val newModuleModel = NewModuleModel(
     projectModel,
     File("").takeUnless { NPW_NEW_MODULE_TEMPLATES.get() },
-    null,
     createDummyTemplate(),
     formFactor
   )
@@ -126,7 +125,7 @@ private fun createCompanionModuleModel(projectModel: NewProjectModel): NewModule
   val moduleTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_MODULE)
   val moduleName = getModuleName(FormFactor.MOBILE)
   val namedModuleTemplate = createDefaultTemplateAt(projectModel.projectLocation.get(), moduleName)
-  val companionModuleModel = NewModuleModel(projectModel, moduleTemplateFile!!, null, namedModuleTemplate)
+  val companionModuleModel = NewModuleModel(projectModel, moduleTemplateFile!!, namedModuleTemplate)
   companionModuleModel.moduleName.set(moduleName)
 
   return companionModuleModel
