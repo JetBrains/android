@@ -553,6 +553,18 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareViewModelFragment() {
+    checkCreateTemplate("fragments", "ViewModelFragment", ActivityCreationMode.WITHOUT_PROJECT,
+                        false, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareViewModelFragmentWithKotlin() {
+    checkCreateTemplate("fragments", "ViewModelFragment", ActivityCreationMode.WITHOUT_PROJECT,
+                        false, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewScrollFragment() {
     checkCreateTemplate("fragments", "ScrollFragment")
   }
