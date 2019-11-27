@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.dynamicapp;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.idea.gradle.util.DynamicAppUtils.baseIsInstantEnabled;
@@ -204,18 +205,15 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
 
   @Override
   protected void onEntering() {
-    TemplateHandle templateHandle = getModel().getTemplateHandle();
-    int minSdkLevel = templateHandle.getMetadata().getMinSdk();
-
     myAndroidVersionsInfo.loadLocalVersions();
 
     // Pre-populate
-    List<AndroidVersionsInfo.VersionItem> versions = myAndroidVersionsInfo.getKnownTargetVersions(MOBILE, minSdkLevel);
+    List<AndroidVersionsInfo.VersionItem> versions = myAndroidVersionsInfo.getKnownTargetVersions(MOBILE, LOWEST_ACTIVE_API);
     myApiLevelCombo.init(MOBILE, versions);
 
-    myAndroidVersionsInfo.loadRemoteTargetVersions(MOBILE, minSdkLevel, items -> myApiLevelCombo.init(MOBILE, items));
+    myAndroidVersionsInfo.loadRemoteTargetVersions(MOBILE, LOWEST_ACTIVE_API, items -> myApiLevelCombo.init(MOBILE, items));
 
-    setTemplateThumbnail(templateHandle);
+    setTemplateThumbnail(getModel().getTemplateHandle());
   }
 
   @Override

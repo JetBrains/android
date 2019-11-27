@@ -71,7 +71,7 @@ class ExistingNewModuleModelData(
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false))
 
   override val formFactor: ObjectValueProperty<FormFactor> get() = TODO("not implemented")
-  override val isLibrary: BoolProperty = BoolValueProperty(false)
+  override val isLibrary: Boolean = false
   override val templateFile: OptionalValueProperty<File> get() = TODO("not implemented")
   override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> get() = TODO("not implemented")
 }

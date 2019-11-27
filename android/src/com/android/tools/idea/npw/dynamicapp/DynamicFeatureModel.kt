@@ -34,7 +34,6 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_DYNAMIC_FEATURE_
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_DYNAMIC_FEATURE_TITLE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_DYNAMIC_IS_INSTANT_MODULE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_DYNAMIC_FEATURE
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_SIMPLE_NAME
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -47,7 +46,9 @@ import generateDynamicFeatureModule
 
 class DynamicFeatureModel(
   project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker, isInstant: Boolean
-) : ModuleModel(project, templateHandle, projectSyncInvoker, "dynamicfeature", "New Dynamic Feature Module") {
+) : ModuleModel(
+  project, templateHandle, projectSyncInvoker, "dynamicfeature", "New Dynamic Feature Module", false
+) {
   @JvmField
   val featureTitle = StringValueProperty("Module Title")
   @JvmField
@@ -86,7 +87,6 @@ class DynamicFeatureModel(
         ATTR_DYNAMIC_FEATURE_ON_DEMAND to featureOnDemand.get(),
         ATTR_DYNAMIC_FEATURE_FUSING to featureFusing.get(),
         ATTR_IS_NEW_MODULE to true,
-        ATTR_IS_LIBRARY_MODULE to false,
         ATTR_DYNAMIC_IS_INSTANT_MODULE to instantModule.get(),
         // Dynamic delivery conditions
         ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY to (downloadInstallKind.value == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME),
@@ -106,7 +106,6 @@ class DynamicFeatureModel(
           projectTemplateDataBuilder.apply {
             javaVersion = JavaVersion.parse("1.8")
           }
-          isLibrary = false
           setBaseFeature(baseApplication.value)
         }
       }

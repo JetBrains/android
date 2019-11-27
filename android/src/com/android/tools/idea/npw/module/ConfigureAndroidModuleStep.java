@@ -104,7 +104,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     myMinSdkLevel = minSdkLevel;
 
     // We do not use module name for android library
-    if (model.isLibrary().get()) {
+    if (model.isLibrary()) {
       myAppNameLabel.setVisible(false);
       myAppName.setVisible(false);
     }
@@ -141,7 +141,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
       if (value.isEmpty()) {
         return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.validate.empty.application.name"));
       }
-      else if (!model.isLibrary().get() && !Character.isUpperCase(value.charAt(0))) {
+      else if (!model.isLibrary() && !Character.isUpperCase(value.charAt(0))) {
         return new Validator.Result(Validator.Severity.INFO,  message("android.wizard.validate.lowercase.application.name"));
       }
       return Validator.Result.OK;
@@ -178,7 +178,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
     // Note: MultiTemplateRenderer needs that all Models constructed (ie myRenderModel) are inside a Step, so handleSkipped() is called
     ChooseActivityTypeStep chooseActivityStep = new ChooseActivityTypeStep(getModel(), myRenderModel, myFormFactor, Lists.newArrayList());
-    chooseActivityStep.setShouldShow(!getModel().isLibrary().get());
+    chooseActivityStep.setShouldShow(!getModel().isLibrary());
 
     LicenseAgreementStep licenseAgreementStep =
       new LicenseAgreementStep(new LicenseAgreementModel(getSdkManagerLocalPath()), myInstallLicenseRequests);

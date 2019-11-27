@@ -28,10 +28,12 @@ import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
+import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
 import com.android.tools.idea.templates.ProjectTemplateDataBuilder
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateUtils.openEditors
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
@@ -53,8 +55,10 @@ abstract class ModuleModel(
   projectSyncInvoker: ProjectSyncInvoker,
   moduleName: String,
   private val commandName: String = "New Module",
+  val isLibrary: Boolean,
   projectModelData: ProjectModelData = ExistingProjectModelData(project, projectSyncInvoker)
 ) : WizardModel(), ProjectModelData by projectModelData {
+  val formFactor = ObjectValueProperty(FormFactor.Generic)
   override val packageName = StringValueProperty()
   val moduleName = StringValueProperty(moduleName)
   open val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
@@ -95,16 +99,19 @@ abstract class ModuleModel(
         .setLanguage(language.value)
         .setJavaVersion(project)
 
+      templateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary
+
       if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
         moduleTemplateDataBuilder.apply {
           projectTemplateDataBuilder.apply {
             setProjectDefaults(project)
             language = this@ModuleModel.language.value
           }
-          formFactor = FormFactor.Generic
+          formFactor = this@ModuleModel.formFactor.get()
           isNew = true
           setBuildVersion(androidSdkInfo.value, project)
           setModuleRoots(modulePaths, project.basePath!!, moduleName.get(), this@ModuleModel.packageName.get())
+          isLibrary = this@ModuleModel.isLibrary
         }
       }
     }
