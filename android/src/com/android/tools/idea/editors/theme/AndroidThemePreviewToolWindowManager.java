@@ -142,8 +142,9 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
   public void projectOpened() {
     initToolWindow();
 
-    StartupManager.getInstance(myProject).registerPostStartupActivity(() -> ApplicationManager.getApplication().invokeLater(
-      this::processFileEditorChange));
+    StartupManager.getInstance(myProject).registerPostStartupActivity(() -> {
+      ApplicationManager.getApplication().invokeLater(this::processFileEditorChange);
+    });
   }
 
   @Override
