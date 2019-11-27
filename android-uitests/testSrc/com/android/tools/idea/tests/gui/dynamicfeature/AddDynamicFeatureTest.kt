@@ -239,10 +239,8 @@ class AddDynamicFeatureTest {
                         |        </dist:delivery>
                         |        <dist:fusing dist:include="false" />
                         |    </dist:module>
-                        |</manifest>
-                        |
-                        |""".trimMargin()
-      assertEquals(expected, this)
+                        |</manifest>""".trimMargin()
+      assertEquals(expected, this.trim())
     }
 
     guiTest.getProjectFileText("app/src/main/res/values/strings.xml").run {
