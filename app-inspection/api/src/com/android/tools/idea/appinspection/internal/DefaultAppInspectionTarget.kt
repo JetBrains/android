@@ -30,10 +30,9 @@ import com.android.tools.profiler.proto.Commands.Command.CommandType.ATTACH_AGEN
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.Event.Kind.AGENT
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
-import com.android.tools.profiler.proto.Common.Process
-import com.android.tools.profiler.proto.Common.Stream
 import com.android.tools.profiler.proto.Transport.ExecuteRequest
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.util.concurrent.AsyncCallable
 import com.google.common.util.concurrent.AsyncFunction
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -46,37 +45,40 @@ import java.nio.file.Path
  * to receive app-inspection-specific commands.
  */
 internal fun attachAppInspectionTarget(
-  stream: Stream,
-  process: Process,
   transport: AppInspectionTransport,
   fileCopier: TransportFileCopier
 ): ListenableFuture<AppInspectionTarget> {
-  val targetFuture = SettableFuture.create<AppInspectionTarget>()
+  return Futures.submitAsync(
+    AsyncCallable {
+      val connectionFuture = SettableFuture.create<AppInspectionTarget>()
+      // The device daemon takes care of the case if and when the agent is previously attached already.
+      val attachCommand = Command.newBuilder()
+        .setStreamId(transport.stream.streamId)
+        .setPid(transport.process.pid)
+        .setType(ATTACH_AGENT)
+        .setAttachAgent(
+          Commands.AttachAgent.newBuilder()
+            .setAgentLibFileName("libjvmtiagent_${transport.process.abiCpuArch}.so")
+            .setAgentConfigPath(TransportFileManager.getAgentConfigFile())
+        )
+        .build()
 
-  // The device daemon takes care of the case if and when the agent is previously attached already.
-  val attachCommand = Command.newBuilder()
-    .setStreamId(stream.streamId)
-    .setPid(process.pid)
-    .setType(ATTACH_AGENT)
-    .setAttachAgent(
-      Commands.AttachAgent.newBuilder()
-        .setAgentLibFileName("libjvmtiagent_${process.abiCpuArch}.so")
-        .setAgentConfigPath(TransportFileManager.getAgentConfigFile()))
-    .build()
-
-  transport.registerEventListener(
-    transport.createEventListener(eventKind = AGENT, filter = { it.agentData.status == ATTACHED }
-    ) {
-      targetFuture.set(DefaultAppInspectionTarget(transport, fileCopier))
-      true
-    })
-
-  transport.client.transportStub.execute(ExecuteRequest.newBuilder().setCommand(attachCommand).build())
-  return targetFuture
+      transport.registerEventListener(
+        transport.createEventListener(eventKind = AGENT, filter = { it.agentData.status == ATTACHED }
+        ) {
+          connectionFuture.set(DefaultAppInspectionTarget(transport, fileCopier))
+          true
+        })
+      transport.client.transportStub.execute(ExecuteRequest.newBuilder().setCommand(attachCommand).build())
+      connectionFuture
+    }, transport.executorService
+  )
 }
 
-private class DefaultAppInspectionTarget(val processTransport: AppInspectionTransport,
-                                         private val fileCopier: TransportFileCopier) : AppInspectionTarget {
+private class DefaultAppInspectionTarget(
+  val processTransport: AppInspectionTransport,
+  private val fileCopier: TransportFileCopier
+) : AppInspectionTarget {
   override fun <T : AppInspectorClient> launchInspector(
     inspectorId: String,
     inspectorJar: DeployableFile,
@@ -103,8 +105,7 @@ private class DefaultAppInspectionTarget(val processTransport: AppInspectionTran
           ) { event ->
             if (event.appInspectionResponse.status == SUCCESS) {
               connectionFuture.set(AppInspectorConnection(processTransport, inspectorId, event.timestamp))
-            }
-            else {
+            } else {
               connectionFuture.setException(RuntimeException("Could not launch inspector $inspectorId"))
             }
             true

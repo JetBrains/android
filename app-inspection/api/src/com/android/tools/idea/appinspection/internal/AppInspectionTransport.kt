@@ -33,8 +33,8 @@ import java.util.concurrent.atomic.AtomicInteger
 @VisibleForTesting
 class AppInspectionTransport(
   val client: TransportClient,
-  private val stream: Common.Stream,
-  private val process: Common.Process,
+  val stream: Common.Stream,
+  val process: Common.Process,
   val executorService: ExecutorService,
   val poller: TransportEventPoller = TransportEventPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
 ) {

@@ -16,12 +16,18 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.tools.idea.appinspection.internal.AppInspectionAttacher
-import com.android.tools.idea.concurrency.addCallback
+import com.android.tools.idea.appinspection.internal.AppInspectionTransport
+import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileCopier
-import com.google.common.util.concurrent.FutureCallback
+import com.android.tools.idea.transport.poller.TransportEventPoller
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.SettableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
+import java.util.function.Function
 
 typealias TargetListener = (AppInspectionTarget) -> Unit
 
@@ -42,10 +48,14 @@ class AppInspectionDiscoveryHost(executor: ScheduledExecutorService, channel: Ch
 
   val discovery = AppInspectionDiscovery(executor, channel)
 
-  // TODO(b/143836794): this method should return to the caller if it was to connect to device
-  fun connect(transportFileCopier: TransportFileCopier, preferredProcess: AutoPreferredProcess) {
-    discovery.connect(transportFileCopier, preferredProcess)
-  }
+  /**
+   * Connects to a process on device defined by [preferredProcess]. This method returns a future of [AppInspectionPipelineConnection]. If
+   * the connection is cached, the future is ready to be gotten immediately.
+   */
+  fun connect(
+    transportFileCopier: TransportFileCopier,
+    preferredProcess: AutoPreferredProcess
+  ): ListenableFuture<AppInspectionTarget> = discovery.connect(transportFileCopier, preferredProcess)
 }
 
 /**
@@ -55,27 +65,35 @@ class AppInspectionDiscoveryHost(executor: ScheduledExecutorService, channel: Ch
  * to and fire listeners for all of them.
  */
 // TODO(b/143628758): This Discovery mechanism must be called only behind the flag SQLITE_APP_INSPECTOR_ENABLED
-class AppInspectionDiscovery(private val executor: ScheduledExecutorService,
-                             private val channel: AppInspectionDiscoveryHost.Channel) {
+class AppInspectionDiscovery(
+  private val executor: ScheduledExecutorService,
+  transportChannel: AppInspectionDiscoveryHost.Channel
+) {
   private val listeners = ConcurrentHashMap<TargetListener, Executor>()
-  private val attacher = AppInspectionAttacher(executor, channel)
+  private val attacher = AppInspectionAttacher(executor, transportChannel)
 
-  internal fun connect(fileCopier: TransportFileCopier, preferredProcess: AutoPreferredProcess) {
-    attacher.attach(preferredProcess) { stream, process ->
-      AppInspectionTarget.attach(stream, process, channel.name, executor, fileCopier)
-        .addCallback(executor, object : FutureCallback<AppInspectionTarget> {
-          override fun onSuccess(result: AppInspectionTarget?) {
-            listeners.forEach {
-              it.value.execute { it.key(result!!) }
+  private val connections = ConcurrentHashMap<AutoPreferredProcess, ListenableFuture<AppInspectionTarget>>()
+  private val client = TransportClient(transportChannel.name)
+  private val transportPoller = TransportEventPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
+
+  internal fun connect(
+    fileCopier: TransportFileCopier,
+    preferredProcess: AutoPreferredProcess
+  ): ListenableFuture<AppInspectionTarget> {
+    return connections.computeIfAbsent(
+      preferredProcess,
+      Function { autoPreferredProcess ->
+        val connectionFuture = SettableFuture.create<AppInspectionTarget>()
+        attacher.attach(autoPreferredProcess) { stream, process ->
+          val transport = AppInspectionTransport(client, stream, process, executor, transportPoller)
+          AppInspectionTarget.attach(transport, fileCopier)
+            .transform(executor) { connection ->
+              listeners.forEach { it.value.execute { it.key(connection) } }
+              connectionFuture.set(connection)
             }
-          }
-
-          override fun onFailure(t: Throwable) {
-            TODO("not implemented")
-          }
-        })
-
-    }
+        }
+        connectionFuture
+      })
   }
 
   fun addTargetListener(executor: Executor, listener: TargetListener): TargetListener {
