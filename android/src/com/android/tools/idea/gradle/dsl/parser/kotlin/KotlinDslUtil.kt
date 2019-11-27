@@ -211,7 +211,7 @@ internal fun methodCallBlockName(expression: KtCallExpression): String? {
 //  com.google.common.annotations.VisibleForTesting annotation which supports no parameters.
 fun gradleNameFor(expression: KtExpression): String? {
   val sb = StringBuilder()
-  var lastExtra = false
+  var convertIndexToName = false
   var allValid = true
 
   // the visitor here is responsible for converting Kts DSL syntax, e.g. sourceSets.getByName("arbitrary").extra["foo"], into
@@ -225,9 +225,9 @@ fun gradleNameFor(expression: KtExpression): String? {
       // and GradleNameElement's expectation (field dereference, e.g. ext.foo).  Only do this
       // conversion if `extra' is the last thing we've seen in the arrayExpression.
       val index = expression.indexExpressions[0]
-      if (lastExtra) {
+      if (convertIndexToName) {
         sb.append(".${StringUtil.unquoteString(index.text)}")
-        lastExtra = false
+        convertIndexToName = false
       }
       else {
         sb.append("[${index.text}]")
@@ -254,7 +254,8 @@ fun gradleNameFor(expression: KtExpression): String? {
       when (expression) {
         is KtSimpleNameExpression -> {
           when (val text = expression.text) {
-            "extra" -> { lastExtra = true; sb.append("ext") }
+            "extra" -> { convertIndexToName = true; sb.append("ext") }
+            "manifestPlaceholders", "testInstrumentationRunnerArguments" -> { convertIndexToName = true; sb.append(text) }
             else -> sb.append(text)
           }
         }
