@@ -107,11 +107,11 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
     super(model, message("android.wizard.module.config.title"));
 
     TextProperty packageNameText = new TextProperty(myPackageName);
-    Expression<String> computedPackageName = new Expression<String>(model.moduleName) {
+    Expression<String> computedPackageName = new Expression<String>(model.getModuleName()) {
       @NotNull
       @Override
       public String get() {
-        return format("%s.%s", basePackage, nameToJavaPackage(model.moduleName.get()));
+        return format("%s.%s", basePackage, nameToJavaPackage(model.getModuleName().get()));
       }
     };
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
@@ -157,7 +157,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    StringProperty modelName = getModel().moduleName;
+    StringProperty modelName = getModel().getModuleName();
     Project project = getModel().getProject();
 
     myBindings.bindTwoWay(new TextProperty(myModuleName), modelName);
