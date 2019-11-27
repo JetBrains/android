@@ -800,19 +800,17 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     if (!getStage().isMemoryCaptureOnly()) {
       buttonToolbar.add(getSelectionTimeLabel());
     }
-    if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isMemoryCaptureFilterEnabled()) {
-      CommonToggleButton button = FilterComponent.createFilterToggleButton();
-      buttonToolbar.add(new FlatSeparator());
-      buttonToolbar.add(button);
-      FilterComponent filterComponent =
-        new FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
+    CommonToggleButton button = FilterComponent.createFilterToggleButton();
+    buttonToolbar.add(new FlatSeparator());
+    buttonToolbar.add(button);
+    FilterComponent filterComponent =
+      new FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
 
-      filterComponent.getModel().setFilterHandler(getStage().getFilterHandler());
-      headingPanel.add(filterComponent, new TabularLayout.Constraint(2, 0, 3));
-      filterComponent.setVisible(false);
-      filterComponent.setBorder(new JBEmptyBorder(0, 4, 0, 0));
-      FilterComponent.configureKeyBindingAndFocusBehaviors(capturePanel, filterComponent, button);
-    }
+    filterComponent.getModel().setFilterHandler(getStage().getFilterHandler());
+    headingPanel.add(filterComponent, new TabularLayout.Constraint(2, 0, 3));
+    filterComponent.setVisible(false);
+    filterComponent.setBorder(new JBEmptyBorder(0, 4, 0, 0));
+    FilterComponent.configureKeyBindingAndFocusBehaviors(capturePanel, filterComponent, button);
 
     // Add the right side toolbar so that it is on top of the truncated |myCaptureInfoMessage|.
     headingPanel.add(buttonToolbar, new TabularLayout.Constraint(0, 2));

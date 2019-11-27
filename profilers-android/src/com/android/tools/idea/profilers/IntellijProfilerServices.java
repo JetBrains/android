@@ -257,11 +257,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       }
 
       @Override
-      public boolean isMemoryCaptureFilterEnabled() {
-        return StudioFlags.PROFILER_MEMORY_CAPTURE_FILTER.get();
-      }
-
-      @Override
       public boolean isMemorySnapshotEnabled() {
         return StudioFlags.PROFILER_MEMORY_SNAPSHOT.get();
       }
