@@ -561,6 +561,18 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareFullscreenFragment() {
+    checkCreateTemplate("fragments", "FullscreenFragment",
+                        ActivityCreationMode.WITHOUT_PROJECT, false, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareFullscreenFragmentWithKotlin() {
+    checkCreateTemplate("fragments", "FullscreenFragment",
+                        ActivityCreationMode.WITHOUT_PROJECT, false, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewGoogleMapsFragment() {
     checkCreateTemplate("fragments", "GoogleMapsFragment")
   }
