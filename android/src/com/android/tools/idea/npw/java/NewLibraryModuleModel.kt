@@ -48,7 +48,7 @@ class NewLibraryModuleModel(
   )
 
   override val renderer = object : ModuleTemplateRenderer() {
-    override val recipe: Recipe = { td: TemplateData -> generatePureLibrary(td as ModuleTemplateData, className.get()) }
+    override val recipe: Recipe get() = { td: TemplateData -> generatePureLibrary(td as ModuleTemplateData, className.get()) }
 
     override fun init() {
       super.init()

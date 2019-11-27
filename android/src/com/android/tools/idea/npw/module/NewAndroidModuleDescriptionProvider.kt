@@ -52,9 +52,6 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
           if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get() && title == message("android.wizard.module.new.mobile"))
             AndroidModuleTemplateGalleryEntry(
               null,
-              { appTitle: String? ->
-                { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle) }
-              },
               FormFactor.MOBILE,
               LOWEST_ACTIVE_API,
               false,
@@ -63,7 +60,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
               message("android.wizard.module.new.mobile.description")
             )
           else
-            AndroidModuleTemplateGalleryEntry(templateFile, null, formFactor, minSdk, isLibrary, icon, title, metadata.description!!)
+            AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, isLibrary, icon, title, metadata.description!!)
 
         val templateIcon = templateFile.getIcon()
 
@@ -82,7 +79,6 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
 
   private class AndroidModuleTemplateGalleryEntry(
     override val templateFile: File?,
-    override val recipe: NewAndroidModuleRecipe?,
     override val formFactor: FormFactor,
     private val minSdkLevel: Int,
     override val isLibrary: Boolean,
@@ -91,10 +87,6 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     override val description: String
   ) : ModuleTemplateGalleryEntry {
     override fun toString(): String = name
-
-    init {
-      requireNotNull(templateFile ?: recipe)
-    }
 
     override fun createStep(model: NewModuleModel): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()

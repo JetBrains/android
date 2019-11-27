@@ -20,8 +20,8 @@ import com.android.sdklib.AndroidVersion.VersionCodes.P
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
-import com.android.tools.idea.npw.module.NewAndroidModuleRecipe
 import com.android.tools.idea.npw.module.getModuleRoot
+import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateValueInjector
@@ -46,6 +46,9 @@ import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.Recipe
+import com.android.tools.idea.wizard.template.TemplateData
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -101,7 +104,6 @@ interface ModuleModelData : ProjectModelData {
   /**
    * Used in place of [templateFile] if [StudioFlags.NPW_NEW_MODULE_TEMPLATES] is enabled.
    */
-  var moduleRecipe: NewAndroidModuleRecipe?
   val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem>
   val moduleTemplateDataBuilder: ModuleTemplateDataBuilder
 }
@@ -117,7 +119,6 @@ class NewModuleModel(
   override val moduleTemplateValues = mutableMapOf<String, Any>()
   override val moduleName = StringValueProperty().apply { addConstraint(String::trim) }
   override val templateFile = OptionalValueProperty<File>()
-  override var moduleRecipe: NewAndroidModuleRecipe? = null
   override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
 
@@ -134,7 +135,7 @@ class NewModuleModel(
   }
 
   constructor(
-    projectModel: NewProjectModel, templateFile: File?, recipe: NewAndroidModuleRecipe?, template: NamedModuleTemplate,
+    projectModel: NewProjectModel, templateFile: File?, template: NamedModuleTemplate,
     formFactor: ObjectValueProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
   ) : this(
     projectModelData = projectModel,
@@ -144,9 +145,6 @@ class NewModuleModel(
   ) {
     if (templateFile != null) {
       this.templateFile.value = templateFile
-    }
-    if (recipe != null) {
-      moduleRecipe = recipe
     }
     multiTemplateRenderer.incrementRenders()
   }
@@ -160,6 +158,7 @@ class NewModuleModel(
   }
 
   private inner class ModuleTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
+    val recipe: Recipe get() = { data: TemplateData -> generateAndroidModule(data as ModuleTemplateData, applicationName.get()) }
     @WorkerThread
     override fun init() {
       if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
@@ -213,9 +212,6 @@ class NewModuleModel(
       // This is done because module needs to know about all included form factors, and currently we know about them only after init run,
       // so we need to set it again after all inits (thus in dryRun) TODO(qumeric): remove after adding formFactors to the project
       moduleTemplateValues.putAll(projectTemplateValues)
-      if (templateFile.valueOrNull == null && moduleRecipe == null) {
-        return false // If here, the user opted to skip creating any module at all, or is just adding a new Activity
-      }
 
       // Returns false if there was a render conflict and the user chose to cancel creating the template
       return renderModule(true)
@@ -237,7 +233,7 @@ class NewModuleModel(
       val moduleRoot = getModuleRoot(project.basePath!!, moduleName.get())
       val filesToOpen = ArrayList<File>()
 
-      if (moduleRecipe != null) {
+      if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
         val context = RenderingContext2(
           project = project,
           module = null,
@@ -250,7 +246,7 @@ class NewModuleModel(
 
         val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
 
-        return moduleRecipe!!(applicationName.get()).doRender(context, executor)
+        return recipe.doRender(context, executor)
       }
 
       val template = Template.createFromPath(templateFile.value)

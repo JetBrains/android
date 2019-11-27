@@ -20,7 +20,6 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.module.NewAndroidModuleRecipe
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getPackageForApplication
@@ -68,7 +67,6 @@ class ExistingNewModuleModelData(
 ) : ModuleModelData, ProjectModelData by existingProjectModelData {
   override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(template)
   override val moduleName: StringValueProperty = StringValueProperty(facet.module.name)
-  override var moduleRecipe: NewAndroidModuleRecipe? = null
   override val moduleTemplateValues: MutableMap<String, Any> = mutableMapOf()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false))
 

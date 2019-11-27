@@ -65,7 +65,7 @@ class DynamicFeatureModel(
     OptionalValueProperty(if (isInstant) DownloadInstallKind.INCLUDE_AT_INSTALL_TIME else DownloadInstallKind.ON_DEMAND_ONLY)
 
   override val renderer = object : ModuleTemplateRenderer() {
-    override val recipe: Recipe = { td: TemplateData ->
+    override val recipe: Recipe get() = { td: TemplateData ->
       generateDynamicFeatureModule(
         td as ModuleTemplateData,
         instantModule.get(),
