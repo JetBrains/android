@@ -132,14 +132,14 @@ class ConfigureBenchmarkModuleStep(
     validatorPanel.apply {
       registerValidator(moduleNameText, moduleValidator)
       registerValidator(model.packageName, packageNameValidator)
-      registerValidator(model.minSdk, minSdkValidator)
+      registerValidator(model.androidSdkInfo, minSdkValidator)
     }
     bindings.apply {
       bind(model.moduleName, moduleNameText, validatorPanel.hasErrors().not())
       bind(packageNameText, computedPackageName, isPackageNameSynced)
       bind(model.packageName, packageNameText)
       bindTwoWay(language, model.language)
-      bind(model.minSdk, SelectedItemProperty(apiLevelComboBox))
+      bind(model.androidSdkInfo, SelectedItemProperty(apiLevelComboBox))
     }
     listeners.listen(packageNameText) { value: String -> isPackageNameSynced.set(value == computedPackageName.get()) }
 

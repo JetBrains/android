@@ -174,7 +174,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
 
     myBindings.bindTwoWay(new SelectedItemProperty<>(myLanguageCombo), getModel().language);
 
-    OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo = getModel().androidSdkInfo;
+    OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo = getModel().getAndroidSdkInfo();
     myBindings.bind(androidSdkInfo, new SelectedItemProperty<>(myApiLevelCombo));
 
     AndroidProjectInfo.getInstance(project).getAllModulesOfProjectType(PROJECT_TYPE_APP)
