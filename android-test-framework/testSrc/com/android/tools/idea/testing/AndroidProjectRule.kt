@@ -239,7 +239,18 @@ class AndroidProjectRule private constructor(
         // Projects set up to match the provided AndroidModel require content files to be located under the project directory.
         // Otherwise adding a new directory may require re-(fake)syncing to make it visible to the project.
         object : TempDirTestFixtureImpl() {
-          override fun getTempHome(): File = toSystemDependentPath(projectBuilder.fixture.project.basePath)!!
+          private val tempDir by lazy { toSystemDependentPath(projectBuilder.fixture.project.basePath)!! }
+
+          override fun getTempHome(): File = tempDir
+
+          override fun tearDown() {
+            val existed = tempDir.exists()
+            super.tearDown()
+            // TempDirTestFixtureImpl re-creates parent directories on tear down. Delete tempDir if it was re-created.
+            if (!existed && tempDir.exists()) {
+              tempDir.delete()
+            }
+          }
         }
       }
 
