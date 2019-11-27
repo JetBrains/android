@@ -255,7 +255,6 @@ fun gradleNameFor(expression: KtExpression): String? {
         is KtSimpleNameExpression -> {
           when (val text = expression.text) {
             "extra" -> { convertIndexToName = true; sb.append("ext") }
-            "manifestPlaceholders", "testInstrumentationRunnerArguments" -> { convertIndexToName = true; sb.append(text) }
             else -> sb.append(text)
           }
         }

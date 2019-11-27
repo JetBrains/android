@@ -386,11 +386,36 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       parentBlock = nestedElement
     }
 
-    val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
-    propertyElement.setUseAssignment(true)
-    propertyElement.elementType = REGULAR
+    val matcher = GradleNameElement.INDEX_PATTERN.matcher(name.name())
+    if (matcher.find()) {
+      // we have an index / dereferencing lvalue: find the actual element that we will need to modify.
+      val property = modelNameForParent(matcher.group(0), parentBlock)
+      parentBlock = parentBlock.getElement(property) as? GradlePropertiesDslElement ?: return
+      // we do not need to convert this to a model name because it must be a user-supplied property.
+      var index = if (matcher.find()) matcher.group(1) else return
+      while (matcher.find()) {
+        parentBlock = GradleDslSimpleExpression.dereferencePropertiesElement(parentBlock, index) ?: return
+        index = matcher.group(1)
+      }
+      when(parentBlock) {
+        is GradleDslExpressionMap -> {
+          val name = GradleNameElement.create(unquoteString(index))
+          val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
+          propertyElement.setUseAssignment(true)
+          propertyElement.elementType = REGULAR
 
-    parentBlock.setParsedElement(propertyElement)
+          parentBlock.setParsedElement(propertyElement)
+        }
+        else -> return
+      }
+    }
+    else {
+      val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
+      propertyElement.setUseAssignment(true)
+      propertyElement.elementType = REGULAR
+
+      parentBlock.setParsedElement(propertyElement)
+    }
   }
 
   override fun visitProperty(expression: KtProperty, parent: GradlePropertiesDslElement) {

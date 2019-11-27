@@ -331,6 +331,66 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
   }
 
   @Nullable
+  public static GradleDslElement dereference(@NotNull GradleDslElement element, @NotNull String index) {
+    if (element instanceof GradleDslExpressionList) {
+      int offset;
+      try {
+        offset = Integer.parseInt(index);
+      }
+      catch (NumberFormatException e) {
+        return null;
+      }
+
+      GradleDslExpressionList list = (GradleDslExpressionList)element;
+      if (list.getExpressions().size() <= offset) {
+        return null;
+      }
+      return list.getExpressions().get(offset);
+    }
+    else if (element instanceof GradleDslExpressionMap) {
+      GradleDslExpressionMap map = (GradleDslExpressionMap)element;
+      index = stripQuotes(index);
+
+      return map.getPropertyElement(index);
+    }
+    else if (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
+      GradleDslElement value = followElement((GradleDslLiteral)element);
+      if (value == null) {
+        return null;
+      }
+      else {
+        return dereference(value, index);
+      }
+    }
+    else {
+      return null;
+    }
+  }
+
+  /**
+   * This is like plain {@link #dereference(GradleDslElement, String)} but with the opposite handling of references from DslLiterals: its
+   * input must already be resolved to a PropertiesDslElement, and it follows references from DslLiterals to return a PropertiesDslElement,
+   * which is particularly useful when we require the return value itself to be dereferenceable (e.g. for assignments)
+   *
+   * @param element
+   * @param index
+   * @return
+   */
+  @Nullable
+  public static GradlePropertiesDslElement dereferencePropertiesElement(@NotNull GradlePropertiesDslElement element, @NotNull String index) {
+    GradleDslElement result = dereference(element, index);
+    if (result instanceof GradleDslLiteral && ((GradleDslLiteral)result).isReference()) {
+      result = followElement((GradleDslLiteral)result);
+    }
+    if (result instanceof GradlePropertiesDslElement) {
+      return (GradlePropertiesDslElement)result;
+    }
+    else {
+      return null;
+    }
+  }
+
+  @Nullable
   private static GradleDslElement extractElementFromProperties(@NotNull GradlePropertiesDslElement properties,
                                                                @NotNull String name,
                                                                GradleDslNameConverter converter,
@@ -386,35 +446,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
       }
 
       // Get the type of the element and ensure the index is compatible, e.g numerical index for a list.
-      if (element instanceof GradleDslExpressionList) {
-        int offset;
-        try {
-          offset = Integer.parseInt(index);
-        }
-        catch (NumberFormatException e) {
-          return null;
-        }
-
-        GradleDslExpressionList list = (GradleDslExpressionList)element;
-        if (list.getExpressions().size() <= offset) {
-          return null;
-        }
-        element = list.getExpressions().get(offset);
-      }
-      else if (element instanceof GradleDslExpressionMap) {
-        GradleDslExpressionMap map = (GradleDslExpressionMap)element;
-        index = stripQuotes(index);
-
-        element = map.getPropertyElement(index);
-      }
-      else if (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
-        element = followElement((GradleDslLiteral)element);
-        // Attempt to resolve the index part again
-        indexParts.push(index);
-      }
-      else {
-        return null;
-      }
+      element = dereference(element, index);
     }
 
     return element;
