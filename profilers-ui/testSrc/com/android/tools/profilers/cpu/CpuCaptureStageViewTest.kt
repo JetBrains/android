@@ -122,7 +122,6 @@ class CpuCaptureStageViewTest {
   fun showTrackGroupTooltip() {
     // Load Atrace
     services.enablePerfetto(true)
-    services.enableAtrace(true)
     val stage = CpuCaptureStage.create(profilersView.studioProfilers, "", TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_PID1_PATH))
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()

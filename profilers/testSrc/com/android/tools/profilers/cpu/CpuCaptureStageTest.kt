@@ -118,7 +118,6 @@ class CpuCaptureStageTest {
 
   @Test
   fun trackGroupModelsAreSetForAtrace() {
-    services.enableAtrace(true)
     val stage = CpuCaptureStage.create(profilers, "Test", CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
     profilers.stage = stage
 
@@ -197,7 +196,6 @@ class CpuCaptureStageTest {
   @Test
   fun captureHintSelectsProperProcessStringName() {
     services.setListBoxOptionsIndex(-1)
-    services.enableAtrace(true)
     services.enablePerfetto(true)
     val stage = CpuCaptureStage(profilers, "Test", CpuProfilerTestUtils.getTraceFile("perfetto.trace"), "surfaceflinger", 0)
     profilers.stage = stage
@@ -209,7 +207,6 @@ class CpuCaptureStageTest {
   @Test
   fun captureHintSelectsProperProcessPID() {
     services.setListBoxOptionsIndex(-1)
-    services.enableAtrace(true)
     services.enablePerfetto(true)
     val stage = CpuCaptureStage(profilers, "Test", CpuProfilerTestUtils.getTraceFile("perfetto.trace"), null, 709)
     profilers.stage = stage
@@ -221,7 +218,6 @@ class CpuCaptureStageTest {
   @Test
   fun nullCaptureHintSelectsCaptureFromDialog() {
     services.setListBoxOptionsIndex(1)
-    services.enableAtrace(true)
     services.enablePerfetto(true)
     val stage = CpuCaptureStage(profilers, "Test", CpuProfilerTestUtils.getTraceFile("perfetto.trace"), null, 0)
     profilers.stage = stage

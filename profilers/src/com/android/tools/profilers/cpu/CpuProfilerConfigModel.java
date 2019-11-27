@@ -155,9 +155,6 @@ public class CpuProfilerConfigModel {
       if (selectedDevice != null && pref.getRequiredDeviceLevel() > selectedDevice.getFeatureLevel() && filterOnDevice) {
         return false;
       }
-      if (pref.getTraceType() == CpuTraceType.ATRACE) {
-        return myProfilers.getIdeServices().getFeatureConfig().isAtraceEnabled();
-      }
       return true;
     };
     return configurations.stream().filter(filter).collect(Collectors.toList());
