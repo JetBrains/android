@@ -21,9 +21,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wizard.template.Recipe
 
 interface ModuleTemplateGalleryEntry : ModuleGalleryEntry {
+  // TODO(qumeric): remove it
   /**
    * The file from where this template was loaded.
-   * [newTemplate] should be used instead if [StudioFlags.NPW_NEW_MODULE_TEMPLATES] is enabled.
    */
   val templateFile: File?
   /**

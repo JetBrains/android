@@ -19,7 +19,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleModel
-import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.collections.ObservableList
 import com.android.tools.idea.observable.core.BoolValueProperty
@@ -43,11 +42,12 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.util.lang.JavaVersion
 import generateDynamicFeatureModule
+import java.io.File
 
 class DynamicFeatureModel(
-  project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker, val isInstant: Boolean
+  project: Project, templateFile: File, projectSyncInvoker: ProjectSyncInvoker, val isInstant: Boolean
 ) : ModuleModel(
-  project, templateHandle, projectSyncInvoker, "dynamicfeature", "New Dynamic Feature Module", false
+  project, templateFile, projectSyncInvoker, "dynamicfeature", "New Dynamic Feature Module", false
 ) {
   @JvmField
   val featureTitle = StringValueProperty("Module Title")

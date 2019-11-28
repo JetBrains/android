@@ -41,7 +41,6 @@ class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
 
   private class FeatureTemplateGalleryEntry : ModuleTemplateGalleryEntry {
     override val templateFile: File = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, DYNAMIC_FEATURE_TEMPLATE)!!
-    private val templateHandle = TemplateHandle(templateFile)
     override val icon: Icon = AndroidIcons.Wizards.DynamicFeatureModule
     override val name: String = message("android.wizard.module.new.dynamic.module")
     override val description: String = message("android.wizard.module.new.dynamic.module.description")
@@ -51,13 +50,12 @@ class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
     override fun toString() = name
     override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      return ConfigureDynamicModuleStep(DynamicFeatureModel(project, templateHandle, projectSyncInvoker, false), basePackage)
+      return ConfigureDynamicModuleStep(DynamicFeatureModel(project, templateFile, projectSyncInvoker, false), basePackage)
     }
   }
 
   private class InstantFeatureTemplateGalleryEntry : ModuleTemplateGalleryEntry {
     override val templateFile: File = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, INSTANT_DYNAMIC_FEATURE_TEMPLATE)!!
-    private val templateHandle = TemplateHandle(templateFile)
     override val icon: Icon = AndroidIcons.Wizards.InstantDynamicFeatureModule
     override val name: String = message("android.wizard.module.new.dynamic.module.instant")
     override val description: String = message("android.wizard.module.new.dynamic.module.instant.description")
@@ -67,7 +65,7 @@ class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
     override fun toString() = name
     override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      return ConfigureDynamicModuleStep(DynamicFeatureModel(project, templateHandle, projectSyncInvoker, true), basePackage)
+      return ConfigureDynamicModuleStep(DynamicFeatureModel(project, templateFile, projectSyncInvoker, true), basePackage)
     }
   }
 }

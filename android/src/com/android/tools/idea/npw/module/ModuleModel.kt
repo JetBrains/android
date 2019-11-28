@@ -28,11 +28,9 @@ import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitial
 import com.android.tools.idea.npw.model.doRender
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
-import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
-import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
@@ -62,7 +60,7 @@ private val log: Logger get() = logger<ModuleModel>()
 
 abstract class ModuleModel(
   project: Project,
-  val templateHandle: TemplateHandle,
+  override var templateFile: File?,
   projectSyncInvoker: ProjectSyncInvoker,
   moduleName: String,
   private val commandName: String = "New Module",
@@ -72,7 +70,6 @@ abstract class ModuleModel(
   override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(
     NamedModuleTemplate("", GradleAndroidModuleTemplate.createDefaultTemplateAt(project.basePath!!, moduleName).paths)
   )
-  override var templateFile: File? = null
   override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
   override val packageName: StringProperty = StringValueProperty()
   override val moduleName = StringValueProperty(moduleName).apply { addConstraint(String::trim) }
@@ -99,8 +96,6 @@ abstract class ModuleModel(
   }
 
   protected abstract inner class ModuleTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
-    // TODO(qumeric): get rid of it...
-    protected var customTemplate: Template? = null
     /**
      * A new system recipe which will should be run from [render] if the new system is used.
      */
@@ -172,7 +167,7 @@ abstract class ModuleModel(
       }
 
       val projectRoot = File(project.basePath!!)
-      val template = customTemplate ?: templateHandle.template
+      val template = Template.createFromPath(templateFile!!)
       val filesToOpen = mutableListOf<File>()
 
       val context = Builder.newContext(template, project)
@@ -189,10 +184,6 @@ abstract class ModuleModel(
         if (it && !dryRun) {
           // calling smartInvokeLater will make sure that files are open only when the project is ready
           DumbService.getInstance(project).smartInvokeLater { openEditors(project, filesToOpen, false) }
-          // TODO(qumeric): should we remove it?
-          if (customTemplate == null) {
-            projectSyncInvoker.syncProject(project)
-          }
         }
       }
     }

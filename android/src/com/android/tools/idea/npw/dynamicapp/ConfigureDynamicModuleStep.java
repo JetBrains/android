@@ -68,6 +68,7 @@ import com.intellij.ui.components.JBScrollPane;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -213,7 +214,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
 
     myAndroidVersionsInfo.loadRemoteTargetVersions(MOBILE, LOWEST_ACTIVE_API, items -> myApiLevelCombo.init(MOBILE, items));
 
-    setTemplateThumbnail(getModel().getTemplateHandle());
+    setTemplateThumbnail(new TemplateHandle(Objects.requireNonNull(getModel().getTemplateFile())));
   }
 
   @Override

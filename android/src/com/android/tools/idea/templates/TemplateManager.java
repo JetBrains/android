@@ -851,8 +851,8 @@ public class TemplateManager {
   }
 
   @NotNull
-  public static TemplateHandle getHandle(@Nullable String category, @Nullable String templateName) {
-    return new TemplateHandle(Objects.requireNonNull(getInstance().getTemplateFile(category, templateName)));
+  public static File getTemplate(@Nullable String category, @Nullable String templateName) {
+    return Objects.requireNonNull(getInstance().getTemplateFile(category, templateName));
   }
 
   private static File[] listFiles(@NotNull File root) {

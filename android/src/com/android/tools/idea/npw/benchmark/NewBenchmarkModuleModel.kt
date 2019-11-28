@@ -19,7 +19,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.generateBenchmarkModule
-import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_TITLE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
@@ -28,10 +27,11 @@ import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
 import com.intellij.openapi.project.Project
 import com.intellij.util.lang.JavaVersion
+import java.io.File
 
 class NewBenchmarkModuleModel(
-  project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker
-) : ModuleModel(project, templateHandle, projectSyncInvoker, "benchmark", "New Benchmark Module", true) {
+  project: Project, templateFile: File, projectSyncInvoker: ProjectSyncInvoker
+) : ModuleModel(project, templateFile, projectSyncInvoker, "benchmark", "New Benchmark Module", true) {
   override val renderer = object : ModuleTemplateRenderer() {
     override val recipe: Recipe get() = { td: TemplateData -> generateBenchmarkModule(td as ModuleTemplateData) }
 

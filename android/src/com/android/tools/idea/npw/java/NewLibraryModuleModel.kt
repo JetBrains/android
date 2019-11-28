@@ -22,7 +22,6 @@ import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.pureLibrary.generatePureLibrary
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
-import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_CLASS_NAME
@@ -32,10 +31,11 @@ import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
 import com.intellij.openapi.project.Project
 import com.intellij.util.lang.JavaVersion
+import java.io.File
 
 class NewLibraryModuleModel(
-  project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker
-) : ModuleModel(project, templateHandle, projectSyncInvoker, "lib", "New Library Module", true) {
+  project: Project, templateFile: File, projectSyncInvoker: ProjectSyncInvoker
+) : ModuleModel(project, templateFile, projectSyncInvoker, "lib", "New Library Module", true) {
   @JvmField
   val className = StringValueProperty("MyClass")
 
