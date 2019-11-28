@@ -492,24 +492,28 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testFontResource() {
       super.testFontResource("Usage (2 usages)\n" +
-                             " Found usages (1 usage)\n" +
+                             " Found usages (2 usages)\n" +
+                             "  Android resource file (1 usage)\n" +
+                             "   app (1 usage)\n" +
+                             "    res/font (1 usage)\n" +
+                             "     new_font.ttf (1 usage)\n" +
+                             "      Android resource file font/new_font.ttf\n" +
                              "  Resource reference in code (1 usage)\n" +
                              "   app (1 usage)\n" +
                              "    p1.p2 (1 usage)\n" +
                              "     Example (1 usage)\n" +
                              "      f() (1 usage)\n" +
-                             "       4int id1 = R.font.new_font;\n" +
-                             " Non-code usages (1 usage)\n" +
-                             "  Android resource file (1 usage)\n" +
-                             "   app (1 usage)\n" +
-                             "    res/font (1 usage)\n" +
-                             "     new_font.ttf (1 usage)\n" +
-                             "      Android resource file font/new_font.ttf\n");
+                             "       4int id1 = R.font.new_font;\n");
     }
 
     public void testFileResource() {
       super.testFileResource("Usage (4 usages)\n" +
-                             " Found usages (3 usages)\n" +
+                             " Found usages (4 usages)\n" +
+                             "  Android resource file (1 usage)\n" +
+                             "   app (1 usage)\n" +
+                             "    res/drawable (1 usage)\n" +
+                             "     picture3.gif (1 usage)\n" +
+                             "      Android resource file drawable/picture3.gif\n" +
                              "  Resource reference in code (1 usage)\n" +
                              "   app (1 usage)\n" +
                              "    p1.p2 (1 usage)\n" +
@@ -523,25 +527,18 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                              "      3<TextView android:background=\"@drawable/picture3\"/>\n" +
                              "    res/values (1 usage)\n" +
                              "     styles.xml (1 usage)\n" +
-                             "      3<item name=\"android:windowBackground\">@drawable/picture3</item>\n" +
-                             " Non-code usages (1 usage)\n" +
-                             "  Android resource file (1 usage)\n" +
-                             "   app (1 usage)\n" +
-                             "    res/drawable (1 usage)\n" +
-                             "     picture3.gif (1 usage)\n" +
-                             "      Android resource file drawable/picture3.gif\n");
+                             "      3<item name=\"android:windowBackground\">@drawable/picture3</item>\n");
     }
 
     public void testFileResourceNoEditor() {
       super.testFileResourceNoEditor("Usage (2 usages)\n" +
-                                     " Found usages (1 usage)\n" +
+                                     " Found usages (2 usages)\n" +
                                      "  Resource reference in code (1 usage)\n" +
                                      "   app (1 usage)\n" +
                                      "    p1.p2 (1 usage)\n" +
                                      "     Foo (1 usage)\n" +
                                      "      f() (1 usage)\n" +
                                      "       5int id1 = R.layout.layout;\n" +
-                                     " Non-code usages (1 usage)\n" +
                                      "  Usage in Android resources XML (1 usage)\n" +
                                      "   app (1 usage)\n" +
                                      "    res/layout (1 usage)\n" +
@@ -551,7 +548,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testFileResourceField() {
       super.testFileResourceField("Usage (3 usages)\n" +
-                                  " Found usages (2 usages)\n" +
+                                  " Found usages (3 usages)\n" +
+                                  "  Android resource file (1 usage)\n" +
+                                  "   app (1 usage)\n" +
+                                  "    res/drawable (1 usage)\n" +
+                                  "     picture3.gif (1 usage)\n" +
+                                  "      Android resource file drawable/picture3.gif\n" +
                                   "  Resource reference in code (1 usage)\n" +
                                   "   app (1 usage)\n" +
                                   "    p1.p2 (1 usage)\n" +
@@ -562,13 +564,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                   "   app (1 usage)\n" +
                                   "    res/layout (1 usage)\n" +
                                   "     layout.xml (1 usage)\n" +
-                                  "      3android:background=\"@drawable/picture3\">\n" +
-                                  " Non-code usages (1 usage)\n" +
-                                  "  Android resource file (1 usage)\n" +
-                                  "   app (1 usage)\n" +
-                                  "    res/drawable (1 usage)\n" +
-                                  "     picture3.gif (1 usage)\n" +
-                                  "      Android resource file drawable/picture3.gif\n");
+                                  "      3android:background=\"@drawable/picture3\">\n");
     }
 
     public void testIdDeclarations() {

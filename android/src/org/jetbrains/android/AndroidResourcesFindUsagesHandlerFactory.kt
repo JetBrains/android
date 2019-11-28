@@ -64,7 +64,7 @@ class AndroidResourcesFindUsagesHandlerFactory : FindUsagesHandlerFactory() {
             runReadAction {
               AndroidResourceToPsiResolver.getInstance()
                 .getGotoDeclarationFileBasedTargets(element.resourceReference, contextElement)
-                .forEach { processor.process(UsageInfo(it)) }
+                .forEach { processor.process(UsageInfo(it, false)) }
             }
           }
         }
