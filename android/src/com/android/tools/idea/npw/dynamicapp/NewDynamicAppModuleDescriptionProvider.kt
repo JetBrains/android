@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.npw.dynamicapp
 
-import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
-import com.android.tools.idea.npw.module.ModuleTemplateGalleryEntry
-import com.android.tools.idea.npw.template.TemplateHandle
-import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
@@ -39,13 +35,11 @@ class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
   override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> =
     listOf(FeatureTemplateGalleryEntry(), InstantFeatureTemplateGalleryEntry())
 
-  private class FeatureTemplateGalleryEntry : ModuleTemplateGalleryEntry {
+  private class FeatureTemplateGalleryEntry : ModuleGalleryEntry {
     override val templateFile: File = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, DYNAMIC_FEATURE_TEMPLATE)!!
     override val icon: Icon = AndroidIcons.Wizards.DynamicFeatureModule
     override val name: String = message("android.wizard.module.new.dynamic.module")
     override val description: String = message("android.wizard.module.new.dynamic.module.description")
-    override val formFactor = FormFactor.MOBILE
-    override val isLibrary = false
 
     override fun toString() = name
     override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
@@ -54,13 +48,11 @@ class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
     }
   }
 
-  private class InstantFeatureTemplateGalleryEntry : ModuleTemplateGalleryEntry {
+  private class InstantFeatureTemplateGalleryEntry : ModuleGalleryEntry {
     override val templateFile: File = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, INSTANT_DYNAMIC_FEATURE_TEMPLATE)!!
     override val icon: Icon = AndroidIcons.Wizards.InstantDynamicFeatureModule
     override val name: String = message("android.wizard.module.new.dynamic.module.instant")
     override val description: String = message("android.wizard.module.new.dynamic.module.instant.description")
-    override val formFactor = FormFactor.MOBILE
-    override val isLibrary = false
 
     override fun toString() = name
     override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
