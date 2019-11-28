@@ -15,13 +15,98 @@
  */
 package com.android.build.attribution.data
 
-import java.time.Duration
+import org.gradle.tooling.events.OperationDescriptor
+import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
-data class PluginConfigurationData(val plugin: PluginData,
-                                   val configurationDuration: Duration,
-                                   val nestedPluginsConfigurationData: List<PluginConfigurationData>,
-                                   var isSlowingConfiguration: Boolean = false)
+data class ProjectConfigurationData(val projectPath: String,
+                                    val totalConfigurationTimeMs: Long,
+                                    val pluginsConfigurationData: List<PluginConfigurationData>,
+                                    val configurationSteps: List<ConfigurationStep>) {
 
-data class ProjectConfigurationData(val pluginsConfigurationData: List<PluginConfigurationData>,
-                                    val project: String,
-                                    val totalConfigurationTime: Duration)
+  /**
+   * Represent project configuration steps that are not plugins configuration
+   */
+  class ConfigurationStep(val type: Type, val configurationTimeMs: Long) {
+    enum class Type {
+      NOTIFYING_BUILD_LISTENERS {
+        override fun isDescriptorOfType(descriptor: OperationDescriptor) = descriptor.name.startsWith("Notify beforeEvaluate listeners") ||
+                                                                           descriptor.name.startsWith("Notify afterEvaluate listeners")
+      },
+      RESOLVING_DEPENDENCIES {
+        override fun isDescriptorOfType(descriptor: OperationDescriptor) = descriptor.name.startsWith("Resolve dependencies of") ||
+                                                                           descriptor.name.startsWith("Resolve files of")
+      },
+      COMPILING_BUILD_SCRIPTS {
+        override fun isDescriptorOfType(descriptor: OperationDescriptor) = descriptor.name.startsWith("Compile script")
+      },
+      EXECUTING_BUILD_SCRIPT_BLOCKS {
+        override fun isDescriptorOfType(descriptor: OperationDescriptor) = descriptor.displayName.startsWith("Execute '") &&
+                                                                           descriptor.displayName.endsWith("' action")
+      },
+      OTHER {
+        override fun isDescriptorOfType(descriptor: OperationDescriptor): Boolean = false
+      };
+
+      abstract fun isDescriptorOfType(descriptor: OperationDescriptor): Boolean
+    }
+  }
+
+  class Builder(val projectPath: String) {
+
+    private val pluginsConfigurationData = ArrayList<PluginConfigurationData>()
+
+    private var notifyingBuildListenersTimeMs = 0L
+    private var resolvingDependenciesTimeMs = 0L
+    private var compilingBuildScriptsTimeMs = 0L
+    private var executingBuildScriptsBlocksTimeMs = 0L
+
+    fun addPluginConfigurationData(plugin: PluginData, configurationTimeMs: Long) {
+      pluginsConfigurationData.add(PluginConfigurationData(plugin, configurationTimeMs))
+    }
+
+    fun subtractConfigurationStepTime(descriptor: OperationDescriptor, configurationTimeMs: Long) {
+      // multiply configuration time by -1 to subtract it
+      addConfigurationStepTime(descriptor, -1 * configurationTimeMs)
+    }
+
+    fun addConfigurationStepTime(descriptor: OperationDescriptor, configurationTimeMs: Long) {
+      when {
+        ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS.isDescriptorOfType(descriptor) -> {
+          notifyingBuildListenersTimeMs += configurationTimeMs
+        }
+        ConfigurationStep.Type.RESOLVING_DEPENDENCIES.isDescriptorOfType(descriptor) -> {
+          resolvingDependenciesTimeMs += configurationTimeMs
+        }
+        ConfigurationStep.Type.COMPILING_BUILD_SCRIPTS.isDescriptorOfType(descriptor) -> {
+          compilingBuildScriptsTimeMs += configurationTimeMs
+        }
+        ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS.isDescriptorOfType(descriptor) -> {
+          executingBuildScriptsBlocksTimeMs += configurationTimeMs
+        }
+      }
+    }
+
+    private fun getConfigurationSteps(totalConfigurationTimeMs: Long): List<ConfigurationStep> {
+      val unaccountedConfigurationTime = totalConfigurationTimeMs -
+                                         notifyingBuildListenersTimeMs -
+                                         resolvingDependenciesTimeMs -
+                                         compilingBuildScriptsTimeMs -
+                                         executingBuildScriptsBlocksTimeMs -
+                                         pluginsConfigurationData.sumByLong { it.configurationTimeMs }
+
+      return listOf(ConfigurationStep(ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS, notifyingBuildListenersTimeMs),
+                    ConfigurationStep(ConfigurationStep.Type.RESOLVING_DEPENDENCIES, resolvingDependenciesTimeMs),
+                    ConfigurationStep(ConfigurationStep.Type.COMPILING_BUILD_SCRIPTS, compilingBuildScriptsTimeMs),
+                    ConfigurationStep(ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS, executingBuildScriptsBlocksTimeMs),
+                    ConfigurationStep(ConfigurationStep.Type.OTHER, unaccountedConfigurationTime))
+        .filter { it.configurationTimeMs != 0L }
+    }
+
+    fun build(totalConfigurationTimeMs: Long): ProjectConfigurationData {
+      return ProjectConfigurationData(projectPath,
+                                      totalConfigurationTimeMs,
+                                      pluginsConfigurationData,
+                                      getConfigurationSteps(totalConfigurationTimeMs))
+    }
+  }
+}

@@ -150,28 +150,14 @@ class BuildAttributionAnalyticsManager(project: Project) : Closeable {
 
   private fun transformPluginConfigurationData(pluginConfigurationData: PluginConfigurationData) =
     ProjectConfigurationAnalyzerData.PluginConfigurationData.newBuilder()
-      .setPluginConfigurationTimeMs(pluginConfigurationData.configurationDuration.toMillis())
+      .setPluginConfigurationTimeMs(pluginConfigurationData.configurationTimeMs)
       .setPluginIdentifier(transformPluginData(pluginConfigurationData.plugin))
       .build()
 
-  private fun transformPluginsConfigurationDataToSequence(
-    pluginsConfigurationData: List<PluginConfigurationData>
-  ): Sequence<ProjectConfigurationAnalyzerData.PluginConfigurationData> {
-    return pluginsConfigurationData.asSequence().flatMap {
-      if (it.plugin.pluginType == PluginData.PluginType.SCRIPT) {
-        transformPluginsConfigurationDataToSequence(it.nestedPluginsConfigurationData)
-      }
-      else {
-        sequenceOf(transformPluginConfigurationData(it))
-      }
-    }
-  }
-
   private fun transformProjectConfigurationData(projectConfigurationData: ProjectConfigurationData) =
     ProjectConfigurationAnalyzerData.ProjectConfigurationData.newBuilder()
-      .setConfigurationTimeMs(projectConfigurationData.totalConfigurationTime.toMillis())
-      .addAllPluginsConfigurationData(
-        transformPluginsConfigurationDataToSequence(projectConfigurationData.pluginsConfigurationData).toList())
+      .setConfigurationTimeMs(projectConfigurationData.totalConfigurationTimeMs)
+      .addAllPluginsConfigurationData(projectConfigurationData.pluginsConfigurationData.map(::transformPluginConfigurationData))
       .build()
 
   private fun transformTasksSharingOutputData(tasksSharingOutputData: TasksSharingOutputData) =

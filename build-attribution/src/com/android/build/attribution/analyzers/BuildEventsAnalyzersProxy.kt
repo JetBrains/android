@@ -19,6 +19,7 @@ import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.PluginBuildData
+import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
@@ -36,6 +37,14 @@ interface BuildEventsAnalysisResult {
   fun getCriticalPathPlugins(): List<PluginBuildData>
   fun getTasksDeterminingBuildDuration(): List<TaskData>
   fun getPluginsDeterminingBuildDuration(): List<PluginBuildData>
+  /**
+   * Total configuration data summed over all subprojects.
+   */
+  fun getTotalConfigurationData(): ProjectConfigurationData
+
+  /**
+   * List of subprojects individual configuration data.
+   */
   fun getProjectsConfigurationData(): List<ProjectConfigurationData>
   fun getAlwaysRunTasks(): List<AlwaysRunTaskData>
   fun getNonCacheableTasks(): List<TaskData>
@@ -112,6 +121,20 @@ class BuildEventsAnalyzersProxy(
 
   override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> {
     return criticalPathAnalyzer.pluginsDeterminingBuildDuration
+  }
+
+  override fun getTotalConfigurationData(): ProjectConfigurationData {
+    val totalConfigurationTime = projectConfigurationAnalyzer.projectsConfigurationData.sumByLong { it.totalConfigurationTimeMs }
+
+    val totalPluginConfiguration = projectConfigurationAnalyzer.pluginsConfigurationDataMap.map { entry ->
+      PluginConfigurationData(entry.key, entry.value)
+    }
+
+    val totalConfigurationSteps = projectConfigurationAnalyzer.projectsConfigurationData.flatMap { it.configurationSteps }.groupBy { it.type }.map { entry ->
+      ProjectConfigurationData.ConfigurationStep(entry.key, entry.value.sumByLong { it.configurationTimeMs })
+    }
+
+    return ProjectConfigurationData("Total Configuration Data", totalConfigurationTime, totalPluginConfiguration, totalConfigurationSteps)
   }
 
   override fun getProjectsConfigurationData(): List<ProjectConfigurationData> {

@@ -32,13 +32,6 @@ class ConfigurationTimeReportBuilderTest : AbstractBuildAttributionReportBuilder
           plugin(pluginB, 100),
           plugin(pluginC, 700)
         )),
-        project(":app:nested", 2000, listOf(
-          plugin(pluginB, 1500, listOf(
-            plugin(applicationPlugin, 800, listOf(
-              plugin(libraryPlugin, 500)
-            ))
-          ))
-        )),
         project(":lib", 500, listOf(
           plugin(pluginA, 200),
           plugin(libraryPlugin, 300)
@@ -48,35 +41,25 @@ class ConfigurationTimeReportBuilderTest : AbstractBuildAttributionReportBuilder
 
     val report = BuildAttributionReportBuilder(analyzerResults, 12345).build()
 
-    assertThat(report.configurationTime.totalConfigurationTime.timeMs).isEqualTo(3500)
-    assertThat(report.configurationTime.projects.size).isEqualTo(3)
-    assertThat(report.configurationTime.projects[0].configurationTime).isEqualTo(TimeWithPercentage(2000, 3500))
-    assertThat(report.configurationTime.projects[0].project).isEqualTo(":app:nested")
-    assertThat(report.configurationTime.projects[1].configurationTime).isEqualTo(TimeWithPercentage(1000, 3500))
-    assertThat(report.configurationTime.projects[1].project).isEqualTo(":app")
-    assertThat(report.configurationTime.projects[2].configurationTime).isEqualTo(TimeWithPercentage(500, 3500))
-    assertThat(report.configurationTime.projects[2].project).isEqualTo(":lib")
+    assertThat(report.configurationTime.totalConfigurationTime.timeMs).isEqualTo(1500)
+    assertThat(report.configurationTime.projects.size).isEqualTo(2)
+    assertThat(report.configurationTime.projects[0].configurationTime).isEqualTo(TimeWithPercentage(1000, 1500))
+    assertThat(report.configurationTime.projects[0].project).isEqualTo(":app")
+    assertThat(report.configurationTime.projects[1].configurationTime).isEqualTo(TimeWithPercentage(500, 1500))
+    assertThat(report.configurationTime.projects[1].project).isEqualTo(":lib")
 
-    assertThat(report.configurationTime.projects[0].plugins.size).isEqualTo(1)
-    assertThat(report.configurationTime.projects[0].plugins[0].pluginName).isEqualTo(pluginB.displayName)
-    assertThat(report.configurationTime.projects[0].plugins[0].nestedPlugins.size).isEqualTo(1)
-    assertThat(report.configurationTime.projects[0].plugins[0].nestedPlugins[0].pluginName).isEqualTo(applicationPlugin.displayName)
-    assertThat(report.configurationTime.projects[0].plugins[0].nestedPlugins[0].nestedPlugins.size).isEqualTo(1)
-    assertThat(report.configurationTime.projects[0].plugins[0].nestedPlugins[0].nestedPlugins[0].pluginName).isEqualTo(
-      libraryPlugin.displayName)
+    assertThat(report.configurationTime.projects[0].plugins.size).isEqualTo(3)
+    assertThat(report.configurationTime.projects[0].plugins[0].pluginName).isEqualTo(pluginC.displayName)
+    assertThat(report.configurationTime.projects[0].plugins[0].configurationTime).isEqualTo(TimeWithPercentage(700, 1500))
+    assertThat(report.configurationTime.projects[0].plugins[1].pluginName).isEqualTo(pluginA.displayName)
+    assertThat(report.configurationTime.projects[0].plugins[1].configurationTime).isEqualTo(TimeWithPercentage(200, 1500))
+    assertThat(report.configurationTime.projects[0].plugins[2].pluginName).isEqualTo(pluginB.displayName)
+    assertThat(report.configurationTime.projects[0].plugins[2].configurationTime).isEqualTo(TimeWithPercentage(100, 1500))
 
-    assertThat(report.configurationTime.projects[1].plugins.size).isEqualTo(3)
-    assertThat(report.configurationTime.projects[1].plugins[0].pluginName).isEqualTo(pluginC.displayName)
-    assertThat(report.configurationTime.projects[1].plugins[0].configurationTime).isEqualTo(TimeWithPercentage(700, 3500))
+    assertThat(report.configurationTime.projects[1].plugins.size).isEqualTo(2)
+    assertThat(report.configurationTime.projects[1].plugins[0].pluginName).isEqualTo(libraryPlugin.displayName)
+    assertThat(report.configurationTime.projects[1].plugins[0].configurationTime).isEqualTo(TimeWithPercentage(300, 1500))
     assertThat(report.configurationTime.projects[1].plugins[1].pluginName).isEqualTo(pluginA.displayName)
-    assertThat(report.configurationTime.projects[1].plugins[1].configurationTime).isEqualTo(TimeWithPercentage(200, 3500))
-    assertThat(report.configurationTime.projects[1].plugins[2].pluginName).isEqualTo(pluginB.displayName)
-    assertThat(report.configurationTime.projects[1].plugins[2].configurationTime).isEqualTo(TimeWithPercentage(100, 3500))
-
-    assertThat(report.configurationTime.projects[2].plugins.size).isEqualTo(2)
-    assertThat(report.configurationTime.projects[2].plugins[0].pluginName).isEqualTo(libraryPlugin.displayName)
-    assertThat(report.configurationTime.projects[2].plugins[0].configurationTime).isEqualTo(TimeWithPercentage(300, 3500))
-    assertThat(report.configurationTime.projects[2].plugins[1].pluginName).isEqualTo(pluginA.displayName)
-    assertThat(report.configurationTime.projects[2].plugins[1].configurationTime).isEqualTo(TimeWithPercentage(200, 3500))
+    assertThat(report.configurationTime.projects[1].plugins[1].configurationTime).isEqualTo(TimeWithPercentage(200, 1500))
   }
 }

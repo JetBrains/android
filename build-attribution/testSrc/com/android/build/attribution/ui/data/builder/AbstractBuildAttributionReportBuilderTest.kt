@@ -24,7 +24,6 @@ import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
-import java.time.Duration
 
 open class AbstractBuildAttributionReportBuilderTest {
 
@@ -49,17 +48,16 @@ open class AbstractBuildAttributionReportBuilderTest {
     override fun getCriticalPathPlugins(): List<PluginBuildData> = emptyList()
     override fun getTasksDeterminingBuildDuration(): List<TaskData> = emptyList()
     override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = emptyList()
+    override fun getTotalConfigurationData(): ProjectConfigurationData = getProjectsConfigurationData().first()
     override fun getProjectsConfigurationData(): List<ProjectConfigurationData> = emptyList()
     override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> = emptyList()
     override fun getNonCacheableTasks(): List<TaskData> = emptyList()
     override fun getTasksSharingOutput(): List<TasksSharingOutputData> = emptyList()
   }
 
-  fun plugin(pluginData: PluginData, duration: Long, nested: List<PluginConfigurationData> = emptyList()) = PluginConfigurationData(
-    pluginData, Duration.ofMillis(duration), nested
-  )
+  fun plugin(pluginData: PluginData, duration: Long) = PluginConfigurationData(pluginData, duration)
 
-  fun project(name: String, duration: Long, plugins: List<PluginConfigurationData> = emptyList()) = ProjectConfigurationData(
-    plugins, name, Duration.ofMillis(duration)
-  )
+  fun project(name: String, duration: Long, plugins: List<PluginConfigurationData> = emptyList()) = ProjectConfigurationData(name, duration,
+                                                                                                                             plugins,
+                                                                                                                             emptyList())
 }
