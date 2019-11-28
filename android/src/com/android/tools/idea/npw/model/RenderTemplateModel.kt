@@ -70,7 +70,7 @@ class ExistingNewModuleModelData(
 
   override val formFactor: ObjectValueProperty<FormFactor> get() = TODO("not implemented")
   override val isLibrary: Boolean = false
-  override val templateFile: OptionalValueProperty<File> get() = TODO("not implemented")
+  override var templateFile: File? = null
   override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> get() = TODO("not implemented")
 }
 

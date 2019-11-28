@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.java
 
-import com.android.tools.idea.npw.model.NewAndroidModuleModel
+import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
 import com.android.tools.idea.npw.template.TemplateHandle
@@ -38,7 +38,7 @@ class NewLibraryModuleDescriptionProvider : ModuleDescriptionProvider {
     override val name: String = templateHandle.metadata.title!!
     override val description: String? = templateHandle.metadata.description
     override fun toString() = name
-    override fun createStep(model: NewAndroidModuleModel): SkippableWizardStep<*> =
-      ConfigureLibraryModuleStep(NewLibraryModuleModel(model.project, templateHandle, model.projectSyncInvoker), name)
+    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> =
+      ConfigureLibraryModuleStep(NewLibraryModuleModel(project, templateHandle, projectSyncInvoker), name)
   }
 }

@@ -17,10 +17,12 @@ package com.android.tools.idea.npw.module
 
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.FormFactor.Companion.get
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
+import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.templates.Template.ANDROID_PROJECT_TEMPLATE
@@ -85,8 +87,9 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   ) : ModuleTemplateGalleryEntry {
     override fun toString(): String = name
 
-    override fun createStep(model: NewAndroidModuleModel): SkippableWizardStep<*> {
+    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
+      val model = NewAndroidModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate(), isLibrary, templateFile)
       return ConfigureAndroidModuleStep(model, formFactor, minSdkLevel, basePackage, name)
     }
   }

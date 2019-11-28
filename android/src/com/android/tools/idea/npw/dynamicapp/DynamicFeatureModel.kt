@@ -45,7 +45,7 @@ import com.intellij.util.lang.JavaVersion
 import generateDynamicFeatureModule
 
 class DynamicFeatureModel(
-  project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker, isInstant: Boolean
+  project: Project, templateHandle: TemplateHandle, projectSyncInvoker: ProjectSyncInvoker, val isInstant: Boolean
 ) : ModuleModel(
   project, templateHandle, projectSyncInvoker, "dynamicfeature", "New Dynamic Feature Module", false
 ) {

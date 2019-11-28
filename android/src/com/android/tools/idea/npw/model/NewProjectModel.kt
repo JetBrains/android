@@ -31,8 +31,11 @@ import com.android.tools.idea.npw.platform.Language.KOTLIN
 import com.android.tools.idea.npw.project.DomainToPackageExpression
 import com.android.tools.idea.npw.project.setGradleWrapperExecutable
 import com.android.tools.idea.npw.template.TemplateValueInjector
+import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
+import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
+import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.ProjectTemplateDataBuilder
@@ -83,16 +86,16 @@ typealias AndroidProjectRecipe = (String, Language, Boolean) -> Recipe
 
 interface ProjectModelData {
   val projectSyncInvoker: ProjectSyncInvoker
-  val applicationName: StringValueProperty
-  val packageName: StringValueProperty
-  val projectLocation: StringValueProperty
-  val enableCppSupport: BoolValueProperty
-  val useAppCompat: BoolValueProperty
-  val cppFlags: StringValueProperty
+  val applicationName: StringProperty
+  val packageName: StringProperty
+  val projectLocation: StringProperty
+  val enableCppSupport: BoolProperty
+  val useAppCompat: BoolProperty
+  val cppFlags: StringProperty
   var project: Project
   val isNewProject: Boolean
   val projectTemplateValues: MutableMap<String, Any>
-  val language: OptionalValueProperty<Language>
+  val language: OptionalProperty<Language>
   val multiTemplateRenderer: MultiTemplateRenderer
   val projectTemplateDataBuilder: ProjectTemplateDataBuilder
 }
