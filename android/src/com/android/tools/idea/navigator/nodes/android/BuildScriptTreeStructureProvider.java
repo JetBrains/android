@@ -28,7 +28,7 @@ import java.util.Collection;
  * nodes in the Android project view.
  */
 public class BuildScriptTreeStructureProvider implements TreeStructureProvider {
-  @NotNull private TreeStructureProvider myRealTreeStructureProvider;
+  @NotNull private final TreeStructureProvider myRealTreeStructureProvider;
 
   public BuildScriptTreeStructureProvider(@NotNull TreeStructureProvider provider) {
     myRealTreeStructureProvider = provider;
@@ -48,7 +48,7 @@ public class BuildScriptTreeStructureProvider implements TreeStructureProvider {
 
   @Nullable
   @Override
-  public Object getData(@NotNull Collection<AbstractTreeNode> selected, String dataName) {
+  public Object getData(@NotNull Collection<AbstractTreeNode> selected, @NotNull String dataName) {
     return myRealTreeStructureProvider.getData(selected, dataName);
   }
 }
