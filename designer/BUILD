@@ -115,7 +115,7 @@ iml_module(
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
     ],
-    test_shard_count = 8,
+    test_shard_count = 4,
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
