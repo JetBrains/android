@@ -104,7 +104,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
   private JComboBox<Language> myLanguageCombo;
   private AndroidApiLevelComboBox myApiLevelCombo;
 
-  public ConfigureDynamicModuleStep(@NotNull DynamicFeatureModel model, @NotNull String basePackage, boolean isInstant) {
+  public ConfigureDynamicModuleStep(@NotNull DynamicFeatureModel model, @NotNull String basePackage) {
     super(model, message("android.wizard.module.config.title"));
 
     TextProperty packageNameText = new TextProperty(myPackageName);
@@ -120,7 +120,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
     myBindings.bind(model.getPackageName(), packageNameText);
 
     myInstantInfoIcon.setIcon(AllIcons.General.BalloonInformation);
-    if (isInstant) {
+    if (model.isInstant()) {
       SelectedProperty isFusingSelected = new SelectedProperty(myFusingCheckbox);
       myBindings.bind(model.featureFusing, isFusingSelected);
       BoolProperty isOnDemand = new BoolValueProperty(false);

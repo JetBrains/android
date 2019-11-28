@@ -20,8 +20,6 @@ import org.jetbrains.android.util.AndroidBundle.message
 
 import com.android.tools.adtui.ASGallery
 import com.android.tools.adtui.util.FormScalingUtil
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
-import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.ui.WizardGallery
 import com.android.tools.idea.wizard.model.ModelWizard
@@ -54,20 +52,9 @@ class ChooseModuleTypeStep(
 
   override fun getComponent(): JComponent = rootPanel
 
-  public override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
-    moduleDescriptionToStepMap.clear()
-    return moduleGalleryEntryList.map { moduleGalleryEntry ->
-      val isLibrary = (moduleGalleryEntry as? ModuleTemplateGalleryEntry)?.isLibrary == true
-      val model = NewAndroidModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate(), isLibrary)
-      if (moduleGalleryEntry is ModuleTemplateGalleryEntry) {
-        moduleGalleryEntry.templateFile?.let {
-          model.templateFile.value = it
-       }
-      }
-
-      moduleGalleryEntry.createStep(model).also { step ->
-        moduleDescriptionToStepMap[moduleGalleryEntry] = step
-      }
+  public override fun createDependentSteps(): Collection<ModelWizardStep<*>> = moduleGalleryEntryList.map {
+    it.createStep(project, projectSyncInvoker, moduleParent).also { step ->
+      moduleDescriptionToStepMap[it] = step
     }
   }
 

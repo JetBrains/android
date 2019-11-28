@@ -29,6 +29,7 @@ import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
+import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
@@ -88,21 +89,22 @@ interface ModuleModelData : ProjectModelData {
    * A template that's associated with a user's request to create a new module. This may be null if the user skips creating a
    * module, or instead modifies an existing module (for example just adding a new Activity)
    */
-  val templateFile: OptionalValueProperty<File>
+  var templateFile: File?
   /**
    * Used in place of [templateFile] if [StudioFlags.NPW_NEW_MODULE_TEMPLATES] is enabled.
    */
-  val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem>
+  val androidSdkInfo: OptionalProperty<AndroidVersionsInfo.VersionItem>
   val moduleTemplateDataBuilder: ModuleTemplateDataBuilder
 }
 
-open class NewAndroidModuleModel(
+class NewAndroidModuleModel(
   projectModelData: ProjectModelData,
   override val template: ObjectProperty<NamedModuleTemplate>,
   val moduleParent: String?,
-  override val formFactor: ObjectValueProperty<FormFactor>,
+  override val formFactor: ObjectProperty<FormFactor>,
   commandName: String = "New Module",
-  override val isLibrary: Boolean = false
+  override val isLibrary: Boolean = false,
+  override var templateFile: File? = null
 ) : ModuleModel(
   projectModelData.project,
   TemplateHandle(File("")),
@@ -113,7 +115,6 @@ open class NewAndroidModuleModel(
   projectModelData
 ) {
   override val moduleTemplateValues = mutableMapOf<String, Any>()
-  override val templateFile = OptionalValueProperty<File>()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
   override val renderer = ModuleTemplateRenderer()
 
@@ -131,13 +132,15 @@ open class NewAndroidModuleModel(
     moduleParent: String?,
     projectSyncInvoker: ProjectSyncInvoker,
     template: NamedModuleTemplate,
-    isLibrary: Boolean = false
+    isLibrary: Boolean = false,
+    templateFile: File? = null
   ) : this(
     projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
     template = ObjectValueProperty(template),
     moduleParent = moduleParent,
     formFactor = ObjectValueProperty(FormFactor.MOBILE),
-    isLibrary = isLibrary
+    isLibrary = isLibrary,
+    templateFile = templateFile
   )
 
   constructor(
@@ -147,11 +150,9 @@ open class NewAndroidModuleModel(
     projectModelData = projectModel,
     template = ObjectValueProperty(template),
     moduleParent = null,
-    formFactor = formFactor
+    formFactor = formFactor,
+    templateFile = templateFile
   ) {
-    if (templateFile != null) {
-      this.templateFile.value = templateFile
-    }
     multiTemplateRenderer.incrementRenders()
   }
 
@@ -191,7 +192,7 @@ open class NewAndroidModuleModel(
     }
 
     override fun renderTemplate(dryRun: Boolean): Boolean {
-      customTemplate = Template.createFromPath(templateFile.value)
+      customTemplate = Template.createFromPath(templateFile!!)
       return super.renderTemplate(dryRun)
     }
   }

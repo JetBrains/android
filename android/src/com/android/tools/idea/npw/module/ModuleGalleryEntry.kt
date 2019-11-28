@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.tools.idea.npw.model.NewAndroidModuleModel
+import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.intellij.openapi.project.Project
 import javax.swing.Icon
 
 interface ModuleGalleryEntry {
@@ -32,8 +33,9 @@ interface ModuleGalleryEntry {
    * Description of the template or `null` if none.
    */
   val description: String?
+
   /**
    * Returns a new instance of a wizard step that will allow the user to edit the details of this module entry
    */
-  fun createStep(model: NewAndroidModuleModel): SkippableWizardStep<*>
+  fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*>
 }

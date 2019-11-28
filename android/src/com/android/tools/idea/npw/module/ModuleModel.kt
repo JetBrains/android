@@ -32,7 +32,9 @@ import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
+import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
+import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
@@ -56,7 +58,6 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
 
-
 private val log: Logger get() = logger<ModuleModel>()
 
 abstract class ModuleModel(
@@ -71,9 +72,9 @@ abstract class ModuleModel(
   override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(
     NamedModuleTemplate("", GradleAndroidModuleTemplate.createDefaultTemplateAt(project.basePath!!, moduleName).paths)
   )
-  override val templateFile: OptionalValueProperty<File> get() = OptionalValueProperty(templateHandle.rootPath)
-  override val formFactor = ObjectValueProperty(FormFactor.MOBILE)
-  override val packageName = StringValueProperty()
+  override var templateFile: File? = null
+  override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
+  override val packageName: StringProperty = StringValueProperty()
   override val moduleName = StringValueProperty(moduleName).apply { addConstraint(String::trim) }
   override val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
   override val language = OptionalValueProperty(getInitialSourceLanguage(project))

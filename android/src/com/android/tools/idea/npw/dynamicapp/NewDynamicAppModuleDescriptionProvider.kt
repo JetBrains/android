@@ -16,8 +16,8 @@
 package com.android.tools.idea.npw.dynamicapp
 
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
+import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
 import com.android.tools.idea.npw.module.ModuleTemplateGalleryEntry
@@ -50,10 +50,9 @@ class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
     override val isLibrary = false
 
     override fun toString() = name
-    override fun createStep(model: NewAndroidModuleModel): SkippableWizardStep<*> {
+    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      return ConfigureDynamicModuleStep(
-        DynamicFeatureModel(model.project, templateHandle, model.projectSyncInvoker, isInstant), basePackage, isInstant)
+      return ConfigureDynamicModuleStep(DynamicFeatureModel(project, templateHandle, projectSyncInvoker, isInstant), basePackage)
     }
   }
 }

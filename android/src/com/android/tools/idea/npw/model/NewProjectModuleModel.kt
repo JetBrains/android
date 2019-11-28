@@ -66,7 +66,9 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
 
   fun androidSdkInfo(): OptionalProperty<AndroidVersionsInfo.VersionItem> = newModuleModel.androidSdkInfo
 
-  fun moduleTemplateFile(): OptionalProperty<File> = newModuleModel.templateFile
+  fun setModuleTemplateFile(templateFile: File?) {
+    newModuleModel.templateFile = templateFile
+  }
 
   override fun handleFinished() {
     initMainModule()

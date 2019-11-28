@@ -600,7 +600,7 @@ public class TemplateManager {
       facet, null, initialPackageSuggestion, moduleTemplates.get(0),
       commandName, projectSyncInvoker, true);
 
-    NewAndroidModuleModel moduleModel = new NewAndroidModuleModel(project, null, projectSyncInvoker, moduleTemplates.get(0), false);
+    NewAndroidModuleModel moduleModel = new NewAndroidModuleModel(project, null, projectSyncInvoker, moduleTemplates.get(0), false, null);
     SkippableWizardStep chooseTypeStep;
     if (category.equals(CATEGORY_ACTIVITY)) {
       chooseTypeStep =
