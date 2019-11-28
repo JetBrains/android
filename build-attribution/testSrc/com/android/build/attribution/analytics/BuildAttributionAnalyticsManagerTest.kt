@@ -92,13 +92,8 @@ class BuildAttributionAnalyticsManagerTest {
       override fun getCriticalPathPlugins() = listOf(PluginBuildData(applicationPlugin, 891), PluginBuildData(pluginA, 234))
 
       override fun getProjectsConfigurationData() = listOf(
-        ProjectConfigurationData(listOf(
-          PluginConfigurationData(buildScript, Duration.ofMillis(234), listOf(
-            PluginConfigurationData(applicationPlugin, Duration.ofMillis(567), emptyList()),
-            PluginConfigurationData(pluginA, Duration.ofMillis(890), emptyList()))
-          )
-        ), ":app", Duration.ofMillis(891))
-      )
+        ProjectConfigurationData(":app", 891, listOf(PluginConfigurationData(applicationPlugin, 567),
+                                                     PluginConfigurationData(pluginA, 890)), emptyList()))
 
       override fun getAlwaysRunTasks() = listOf(AlwaysRunTaskData(pluginATask, AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE))
 

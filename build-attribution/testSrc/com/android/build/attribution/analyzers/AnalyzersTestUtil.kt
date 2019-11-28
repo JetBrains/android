@@ -17,9 +17,9 @@ package com.android.build.attribution.analyzers
 
 import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationDescriptor
 import org.gradle.tooling.events.PluginIdentifier
 import org.gradle.tooling.events.ScriptPluginIdentifier
-import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.SuccessResult
 import org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDescriptor
@@ -44,19 +44,24 @@ fun createScriptPluginIdentifierStub(pluginName: String): ScriptPluginIdentifier
   return pluginIdentifier
 }
 
-fun createStartEventStub(displayName: String): StartEvent {
-  val event = Mockito.mock(StartEvent::class.java)
-  `when`(event.displayName).thenReturn(displayName)
-  return event
+fun createOperationDescriptorStub(name: String,
+                                  displayName: String = name,
+                                  parent: OperationDescriptor? = null): OperationDescriptor {
+  val descriptor = Mockito.mock(OperationDescriptor::class.java)
+  `when`(descriptor.name).thenReturn(name)
+  `when`(descriptor.displayName).thenReturn(displayName)
+  `when`(descriptor.parent).thenReturn(parent)
+  return descriptor
 }
 
-fun createFinishEventStub(displayName: String, startTime: Long, endTime: Long): FinishEvent {
+fun createFinishEventStub(displayName: String, startTime: Long, endTime: Long, descriptor: OperationDescriptor? = null): FinishEvent {
   val event = Mockito.mock(FinishEvent::class.java)
   val result = Mockito.mock(SuccessResult::class.java)
   `when`(result.startTime).thenReturn(startTime)
   `when`(result.endTime).thenReturn(endTime)
   `when`(event.displayName).thenReturn(displayName)
   `when`(event.result).thenReturn(result)
+  `when`(event.descriptor).thenReturn(descriptor)
   return event
 }
 

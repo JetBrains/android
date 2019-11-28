@@ -47,10 +47,6 @@ class BuildAttributionWarningsFilter : PersistentStateComponent<SuppressedWarnin
     return !suppressedWarnings.alwaysRunTasks.contains(Pair(getTaskIdentifier(task), task.originPlugin.displayName))
   }
 
-  fun applyPluginSlowingConfigurationFilter(pluginDisplayName: String): Boolean {
-    return !suppressedWarnings.pluginsSlowingConfiguration.contains(pluginDisplayName)
-  }
-
   fun applyNonIncrementalAnnotationProcessorFilter(annotationProcessorClassName: String): Boolean {
     return !suppressedWarnings.nonIncrementalAnnotationProcessors.contains(annotationProcessorClassName)
   }
@@ -63,10 +59,6 @@ class BuildAttributionWarningsFilter : PersistentStateComponent<SuppressedWarnin
     suppressedWarnings.alwaysRunTasks.add(Pair(taskIdentifier, pluginDisplayName))
   }
 
-  fun suppressPluginSlowingConfigurationWarning(pluginDisplayName: String) {
-    suppressedWarnings.pluginsSlowingConfiguration.add(pluginDisplayName)
-  }
-
   fun suppressNonIncrementalAnnotationProcessorWarning(annotationProcessorClassName: String) {
     suppressedWarnings.nonIncrementalAnnotationProcessors.add(annotationProcessorClassName)
   }
@@ -77,10 +69,6 @@ class BuildAttributionWarningsFilter : PersistentStateComponent<SuppressedWarnin
 
   fun unsuppressAlwaysRunTaskWarning(taskName: String, pluginDisplayName: String) {
     suppressedWarnings.alwaysRunTasks.remove(Pair(taskName, pluginDisplayName))
-  }
-
-  fun unsuppressPluginSlowingConfigurationWarning(pluginDisplayName: String) {
-    suppressedWarnings.pluginsSlowingConfiguration.remove(pluginDisplayName)
   }
 
   fun unsuppressNonIncrementalAnnotationProcessorWarning(annotationProcessorClassName: String) {

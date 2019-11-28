@@ -15,6 +15,5 @@
  */
 package com.android.build.attribution.data
 
-data class SuppressedWarnings(val alwaysRunTasks: MutableSet<Pair<String, String>> = HashSet(),
-                              val nonIncrementalAnnotationProcessors: MutableSet<String> = HashSet(),
-                              val noncacheableTasks: MutableSet<Pair<String, String>> = HashSet())
+data class PluginConfigurationData(val plugin: PluginData,
+                                   val configurationTimeMs: Long)

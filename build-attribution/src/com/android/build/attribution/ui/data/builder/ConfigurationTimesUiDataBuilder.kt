@@ -32,7 +32,7 @@ class ConfigurationTimesUiDataBuilder(
 ) {
 
   val totalConfigurationTimeMs = analyzersProxy.getProjectsConfigurationData()
-    .map { projectData -> projectData.totalConfigurationTime.toMillis() }
+    .map { projectData -> projectData.totalConfigurationTimeMs }
     .sum()
 
   fun build(): ConfigurationUiData = createConfigurationUiData()
@@ -48,8 +48,8 @@ class ConfigurationTimesUiDataBuilder(
 
   private fun createProjectConfigurationUiData(projectData: ProjectConfigurationData): ProjectConfigurationUiData =
     object : ProjectConfigurationUiData {
-      override val project = projectData.project
-      override val configurationTime = TimeWithPercentage(projectData.totalConfigurationTime.toMillis(), totalConfigurationTimeMs)
+      override val project = projectData.projectPath
+      override val configurationTime = TimeWithPercentage(projectData.totalConfigurationTimeMs, totalConfigurationTimeMs)
       override val plugins = projectData.pluginsConfigurationData
         .map { createPluginConfigurationUiData(it) }
         .sortedByDescending { it.configurationTime }
@@ -59,11 +59,9 @@ class ConfigurationTimesUiDataBuilder(
   private fun createPluginConfigurationUiData(pluginData: PluginConfigurationData): PluginConfigurationUiData =
     object : PluginConfigurationUiData {
       override val pluginName = pluginData.plugin.displayName
-      override val configurationTime = TimeWithPercentage(pluginData.configurationDuration.toMillis(), totalConfigurationTimeMs)
-      override val slowsConfiguration = pluginData.isSlowingConfiguration
-      override val nestedPlugins: List<PluginConfigurationUiData> = pluginData.nestedPluginsConfigurationData
-        .map { createPluginConfigurationUiData(it) }
-        .sortedByDescending { it.configurationTime }
+      override val configurationTime = TimeWithPercentage(pluginData.configurationTimeMs, totalConfigurationTimeMs)
+      override val slowsConfiguration = false
+      override val nestedPlugins: List<PluginConfigurationUiData> = emptyList()
       override val nestedIssueCount: Int = nestedPlugins.count { it.slowsConfiguration } + nestedPlugins.sumBy { it.nestedIssueCount }
     }
 }

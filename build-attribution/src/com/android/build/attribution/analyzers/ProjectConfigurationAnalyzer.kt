@@ -16,137 +16,112 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
-import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskContainer
-import com.google.common.collect.ImmutableList
 import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationDescriptor
 import org.gradle.tooling.events.ProgressEvent
-import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.SuccessResult
 import org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent
 import org.gradle.tooling.events.configuration.ProjectConfigurationStartEvent
 import org.gradle.tooling.events.configuration.ProjectConfigurationSuccessResult
-import java.time.Duration
-import java.util.LinkedList
 
 /**
- * Analyzer for reporting plugins slowing down project configuration.
+ * Analyzer for attributing project configuration time.
  */
 class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter,
                                    taskContainer: TaskContainer,
                                    pluginContainer: PluginContainer) : BaseAnalyzer(taskContainer, pluginContainer), BuildEventsAnalyzer {
+  private val applyPluginEventPrefix = "Apply plugin"
+
+  /**
+   * Contains for each plugin, the sum of configuration times for this plugin over all projects
+   */
+  val pluginsConfigurationDataMap = HashMap<PluginData, Long>()
+
+  /**
+   * Contains a list of project configuration data for each configured project
+   */
   val projectsConfigurationData = ArrayList<ProjectConfigurationData>()
 
   /**
-   * The stack keeps track of the list of children for each plugin that is currently being applied.
-   * Once a plugin is applied successfully, the top list of plugins in the stack will contain the children of this plugin (i.e. the plugins
-   * that are directly configured by this plugin). After this list (the top of the stack) is removed, this plugin is added to the top of the
-   * stack as it will contain the children of the parent plugin.
-   *
-   * Example:
-   * apply pluginA started    stack = (())
-   * apply pluginB started    stack = ((), ())
-   * apply pluginC started    stack = ((), (), ())
-   * apply pluginC finished   stack = ((), (pluginC))       pluginC children are ()
-   * apply pluginB finished   stack = ((pluginB))           pluginB children are (pluginC)
-   * apply pluginD started    stack = ((pluginB), ())
-   * apply pluginD finished   stack = ((pluginB, pluginD))  pluginD children are ()
-   * apply pluginA finished   stack = ()                    pluginA children are (pluginB, pluginD)
-   *
-   * Final plugin tree structure:
-   *           -> pluginB -> pluginC
-   * pluginA -|
-   *           -> pluginD
+   * Builder for configuration data of the currently being configured project
+   * If no projects are being configured currently, then it will be null
    */
-  private val pluginsStack = LinkedList<MutableList<PluginConfigurationData>>()
+  private var projectConfigurationBuilder: ProjectConfigurationData.Builder? = null
 
-  private var currentlyConfiguredProjectPath: String? = null
+  private fun updatePluginConfigurationTime(plugin: PluginData, configurationTimeMs: Long) {
+    val currentConfigurationTime = pluginsConfigurationDataMap.getOrDefault(plugin, 0L)
+    pluginsConfigurationDataMap[plugin] = currentConfigurationTime + configurationTimeMs
+
+    projectConfigurationBuilder!!.addPluginConfigurationData(plugin, configurationTimeMs)
+  }
 
   override fun receiveEvent(event: ProgressEvent) {
     if (event is ProjectConfigurationStartEvent) {
-      currentlyConfiguredProjectPath = event.descriptor.project.projectPath
-      pluginsStack.push(ArrayList())
+      projectConfigurationBuilder = ProjectConfigurationData.Builder(event.descriptor.project.projectPath)
     }
-    else if (currentlyConfiguredProjectPath != null) {
+    else if (projectConfigurationBuilder != null) {
       // project configuration finished
       if (event is ProjectConfigurationFinishEvent && event.result is ProjectConfigurationSuccessResult) {
-        addProjectConfigurationData(pluginsStack.pop(), event.descriptor.project.projectPath,
-                                    Duration.ofMillis(event.result.endTime - event.result.startTime))
-        pluginsStack.clear()
-        currentlyConfiguredProjectPath = null
+        projectsConfigurationData.add(projectConfigurationBuilder!!.build(event.result.endTime - event.result.startTime))
+        projectConfigurationBuilder = null
       }
-      // plugin/script configuration progress event is received
-      else if (event.displayName.startsWith("Apply script") || event.displayName.startsWith("Apply plugin")) {
-        if (event is StartEvent) {
-          pluginsStack.push(ArrayList())
+      else if (event is FinishEvent && event.result is SuccessResult) {
+        // plugin configuration finish event is received
+        if (event.descriptor.name.startsWith(applyPluginEventPrefix)) {
+
+          // Check that the parent is not another binary plugin, to make sure that this plugin was added by the user
+          if (event.descriptor.parent?.name?.startsWith(applyPluginEventPrefix) != true) {
+            val pluginName = event.descriptor.name.substring(applyPluginEventPrefix.length + 1)
+            val plugin = getPlugin(PluginData.PluginType.PLUGIN, pluginName, projectConfigurationBuilder!!.projectPath)
+            val pluginConfigurationTime = event.result.endTime - event.result.startTime
+
+            updatePluginConfigurationTime(plugin, pluginConfigurationTime)
+
+            // check if the plugin was applied in a build script block or on beforeEvaluate / afterEvaluate, if so then we need to subtract
+            // the plugin configuration time from this configuration step to not account for it twice
+            val configurationStepDescriptor = getFirstConfigurationStepInParentEvents(event.descriptor)
+            if (configurationStepDescriptor != null) {
+              projectConfigurationBuilder!!.subtractConfigurationStepTime(configurationStepDescriptor, pluginConfigurationTime)
+            }
+          }
         }
-        else if (event is FinishEvent && event.result is SuccessResult) {
-          val pluginName = event.displayName.split(" ")[2]
-          val pluginData = if (event.displayName.startsWith("Apply plugin")) getPlugin(PluginData.PluginType.PLUGIN, pluginName,
-                                                                                       currentlyConfiguredProjectPath!!)
-          else getPlugin(PluginData.PluginType.SCRIPT, pluginName, currentlyConfiguredProjectPath!!)
-          val pluginConfigurationData = PluginConfigurationData(pluginData,
-                                                                Duration.ofMillis(event.result.endTime - event.result.startTime),
-                                                                pluginsStack.pop())
-
-          pluginsStack.first.add(pluginConfigurationData)
+        // a configuration step event received that doesn't have a parent that is a configuration step
+        else if (ProjectConfigurationData.ConfigurationStep.Type.values().any { it.isDescriptorOfType(event.descriptor) } &&
+                 getFirstConfigurationStepInParentEvents(event.descriptor.parent) == null) {
+          projectConfigurationBuilder!!.addConfigurationStepTime(event.descriptor, event.result.endTime - event.result.startTime)
         }
-      }
-    }
-  }
-
-  private fun addProjectConfigurationData(pluginsConfigurationData: List<PluginConfigurationData>,
-                                          project: String,
-                                          totalConfigurationTime: Duration) {
-    projectsConfigurationData.add(
-      ProjectConfigurationData(ImmutableList.copyOf(pluginsConfigurationData), project, totalConfigurationTime))
-    analyzePluginsSlowingConfiguration(pluginsConfigurationData)
-  }
-
-  /**
-   * Gets the user added plugins by expanding buildscript plugins to find the added binary plugins.
-   */
-  private fun getUserAddedPlugins(pluginsConfigurationData: List<PluginConfigurationData>,
-                                  userAddedPluginsData: MutableList<PluginConfigurationData>) {
-    pluginsConfigurationData.forEach { pluginData ->
-      if (pluginData.plugin.pluginType == PluginData.PluginType.PLUGIN) {
-        userAddedPluginsData.add(pluginData)
-      }
-      else {
-        getUserAddedPlugins(pluginData.nestedPluginsConfigurationData, userAddedPluginsData)
       }
     }
   }
 
   /**
-   * Having android gradle plugin as a baseline, we report plugins that have a longer configuration time than agp as plugins slowing
-   * configuration.
-   *
-   * Note that pluginA that is added by the user could configure pluginB, and pluginB is the one causing configuration to be slow, however
-   * we report pluginA as the slow one as it's more familiar to the user, and the nested plugins data should contain the information needed
-   * for the plugin developers to figure out which nested plugin is the real cause for the plugin being slow.
+   * Iterates recursively from the top parent and down to the given descriptor, until a configuration step event is found.
    */
-  private fun analyzePluginsSlowingConfiguration(pluginsConfigurationData: List<PluginConfigurationData>) {
-    val userAddedPluginsData = ArrayList<PluginConfigurationData>()
-    getUserAddedPlugins(pluginsConfigurationData, userAddedPluginsData)
-    val androidGradlePlugin = userAddedPluginsData.find { isAndroidPlugin(it.plugin) } ?: return
-
-    userAddedPluginsData.filter {
-      it.configurationDuration > androidGradlePlugin.configurationDuration &&
-      warningsFilter.applyPluginSlowingConfigurationFilter(it.plugin.displayName)
-    }.forEach {
-      it.isSlowingConfiguration = true
+  private fun getFirstConfigurationStepInParentEvents(descriptor: OperationDescriptor?): OperationDescriptor? {
+    if (descriptor == null) {
+      return null
     }
+    val configurationStepDescriptor = getFirstConfigurationStepInParentEvents(descriptor.parent)
+    // if a configuration step is already found then return it
+    if (configurationStepDescriptor != null) {
+      return configurationStepDescriptor
+    }
+    // if this is a configuration step, then return it
+    if (ProjectConfigurationData.ConfigurationStep.Type.values().any { it.isDescriptorOfType(descriptor) }) {
+      return descriptor
+    }
+    return null
   }
 
   override fun onBuildStart() {
     super.onBuildStart()
     projectsConfigurationData.clear()
-    pluginsStack.clear()
-    currentlyConfiguredProjectPath = null
+    pluginsConfigurationDataMap.clear()
+    projectConfigurationBuilder = null
   }
 
   override fun onBuildSuccess() {
@@ -155,7 +130,7 @@ class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttribution
 
   override fun onBuildFailure() {
     projectsConfigurationData.clear()
-    pluginsStack.clear()
-    currentlyConfiguredProjectPath = null
+    pluginsConfigurationDataMap.clear()
+    projectConfigurationBuilder = null
   }
 }
