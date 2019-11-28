@@ -193,7 +193,6 @@ iml_module(
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
     ],
-    test_shard_count = 5,
     test_srcs = [
         "android-extensions-idea/tests",
         "idea-android/tests",
