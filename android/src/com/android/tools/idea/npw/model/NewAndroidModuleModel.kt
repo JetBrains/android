@@ -107,7 +107,7 @@ class NewAndroidModuleModel(
   override var templateFile: File? = null
 ) : ModuleModel(
   projectModelData.project,
-  TemplateHandle(File("")),
+  TemplateHandle(templateFile ?: File("")),
   projectModelData.projectSyncInvoker,
   "",
   commandName,

@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.npw.benchmark
 
+import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
 import com.android.tools.idea.npw.template.TemplateHandle
-import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.project.Project
+import icons.AndroidIcons
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.Icon
 
@@ -31,16 +32,13 @@ class NewBenchmarkModuleDescriptionProvider : ModuleDescriptionProvider {
   override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(BenchmarkModuleTemplateGalleryEntry())
 
   private class BenchmarkModuleTemplateGalleryEntry : ModuleGalleryEntry {
-    private val templateHandle: TemplateHandle = TemplateHandle(
-      TemplateManager.getInstance().getTemplateFile(Template.CATEGORY_APPLICATION, "Benchmark Module")!!)
-
-    override val icon: Icon? = getTemplateIcon(templateHandle)
+    override val icon: Icon = AndroidIcons.Wizards.BenchmarkModule
     override val name: String = message("android.wizard.module.new.benchmark.module.app")
-    override val description: String? = templateHandle.metadata.description
+    override val description: String = message("android.wizard.module.new.benchmark.module.description")
     override fun toString(): String = name
     override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
-      val benchmarkModuleModel = NewBenchmarkModuleModel(project, templateHandle, projectSyncInvoker)
-      return ConfigureBenchmarkModuleStep(benchmarkModuleModel, name, templateHandle.metadata.minSdk)
+      val templateHandle: TemplateHandle = TemplateManager.getHandle(Template.CATEGORY_APPLICATION, "Benchmark Module")
+      return ConfigureBenchmarkModuleStep(NewBenchmarkModuleModel(project, templateHandle, projectSyncInvoker), name, LOWEST_ACTIVE_API)
     }
   }
 }

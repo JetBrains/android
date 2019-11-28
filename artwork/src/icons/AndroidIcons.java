@@ -46,6 +46,11 @@ public class AndroidIcons {
     // Template thumbnails
     public static final Icon AndroidModule = load("/icons/wizards/android_module.png"); // 256x256
     public static final Icon AutomotiveModule = load("/icons/wizards/automotive_module.png"); // 256x256
+    public static final Icon BenchmarkModule = load("/icons/wizards/benchmark_module.png"); // 256x256
+    public static final Icon DynamicFeatureModule = load("/icons/wizards/dynamic_feature_module.png"); // 256x256
+    public static final Icon EclipseModule = load("/icons/wizards/eclipse_module.png"); // 256x256
+    public static final Icon GradleModule = load("/icons/wizards/gradle_module.png"); // 256x256
+    public static final Icon InstantDynamicFeatureModule = load("/icons/wizards/instant_dynamic_feature_module.png"); // 256x256
     public static final Icon MobileModule = load("/icons/wizards/mobile_module.png"); // 256x256
     public static final Icon ThingsModule = load("/icons/wizards/things_module.png"); // 256x256
     public static final Icon TvModule = load("/icons/wizards/tv_module.png"); // 256x256
