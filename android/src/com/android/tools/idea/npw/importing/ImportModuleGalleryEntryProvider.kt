@@ -18,15 +18,11 @@ package com.android.tools.idea.npw.importing
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
-import com.android.tools.idea.npw.ui.getTemplateIcon
-import com.android.tools.idea.templates.Template.ANDROID_PROJECT_TEMPLATE
-import com.android.tools.idea.templates.Template.IMPORT_ECLIPSE_PROJECT_TEMPLATE
-import com.android.tools.idea.templates.Template.IMPORT_GRADLE_PROJECT_TEMPLATE
-import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
-import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.project.Project
+import icons.AndroidIcons
 import org.jetbrains.android.util.AndroidBundle.message
+import javax.swing.Icon
 
 class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
   override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(
@@ -35,7 +31,7 @@ class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
     ArchiveImportModuleGalleryEntry()
   )
   private class EclipseImportModuleGalleryEntry : ModuleGalleryEntry {
-    override val icon = getTemplateIcon(TemplateManager.getHandle(CATEGORY_APPLICATION, IMPORT_ECLIPSE_PROJECT_TEMPLATE))
+    override val icon: Icon = AndroidIcons.Wizards.EclipseModule
     override val name: String = message("android.wizard.module.import.eclipse.title")
     override val description: String = message("android.wizard.module.import.eclipse.description")
     override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> =
@@ -43,7 +39,7 @@ class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
   }
 
   private class GradleImportModuleGalleryEntry : ModuleGalleryEntry {
-    override val icon = getTemplateIcon(TemplateManager.getHandle(CATEGORY_APPLICATION, IMPORT_GRADLE_PROJECT_TEMPLATE))
+    override val icon: Icon = AndroidIcons.Wizards.GradleModule
     override val name: String = message("android.wizard.module.import.gradle.title")
     override val description: String = message("android.wizard.module.import.gradle.description")
     override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> =
@@ -51,7 +47,7 @@ class ImportModuleGalleryEntryProvider : ModuleDescriptionProvider {
   }
 
   private class ArchiveImportModuleGalleryEntry : ModuleGalleryEntry {
-    override val icon = getTemplateIcon(TemplateManager.getHandle(CATEGORY_APPLICATION, ANDROID_PROJECT_TEMPLATE))
+    override val icon: Icon = AndroidIcons.Wizards.AndroidModule
     override val name: String = message("android.wizard.module.import.archive.title")
     override val description: String = message("android.wizard.module.import.archive.description")
     override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> =

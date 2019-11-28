@@ -27,6 +27,7 @@ import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.project.Project
+import icons.AndroidIcons
 import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
 import javax.swing.Icon
@@ -41,7 +42,7 @@ class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
   private class FeatureTemplateGalleryEntry : ModuleTemplateGalleryEntry {
     override val templateFile: File = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, DYNAMIC_FEATURE_TEMPLATE)!!
     private val templateHandle = TemplateHandle(templateFile)
-    override val icon: Icon? = getTemplateIcon(templateHandle)
+    override val icon: Icon = AndroidIcons.Wizards.DynamicFeatureModule
     override val name: String = message("android.wizard.module.new.dynamic.module")
     override val description: String = message("android.wizard.module.new.dynamic.module.description")
     override val formFactor = FormFactor.MOBILE
@@ -57,7 +58,7 @@ class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
   private class InstantFeatureTemplateGalleryEntry : ModuleTemplateGalleryEntry {
     override val templateFile: File = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, INSTANT_DYNAMIC_FEATURE_TEMPLATE)!!
     private val templateHandle = TemplateHandle(templateFile)
-    override val icon: Icon? = getTemplateIcon(templateHandle)
+    override val icon: Icon = AndroidIcons.Wizards.InstantDynamicFeatureModule
     override val name: String = message("android.wizard.module.new.dynamic.module.instant")
     override val description: String = message("android.wizard.module.new.dynamic.module.instant.description")
     override val formFactor = FormFactor.MOBILE

@@ -110,8 +110,6 @@ public class Template {
   public static final String CATEGORY_APPLICATION = "Application";
   public static final String ANDROID_MODULE_TEMPLATE = "Android Module";
   public static final String ANDROID_PROJECT_TEMPLATE = "Android Project";
-  public static final String IMPORT_ECLIPSE_PROJECT_TEMPLATE = "Import Eclipse ADT Project";
-  public static final String IMPORT_GRADLE_PROJECT_TEMPLATE = "Import Gradle Project";
 
   /**
    * Highest supported format; templates with a higher number will be skipped
