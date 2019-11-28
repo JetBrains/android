@@ -30,8 +30,7 @@ class NewLibraryModuleDescriptionProvider : ModuleDescriptionProvider {
   override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(JavaModuleTemplateGalleryEntry())
 
   private class JavaModuleTemplateGalleryEntry : ModuleGalleryEntry {
-    val templateFile = TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Java or Kotlin Library")
-
+    override val templateFile = TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Java or Kotlin Library")
     override val icon: Icon = AndroidIcons.Wizards.AndroidModule
     override val name: String = message("android.wizard.module.new.java.or.kotlin.library")
     override val description: String = message("android.wizard.module.new.java.or.kotlin.library.description")

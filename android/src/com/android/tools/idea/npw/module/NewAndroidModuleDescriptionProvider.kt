@@ -31,7 +31,7 @@ import java.io.File
 import javax.swing.Icon
 
 class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
-  override fun getDescriptions(project: Project): Collection<ModuleTemplateGalleryEntry> = listOf(
+  override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(
     MobileModuleTemplateGalleryEntry(),
     AndroidLibraryModuleTemplateGalleryEntry(),
     WearModuleTemplateGalleryEntry(),
@@ -45,9 +45,9 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     override val name: String,
     override val description: String,
     override val icon: Icon,
-    override val formFactor: FormFactor
-  ): ModuleTemplateGalleryEntry {
-    override val isLibrary = false
+    val formFactor: FormFactor
+  ): ModuleGalleryEntry {
+    val isLibrary = false
 
     override fun toString(): String = name
     override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
@@ -97,18 +97,16 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     FormFactor.WEAR
   )
 
-  private class AndroidLibraryModuleTemplateGalleryEntry(): ModuleTemplateGalleryEntry {
+  private class AndroidLibraryModuleTemplateGalleryEntry: ModuleGalleryEntry {
     override val templateFile = TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Android Module")
     override val name: String = message("android.wizard.module.new.library")
     override val description: String = message("android.wizard.module.new.library.description")
     override val icon: Icon = AndroidIcons.Wizards.AndroidModule
-    override val isLibrary = true
-    override val formFactor: FormFactor = FormFactor.MOBILE
 
     override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
       val model = NewAndroidModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate(), true, templateFile)
-      return ConfigureAndroidModuleStep(model, formFactor, LOWEST_ACTIVE_API, basePackage, name)
+      return ConfigureAndroidModuleStep(model, FormFactor.MOBILE, LOWEST_ACTIVE_API, basePackage, name)
     }
   }
 }
