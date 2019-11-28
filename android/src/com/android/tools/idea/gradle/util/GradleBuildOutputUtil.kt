@@ -46,7 +46,7 @@ import java.io.File
  * Utility methods to find APK/Bundle output file or folder.
  */
 
-private val LOG: Logger get() = logger(::LOG)
+private val LOG: Logger get() = logger("GradleBuildOutputUtil.kt")
 
 enum class OutputType {
   Apk,

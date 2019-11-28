@@ -43,7 +43,7 @@ import org.jetbrains.android.dom.manifest.getCustomPermissions
 import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 
-private val LOG: Logger get() = logger(::LOG)
+private val LOG: Logger get() = logger("ManifestClasses.kt")
 
 /**
  * Manifest class for a given module.
