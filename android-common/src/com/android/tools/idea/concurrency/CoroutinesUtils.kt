@@ -77,7 +77,7 @@ object AndroidDispatchers {
   val ioThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().ioThreadExecutor.asCoroutineDispatcher()
 }
 
-private val LOG: Logger get() = logger(::LOG)
+private val LOG: Logger get() = Logger.getInstance("CoroutinesUtils.kt")
 
 /**
  * Exception handler similar to IDEA's default behavior (see [com.intellij.idea.StartupUtil.installExceptionHandler]) that additionally
