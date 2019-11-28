@@ -17,7 +17,11 @@ package com.android.tools.adtui.common
 
 import java.awt.geom.Ellipse2D
 
-inline class SwingEllipse(val value: Ellipse2D.Float) {
+/**
+ * Represents an ellipse in swing space
+ * Defined by [SwingX], [SwingY], and length and width of [SwingLength]
+ */
+inline class SwingEllipse(override val value: Ellipse2D.Float) : SwingShape {
   constructor (x: SwingX, y: SwingY, width: SwingLength, height: SwingLength)
     : this(Ellipse2D.Float(x.value, y.value, width.value, height.value))
 

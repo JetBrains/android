@@ -17,8 +17,14 @@ package com.android.tools.adtui.common
 
 import java.awt.geom.Path2D
 
-inline class SwingPath(val value: Path2D.Float) {
+/**
+ * Represents a path in swing space
+ */
+inline class SwingPath(override val value: Path2D.Float) : SwingShape {
   constructor() : this(Path2D.Float())
+
+  val currentPoint: SwingPoint
+    get() = SwingPoint(SwingX(value.currentPoint.x.toFloat()), SwingY(value.currentPoint.y.toFloat()))
 
   fun moveTo(point: SwingPoint) {
     moveTo(point.x, point.y)

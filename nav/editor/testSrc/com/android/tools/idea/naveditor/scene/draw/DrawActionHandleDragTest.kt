@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingEllipse
 import com.android.tools.adtui.common.SwingLength
 import com.android.tools.adtui.common.SwingPoint
 import com.android.tools.adtui.common.primaryPanelBackground
@@ -32,11 +33,11 @@ private val FINAL_OUTER_RADIUS = SwingLength(20f)
 private val INNER_RADIUS = SwingLength(1f)
 private const val DURATION = 30
 
-private val OUTER_CIRCLE = LerpEllipse(Ellipse2D.Float(90f, 140f, 20f, 20f),
-                                       Ellipse2D.Float(80f, 130f, 40f, 40f),
+private val OUTER_CIRCLE = LerpEllipse(SwingEllipse(Ellipse2D.Float(90f, 140f, 20f, 20f)),
+                                       SwingEllipse(Ellipse2D.Float(80f, 130f, 40f, 40f)),
                                        DURATION)
 
-private val INNER_CIRCLE = Ellipse2D.Float(99f, 149f, 2f, 2f)
+private val INNER_CIRCLE = SwingEllipse(Ellipse2D.Float(99f, 149f, 2f, 2f))
 
 class DrawActionHandleDragTest : NavTestCase() {
   fun testDrawActionHandleDrag() {

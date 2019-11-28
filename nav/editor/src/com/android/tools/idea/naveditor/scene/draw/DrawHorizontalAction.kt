@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingLength
+import com.android.tools.adtui.common.SwingLine
 import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.adtui.common.max
 import com.android.tools.adtui.common.toSwingRect
@@ -58,7 +59,7 @@ data class DrawHorizontalAction(private val rectangle: SwingRectangle,
     val x2 = x1 + lineLength
     val y = rectangle.center.y
 
-    val drawLine = DrawShape(Line2D.Float(x1.value, y.value, x2.value, y.value), color, ACTION_STROKE)
+    val drawLine = DrawShape(SwingLine(x1, y, x2, y), color, ACTION_STROKE)
 
     val arrowRect = SwingRectangle(x2, rectangle.y, arrowWidth, rectangle.height)
     val drawArrow = makeDrawArrowCommand(arrowRect, ArrowDirection.RIGHT, color)

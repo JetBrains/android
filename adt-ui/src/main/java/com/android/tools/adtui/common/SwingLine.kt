@@ -15,19 +15,23 @@
  */
 package com.android.tools.adtui.common
 
+import java.awt.geom.Line2D
 /**
- * Represents a y position in swing space
- * Corresponds to the [SwingCoordinate] attribute
+ * Represents a line in swing space running between the points
+ * defined by x1, y1 and x2, y2
  */
-inline class SwingY(val value: Float) {
-  operator fun plus(rhs: SwingLength) = SwingY(value + rhs.value)
-  operator fun minus(rhs: SwingLength) = SwingY(value - rhs.value)
-  operator fun minus(rhs: SwingY) = SwingLength(value - rhs.value)
-  operator fun compareTo(rhs: SwingY) = value.compareTo(rhs.value)
-  fun toInt() = value.toInt()
-  fun toDouble() = value.toDouble()
-  override fun toString() = value.toString()
-}
+inline class SwingLine(override val value: Line2D.Float) : SwingShape {
+  constructor(x1: SwingX, y1: SwingY, x2: SwingX, y2: SwingY) : this(Line2D.Float(x1.value, y1.value, x2.value, y2.value))
 
-fun String.toSwingY() = SwingY(this.toFloat())
-fun interpolate(start: SwingY, end: SwingY, fraction: Float) = start + (end - start) * fraction
+  val x1: SwingX
+    get() = SwingX(value.x1)
+
+  val y1: SwingY
+    get() = SwingY(value.y1)
+
+  val x2: SwingX
+    get() = SwingX(value.x2)
+
+  val y2: SwingY
+    get() = SwingY(value.y2)
+}

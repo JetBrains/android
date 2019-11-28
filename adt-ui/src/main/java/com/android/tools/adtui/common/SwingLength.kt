@@ -44,3 +44,4 @@ fun hypotenuse(x: SwingLength, y: SwingLength) = SwingLength(hypot(x.value, y.va
 fun max(a: SwingLength, b: SwingLength) = SwingLength(max(a.value, b.value))
 fun min(a: SwingLength, b: SwingLength) = SwingLength(min(a.value, b.value))
 fun String.toSwingLength() = SwingLength(this.toFloat())
+fun interpolate(start: SwingLength, end: SwingLength, fraction: Float) = start + (end - start) * fraction

@@ -24,7 +24,7 @@ private const val SEPARATOR = 'x'
  * Represents a rectangle in swing space
  * Defined by [SwingX], [SwingY], and length and width of [SwingLength]
  */
-inline class SwingRectangle(val value: Rectangle2D.Float) {
+inline class SwingRectangle(override val value: Rectangle2D.Float) : SwingShape {
   constructor(x: SwingX, y: SwingY, width: SwingLength, height: SwingLength)
     : this(Rectangle2D.Float(x.value, y.value, width.value, height.value))
 

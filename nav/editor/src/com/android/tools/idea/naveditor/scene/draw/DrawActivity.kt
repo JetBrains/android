@@ -73,11 +73,11 @@ class DrawActivity(@VisibleForTesting val rectangle: SwingRectangle,
     val arcSize = scale * ACTIVITY_ARC_SIZE
     val roundRectangle = SwingRoundRectangle(rectangle, arcSize, arcSize)
 
-    list.add(FillShape(roundRectangle.value, COMPONENT_BACKGROUND))
-    list.add(DrawShape(roundRectangle.value, frameColor, SwingStroke(frameThickness)))
+    list.add(FillShape(roundRectangle, COMPONENT_BACKGROUND))
+    list.add(DrawShape(roundRectangle, frameColor, SwingStroke(frameThickness)))
     list.add(createDrawImageCommand(imageRectangle, image))
 
-    list.add(DrawShape(imageRectangle.value, ACTIVITY_BORDER, ACTIVITY_BORDER_STROKE))
+    list.add(DrawShape(imageRectangle, ACTIVITY_BORDER, ACTIVITY_BORDER_STROKE))
 
     val textHeight = rectangle.height - imageRectangle.height - (imageRectangle.x - rectangle.x)
     val textRectangle = SwingRectangle(rectangle.x, imageRectangle.y + imageRectangle.height,

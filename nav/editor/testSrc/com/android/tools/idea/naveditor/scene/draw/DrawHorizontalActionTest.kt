@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingLine
+import com.android.tools.adtui.common.SwingPath
 import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.adtui.common.SwingStroke
 import com.android.tools.adtui.common.scaledSwingLength
@@ -28,7 +30,7 @@ import java.awt.geom.Line2D
 import java.awt.geom.Path2D
 import java.awt.geom.Rectangle2D
 
-private val ARROW_LINE = Line2D.Float(50f, 106f, 340f, 106f)
+private val ARROW_LINE = SwingLine(Line2D.Float(50f, 106f, 340f, 106f))
 private val ICON_RECT = SwingRectangle(Rectangle2D.Float(52f, 87f, 14f, 14f))
 private val SCALE = Scale(1.0)
 private val COLOR = Color.BLUE
@@ -48,13 +50,13 @@ class DrawHorizontalActionTest : NavTestCase() {
 
     assertEquals(2, drawAction.commands.size)
     assertDrawLinesEqual(DrawShape(ARROW_LINE, COLOR, STROKE), drawAction.commands[0])
-    assertFillPathEqual(FillShape(arrowPath, COLOR), drawAction.commands[1])
+    assertFillPathEqual(FillShape(SwingPath(arrowPath), COLOR), drawAction.commands[1])
 
     drawAction = DrawHorizontalAction(rectangle, SCALE, COLOR, true)
 
     assertEquals(3, drawAction.commands.size)
     assertDrawLinesEqual(DrawShape(ARROW_LINE, COLOR, STROKE), drawAction.commands[0])
-    assertFillPathEqual(FillShape(arrowPath, COLOR), drawAction.commands[1])
+    assertFillPathEqual(FillShape(SwingPath(arrowPath), COLOR), drawAction.commands[1])
     assertEquals(drawAction.commands[2], DrawIcon(ICON_RECT, DrawIcon.IconType.POP_ACTION, COLOR))
   }
 }
