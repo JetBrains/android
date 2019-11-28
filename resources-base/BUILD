@@ -54,7 +54,6 @@ iml_module(
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/adt/idea/databinding:intellij.android.databinding",
     ],
-    test_shard_count = 8,
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
