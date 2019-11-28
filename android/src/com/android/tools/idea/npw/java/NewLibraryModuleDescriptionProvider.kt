@@ -30,13 +30,13 @@ class NewLibraryModuleDescriptionProvider : ModuleDescriptionProvider {
   override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(JavaModuleTemplateGalleryEntry())
 
   private class JavaModuleTemplateGalleryEntry : ModuleGalleryEntry {
-    private val templateHandle = TemplateManager.getHandle(Template.CATEGORY_APPLICATION, "Java or Kotlin Library")
+    val templateFile = TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Java or Kotlin Library")
 
     override val icon: Icon = AndroidIcons.Wizards.AndroidModule
     override val name: String = message("android.wizard.module.new.java.or.kotlin.library")
     override val description: String = message("android.wizard.module.new.java.or.kotlin.library.description")
     override fun toString() = name
     override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> =
-      ConfigureLibraryModuleStep(NewLibraryModuleModel(project, templateHandle, projectSyncInvoker), name)
+      ConfigureLibraryModuleStep(NewLibraryModuleModel(project, templateFile, projectSyncInvoker), name)
   }
 }

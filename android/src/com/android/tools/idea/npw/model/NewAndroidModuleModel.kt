@@ -24,7 +24,6 @@ import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
-import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectProperty
@@ -35,11 +34,9 @@ import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
 import com.android.tools.idea.templates.ProjectTemplateDataBuilder
-import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_TITLE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_INCLUDE_FORM_FACTOR
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_NAME
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
@@ -49,7 +46,6 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
-
 
 class ExistingProjectModelData(
   override var project: Project,
@@ -104,10 +100,10 @@ class NewAndroidModuleModel(
   override val formFactor: ObjectProperty<FormFactor>,
   commandName: String = "New Module",
   override val isLibrary: Boolean = false,
-  override var templateFile: File? = null
+  templateFile: File? = null
 ) : ModuleModel(
   projectModelData.project,
-  TemplateHandle(templateFile ?: File("")),
+  templateFile,
   projectModelData.projectSyncInvoker,
   "",
   commandName,
@@ -189,11 +185,6 @@ class NewAndroidModuleModel(
       }
 
       moduleTemplateValues.putAll(projectTemplateValues)
-    }
-
-    override fun renderTemplate(dryRun: Boolean): Boolean {
-      customTemplate = Template.createFromPath(templateFile!!)
-      return super.renderTemplate(dryRun)
     }
   }
 }

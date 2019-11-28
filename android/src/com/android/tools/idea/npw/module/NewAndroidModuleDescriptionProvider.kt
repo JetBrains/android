@@ -58,7 +58,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   }
 
   private class MobileModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
-    TemplateManager.getHandle(Template.CATEGORY_APPLICATION, "Android Module").rootPath,
+    TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Android Module"),
     message("android.wizard.module.new.mobile"),
     message("android.wizard.module.new.mobile.description"),
     AndroidIcons.Wizards.MobileModule,
@@ -66,7 +66,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   )
 
   private class AutomotiveModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
-    TemplateManager.getHandle(Template.CATEGORY_APPLICATION, "Automotive Module").rootPath,
+    TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Automotive Module"),
     message("android.wizard.module.new.automotive"),
     message("android.wizard.module.new.automotive.description"),
     AndroidIcons.Wizards.AutomotiveModule,
@@ -74,7 +74,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   )
 
   private class ThingsModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
-    TemplateManager.getHandle(Template.CATEGORY_APPLICATION, "Android Module").rootPath,
+    TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Android Module"),
     message("android.wizard.module.new.things"),
     message("android.wizard.module.new.things.description"),
     AndroidIcons.Wizards.ThingsModule,
@@ -82,7 +82,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   )
 
   private class TvModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
-    TemplateManager.getHandle(Template.CATEGORY_APPLICATION, "Android TV Module").rootPath,
+    TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Android TV Module"),
     message("android.wizard.module.new.tv"),
     message("android.wizard.module.new.tv.description"),
     AndroidIcons.Wizards.TvModule,
@@ -90,7 +90,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   )
 
   private class WearModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
-    TemplateManager.getHandle(Template.CATEGORY_APPLICATION, "Wear OS Module").rootPath,
+    TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Wear OS Module"),
     message("android.wizard.module.new.wear"),
     message("android.wizard.module.new.wear.description"),
     AndroidIcons.Wizards.WearModule,
@@ -98,7 +98,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   )
 
   private class AndroidLibraryModuleTemplateGalleryEntry(): ModuleTemplateGalleryEntry {
-    override val templateFile = TemplateManager.getHandle(Template.CATEGORY_APPLICATION, "Android Module").rootPath
+    override val templateFile = TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Android Module")
     override val name: String = message("android.wizard.module.new.library")
     override val description: String = message("android.wizard.module.new.library.description")
     override val icon: Icon = AndroidIcons.Wizards.AndroidModule

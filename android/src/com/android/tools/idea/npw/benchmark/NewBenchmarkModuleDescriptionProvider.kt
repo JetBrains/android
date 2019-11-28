@@ -19,7 +19,6 @@ import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
-import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
@@ -37,8 +36,8 @@ class NewBenchmarkModuleDescriptionProvider : ModuleDescriptionProvider {
     override val description: String = message("android.wizard.module.new.benchmark.module.description")
     override fun toString(): String = name
     override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
-      val templateHandle: TemplateHandle = TemplateManager.getHandle(Template.CATEGORY_APPLICATION, "Benchmark Module")
-      return ConfigureBenchmarkModuleStep(NewBenchmarkModuleModel(project, templateHandle, projectSyncInvoker), name, LOWEST_ACTIVE_API)
+      val templateFile = TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Benchmark Module")
+      return ConfigureBenchmarkModuleStep(NewBenchmarkModuleModel(project, templateFile, projectSyncInvoker), name, LOWEST_ACTIVE_API)
     }
   }
 }
