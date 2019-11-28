@@ -575,6 +575,18 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareScrollFragment() {
+    checkCreateTemplate("fragments", "ScrollFragment",
+                        ActivityCreationMode.WITHOUT_PROJECT, false, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareScrollFragmentWithKotlin() {
+    checkCreateTemplate("fragments", "ScrollFragment",
+                        ActivityCreationMode.WITHOUT_PROJECT, false, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewFullscreenFragment() {
     checkCreateTemplate("fragments", "FullscreenFragment")
   }
