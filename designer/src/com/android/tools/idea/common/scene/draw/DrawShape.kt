@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.scene.draw
 
-import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingShape
 import com.android.tools.adtui.common.SwingStroke
 import com.android.tools.idea.common.scene.AnimatedValue
 import com.android.tools.idea.common.scene.ConstantValue
@@ -23,13 +23,12 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Graphics2D
-import java.awt.Shape
 
-class DrawShape(@VisibleForTesting @SwingCoordinate val shape: AnimatedValue<Shape>,
+class DrawShape(@VisibleForTesting val shape: AnimatedValue<SwingShape>,
                 @VisibleForTesting val color: Color,
                 @VisibleForTesting val stroke: SwingStroke,
                 level: Int = 0) : DrawCommandBase(level) {
-  constructor(shape: Shape, color: Color, stroke: SwingStroke, level: Int = 0) : this(ConstantValue<Shape>(shape), color, stroke, level)
+  constructor(shape: SwingShape, color: Color, stroke: SwingStroke, level: Int = 0) : this(ConstantValue<SwingShape>(shape), color, stroke, level)
 
   override fun serialize() = ""
 
@@ -39,7 +38,7 @@ class DrawShape(@VisibleForTesting @SwingCoordinate val shape: AnimatedValue<Sha
     g.stroke = stroke.value
 
     val time = sceneContext.time
-    g.draw(shape.getValue(time))
+    g.draw(shape.getValue(time).value)
 
     if (!shape.isComplete(time)) {
       sceneContext.repaint()

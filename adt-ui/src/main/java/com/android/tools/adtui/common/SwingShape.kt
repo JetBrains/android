@@ -15,18 +15,14 @@
  */
 package com.android.tools.adtui.common
 
-/**
- * Represents an x position in swing space
- * Corresponds to the [SwingCoordinate] attribute
- */
-inline class SwingX(val value: Float) {
-  operator fun plus(rhs: SwingLength) = SwingX(value + rhs.value)
-  operator fun minus(rhs: SwingLength) = SwingX(value - rhs.value)
-  operator fun minus(rhs: SwingX) = SwingLength(value - rhs.value)
-  fun toInt() = value.toInt()
-  fun toDouble() = value.toDouble()
-  override fun toString() = value.toString()
-}
+import java.awt.Shape
 
-fun String.toSwingX() = SwingX(this.toFloat())
-fun interpolate(start: SwingX, end: SwingX, fraction: Float) = start + (end - start) * fraction
+/*
+ * A common interface for all inline classes that represent shapes in the Swing coordinate system.
+ */
+interface SwingShape {
+  /**
+   * A raw Shape object that will be wrapped by more expressive inline Shape subclasses.
+   */
+  val value: Shape
+}

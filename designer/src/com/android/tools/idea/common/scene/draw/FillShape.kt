@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.common.scene.draw
 
-import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingShape
 import com.android.tools.idea.common.scene.AnimatedValue
 import com.android.tools.idea.common.scene.ConstantValue
 import com.android.tools.idea.common.scene.SceneContext
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Graphics2D
-import java.awt.Shape
 
-class FillShape(@VisibleForTesting @SwingCoordinate val shape: AnimatedValue<Shape>,
+class FillShape(@VisibleForTesting val shape: AnimatedValue<SwingShape>,
                 @VisibleForTesting val color: Color,
                 level: Int = 0) : DrawCommandBase(level) {
-  constructor(shape: Shape, color: Color, level: Int = 0) : this(ConstantValue<Shape>(shape), color, level)
+  constructor(shape: SwingShape, color: Color, level: Int = 0) : this(ConstantValue<SwingShape>(shape), color, level)
 
   override fun serialize() = ""
 
@@ -36,7 +35,7 @@ class FillShape(@VisibleForTesting @SwingCoordinate val shape: AnimatedValue<Sha
     g.color = color
 
     val time = sceneContext.time
-    g.fill(shape.getValue(time))
+    g.fill(shape.getValue(time).value)
 
     if (!shape.isComplete(time)) {
       sceneContext.repaint()

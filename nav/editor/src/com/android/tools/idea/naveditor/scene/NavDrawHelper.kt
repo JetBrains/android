@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene
 
-import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.common.SwingEllipse
 import com.android.tools.adtui.common.SwingFont
 import com.android.tools.adtui.common.SwingLength
@@ -48,7 +47,6 @@ val INNER_RADIUS_LARGE = scaledAndroidLength(8f)
 val OUTER_RADIUS_SMALL = scaledAndroidLength(7f)
 val OUTER_RADIUS_LARGE = scaledAndroidLength(11f)
 
-@SwingCoordinate
 val HANDLE_STROKE = SwingStroke(scaledSwingLength(2f))
 
 val FRAGMENT_BORDER_SPACING = scaledAndroidLength(2f)
@@ -91,7 +89,7 @@ fun makeCircle(center: SwingPoint, radius: SwingLength): SwingEllipse {
 fun makeCircleLerp(center: SwingPoint, initialRadius: SwingLength, finalRadius: SwingLength, duration: Int): LerpEllipse {
   val initialCircle = makeCircle(center, initialRadius)
   val finalCircle = makeCircle(center, finalRadius)
-  return LerpEllipse(initialCircle.value, finalCircle.value, duration)
+  return LerpEllipse(initialCircle, finalCircle, duration)
 }
 
 fun getHeaderRect(context: SceneContext, rectangle: SwingRectangle): SwingRectangle {
@@ -133,6 +131,6 @@ fun makeDrawArrowCommand(rectangle: SwingRectangle, direction: ArrowDirection, c
   }
   path.closePath()
 
-  return FillShape(path.value, color)
+  return FillShape(path, color)
 }
 

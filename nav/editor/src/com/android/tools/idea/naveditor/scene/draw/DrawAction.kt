@@ -65,7 +65,7 @@ class DrawAction(@VisibleForTesting val source: SwingRectangle,
     val path = SwingPath()
     path.moveTo(p1)
     path.curveTo(p2, p3, p4)
-    list.add(DrawShape(path.value, color, ACTION_STROKE))
+    list.add(DrawShape(path, color, ACTION_STROKE))
 
     val arrowDirection = getArrowDirection(direction)
     val arrowRectangle = getArrowRectangle(direction)

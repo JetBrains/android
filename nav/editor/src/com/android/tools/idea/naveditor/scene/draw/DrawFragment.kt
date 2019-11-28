@@ -52,7 +52,7 @@ class DrawFragment(@VisibleForTesting val rectangle: SwingRectangle,
 
   override fun buildCommands(): List<DrawCommand> {
     val list = mutableListOf<DrawCommand>()
-    list.add(DrawShape(rectangle.value, NavColors.FRAME, REGULAR_FRAME_STROKE))
+    list.add(DrawShape(rectangle, NavColors.FRAME, REGULAR_FRAME_STROKE))
 
     val imageRectangle = rectangle.growRectangle(SwingLength(-1f), SwingLength(-1f))
     list.add(createDrawImageCommand(imageRectangle, image))
@@ -60,7 +60,7 @@ class DrawFragment(@VisibleForTesting val rectangle: SwingRectangle,
     if (highlightColor != null) {
       val spacing = 2 * FRAGMENT_BORDER_SPACING * scale
       val roundRectangle = SwingRoundRectangle(rectangle.growRectangle(spacing, spacing), spacing, spacing)
-      list.add(DrawShape(roundRectangle.value, highlightColor, HIGHLIGHTED_FRAME_STROKE))
+      list.add(DrawShape(roundRectangle, highlightColor, HIGHLIGHTED_FRAME_STROKE))
     }
 
     return list

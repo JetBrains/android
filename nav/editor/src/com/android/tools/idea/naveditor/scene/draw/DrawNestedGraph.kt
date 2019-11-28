@@ -63,8 +63,8 @@ class DrawNestedGraph(private val rectangle: SwingRectangle,
     val arcSize = NAVIGATION_ARC_SIZE * scale
     val roundRectangle = SwingRoundRectangle(rectangle, arcSize, arcSize)
 
-    val fillRectangle = FillShape(roundRectangle.value, COMPONENT_BACKGROUND)
-    val drawRectangle = DrawShape(roundRectangle.value, frameColor, SwingStroke(frameThickness))
+    val fillRectangle = FillShape(roundRectangle, COMPONENT_BACKGROUND)
+    val drawRectangle = DrawShape(roundRectangle, frameColor, SwingStroke(frameThickness))
 
     val font = regularFont(scale, Font.BOLD)
     val drawText = DrawTruncatedText(text, rectangle, textColor, font, true)

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingLine
+import com.android.tools.adtui.common.SwingPath
+import com.android.tools.adtui.common.SwingShape
 import com.android.tools.idea.common.scene.AnimatedValue
 import com.android.tools.idea.common.scene.ConstantValue
 import com.android.tools.idea.common.scene.LerpValue
@@ -102,7 +105,7 @@ fun assertDrawCommandsEqual(expected: DrawAction, actual: DrawCommand) {
   AndroidTestCase.assertEquals(expected.isPopAction, drawAction.isPopAction)
 }
 
-fun assertAnimatedShapesEqual(expected: AnimatedValue<Shape>, actual: AnimatedValue<Shape>) {
+fun assertAnimatedShapesEqual(expected: AnimatedValue<SwingShape>, actual: AnimatedValue<SwingShape>) {
   val constantValue = expected as? ConstantValue<Shape>
   if(constantValue != null) {
     val actualConstantValue = actual as ConstantValue<Shape>
@@ -129,11 +132,11 @@ fun assertDrawLinesEqual(expected: DrawShape, actual: DrawCommand) {
   AndroidTestCase.assertEquals(expected.color, drawShape.color)
   AndroidTestCase.assertEquals(expected.stroke, drawShape.stroke)
 
-  val expectedValue = expected.shape as ConstantValue<Shape>
-  val expectedLine = expectedValue.getValue(0) as Line2D.Float
+  val expectedValue = expected.shape as ConstantValue<SwingShape>
+  val expectedLine = expectedValue.getValue(0) as SwingLine
 
-  val actualValue = actual.shape as ConstantValue<Shape>
-  val actualLine = actualValue.getValue(0) as Line2D.Float
+  val actualValue = actual.shape as ConstantValue<SwingShape>
+  val actualLine = actualValue.getValue(0) as SwingLine
 
   AndroidTestCase.assertEquals(actualLine.x1, expectedLine.x1)
   AndroidTestCase.assertEquals(actualLine.y1, expectedLine.y1)
@@ -146,11 +149,11 @@ fun assertFillPathEqual(expected: FillShape, actual: DrawCommand) {
 
   AndroidTestCase.assertEquals(expected.color, fillShape.color)
 
-  val expectedValue = expected.shape as ConstantValue<Shape>
-  val expectedPath = expectedValue.getValue(0) as Path2D.Float
+  val expectedValue = expected.shape as ConstantValue<SwingShape>
+  val expectedPath = expectedValue.getValue(0) as SwingPath
 
-  val actualValue = actual.shape as ConstantValue<Shape>
-  val actualPath = actualValue.getValue(0) as Path2D.Float
+  val actualValue = actual.shape as ConstantValue<SwingShape>
+  val actualPath = actualValue.getValue(0) as SwingPath
 
   AndroidTestCase.assertEquals(actualPath.currentPoint, expectedPath.currentPoint)
 }

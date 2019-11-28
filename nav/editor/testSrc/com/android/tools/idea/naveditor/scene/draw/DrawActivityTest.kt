@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.scene.draw
 import com.android.tools.adtui.common.SwingFont
 import com.android.tools.adtui.common.SwingLength
 import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.adtui.common.SwingRoundRectangle
 import com.android.tools.adtui.common.SwingStroke
 import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.scene.draw.DrawShape
@@ -37,7 +38,7 @@ private val FRAME_COLOR = Color.RED
 private val FRAME_THICKNESS = SwingLength(1f)
 private val FRAME_STROKE = SwingStroke(FRAME_THICKNESS)
 private val SCALE = Scale(1.5)
-private val BORDER_RECT = RoundRectangle2D.Float(10f, 20f, 100f, 300f, 18f, 18f)
+private val BORDER_RECT = SwingRoundRectangle(RoundRectangle2D.Float(10f, 20f, 100f, 300f, 18f, 18f))
 private val BACKGROUND_COLOR = JBColor(0xfafafa, 0x515658)
 private val IMAGE_RECT = SwingRectangle(Rectangle2D.Float(22f, 32f, 76f, 249f))
 private val IMAGE_BORDER_COLOR = JBColor(0xa7a7a7, 0x2d2f31)
@@ -54,7 +55,7 @@ class DrawActivityTest : NavTestCase() {
     assertDrawCommandsEqual(FillShape(BORDER_RECT, BACKGROUND_COLOR), drawFragment.commands[0])
     assertDrawCommandsEqual(DrawShape(BORDER_RECT, FRAME_COLOR, FRAME_STROKE), drawFragment.commands[1])
     assertDrawCommandsEqual(DrawPlaceholder(IMAGE_RECT), drawFragment.commands[2])
-    assertDrawCommandsEqual(DrawShape(IMAGE_RECT.value, IMAGE_BORDER_COLOR, IMAGE_BORDER_STROKE), drawFragment.commands[3])
+    assertDrawCommandsEqual(DrawShape(IMAGE_RECT, IMAGE_BORDER_COLOR, IMAGE_BORDER_STROKE), drawFragment.commands[3])
     assertEquals(drawFragment.commands[4], DrawTruncatedText("Activity", TEXT_RECT, TEXT_COLOR, FONT, true))
   }
 
@@ -66,7 +67,7 @@ class DrawActivityTest : NavTestCase() {
     assertDrawCommandsEqual(FillShape(BORDER_RECT, BACKGROUND_COLOR), drawFragment.commands[0])
     assertDrawCommandsEqual(DrawShape(BORDER_RECT, FRAME_COLOR, SwingStroke(FRAME_THICKNESS)), drawFragment.commands[1])
     assertDrawCommandsEqual(DrawNavScreen(IMAGE_RECT, image), drawFragment.commands[2])
-    assertDrawCommandsEqual(DrawShape(IMAGE_RECT.value, IMAGE_BORDER_COLOR, IMAGE_BORDER_STROKE), drawFragment.commands[3])
+    assertDrawCommandsEqual(DrawShape(IMAGE_RECT, IMAGE_BORDER_COLOR, IMAGE_BORDER_STROKE), drawFragment.commands[3])
     assertEquals(drawFragment.commands[4], DrawTruncatedText("Activity", TEXT_RECT, TEXT_COLOR, FONT, true))
   }
 }

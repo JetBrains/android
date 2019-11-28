@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingPath
 import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.adtui.common.toSwingRect
 import com.android.tools.idea.common.model.Scale
@@ -38,7 +39,6 @@ import com.android.tools.idea.naveditor.scene.selfActionPoints
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
-import java.awt.geom.GeneralPath
 
 
 class DrawSelfAction(@VisibleForTesting val rectangle: SwingRectangle,
@@ -58,9 +58,9 @@ class DrawSelfAction(@VisibleForTesting val rectangle: SwingRectangle,
     val list = mutableListOf<DrawCommand>()
 
     val points = selfActionPoints(rectangle, scale)
-    val path = GeneralPath()
-    points[0].let { path.moveTo(it.x.value, it.y.value) }
-    DrawConnectionUtils.drawRound(path,
+    val path = SwingPath()
+    path.moveTo(points[0])
+    DrawConnectionUtils.drawRound(path.value,
                                   points.map { it.x.toInt() }.toIntArray(),
                                   points.map { it.y.toInt() }.toIntArray(),
                                   points.size,
