@@ -87,6 +87,7 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -847,6 +848,11 @@ public class TemplateManager {
 
   public static boolean templateRootIsValid(@NotNull File templateRootFolder) {
     return new File(getWrapperLocation(templateRootFolder), FN_GRADLE_WRAPPER_UNIX).exists();
+  }
+
+  @NotNull
+  public static TemplateHandle getHandle(@Nullable String category, @Nullable String templateName) {
+    return new TemplateHandle(Objects.requireNonNull(getInstance().getTemplateFile(category, templateName)));
   }
 
   private static File[] listFiles(@NotNull File root) {
