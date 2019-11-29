@@ -22,7 +22,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.status.InlineProgressIndicator;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -32,11 +31,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Set;
 
-public class CapturePanel extends JPanel implements DesignerEditorPanelFacade {
-  @NotNull private Project myProject;
-  @NotNull private CaptureEditor myEditor;
-  @NotNull private AnalyzerTask[] myTasks;
-  @NotNull private ThreeComponentsSplitter myThreeComponentsSplitter;
+public final class CapturePanel extends JPanel implements DesignerEditorPanelFacade {
+  @NotNull private final Project myProject;
+  @NotNull private final CaptureEditor myEditor;
+  @NotNull private final AnalyzerTask[] myTasks;
+  @NotNull private final ThreeComponentsSplitter myThreeComponentsSplitter;
   @Nullable private InlineProgressIndicator myProgressIndicator;
   @Nullable private AnalysisContentsDelegate myResultsDelegate;
   @Nullable private Runnable myFinishedLoadingCallback;
@@ -46,9 +45,8 @@ public class CapturePanel extends JPanel implements DesignerEditorPanelFacade {
     myEditor = editor;
     myTasks = tasks;
 
-    myThreeComponentsSplitter = new ThreeComponentsSplitter(false);
+    myThreeComponentsSplitter = new ThreeComponentsSplitter(false, editor);
     myThreeComponentsSplitter.setHonorComponentsMinimumSize(true);
-    Disposer.register(editor, myThreeComponentsSplitter);
 
     if (startAsLoading) {
       TaskInfo taskInfo = new TaskInfo() {

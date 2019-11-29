@@ -25,13 +25,11 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.treeStructure.Tree;
-import java.util.HashSet;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -65,9 +63,8 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
 
   public AnalysisContentsDelegate(@NotNull CapturePanel capturePanel) {
     myCapturePanel = capturePanel;
-    mySplitter = new ThreeComponentsSplitter(true);
+    mySplitter = new ThreeComponentsSplitter(true, this);
     mySplitter.setDividerWidth(10);
-    Disposer.register(this, mySplitter);
 
     myTaskPanel = new JPanel(new LayoutManager() {
       @Override

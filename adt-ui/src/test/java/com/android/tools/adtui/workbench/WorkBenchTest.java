@@ -25,7 +25,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.EventDispatcher;
-import java.lang.reflect.Field;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -37,6 +36,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.lang.reflect.Field;
 import java.util.List;
 
 import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
@@ -77,7 +77,7 @@ public class WorkBenchTest extends WorkBenchTestCase {
     registerProjectComponentImplementation(FileEditorManager.class, myFileEditorManager);
     myContent = new JPanel();
     myContent.setPreferredSize(new Dimension(500, 400));
-    mySplitter = new ThreeComponentsSplitter();
+    mySplitter = new ThreeComponentsSplitter(getTestRootDisposable());
     myPropertiesComponent = PropertiesComponent.getInstance();
     myModel = new SideModel<>(myProject);
     myLeftMinimizePanel = spy(new MinimizedPanel<>(Side.RIGHT, myModel));
