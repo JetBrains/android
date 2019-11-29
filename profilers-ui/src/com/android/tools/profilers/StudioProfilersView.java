@@ -61,7 +61,6 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
@@ -152,7 +151,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myStageLoadingPanel.setLoadingText("");
     myStageLoadingPanel.getComponent().setBackground(ProfilerColors.DEFAULT_BACKGROUND);
 
-    mySplitter = new ThreeComponentsSplitter();
+    mySplitter = new ThreeComponentsSplitter(this);
     // Override the splitter's custom traversal policy back to the default, because the custom policy prevents the profilers from tabbing
     // across the components (e.g. sessions panel and the main stage UI).
     mySplitter.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
@@ -160,7 +159,6 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     mySplitter.setDividerMouseZoneSize(-1);
     mySplitter.setHonorComponentsMinimumSize(true);
     mySplitter.setLastComponent(myStageComponent);
-    Disposer.register(this, mySplitter);
 
     myLayeredPane = new TooltipLayeredPane(mySplitter);
     initializeSessionUi();
