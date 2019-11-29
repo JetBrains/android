@@ -17,37 +17,28 @@ package com.android.tools.idea.sqlite.ui.tableView
 
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.sqlite.model.SqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.ui.notifyError
-import com.android.tools.idea.sqlite.ui.setResultSetTableColumns
-import com.android.tools.idea.sqlite.ui.setupResultSetTable
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.table.JBTable
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.util.Vector
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTable
+import javax.swing.table.AbstractTableModel
 import javax.swing.table.DefaultTableCellRenderer
-import javax.swing.table.DefaultTableModel
 import javax.swing.table.TableCellRenderer
 
 /**
  * Abstraction on the UI component used to display tables.
  */
 class TableViewImpl : TableView {
-  private val columnClass = SqliteColumnValue::class.java
-  private val tableModel: DefaultTableModel by lazy {
-    object : DefaultTableModel() {
-      override fun getColumnClass(columnIndex: Int): Class<*> = columnClass
-    }
-  }
-
   private val listeners = mutableListOf<TableView.Listener>()
   private val pageSizeDefaultValues = listOf(5, 10, 20, 25, 50)
   private var isLoading = false
@@ -66,6 +57,8 @@ class TableViewImpl : TableView {
   private val pageSizeComboBox = ComboBox<Int>()
 
   private val refreshButton = CommonButton("Refresh table", AllIcons.Actions.Refresh)
+
+  private val table = JBTable()
 
   init {
     firstRowsPageButton.toolTipText = "First"
@@ -93,14 +86,16 @@ class TableViewImpl : TableView {
     panel.controlsPanel.add(refreshButton)
     refreshButton.addActionListener{ listeners.forEach { it.refreshDataInvoked() } }
 
-    panel.table.tableHeader.defaultRenderer = HeaderRenderer()
+    table.tableHeader.defaultRenderer = MyTableHeaderRenderer()
+    table.emptyText.text = "Table is empty"
+    panel.root.add(JBScrollPane(table))
 
-    panel.table.tableHeader.addMouseListener(object : MouseAdapter() {
+    table.tableHeader.addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
         if (isLoading) return
 
         val point = e.point
-        val columnIndex = panel.table.columnAtPoint(point)
+        val columnIndex = table.columnAtPoint(point)
         listeners.forEach { it.toggleOrderByColumnInvoked(columns[columnIndex]) }
       }
     })
@@ -111,40 +106,28 @@ class TableViewImpl : TableView {
   }
 
   override fun resetView() {
-    tableModel.dataVector.clear()
-    tableModel.columnCount = 0
-    removeRows()
+    table.model = MyTableModel(emptyList())
   }
 
   override fun removeRows() {
-    tableModel.rowCount = 0
+    (table.model as MyTableModel).removeAllRows()
   }
 
   override fun startTableLoading() {
-    panel.table.setupResultSetTable(tableModel, columnClass)
-    tableModel.rowCount = 0
-    tableModel.columnCount = 0
-    panel.table.setPaintBusy(true)
-
     isLoading = true
   }
 
   override fun showTableColumns(columns: List<SqliteColumn>) {
     this.columns = columns
-    columns.forEach { tableModel.addColumn(it.name) }
-    panel.table.setResultSetTableColumns()
+    table.model = MyTableModel(columns)
   }
 
   override fun showTableRowBatch(rows: List<SqliteRow>) {
-    rows.forEach { row ->
-      val values = Vector<SqliteColumnValue>()
-      row.values.forEach { values.addElement(it) }
-      tableModel.addRow(values)
-    }
+    (table.model as MyTableModel).addRows(rows)
   }
 
   override fun stopTableLoading() {
-    panel.table.setPaintBusy(false)
+    table.setPaintBusy(false)
 
     isLoading = false
   }
@@ -171,7 +154,7 @@ class TableViewImpl : TableView {
     listeners.remove(listener)
   }
 
-  private class HeaderRenderer : TableCellRenderer {
+  private class MyTableHeaderRenderer : TableCellRenderer {
     private val columnNameLabel = DefaultTableCellRenderer()
     private val panel = JPanel(BorderLayout())
 
@@ -197,5 +180,35 @@ class TableViewImpl : TableView {
       columnNameLabel.text = value as String
       return panel
     }
+  }
+
+  private class MyTableModel(val columns: List<SqliteColumn>) : AbstractTableModel() {
+
+    private val rows = mutableListOf<SqliteRow>()
+
+    fun addRows(newRows: List<SqliteRow>) {
+      val startIndex = rows.size
+      val endIndex = startIndex + newRows.size
+      rows.addAll(newRows)
+      fireTableRowsInserted(startIndex, endIndex)
+    }
+
+    fun removeAllRows() {
+      val endIndex = rows.size
+      rows.clear()
+      fireTableRowsDeleted(0, endIndex)
+    }
+
+    override fun getColumnName(modelColumnIndex: Int) = columns[modelColumnIndex].name
+
+    override fun getColumnClass(modelColumnIndex: Int) = String::class.java
+
+    override fun getColumnCount() = columns.size
+
+    override fun getRowCount() = rows.size
+
+    override fun getValueAt(modelRowIndex: Int, modelColumnIndex: Int) = rows[modelRowIndex].values[modelColumnIndex].value.toString()
+
+    override fun isCellEditable(modelRowIndex: Int, modelColumnIndex: Int) = false
   }
 }
