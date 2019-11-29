@@ -94,6 +94,32 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
         @Composable
         fun ClassMethodPreview() {
         }
+
+        @Preview(name = "preview in a class with default constructor")
+        @Composable
+        private fun PrivateClassMethodPreview() {
+        }
+      }
+
+      private class privateClass {
+        class NotTopLevelClass {
+          @Preview("in a non top level class") // Not valid
+          @Composable
+          fun ClassMethodPreview() {
+          }
+        }
+
+        @Preview
+        @Composable
+        fun ClassMethodPreview() {
+        }
+      }
+
+      class bClass(i: Int) {
+        @Preview("in a class with parameters") // Not valid
+        @Composable
+        fun ClassMethodPreview() {
+        }
       }
     """.trimIndent()
 
@@ -103,7 +129,9 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       .map { it.description }
       .toArray(emptyArray())
 
-    assertEquals("Preview must be a top level declarations.", inspections.single())
+    assertEquals(2, inspections.size)
+    assertEquals("Preview must be a top level declarations or in a top level class with a default constructor.",
+                 inspections.distinct().single())
   }
 
   fun testWidthShouldntExceedApiLimit() {
