@@ -16,6 +16,8 @@
 package com.android.tools.idea.templates.recipe
 
 import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.ProjectTemplateData
+import com.android.tools.idea.wizard.template.TemplateData
 import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.SetMultimap
 import com.intellij.openapi.module.Module
@@ -28,9 +30,9 @@ data class RenderingContext2(
   val project: Project,
   val module: Module?,
   val commandName: String,
-  val templateData: ModuleTemplateData,
+  val templateData: TemplateData,
   val outputRoot: File = VfsUtilCore.virtualToIoFile(project.guessProjectDir() ?: project.baseDir),
-  val moduleRoot: File,
+  val moduleRoot: File?,
   val dryRun: Boolean,
   val showErrors: Boolean
 ) {
@@ -42,4 +44,6 @@ data class RenderingContext2(
   val warnings = mutableListOf<String>()
 
   val showWarnings: Boolean get() = showErrors && dryRun
+
+  val projectTemplateData = (templateData as? ModuleTemplateData)?.projectTemplateData ?: templateData as ProjectTemplateData
 }

@@ -21,7 +21,9 @@ import com.android.tools.idea.lang.databinding.getTestDataPath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.facet.FacetManager
+import com.intellij.psi.PsiClass
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
@@ -101,6 +103,7 @@ class DataBindingCompletionSupportTest(private val mode: DataBindingMode) {
 
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.completeBasic()
+
     assertThat(fixture.lookupElementStrings!!).contains("Map")
   }
 
@@ -212,6 +215,76 @@ class DataBindingCompletionSupportTest(private val mode: DataBindingMode) {
     fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.completeBasic()
 
-    assertThat(fixture.lookupElementStrings!!).containsAllOf("Map", "ArrayList", "concurrent", "stream")
+    fixture.lookupElementStrings!!.let { lookupStrings ->
+      // Completions should include direct classes / packages
+      assertThat(lookupStrings).containsAllOf("Map", "ArrayList", "concurrent", "stream")
+
+      // Don't include deeply nested classes / packages, e.g. "atomic" from "java.util.concurrent",
+      // or "Supplier" from "java.util.function"
+      assertThat(lookupStrings).containsNoneOf("Supplier", "atomic")
+    }
   }
+
+  @Test
+  fun testDataBindingCompletion_otherAliasesExcluded_inAliasType() {
+    val file = fixture.addFileToProject(
+      "res/layout/test_layout.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="java.util.Map" alias="MyMap" />
+          <import type="My${caret}" />
+        </data>
+      </layout>
+    """.trimIndent())
+
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.completeBasic()
+
+    fixture.checkResult(
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="java.util.Map" alias="MyMap" />
+          <import type="My" />
+        </data>
+      </layout>
+    """.trimIndent())
+  }
+
+
+
+  @Test
+  fun testDataBindingCompletion_topLevelPackage_allClassesFound() {
+    fixture.addClass(
+      // language=JAVA
+    """
+      package a.b.c.d;
+      class Example {}
+    """.trimIndent()
+    )
+    val file = fixture.addFileToProject(
+      "res/layout/test_layout.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="map" type="Ex${caret}" />
+        </data>
+      </layout>
+    """.trimIndent())
+
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.completeBasic()
+
+    assertThat(fixture.lookupElementsQualified).containsAllOf("java.util.concurrent.Executor", "a.b.c.d.Example")
+  }
+
+  private val JavaCodeInsightTestFixture.lookupElementsQualified: List<String>?
+    get() = lookupElements?.map { (it.psiElement as PsiClass).qualifiedName!! }?.toList()
 }

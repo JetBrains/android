@@ -1,7 +1,7 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.intellij.testGuiFramework.impl
 
-import com.intellij.idea.IdeaApplication
+import com.intellij.idea.IdeStarter
 import com.intellij.openapi.diagnostic.Logger
 
 /**
@@ -14,7 +14,7 @@ import com.intellij.openapi.diagnostic.Logger
  *
  * @author Sergey Karashevich
  */
-class GuiTestStarter : IdeaApplication.IdeStarter() {
+class GuiTestStarter : IdeStarter() {
   companion object {
     val COMMAND_NAME = "guitest"
 
@@ -53,7 +53,7 @@ class GuiTestStarter : IdeaApplication.IdeStarter() {
     LOG.info("Set GUI tests port: $portArg")
   }
 
-  private fun removeGuiTestArgs(args: Array<String>): Array<out String>? {
+  private fun removeGuiTestArgs(args: Array<String>): Array<String> {
     return args.sliceArray(1..args.lastIndex)  //remove guitest keyword
       .filterNot { arg -> arg.startsWith("port") || arg.startsWith("host") }//lets remove host and port from args
       .toTypedArray()

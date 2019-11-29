@@ -34,6 +34,8 @@ import com.android.tools.idea.lang.databinding.reference.PsiParameterReference
 import com.android.tools.idea.lang.databinding.reference.XmlVariableReference
 import com.android.tools.idea.lang.databinding.reference.getAllGetterTypes
 import com.android.tools.idea.lang.databinding.reference.getAllSetterTypes
+import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
@@ -70,13 +72,12 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
     init {
       val facade = JavaPsiFacade.getInstance(facet.module.project)
       val mode = DataBindingUtil.getDataBindingMode(facet)
-      val bindingConversionAnnotation = facade.findClass(
-        mode.bindingConversion,
-        facet.module.getModuleWithDependenciesAndLibrariesScope(false))
+      val moduleScope = facet.getModuleSystem().getResolveScope(ScopeType.MAIN)
+      val bindingConversionAnnotation = facade.findClass(mode.bindingConversion, moduleScope)
       bindingConversionTypes = mutableListOf(PsiModelClass(dbExprType, mode).unwrapped)
       if (bindingConversionAnnotation != null) {
         AnnotatedElementsSearch.searchElements(
-          bindingConversionAnnotation, facet.module.getModuleWithDependenciesAndLibrariesScope(false), PsiMethod::class.java)
+          bindingConversionAnnotation, moduleScope, PsiMethod::class.java)
           .forEach { annotatedMethod ->
             val parameters = annotatedMethod.parameterList.parameters
             val returnType = annotatedMethod.returnType ?: return@forEach
@@ -165,12 +166,11 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
   private fun getInvertibleMethodNames(facet: AndroidFacet): Set<String> {
     val facade = JavaPsiFacade.getInstance(facet.module.project)
     val mode = DataBindingUtil.getDataBindingMode(facet)
-    val inverseMethodAnnotation = facade.findClass(
-      mode.inverseMethod,
-      facet.module.getModuleWithDependenciesAndLibrariesScope(false)) ?: return setOf()
+    val moduleScope = facet.getModuleSystem().getResolveScope(ScopeType.MAIN)
+    val inverseMethodAnnotation = facade.findClass(mode.inverseMethod, moduleScope) ?: return setOf()
     val nameSet = mutableSetOf<String>()
     AnnotatedElementsSearch.searchElements(
-      inverseMethodAnnotation, facet.module.getModuleWithDependenciesAndLibrariesScope(false), PsiMethod::class.java)
+      inverseMethodAnnotation, moduleScope, PsiMethod::class.java)
       .forEach { annotatedMethod ->
         nameSet.addIfNotNull(annotatedMethod.name)
         val annotation = AnnotationUtil.findAnnotation(annotatedMethod, mode.inverseMethod) ?: return@forEach

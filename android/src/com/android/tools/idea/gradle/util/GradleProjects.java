@@ -84,7 +84,10 @@ public final class GradleProjects {
         }
       }
     }
-    ProjectManagerEx.getInstanceEx().openProject(project);
+    ProjectManagerEx projectManagerEx = ProjectManagerEx.getInstanceEx();
+    if (!projectManagerEx.isProjectOpened(project)) {
+      projectManagerEx.openProject(project);
+    }
   }
 
   public static boolean isOfflineBuildModeEnabled(@NotNull Project project) {

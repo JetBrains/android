@@ -28,6 +28,7 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -66,6 +67,7 @@ class NoncacheableTasksAnalyzerTest {
   }
 
   @Test
+  @Ignore("b/144419681")
   fun testNoncacheableTasksAnalyzer() {
     setUpProject()
 
@@ -83,6 +85,7 @@ class NoncacheableTasksAnalyzerTest {
   }
 
   @Test
+  @Ignore("b/144419681")
   fun testNoncacheableTasksAnalyzerWithSuppressedWarning() {
     setUpProject()
 

@@ -31,8 +31,6 @@ import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvide
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 
 private const val VIEW_NAME = "LayoutEditor"
-private const val BASIC_PAGE = "Basic"
-private const val ADVANCED_PAGE = "Advanced"
 private const val WATERMARK_MESSAGE = "No component selected."
 private const val WATERMARK_ACTION_MESSAGE = "Select a component in the Component Tree or on the Design Surface."
 
@@ -44,30 +42,15 @@ class NelePropertiesView(model : NelePropertiesModel) : PropertiesView<NelePrope
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
     main.builders.add(SelectedComponentBuilder())
-    if (StudioFlags.NELE_NEW_PROPERTY_PANEL_WITH_TABS.get()) {
-      val basic = addTab(BASIC_PAGE)
-      basic.searchable = false
-      if (StudioFlags.NELE_PROPERTY_PANEL_ACTIONBAR.get()) {
-        basic.builders.add(ComponentActionsInspectorBuilder(model))
-      }
-      basic.builders.add(IdInspectorBuilder(editorProvider))
-      basic.builders.add(LayoutInspectorBuilder(model.project, editorProvider))
-      basic.builders.add(CommonAttributesInspectorBuilder(model.project, editorProvider))
-      val advanced = addTab(ADVANCED_PAGE)
-      advanced.builders.add(DeclaredAttributesInspectorBuilder(model, enumSupportProvider))
-      advanced.builders.add(AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider))
+    val tab = addTab("")
+    if (StudioFlags.NELE_PROPERTY_PANEL_ACTIONBAR.get()) {
+      tab.builders.add(ComponentActionsInspectorBuilder(model))
     }
-    else {
-      val tab = addTab("")
-      if (StudioFlags.NELE_PROPERTY_PANEL_ACTIONBAR.get()) {
-        tab.builders.add(ComponentActionsInspectorBuilder(model))
-      }
-      tab.builders.add(IdInspectorBuilder(editorProvider))
-      tab.builders.add(DeclaredAttributesInspectorBuilder(model, enumSupportProvider))
-      tab.builders.add(LayoutInspectorBuilder(model.facet.module.project, editorProvider))
-      tab.builders.add(FavoritesInspectorBuilder(model, enumSupportProvider))
-      tab.builders.add(CommonAttributesInspectorBuilder(model.project, editorProvider))
-      tab.builders.add(AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider))
-    }
+    tab.builders.add(IdInspectorBuilder(editorProvider))
+    tab.builders.add(DeclaredAttributesInspectorBuilder(model, enumSupportProvider))
+    tab.builders.add(LayoutInspectorBuilder(model.facet.module.project, editorProvider))
+    tab.builders.add(FavoritesInspectorBuilder(model, enumSupportProvider))
+    tab.builders.add(CommonAttributesInspectorBuilder(model.project, editorProvider))
+    tab.builders.add(AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider))
   }
 }

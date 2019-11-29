@@ -18,6 +18,7 @@ package com.android.tools.idea.sdk;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import java.util.regex.Pattern;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -170,7 +171,7 @@ public class SdkPathsTest extends TestCase {
     when(mockFile.getPath()).thenReturn(path);
     when(mockFile.getAbsolutePath()).thenReturn(path);
     when(mockFile.isDirectory()).thenReturn(isDirectory);
-    String[] pathParts = path.split(String.valueOf(File.separatorChar));
+    String[] pathParts = path.split(Pattern.quote(String.valueOf(File.separatorChar)));
     // PathValidator may access name and parent. Despite this is not required it will enable better error message generation.
     when(mockFile.getName()).thenReturn(pathParts[pathParts.length - 1]);
     when(mockFile.getParent()).thenReturn("parent");

@@ -16,17 +16,10 @@
 @file:JvmName("SourceProviderUtil")
 package org.jetbrains.android.facet
 
-import com.android.SdkConstants
 import com.android.builder.model.SourceProvider
-import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.IdeaSourceProviderImpl
 import com.android.tools.idea.projectsystem.SourceProviders
-import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
 import java.io.File
 
 fun createIdeaSourceProviderFromModelSourceProvider(it: SourceProvider): IdeaSourceProviderImpl {
@@ -47,106 +40,9 @@ fun createIdeaSourceProviderFromModelSourceProvider(it: SourceProvider): IdeaSou
   )
 }
 
-fun createSourceProvidersForLegacyModule(facet: AndroidFacet): SourceProviders {
-  val mainSourceProvider = LegacyDelegate(facet)
-  return SourceProvidersImpl(
-    mainIdeaSourceProvider = mainSourceProvider,
-    currentSourceProviders = listOf(mainSourceProvider),
-    currentTestSourceProviders = emptyList(),
-    allSourceProviders = listOf(mainSourceProvider),
-    mainAndFlavorSourceProviders = listOf(mainSourceProvider)
-  )
-}
-
-/** [IdeaSourceProvider] for legacy Android projects without [SourceProvider].  */
-@Suppress("DEPRECATION")
-private class LegacyDelegate constructor(private val facet: AndroidFacet) : IdeaSourceProvider {
-
-  override val name: String = ""
-
-  override val manifestFileUrl: String get() = manifestFile?.url ?: let {
-    val moduleDirPath: String = File(facet.module.moduleFilePath).parent
-    VfsUtilCore.pathToUrl(FileUtil.toSystemIndependentName(moduleDirPath + facet.properties.MANIFEST_FILE_RELATIVE_PATH))
-  }
-
-  override val manifestDirectory: VirtualFile?
-    get() = VirtualFileManager.getInstance().findFileByUrl(manifestDirectoryUrl)
-
-  override val manifestDirectoryUrl: String
-    get() = VfsUtil.getParentDir(manifestFileUrl) ?: error("Invalid manifestFileUrl: $manifestFileUrl")
-
-  override val manifestFile: VirtualFile?
-    // Not calling AndroidRootUtil.getMainContentRoot(myFacet) because that method can
-    // recurse into this same method if it can't find a content root. (This scenario
-    // applies when we're looking for manifests in for example a temporary file system,
-    // as tested by ResourceTypeInspectionTest#testLibraryRevocablePermission)
-    get() {
-      val module = facet.module
-      val file = AndroidRootUtil.getFileByRelativeModulePath(module,
-                                                             facet.properties.MANIFEST_FILE_RELATIVE_PATH, true)
-      if (file != null) {
-        return file
-      }
-      val contentRoots = ModuleRootManager.getInstance(module).contentRoots
-      if (contentRoots.size == 1) {
-        return contentRoots[0].findChild(SdkConstants.ANDROID_MANIFEST_XML)
-      }
-      return null
-    }
-
-  override val javaDirectoryUrls: Collection<String> get() = ModuleRootManager.getInstance(facet.module).contentRootUrls.toSet()
-  override val javaDirectories: Collection<VirtualFile> get() = ModuleRootManager.getInstance(
-    facet.module).contentRoots.toSet()
-
-  override val resourcesDirectoryUrls: Collection<String> get() = emptySet()
-  override val resourcesDirectories: Collection<VirtualFile> get() = emptySet()
-
-  override val aidlDirectoryUrls: Collection<String> get() = listOfNotNull(
-    AndroidRootUtil.getAidlGenSourceRootPath(facet)?.convertToUrl())
-  override val aidlDirectories: Collection<VirtualFile> get() = listOfNotNull(
-    AndroidRootUtil.getAidlGenDir(facet))
-
-  override val renderscriptDirectoryUrls: Collection<String> get() = listOfNotNull(
-    AndroidRootUtil.getRenderscriptGenSourceRootPath(facet)?.convertToUrl())
-  override val renderscriptDirectories: Collection<VirtualFile> get() = listOfNotNull(
-    AndroidRootUtil.getRenderscriptGenDir(facet))
-
-  override val jniDirectoryUrls: Collection<String> get() = emptySet()
-  override val jniDirectories: Collection<VirtualFile> get() = emptySet()
-
-  override val jniLibsDirectoryUrls: Collection<String> get() = emptySet()
-  override val jniLibsDirectories: Collection<VirtualFile> get() = emptySet()
-
-  override val resDirectoryUrls: Collection<String> get() = resDirectories.map { it.url }
-  override val resDirectories: Collection<VirtualFile>
-    get() {
-      val resRelPath = facet.properties.RES_FOLDER_RELATIVE_PATH
-      return listOfNotNull(AndroidRootUtil.getFileByRelativeModulePath(facet.module, resRelPath, true))
-    }
-
-  override val assetsDirectoryUrls: Collection<String> get() = assetsDirectories.map { it.url }
-  override val assetsDirectories: Collection<VirtualFile>
-    get() {
-      val dir = AndroidRootUtil.getAssetsDir(facet)
-      return listOfNotNull(dir)
-    }
-
-  override val shadersDirectoryUrls: Collection<String> get() = emptySet()
-  override val shadersDirectories: Collection<VirtualFile> get() = emptySet()
-
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (other == null || javaClass != other.javaClass) return false
-
-    val that = other as LegacyDelegate?
-    return facet == that!!.facet
-  }
-
-  override fun hashCode(): Int = facet.hashCode()
-}
+fun createSourceProvidersForLegacyModule(facet: AndroidFacet): SourceProviders =
+  com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule(facet)
 
 /** Convert a set of IO files into a set of IDEA file urls referring to equivalent virtual files  */
 private fun convertToUrlSet(fileSet: Collection<File>): Collection<String> = fileSet.map { VfsUtil.fileToUrl(it) }
-
-private fun String.convertToUrl() = VfsUtil.pathToUrl(this)
 

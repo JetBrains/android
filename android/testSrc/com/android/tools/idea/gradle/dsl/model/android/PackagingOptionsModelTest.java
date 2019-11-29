@@ -117,8 +117,9 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
 
     applyChangesAndReparse(buildModel);
     // TODO(b/144280051): we emit Dsl with syntax errors here
-    // verifyFileContents(myBuildFile, PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED);
-
+    if(!isGroovy()) {
+      verifyFileContents(myBuildFile, PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED);
+    }
     android = buildModel.android();
     assertNotNull(android);
 

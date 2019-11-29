@@ -27,6 +27,7 @@ import com.android.tools.adtui.model.RangeSelectionListener;
 import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
@@ -47,13 +48,11 @@ import com.android.tools.profiler.proto.Cpu.CpuTraceMode;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profiler.proto.Cpu.TraceInitiationType;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopRequest;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.ProfilerTimeline;
-import com.android.tools.profilers.Stage;
+import com.android.tools.profilers.StreamingStage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
@@ -79,7 +78,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
+public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Listener {
   private static final String HAS_USED_CPU_CAPTURE = "cpu.used.capture";
 
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 5, 10, "%");
@@ -187,7 +186,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   /**
    * Whether the stage was initiated in Import Trace mode. In this mode, some data might be missing (e.g. thread states and CPU usage in
-   * ART and simpleperf captures), the {@link ProfilerTimeline} is static and just big enough to display a {@link CpuCapture} entirely.
+   * ART and simpleperf captures), the {@link StreamingTimeline} is static and just big enough to display a {@link CpuCapture} entirely.
    * Import Trace mode is triggered when importing a CPU trace.
    */
   private final boolean myIsImportTraceMode;
@@ -228,15 +227,14 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     super(profilers);
     myImportedTrace = importedTrace;
     mySession = profilers.getSession();
-    // Only allow import trace mode if Import CPU trace and sessions flag are enabled.
-    myIsImportTraceMode = getStudioProfilers().getIdeServices().getFeatureConfig().isImportCpuTraceEnabled() && importedTrace != null;
+    myIsImportTraceMode = importedTrace != null;
 
     myCpuTraceDataSeries = new CpuTraceDataSeries();
     myProfilerConfigModel = new CpuProfilerConfigModel(profilers, this);
 
-    Range viewRange = getStudioProfilers().getTimeline().getViewRange();
-    Range dataRange = getStudioProfilers().getTimeline().getDataRange();
-    Range selectionRange = getStudioProfilers().getTimeline().getSelectionRange();
+    Range viewRange = getTimeline().getViewRange();
+    Range dataRange = getTimeline().getDataRange();
+    Range selectionRange = getTimeline().getSelectionRange();
 
     myCpuUsage = new DetailedCpuUsage(profilers);
 
@@ -517,7 +515,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       setCaptureState(CaptureState.CAPTURING);
       myCaptureStartTimeNs = currentTimeNs();
       // We should jump to live data when start recording.
-      getStudioProfilers().getTimeline().setStreaming(true);
+      getTimeline().setStreaming(true);
     }
     else {
       getLogger().warn("Unable to start tracing: " + status.getStatus());
@@ -635,7 +633,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     // TODO (b/79244375): extract callback to its own method
     Consumer<CpuCapture> parsingCallback = (parsedCapture) -> {
       if (parsedCapture != null) {
-        ProfilerTimeline timeline = getStudioProfilers().getTimeline();
+        StreamingTimeline timeline = getTimeline();
         Range captureRangeNs = new Range(TimeUnit.MICROSECONDS.toNanos((long)parsedCapture.getRange().getMin()),
                                          TimeUnit.MICROSECONDS.toNanos((long)parsedCapture.getRange().getMax()));
         // Give some room to the end of the timeline, so we can properly use the handle to select the capture.
@@ -714,7 +712,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   private void selectionChanged() {
-    CpuTraceInfo intersectingTraceInfo = getIntersectingTraceInfo(getStudioProfilers().getTimeline().getSelectionRange());
+    CpuTraceInfo intersectingTraceInfo = getIntersectingTraceInfo(getTimeline().getSelectionRange());
     if (intersectingTraceInfo == null) {
       // Didn't find anything, so set the capture to null.
       setCapture(null);
@@ -742,7 +740,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   private long currentTimeNs() {
-    return TimeUnit.MICROSECONDS.toNanos((long)getStudioProfilers().getTimeline().getDataRange().getMax());
+    return TimeUnit.MICROSECONDS.toNanos((long)getTimeline().getDataRange().getMax());
   }
 
   @VisibleForTesting
@@ -783,10 +781,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     assert capture != null;
 
     // Give a padding to the capture. 5% of the view range on each side.
-    ProfilerTimeline timeline = getStudioProfilers().getTimeline();
-    double padding = timeline.getViewRange().getLength() * 0.05;
+    double padding = getTimeline().getViewRange().getLength() * 0.05;
     // Now makes sure the capture range + padding is within view range and in the middle if possible.
-    timeline.adjustRangeCloseToMiddleView(new Range(capture.getRange().getMin() - padding, capture.getRange().getMax() + padding));
+    getTimeline().adjustRangeCloseToMiddleView(new Range(capture.getRange().getMin() - padding, capture.getRange().getMax() + padding));
   }
 
   private void setCapture(long traceId) {
@@ -832,8 +829,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myThreadsStates.updateTraceThreadsForCapture(capture);
 
     // Setting the selection range will cause the timeline to stop.
-    ProfilerTimeline timeline = getStudioProfilers().getTimeline();
-    timeline.getSelectionRange().set(capture.getRange());
+    getTimeline().getSelectionRange().set(capture.getRange());
     setCapture(capture);
   }
 
@@ -843,7 +839,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   public void setSelectedThread(int id) {
     myCaptureModel.setThread(id);
-    Range range = getStudioProfilers().getTimeline().getSelectionRange();
+    Range range = getTimeline().getSelectionRange();
     if (range.isEmpty()) {
       myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
       setProfilerMode(ProfilerMode.EXPANDED);
@@ -1020,7 +1016,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       }
       Cpu.CpuTraceInfo finishedTraceToSelect = null;
       // Request for the entire data range as we don't expect too many (100s) traces withing a single session.
-      Range dataRange = getStudioProfilers().getTimeline().getDataRange();
+      Range dataRange = getTimeline().getDataRange();
       List<Cpu.CpuTraceInfo> traceInfoList =
         CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, dataRange,
                                           getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
@@ -1095,7 +1091,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       myInProgressTraceInfo = traceInfo;
       myCaptureStartTimeNs = myInProgressTraceInfo.getFromTimestamp();
       setCaptureState(CaptureState.CAPTURING);
-      getStudioProfilers().getTimeline().setStreaming(true);
+      getTimeline().setStreaming(true);
 
       if (myInProgressTraceInfo.getConfiguration().getInitiationType() == TraceInitiationType.INITIATED_BY_API) {
         // For API-initiated tracing, we want to update the config combo box to show API_INITIATED_TRACING_PROFILING_CONFIG.

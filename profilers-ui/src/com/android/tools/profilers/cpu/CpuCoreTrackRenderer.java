@@ -15,9 +15,12 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.android.tools.adtui.common.DataVisualizationColors.PRIMARY_DATA_COLOR;
+
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.common.DataVisualizationColors;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.profilers.ProfilerColors;
@@ -56,12 +59,14 @@ public class CpuCoreTrackRenderer implements TrackRenderer<CpuCoreTrackModel, Pr
       if (value == CpuThreadSliceInfo.NULL_THREAD) {
         return ProfilerColors.DEFAULT_BACKGROUND;
       }
+      int nameHash = value.getProcessName().hashCode();
+      DataVisualizationColors dataColors = DataVisualizationColors.INSTANCE;
       // Return other process colors.
       if (value.getProcessId() != myAppProcessId) {
-        return isMouseOver ? ProfilerColors.CPU_KERNEL_OTHER_HOVER : ProfilerColors.CPU_KERNEL_OTHER;
+        return dataColors.getColor(nameHash, isMouseOver ? 1 : 0);
       }
       // Return app process color.
-      return isMouseOver ? ProfilerColors.CPU_KERNEL_APP_HOVER : ProfilerColors.CPU_KERNEL_APP;
+      return dataColors.getColor(PRIMARY_DATA_COLOR, isMouseOver ? 1 : 0);
     }
 
     @NotNull

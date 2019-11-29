@@ -21,7 +21,6 @@ import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.support.MigrationParserVisitor
 import com.android.support.parseMigrationFile
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
@@ -52,8 +51,6 @@ class MigrateToAndroidxAction : BaseRefactoringAction() {
   override fun getHandler(dataContext: DataContext): RefactoringActionHandler? = MigrateToAndroidxHandler()
 
   override fun update(anActionEvent: AnActionEvent) {
-    anActionEvent.presentation.isEnabledAndVisible = StudioFlags.MIGRATE_TO_ANDROID_X_REFACTORING_ENABLED.get()
-
     if (HAS_KTS_BUILD_FILES.get(anActionEvent.project, false)) {
       anActionEvent.presentation.isEnabled = false
       anActionEvent.presentation.description = "Migration to AndroidX package names is not supported for projects that use Gradle KTS build files"
@@ -194,7 +191,8 @@ class MigrateToAndroidxHandler(var showWarningDialog: Boolean = true,
 
       override fun visitGradleCoordinateUpgrade(groupName: String, artifactName: String, newBaseVersion: String) {
         classesAndCoordinates.add(
-          UpdateGradleDepedencyVersionMigrationEntry(groupName, artifactName, newBaseVersion))
+          UpdateGradleDependencyVersionMigrationEntry(
+            groupName, artifactName, newBaseVersion))
       }
     })
 

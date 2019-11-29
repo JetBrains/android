@@ -15,20 +15,23 @@
  */
 package com.android.tools.profilers.network;
 
+import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.TOOLTIP_BORDER;
+
 import com.android.tools.adtui.TooltipComponent;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.BorderlessTableCellRenderer;
+import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.StageView;
+import com.android.tools.profilers.TimelineTable;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.AbstractTableModel;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
@@ -37,9 +40,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
-import static com.android.tools.profilers.ProfilerLayout.TOOLTIP_BORDER;
+import javax.swing.JComponent;
+import javax.swing.JTable;
+import javax.swing.JTextPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class responsible for displaying table of connections information (e.g url, duration, timeline)
@@ -68,7 +77,7 @@ final class ConnectionsView {
       Object getValueFrom(@NotNull HttpData data) {
         HttpData.ContentType type = data.getResponseHeader().getContentType();
         String[] mimeTypeParts = type.getMimeType().split("/");
-        return mimeTypeParts[mimeTypeParts.length-1];
+        return mimeTypeParts[mimeTypeParts.length - 1];
       }
     },
     STATUS(0.25 / 4, Integer.class) {
@@ -125,12 +134,12 @@ final class ConnectionsView {
   @NotNull
   private final AspectObserver myAspectObserver;
 
-  public ConnectionsView(@NotNull NetworkProfilerStageView stageView) {
+  ConnectionsView(@NotNull NetworkProfilerStageView stageView) {
     myStage = stageView.getStage();
 
     myTableModel = new ConnectionsTableModel(myStage.getHttpDataFetcher());
 
-    myConnectionsTable = TimelineTable.create(myTableModel, myStage.getStudioProfilers().getTimeline(), Column.TIMELINE.ordinal());
+    myConnectionsTable = TimelineTable.create(myTableModel, myStage.getTimeline(), Column.TIMELINE.ordinal());
     customizeConnectionsTable();
     createTooltip(stageView);
 
@@ -151,7 +160,7 @@ final class ConnectionsView {
     myConnectionsTable.getColumnModel().getColumn(Column.STATUS.ordinal()).setCellRenderer(new StatusRenderer());
     myConnectionsTable.getColumnModel().getColumn(Column.TIME.ordinal()).setCellRenderer(new TimeRenderer());
     myConnectionsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
-      new TimelineRenderer(myConnectionsTable, myStage.getStudioProfilers().getTimeline()));
+      new TimelineRenderer(myConnectionsTable, myStage.getTimeline()));
 
     myConnectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myConnectionsTable.getSelectionModel().addListSelectionListener(e -> {
@@ -181,7 +190,7 @@ final class ConnectionsView {
         for (int i = 0; i < Column.values().length; ++i) {
           Column column = Column.values()[i];
           myConnectionsTable.getColumnModel().getColumn(i)
-                            .setPreferredWidth((int)(myConnectionsTable.getWidth() * column.getWidthPercentage()));
+            .setPreferredWidth((int)(myConnectionsTable.getWidth() * column.getWidthPercentage()));
         }
       }
     });
@@ -199,7 +208,7 @@ final class ConnectionsView {
     textPane.setBorder(TOOLTIP_BORDER);
     textPane.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
     textPane.setForeground(ProfilerColors.TOOLTIP_TEXT);
-    textPane.setFont(ProfilerFonts.TOOLTIP_BODY_FONT);
+    textPane.setFont(TooltipView.TOOLTIP_BODY_FONT);
     TooltipComponent tooltip =
       new TooltipComponent.Builder(textPane, myConnectionsTable, stageView.getProfilersView().getComponent()).build();
     tooltip.registerListenersOn(myConnectionsTable);
@@ -235,7 +244,7 @@ final class ConnectionsView {
     }
   }
 
-  private final class ConnectionsTableModel extends AbstractTableModel {
+  private static final class ConnectionsTableModel extends AbstractTableModel {
     @NotNull private List<HttpData> myDataList = new ArrayList<>();
 
     private ConnectionsTableModel(HttpDataFetcher httpDataFetcher) {
@@ -323,7 +332,7 @@ final class ConnectionsView {
     @NotNull private final List<ConnectionsStateChart> myConnectionsCharts = new ArrayList<>();
     @NotNull private final JTable myTable;
 
-    TimelineRenderer(@NotNull JTable table, @NotNull ProfilerTimeline timeline) {
+    TimelineRenderer(@NotNull JTable table, @NotNull StreamingTimeline timeline) {
       super(timeline);
       myTable = table;
       myTable.getModel().addTableModelListener(this);

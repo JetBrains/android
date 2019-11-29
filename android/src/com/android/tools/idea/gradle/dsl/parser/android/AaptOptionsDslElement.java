@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import static com.android.tools.idea.gradle.dsl.model.android.AaptOptionsModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAL;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
@@ -29,16 +29,14 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class AaptOptionsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String AAPT_OPTIONS_BLOCK_NAME = "aaptOptions";
-
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"additionalParameters", property, ADDITIONAL_PARAMETERS, VAR},
@@ -54,8 +52,7 @@ public class AaptOptionsDslElement extends GradleDslBlockElement {
     {"setNoCompress", exactly(1), NO_COMPRESS, SET}, // actually there are more setNoCompress() methods than just the pure setter
     {"namespaced", property, NAMESPACED, VAR},
     {"namespaced", exactly(1), NAMESPACED, SET}
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
@@ -75,8 +72,9 @@ public class AaptOptionsDslElement extends GradleDslBlockElement {
     {"noCompress", atLeast(0), NO_COMPRESS, OTHER},
     {"namespaced", property, NAMESPACED, VAR},
     {"namespaced", exactly(1), NAMESPACED, SET}
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
+  public static final PropertiesElementDescription<AaptOptionsDslElement> AAPT_OPTIONS =
+    new PropertiesElementDescription<>("aaptOptions", AaptOptionsDslElement.class, AaptOptionsDslElement::new);
 
   @Override
   @NotNull
@@ -92,8 +90,8 @@ public class AaptOptionsDslElement extends GradleDslBlockElement {
     }
   }
 
-  public AaptOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(AAPT_OPTIONS_BLOCK_NAME));
+  public AaptOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

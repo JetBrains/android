@@ -39,7 +39,7 @@ class StageViewTest {
       }
     }
 
-    val selectionRange = profilers.timeline.selectionRange
+    val selectionRange = stageView.stage.timeline.selectionRange
     val selectionTimeLabel = stageView.selectionTimeLabel
 
     // Label should be empty initially for empty selection.
@@ -70,22 +70,22 @@ class StageViewTest {
     val ui = FakeUi(stageView.selectionTimeLabel)
 
     val minuteUs = TimeUnit.MINUTES.toMicros(1).toDouble()
-    profilers.timeline.dataRange.set(0.0, minuteUs * 2)
-    profilers.timeline.viewRange.set(minuteUs, minuteUs * 2)
-    assertThat(profilers.timeline.viewRange.min).isEqualTo(minuteUs)
-    assertThat(profilers.timeline.viewRange.max).isEqualTo(minuteUs * 2)
+    stageView.stage.timeline.dataRange.set(0.0, minuteUs * 2)
+    stageView.stage.timeline.viewRange.set(minuteUs, minuteUs * 2)
+    assertThat(stageView.stage.timeline.viewRange.min).isEqualTo(minuteUs)
+    assertThat(stageView.stage.timeline.viewRange.max).isEqualTo(minuteUs * 2)
 
     val pointTimeUs = minuteUs / 2
-    profilers.timeline.selectionRange.set(pointTimeUs, pointTimeUs)
+    stageView.stage.timeline.selectionRange.set(pointTimeUs, pointTimeUs)
     ui.mouse.click(1, 1)
-    profilers.timeline.update(TimeUnit.MINUTES.toNanos(2))
-    assertThat(profilers.timeline.viewRange.min).isEqualTo(0.0)
-    assertThat(profilers.timeline.viewRange.max).isEqualTo(minuteUs)
+    stageView.stage.timeline.update(TimeUnit.MINUTES.toNanos(2))
+    assertThat(stageView.stage.timeline.viewRange.min).isEqualTo(0.0)
+    assertThat(stageView.stage.timeline.viewRange.max).isEqualTo(minuteUs)
 
-    profilers.timeline.selectionRange.set(minuteUs, minuteUs + 1)
+    stageView.stage.timeline.selectionRange.set(minuteUs, minuteUs + 1)
     ui.mouse.click(1,  1)
-    profilers.timeline.update(TimeUnit.MINUTES.toNanos(2))
-    assertThat(profilers.timeline.viewRange.min).isEqualTo(minuteUs - 0.1)
-    assertThat(profilers.timeline.viewRange.max).isEqualTo(minuteUs + 1.1)
+    stageView.stage.timeline.update(TimeUnit.MINUTES.toNanos(2))
+    assertThat(stageView.stage.timeline.viewRange.min).isEqualTo(minuteUs - 0.1)
+    assertThat(stageView.stage.timeline.viewRange.max).isEqualTo(minuteUs + 1.1)
   }
 }

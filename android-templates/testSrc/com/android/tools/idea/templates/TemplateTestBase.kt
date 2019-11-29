@@ -17,7 +17,6 @@ package com.android.tools.idea.templates
 
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
-import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker.cleanAfterTesting
@@ -34,8 +33,6 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODUL
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_LANGUAGE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API_LEVEL
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_TARGET_API
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_TARGET_API_STRING
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_THEME_EXISTS
 import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX
 import com.android.tools.idea.templates.TemplateMetadata.getBuildApiString
@@ -44,6 +41,7 @@ import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
 import java.io.File
+import java.lang.RuntimeException
 import kotlin.system.measureTimeMillis
 
 typealias ProjectStateCustomizer = (templateMap: MutableMap<String, Any>, projectMap: MutableMap<String, Any>) -> Unit
@@ -97,8 +95,12 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
    * A wrapper to allow Kotlin "last argument is a lambda" syntax.
    */
   protected fun checkCreateTemplate(
-    category: String, name: String, createWithProject: Boolean = false, apiSensitive: Boolean = true, customizer: ProjectStateCustomizer
-  ): Unit = checkCreateTemplate(category, name, createWithProject, apiSensitive, customizer, { _, _ -> })
+    category: String,
+    name: String,
+    activityCreationMode: ActivityCreationMode = ActivityCreationMode.WITHOUT_PROJECT,
+    apiSensitive: Boolean = true,
+    customizer: ProjectStateCustomizer
+  ): Unit = checkCreateTemplate(category, name, activityCreationMode, apiSensitive, customizer, { _, _ -> })
 
   /**
    * Checks the given template in the given category. Supports overridden template values.
@@ -113,7 +115,7 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
   protected open fun checkCreateTemplate(
     category: String,
     name: String,
-    createWithProject: Boolean = false,
+    activityCreationMode: ActivityCreationMode = ActivityCreationMode.WITHOUT_PROJECT,
     apiSensitive: Boolean = false,
     vararg customizers: ProjectStateCustomizer
   ) {
@@ -129,7 +131,7 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
       it(templateOverrides, moduleOverrides)
     }
     val msToCheck = measureTimeMillis {
-      checkTemplate(templateFile, createWithProject, apiSensitive)
+      checkTemplate(templateFile, activityCreationMode, apiSensitive)
     }
     println("Checked ${templateFile.name} successfully in ${msToCheck}ms")
   }
@@ -142,7 +144,7 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
    */
   private fun checkTemplate(
     templateFile: File,
-    createWithProject: Boolean,
+    activityCreationMode: ActivityCreationMode,
     apiSensitive: Boolean
   ) {
     require(!isBroken(templateFile.name))
@@ -188,7 +190,7 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
           if (templateOverrides.isNotEmpty()) {
             base += "_overrides"
           }
-          checkApiTarget(minSdk, buildTarget.version, projectState, base, activityState, createWithProject)
+          checkApiTarget(minSdk, buildTarget.version, projectState, base, activityState, activityCreationMode)
           ranTest = true
         }
     }
@@ -206,7 +208,7 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
     projectState: TestNewProjectWizardState,
     projectNameBase: String,
     activityState: TestTemplateWizardState,
-    createActivity: Boolean = true
+    activityCreationMode: ActivityCreationMode = ActivityCreationMode.WITH_PROJECT
   ) {
     fun Option.needsCheck(initial: Any?, moduleState: TestTemplateWizardState): Boolean {
       val projectMinApi = moduleState.getInt(ATTR_MIN_API_LEVEL)
@@ -221,14 +223,28 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
       put(ATTR_BUILD_API_STRING, getBuildApiString(buildVersion))
       putAll(moduleOverrides)
     }
-    val templateState = (if (createActivity) projectState.activityTemplateState else activityState).apply { putAll(templateOverrides) }
 
-    val parameters = if (!createActivity) {
-      templateState.setParameterDefaults()
-      templateState.template.metadata!!.parameters
+    if (activityCreationMode == ActivityCreationMode.DO_NOT_CREATE) {
+      val projectName = "${projectNameBase}_no_activity"
+      return checkProject(projectName, projectState, activityState.apply { putAll(templateOverrides) }, activityCreationMode, false)
     }
-    else {
-      moduleState.template.metadata!!.parameters + templateState.template.metadata!!.parameters
+
+    val templateState = when (activityCreationMode) {
+      ActivityCreationMode.WITH_PROJECT -> projectState.activityTemplateState
+      ActivityCreationMode.WITHOUT_PROJECT -> activityState
+      else -> throw RuntimeException("We should not initialize template state if we are not going to create an activity")
+    }
+
+    templateState.apply { putAll(templateOverrides) }
+
+    val parameters = when (activityCreationMode) {
+      ActivityCreationMode.WITHOUT_PROJECT -> {
+        templateState.setParameterDefaults()
+        templateState.template.metadata!!.parameters
+      }
+      ActivityCreationMode.WITH_PROJECT ->
+        moduleState.template.metadata!!.parameters + templateState.template.metadata!!.parameters
+      else -> listOf()
     }
 
     parameters.filterNot { it.type == Type.STRING || it.type == Type.SEPARATOR || templateOverrides.containsKey(it.id) }.forEach { p ->
@@ -237,7 +253,7 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
       fun checkAndRestore(parameterValue: Any) {
         templateState.put(p.id!!, parameterValue)
         val projectName = "${projectNameBase}_${p.id}_$parameterValue"
-        checkProject(projectName, projectState, activityState, createActivity)
+        checkProject(projectName, projectState, activityState, activityCreationMode, true)
         templateState.put(p.id!!, initial)
       }
 
@@ -250,7 +266,7 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
       }
       else {
         assert(p.type === Type.BOOLEAN)
-        if (p.id == ATTR_IS_LAUNCHER && createActivity) {
+        if (p.id == ATTR_IS_LAUNCHER && activityCreationMode == ActivityCreationMode.WITH_PROJECT) {
           // ATTR_IS_LAUNCHER is always true when launched from new project
           return@forEach
         }
@@ -258,7 +274,7 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
       }
     }
     val projectName = "${projectNameBase}_default"
-    checkProject(projectName, projectState, activityState, createActivity)
+    checkProject(projectName, projectState, activityState, activityCreationMode, false)
   }
 
   /**
@@ -268,23 +284,28 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
    * 3. Library version if it is mobile activity.
    */
   private fun checkProject(
-    projectName: String, projectState: TestNewProjectWizardState, activityState: TestTemplateWizardState, createActivity: Boolean
+    projectName: String,
+    projectState: TestNewProjectWizardState,
+    activityState: TestTemplateWizardState,
+    activityCreationMode: ActivityCreationMode,
+    onlyAndroidX: Boolean
   ) {
     val moduleState = projectState.moduleTemplateState
     val templateMetadata = activityState.template.metadata
-    val checkLib = "Activity" == templateMetadata?.category && "Mobile" == templateMetadata.formFactor && !createActivity
+    val checkLib = "Activity" == templateMetadata?.category && "Mobile" == templateMetadata.formFactor &&
+                   activityCreationMode == ActivityCreationMode.WITHOUT_PROJECT
     val language = Language.fromName(moduleState[ATTR_LANGUAGE] as String?, Language.JAVA)
-    val projectChecker = ProjectChecker(CHECK_LINT, projectState, activityState, usageTracker, language, createActivity)
+    val projectChecker = ProjectChecker(CHECK_LINT, projectState, activityState, usageTracker, language, activityCreationMode)
 
-    if (templateMetadata != null && templateMetadata.constraints.contains(ANDROIDX)) {
-      enableAndroidX(moduleState, activityState)
-    }
-    if (moduleState[ATTR_ANDROIDX_SUPPORT] != true) {
+    val supportLibIsNotSupported = templateMetadata != null && templateMetadata.constraints.contains(ANDROIDX)
+
+    if (!supportLibIsNotSupported && !onlyAndroidX) {
       // Make sure we test all templates against androidx
-      enableAndroidX(moduleState, activityState)
-      projectChecker.checkProject(projectName + "_x")
       disableAndroidX(moduleState, activityState)
+      projectChecker.checkProject(projectName + "_android_support")
     }
+
+    enableAndroidX(moduleState, activityState)
     projectChecker.checkProject(projectName)
     // check that new Activities can be created on lib modules as well as app modules.
     if (checkLib) {

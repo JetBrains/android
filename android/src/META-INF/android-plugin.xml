@@ -35,7 +35,6 @@
 
   <xi:include href="android-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="android-junit.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="../com/android/tools/idea/ui/resourcemanager/META-INF/resources-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="../org/jetbrains/android/dom/android-xml.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="../org/jetbrains/android/inspections/lint/android-lint.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
@@ -61,9 +60,6 @@
     </component>
     <component>
       <implementation-class>com.android.tools.idea.res.AndroidFileChangeListener</implementation-class>
-    </component>
-    <component>
-      <implementation-class>org.jetbrains.android.facet.SourceProviderManagerComponent</implementation-class>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.res.ResourceNotificationManager</implementation-class>
@@ -372,7 +368,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.project.AndroidRunConfigurations"/>
     <applicationService serviceImplementation="com.android.tools.idea.project.CustomProjectTypeImporter$MainImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.EmbeddedDistributionPaths"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.common.GradleInitScripts"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.importing.GradleProjectImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.service.repo.ExternalRepository"/>
@@ -1027,4 +1022,7 @@
       <implementation-class>com.android.tools.idea.databinding.DataBindingModuleComponent</implementation-class>
     </component>
   </module-components>
+
+  <!-- Resource Explorer is included at the bottom since it has dependencies on the general Android Plugin declarations -->
+  <xi:include href="/com/android/tools/idea/ui/resourcemanager/META-INF/resources-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

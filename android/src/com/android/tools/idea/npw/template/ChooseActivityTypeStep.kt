@@ -23,6 +23,7 @@ import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -42,7 +43,7 @@ class ChooseActivityTypeStep(
   constructor(moduleModel: NewModuleModel, renderModel: RenderTemplateModel, formFactor: FormFactor, targetDirectory: VirtualFile)
     : this(moduleModel, renderModel, formFactor, renderModel.androidFacet!!.getModuleTemplates(targetDirectory))
 
-  override val templateRenders: List<TemplateRenderer>
+  override val templateRenderers: List<TemplateRenderer>
 
   init {
     val oldTemplateRenderers = sequence {
@@ -52,14 +53,16 @@ class ChooseActivityTypeStep(
       yieldAll(TemplateManager.getInstance().getTemplateList(formFactor).map(::OldTemplateRenderer))
     }
     val newTemplateRenderers = sequence {
-      if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get()) {
+      if (StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get()) {
         if (isNewModule) {
           yield(NewTemplateRenderer(Template.NoActivity))
         }
-        yieldAll(TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }.map(::NewTemplateRenderer)) // TODO filter by formfactor
+        yieldAll(TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
+                   .filter { WizardUiContext.ActivityGallery in it.uiContexts }
+                   .map(::NewTemplateRenderer))
       }
     }
-    templateRenders = if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get() && !isNewModule) {
+    templateRenderers = if (StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get() && !isNewModule) {
       val newTemplateNames = newTemplateRenderers.map { it.template.name }
       val unsortedRenderers = (oldTemplateRenderers.filter { it.template?.metadata?.title !in newTemplateNames } + newTemplateRenderers).toList()
       unsortedRenderers.sortedBy { r -> r.label.takeUnless { it == "No Activity" } ?: "0" } // No Activity should always be first

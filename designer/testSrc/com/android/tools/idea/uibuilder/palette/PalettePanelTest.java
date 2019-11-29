@@ -128,7 +128,7 @@ public class PalettePanelTest extends LayoutTestCase {
     registerApplicationService(BrowserLauncher.class, myBrowserLauncher);
     registerApplicationService(CopyPasteManager.class, myCopyPasteManager);
     registerApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
-    registerApplicationComponent(ActionManager.class, myActionManager);
+    registerApplicationService(ActionManager.class, myActionManager);
     registerProjectService(GradleDependencyManager.class, myGradleDependencyManager);
     when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myPopupMenu);
     when(myPopupMenu.getComponent()).thenReturn(myPopupMenuComponent);
@@ -426,7 +426,7 @@ public class PalettePanelTest extends LayoutTestCase {
 
   public void testPopupMenuWithPreferences() {
     ActionManager actionManager = mock(ActionManager.class);
-    registerApplicationComponent(ActionManager.class, actionManager);
+    registerApplicationService(ActionManager.class, actionManager);
 
     setUpPreferenceDesignSurface();
     ItemList itemList = myPanel.getItemList();

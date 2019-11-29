@@ -51,6 +51,8 @@ public class TrackGroup {
   private static final Icon COLLAPSE_ICON = AllIcons.Actions.FindAndShowPrevMatches;
   private static final Font TITLE_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(5f);
 
+  private final TrackGroupModel myModel;
+
   private final JPanel myComponent;
   private final JLabel myTitleLabel;
   private final DragAndDropList<TrackModel> myTrackList;
@@ -63,6 +65,8 @@ public class TrackGroup {
    * @param rendererFactory factory for instantiating {@link TrackRenderer}s
    */
   public TrackGroup(@NotNull TrackGroupModel groupModel, @NotNull TrackRendererFactory rendererFactory) {
+    myModel = groupModel;
+
     // Caches Tracks for the list cell renderer.
     Map<Integer, Track> trackModelToComponentMap = new HashMap<>();
 
@@ -112,6 +116,11 @@ public class TrackGroup {
     myComponent = new JPanel(new BorderLayout());
     myComponent.add(titlePanel, BorderLayout.NORTH);
     myComponent.add(myTrackList, BorderLayout.CENTER);
+  }
+
+  @NotNull
+  public TrackGroupModel getModel() {
+    return myModel;
   }
 
   /**

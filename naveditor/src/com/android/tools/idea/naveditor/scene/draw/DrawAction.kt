@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingLength
+import com.android.tools.adtui.common.SwingPath
 import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.adtui.common.toSwingRect
 import com.android.tools.idea.common.model.Scale
@@ -39,7 +40,6 @@ import com.android.tools.idea.naveditor.scene.getRegularActionIconRect
 import com.android.tools.idea.naveditor.scene.makeDrawArrowCommand
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
-import java.awt.geom.GeneralPath
 
 /**
  * [DrawCommand] that draw a nav editor action (an arrow between two screens).
@@ -62,10 +62,10 @@ class DrawAction(@VisibleForTesting val source: SwingRectangle,
     val list = mutableListOf<DrawCommand>()
 
     val (p1, p2, p3, p4, direction) = getCurvePoints(source, dest, scale)
-    val path = GeneralPath()
-    path.moveTo(p1.x.toDouble(), p1.y.toDouble())
-    path.curveTo(p2.x.toDouble(), p2.y.toDouble(), p3.x.toDouble(), p3.y.toDouble(), p4.x.toDouble(), p4.y.toDouble())
-    list.add(DrawShape(path, color, ACTION_STROKE))
+    val path = SwingPath()
+    path.moveTo(p1)
+    path.curveTo(p2, p3, p4)
+    list.add(DrawShape(path.value, color, ACTION_STROKE))
 
     val arrowDirection = getArrowDirection(direction)
     val arrowRectangle = getArrowRectangle(direction)

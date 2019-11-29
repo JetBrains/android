@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.TooltipModel;
 import java.util.Collections;
 import java.util.Comparator;
@@ -32,22 +33,21 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
     THREAD_STATE,
   }
 
-  @NotNull private final CpuProfilerStage myStage;
+  @NotNull private final Timeline myTimeline;
 
   @Nullable private String myThreadName;
   @Nullable private DataSeries<CpuProfilerStage.ThreadState> mySeries;
   @Nullable private CpuProfilerStage.ThreadState myThreadState;
   private long myDurationUs;
 
-  CpuThreadsTooltip(@NotNull CpuProfilerStage stage) {
-    myStage = stage;
-    Range tooltipRange = stage.getStudioProfilers().getTimeline().getTooltipRange();
-    tooltipRange.addDependency(this).onChange(Range.Aspect.RANGE, this::updateThreadState);
+  public CpuThreadsTooltip(@NotNull Timeline timeline) {
+    myTimeline = timeline;
+    myTimeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::updateThreadState);
   }
 
   @Override
   public void dispose() {
-    myStage.getStudioProfilers().getTimeline().getTooltipRange().removeDependencies(this);
+    myTimeline.getTooltipRange().removeDependencies(this);
   }
 
   private void updateThreadState() {
@@ -58,12 +58,11 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
       return;
     }
 
-    Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
+    Range tooltipRange = myTimeline.getTooltipRange();
     // We could get data for [tooltipRange.getMin() - buffer, tooltipRange.getMin() - buffer],
     // However it is tricky to come up with the buffer duration, a thread state can be longer than any buffer.
     // So, lets get data what the user sees and extract the hovered state.
-    List<SeriesData<CpuProfilerStage.ThreadState>> series =
-      mySeries.getDataForRange(myStage.getStudioProfilers().getTimeline().getViewRange());
+    List<SeriesData<CpuProfilerStage.ThreadState>> series = mySeries.getDataForRange(myTimeline.getViewRange());
 
     int threadStateIndex = Collections.binarySearch(
       series,
@@ -88,7 +87,7 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
     changed(Aspect.THREAD_STATE);
   }
 
-  void setThread(@Nullable String threadName, @Nullable DataSeries<CpuProfilerStage.ThreadState> stateSeries) {
+  public void setThread(@Nullable String threadName, @Nullable DataSeries<CpuProfilerStage.ThreadState> stateSeries) {
     myThreadName = threadName;
     mySeries = stateSeries;
     updateThreadState();
@@ -106,5 +105,10 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
 
   public long getDurationUs() {
     return myDurationUs;
+  }
+
+  @NotNull
+  public Timeline getTimeline() {
+    return myTimeline;
   }
 }

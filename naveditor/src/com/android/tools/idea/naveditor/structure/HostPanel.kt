@@ -27,7 +27,7 @@ import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.GeneralSettings
@@ -68,7 +68,7 @@ import javax.swing.DefaultListModel
 import javax.swing.DefaultListSelectionModel
 import javax.swing.JList
 
-class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardLayout()) {
+class HostPanel(private val surface: DesignSurface) : AdtSecondaryPanel(CardLayout()) {
 
   private val asyncIcon = AsyncProcessIcon("find NavHostFragments")
   @VisibleForTesting val list = JBList<SmartPsiElementPointer<XmlTag>>(DefaultListModel())

@@ -56,9 +56,8 @@ class BuildAttributionUiManager(
 
   private fun createNewView() {
     buildAttributionTreeView?.let { treeView -> Disposer.dispose(treeView) }
-    buildAttributionTreeView = BuildAttributionTreeView(reportUiData).also { newView ->
-      newView.setInitialSelection()
-    }
+    buildAttributionTreeView = BuildAttributionTreeView(reportUiData, TaskIssueReporter(reportUiData, project))
+      .also { newView -> newView.setInitialSelection() }
   }
 
   private fun Content.replaceContentView() {
@@ -74,7 +73,7 @@ class BuildAttributionUiManager(
         Disposer.register(project, content)
         Disposer.register(content, view)
         // When tab is getting closed (and disposed) we want to release the reference on the view.
-        Disposer.register(content, Disposable{ clearUi() })
+        Disposer.register(content, Disposable { clearUi() })
         buildContentManager.addContent(content)
       }
     }

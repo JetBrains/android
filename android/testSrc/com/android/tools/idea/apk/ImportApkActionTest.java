@@ -148,11 +148,6 @@ public class ImportApkActionTest extends PlatformTestCase {
     }
 
     @Override
-    public String getLastProjectPath() {
-      return null;
-    }
-
-    @Override
     public void removePath(@Nullable String path) {
     }
 
@@ -167,6 +162,6 @@ public class ImportApkActionTest extends PlatformTestCase {
       return false;
     }
 
-    public void reopenLastProjectOnStart() {}
+    public void reopenLastProjectsOnStart() {}
   }
 }

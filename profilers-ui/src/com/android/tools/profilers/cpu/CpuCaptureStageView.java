@@ -28,6 +28,12 @@ import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
+import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
+import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
+import com.android.tools.profilers.event.LifecycleTooltip;
+import com.android.tools.profilers.event.LifecycleTooltipView;
+import com.android.tools.profilers.event.UserEventTooltip;
+import com.android.tools.profilers.event.UserEventTooltipView;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
@@ -51,7 +57,16 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     super(view, stage);
     myTrackGroupList = new TrackGroupListPanel(TRACK_RENDERER_FACTORY);
     myAnalysisPanel = new CpuAnalysisPanel(view, stage);
-    getTooltipBinder().bind(CaptureCpuUsageTooltip.class, CaptureCpuUsageTooltipView::new);
+
+    // Tooltip used in the stage
+    getTooltipBinder().bind(CpuCaptureStageCpuUsageTooltip.class, CpuCaptureStageCpuUsageTooltipView::new);
+
+    // Tooltips used in the track groups
+    myTrackGroupList.getTooltipBinder().bind(CpuFrameTooltip.class, CpuFrameTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(CpuThreadsTooltip.class, CpuThreadsTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(CpuKernelTooltip.class, CpuKernelTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
 
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
     myMultiSelectionModel.addDependency(this).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, this::onTrackGroupSelectionChange);
@@ -95,20 +110,27 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   }
 
   private JComponent createAnalyzingComponents() {
+    // Minimap
     CpuCaptureMinimapModel minimapModel = getStage().getMinimapModel();
     CpuCaptureMinimapView minimap = new CpuCaptureMinimapView(minimapModel);
-    RangeTooltipComponent rangeTooltipComponent =
-      new RangeTooltipComponent(getStage().getCaptureTimeline(), getTooltipPanel(), getProfilersView().getComponent(), () -> false);
-    rangeTooltipComponent.registerListenersOn(minimap.getComponent());
+    // Minimap tooltip uses the capture timeline
+    RangeTooltipComponent minimapTooltipComponent =
+      new RangeTooltipComponent(getStage().getCaptureTimeline(),
+                                getTooltipPanel(),
+                                getProfilersView().getComponent(),
+                                () -> false);
+    minimapTooltipComponent.registerListenersOn(minimap.getComponent());
     minimap.getComponent().addMouseListener(
       new ProfilerTooltipMouseAdapter(
         getStage(),
-        () -> new CaptureCpuUsageTooltip(minimapModel.getCpuUsage(), getStage().getCaptureTimeline().getTooltipRange())));
+        () -> new CpuCaptureStageCpuUsageTooltip(minimapModel.getCpuUsage(), getStage().getCaptureTimeline().getTooltipRange())));
+
+    // Track Groups
     loadTrackGroupModels();
 
     JPanel container = new JPanel(new TabularLayout("*", "Fit-,*"));
-    // The tooltip component should be first so it draws on top of all elements.
-    container.add(rangeTooltipComponent, new TabularLayout.Constraint(0, 0, 2, 1));
+    // The tooltip component should be first so it draws on top of all elements. It's only responsible for showing tooltip in the minimap.
+    container.add(minimapTooltipComponent, new TabularLayout.Constraint(0, 0));
     container.add(minimap.getComponent(), new TabularLayout.Constraint(0, 0));
     container.add(
       new JBScrollPane(myTrackGroupList.getComponent(),
@@ -128,6 +150,12 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   }
 
   private void loadTrackGroupModels() {
+    // Track groups tooltip uses the track group timeline (based on minimap selection)
+    myTrackGroupList.setRangeTooltipComponent(
+      new RangeTooltipComponent(getStage().getTimeline(),
+                                myTrackGroupList.getTooltipPanel(),
+                                getProfilersView().getComponent(),
+                                () -> false));
     myTrackGroupList.loadTrackGroups(getStage().getTrackGroupModels(), true);
     myTrackGroupList.registerMultiSelectionModel(myMultiSelectionModel);
   }

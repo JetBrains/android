@@ -15,19 +15,31 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
-import com.android.tools.idea.sqlite.controllers.SqliteController
+import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import java.util.TreeMap
 
-class MockDatabaseInspectorModel : SqliteController.Model {
+class MockDatabaseInspectorModel : DatabaseInspectorController.Model {
+  private val listeners = mutableListOf<DatabaseInspectorController.Model.Listener>()
+
   override val openDatabases: TreeMap<SqliteDatabase, SqliteSchema> = TreeMap(
     Comparator.comparing { database: SqliteDatabase -> database.name }
   )
 
   override fun getSortedIndexOf(database: SqliteDatabase) = openDatabases.headMap(database).size
 
-  override fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema) { openDatabases[database] = sqliteSchema }
+  override fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
+    openDatabases[database] = sqliteSchema
+    listeners.forEach { it.onDatabaseAdded(database) }
+  }
 
-  override fun remove(database: SqliteDatabase) { openDatabases.remove(database) }
+  override fun remove(database: SqliteDatabase) {
+    openDatabases.remove(database)
+    listeners.forEach { it.onDatabaseRemoved(database) }
+  }
+
+  override fun addListener(modelListener: DatabaseInspectorController.Model.Listener) { listeners.add(modelListener) }
+
+  override fun removeListener(modelListener: DatabaseInspectorController.Model.Listener) { listeners.remove(modelListener) }
 }

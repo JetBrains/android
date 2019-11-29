@@ -26,11 +26,9 @@ import com.intellij.facet.FacetType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -38,6 +36,7 @@ import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
+import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
@@ -175,8 +174,8 @@ class AndroidProjectRule private constructor(
 
   fun <T> mockProjectService(serviceType: Class<T>): T = mocks.mockProjectService(serviceType)
 
-  fun <T> registerExtension(epName: ExtensionPointName<T>, extension: T) =
-    PlatformTestUtil.registerExtension<T>(Extensions.getArea(project), epName, extension, fixture.projectDisposable)
+  fun <T : Any> registerExtension(epName: ExtensionPointName<T>, extension: T) =
+    project.registerExtension(epName, extension, fixture.projectDisposable)
 
   fun <T: CodeInsightTestFixture> getFixture(type: Class<T>): T? {
     return if (type.isInstance(fixture)) fixture as T else null
@@ -240,7 +239,18 @@ class AndroidProjectRule private constructor(
         // Projects set up to match the provided AndroidModel require content files to be located under the project directory.
         // Otherwise adding a new directory may require re-(fake)syncing to make it visible to the project.
         object : TempDirTestFixtureImpl() {
-          override fun getTempHome(): File = toSystemDependentPath(projectBuilder.fixture.project.basePath)!!
+          private val tempDir by lazy { toSystemDependentPath(projectBuilder.fixture.project.basePath)!! }
+
+          override fun getTempHome(): File = tempDir
+
+          override fun tearDown() {
+            val existed = tempDir.exists()
+            super.tearDown()
+            // TempDirTestFixtureImpl re-creates parent directories on tear down. Delete tempDir if it was re-created.
+            if (!existed && tempDir.exists()) {
+              tempDir.delete()
+            }
+          }
         }
       }
 

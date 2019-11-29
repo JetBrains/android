@@ -36,12 +36,12 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations
-import org.picocontainer.PicoContainer
 
 /**
  * Unit tests for [ExecutionEnvironment] extension functions.
@@ -62,8 +62,6 @@ class ExecutionEnvironmentExtTest {
   @Mock
   lateinit var mockExecutionManager: ExecutionManager
   @Mock
-  lateinit var mockPicoContainer: PicoContainer
-  @Mock
   lateinit var mockDebugManager: DebuggerManagerEx
 
   @Before
@@ -73,8 +71,7 @@ class ExecutionEnvironmentExtTest {
     `when`(mockEnv.runProfile).thenReturn(mockRunProfile)
     `when`(mockEnv.executionTarget).thenReturn(mockExecutionTarget)
 
-    `when`(mockProject.picoContainer).thenReturn(mockPicoContainer)
-    `when`(mockPicoContainer.getComponentInstance(eq(ExecutionManager::class.java.name))).thenReturn(mockExecutionManager)
+    `when`(mockProject.getService(eq(ExecutionManager::class.java), ArgumentMatchers.anyBoolean())).thenReturn(mockExecutionManager)
     `when`(mockExecutionManager.runningProcesses).thenReturn(arrayOf())
 
     `when`(mockProject.getComponent(eq(DebuggerManager::class.java))).thenReturn(mockDebugManager)

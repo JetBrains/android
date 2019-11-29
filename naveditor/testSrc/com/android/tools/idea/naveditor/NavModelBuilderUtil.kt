@@ -29,7 +29,7 @@ import com.android.tools.idea.naveditor.model.NavComponentHelper
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.updateHierarchy
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.android.tools.idea.naveditor.surface.NavInteractionProvider
+import com.android.tools.idea.naveditor.surface.NavInteractionHandler
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.*
@@ -85,7 +85,7 @@ object NavModelBuilderUtil {
 
     return ModelBuilder(facet, fixture, name, f(), managerFactory,
                         BiConsumer<NlModel, NlModel> { model, newModel -> updateHierarchy(model, newModel) }, path,
-                        NavDesignSurface::class.java, Function { NavInteractionProvider(it) },
+                        NavDesignSurface::class.java, Function { NavInteractionHandler(it) },
                         Consumer<NlComponent> { NavComponentHelper.registerComponent(it) })
   }
 

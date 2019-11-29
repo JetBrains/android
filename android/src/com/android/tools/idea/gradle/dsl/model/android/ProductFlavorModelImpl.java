@@ -41,9 +41,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
-import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement.NDK_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDrawablesOptionsDslElement.VECTOR_DRAWABLES_OPTIONS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.ExternalNativeBuildOptionsDslElement.EXTERNAL_NATIVE_BUILD_OPTIONS;
+import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement.NDK_OPTIONS;
+import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDrawablesOptionsDslElement.VECTOR_DRAWABLES_OPTIONS;
 
 public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements ProductFlavorModel {
   /**
@@ -90,18 +90,13 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @NotNull
   public ExternalNativeBuildOptionsModel externalNativeBuild() {
     ExternalNativeBuildOptionsDslElement externalNativeBuildOptionsDslElement =
-      myDslElement.getPropertyElement(EXTERNAL_NATIVE_BUILD_BLOCK_NAME,
-                                      ExternalNativeBuildOptionsDslElement.class);
-    if (externalNativeBuildOptionsDslElement == null) {
-      externalNativeBuildOptionsDslElement = new ExternalNativeBuildOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(externalNativeBuildOptionsDslElement);
-    }
+      myDslElement.ensurePropertyElement(EXTERNAL_NATIVE_BUILD_OPTIONS);
     return new ExternalNativeBuildOptionsModelImpl(externalNativeBuildOptionsDslElement);
   }
 
   @Override
   public void removeExternalNativeBuild() {
-    myDslElement.removeProperty(EXTERNAL_NATIVE_BUILD_BLOCK_NAME);
+    myDslElement.removeProperty(EXTERNAL_NATIVE_BUILD_OPTIONS.name);
   }
 
   @Override
@@ -165,17 +160,13 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @Override
   @NotNull
   public NdkOptionsModel ndk() {
-    NdkOptionsDslElement ndkOptionsDslElement = myDslElement.getPropertyElement(NDK_BLOCK_NAME, NdkOptionsDslElement.class);
-    if (ndkOptionsDslElement == null) {
-      ndkOptionsDslElement = new NdkOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(ndkOptionsDslElement);
-    }
+    NdkOptionsDslElement ndkOptionsDslElement = myDslElement.ensurePropertyElement(NDK_OPTIONS);
     return new NdkOptionsModelImpl(ndkOptionsDslElement);
   }
 
   @Override
   public void removeNdk() {
-    myDslElement.removeProperty(NDK_BLOCK_NAME);
+    myDslElement.removeProperty(NDK_OPTIONS.name);
   }
 
   @Override
@@ -259,12 +250,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @NotNull
   @Override
   public VectorDrawablesOptionsModel vectorDrawables() {
-    VectorDrawablesOptionsDslElement vectorDrawableElement =
-      myDslElement.getPropertyElement(VECTOR_DRAWABLES_OPTIONS_BLOCK_NAME, VectorDrawablesOptionsDslElement.class);
-    if (vectorDrawableElement == null) {
-      vectorDrawableElement = new VectorDrawablesOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(vectorDrawableElement);
-    }
+    VectorDrawablesOptionsDslElement vectorDrawableElement = myDslElement.ensurePropertyElement(VECTOR_DRAWABLES_OPTIONS);
     return new VectorDrawablesOptionsModelImpl(vectorDrawableElement);
   }
 

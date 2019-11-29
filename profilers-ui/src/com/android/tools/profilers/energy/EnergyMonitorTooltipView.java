@@ -17,13 +17,12 @@ import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitorTooltipView;
-import com.android.tools.profilers.StudioMonitorStageView;
+import com.android.tools.profilers.StageView;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
 public class EnergyMonitorTooltipView extends ProfilerMonitorTooltipView<EnergyMonitor> {
-  public EnergyMonitorTooltipView(StudioMonitorStageView parent, @NotNull EnergyMonitorTooltip tooltip) {
+  public EnergyMonitorTooltipView(StageView parent, @NotNull EnergyMonitorTooltip tooltip) {
     super(tooltip.getMonitor());
   }
 

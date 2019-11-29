@@ -306,6 +306,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     ResourceNotificationManager.getInstance(myProject).addListener(new ResourceNotificationManager.ResourceChangeListener() {
       @Override
       public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
+        boolean hasMotionSelection = myLastSelectedTags != null && mLastSelection != null;
         mLastSelection = null;
         myLastSelectedTags = null;
         MotionSceneTag.Root motionScene = getMotionScene(myMotionLayoutNlComponent);
@@ -313,6 +314,12 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
           myMotionScene = motionScene;
           myMotionSceneFile = motionScene.mVirtualFile;
           mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "", getSetupError());
+
+          if (myLastSelectedTags == null && hasMotionSelection) {
+            // The previous selection could not be restored.
+            // Select something in the MotionScene to avoid the properties panel reverting back to the MotionLayout.
+            selectSomething(motionScene);
+          }
         }
         fireSelectionChanged(Collections.singletonList(mySelection));
         if (motionScene != null) {
@@ -321,6 +328,16 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       }
     }, facet, myMotionSceneFile, null);
     handleSelectionChanged(designSurfaceSelection, dsSelection);
+  }
+
+  private void selectSomething(@NotNull MotionSceneTag motionScene) {
+    MTag[] sets = motionScene.getChildTags(MotionSceneAttrs.Tags.CONSTRAINTSET);
+    if (sets.length == 0) {
+      // Nothing to select...
+      return;
+    }
+    mLastSelection = MotionEditorSelector.Type.CONSTRAINT_SET;
+    myLastSelectedTags = new MTag[]{sets[0]};
   }
 
   private String getSetupError() {

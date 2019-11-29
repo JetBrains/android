@@ -38,7 +38,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.model.AndroidModel;
@@ -77,7 +76,6 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
   @Mock private ProjectSetup myProjectSetup;
   @Mock private ModuleSetup myModuleSetup;
   @Mock private PluginVersionUpgrade myVersionUpgrade;
-  @Mock private VersionCompatibilityChecker myVersionCompatibilityChecker;
   @Mock private GradleProjectBuilder myProjectBuilder;
   @Mock private RunManagerEx myRunManager;
   @Mock private ExternalSystemTaskId myTaskId;
@@ -99,7 +97,7 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
     myProjectStructure = new ProjectStructureStub(project);
     mySetup = new PostSyncProjectSetup(project, myIdeInfo, myProjectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
                                        myDependencySetupIssues, myProjectSetup, myModuleSetup, myVersionUpgrade,
-                                       myVersionCompatibilityChecker, myProjectBuilder, myRunManager);
+                                       myProjectBuilder, myRunManager);
   }
 
   @Override
@@ -199,7 +197,6 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
 
     Project project = getProject();
     verify(myDependencySetupIssues, times(1)).reportIssues();
-    verify(myVersionCompatibilityChecker, times(1)).checkAndReportComponentIncompatibilities(project);
 
     verify(myProjectSetup, times(1)).setUpProject(true);
     verify(mySyncState, times(1)).syncFailed(any(), any(), any());

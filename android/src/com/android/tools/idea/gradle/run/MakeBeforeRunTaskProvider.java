@@ -635,6 +635,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
             gradlePaths.add(testedVariant.getTargetProjectPath());
           }
         }
+        gradlePaths.addAll(androidProject.getDynamicFeatures());
       }
 
       return gradlePaths;

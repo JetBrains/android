@@ -23,6 +23,7 @@ import static com.android.tools.profilers.StudioProfilers.buildDeviceName;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.StandardColors;
@@ -32,7 +33,6 @@ import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.ViewBinder;
 import com.android.tools.profilers.cpu.CpuCaptureArtifactView;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.memory.HprofArtifactView;
@@ -367,21 +367,19 @@ public class SessionsView extends AspectObserver {
 
   private void addImportAction() {
     // Add the dropdown action for loading from file
-    if (myProfilers.getIdeServices().getFeatureConfig().isSessionImportEnabled()) {
-      CommonAction loadAction = new CommonAction("Load from file...", null);
-      loadAction.setAction(
-        () -> myIdeProfilerComponents.createImportDialog().open(
-          () -> "Open",
-          ImmutableList.of("hprof", "trace"),
-          file -> {
-            if (!myProfilers.getSessionsManager().importSessionFromFile(new File(file.getPath()))) {
-              myIdeProfilerComponents.createUiMessageHandler()
-                .displayErrorMessage(myComponent, "File Open Error",
-                                     String.format("Unknown file type: %s", file.getPath()));
-            }
-          }));
-      myProcessSelectionAction.addChildrenActions(loadAction, new CommonAction.SeparatorAction());
-    }
+    CommonAction loadAction = new CommonAction("Load from file...", null);
+    loadAction.setAction(
+      () -> myIdeProfilerComponents.createImportDialog().open(
+        () -> "Open",
+        ImmutableList.of("hprof", "trace"),
+        file -> {
+          if (!myProfilers.getSessionsManager().importSessionFromFile(new File(file.getPath()))) {
+            myIdeProfilerComponents.createUiMessageHandler()
+              .displayErrorMessage(myComponent, "File Open Error",
+                                   String.format("Unknown file type: %s", file.getPath()));
+          }
+        }));
+    myProcessSelectionAction.addChildrenActions(loadAction, new CommonAction.SeparatorAction());
   }
 
   void stopProfilingSession() {

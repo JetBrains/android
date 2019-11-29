@@ -19,15 +19,12 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class ConfigurationsDslElement extends GradleDslBlockElement implements GradleDslNamedDomainContainer {
-  @NonNls public static final String CONFIGURATIONS_BLOCK_NAME = "configurations";
+  public static final PropertiesElementDescription<ConfigurationsDslElement> CONFIGURATIONS =
+    new PropertiesElementDescription<>("configurations", ConfigurationsDslElement.class, ConfigurationsDslElement::new);
 
   @Override
   public boolean implicitlyExists(@NotNull String name) {
@@ -39,7 +36,7 @@ public class ConfigurationsDslElement extends GradleDslBlockElement implements G
     return false;
   }
 
-  public ConfigurationsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(CONFIGURATIONS_BLOCK_NAME));
+  public ConfigurationsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

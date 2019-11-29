@@ -22,11 +22,13 @@ import com.android.tools.idea.concurrency.listenInPoolThread
 import com.android.tools.idea.concurrency.whenAllComplete
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.SequentialTaskExecutor
+import java.util.concurrent.Callable
 import java.util.concurrent.Future
 
 /**
@@ -72,7 +74,9 @@ class DeviceNamePropertiesFetcher(private val uiCallback: FutureCallback<DeviceN
     return futures
         .listenInPoolThread(taskExecutor)
         .whenAllComplete()
-        .call { DeviceNameProperties(futures[0].get(), futures[1].get(), futures[2].get(), futures[3].get()) }
+        .call(
+          Callable<DeviceNameProperties> { DeviceNameProperties(futures[0].get(), futures[1].get(), futures[2].get(), futures[3].get()) },
+          MoreExecutors.directExecutor())
   }
 
   private fun isRetrieving(device: IDevice): Boolean {

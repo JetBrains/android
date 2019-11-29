@@ -19,27 +19,35 @@ import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.duration
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.issueIcon;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.percentageString;
 
+import com.android.build.attribution.ui.TaskIssueReporter;
 import com.android.build.attribution.ui.data.InterTaskIssueUiData;
+import com.android.build.attribution.ui.data.PluginSourceType;
 import com.android.build.attribution.ui.data.TaskIssueUiData;
 import com.android.build.attribution.ui.data.TaskUiData;
 import com.android.utils.HtmlBuilder;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.panels.VerticalLayout;
+import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 public class TaskIssueInfoPanel extends JBPanel {
   private final TaskUiData myTaskData;
   private final TaskIssueUiData myIssue;
+  private final TaskIssueReporter myIssueReporter;
 
-  public TaskIssueInfoPanel(TaskIssueUiData issue) {
+  public TaskIssueInfoPanel(TaskIssueUiData issue, TaskIssueReporter reporter) {
     super(new GridBagLayout());
     myIssue = issue;
     myTaskData = issue.getTask();
+    myIssueReporter = reporter;
 
     GridBagConstraints c = new GridBagConstraints();
     c.insets = JBUI.insetsBottom(15);
@@ -51,6 +59,9 @@ public class TaskIssueInfoPanel extends JBPanel {
 
     c.gridy = 1;
     c.fill = GridBagConstraints.HORIZONTAL;
+    add(createRecommendation(), c);
+
+    c.gridy = 2;
     add(createTaskInfo(), c);
 
     //add bottom space filler
@@ -86,6 +97,20 @@ public class TaskIssueInfoPanel extends JBPanel {
     c.weighty = 1.0;
     c.fill = GridBagConstraints.BOTH;
     panel.add(issueDescription, c);
+    return panel;
+  }
+
+  protected JComponent createRecommendation() {
+    if (myTaskData.getSourceType() == PluginSourceType.BUILD_SRC) {
+      return new JPanel();
+    }
+    HyperlinkLabel recommendationLabel = new HyperlinkLabel();
+    recommendationLabel.addHyperlinkListener(e -> myIssueReporter.reportIssue(myIssue));
+    recommendationLabel.setHyperlinkText("Consider filing a bug to report this issue to the plugin developer. ", "Generate report.", "");
+
+    JPanel panel = new JPanel(new VerticalLayout(5));
+    panel.add(new JBLabel("Recommendation").withFont(JBFont.label().asBold()));
+    panel.add(recommendationLabel);
     return panel;
   }
 

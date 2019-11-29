@@ -18,13 +18,14 @@ package com.android.tools.idea.gradle.dsl.parser.repositories;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
 public class RepositoriesDslElement extends GradleDslBlockElement {
-  @NonNls public static final String REPOSITORIES_BLOCK_NAME = "repositories";
+  public static final PropertiesElementDescription<RepositoriesDslElement> REPOSITORIES =
+    new PropertiesElementDescription<>("repositories", RepositoriesDslElement.class, RepositoriesDslElement::new);
 
-  public RepositoriesDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(REPOSITORIES_BLOCK_NAME));
+  public RepositoriesDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

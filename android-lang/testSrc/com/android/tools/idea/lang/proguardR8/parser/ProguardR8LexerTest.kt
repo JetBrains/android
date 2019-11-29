@@ -28,7 +28,7 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.DOT
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.DOUBLE_ASTERISK
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.DOUBLE_QUOTED_STRING
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.FILE_NAME
-import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.FLAG
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.FLAG_TOKEN
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.IMPLEMENTS
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.INT
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.JAVA_IDENTIFIER
@@ -50,23 +50,23 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
   fun testOneRule() {
     assertTokenTypes(
       "-android",
-      "-android" to FLAG
+      "-android" to FLAG_TOKEN
     )
   }
 
   fun testSimpleRule() {
     assertTokenTypes(
       "-android -dontpreverify",
-      "-android" to FLAG,
+      "-android" to FLAG_TOKEN,
       SPACE,
-      "-dontpreverify" to FLAG
+      "-dontpreverify" to FLAG_TOKEN
     )
 
     assertTokenTypes(
       "-android\n-dontpreverify",
-      "-android" to FLAG,
+      "-android" to FLAG_TOKEN,
       NEWLINE,
-      "-dontpreverify" to FLAG
+      "-dontpreverify" to FLAG_TOKEN
     )
   }
 
@@ -77,11 +77,11 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
         -libraryjars /usr/local/android-sdk/platforms/android-28/android.jar
       """.trimIndent(),
 
-      "-outjars" to FLAG,
+      "-outjars" to FLAG_TOKEN,
       SPACE,
       "bin/application.apk" to FILE_NAME,
       NEWLINE,
-      "-libraryjars" to FLAG,
+      "-libraryjars" to FLAG_TOKEN,
       SPACE,
       "/usr/local/android-sdk/platforms/android-28/android.jar" to FILE_NAME
     )
@@ -94,7 +94,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
         public <init>(androi_d.content.Context, android.util.AttributeSet, int);
         }
       """.trimIndent(),
-      "-keepclasseswithmembers" to FLAG,
+      "-keepclasseswithmembers" to FLAG_TOKEN,
       SPACE,
       "class" to CLASS,
       SPACE,
@@ -133,7 +133,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       """
         -keepclassmembers class * implements @javax.annotation.Resource java.io.Serializable
       """.trimIndent(),
-      "-keepclassmembers" to FLAG,
+      "-keepclassmembers" to FLAG_TOKEN,
       SPACE,
       "class" to CLASS,
       SPACE,
@@ -166,7 +166,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
         public java.lang.StringBuilder append(java.lang.StringBuffer);
         }
       """.trimIndent(),
-      "-assumenoexternalsideeffects" to FLAG,
+      "-assumenoexternalsideeffects" to FLAG_TOKEN,
       SPACE,
       "class" to CLASS,
       SPACE,
@@ -238,7 +238,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
   fun testFileList() {
     assertTokenTypes(
       """-injars "my program.jar":'/your directory/your program.jar';<java.home>/lib/rt.jar""".trimIndent(),
-      "-injars" to FLAG,
+      "-injars" to FLAG_TOKEN,
       SPACE,
       "\"my program.jar\"" to DOUBLE_QUOTED_STRING,
       ":" to COLON,
@@ -251,7 +251,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
   fun testInnerClass() {
     assertTokenTypes(
       "-keepclassmembers class **.R${'$'}InnerClass",
-      "-keepclassmembers" to FLAG,
+      "-keepclassmembers" to FLAG_TOKEN,
       SPACE,
       "class" to CLASS,
       SPACE,
@@ -269,7 +269,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
         public <methods>;
         }
       """.trimIndent(),
-      "-assumenoexternalsideeffects" to FLAG,
+      "-assumenoexternalsideeffects" to FLAG_TOKEN,
       SPACE,
       "class" to CLASS,
       SPACE,
@@ -308,7 +308,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
           int 弛;
           }
       """.trimIndent(),
-      "-keep" to FLAG,
+      "-keep" to FLAG_TOKEN,
       SPACE,
       "class" to CLASS,
       SPACE,
@@ -360,7 +360,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
           int **弛?ident1fier**弛*ident1fier?;
           }
       """.trimIndent(),
-      "-keep" to FLAG,
+      "-keep" to FLAG_TOKEN,
       SPACE,
       "class" to CLASS,
       SPACE,
@@ -418,7 +418,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       "@" to AT,
       "keep-rules.txt" to FILE_NAME,
       NEWLINE,
-      "-secondrule" to FLAG
+      "-secondrule" to FLAG_TOKEN
     )
   }
 
@@ -427,7 +427,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       """
       -keep @annotation
       """.trimIndent(),
-      "-keep" to FLAG,
+      "-keep" to FLAG_TOKEN,
       SPACE,
       "@" to AT,
       "annotation" to JAVA_IDENTIFIER
@@ -452,7 +452,7 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       """
       -keep class **${'$'}D<2>
       """.trimIndent(),
-      "-keep" to FLAG,
+      "-keep" to FLAG_TOKEN,
       SPACE,
       "class" to CLASS,
       SPACE,
@@ -474,43 +474,43 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
         -printusage ' xxx xxx '
         -printusage "xxx'
       """.trimIndent(),
-      "-printusage" to FLAG,
+      "-printusage" to FLAG_TOKEN,
       SPACE,
       "'xxx'" to SINGLE_QUOTED_STRING,
       NEWLINE,
-      "-printusage" to FLAG,
+      "-printusage" to FLAG_TOKEN,
       SPACE,
       "\"xxx\"" to DOUBLE_QUOTED_STRING,
       NEWLINE,
-      "-printusage" to FLAG,
+      "-printusage" to FLAG_TOKEN,
       SPACE,
       "'xxx xxx'" to SINGLE_QUOTED_STRING,
       NEWLINE,
-      "-printusage" to FLAG,
+      "-printusage" to FLAG_TOKEN,
       SPACE,
       "\"xxx xxx\"" to DOUBLE_QUOTED_STRING,
       NEWLINE,
-      "-printusage" to FLAG,
+      "-printusage" to FLAG_TOKEN,
       SPACE,
       "\"'xxx'\"" to DOUBLE_QUOTED_STRING,
       NEWLINE,
-      "-printusage" to FLAG,
+      "-printusage" to FLAG_TOKEN,
       SPACE,
       "\" xxx xxx (\"" to DOUBLE_QUOTED_STRING,
       NEWLINE,
-      "-printusage" to FLAG,
+      "-printusage" to FLAG_TOKEN,
       SPACE,
       "'\"xxx\"'" to SINGLE_QUOTED_STRING,
       NEWLINE,
-      "-printusage" to FLAG,
+      "-printusage" to FLAG_TOKEN,
       SPACE,
       "\" xxx xxx \"" to DOUBLE_QUOTED_STRING,
       NEWLINE,
-      "-printusage" to FLAG,
+      "-printusage" to FLAG_TOKEN,
       SPACE,
       "' xxx xxx '" to SINGLE_QUOTED_STRING,
       NEWLINE,
-      "-printusage" to FLAG,
+      "-printusage" to FLAG_TOKEN,
       SPACE,
       "\"xxx'" to UNTERMINATED_DOUBLE_QUOTED_STRING
     )

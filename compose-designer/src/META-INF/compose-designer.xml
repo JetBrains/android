@@ -26,6 +26,8 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
+    <lang.documentationProvider language="kotlin" implementationClass="com.android.tools.idea.compose.documentation.ComposeDocumentationProvider" order="first"/>
+
     <fileEditorProvider implementation="com.android.tools.idea.compose.preview.ComposeFileEditorProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposeNewPreviewNotificationProvider" />
 
@@ -60,6 +62,10 @@
 
   <extensions defaultExtensionNs="com.android.tools.idea.compose.preview">
     <composeEditorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposePreviewNotificationProvider" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode">
+    <sourceCodePreviewRepresentationProvider implementation="com.android.tools.idea.compose.preview.ComposePreviewRepresentationProvider"/>
   </extensions>
 
   <project-components>

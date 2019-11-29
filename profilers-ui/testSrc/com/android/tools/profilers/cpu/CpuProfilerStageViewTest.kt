@@ -135,7 +135,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
   @Test
   fun sparklineVisibilityChangesOnMouseStates() {
     val cpuProfilerStageView = CpuProfilerStageView(myProfilersView, myStage)
-    cpuProfilerStageView.timeline.tooltipRange.set(0.0, 0.0)
+    cpuProfilerStageView.stage.timeline.tooltipRange.set(0.0, 0.0)
     val treeWalker = TreeWalker(cpuProfilerStageView.component)
     // Grab the tooltip component and give it dimensions to be visible.
     val tooltipComponent = treeWalker.descendants().filterIsInstance<RangeTooltipComponent>()[0]
@@ -172,12 +172,13 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
                                              CpuProfilerTestUtils.traceFileToByteString(
                                                TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
 
-    // Enable import trace flag which is required for import-trace-mode.
-    myIdeServices.enableImportTrace(true)
+    myIdeServices.enableCpuCaptureStage(false)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
     myStage.enter()
 
     val cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
+    assertThat(cpuStageView.supportsStreaming()).isFalse()
+    assertThat(cpuStageView.supportsStageNavigation()).isFalse()
     // Selecting the capture automatically selects the first process in the capture.
     myStage.setAndSelectCapture(0)
     val processLabel = TreeWalker(cpuStageView.toolbar).descendants().filterIsInstance<JLabel>()[0]
@@ -187,8 +188,6 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
 
   @Test
   fun importTraceModeShouldShowCpuCaptureView() {
-    // Enable import trace flag which is required for import-trace-mode.
-    myIdeServices.enableImportTrace(true)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
     myStage.enter()
 
@@ -321,7 +320,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
     val selectionPos = ui.getPosition(selection)
 
     val w = selection.width.toDouble()
-    stageView.timeline.apply {
+    stageView.stage.timeline.apply {
       viewRange.set(0.0, w)
       selectionRange.set(w / 2, w)
     }
@@ -346,7 +345,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
     assertThat(myStage.tooltip).isNull()
     // Move into |CpuUsageView|
     ui.mouse.moveTo(usageViewOrigin.x, usageViewOrigin.y)
-    assertThat(myStage.tooltip).isInstanceOf(CpuUsageTooltip::class.java)
+    assertThat(myStage.tooltip).isInstanceOf(CpuProfilerStageCpuUsageTooltip::class.java)
   }
 
   @Test

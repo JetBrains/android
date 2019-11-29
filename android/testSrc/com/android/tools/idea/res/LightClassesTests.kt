@@ -27,11 +27,13 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.highlightedAs
+import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.updatePrimaryManifest
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiClass
@@ -417,6 +419,45 @@ sealed class LightClassesTestBase : AndroidTestCase() {
           .fields
           .map(PsiField::getName)
       ).containsExactly("appString", "bar")
+    }
+
+    fun testModificationTracking() {
+      myFixture.addFileToProject("res/drawable/foo.xml", "<vector-drawable />")
+
+      myFixture.loadNewFile(
+        "src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                int id1 = R.drawable.foo;
+                int id2 = R.drawable.${"bar" highlightedAs ERROR};
+            }
+        }
+        """.trimIndent()
+      )
+
+      // Sanity check:
+      myFixture.checkHighlighting()
+
+      // Make sure light classes pick up changes to repositories:
+      val barXml = myFixture.addFileToProject("res/drawable/bar.xml", "<vector-drawable />")
+      UIUtil.dispatchAllInvocationEvents()
+      assertThat(myFixture.doHighlighting(ERROR)).isEmpty()
+
+      // Regression test for b/144585792. Caches in ResourceRepositoryManager can be dropped for various reasons, we need to make sure we
+      // keep track of changes even after new repository instances are created.
+      ResourceRepositoryManager.getInstance(myFacet).resetAllCaches()
+      runWriteAction { barXml.delete() }
+      UIUtil.dispatchAllInvocationEvents()
+      assertThat(myFixture.doHighlighting(ERROR)).hasSize(1)
     }
 
     fun testContainingClass() {

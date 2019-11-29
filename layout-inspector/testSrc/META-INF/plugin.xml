@@ -23,5 +23,6 @@
   <name>Android Layout Inspector Tests</name>
   <id>com.android.tools.idea.layoutinspector.tests</id>
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/pipeline.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

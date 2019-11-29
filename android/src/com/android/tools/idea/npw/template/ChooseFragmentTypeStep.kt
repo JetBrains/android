@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.npw.template
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.templates.TemplateManager
+import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -35,12 +37,24 @@ class ChooseFragmentTypeStep(
   messageKeys = fragmentGalleryStepMessageKeys,
   emptyItemLabel = "Blank Fragment"
 ) {
-  override val templateRenders = sequence {
-    if (isNewModule) {
-      yield(OldTemplateRenderer(null))
+  override val templateRenderers: List<TemplateRenderer>
+
+  init {
+    val oldTemplateRenderers = TemplateManager.getInstance().getFragmentTemplateList(formFactor)
+      .map(ChooseGalleryItemStep::OldTemplateRenderer)
+
+    templateRenderers = if (StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get()) {
+      val newTemplateRenderers = TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
+        .filter { WizardUiContext.FragmentGallery in it.uiContexts }
+        .map(::NewTemplateRenderer)
+      val newTemplateNames = newTemplateRenderers.map { it.template.name }
+      val unsortedRenderers = (oldTemplateRenderers.filterNot { it.template?.metadata?.title in newTemplateNames } + newTemplateRenderers)
+      unsortedRenderers.sortedBy { it.label }
     }
-    yieldAll(TemplateManager.getInstance().getFragmentTemplateList(formFactor).map(::OldTemplateRenderer))
-  }.toList()
+    else {
+      oldTemplateRenderers
+    }
+  }
 }
 
 @VisibleForTesting

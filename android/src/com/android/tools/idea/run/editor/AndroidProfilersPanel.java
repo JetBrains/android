@@ -67,7 +67,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     return myDescription;
   }
 
-  AndroidProfilersPanel(Project project, ProfilerState state) {
+  public AndroidProfilersPanel(Project project, ProfilerState state) {
     myProject = project;
     updateHyperlink("");
     addActionListenersToLabels();
@@ -113,7 +113,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   /**
    * Resets the settings panel to the values in the specified {@link ProfilerState}.
    */
-  void resetFrom(ProfilerState state) {
+  public void resetFrom(ProfilerState state) {
     boolean enabled = myAdvancedProfilingCheckBox.isEnabled();
     myAdvancedProfilingDescription.setBackground(myDescription.getBackground());
     myAdvancedProfilingCheckBox.setSelected(enabled && state.ADVANCED_PROFILING_ENABLED);
@@ -131,7 +131,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   /**
    * Assigns the current UI state to the specified {@link ProfilerState}.
    */
-  void applyTo(ProfilerState state) {
+  public void applyTo(ProfilerState state) {
     state.ADVANCED_PROFILING_ENABLED = myAdvancedProfilingCheckBox.isSelected();
 
     state.STARTUP_CPU_PROFILING_ENABLED = StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get() && myStartupCpuProfileCheckBox.isSelected();

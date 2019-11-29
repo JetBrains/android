@@ -37,6 +37,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlo
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrNewExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.maybeTrimForParent;
@@ -270,10 +271,9 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     PsiElement anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter);
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
-    String statementText =
-      (!methodCall.getFullName().isEmpty() ? maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent(), this).getFirst() + " " : "") +
-      maybeTrimForParent(GradleNameElement.fake(methodCall.getMethodName()), methodCall.getParent(), this).getFirst() +
-      "()";
+    String elementName = !methodCall.getFullName().isEmpty() ? maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent(), this).getFirst() + " " : "";
+    String methodCallText = methodCall.getMethodName() + "()";
+    String statementText = (methodCall.shouldUseAssignment()) ? elementName + "= " + methodCallText : elementName + methodCallText;
     GrStatement statement = factory.createStatementFromText(statementText);
     PsiElement addedElement = parentPsiElement.addAfter(statement, anchor);
 
@@ -283,12 +283,28 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
         methodCall.setPsiElement(expressionArguments[0]);
 
         // Set the argument list element as well.
-        if (expressionArguments[0] instanceof GrMethodCallExpression) {
-          GrMethodCallExpression methodCallExpression = (GrMethodCallExpression)expressionArguments[0];
-          methodCall.getArgumentsElement().setPsiElement(methodCallExpression.getArgumentList());
-        }
+        GrMethodCallExpression methodCallExpression = (GrMethodCallExpression)expressionArguments[0];
+        methodCall.getArgumentsElement().setPsiElement(methodCallExpression.getArgumentList());
         return methodCall.getPsiElement();
       }
+    }
+
+    if (addedElement instanceof GrAssignmentExpression) {
+      GrExpression rValue = ((GrAssignmentExpression)addedElement).getRValue();
+      if (rValue instanceof GrMethodCallExpression) {
+        methodCall.setPsiElement(rValue);
+
+
+        GrMethodCallExpression methodCallExpression = (GrMethodCallExpression)rValue;
+        methodCall.getArgumentsElement().setPsiElement(methodCallExpression.getArgumentList());
+        return methodCall.getPsiElement();
+      } else if (rValue instanceof GrNewExpression) {
+        methodCall.setPsiElement(rValue);
+
+        GrNewExpression newExpression = (GrNewExpression)rValue;
+        methodCall.getArgumentsElement().setPsiElement(newExpression.getArgumentList());
+      }
+      return methodCall.getPsiElement();
     }
 
     if (addedElement instanceof GrMethodCallExpression) {

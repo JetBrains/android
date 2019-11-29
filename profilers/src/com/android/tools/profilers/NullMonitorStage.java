@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * This stage gets set when the profilers first open and no session has been selected.
  */
-public class NullMonitorStage extends Stage {
+public class NullMonitorStage extends StreamingStage {
   @Nullable private String myUnsupportedReason;
 
   public NullMonitorStage(@NotNull StudioProfilers profiler) {

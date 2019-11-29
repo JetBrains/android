@@ -29,7 +29,7 @@
             <properties>
               <horizontalAlignment value="4"/>
               <labelFor value="8f111"/>
-              <text resource-bundle="messages/CommonBundle" key="editbox.host.name"/>
+              <text resource-bundle="messages/UIBundle" key="proxy.manual.host"/>
             </properties>
           </component>
           <component id="fd0e0" class="javax.swing.JCheckBox" binding="myHttpProxyAuthCheckBox">
@@ -39,7 +39,7 @@
             <properties>
               <margin top="2" left="1" bottom="2" right="2"/>
               <selected value="false"/>
-              <text resource-bundle="messages/CommonBundle" key="checkbox.proxy.authentication"/>
+              <text resource-bundle="messages/UIBundle" key="proxy.manual.auth"/>
             </properties>
           </component>
           <component id="fa7c5" class="javax.swing.JLabel">
@@ -49,7 +49,7 @@
             <properties>
               <horizontalAlignment value="4"/>
               <labelFor value="71b34"/>
-              <text resource-bundle="messages/CommonBundle" key="editbox.login"/>
+              <text resource-bundle="messages/UIBundle" key="auth.login.label"/>
             </properties>
           </component>
           <component id="c5cde" class="javax.swing.JLabel">
@@ -68,6 +68,7 @@
               </grid>
             </constraints>
             <properties>
+              <name value="httpUser"/>
               <text value=""/>
             </properties>
           </component>
@@ -77,7 +78,9 @@
                 <preferred-size width="150" height="-1"/>
               </grid>
             </constraints>
-            <properties/>
+            <properties>
+              <name value="httpHost"/>
+            </properties>
           </component>
           <component id="302b9" class="com.intellij.ui.RawCommandLineEditor" binding="myHttpProxyExceptions" custom-create="true">
             <constraints>
@@ -85,6 +88,7 @@
             </constraints>
             <properties>
               <dialogCaption value="Proxy exceptions"/>
+              <name value="httpExceptions"/>
             </properties>
           </component>
           <component id="8c286" class="javax.swing.JLabel">
@@ -94,14 +98,16 @@
             <properties>
               <horizontalAlignment value="4"/>
               <labelFor value=""/>
-              <text resource-bundle="messages/CommonBundle" key="editbox.port.number"/>
+              <text resource-bundle="messages/UIBundle" key="proxy.manual.port"/>
             </properties>
           </component>
           <component id="f0c81" class="com.intellij.ui.PortField" binding="myHttpProxyPortTextField">
             <constraints>
               <grid row="1" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
-            <properties/>
+            <properties>
+              <name value="httpPort"/>
+            </properties>
           </component>
           <component id="c62ae" class="javax.swing.JLabel">
             <constraints>
@@ -117,7 +123,7 @@
             </constraints>
             <properties>
               <horizontalAlignment value="4"/>
-              <text resource-bundle="messages/CommonBundle" key="editbox.password"/>
+              <text resource-bundle="messages/UIBundle" key="auth.password.label"/>
             </properties>
           </component>
           <component id="60d42" class="javax.swing.JLabel">
@@ -147,7 +153,7 @@
             <properties>
               <horizontalAlignment value="4"/>
               <labelFor value="fd7b6"/>
-              <text resource-bundle="messages/CommonBundle" key="editbox.host.name"/>
+              <text resource-bundle="messages/UIBundle" key="proxy.manual.host"/>
             </properties>
           </component>
           <component id="d28cc" class="javax.swing.JCheckBox" binding="myHttpsProxyAuthCheckBox">
@@ -157,7 +163,7 @@
             <properties>
               <margin top="2" left="1" bottom="2" right="2"/>
               <selected value="false"/>
-              <text resource-bundle="messages/CommonBundle" key="checkbox.proxy.authentication"/>
+              <text resource-bundle="messages/UIBundle" key="proxy.manual.auth"/>
             </properties>
           </component>
           <component id="b09ec" class="javax.swing.JLabel">
@@ -176,6 +182,7 @@
               </grid>
             </constraints>
             <properties>
+              <name value="httpsUser"/>
               <text value=""/>
             </properties>
           </component>
@@ -185,7 +192,9 @@
                 <preferred-size width="150" height="-1"/>
               </grid>
             </constraints>
-            <properties/>
+            <properties>
+              <name value="httpsHost"/>
+            </properties>
           </component>
           <component id="7483b" class="com.intellij.ui.RawCommandLineEditor" binding="myHttpsProxyExceptions" custom-create="true">
             <constraints>
@@ -193,6 +202,7 @@
             </constraints>
             <properties>
               <dialogCaption value="Proxy exceptions"/>
+              <name value="httpsExceptions"/>
             </properties>
           </component>
           <component id="add5e" class="javax.swing.JLabel">
@@ -202,14 +212,16 @@
             <properties>
               <horizontalAlignment value="4"/>
               <labelFor value="7e62"/>
-              <text resource-bundle="messages/CommonBundle" key="editbox.port.number"/>
+              <text resource-bundle="messages/UIBundle" key="proxy.manual.port"/>
             </properties>
           </component>
           <component id="16921" class="com.intellij.ui.PortField" binding="myHttpsProxyPortTextField">
             <constraints>
               <grid row="1" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
-            <properties/>
+            <properties>
+              <name value="httpsPort"/>
+            </properties>
           </component>
           <component id="b6fbb" class="javax.swing.JLabel">
             <constraints>
@@ -226,7 +238,7 @@
             <properties>
               <horizontalAlignment value="4"/>
               <labelFor value="1acb8"/>
-              <text resource-bundle="messages/CommonBundle" key="editbox.password"/>
+              <text resource-bundle="messages/UIBundle" key="auth.password.label"/>
             </properties>
           </component>
           <component id="4bbdb" class="javax.swing.JLabel">
@@ -236,7 +248,7 @@
             <properties>
               <horizontalAlignment value="4"/>
               <labelFor value="33485"/>
-              <text resource-bundle="messages/CommonBundle" key="editbox.login"/>
+              <text resource-bundle="messages/UIBundle" key="auth.login.label"/>
             </properties>
           </component>
           <component id="75efb" class="javax.swing.JLabel">

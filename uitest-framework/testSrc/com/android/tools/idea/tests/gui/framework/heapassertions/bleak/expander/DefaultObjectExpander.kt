@@ -40,12 +40,6 @@ open class DefaultObjectExpander(val shouldOmitEdge: (Any, Field, Any) -> Boolea
                               || (!FOLLOW_WEAK_REFS && receiver is Reference<*> && field.name in listOf("referent", "discovered")) // only expand Weak/Soft refs if that's enabled
   }): Expander() {
 
-  inner class FieldLabel(val field: Field): Label() {
-    override fun signature() = field.name
-    override fun equals(other: Any?) = other is FieldLabel && field == other.field
-    override fun hashCode(): Int = field.hashCode()
-  }
-
   override fun canExpand(obj: Any) = true
 
   override fun expand(n: Node) {

@@ -22,6 +22,7 @@ import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 public final class WizardUtils {
@@ -55,7 +56,7 @@ public final class WizardUtils {
       .clickFinish();
 
     IdeFrameFixture frame =  guiTest.ideFrame()
-      .waitForGradleProjectSyncToFinish()
+      .waitForGradleProjectSyncToFinish(Wait.seconds(120))
       .getProjectView()
       .selectAndroidPane()
       .clickPath("app"); // Focus "app" in "Android Pane" to allow adding Activities through the menus (instead of right click)

@@ -84,7 +84,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
     if (button == null) {
       return;
     }
-    updateActions();
+    updateActions(eve.getDataContext());
     JPanel componentPopup = createCustomComponentPopup();
     if (componentPopup == null) {
       showPopupMenu(eve, button);
@@ -147,7 +147,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
    * @return true id the actions were updated, false otherwise.
    * <p>Returning false allows the popup previous popup instance to be reused
    */
-  protected boolean updateActions() {
+  protected boolean updateActions(@NotNull DataContext context) {
     return false;
   }
 

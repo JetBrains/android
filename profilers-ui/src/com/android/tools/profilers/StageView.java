@@ -18,9 +18,13 @@ package com.android.tools.profilers;
 import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 
 import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.StreamingTimeline;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.TooltipModel;
+import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.intellij.ui.components.JBPanel;
 import icons.StudioIcons;
@@ -50,12 +54,12 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
   /**
    * View of the active tooltip for stages that contain more than one tooltips.
    */
-  private ProfilerTooltipView myActiveTooltipView;
+  private TooltipView myActiveTooltipView;
 
   /**
    * Binder to bind a tooltip to its view.
    */
-  private final ViewBinder<StageView, TooltipModel, ProfilerTooltipView> myTooltipBinder;
+  private final ViewBinder<StageView, TooltipModel, TooltipView> myTooltipBinder;
 
   /**
    * A common component for showing the current selection range.
@@ -77,7 +81,7 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
 
     mySelectionTimeLabel = createSelectionTimeLabel();
     stage.getStudioProfilers().addDependency(this).onChange(ProfilerAspect.TOOLTIP, this::tooltipChanged);
-    stage.getStudioProfilers().getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, this::selectionChanged);
+    stage.getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, this::selectionChanged);
     selectionChanged();
   }
 
@@ -101,12 +105,7 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
     return myComponent;
   }
 
-  @NotNull
-  public final ProfilerTimeline getTimeline() {
-    return myStage.getStudioProfilers().getTimeline();
-  }
-
-  public ViewBinder<StageView, TooltipModel, ProfilerTooltipView> getTooltipBinder() {
+  public ViewBinder<StageView, TooltipModel, TooltipView> getTooltipBinder() {
     return myTooltipBinder;
   }
 
@@ -138,10 +137,18 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
   }
 
   /**
-   * Whether navigation controllers (i.e. Jump to Live, Profilers Combobox, and Back arrow) are enabled/visible.
+   * @return whether the current stage supports streaming. Useful for toggling the streaming controls (e.g. Go Live button).
    */
-  public boolean navigationControllersEnabled() {
-    return true;
+  public boolean supportsStreaming() {
+    return getStage().getTimeline() instanceof StreamingTimeline;
+  }
+
+  /**
+   * @return whether user can navigate to other stages from here. Useful for toggling the stage navigation controls (e.g. Go Back button,
+   * profiler dropdown list).
+   */
+  public boolean supportsStageNavigation() {
+    return getStage().getStudioProfilers().getSession().getPid() != 0;
   }
 
   /**
@@ -170,7 +177,7 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
   }
 
   private void selectionChanged() {
-    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
+    StreamingTimeline timeline = myStage.getStudioProfilers().getTimeline();
     Range selectionRange = timeline.getSelectionRange();
     if (selectionRange.isEmpty()) {
       mySelectionTimeLabel.setIcon(null);
@@ -200,7 +207,7 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
     selectionTimeLabel.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        ProfilerTimeline timeline = getStage().getStudioProfilers().getTimeline();
+        Timeline timeline = getStage().getTimeline();
         timeline.frameViewToRange(timeline.getSelectionRange());
       }
     });

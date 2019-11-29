@@ -21,7 +21,7 @@ import com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.tabs.newImpl.TabLabel;
+import com.intellij.ui.tabs.impl.TabLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;

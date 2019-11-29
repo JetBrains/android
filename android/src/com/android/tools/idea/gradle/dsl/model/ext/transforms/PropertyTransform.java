@@ -93,8 +93,9 @@ public abstract class PropertyTransform {
   public GradleDslExpression bindList(@NotNull GradleDslElement holder,
                                       @Nullable GradleDslElement oldElement,
                                       @NotNull String name,
-                                      boolean isMethodCall) {
-    return new GradleDslExpressionList(holder, GradleNameElement.create(name), !isMethodCall);
+                                      boolean isMethodCall,
+                                      boolean isSet) {
+    return new GradleDslExpressionList(holder, GradleNameElement.create(name), !isMethodCall, isSet);
   }
 
   /**

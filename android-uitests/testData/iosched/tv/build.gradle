@@ -55,8 +55,8 @@ android {
             manifestPlaceholders = [crashlyticsEnabled: false]
         }
     }
-    dataBinding {
-        enabled true
+    buildFeatures {
+        dataBinding = true
     }
 
     lintOptions {

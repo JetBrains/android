@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.DoNotTrace
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Edge
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.HeapGraph
+import java.lang.reflect.Field
 
 typealias Node = HeapGraph.Node
 
@@ -53,6 +54,12 @@ abstract class Expander: DoNotTrace {
     override fun signature() = "?"
     override fun equals(other: Any?) = other is ObjectLabel && obj === other.obj
     override fun hashCode(): Int = System.identityHashCode(obj)
+  }
+
+  inner class FieldLabel(val field: Field): Label() {
+    override fun signature() = field.name
+    override fun equals(other: Any?) = other is FieldLabel && field == other.field
+    override fun hashCode(): Int = field.hashCode()
   }
 
   abstract fun canExpand(obj: Any): Boolean

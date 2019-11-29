@@ -16,13 +16,21 @@
 package com.android.tools.idea.npw.module
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
+import com.android.tools.idea.npw.model.doRender
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.observable.core.StringValueProperty
+import com.android.tools.idea.templates.ModuleTemplateDataBuilder
+import com.android.tools.idea.templates.ProjectTemplateDataBuilder
 import com.android.tools.idea.templates.TemplateUtils.openEditors
 import com.android.tools.idea.templates.recipe.RenderingContext.Builder
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.FormFactor
+import com.android.tools.idea.wizard.template.Recipe
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
@@ -36,8 +44,13 @@ abstract class ModuleModel(
 ) : WizardModel() {
   @JvmField val moduleName = StringValueProperty(moduleName)
   val templateValues = mutableMapOf<String, Any>()
+  val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false))
   private val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
-    renderer(project)
+    object : Task.Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
+      override fun run(indicator: ProgressIndicator) {
+        renderer(project)
+      }
+    }.queue()
     projectSyncInvoker.syncProject(project)
   }
   protected abstract val renderer: MultiTemplateRenderer.TemplateRenderer
@@ -52,6 +65,16 @@ abstract class ModuleModel(
 
   protected abstract inner class ModuleTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
     @WorkerThread
+    override fun init() {
+      if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
+        moduleTemplateDataBuilder.apply {
+          formFactor = FormFactor.Generic
+          isNew = true
+        }
+      }
+    }
+
+    @WorkerThread
     override fun doDryRun(): Boolean = renderTemplate(true, project)
 
     @WorkerThread
@@ -59,7 +82,7 @@ abstract class ModuleModel(
       renderTemplate(false, project)
     }
 
-    private fun renderTemplate(dryRun: Boolean, project: Project, runFromTemplateRenderer: Boolean = false): Boolean {
+    protected open fun renderTemplate(dryRun: Boolean, project: Project, runFromTemplateRenderer: Boolean = false): Boolean {
       val projectRoot = File(project.basePath!!)
       val moduleRoot = getModuleRoot(project.basePath!!, moduleName.get())
       val template = templateHandle.template

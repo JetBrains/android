@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEJTable
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag.Attribute;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.awt.BorderLayout;
@@ -29,7 +30,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.Vector;
+import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -148,6 +152,22 @@ class LayoutPanel extends JPanel {
     mConstraintSetModel.fireTableDataChanged();
   }
 
+  private void updateModelIfNecessary() {
+    Set<String> ids = Arrays.stream(mMotionLayout.getChildTags())
+      .map(view -> Utils.stripID(view.getAttributeValue(MotionSceneAttrs.ATTR_ANDROID_ID)))
+      .filter(Objects::nonNull)
+      .collect(Collectors.toSet());
+
+    //noinspection unchecked
+    Set<String> found = (Set<String>)mConstraintSetModel.getDataVector().stream()
+      .map(row -> ((Vector)row).get(1))
+      .collect(Collectors.toSet());
+
+    if (!ids.equals(found)) {
+      buildTable();
+    }
+  }
+
   private String getDerived(String viewId, String[] row) {
     if (DEBUG) Debug.log(". getDerived");
 
@@ -203,6 +223,7 @@ class LayoutPanel extends JPanel {
   }
 
   public void selectByIds(String[] ids) {
+    updateModelIfNecessary();
     HashSet<String> selectedSet = new HashSet<>(Arrays.asList(ids));
     mConstraintSetTable.clearSelection();
     for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {

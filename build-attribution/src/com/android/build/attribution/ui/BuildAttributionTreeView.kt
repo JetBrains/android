@@ -57,7 +57,10 @@ import javax.swing.tree.TreePath
 @NonNls
 private const val SPLITTER_PROPERTY = "BuildAttribution.Splitter.Proportion"
 
-class BuildAttributionTreeView(private val reportData: BuildAttributionReportUiData) : ComponentContainer, TreeNodeSelector {
+class BuildAttributionTreeView(
+  private val reportData: BuildAttributionReportUiData,
+  private val issueReporter: TaskIssueReporter
+) : ComponentContainer, TreeNodeSelector {
 
   private val disposed = AtomicBoolean()
   private val rootNode = RootNode()
@@ -179,10 +182,10 @@ class BuildAttributionTreeView(private val reportData: BuildAttributionReportUiD
     override fun buildChildren(): Array<SimpleNode> {
       val nodes = mutableListOf<SimpleNode>()
       nodes.add(BuildSummaryNode(reportData.buildSummary, this))
-      nodes.add(CriticalPathPluginsRoot(reportData.criticalPathPlugins, this, this@BuildAttributionTreeView))
+      nodes.add(CriticalPathPluginsRoot(reportData.criticalPathPlugins, this, this@BuildAttributionTreeView, issueReporter))
       nodes.add(CriticalPathTasksRoot(reportData.criticalPathTasks, this, taskIssueLinkListener))
       reportData.issues.forEach {
-        nodes.add(TaskIssuesRoot(it, this, this@BuildAttributionTreeView))
+        nodes.add(TaskIssuesRoot(it, this, this@BuildAttributionTreeView, issueReporter))
       }
       nodes.add(PluginConfigurationTimeRoot(reportData.configurationTime, this, this@BuildAttributionTreeView))
       nodes.add(AnnotationProcessorsRoot(reportData.annotationProcessors, this, this@BuildAttributionTreeView))

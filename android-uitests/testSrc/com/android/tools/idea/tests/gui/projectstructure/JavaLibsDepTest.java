@@ -82,11 +82,11 @@ public class JavaLibsDepTest {
     IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, APP_NAME, MIN_SDK_API, JAVA);
 
     DependenciesTestUtil.createJavaModule(ideFrame); // default name: lib
-    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_1, "app", "API");
+    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_1, "app", "api");
     DependenciesTestUtil.createJavaClassInModule(ideFrame, JAVA_MODULE_1, DependenciesTestUtil.CLASS_NAME_1);
 
     DependenciesTestUtil.createJavaModule(ideFrame); // default name: lib2
-    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_2, JAVA_MODULE_1, "API");
+    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_2, JAVA_MODULE_1, "api");
     DependenciesTestUtil.createJavaClassInModule(ideFrame, JAVA_MODULE_2, DependenciesTestUtil.CLASS_NAME_2);
 
     DependenciesTestUtil.accessLibraryClassAndVerify(ideFrame, JAVA_MODULE_1, JAVA_MODULE_2);

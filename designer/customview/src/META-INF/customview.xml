@@ -19,4 +19,8 @@
     <fileEditorProvider implementation="com.android.tools.idea.customview.preview.CustomViewEditorProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.customview.preview.OutdatedCustomViewNotificationProvider"/>
   </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode">
+    <sourceCodePreviewRepresentationProvider implementation="com.android.tools.idea.customview.preview.CustomViewPreviewRepresentationProvider"/>
+  </extensions>
 </idea-plugin>

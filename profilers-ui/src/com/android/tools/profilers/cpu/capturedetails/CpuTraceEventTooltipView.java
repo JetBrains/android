@@ -15,26 +15,23 @@
  */
 package com.android.tools.profilers.cpu.capturedetails;
 
+import static com.android.tools.adtui.TooltipView.TOOLTIP_BODY_FONT;
+
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.DefaultDurationData;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.model.legend.EventLegend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import java.awt.Color;
+import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
 
 /**
  * Tooltip view for the Trace Event chart in Systrace.

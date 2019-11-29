@@ -1,6 +1,6 @@
 android {
   defaultConfig {
-    setDimension("abcd")
+    dimension = "abcd"
   }
 }
 android.defaultConfig.applicationId = "com.example.myapplication"

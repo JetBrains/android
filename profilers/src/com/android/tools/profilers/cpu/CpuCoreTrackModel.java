@@ -26,29 +26,19 @@ import org.jetbrains.annotations.NotNull;
  * Track model for CPU core states in CPU capture stage.
  */
 public class CpuCoreTrackModel {
-  private final AtraceDataSeries<CpuThreadSliceInfo> myDataSeries;
   private final StateChartModel<CpuThreadSliceInfo> myStateChartModel;
-  private final int myCpuId;
   private final int myAppProcessId;
 
-  public CpuCoreTrackModel(@NotNull Range range, @NotNull AtraceCpuCapture atraceCapture, int cpuId, int appProcessId) {
-    myDataSeries = new AtraceDataSeries<>(atraceCapture, capture -> capture.getCpuThreadSliceInfoStates(cpuId));
+  public CpuCoreTrackModel(@NotNull AtraceDataSeries<CpuThreadSliceInfo> dataSeries,
+                           @NotNull Range range,
+                           @NotNull AtraceCpuCapture atraceCapture) {
     myStateChartModel = new StateChartModel<>();
-    myStateChartModel.addSeries(new RangedSeries<>(range, myDataSeries));
-    myCpuId = cpuId;
-    myAppProcessId = appProcessId;
-  }
-
-  public AtraceDataSeries<CpuThreadSliceInfo> getDataSeries() {
-    return myDataSeries;
+    myStateChartModel.addSeries(new RangedSeries<>(range, dataSeries));
+    myAppProcessId = atraceCapture.getMainThreadId();
   }
 
   public StateChartModel<CpuThreadSliceInfo> getStateChartModel() {
     return myStateChartModel;
-  }
-
-  public int getCpuId() {
-    return myCpuId;
   }
 
   public int getAppProcessId() {

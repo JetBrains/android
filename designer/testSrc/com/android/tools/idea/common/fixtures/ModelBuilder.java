@@ -37,7 +37,7 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionManager;
-import com.android.tools.idea.common.surface.InteractionProvider;
+import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -86,7 +86,7 @@ public class ModelBuilder {
   private final BiConsumer<? super NlModel, ? super NlModel> myModelUpdater;
   private final String myPath;
   private final Class<? extends DesignSurface> mySurfaceClass;
-  private final Function<DesignSurface, InteractionProvider> myInteractionProviderCreator;
+  private final Function<DesignSurface, InteractionHandler> myInteractionProviderCreator;
   @NotNull private final Consumer<NlComponent> myComponentConsumer;
   private Device myDevice;
   private String myModelDisplayName;
@@ -99,7 +99,7 @@ public class ModelBuilder {
                       @NotNull BiConsumer<? super NlModel, ? super NlModel> modelUpdater,
                       @NotNull String path,
                       @NotNull Class<? extends DesignSurface> surfaceClass,
-                      @NotNull Function<DesignSurface, InteractionProvider> interactionProviderCreator,
+                      @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
                       @NotNull Consumer<NlComponent> componentRegistrar) {
     assertTrue(name, name.endsWith(DOT_XML));
     myFacet = facet;
@@ -201,7 +201,7 @@ public class ModelBuilder {
       // TODO: Do we need a special version of ModelBuilder for Nele?
       if (mySurfaceClass.equals(NlDesignSurface.class)) {
         when(((NlDesignSurface)surface).getAdaptiveIconShape()).thenReturn(ShapeMenuAction.AdaptiveIconShape.getDefaultShape());
-        when(((NlDesignSurface)surface).getSceneMode()).thenReturn(SceneMode.BLUEPRINT_ONLY);
+        when(((NlDesignSurface)surface).getSceneMode()).thenReturn(SceneMode.BLUEPRINT);
       }
 
       SceneManager sceneManager = myManagerFactory.apply(model);
@@ -233,7 +233,7 @@ public class ModelBuilder {
 
   public static DesignSurface createSurface(Disposable disposableParent,
                                             Class<? extends DesignSurface> surfaceClass,
-                                            Function<DesignSurface, InteractionProvider> interactionProviderCreator) {
+                                            Function<DesignSurface, InteractionHandler> interactionProviderCreator) {
     JComponent layeredPane = new JPanel();
     DesignSurface surface = mock(surfaceClass);
     Disposer.register(disposableParent, surface);

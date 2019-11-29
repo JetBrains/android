@@ -119,7 +119,7 @@ class AndroidImplementationViewSession(
     override val project: Project = resourceReferencePsiElement.psiManager.project
 
     override fun searchImplementationsInBackground(indicator: ProgressIndicator,
-                                                   processor: Processor<in PsiElement>): List<ImplementationViewElement> = emptyList()
+                                                   processor: Processor<in ImplementationViewElement>): List<ImplementationViewElement> = emptyList()
 
     override fun elementRequiresIncludeSelf(): Boolean = false
 

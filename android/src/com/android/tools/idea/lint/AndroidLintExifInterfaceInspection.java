@@ -29,6 +29,7 @@ import com.android.tools.lint.checks.ExifInterfaceDetector;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.history.LocalHistory;
 import com.intellij.history.LocalHistoryAction;
 import com.intellij.openapi.application.ApplicationManager;
@@ -136,7 +137,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
         public void onFailure(@Nullable Throwable t) {
           throw new RuntimeException(t);
         }
-      });
+      }, MoreExecutors.directExecutor());
     }
 
     private static String getExifLibraryCoordinate() {

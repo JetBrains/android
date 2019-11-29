@@ -8,13 +8,13 @@ iml_module(
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/idea/plugins/groovy/jps-plugin:intellij.groovy.jps",
         "//tools/idea/plugins/ant/jps-plugin:intellij.ant.jps",
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
         "//tools/idea/plugins/properties:intellij.properties",
         "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
+        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
         "//tools/idea/java/typeMigration:intellij.java.typeMigration",
         "//tools/idea/java/manifest:intellij.java.manifest",
         "//tools/idea/plugins/java-i18n:intellij.java.i18n",
@@ -40,7 +40,6 @@ iml_module(
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
-        "//tools/idea/java/ide-customization:intellij.java.ide.customization",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
     ],
@@ -54,6 +53,8 @@ iml_module(
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
         "//tools/base/build-system:studio.android.sdktools.manifest-merger[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
+        "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
     ],
 )
 
@@ -71,12 +72,11 @@ iml_module(
     test_runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
-        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
         "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
+        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
         "//tools/idea/java/manifest:intellij.java.manifest",
-        "//tools/idea/java/ide-customization:intellij.java.ide.customization",
         "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
         "//tools/idea:intellij.java.ui.tests",
         "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",

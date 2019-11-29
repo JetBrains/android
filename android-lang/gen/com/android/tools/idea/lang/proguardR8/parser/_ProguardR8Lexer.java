@@ -1239,7 +1239,7 @@ public class _ProguardR8Lexer implements FlexLexer {
             // fall through
           case 111: break;
           case 30: 
-            { yybegin(STATE_FLAG_ARGS); return FLAG;
+            { yybegin(STATE_FLAG_ARGS); return FLAG_TOKEN;
             } 
             // fall through
           case 112: break;

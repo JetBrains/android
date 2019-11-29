@@ -16,21 +16,18 @@
 package com.android.tools.idea.testing;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.base.Verify.verify;
 import static org.mockito.Mockito.mock;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.impl.ProjectImpl;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
-import com.intellij.util.pico.DefaultPicoContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.picocontainer.ComponentAdapter;
 
 public final class IdeComponents {
   private Project myProject;
@@ -63,52 +60,27 @@ public final class IdeComponents {
   @NotNull
   public <T> T mockApplicationService(@NotNull Class<T> serviceType) {
     T mock = mock(serviceType);
-    doReplaceService(ApplicationManager.getApplication(), serviceType, mock, myDisposable);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), serviceType, mock, myDisposable);
     return mock;
   }
 
   public <T> void replaceApplicationService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
-    doReplaceService(ApplicationManager.getApplication(), serviceType, newServiceInstance, myDisposable);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), serviceType, newServiceInstance, myDisposable);
   }
 
   public <T> void replaceProjectService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
-    doReplaceService(myProject, serviceType, newServiceInstance, myDisposable);
+    ServiceContainerUtil.replaceService(myProject, serviceType, newServiceInstance, myDisposable);
   }
 
   public <T> void replaceModuleService(@NotNull Module module, @NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
-    doReplaceService(module, serviceType, newServiceInstance, myDisposable);
+    ServiceContainerUtil.replaceService(module, serviceType, newServiceInstance, myDisposable);
   }
 
   @NotNull
   public <T> T mockProjectService(@NotNull Class<T> serviceType) {
     T mock = mock(serviceType);
     checkState(myProject != null);
-    doReplaceService(myProject, serviceType, mock, myDisposable);
+    ServiceContainerUtil.replaceService(myProject, serviceType, mock, myDisposable);
     return mock;
-  }
-
-  private static <T> void doReplaceService(@NotNull ComponentManager componentManager,
-                                           @NotNull Class<T> serviceType,
-                                           @NotNull T newServiceInstance,
-                                           @Nullable Disposable disposable) {
-    DefaultPicoContainer picoContainer = (DefaultPicoContainer)componentManager.getPicoContainer();
-
-    String componentKey = serviceType.getName();
-
-    Object componentInstance = picoContainer.getComponentInstance(componentKey);
-    assert componentInstance == null || serviceType.isAssignableFrom(componentInstance.getClass());
-    T oldServiceInstance = (T)componentInstance;
-
-    ComponentAdapter componentAdapter = picoContainer.unregisterComponent(componentKey);
-    verify(componentAdapter != null, String.format(
-      "%s not registered in %s, are you using the right service scope (application vs project)?",
-      componentKey, componentManager.getClass().getSimpleName()));
-
-    picoContainer.registerComponentInstance(componentKey, newServiceInstance);
-    verify(picoContainer.getComponentInstance(componentKey) == newServiceInstance);
-
-    if (disposable != null && oldServiceInstance != null) {
-      Disposer.register(disposable, () -> doReplaceService(componentManager, serviceType, oldServiceInstance, null));
-    }
   }
 }

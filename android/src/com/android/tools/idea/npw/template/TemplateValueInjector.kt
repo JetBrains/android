@@ -286,7 +286,6 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
 
   /**
    * Adds, to the specified `templateValues`, common render template values like
-   * [com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_TITLE],
    * [com.android.tools.idea.templates.TemplateAttributes.ATTR_GRADLE_PLUGIN_VERSION],
    * [com.android.tools.idea.templates.TemplateAttributes.ATTR_GRADLE_VERSION], etc.
    */
@@ -374,9 +373,6 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     myTemplateValues[ATTR_ANDROIDX_SUPPORT] = project.hasAndroidxSupport(isNewProject)
   }
 
-  // Note: New projects are always created with androidx dependencies
-  private fun Project?.hasAndroidxSupport(isNewProject: Boolean) : Boolean =
-    this == null || isNewProject || this.isAndroidx()
 
   private fun addDebugKeyStore(templateValues: MutableMap<String, Any>, facet: AndroidFacet?) {
     try {
@@ -454,3 +450,6 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     map[ATTR_APP_THEME_EXISTS + derivedThemeName] = exists
   }
 }
+
+// Note: New projects are always created with androidx dependencies
+fun Project?.hasAndroidxSupport(isNewProject: Boolean) = this == null || isNewProject || this.isAndroidx()

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 
+import static com.google.common.base.Verify.verify;
+import static com.google.common.base.Verify.verifyNotNull;
+
 import com.android.annotations.NonNull;
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
@@ -22,18 +25,8 @@ import com.android.builder.model.NativeSettings;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.ThrowableComputable;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.newvfs.ManagingFS;
-import com.intellij.openapi.vfs.newvfs.NewVirtualFile;
 import com.intellij.util.containers.hash.HashMap;
-import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,8 +34,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Test utility class to synthesize a particular layout of include folders.
@@ -71,48 +64,18 @@ public class IncludeLayout {
    * Create a local directory and at the same time also create the directory within the virtual file system
    */
   void createDirs(@NotNull File folder) {
-    folder.mkdirs();
-    String path = FileUtil.toSystemIndependentName(folder.getAbsolutePath());
-    String normalizedPath = FileUtil.normalize(path);
-    String basePath = StringUtil.startsWithChar(normalizedPath, '/') ? "/" : "";
-    ManagingFS managingFS = ManagingFS.getInstance();
-    LocalFileSystem vfs = LocalFileSystem.getInstance();
-    NewVirtualFile root = managingFS.findRoot(basePath, vfs); // prepare
-    Pair<NewVirtualFile, Iterable<String>>
-      data = Pair.create(root, StringUtil.tokenize(normalizedPath.substring(basePath.length()), "/" + File.separator));
-    NewVirtualFile file = data.first;
-    for (String pathElement : data.second) {
-      NewVirtualFile prior = file;
-      file = file.refreshAndFindChild(pathElement);
-      if (file == null) {
-        try {
-          ApplicationManager.getApplication().runWriteAction((ThrowableComputable<Boolean, Throwable>)() -> {
-            prior.createChildDirectory(null, pathElement);
-            return true;
-          });
-        }
-        catch (Throwable throwable) {
-          throwable.printStackTrace();
-          throw new RuntimeException();
-        }
-        file = prior.findChild(pathElement);
-      }
-    }
+    verify(folder.exists() || folder.mkdirs());
+    verifyNotNull(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(folder));
   }
 
   /**
    * Create an empty local file and at the same time also create the file (and parent directories) within the virtual file system
    */
   void createFile(@NotNull File file) throws IOException {
-    String basePath = file.getParent();
-    String baseName = file.getName();
-    createDirs(file.getParentFile());
-    file.createNewFile();
-    ManagingFS managingFS = ManagingFS.getInstance();
-    LocalFileSystem vfs = LocalFileSystem.getInstance();
-    NewVirtualFile root = managingFS.findRoot(basePath, vfs);
-    NewVirtualFile child = root.refreshAndFindChild(baseName);
-    assertThat(child).isNotNull();
+    File parent = file.getParentFile();
+    verify(parent == null || parent.exists() || parent.mkdirs());
+    verify(file.exists() || file.createNewFile());
+    verifyNotNull(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file));
   }
 
   @NotNull

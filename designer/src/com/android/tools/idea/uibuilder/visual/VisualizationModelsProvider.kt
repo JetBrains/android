@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.common.model.NlModel
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -25,5 +27,9 @@ import org.jetbrains.android.facet.AndroidFacet
  * Implement this interface to custom the [NlModel] creation logic.
  */
 interface VisualizationModelsProvider {
+  /**
+   * The actions shown in ActionBar for this models provider.
+   */
+  fun createActions(file: PsiFile, facet: AndroidFacet): ActionGroup = DefaultActionGroup()
   fun createNlModels(parentDisposable: Disposable, file: PsiFile, facet: AndroidFacet): List<NlModel>
 }

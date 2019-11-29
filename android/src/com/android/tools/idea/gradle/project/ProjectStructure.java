@@ -222,13 +222,9 @@ public class ProjectStructure {
       return false;
     }
 
-    public boolean checkAllVersionsAreAtLeast(@NotNull GradleVersion other) {
-      for (Map.Entry<String, GradleVersion> entry : myAgpVersionsPerModule.entrySet()) {
-        if (entry.getValue().compareTo(other) < 0) {
-          return false;
-        }
-      }
-      return true;
+    @NotNull
+    public List<GradleVersion> getAllVersions() {
+      return new ArrayList<>(myAgpVersionsPerModule.values());
     }
 
     boolean isEmpty() {

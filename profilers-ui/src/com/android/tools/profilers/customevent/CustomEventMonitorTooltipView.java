@@ -16,13 +16,13 @@
 package com.android.tools.profilers.customevent;
 
 import com.android.tools.profilers.ProfilerMonitorTooltipView;
-import com.android.tools.profilers.StudioMonitorStageView;
+import com.android.tools.profilers.StageView;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
 public class CustomEventMonitorTooltipView extends ProfilerMonitorTooltipView<CustomEventMonitor> {
-  public CustomEventMonitorTooltipView(StudioMonitorStageView parent, @NotNull CustomEventMonitorTooltip tooltip) {
+  public CustomEventMonitorTooltipView(StageView parent, @NotNull CustomEventMonitorTooltip tooltip) {
     super(tooltip.getMonitor());
   }
 

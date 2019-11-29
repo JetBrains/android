@@ -82,6 +82,9 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   @Override
   @NotNull
   protected Collection<AbstractTreeNode> getModuleChildren() {
+    if (getModule() == null) {
+      return platformGetChildren();
+    }
     AndroidFacet facet = AndroidFacet.getInstance(getModule());
     if (facet == null || AndroidModel.get(facet) == null) {
       return platformGetChildren();
@@ -94,9 +97,8 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
                                                   @NotNull ViewSettings settings,
                                                   @NotNull AndroidProjectViewPane projectViewPane,
                                                   @NotNull Iterable<IdeaSourceProvider> providers) {
-    Project project = facet.getModule().getProject();
     List<AbstractTreeNode> result = new ArrayList<>();
-
+    Project project = facet.getModule().getProject();
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
     HashMultimap<AndroidSourceType, VirtualFile> sourcesByType = getSourcesBySourceType(providers, androidModuleModel);
 
@@ -258,6 +260,9 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
     if (ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
 
       // If there is a native-containing module then check it for externally referenced header files
+      if (getModule() == null) {
+        return false;
+      }
       AndroidFacet facet = AndroidFacet.getInstance(getModule());
       if (facet == null || AndroidModel.get(facet) == null) {
         return false;
@@ -274,24 +279,36 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   @Override
   @Nullable
   public Comparable getSortKey() {
+    if (getModule() == null) {
+      return null;
+    }
     return getModule().getName();
   }
 
   @Override
   @Nullable
   public Comparable getTypeSortKey() {
+    if (getModule() == null) {
+      return null;
+    }
     return getSortKey();
   }
 
   @Override
   @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
+    if (getModule() == null) {
+      return null;
+    }
     return String.format("%1$s (Android)", getModule().getName());
   }
 
   @Override
   public void update(@NotNull PresentationData presentation) {
     super.update(presentation);
+    if (getModule() == null) {
+      return;
+    }
     // Use Android Studio Icons if module is available. If module was disposed, super.update will set the value of this node to null.
     // This can happen when a module was just deleted, see b/67838273.
     Module module = getValue();

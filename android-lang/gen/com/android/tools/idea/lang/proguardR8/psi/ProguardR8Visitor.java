@@ -88,6 +88,10 @@ public class ProguardR8Visitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitFlag(@NotNull ProguardR8Flag o) {
+    visitPsiElement(o);
+  }
+
   public void visitFlagArgument(@NotNull ProguardR8FlagArgument o) {
     visitPsiElement(o);
   }

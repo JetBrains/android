@@ -91,7 +91,7 @@ public class EmbeddedDistributionPaths {
     }
 
     // Development build
-    String relativePath = toSystemDependentName("/../../bazel-genfiles/tools/base/profiler/transform/profilers-transform.jar");
+    String relativePath = toSystemDependentName("/../../bazel-bin/tools/base/profiler/transform/profilers-transform.jar");
     return new File(PathManager.getHomePath() + relativePath);
   }
 

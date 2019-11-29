@@ -164,7 +164,7 @@ public class AndroidTargetData {
     }
   }
 
-  @Nullable
+  @NotNull
   public synchronized LayoutLibrary getLayoutLibrary(@NotNull Project project) throws RenderingException {
     if (myLayoutLibrary == null || myLayoutLibrary.isDisposed()) {
       if (myTarget instanceof CompatibilityRenderTarget) {

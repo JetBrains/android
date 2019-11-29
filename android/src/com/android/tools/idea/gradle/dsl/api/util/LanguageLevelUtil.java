@@ -62,13 +62,19 @@ public final class LanguageLevelUtil {
       else if (sampleGradleString.startsWith("\"")) {
         return "\"" + dotVersion + "\"";
       }
+      else {
+        try {
+          return new BigDecimal(dotVersion);
+        }
+        catch (NumberFormatException e) {
+          return dotVersion;
+        }
+      }
     }
-    try {
-      return new BigDecimal(dotVersion);
-    }
-    catch (NumberFormatException e) {
-      return dotVersion;
-    }
+
+    // absent any clues, default to the full JavaVersion.VERSION_ format as that is the safest to insert: in assignment and
+    // application statements.
+    return new ReferenceTo("JavaVersion.VERSION_" + underscoreVersion);
   }
 
   @Nullable

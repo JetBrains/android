@@ -259,6 +259,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");
 
+/* b/144931471
     myReporter.report(mySyncIssue, spyAppModule, null, myUsageReporter);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
@@ -292,6 +293,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK))
           .build()),
       myUsageReporter.getCollectedIssue());
+b/144931471 */
   }
 
   public void testReportWithPlayServices() throws Exception {

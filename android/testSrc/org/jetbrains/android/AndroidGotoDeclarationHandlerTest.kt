@@ -139,12 +139,15 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     myFixture.copyFileToProject(basePath + "ids.xml", "res/values/ids.xml")
     myFixture.copyFileToProject(basePath + "layout.xml", "res/layout/layout.xml")
     val file = myFixture.copyFileToProject(basePath + "GotoId.java", "src/p1/p2/GotoId.java")
-    assertEquals("values/ids.xml:2:\n" +
-                 "  <item name=\"anchor\" type=\"id\"/>\n" +
-                 "             ~|~~~~~~~           \n" +
-                 "layout/layout.xml:4:\n" +
-                 "  <EditText android:id=\"@+id/anchor\"/>\n" +
-                 "                       ~|~~~~~~~~~~~~ \n",
+    assertEquals("""
+                  layout/layout.xml:4:
+                    <EditText android:id="@+id/anchor"/>
+                                         ~|~~~~~~~~~~~~ 
+                  values/ids.xml:2:
+                    <item name="anchor" type="id"/>
+                               ~|~~~~~~~           
+
+                    """.trimIndent(),
                  describeElements(getDeclarationsFrom(file))
     )
   }
@@ -166,12 +169,15 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
             }
         }
       """.trimIndent())
-    assertEquals("values/ids.xml:2:\n" +
-                 "  <item name=\"anchor\" type=\"id\"/>\n" +
-                 "             ~|~~~~~~~           \n" +
-                 "layout/layout.xml:4:\n" +
-                 "  <EditText android:id=\"@+id/anchor\"/>\n" +
-                 "                       ~|~~~~~~~~~~~~ \n",
+    assertEquals("""
+                  layout/layout.xml:4:
+                    <EditText android:id="@+id/anchor"/>
+                                         ~|~~~~~~~~~~~~ 
+                  values/ids.xml:2:
+                    <item name="anchor" type="id"/>
+                               ~|~~~~~~~           
+
+                 """.trimIndent(),
                  describeElements(getDeclarationsFrom(file.virtualFile))
     )
   }
@@ -344,12 +350,15 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
             }
         }
       """.trimIndent())
-    assertEquals("values/ids.xml:2:\n" +
-                 "  <item name=\"anchor\" type=\"id\"/>\n" +
-                 "             ~|~~~~~~~           \n" +
-                 "layout/layout.xml:4:\n" +
-                 "  <EditText android:id=\"@+id/anchor\"/>\n" +
-                 "                       ~|~~~~~~~~~~~~ \n",
+    assertEquals("""
+                  layout/layout.xml:4:
+                    <EditText android:id="@+id/anchor"/>
+                                         ~|~~~~~~~~~~~~ 
+                  values/ids.xml:2:
+                    <item name="anchor" type="id"/>
+                               ~|~~~~~~~           
+
+                 """.trimIndent(),
                  describeElements(getDeclarationsFrom(file.virtualFile)))
   }
 
@@ -372,12 +381,15 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
             }
         }
       """.trimIndent())
-    assertEquals("values/ids.xml:2:\n" +
-                 "  <item name=\"anchor\" type=\"id\"/>\n" +
-                 "             ~|~~~~~~~           \n" +
-                 "layout/layout.xml:4:\n" +
-                 "  <EditText android:id=\"@+id/anchor\"/>\n" +
-                 "                       ~|~~~~~~~~~~~~ \n",
+    assertEquals("""
+                 layout/layout.xml:4:
+                   <EditText android:id="@+id/anchor"/>
+                                        ~|~~~~~~~~~~~~ 
+                 values/ids.xml:2:
+                   <item name="anchor" type="id"/>
+                              ~|~~~~~~~           
+
+                  """.trimIndent(),
                  describeElements(getDeclarationsFrom(file.virtualFile)))
   }
 
@@ -399,12 +411,15 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
             }
         }
       """.trimIndent())
-    assertEquals("values/ids.xml:2:\n" +
-                 "  <item name=\"anchor\" type=\"id\"/>\n" +
-                 "             ~|~~~~~~~           \n" +
-                 "layout/layout.xml:4:\n" +
-                 "  <EditText android:id=\"@+id/anchor\"/>\n" +
-                 "                       ~|~~~~~~~~~~~~ \n",
+    assertEquals("""
+                  layout/layout.xml:4:
+                    <EditText android:id="@+id/anchor"/>
+                                         ~|~~~~~~~~~~~~ 
+                  values/ids.xml:2:
+                    <item name="anchor" type="id"/>
+                               ~|~~~~~~~           
+
+                 """.trimIndent(),
                  describeElements(getDeclarationsFrom(file.virtualFile)))
   }
 
@@ -478,11 +493,11 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
 
     assertEquals(
       """
-      AndroidManifest.xml:7:
-        <permission android:name="com.example.SEND_MESSAGE" />
-                                 ~|~~~~~~~~~~~~~~~~~~~~~~~~~
       AndroidManifest.xml:8:
         <permission android:name="com.example.SEND-MESSAGE" />
+                                 ~|~~~~~~~~~~~~~~~~~~~~~~~~~
+      AndroidManifest.xml:7:
+        <permission android:name="com.example.SEND_MESSAGE" />
                                  ~|~~~~~~~~~~~~~~~~~~~~~~~~~
       """.trimIndent(),
       describeElements(getDeclarationsFrom(file.virtualFile))

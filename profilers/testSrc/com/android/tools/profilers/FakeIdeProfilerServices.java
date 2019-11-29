@@ -84,26 +84,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myEnergyProfilerEnabled = false;
 
   /**
-   * Can toggle for tests via {@link #enableExportTrace(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean myExportCpuTraceEnabled = false;
-
-  /**
-   * Toggle for faking fragments UI support in tests.
-   */
-  private boolean myFragmentsEnabled = true;
-
-  /**
-   * Can toggle for tests via {@link #enableImportTrace(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean myImportCpuTraceEnabled = false;
-
-  /**
-   * Can toggle for tests via {@link #enableSimpleperfHost(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean mySimpleperfHostEnabled = false;
-
-  /**
    * JNI references alloc/dealloc events are tracked and shown.
    */
   private boolean myIsJniReferenceTrackingEnabled = false;
@@ -127,11 +107,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    * Whether long trace files should be parsed.
    */
   private boolean myShouldParseLongTraces = false;
-
-  /**
-   * Toggle for faking session import support in tests.
-   */
-  private boolean mySessionsImportEnabled = true;
 
   /**
    * Can toggle for tests via {@link #enableStartupCpuProfiling(boolean)}, but each test starts with this defaulted to false.
@@ -292,21 +267,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isExportCpuTraceEnabled() {
-        return myExportCpuTraceEnabled;
-      }
-
-      @Override
-      public boolean isFragmentsEnabled() {
-        return myFragmentsEnabled;
-      }
-
-      @Override
-      public boolean isImportCpuTraceEnabled() {
-        return myImportCpuTraceEnabled;
-      }
-
-      @Override
       public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
 
       @Override
@@ -343,16 +303,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isCustomEventVisualizationEnabled() {
         return myCustomEventVisualizationEnabled;
-      }
-
-      @Override
-      public boolean isSessionImportEnabled() {
-        return mySessionsImportEnabled;
-      }
-
-      @Override
-      public boolean isSimpleperfHostEnabled() {
-        return mySimpleperfHostEnabled;
       }
 
       @Override
@@ -469,10 +419,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myEnergyProfilerEnabled = enabled;
   }
 
-  public void enableFragments(boolean enabled) {
-    myFragmentsEnabled = enabled;
-  }
-
   public void enableJniReferenceTracking(boolean enabled) { myIsJniReferenceTrackingEnabled = enabled; }
 
   public void enableLiveAllocationTracking(boolean enabled) {
@@ -485,18 +431,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableCpuApiTracing(boolean enabled) {
     myIsCpuApiTracingEnabled = enabled;
-  }
-
-  public void enableExportTrace(boolean enabled) {
-    myExportCpuTraceEnabled = enabled;
-  }
-
-  public void enableImportTrace(boolean enabled) {
-    myImportCpuTraceEnabled = enabled;
-  }
-
-  public void enableSimpleperfHost(boolean enabled) {
-    mySimpleperfHostEnabled = enabled;
   }
 
   public void enableEventsPipeline(boolean enabled) {

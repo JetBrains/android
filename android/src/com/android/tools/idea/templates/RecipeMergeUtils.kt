@@ -30,7 +30,6 @@ import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.utils.StdLogger
 import com.android.utils.XmlUtils
 import com.google.common.base.Charsets
-import com.google.common.base.Splitter
 import com.google.common.collect.Lists.newArrayList
 import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.diagnostic.Logger
@@ -45,8 +44,6 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.psi.xml.XmlTagChild
 import com.intellij.psi.xml.XmlText
-import com.intellij.util.SystemProperties
-import org.apache.commons.lang.StringUtils
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileNotFoundException
@@ -62,45 +59,9 @@ private const val MERGE_ATTR_STRATEGY = "templateMergeStrategy"
 private const val MERGE_ATTR_STRATEGY_REPLACE = "replace"
 private const val MERGE_ATTR_STRATEGY_PRESERVE = "preserve"
 
-@Throws(RuntimeException::class)
-fun mergeGradleSettingsFile(source: String, dest: String): String {
-  // TODO: Right now this is implemented as a dumb text merge. It would be much better to read it into PSI using IJ's Groovy support.
-  // If Gradle build files get first-class PSI support in the future, we will pick that up cheaply. At the moment, Our Gradle-Groovy
-  // support requires a project, which we don't necessarily have when instantiating a template.
-
-  /*
-  Add new include lines instead of merging everything in a single line (b/133578918)
-
-  For simplicity, this will add new lines at the end of the file. Trying to look for "include" lines could cause issues if we do not
-  consider all cases, for example if there are comment blocks or 'include' directives inside functions. See this for some examples:
-
-  https://docs.gradle.org/current/dsl/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])
-   */
-
-  val includeLines = Splitter.on('\n').omitEmptyStrings().trimResults().split(source).toList()
-
-  if (!includeLines.all { it.startsWith("include") }) {
-    throw RuntimeException("When merging settings.gradle files, only include directives can be merged.")
-  }
-
-  if (includeLines.isEmpty()) {
-    return dest
-  }
-
-  val contents = StringBuilder(StringUtils.stripEnd(StringUtils.chomp(dest), null))
-  val lineSeparator = SystemProperties.getLineSeparator()
-  if (contents.isNotEmpty()) {
-    contents.append(lineSeparator)
-  }
-  contents.append(includeLines.joinToString(lineSeparator))
-  contents.append(lineSeparator)
-
-  return contents.toString()
-}
-
 data class RenderingContextAdapter(
   val project: Project,
-  val moduleRoot: File,
+  val moduleRoot: File?,
   val warningsToAdd: MutableCollection<String>
 ) {
   constructor(c: RenderingContext): this(c.project, c.moduleRoot, c.warnings)
@@ -118,7 +79,7 @@ fun mergeXml(context: RenderingContextAdapter, sourceXml: String, targetXml: Str
   fun mergeManifest(): String? {
     XmlUtils.parseDocumentSilently(targetXml, true) ?: error("$targetXml failed to parse")
     XmlUtils.parseDocumentSilently(sourceXml, true) ?: error("$sourceXml failed to parse")
-    val report = mergeManifest(context.moduleRoot, targetFile, targetXml, sourceXml) ?: return null
+    val report = mergeManifest(context.moduleRoot!!, targetFile, targetXml, sourceXml) ?: return null
     if (report.result.isSuccess) {
       return report.getMergedDocument(MergingReport.MergedManifestKind.MERGED)
     }

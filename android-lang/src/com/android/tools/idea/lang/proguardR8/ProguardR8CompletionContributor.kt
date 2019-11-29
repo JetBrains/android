@@ -22,6 +22,7 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Type
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8TypeList
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionInitializationContext
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -94,7 +95,8 @@ class ProguardR8CompletionContributor : CompletionContributor() {
         processingContext: ProcessingContext,
         resultSet: CompletionResultSet
       ) {
-        resultSet.addAllElements(PROGUARD_FLAGS.map { LookupElementBuilder.create(it) })
+        val flags = getShrinkerFlagSet(parameters.position.getModuleSystem()?.codeShrinker)
+        resultSet.addAllElements(flags.map { LookupElementBuilder.create(it) })
       }
     }
 
@@ -187,7 +189,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
     // Add completion for "flag names".
     extend(
       CompletionType.BASIC,
-      psiElement(ProguardR8PsiTypes.FLAG),
+      psiElement(ProguardR8PsiTypes.FLAG_TOKEN),
       flagCompletionProvider
     )
 
@@ -230,8 +232,8 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       and(
         anyProguardElement.afterLeaf(
           or(
-            psiElement(ProguardR8PsiTypes.FLAG).withText(string().contains("keep")),
-            psiElement(ProguardR8PsiTypes.FLAG).withText(string().contains("if"))
+            psiElement(ProguardR8PsiTypes.FLAG_TOKEN).withText(string().contains("keep")),
+            psiElement(ProguardR8PsiTypes.FLAG_TOKEN).withText(string().contains("if"))
           )
         )
       ),

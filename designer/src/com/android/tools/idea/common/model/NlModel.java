@@ -801,6 +801,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       });
 
       notifyModified(ChangeType.ADD_COMPONENTS);
+
+      // Select the newly created components
+      // Moved here (temporarily) from the commit part of DragDropInteraction.moveTo
+      // b/145295141 was created to keep track of the cleanup to move it back to DragDropInteraction.
+      if (insertType == InsertType.CREATE && surface != null) {
+        surface.getSelectionModel().setSelection(toAdd);
+      }
     });
   }
 

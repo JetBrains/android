@@ -18,9 +18,13 @@ package com.android.tools.idea.gradle.dsl.parser.android.sourceSets;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
 public class SourceFileDslElement extends GradleDslBlockElement {
+  public static final PropertiesElementDescription<SourceFileDslElement> MANIFEST =
+    new PropertiesElementDescription<>("manifest", SourceFileDslElement.class, SourceFileDslElement::new);
+
   public SourceFileDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }

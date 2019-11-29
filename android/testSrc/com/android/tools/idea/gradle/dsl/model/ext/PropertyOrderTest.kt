@@ -81,6 +81,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelImpl
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl
+import com.android.tools.idea.gradle.dsl.model.android.SigningConfigModelImpl.STORE_PASSWORD
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
@@ -543,7 +544,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     val passwordModel = configModel.storePassword()
 
     verifyPropertyModel(fileModel, STRING_TYPE, "goodbye", STRING, DERIVED, 1, "0")
-    verifyPropertyModel(passwordModel.resolve(), STRING_TYPE, "off", STRING, REGULAR, 1, "storePassword")
+    verifyPropertyModel(passwordModel.resolve(), STRING_TYPE, "off", STRING, REGULAR, 1, STORE_PASSWORD)
   }
 
   @Test

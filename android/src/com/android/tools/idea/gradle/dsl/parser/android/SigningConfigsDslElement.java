@@ -20,25 +20,26 @@ import com.android.tools.idea.gradle.dsl.model.android.SigningConfigModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.Lists;
 import java.util.Arrays;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 public final class SigningConfigsDslElement extends GradleDslElementMap implements GradleDslNamedDomainContainer {
-  @NonNls public static final String SIGNING_CONFIGS_BLOCK_NAME = "signingConfigs";
-
   public static final List<String> implicitSigningConfigs = Arrays.asList("debug");
+  public static final PropertiesElementDescription<SigningConfigsDslElement> SIGNING_CONFIGS =
+    new PropertiesElementDescription<>("signingConfigs", SigningConfigsDslElement.class, SigningConfigsDslElement::new);
 
   @Override
   public boolean implicitlyExists(@NotNull String name) {
     return implicitSigningConfigs.contains(name);
   }
 
-  public SigningConfigsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, SIGNING_CONFIGS_BLOCK_NAME);
+  public SigningConfigsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

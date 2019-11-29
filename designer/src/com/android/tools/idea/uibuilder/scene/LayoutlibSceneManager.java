@@ -46,6 +46,7 @@ import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderSettings;
@@ -431,7 +432,7 @@ public class LayoutlibSceneManager extends SceneManager {
     public void modelDerivedDataChanged(@NotNull NlModel model) {
       NlDesignSurface surface = getDesignSurface();
       // TODO: this is the right behavior, but seems to unveil repaint issues. Turning it off for now.
-      if (false && surface.getSceneMode() == SceneMode.BLUEPRINT_ONLY) {
+      if (false && surface.getSceneMode() == SceneMode.BLUEPRINT) {
         requestLayout(true);
       }
       else {
@@ -570,7 +571,7 @@ public class LayoutlibSceneManager extends SceneManager {
   @NotNull
   public CompletableFuture<Void> requestLayoutAndRender(boolean animate) {
     // Don't render if we're just showing the blueprint
-    if (getDesignSurface().getSceneMode() == SceneMode.BLUEPRINT_ONLY) {
+    if (getDesignSurface().getSceneMode() == SceneMode.BLUEPRINT) {
       return requestLayout(animate);
     }
 
@@ -815,8 +816,10 @@ public class LayoutlibSceneManager extends SceneManager {
     myRenderedVersion = resourceNotificationManager.getCurrentVersion(facet, getModel().getFile(), configuration);
 
     RenderService renderService = RenderService.getInstance(getModel().getProject());
+    RenderLogger logger = renderService.createLogger(facet);
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
-      .withPsiFile(getModel().getFile());
+      .withPsiFile(getModel().getFile())
+      .withLogger(logger);
     return setupRenderTaskBuilder(renderTaskBuilder).build()
       .thenCompose(newTask -> {
         if (newTask != null) {
@@ -870,6 +873,14 @@ public class LayoutlibSceneManager extends SceneManager {
             if (myRenderTask != null && !myRenderTask.isDisposed()) {
               myRenderTask.dispose();
             }
+          }
+          RenderResult result = RenderResult.createRenderTaskErrorResult(getModel().getFile(), logger);
+          myRenderResultLock.writeLock().lock();
+          try {
+            updateCachedRenderResult(result);
+          }
+          finally {
+            myRenderResultLock.writeLock().unlock();
           }
         }
 

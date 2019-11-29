@@ -58,23 +58,24 @@ interface TableView {
    */
   fun setFetchNextRowsButtonState(enable: Boolean)
 
-  fun addListener(listener: TableViewListener)
-  fun removeListener(listener: TableViewListener)
-}
+  fun addListener(listener: Listener)
+  fun removeListener(listener: Listener)
 
-interface TableViewListener {
-  fun loadPreviousRowsInvoked()
-  fun loadNextRowsInvoked()
-  fun loadFirstRowsInvoked()
-  fun loadLastRowsInvoked()
+  interface Listener {
+    fun loadPreviousRowsInvoked()
+    fun loadNextRowsInvoked()
+    fun loadFirstRowsInvoked()
+    fun loadLastRowsInvoked()
+    fun refreshDataInvoked()
 
-  /**
-   * Invoked when the user changes the number of rows to display per page.
-   */
-  fun rowCountChanged(rowCount: Int)
+    /**
+     * Invoked when the user changes the number of rows to display per page.
+     */
+    fun rowCountChanged(rowCount: Int)
 
-  /**
-   * Invoked when the user wants to order the data by a specific column
-   */
-  fun toggleOrderByColumnInvoked(sqliteColumn: SqliteColumn)
+    /**
+     * Invoked when the user wants to order the data by a specific column
+     */
+    fun toggleOrderByColumnInvoked(sqliteColumn: SqliteColumn)
+  }
 }

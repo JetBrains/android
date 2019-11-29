@@ -28,6 +28,8 @@ import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.SourceProvidersFactory
+import com.android.tools.idea.projectsystem.SourceProvidersImpl
+import com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
@@ -41,9 +43,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProvidersImpl
 import org.jetbrains.android.facet.createIdeaSourceProviderFromModelSourceProvider
-import org.jetbrains.android.facet.createSourceProvidersForLegacyModule
 import java.nio.file.Path
 
 class GradleProjectSystem(val project: Project) : AndroidProjectSystem {

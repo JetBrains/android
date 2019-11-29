@@ -30,11 +30,15 @@ import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
+import javax.swing.KeyStroke;
 
 /**
  * The access to platform independent UI features allow us to run using the JB components as well as the stand alone.
@@ -42,7 +46,7 @@ import javax.swing.JPopupMenu;
 public class MEUI {
 
   static float userScaleFactor = 1;
-  public static final Color ourMySelectedTextColor = new JBColor(0xEAEAEA, 0xff333333);
+  public static final Color ourMySelectedTextColor = new JBColor(0xEAEAEA, 0xCCCCCC);
 
   public static int scale(int i) {
     return JBUI.scale(i);
@@ -80,10 +84,10 @@ public class MEUI {
 
   public static final Color ourErrorColor = makeColor("UIDesigner.motion.ErrorColor", 0x8f831b, 0xffa31b);
   public static final Color ourBannerColor = makeColor("UIDesigner.motion.NotificationBackground", 0xfff8d1, 0x1d3857);
-  public static final Color myTimeCursorColor = makeColor("UIDesigner.motion.TimeCursorColor", 0xff3d81e1, 0xff3d81e1);
+  public static final Color myTimeCursorColor = makeColor("UIDesigner.motion.TimeCursorColor", 0xFF4A81FF, 0xFFB4D7FF);
   public static final Color myTimeCursorStartColor = makeColor("UIDesigner.motion.TimeCursorStartColor", 0xff3da1f1, 0xff3dd1f1);
   public static final Color myTimeCursorEndColor = makeColor("UIDesigner.motion.TimeCursorEndColor", 0xff3da1f1, 0xff3dd1f1);
-  public static final Color myGridColor = makeColor("UIDesigner.motion.gridColor", 0x888888, 0x9e9e9e);
+  public static final Color myGridColor = makeColor("UIDesigner.motion.timeLineGridColor", 0xDDDDDD, 0x555555);
   public static final Color myUnSelectedLineColor = new Color(0xe0759a);
   public static final Color ourMySelectedKeyColor = makeColor("UIDesigner.motion.SelectedKeyColor", 0xff3da1f1, 0xff3dd1f1);
   public static final Color ourMySelectedLineColor = new Color(0x3879d9);
@@ -100,12 +104,33 @@ public class MEUI {
     return UIUtil.createImage(w, h, type);
   }
 
+  /**
+   * TODO: support intellij copy paste
+   *
+   * @param copyListener
+   * @param pasteListener
+   * @param panel
+   */
+  public static void addCopyPaste(ActionListener copyListener, ActionListener pasteListener, JComponent panel) {
+    // TODO ideally support paste and copy with control or command
+    KeyStroke copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK, false);
+    KeyStroke copy2 = KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.META_MASK, false);
+    KeyStroke paste = KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK, false);
+    KeyStroke paste2 = KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.META_MASK, false);
+    panel.registerKeyboardAction(copyListener, "Copy", copy, JComponent.WHEN_FOCUSED);
+    panel.registerKeyboardAction(copyListener, "Copy", copy2, JComponent.WHEN_FOCUSED);
+    panel.registerKeyboardAction(pasteListener, "Paste", paste, JComponent.WHEN_FOCUSED);
+    panel.registerKeyboardAction(pasteListener, "Paste", paste2, JComponent.WHEN_FOCUSED);
+  }
+
+  //0c283e
   public static class CSPanel {
     public static final Color our_SelectedFocusBackground =
-      makeColor("UIDesigner.motion.ourCS_SelectedFocusBackground", 0x3973d6, 0x1886F7);
+      makeColor("UIDesigner.motion.CSPanel.SelectedFocusBackground", 0x3973d6, 0x2E65CA);
     public static final Color our_SelectedBackground =
-       makeColor("UIDesigner.motion.ourCS_SelectedBackground", 0xD3D3D3, 0x797B7C);
+      makeColor("UIDesigner.motion.CSPanel.SelectedBackground", 0xD3D3D3, 0x0C283E);
   }
+
   public static class Overview {
     public static final Color ourCS = makeColor("UIDesigner.motion.ConstraintSet", 0xFFFFFF, 0x515658);
     public static final Color ourCSText = makeColor("UIDesigner.motion.ConstraintSetText", 0x000000, 0xC7C7C7);
@@ -125,8 +150,10 @@ public class MEUI {
   }
 
   public static class Graph {
-    public static final Color ourG_Background = makeColor("UIDesigner.motion.motionGraphBackground", 0xd8d8d8, 0x4f5658);
-    public static final Color ourG_line = makeColor("UIDesigner.motion.graphLine", 0xE66F9A, 0x97b1c0);
+    public static final Color ourG_Background = makeColor("UIDesigner.motion.motionGraphBackground", 0xfcfcfc, 0x313334);
+    public static final Color ourG_line = makeColor("UIDesigner.motion.graphLine", 0xE66F9A, 0xA04E6C);
+    public static final Color ourCursorTextColor = makeColor("UIDesigner.motion.CursorTextColor", 0xFFFFFF, 0x000000);
+
   }
 
   public static final Color ourSelectedSetColor = new JBColor(0xE1E2E1, 0xF0F1F0);

@@ -416,8 +416,8 @@ public class AppCompatMigrationEntry {
     }
   }
 
-  static class UpdateGradleDepedencyVersionMigrationEntry extends GradleMigrationEntry {
-    public UpdateGradleDepedencyVersionMigrationEntry(@NotNull String groupName, @NotNull String artifactName, @NotNull String newBaseVersion) {
+  static class UpdateGradleDependencyVersionMigrationEntry extends GradleMigrationEntry {
+    public UpdateGradleDependencyVersionMigrationEntry(@NotNull String groupName, @NotNull String artifactName, @NotNull String newBaseVersion) {
       super(UPGRADE_GRADLE_DEPENDENCY_VERSION, groupName, artifactName, newBaseVersion);
     }
 

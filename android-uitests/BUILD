@@ -53,7 +53,6 @@ iml_module(
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
-        "//tools/idea/java/ide-customization:intellij.java.ide.customization",
         "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
         "//tools/idea:intellij.java.ui.tests",
         "//tools/idea/java/plugin:intellij.java.plugin",
@@ -468,6 +467,7 @@ java_test(
 # sanity test
 java_test(
     name = "AddKotlinTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/LinkProjectWithKotlin/**",
     ]),
@@ -1071,20 +1071,6 @@ java_test(
         "testData/NoUnusedResourceApp/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.UnusedResourceEvaluationTest"],
-    tags = COMMON_TAGS + [
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-# fast test
-java_test(
-    name = "DataBindingTest",
-    data = COMMON_DATA + glob([
-        "testData/DatabindingMethodsTest/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.DataBindingTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
     ],

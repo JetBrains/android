@@ -496,7 +496,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
           }
           String version = myModel.version().toString();
           String newVersion;
-          if (mapEntry instanceof UpdateGradleDepedencyVersionMigrationEntry) {
+          if (mapEntry instanceof UpdateGradleDependencyVersionMigrationEntry) {
             // For version upgrades get the highest of the existing one and the old one
             newVersion = getHighestVersion(version, mapEntry.getNewBaseVersion());
           }
@@ -551,7 +551,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
         }
         if (version.getReference() != null) {
           String newVersion;
-          if (mapEntry instanceof UpdateGradleDepedencyVersionMigrationEntry) {
+          if (mapEntry instanceof UpdateGradleDependencyVersionMigrationEntry) {
             // For version upgrades get the highest of the existing one and the old one
             newVersion = getHighestVersion(version.getText(), mapEntry.getNewBaseVersion());
 
@@ -569,7 +569,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       }
       else if (element.getReference() != null) {
         String newVersion;
-        if (mapEntry instanceof UpdateGradleDepedencyVersionMigrationEntry) {
+        if (mapEntry instanceof UpdateGradleDependencyVersionMigrationEntry) {
           GradleCoordinate existingCoordinate = GradleCoordinate.parseCoordinateString(element.getReference().getCanonicalText());
           // For version upgrades get the highest of the existing one and the old one
           newVersion = getHighestVersion(existingCoordinate, mapEntry.getNewBaseVersion());
@@ -601,7 +601,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
         }
       } else if (element instanceof GrString) {
         String newVersion;
-        if (mapEntry instanceof UpdateGradleDepedencyVersionMigrationEntry) {
+        if (mapEntry instanceof UpdateGradleDependencyVersionMigrationEntry) {
           GradleCoordinate existingCoordinate = GradleCoordinate.parseCoordinateString(GrStringUtil.removeQuotes(element.getText()));
 
           // For version upgrades get the highest of the existing one and the old one

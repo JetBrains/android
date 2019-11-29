@@ -20,13 +20,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link ExperimentalSettingsConfigurable}.
  */
-public class ExperimentalSettingsConfigurableTest extends PlatformTestCase {
+public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase {
   @Mock private GradleExperimentalSettings mySettings;
   private ExperimentalSettingsConfigurable myConfigurable;
 
@@ -55,49 +55,63 @@ public class ExperimentalSettingsConfigurableTest extends PlatformTestCase {
     assertTrue(myConfigurable.isModified());
     mySettings.USE_NEW_PSD = true;
     assertFalse(myConfigurable.isModified());
+
+    myConfigurable.setSkipGradleTasksList(true);
+    mySettings.SKIP_GRADLE_TASKS_LIST = false;
+    assertTrue(myConfigurable.isModified());
+    mySettings.SKIP_GRADLE_TASKS_LIST = true;
+    assertFalse(myConfigurable.isModified());
   }
 
   public void testApply() throws ConfigurationException {
     myConfigurable.setUseL2DependenciesInSync(true);
     myConfigurable.setUseSingleVariantSync(true);
     myConfigurable.setUseNewPsd(true);
+    myConfigurable.setSkipGradleTasksList(true);
 
     myConfigurable.apply();
 
     assertTrue(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     assertTrue(mySettings.USE_SINGLE_VARIANT_SYNC);
     assertTrue(mySettings.USE_NEW_PSD);
+    assertTrue(mySettings.SKIP_GRADLE_TASKS_LIST);
 
     myConfigurable.setUseL2DependenciesInSync(false);
     myConfigurable.setUseSingleVariantSync(false);
     myConfigurable.setUseNewPsd(false);
+    myConfigurable.setSkipGradleTasksList(false);
 
     myConfigurable.apply();
 
     assertFalse(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     assertFalse(mySettings.USE_SINGLE_VARIANT_SYNC);
     assertFalse(mySettings.USE_NEW_PSD);
+    assertFalse(mySettings.SKIP_GRADLE_TASKS_LIST);
   }
 
   public void testReset() {
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = true;
     mySettings.USE_SINGLE_VARIANT_SYNC = true;
     mySettings.USE_NEW_PSD = true;
+    mySettings.SKIP_GRADLE_TASKS_LIST = true;
 
     myConfigurable.reset();
 
     assertTrue(myConfigurable.isUseL2DependenciesInSync());
     assertTrue(myConfigurable.isUseSingleVariantSync());
     assertTrue(myConfigurable.isUseNewPsd());
+    assertTrue(myConfigurable.skipGradleTasksList());
 
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = false;
     mySettings.USE_SINGLE_VARIANT_SYNC = false;
     mySettings.USE_NEW_PSD = false;
+    mySettings.SKIP_GRADLE_TASKS_LIST = false;
 
     myConfigurable.reset();
 
     assertFalse(myConfigurable.isUseL2DependenciesInSync());
     assertFalse(myConfigurable.isUseSingleVariantSync());
     assertFalse(myConfigurable.isUseNewPsd());
+    assertFalse(myConfigurable.skipGradleTasksList());
   }
 }

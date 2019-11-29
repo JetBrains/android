@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
@@ -28,15 +28,16 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public final class AndroidDslElement extends GradleDslBlockElement {
-  @NonNls public static final String ANDROID_BLOCK_NAME = "android";
+  public static final PropertiesElementDescription<AndroidDslElement> ANDROID =
+    new PropertiesElementDescription<>("android", AndroidDslElement.class, AndroidDslElement::new);
 
   @NotNull
   private static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
@@ -45,7 +46,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"compileSdkVersion", property, COMPILE_SDK_VERSION, VAR}, // TODO(xof): type handling of this is tricky
     {"compileSdkVersion", exactly(1), COMPILE_SDK_VERSION, SET},
     {"defaultPublishConfig", property, DEFAULT_PUBLISH_CONFIG, VAR},
-    {"defaultPublishConfig", exactly(1), DEFAULT_PUBLISH_CONFIG, VAR},
+    {"defaultPublishConfig", exactly(1), DEFAULT_PUBLISH_CONFIG, SET},
     {"dynamicFeatures", property, DYNAMIC_FEATURES, VAR},
     {"flavorDimensions", atLeast(0), FLAVOR_DIMENSIONS, OTHER}, // SETN: sets the property to the list of varargs arguments
     {"generatePureSplits", property, GENERATE_PURE_SPLITS, VAR},
@@ -54,8 +55,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"setPublishNonDefault", exactly(1), PUBLISH_NON_DEFAULT, SET},
     {"resourcePrefix", property, RESOURCE_PREFIX, VAL}, // no setResourcePrefix: not a VAR
     {"resourcePrefix", exactly(1), RESOURCE_PREFIX, SET}
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
 
   @NotNull
   private static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
@@ -75,8 +75,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"publishNonDefault", exactly(1), PUBLISH_NON_DEFAULT, SET},
     {"resourcePrefix", property, RESOURCE_PREFIX, VAL},
     {"resourcePrefix", exactly(1), RESOURCE_PREFIX, SET}
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
 
   @Override
   @NotNull
@@ -92,8 +91,8 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     }
   }
 
-  public AndroidDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(ANDROID_BLOCK_NAME));
+  public AndroidDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

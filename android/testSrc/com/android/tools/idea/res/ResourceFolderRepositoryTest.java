@@ -3206,6 +3206,13 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         .containsExactly("btn_title_refresh", "header", "text2", "title_refresh_progress");
   }
 
+  public void testInvalidFileResourceName() {
+    myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable/foo-bar.xml");
+    ResourceFolderRepository resources = createRepository(false);
+    assertThat(resources.getResources(RES_AUTO, ResourceType.DRAWABLE)).isEmpty();
+    assertThat(resources.getResources(RES_AUTO, ResourceType.ID)).isEmpty();
+  }
+
   public void testIssue36973561() {
     // Test deleting a string; ensure that the whole repository is updated correctly.
     // Regression test for https://issuetracker.google.com/36973561.

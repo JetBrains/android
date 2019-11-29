@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.psi.PsiDocumentManager
 import org.jetbrains.kotlin.android.inspection.IncorrectScopeInspection
 
 class IncorrectScopeInspectionTest : AndroidGradleTestCase() {
@@ -66,6 +67,34 @@ class IncorrectScopeInspectionTest : AndroidGradleTestCase() {
     }).isTrue()
   }
 
+  fun testIncorrectScopeDifferentModuleAndroidTest() {
+    val unitTestPath = "app/src/test/java/com/example/android/kotlin/ExampleUnitTest.kt"
+    val file = project.guessProjectDir()!!.findFileByRelativePath(unitTestPath)
+    myFixture.openFileInEditor(file!!)
+    myFixture.moveCaret("import org.junit.Test|")
+    myFixture.type("\nimport android.support.test.InstrumentationRegistry")
+    PsiDocumentManager.getInstance(project).commitDocument(myFixture.editor.document)
+    myFixture.moveCaret("assertEquals(4, 2 + 2)|")
+    myFixture.type("\nInstrumentationRegistry.getTargetContext()")
+    PsiDocumentManager.getInstance(project).commitDocument(myFixture.editor.document)
+    val expectedErrorMessage = "Unresolved reference: InstrumentationRegistry"
+    assertThat(myFixture.doHighlighting().stream().anyMatch {
+      it.description == expectedErrorMessage && it.severity == HighlightSeverity.ERROR
+    }).isTrue()
+  }
+
+  fun testCorrectScopeDifferentModuleAndroidTest() {
+    val unitTestPath = "app/src/androidTest/java/com/example/android/kotlin/ExampleInstrumentedTest.kt"
+    val file = project.guessProjectDir()!!.findFileByRelativePath(unitTestPath)
+    myFixture.openFileInEditor(file!!)
+    myFixture.moveCaret("\nimport android.support.test.InstrumentationRegistry|")
+    // JUnit has been added to the androidTest scope as an indirect dependency on com.android.support.test:runner:1.0.2
+    myFixture.moveCaret("\nimport org.junit.Test|")
+    PsiDocumentManager.getInstance(project).commitDocument(myFixture.editor.document)
+    val highlightInfo = myFixture.doHighlighting(HighlightSeverity.WARNING)
+    assertThat(highlightInfo).isEmpty()
+  }
+
   fun testCorrectScopeUnitTest() {
     val file = project.guessProjectDir()!!
       .findFileByRelativePath("app/src/test/java/com/example/android/kotlin/ExampleUnitTest.kt")!!
@@ -83,8 +112,7 @@ class IncorrectScopeInspectionTest : AndroidGradleTestCase() {
 
     val expectedErrorMessage = "Unresolved reference: ExampleInstrumentedTest"
     assertThat(myFixture.doHighlighting().stream().anyMatch {
-      it.description == expectedErrorMessage
-      && it.severity == HighlightSeverity.ERROR
+      it.description == expectedErrorMessage && it.severity == HighlightSeverity.ERROR
     }).isTrue()
   }
 }

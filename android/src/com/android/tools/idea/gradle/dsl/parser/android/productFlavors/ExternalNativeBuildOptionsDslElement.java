@@ -18,12 +18,15 @@ package com.android.tools.idea.gradle.dsl.parser.android.productFlavors;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
-
 public class ExternalNativeBuildOptionsDslElement extends GradleDslBlockElement {
-  public ExternalNativeBuildOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(EXTERNAL_NATIVE_BUILD_BLOCK_NAME));
+  public static final PropertiesElementDescription<ExternalNativeBuildOptionsDslElement> EXTERNAL_NATIVE_BUILD_OPTIONS =
+    new PropertiesElementDescription<>(
+      "externalNativeBuild", ExternalNativeBuildOptionsDslElement.class, ExternalNativeBuildOptionsDslElement::new);
+
+  public ExternalNativeBuildOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

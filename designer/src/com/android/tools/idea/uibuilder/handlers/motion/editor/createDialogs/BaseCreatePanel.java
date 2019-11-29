@@ -255,6 +255,7 @@ public class BaseCreatePanel extends JPanel {
         }
       }
     };
+    aa.putValue(Action.SHORT_DESCRIPTION, component.getToolTipText());
     return aa;
   }
 

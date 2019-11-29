@@ -49,6 +49,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.pom.Navigatable
 import com.intellij.psi.xml.XmlFile
+import com.intellij.psi.xml.XmlTag
 import com.intellij.util.Alarm
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
@@ -151,6 +152,8 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   fun provideDefaultValue(property: NelePropertyItem): String? {
     return defaultValueProvider?.provideDefaultValue(property)
   }
+
+  open fun getPropertyTag(property: NelePropertyItem): XmlTag? = property.firstTag
 
   open fun getPropertyValue(property: NelePropertyItem): String? {
     ApplicationManager.getApplication().assertIsDispatchThread()

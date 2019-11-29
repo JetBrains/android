@@ -16,20 +16,20 @@
 package com.android.tools.idea.gradle.dsl.parser.dependencies;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.templates.GradleFileMergers;
-import com.intellij.openapi.util.text.StringUtil;
 import java.util.Comparator;
 import java.util.List;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class DependenciesDslElement extends GradleDslBlockElement {
-  @NonNls public static final String DEPENDENCIES_BLOCK_NAME = "dependencies";
+  public static final PropertiesElementDescription<DependenciesDslElement> DEPENDENCIES =
+    new PropertiesElementDescription<>("dependencies", DependenciesDslElement.class, DependenciesDslElement::new);
 
   public static final Comparator comparator = Comparator.comparing(GradleDslElement::getName, GradleFileMergers.CONFIGURATION_ORDERING);
 
-  public DependenciesDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(DEPENDENCIES_BLOCK_NAME));
+  public DependenciesDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

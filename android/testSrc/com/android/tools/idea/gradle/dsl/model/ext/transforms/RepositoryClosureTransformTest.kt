@@ -29,9 +29,8 @@ import org.junit.Test
 
 class RepositoryClosureTransformTest : TransformTestCase() {
   private val fieldName = "fieldName"
-  private val defaultValue = "defaultVal"
   private val transform: RepositoryClosureTransform by lazy {
-    RepositoryClosureTransform(gradleDslFile, fieldName, defaultValue)
+    RepositoryClosureTransform(fieldName)
   }
 
   @Test
@@ -74,10 +73,7 @@ class RepositoryClosureTransformTest : TransformTestCase() {
   fun testTransformNoClosure() {
     val inputElement = createMethodCall("methodName")
     val result = transform.transform(inputElement)
-    assertThat(result, instanceOf(GradleDslGlobalValue::class.java))
-    val globalValue = result as GradleDslGlobalValue
-    assertThat(globalValue.value as String, equalTo(defaultValue))
-    assertThat(globalValue.name, equalTo(fieldName))
+    assertNull(result)
   }
 
   @Test
@@ -107,7 +103,7 @@ class RepositoryClosureTransformTest : TransformTestCase() {
   fun testReplaceWithMapNotation() {
     val inputElement = createExpressionMap()
     val name = createLiteral(fieldName)
-    name.setValue(defaultValue)
+    name.setValue("defaultValue")
     val url = createLiteral("url")
     url.setValue("some.url")
     inputElement.setNewElement(name)
@@ -131,7 +127,7 @@ class RepositoryClosureTransformTest : TransformTestCase() {
     val closure = createClosure(inputElement)
     inputElement.setParsedClosureElement(closure)
     val name = createLiteral(fieldName)
-    name.setValue(defaultValue)
+    name.setValue("defaultValue")
     closure.setNewElement(name)
     val newElement = createLiteral(fieldName)
     newElement.setValue("someValue")

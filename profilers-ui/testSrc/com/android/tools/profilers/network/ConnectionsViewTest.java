@@ -23,10 +23,10 @@ import static org.junit.Assert.assertThat;
 
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
@@ -106,10 +106,10 @@ public class ConnectionsViewTest {
 
     assertThat(table.getRowCount(), is(0));
 
-    myStageView.getTimeline().getSelectionRange().set(TimeUnit.SECONDS.toMicros(3), TimeUnit.SECONDS.toMicros(10));
+    myStageView.getStage().getTimeline().getSelectionRange().set(TimeUnit.SECONDS.toMicros(3), TimeUnit.SECONDS.toMicros(10));
     assertThat(table.getRowCount(), is(2));
 
-    myStageView.getTimeline().getSelectionRange().set(0, 0);
+    myStageView.getStage().getTimeline().getSelectionRange().set(0, 0);
     assertThat(table.getRowCount(), is(0));
   }
 
@@ -132,14 +132,14 @@ public class ConnectionsViewTest {
       latchSelected.countDown();
     });
 
-    myStageView.getTimeline().getSelectionRange().set(0, TimeUnit.SECONDS.toMicros(100));
+    myStageView.getStage().getTimeline().getSelectionRange().set(0, TimeUnit.SECONDS.toMicros(100));
     latchSelected.await();
     assertThat(selectedRow[0], is(arbitraryIndex));
   }
 
   @Test
   public void tableCanBeSorted() throws Exception {
-    myStageView.getTimeline().getSelectionRange().set(0, TimeUnit.SECONDS.toMicros(100));
+    myStageView.getStage().getTimeline().getSelectionRange().set(0, TimeUnit.SECONDS.toMicros(100));
     ConnectionsView view = new ConnectionsView(myStageView);
 
     JTable table = getConnectionsTable(view);
@@ -156,12 +156,12 @@ public class ConnectionsViewTest {
     assertThat(table.convertRowIndexToView(2), is(1));
     assertThat(table.convertRowIndexToView(3), is(0));
 
-    myStageView.getTimeline().getSelectionRange().set(0, 0);
+    myStageView.getStage().getTimeline().getSelectionRange().set(0, 0);
     assertThat(table.getRowCount(), is(0));
 
     // Include middle two requests: 3->5 (time = 2), and 8->13 (time=5)
     // This should still be shown in reverse sorted over
-    myStageView.getTimeline().getSelectionRange().set(TimeUnit.SECONDS.toMicros(3), TimeUnit.SECONDS.toMicros(10));
+    myStageView.getStage().getTimeline().getSelectionRange().set(TimeUnit.SECONDS.toMicros(3), TimeUnit.SECONDS.toMicros(10));
     assertThat(table.getRowCount(), is(2));
     assertThat(table.convertRowIndexToView(0), is(1));
     assertThat(table.convertRowIndexToView(1), is(0));
@@ -169,7 +169,7 @@ public class ConnectionsViewTest {
 
   @Test
   public void testTableRowHighlight() {
-    myStageView.getTimeline().getSelectionRange().set(0, TimeUnit.SECONDS.toMicros(100));
+    myStageView.getStage().getTimeline().getSelectionRange().set(0, TimeUnit.SECONDS.toMicros(100));
     ConnectionsView view = new ConnectionsView(myStageView);
     int timelineColumn = ConnectionsView.Column.TIMELINE.ordinal();
     JTable table = getConnectionsTable(view);

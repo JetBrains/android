@@ -82,22 +82,6 @@
     </issue>
 
     <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/gradle/project/sync/compatibility/VersionCompatibilityChecker.java"
-            line="92"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/gradle/project/sync/compatibility/VersionCompatibilityChecker.java"
-            line="92"/>
-    </issue>
-
-    <issue
         id="UseValueOf"
         message="Use `Double.valueOf(COLUMN_COUNT)` instead">
         <location
@@ -243,42 +227,10 @@
 
     <issue
         id="ImplicitExecutor"
-        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/actions/AndroidInferNullityAnnotationAction.java"
-            line="244"/>
-    </issue>
-
-    <issue
-        id="ImplicitExecutor"
-        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/lint/AndroidLintExifInterfaceInspection.java"
-            line="127"/>
-    </issue>
-
-    <issue
-        id="ImplicitExecutor"
         message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/ddms/actions/CachedFeatures.java"
             line="68"/>
-    </issue>
-
-    <issue
-        id="ImplicitExecutor"
-        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/run/editor/DeployTargetPickerDialog.java"
-            line="207"/>
-    </issue>
-
-    <issue
-        id="ImplicitExecutor"
-        message="Use `call` overload with an explicit Executor instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/ddms/DeviceNamePropertiesFetcher.kt"
-            line="72"/>
     </issue>
 
     <issue
@@ -291,50 +243,10 @@
 
     <issue
         id="ImplicitExecutor"
-        message="Use `catching` overload with an explicit Executor instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/gradle/structure/configurables/ui/FutureUtils.kt"
-            line="41"/>
-    </issue>
-
-    <issue
-        id="ImplicitExecutor"
-        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/ddms/actions/GetAdbAction.java"
-            line="56"/>
-    </issue>
-
-    <issue
-        id="ImplicitExecutor"
-        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/actions/annotations/InferSupportAnnotationsAction.java"
-            line="338"/>
-    </issue>
-
-    <issue
-        id="ImplicitExecutor"
         message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/actions/license/LicenseTextCollector.java"
             line="39"/>
-    </issue>
-
-    <issue
-        id="ImplicitExecutor"
-        message="Use `transform` overload with an explicit Executor instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/gradle/structure/model/helpers/PropertyKnownValues.kt"
-            line="133"/>
-    </issue>
-
-    <issue
-        id="ImplicitExecutor"
-        message="Use `transform` overload with an explicit Executor instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/gradle/structure/model/helpers/PropertyKnownValues.kt"
-            line="142"/>
     </issue>
 
     <issue

@@ -93,7 +93,6 @@ class AddDynamicFeatureTest {
   /**
    * Same as above, except the "dist:module" tag and "dist:instant="true"" attribute is added to the app module manifest
    */
-  @RunIn(TestGroup.UNRELIABLE)  // b/116415248
   @Test
   fun addInstantDynamicModuleWithFusing_baseHasModule() {
     val ideFrame = guiTest.importSimpleApplication()

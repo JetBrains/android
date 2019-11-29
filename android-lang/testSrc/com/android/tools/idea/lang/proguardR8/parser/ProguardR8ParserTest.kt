@@ -33,11 +33,13 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
       FILE
         ProguardR8RuleImpl(RULE)
-          PsiElement(FLAG)('-printmapping')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-printmapping')
           ProguardR8FlagArgumentImpl(FLAG_ARGUMENT)
             PsiElement(FILE_NAME)('out.map')
         ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-          PsiElement(FLAG)('-keep')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-keep')
           ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
             ProguardR8ClassModifierImpl(CLASS_MODIFIER)
               PsiElement(public)('public')
@@ -60,7 +62,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
             PsiElement(semicolon)(';')
             PsiElement(closing brace)('}')
         ProguardR8RuleImpl(RULE)
-          PsiElement(FLAG)('-keepparameternames')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-keepparameternames')
           """.trimIndent(),
       toParseTreeText(
         """
@@ -78,15 +81,19 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
       FILE
         ProguardR8RuleImpl(RULE)
-          PsiElement(FLAG)('-printmapping')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-printmapping')
           ProguardR8FlagArgumentImpl(FLAG_ARGUMENT)
             PsiElement(FILE_NAME)('out.map')
         ProguardR8RuleImpl(RULE)
-          PsiElement(FLAG)('-android')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-android')
         ProguardR8RuleImpl(RULE)
-          PsiElement(FLAG)('-dontpreverify')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-dontpreverify')
         ProguardR8RuleImpl(RULE)
-          PsiElement(FLAG)('-repackageclasses')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-repackageclasses')
       """.trimIndent(),
       toParseTreeText(
         """
@@ -101,7 +108,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
       FILE
         ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-          PsiElement(FLAG)('-keep')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-keep')
           ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
             ProguardR8ClassModifierImpl(CLASS_MODIFIER)
               PsiElement(public)('public')
@@ -200,7 +208,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-            PsiElement(FLAG)('-keepclasseswithmembers')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-keepclasseswithmembers')
             PsiElement(comma)(',')
             ProguardR8KeepOptionModifierImpl(KEEP_OPTION_MODIFIER)
               PsiElement(allowobfuscation)('allowobfuscation')
@@ -248,15 +257,18 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
       FILE
         ProguardR8RuleImpl(RULE)
-          PsiElement(FLAG)('-injars')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-injars')
           ProguardR8FlagArgumentImpl(FLAG_ARGUMENT)
             PsiElement(FILE_NAME)('in.jar')
         ProguardR8RuleImpl(RULE)
-          PsiElement(FLAG)('-outjars')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-outjars')
           ProguardR8FlagArgumentImpl(FLAG_ARGUMENT)
             PsiElement(FILE_NAME)('out.jar')
         ProguardR8RuleImpl(RULE)
-          PsiElement(FLAG)('-libraryjars')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-libraryjars')
           ProguardR8FlagArgumentImpl(FLAG_ARGUMENT)
             PsiElement(FILE_NAME)('<java.home>/jmods/java.base.jmod')
             PsiElement(left parenthesis)('(')
@@ -268,7 +280,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
               PsiElement(FILE_NAME)('module-info.class')
             PsiElement(right parenthesis)(')')
         ProguardR8RuleImpl(RULE)
-          PsiElement(FLAG)('-libraryjars')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-libraryjars')
           ProguardR8FlagArgumentImpl(FLAG_ARGUMENT)
             PsiElement(FILE_NAME)('<java.home>/jmods/java.desktop.jmod')
             PsiElement(left parenthesis)('(')
@@ -280,7 +293,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
               PsiElement(FILE_NAME)('module-info.class')
             PsiElement(right parenthesis)(')')
         ProguardR8RuleImpl(RULE)
-          PsiElement(FLAG)('-printseeds')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-printseeds')
     """.trimIndent(),
       toParseTreeText(
         """
@@ -299,7 +313,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-            PsiElement(FLAG)('-assumenoexternalsideeffects')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-assumenoexternalsideeffects')
             ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
               ProguardR8ClassTypeImpl(CLASS_TYPE)
                 PsiElement(class)('class')
@@ -347,7 +362,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-            PsiElement(FLAG)('-keepclasseswithmembernames')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-keepclasseswithmembernames')
             PsiElement(comma)(',')
             ProguardR8KeepOptionModifierImpl(KEEP_OPTION_MODIFIER)
               PsiElement(includedescriptorclasses)('includedescriptorclasses')
@@ -382,7 +398,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
       FILE
         ProguardR8RuleImpl(RULE)
-          PsiElement(FLAG)('-keepclasseswithmembernames')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-keepclasseswithmembernames')
           ProguardR8FlagArgumentImpl(FLAG_ARGUMENT)
             PsiElement(FILE_NAME)('error')
         PsiErrorElement:colon, comma, left parenthesis or semicolon expected, got 'error'
@@ -400,7 +417,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
             PsiElement(semicolon)(';')
           PsiElement(closing brace)('}')
         ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-          PsiElement(FLAG)('-keepclasseswithmembernames')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-keepclasseswithmembernames')
           ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
             ProguardR8ClassTypeImpl(CLASS_TYPE)
               PsiElement(class)('class')
@@ -442,7 +460,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
       FILE
         ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-          PsiElement(FLAG)('-keepclasseswithmembernames')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-keepclasseswithmembernames')
           ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
             ProguardR8ClassTypeImpl(CLASS_TYPE)
               PsiElement(class)('class')
@@ -486,7 +505,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
       FILE
         ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-          PsiElement(FLAG)('-keep')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-keep')
           ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
             ProguardR8ClassModifierImpl(CLASS_MODIFIER)
               PsiElement(public)('public')
@@ -509,9 +529,11 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
             PsiElement(semicolon)(';')
             PsiElement(closing brace)('}')
         ProguardR8RuleImpl(RULE)
-          PsiElement(FLAG)('-flag')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-flag')
         ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-          PsiElement(FLAG)('-keepclassmembers')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-keepclassmembers')
           ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
             ProguardR8ClassTypeImpl(CLASS_TYPE)
               PsiElement(class)('class')
@@ -557,7 +579,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
       FILE
         ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-          PsiElement(FLAG)('-keep')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-keep')
           ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
             ProguardR8ClassTypeImpl(CLASS_TYPE)
               PsiElement(class)('class')
@@ -596,7 +619,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
       FILE
         ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-          PsiElement(FLAG)('-keep')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-keep')
           ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
             ProguardR8ClassTypeImpl(CLASS_TYPE)
               PsiElement(class)('class')
@@ -640,7 +664,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
       FILE
         ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-          PsiElement(FLAG)('-keep')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-keep')
           ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
             ProguardR8ClassTypeImpl(CLASS_TYPE)
               PsiElement(class)('class')
@@ -687,7 +712,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
       FILE
         ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-          PsiElement(FLAG)('-keep')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-keep')
           ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
             ProguardR8ClassTypeImpl(CLASS_TYPE)
               PsiElement(class)('class')
@@ -730,7 +756,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
       FILE
         ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-          PsiElement(FLAG)('-keep')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-keep')
           ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
             ProguardR8ClassTypeImpl(CLASS_TYPE)
               PsiElement(class)('class')
@@ -786,7 +813,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-            PsiElement(FLAG)('-keep')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-keep')
             ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
               ProguardR8ClassTypeImpl(CLASS_TYPE)
                 PsiElement(class)('class')
@@ -833,7 +861,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-            PsiElement(FLAG)('-keep')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-keep')
             ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
               ProguardR8ClassTypeImpl(CLASS_TYPE)
                 PsiElement(class)('class')
@@ -879,7 +908,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-            PsiElement(FLAG)('-keep')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-keep')
             ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
               ProguardR8ClassTypeImpl(CLASS_TYPE)
                 PsiElement(class)('class')
@@ -913,7 +943,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-            PsiElement(FLAG)('-keep')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-keep')
             ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
               ProguardR8ClassTypeImpl(CLASS_TYPE)
                 PsiElement(class)('class')
@@ -947,7 +978,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-            PsiElement(FLAG)('-keep')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-keep')
             ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
               ProguardR8ClassTypeImpl(CLASS_TYPE)
                 PsiElement(class)('class')
@@ -982,7 +1014,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-            PsiElement(FLAG)('-keep')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-keep')
             ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
               ProguardR8ClassTypeImpl(CLASS_TYPE)
                 PsiElement(class)('class')
@@ -1029,7 +1062,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
             PsiElement(@)('@')
             PsiElement(FILE_NAME)('keep-rules.txt')
           ProguardR8RuleImpl(RULE)
-            PsiElement(FLAG)('-secondrule')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-secondrule')
       """.trimIndent(),
       toParseTreeText(
         """
@@ -1046,7 +1080,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-            PsiElement(FLAG)('-keep')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-keep')
             ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
               ProguardR8AnnotationNameImpl(ANNOTATION_NAME)
                 PsiElement(@)('@')
@@ -1082,7 +1117,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-            PsiElement(FLAG)('-keep')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-keep')
             ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
               ProguardR8ClassTypeImpl(CLASS_TYPE)
                 PsiElement(class)('class')
@@ -1126,7 +1162,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-            PsiElement(FLAG)('-keep')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-keep')
             ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
               ProguardR8ClassTypeImpl(CLASS_TYPE)
                 PsiElement(class)('class')
@@ -1147,7 +1184,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-            PsiElement(FLAG)('-keep')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-keep')
             ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
               ProguardR8ClassTypeImpl(CLASS_TYPE)
                 PsiElement(class)('class')
@@ -1183,7 +1221,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-            PsiElement(FLAG)('-keep')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-keep')
             ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
               ProguardR8ClassTypeImpl(CLASS_TYPE)
                 PsiElement(class)('class')
@@ -1199,7 +1238,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
                 <empty list>
               PsiElement(closing brace)('}')
           ProguardR8RuleImpl(RULE)
-            PsiElement(FLAG)('-rule')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-rule')
       """.trimIndent(),
       toParseTreeText(
         """
@@ -1223,7 +1263,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
       FILE
         ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-          PsiElement(FLAG)('-keep')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-keep')
           ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
             ProguardR8ClassTypeImpl(CLASS_TYPE)
               PsiElement(class)('class')
@@ -1261,7 +1302,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
             PsiElement(semicolon)(';')
             PsiElement(closing brace)('}')
         ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-          PsiElement(FLAG)('-keep')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-keep')
           ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
             ProguardR8ClassTypeImpl(CLASS_TYPE)
               PsiElement(interface)('interface')
@@ -1299,7 +1341,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
             PsiElement(semicolon)(';')
             PsiElement(closing brace)('}')
         ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-          PsiElement(FLAG)('-keep')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-keep')
           ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
             ProguardR8ClassTypeImpl(CLASS_TYPE)
               PsiElement(class)('class')
@@ -1310,7 +1353,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
             PsiElement(dot)('.')
             PsiElement(JAVA_IDENTIFIER)('name')
         ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-          PsiElement(FLAG)('-keep')
+          ProguardR8FlagImpl(FLAG)
+            PsiElement(FLAG_TOKEN)('-keep')
           ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
             ProguardR8ClassTypeImpl(CLASS_TYPE)
               PsiElement(class)('class')
@@ -1337,7 +1381,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-            PsiElement(FLAG)('-keep')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-keep')
             ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
               ProguardR8ClassTypeImpl(CLASS_TYPE)
                 PsiElement(class)('class')
@@ -1380,7 +1425,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-            PsiElement(FLAG)('-keep')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-keep')
             ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
               ProguardR8ClassTypeImpl(CLASS_TYPE)
                 PsiElement(class)('class')
@@ -1422,7 +1468,8 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleImpl(RULE)
-            PsiElement(FLAG)('-rule')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-rule')
             ProguardR8FlagArgumentImpl(FLAG_ARGUMENT)
               PsiElement(asterisk)('*')
       """.trimIndent(),
@@ -1437,12 +1484,14 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       """
         FILE
           ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
-            PsiElement(FLAG)('-keepclassmembers')
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-keepclassmembers')
             ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
               ProguardR8ClassTypeImpl(CLASS_TYPE)
                 PsiElement(class)('class')
               ProguardR8ClassNameImpl(CLASS_NAME)
-                PsiElement(DOUBLE_QUOTED_CLASS)('"a.b.c.**"')
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(DOUBLE_QUOTED_CLASS)('"a.b.c.**"')
               PsiElement(comma)(',')
               ProguardR8ClassNameImpl(CLASS_NAME)
                 PsiElement(!)('!')
@@ -1450,20 +1499,24 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
                   PsiElement(JAVA_IDENTIFIER_WITH_WILDCARDS)('**d')
               PsiElement(comma)(',')
               ProguardR8ClassNameImpl(CLASS_NAME)
-                PsiElement(SINGLE_QUOTED_CLASS)(''!**e'')
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(SINGLE_QUOTED_CLASS)(''!**e'')
               PsiElement(comma)(',')
               ProguardR8ClassNameImpl(CLASS_NAME)
-                PsiElement(DOUBLE_QUOTED_CLASS)('"!**f"')
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(DOUBLE_QUOTED_CLASS)('"!**f"')
               PsiElement(comma)(',')
               ProguardR8ClassNameImpl(CLASS_NAME)
                 ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
                   PsiElement(JAVA_IDENTIFIER)('g')
               PsiElement(comma)(',')
               ProguardR8ClassNameImpl(CLASS_NAME)
-                PsiElement(SINGLE_QUOTED_CLASS)(''h'')
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(SINGLE_QUOTED_CLASS)(''h'')
               PsiElement(comma)(',')
               ProguardR8ClassNameImpl(CLASS_NAME)
-                PsiElement(DOUBLE_QUOTED_CLASS)('"i"')
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(DOUBLE_QUOTED_CLASS)('"i"')
       """.trimIndent(),
       toParseTreeText(
         """

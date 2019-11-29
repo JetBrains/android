@@ -97,10 +97,6 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
     return ArrayUtil.EMPTY_STRING_ARRAY
   }
 
-  override fun getAllMethodNames(set: HashSet<String>) {
-    // BR files are only fields, no methods
-  }
-
   override fun getFieldsByName(name: String, scope: GlobalSearchScope): Array<PsiField> {
     if (!isMyScope(scope)) {
       return PsiField.EMPTY_ARRAY
@@ -113,10 +109,6 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun getAllFieldNames(): Array<String> {
     return allFieldNamesCache.value
-  }
-
-  override fun getAllFieldNames(set: HashSet<String>) {
-    set.addAll(allFieldNames)
   }
 
   override fun getFieldsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiField> {

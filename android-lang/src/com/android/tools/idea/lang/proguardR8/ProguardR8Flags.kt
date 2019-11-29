@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
+import com.android.tools.idea.projectsystem.CodeShrinker
+
 private val COMMON_FLAGS = setOf(
   "adaptclassstrings",
   "adaptresourcefilecontents",
@@ -63,13 +65,16 @@ private val COMMON_FLAGS = setOf(
   "optimizations"
 )
 
-internal val R8_FLAGS = COMMON_FLAGS + setOf(
+val R8_FLAGS = COMMON_FLAGS + setOf(
   "alwaysinline",
   "checkdiscard",
   "identifiernamestring"
 )
 
-internal val PROGUARD_FLAGS = COMMON_FLAGS + setOf(
+val PROGUARD_FLAGS = COMMON_FLAGS + setOf(
+  "assumenoexternalsideeffects",
+  "assumenoescapingparameters",
+  "assumenoexternalreturnvalues",
   "defaultpackage",
   "dontpreverify",
   "dontskipnonpubliclibraryclasses",
@@ -107,3 +112,12 @@ internal val ATTRIBUTES = setOf(
   "SourceFile",
   "Synthetic"
 )
+
+/**
+ * Returns supported flags for given code shrinker or default value - PROGUARD_FLAGS - if shrinker is null.
+ */
+fun getShrinkerFlagSet(codeShrinker: CodeShrinker?): Set<String> = when (codeShrinker) {
+  CodeShrinker.R8 -> R8_FLAGS
+  CodeShrinker.PROGUARD -> PROGUARD_FLAGS
+  null -> PROGUARD_FLAGS
+}

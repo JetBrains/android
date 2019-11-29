@@ -15,27 +15,25 @@
  */
 package com.android.tools.idea.templates.recipe
 
-import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT
 import com.android.SdkConstants.ATTR_CONTEXT
-import com.android.SdkConstants.DOT_GRADLE
 import com.android.SdkConstants.DOT_XML
-import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.SdkConstants.GRADLE_ANDROID_TEST_API_CONFIGURATION
 import com.android.SdkConstants.GRADLE_ANDROID_TEST_COMPILE_CONFIGURATION
 import com.android.SdkConstants.GRADLE_ANDROID_TEST_IMPLEMENTATION_CONFIGURATION
 import com.android.SdkConstants.GRADLE_API_CONFIGURATION
 import com.android.SdkConstants.GRADLE_COMPILE_CONFIGURATION
 import com.android.SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION
-import com.android.SdkConstants.SUPPORT_LIB_ARTIFACT
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.repository.GradleVersion
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
@@ -49,26 +47,28 @@ import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
 import com.android.tools.idea.templates.TemplateUtils.writeTextFile
 import com.android.tools.idea.templates.findModule
-import com.android.tools.idea.templates.mergeGradleSettingsFile
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.SourceSetType
+import com.android.tools.idea.wizard.template.findResource
 import com.android.utils.XmlUtils.XML_PROLOG
 import com.android.utils.findGradleBuildFile
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Strings.nullToEmpty
-import com.google.common.io.Resources.getResource
 import com.intellij.diff.comparison.ComparisonManager
 import com.intellij.diff.comparison.ComparisonPolicy.IGNORE_WHITESPACES
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.ReadonlyStatusHandler
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
+import com.intellij.openapi.vfs.VfsUtil.findFileByURL
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileVisitor
+import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
 import com.intellij.util.LineSeparator
@@ -90,7 +90,8 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
   private val io: RecipeIO = if (context.dryRun) DryRunRecipeIO() else RecipeIO()
   private val readonlyStatusHandler: ReadonlyStatusHandler = ReadonlyStatusHandler.getInstance(project)
 
-  private val templateData: ModuleTemplateData get() = context.templateData
+  private val projectTemplateData: ProjectTemplateData get() = context.projectTemplateData
+  private val moduleTemplateData: ModuleTemplateData? get() = context.templateData as? ModuleTemplateData
 
   @Suppress("DEPRECATION")
   override fun hasDependency(mavenCoordinate: String, configuration: String?): Boolean {
@@ -126,7 +127,8 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
       val androidModel = AndroidModuleModel.get(facet) ?: return null
       return when (configurations[0]) {
         in defaultConfigurations ->
-          GradleUtil.dependsOn(androidModel, mavenCoordinate) || GradleUtil.dependsOnJavaLibrary(androidModel, mavenCoordinate) // For Kotlin dependencies
+          GradleUtil.dependsOn(androidModel, mavenCoordinate) || GradleUtil.dependsOnJavaLibrary(androidModel,
+                                                                                                 mavenCoordinate) // For Kotlin dependencies
         in defaultTestConfigurations -> GradleUtil.dependsOnAndroidTest(androidModel, mavenCoordinate)
         else -> throw TemplateModelException("Unknown dependency configuration " + configurations[0])
       }
@@ -138,31 +140,6 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     }
 
     return false
-  }
-
-  /**
-   * Merges the given gradle file into the given destination file (or copies it over if the destination file does not exist).
-   */
-  @Deprecated("Avoid merging Gradle files, add to an existing file programmatically instead")
-  override fun mergeGradleFile(source: String, to: File) {
-    val targetFile = getTargetFile(to)
-    require(hasExtension(targetFile, DOT_GRADLE)) { "Only Gradle files can be merged at this point: $targetFile" }
-
-    val targetText = readTargetText(targetFile) ?: run {
-      save(source, to, true, true)
-      return
-    }
-
-    val contents: String = when {
-      targetFile.name == GRADLE_PROJECT_SETTINGS_FILE -> mergeGradleSettingsFile(source, targetText)
-      targetFile.name == FN_BUILD_GRADLE -> {
-        val compileSdkVersion = templateData.projectTemplateData.buildApiString
-        io.mergeBuildFiles(source, targetText, project, compileSdkVersion)
-      }
-      else -> throw RuntimeException("Only $GRADLE_PROJECT_SETTINGS_FILE and $FN_BUILD_GRADLE can be merged: $targetFile")
-    }
-
-    writeTargetFile(this, contents, targetFile)
   }
 
   /**
@@ -249,14 +226,13 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
    */
   override fun addDependency(mavenCoordinate: String, configuration: String) {
     // Translate from "compile" to "implementation" based on the parameter map context
-    val newConfiguration = convertConfiguration(templateData.projectTemplateData.gradlePluginVersion, configuration)
+    val newConfiguration = convertConfiguration(projectTemplateData.gradlePluginVersion, configuration)
     referencesExecutor.addDependency(newConfiguration, mavenCoordinate)
-    //context.dependencies.put(newConfiguration, mavenCoordinate)
 
     val buildFile = getBuildFilePath(context)
 
-    val configuration = GradleUtil.mapConfigurationName(configuration, context.templateData.projectTemplateData.gradlePluginVersion, false)
-    val mavenCoordinate = resolveDependency(RepositoryUrlManager.get(), convertToAndroidX (mavenCoordinate), null)
+    val configuration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
+    val mavenCoordinate = resolveDependency(RepositoryUrlManager.get(), convertToAndroidX(mavenCoordinate), null)
 
     if (hasDependency(mavenCoordinate)) {
       return
@@ -267,19 +243,32 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     io.applyChanges(buildModel)
   }
 
+  override fun addModuleDependency(configuration: String, moduleName: String, toModule: String) {
+    require(moduleName.isNotEmpty() && moduleName.first() != ':') {
+      "incorrect module name (it should not be empty or include first ':')"
+    }
+    val configuration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
+    val buildFile = findGradleBuildFile(File(toModule))
+
+    // TODO(qumeric) handle it in a better way?
+    val buildModel = getBuildModel(buildFile, context.project) ?: return
+    buildModel.dependencies().addModule(configuration, ":$moduleName")
+    io.applyChanges(buildModel)
+  }
+
   /**
    * Copies the given source file into the given destination file (where the source
    * is allowed to be a directory, in which case the whole directory is copied recursively)
    */
   override fun copy(from: File, to: File) {
-    val source = File(getResource(from.path).path)
+    val sourceUrl = findResource(context.templateData.javaClass, from)
     val target = getTargetFile(to)
 
-    val sourceFile = findFileByIoFile(source, true) ?: error(from)
+    val sourceFile = findFileByURL(sourceUrl) ?: error("$from ($sourceUrl)")
     sourceFile.refresh(false, false)
-    val destPath = if (source.isDirectory) target else target.parentFile
+    val destPath = if (sourceFile.isDirectory) target else target.parentFile
     when {
-      source.isDirectory -> copyDirectory(sourceFile, destPath)
+      sourceFile.isDirectory -> copyDirectory(sourceFile, destPath)
       target.exists() -> if (!sourceFile.contentEquals(target)) {
         addFileAlreadyExistWarning(target)
       }
@@ -366,8 +355,74 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     io.applyChanges(buildModel)
   }
 
+  /**
+   * Adds a module dependency to global settings.gradle[.kts] file.
+   */
+  override fun addIncludeToSettings(moduleName: String) {
+    ProjectBuildModel.get(context.project).projectSettingsModel?.apply {
+      addModulePath(moduleName)
+      io.applyChanges(this)
+    }
+  }
+
+  /**
+   * Adds a new build feature to android block. For example, may enable compose.
+   */
+  override fun setBuildFeature(name: String, value: Boolean) {
+    val buildFile = getBuildFilePath(context)
+    // TODO(qumeric) handle it in a better way?
+    val buildModel = getBuildModel(buildFile, context.project) ?: return
+    val feature = when (name) {
+      "compose" -> buildModel.android().buildFeatures().compose()
+      else -> throw IllegalArgumentException("currently only compose build feature is supported")
+    }
+    if (feature.valueType != GradlePropertyModel.ValueType.NONE) {
+      return // we do not override value if it exists. TODO(qumeric): ask user?
+    }
+    feature.setValue(value)
+    io.applyChanges(buildModel)
+  }
+
+  /**
+   * Sets sourceCompatibility and targetCompatibility in compileOptions and (if needed) jvmTarget in kotlinOptions.
+   */
+  override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {
+    val languageLevel = LanguageLevel.parse(version)!!
+    val buildFile = getBuildFilePath(context)
+    // TODO(qumeric) handle it in a better way?
+    val buildModel = getBuildModel(buildFile, context.project) ?: return
+
+    fun updateCompatibility(current: LanguageLevelPropertyModel) {
+      if (current.valueType == GradlePropertyModel.ValueType.NONE ||
+          current.toLanguageLevel()!!.isLessThan(languageLevel)) {
+        current.setLanguageLevel(languageLevel)
+      }
+    }
+
+    buildModel.android().compileOptions().run {
+      updateCompatibility(sourceCompatibility())
+      updateCompatibility(targetCompatibility())
+    }
+    if (kotlinSupport && (context.templateData as? ModuleTemplateData)?.isDynamic != true) {
+      updateCompatibility(buildModel.android().kotlinOptions().jvmTarget())
+    }
+    io.applyChanges(buildModel)
+  }
+
+  override fun addDynamicFeature(name: String, toModule: String) {
+    require(name.isNotEmpty() && toModule.isNotEmpty()) {
+      "Module name cannot be empty"
+    }
+    val buildFile = findGradleBuildFile(File(toModule))
+    val gradleName = ':' + name.trimStart(':')
+    // TODO(qumeric) handle it in a better way?
+    val buildModel = getBuildModel(buildFile, context.project) ?: return
+    buildModel.android().dynamicFeatures().addListValue().setValue(gradleName)
+    io.applyChanges(buildModel)
+  }
+
   private fun convertToAndroidX(mavenCoordinate: String): String =
-    if (templateData.projectTemplateData.androidXSupport)
+    if (projectTemplateData.androidXSupport)
       AndroidxNameUtils.getVersionedCoordinateMapping(mavenCoordinate)
     else
       mavenCoordinate
@@ -417,7 +472,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     File(context.outputRoot, file.path)
 
   private fun readTextFile(file: File): String? =
-    if (templateData.isNew)
+    if (moduleTemplateData?.isNew != false)
       readTextFromDisk(file)
     else
       readTextFromDocument(project, file)
@@ -432,7 +487,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
       return content
     }
 
-    val packageName: String? = templateData.projectTemplateData.applicationPackage ?: templateData.packageName
+    val packageName: String? = projectTemplateData.applicationPackage ?: moduleTemplateData?.packageName
 
     val factory = XmlElementFactory.getInstance(project)
     val root = factory.createTagFromText(content)
@@ -515,6 +570,10 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
       buildModel.applyChanges()
     }
 
+    open fun applyChanges(settingsModel: GradleSettingsModel) {
+      settingsModel.applyChanges()
+    }
+
     open fun mergeBuildFiles(
       dependencies: String, destinationContents: String, project: Project, supportLibVersionFilter: String?
     ): String = project.getProjectSystem().mergeBuildFiles(dependencies, destinationContents, supportLibVersionFilter)
@@ -540,17 +599,13 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
 
     override fun applyChanges(buildModel: GradleBuildModel) {}
 
+    override fun applyChanges(settingsModel: GradleSettingsModel) {}
+
     override fun mergeBuildFiles(
       dependencies: String, destinationContents: String, project: Project, supportLibVersionFilter: String?
     ): String = destinationContents
   }
 }
-
-/**
- * The settings.gradle lives at project root and points gradle at the build files for individual modules in their subdirectories
- */
-// TODO(qumeric): make private
-const val GRADLE_PROJECT_SETTINGS_FILE = "settings.gradle"
 
 /**
  * 'classpath' is the configuration name used to specify buildscript dependencies.
@@ -580,7 +635,7 @@ fun getBuildModel(buildFile: File, project: Project): GradleBuildModel? {
 private fun getBuildFilePath(context: RenderingContext2): File {
   val module = context.module
   val moduleBuildFile = if (module == null) null else getGradleBuildFile(module)
-  return moduleBuildFile?.let { virtualToIoFile(it) } ?: findGradleBuildFile(context.moduleRoot)
+  return moduleBuildFile?.let { virtualToIoFile(it) } ?: findGradleBuildFile(context.moduleRoot!!)
 }
 
 // TODO(qumeric): make private

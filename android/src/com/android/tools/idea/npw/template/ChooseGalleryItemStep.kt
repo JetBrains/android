@@ -33,6 +33,8 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.TemplateMetadata
 import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX
 import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.KOTLIN
+import com.android.tools.idea.ui.wizard.WizardUtils.COMPOSE_MIN_AGP_VERSION
+import com.android.tools.idea.ui.wizard.WizardUtils.hasComposeMinAgpVersion
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
@@ -64,7 +66,7 @@ abstract class ChooseGalleryItemStep(
   private val emptyItemLabel: String
 ) : SkippableWizardStep<NewModuleModel>(moduleModel, message(messageKeys.addMessage, formFactor.id), formFactor.icon) {
 
-  abstract val templateRenders: List<TemplateRenderer>
+  abstract val templateRenderers: List<TemplateRenderer>
   private val itemGallery = WizardGallery(title, { t: TemplateRenderer? -> t!!.icon }, { t: TemplateRenderer? -> t!!.label })
   private val validatorPanel = ValidatorPanel(this, JBScrollPane(itemGallery)).also {
     FormScalingUtil.scaleComponentTree(this.javaClass, it)
@@ -124,8 +126,8 @@ abstract class ChooseGalleryItemStep(
     }
 
     itemGallery.run {
-      model = JBList.createDefaultListModel(templateRenders)
-      selectedIndex = getDefaultSelectedTemplateIndex(templateRenders, emptyItemLabel)
+      model = JBList.createDefaultListModel(templateRenderers)
+      selectedIndex = getDefaultSelectedTemplateIndex(templateRenderers, emptyItemLabel)
     }
   }
 
@@ -157,6 +159,11 @@ abstract class ChooseGalleryItemStep(
       else
         validateTemplate(templateData, moduleApiLevel, moduleBuildApiLevel, isNewModule, isAndroidxProject, model.language.value, messageKeys)
     )
+
+    // Special case for Compose
+    if (invalidParameterMessage.get() == "" && !hasComposeMinAgpVersion(project, templateData?.category)) {
+      invalidParameterMessage.set(message("android.wizard.validate.module.needs.new.agp", COMPOSE_MIN_AGP_VERSION))
+    }
   }
 
   interface TemplateRenderer {

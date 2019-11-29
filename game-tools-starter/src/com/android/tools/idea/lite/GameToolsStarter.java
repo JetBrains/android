@@ -20,6 +20,7 @@ import com.intellij.openapi.application.ApplicationStarter;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.WindowManager;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +57,7 @@ public class GameToolsStarter implements ApplicationStarter {
 
   @NotNull
   @Override
-  public Future<? extends CliResult> processExternalCommandLineAsync(@NotNull String[] args, @Nullable String currentDirectory) {
+  public Future<CliResult> processExternalCommandLineAsync(@NotNull List<String> args, @Nullable String currentDirectory) {
     return new CompletableFuture<>();
   }
 }

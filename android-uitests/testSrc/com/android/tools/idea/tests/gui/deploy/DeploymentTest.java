@@ -33,18 +33,18 @@ import com.android.tools.idea.run.deployable.DeviceBinder;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.run.deployment.DeviceSelectorFixture;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.ui.RunContentManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
 import java.io.IOException;
@@ -64,7 +64,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-@RunIn(TestGroup.EXCLUDED)
 @RunWith(GuiTestRemoteRunner.class)
 public class DeploymentTest {
   // Project name for studio deployment dashboards
@@ -147,7 +146,7 @@ public class DeploymentTest {
   @Test
   public void runOnDevices() throws Exception {
     setActiveApk(myProject, APK.BASE);
-    connectDevices();
+    List<FakeDevice> devices = connectDevices();
 
     IdeFrameFixture ideFrameFixture = myGuiTest.ideFrame();
     List<DeviceState> deviceStates = myAdbServer.getDeviceListCopy().get();
@@ -159,6 +158,8 @@ public class DeploymentTest {
       deviceSelector.selectDevice(binder.getIDevice()); // Ensure that the combo box has the device.
     }
 
+    assertThat(deviceBinders.size()).isEqualTo(devices.size());
+
     for (DeviceBinder deviceBinder : deviceBinders) {
       deviceSelector.selectDevice(deviceBinder.getIDevice());
       IDevice iDevice = deviceBinder.getIDevice();
@@ -169,15 +170,23 @@ public class DeploymentTest {
 
       // Stop the app and wait for the AndroidProcessHandler termination.
       ideFrameFixture.findStopButton().click();
-      awaitTermination(processHandler);
+      awaitTermination(processHandler, deviceBinder.getIDevice());
 
       myAdbServer.disconnectDevice(deviceBinder.getState().getDeviceId());
     }
+
+    for (FakeDevice device : devices) {
+      assertThat(device.getProcesses()).isEmpty();
+      device.shutdown();
+    }
   }
 
-  private void connectDevices() throws Exception {
+  @NotNull
+  private List<FakeDevice> connectDevices() throws Exception {
+    List<FakeDevice> devices = new ArrayList<>();
     for (FakeDeviceLibrary.DeviceId id : FakeDeviceLibrary.DeviceId.values()) {
       FakeDevice device = new FakeDeviceLibrary().build(id);
+      devices.add(device);
       myHandler.connect(device, myAdbServer);
     }
 
@@ -191,6 +200,8 @@ public class DeploymentTest {
           return false;
         }
       });
+
+    return devices;
   }
 
   /**
@@ -242,10 +253,17 @@ public class DeploymentTest {
     return captor.getCapturedAndroidDeviceHandler().get();
   }
 
-  private void awaitTermination(AndroidProcessHandler androidProcessHandler) {
+  private void awaitTermination(@NotNull AndroidProcessHandler androidProcessHandler, @NotNull IDevice iDevice) {
+    Wait.seconds(WAIT_TIME)
+      .expecting("process handler to stop")
+      .until(() -> androidProcessHandler.isProcessTerminated());
+
     Wait.seconds(WAIT_TIME)
       .expecting("launched app to stop")
-      .until(() -> androidProcessHandler.isProcessTerminated());
+      .until(() -> Arrays.stream(iDevice.getClients()).noneMatch(
+        c ->
+          PACKAGE_NAME.equals(c.getClientData().getClientDescription()) ||
+          PACKAGE_NAME.equals(c.getClientData().getPackageName())));
   }
 
   private void setActiveApk(@NotNull Project project, @NotNull APK apk) throws IOException {
@@ -264,10 +282,17 @@ public class DeploymentTest {
       }
 
       VirtualFile apkFile = VfsUtil.findFileByIoFile(TestUtils.getWorkspaceFile(new File(APKS_LOCATION, apk.myFileName).getPath()), true);
-      GuiTask.execute(() -> WriteAction.run(() -> {
-        VirtualFile targetApkCopy = VfsUtilCore.copyFile(this, apkFile, baseDir, DEPLOY_APK_NAME);
-        assertThat(targetApkCopy.isValid()).isTrue();
-      }));
+      ApplicationManager.getApplication().invokeLater(() -> {
+        try {
+          WriteAction.run(() -> {
+            VirtualFile targetApkCopy = VfsUtilCore.copyFile(this, apkFile, baseDir, DEPLOY_APK_NAME);
+            assertThat(targetApkCopy.isValid()).isTrue();
+            VirtualFileManager.getInstance().syncRefresh();
+          });
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
     }
     finally {
       // We need to refresh the VFS because we're modifying files here and some listeners may fire

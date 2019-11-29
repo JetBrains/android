@@ -541,8 +541,8 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myProfilers.setStage(myStage);
 
     // Reset the timeline so that both data range and view range stays at (0,10) on the next tick.
-    myProfilers.getTimeline().reset(0, TimeUnit.MICROSECONDS.toNanos(10));
-    myProfilers.getTimeline().getViewRange().set(0, 10);
+    myStage.getTimeline().reset(0, TimeUnit.MICROSECONDS.toNanos(10));
+    myStage.getTimeline().getViewRange().set(0, 10);
     MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
     // Tick a large enough time so that the renders interpolates to the final positions
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS * 10);
@@ -627,8 +627,8 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myProfilers.setStage(myStage);
 
     // Reset the timeline so that both data range and view range stays at (0,10) on the next tick.
-    myProfilers.getTimeline().reset(0, TimeUnit.MICROSECONDS.toNanos(10));
-    myProfilers.getTimeline().getViewRange().set(0, 10);
+    myStage.getTimeline().reset(0, TimeUnit.MICROSECONDS.toNanos(10));
+    myStage.getTimeline().getViewRange().set(0, 10);
     MemoryProfilerStageView view = new MemoryProfilerStageView(myProfilersView, myStage);
     // Tick a large enough time so that the renders interpolates to the final positions
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS * 10);

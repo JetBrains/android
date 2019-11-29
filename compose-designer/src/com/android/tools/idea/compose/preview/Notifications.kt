@@ -72,7 +72,7 @@ private fun createBuildNotificationPanel(project: Project,
  * the current editor and open one with the preview.
  */
 internal class ComposeNewPreviewNotificationProvider @JvmOverloads constructor(
-  private val previewElementProvider: () -> PreviewElementFinder = ::defaultPreviewElementFinder) : EditorNotifications.Provider<EditorNotificationPanel>() {
+  private val filePreviewElementProvider: () -> FilePreviewElementFinder = ::defaultFilePreviewElementFinder) : EditorNotifications.Provider<EditorNotificationPanel>() {
   private val COMPONENT_KEY = Key.create<EditorNotificationPanel>("android.tools.compose.preview.new.notification")
 
   override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? =
@@ -80,7 +80,7 @@ internal class ComposeNewPreviewNotificationProvider @JvmOverloads constructor(
       !StudioFlags.COMPOSE_PREVIEW.get() -> null
       // Not a Kotlin file or already a Compose Preview Editor
       !file.isKotlinFileType() || fileEditor.getComposePreviewManager() != null -> null
-      previewElementProvider().hasPreviewMethods(project, file) -> EditorNotificationPanel().apply {
+      filePreviewElementProvider().hasPreviewMethods(project, file) -> EditorNotificationPanel().apply {
         setText(message("notification.new.preview"))
         createActionLabel(message("notification.new.preview.action")) {
           if (fileEditor.isValid) {
@@ -165,7 +165,8 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
       return null
     }
 
-    val previewStatus = fileEditor.getComposePreviewManager()?.status() ?: return null
+    val previewManager = fileEditor.getComposePreviewManager() ?: return null
+    val previewStatus = previewManager.status() ?: return null
     if (LOG.isDebugEnabled) {
       LOG.debug(previewStatus.toString())
     }
@@ -198,7 +199,8 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
         text = message("notification.needs.build.broken"),
         color = LightColors.RED)
 
-      previewStatus.isOutOfDate -> createBuildNotificationPanel(
+      // If the preview is out of date and auto-build is not enabled, display the notification explaining the user they need to refresh.
+      previewStatus.isOutOfDate && !previewManager.isAutoBuildEnabled -> createBuildNotificationPanel(
         project,
         file,
         text = message("notification.preview.out.of.date"),

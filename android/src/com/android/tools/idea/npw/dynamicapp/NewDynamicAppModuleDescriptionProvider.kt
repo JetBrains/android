@@ -21,11 +21,14 @@ import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedPr
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
 import com.android.tools.idea.npw.module.ModuleTemplateGalleryEntry
+import com.android.tools.idea.npw.module.NewAndroidModuleRecipe
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.android.tools.idea.wizard.template.Recipe
+import com.android.tools.idea.wizard.template.Template
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
@@ -40,6 +43,7 @@ class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
     FeatureTemplateGalleryEntry(true))
 
   private class FeatureTemplateGalleryEntry(private val isInstant: Boolean) : ModuleTemplateGalleryEntry {
+    override val recipe: NewAndroidModuleRecipe? = null
     override val templateFile: File = TemplateManager.getInstance().getTemplateFile(
       CATEGORY_APPLICATION, if (isInstant) INSTANT_DYNAMIC_FEATURE_TEMPLATE else DYNAMIC_FEATURE_TEMPLATE)!!
     private val templateHandle: TemplateHandle = TemplateHandle(templateFile)

@@ -1,7 +1,7 @@
 android {
   signingConfigs {
     config {
-      keyAlias = 'myKeyAlias'
+      keyAlias 'myKeyAlias'
     }
   }
 }

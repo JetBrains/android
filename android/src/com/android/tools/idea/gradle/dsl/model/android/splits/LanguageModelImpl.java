@@ -24,8 +24,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class LanguageModelImpl extends GradleDslBlockModel implements LanguageModel {
-  @NonNls private static final String ENABLE = "enable";
-  @NonNls private static final String INCLUDE = "include";
+  @NonNls public static final String ENABLE = "mEnable";
+  @NonNls public static final String INCLUDE = "mInclude";
 
   public LanguageModelImpl(@NotNull LanguageDslElement dslElement) {
     super(dslElement);
@@ -34,12 +34,12 @@ public class LanguageModelImpl extends GradleDslBlockModel implements LanguageMo
   @Override
   @NotNull
   public ResolvedPropertyModel enable() {
-    return GradlePropertyModelBuilder.create(myDslElement, ENABLE).asMethod(true).buildResolved();
+    return getModelForProperty(ENABLE);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel include() {
-    return GradlePropertyModelBuilder.create(myDslElement, INCLUDE).asMethod(true).buildResolved();
+    return getModelForProperty(INCLUDE);
   }
 }

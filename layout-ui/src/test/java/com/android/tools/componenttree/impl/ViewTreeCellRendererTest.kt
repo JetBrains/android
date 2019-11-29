@@ -73,7 +73,9 @@ class ViewTreeCellRendererTest {
 
   @Before
   fun setUp() {
+/* b/144925492
     appRule.testApplication.registerServiceInstance(ExpandableItemsHandlerFactory::class.java, TestExpandableItemsHandlerFactory())
+(This should probably be moved to testFragmentsWithLessThanOptimalSpaceAndRowExpanded.) */
     doAnswer { focusOwner }.`when`<KeyboardFocusManager>(focusManager!!).focusOwner
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
     tree = TreeImpl(model, contextPopupHandler, emptyList())
@@ -148,6 +150,7 @@ class ViewTreeCellRendererTest {
 
   @Test
   fun testFragmentsWithLessThanOptimalSpaceAndRowExpanded() {
+/* b/144925492
     (tree?.expandableItemsHandler as TestTreeExpansionHandler).expandedRow = TEST_ROW
     tree?.overrideHasApplicationFocus = { true }
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
@@ -156,6 +159,7 @@ class ViewTreeCellRendererTest {
     component.setBounds(0, 0, size.width - 3, size.height)
     component.adjustForPainting()
     checkFragments(component, Fragment("text", bold), Fragment(" - \"Hello\"", grey))
+b/144925492 */
   }
 
   @Test

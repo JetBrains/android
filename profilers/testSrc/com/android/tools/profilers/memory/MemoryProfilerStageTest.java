@@ -168,18 +168,18 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testAllocationTrackingSetStreaming() {
-    myProfilers.getTimeline().setStreaming(false);
-    assertThat(myProfilers.getTimeline().isStreaming()).isFalse();
+    myStage.getTimeline().setStreaming(false);
+    assertThat(myStage.getTimeline().isStreaming()).isFalse();
 
     // Stopping tracking should not cause streaming.
     MemoryProfilerTestUtils
       .stopTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, -1, -1, Status.NOT_ENABLED, true);
-    assertThat(myProfilers.getTimeline().isStreaming()).isFalse();
+    assertThat(myStage.getTimeline().isStreaming()).isFalse();
 
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     MemoryProfilerTestUtils
       .startTrackingHelper(myStage, myUnifiedPipeline, myTransportService, myService, myTimer, infoStart, Status.SUCCESS, true);
-    assertThat(myProfilers.getTimeline().isStreaming()).isTrue();
+    assertThat(myStage.getTimeline().isStreaming()).isTrue();
   }
 
   @Test
@@ -230,11 +230,11 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testHeapDumpSetStreaming() {
-    myProfilers.getTimeline().setStreaming(false);
-    assertThat(myProfilers.getTimeline().isStreaming()).isFalse();
+    myStage.getTimeline().setStreaming(false);
+    assertThat(myStage.getTimeline().isStreaming()).isFalse();
     myMockLoader.setReturnImmediateFuture(true);
     myStage.requestHeapDump();
-    assertThat(myProfilers.getTimeline().isStreaming()).isTrue();
+    assertThat(myStage.getTimeline().isStreaming()).isTrue();
   }
 
   @Test
@@ -282,7 +282,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().setStartTime(TimeUnit.MICROSECONDS.toNanos(startTimeUs))
       .setEndTime(TimeUnit.MICROSECONDS.toNanos(endTimeUs)).build();
 
-    Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    Range selectionRange = myStage.getTimeline().getSelectionRange();
     Object captureKey = new Object();
     myStage
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(captureKey, () -> captureObject)),
@@ -458,7 +458,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       .setEndTime(TimeUnit.MICROSECONDS.toNanos(endTimeUs))
       .setError(true)
       .build();
-    Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    Range selectionRange = myStage.getTimeline().getSelectionRange();
 
     myStage
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> mockCapture1)),
@@ -502,7 +502,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       myService.setMemoryData(memoryData);
     }
     MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
-    myStage.getStudioProfilers().getTimeline().getTooltipRange().set(time, time);
+    myStage.getTimeline().getTooltipRange().set(time, time);
     assertThat(legends.getJavaLegend().getName()).isEqualTo("Java");
     assertThat(legends.getJavaLegend().getValue()).isEqualTo("10 KB");
 
@@ -559,7 +559,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       myService.setMemoryData(memoryData);
     }
     MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
-    myStage.getStudioProfilers().getTimeline().getTooltipRange().set(time, time);
+    myStage.getTimeline().getTooltipRange().set(time, time);
     assertThat(legends.getObjectsLegend().getName()).isEqualTo("Allocated");
     assertThat(legends.getObjectsLegend().getValue()).isEqualTo("100");
 

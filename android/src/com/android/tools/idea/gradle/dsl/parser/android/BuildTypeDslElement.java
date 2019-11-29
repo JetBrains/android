@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainEle
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
@@ -35,6 +36,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement implements GradleDslNamedDomainElement {
+  public static final PropertiesElementDescription<BuildTypeDslElement> BUILD_TYPE =
+    new PropertiesElementDescription<>(null, BuildTypeDslElement.class, BuildTypeDslElement::new);
 
   @NotNull
   private static final ImmutableMap<Pair<String, Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.concat(
@@ -53,8 +56,7 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
       {"isTestCoverageEnabled", property, TEST_COVERAGE_ENABLED, VAR},
       {"isZipAlignEnabled", property, ZIP_ALIGN_ENABLED, VAR}
     }))
-    .collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+    .collect(toModelMap());
 
   @NotNull
   private static final ImmutableMap<Pair<String, Integer>, Pair<String, SemanticsDescription>> groovyToModelNameMap = Stream.concat(
@@ -83,8 +85,7 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
       {"zipAlignEnabled", property, ZIP_ALIGN_ENABLED, VAR},
       {"zipAlignEnabled", exactly(1), ZIP_ALIGN_ENABLED, SET}
     }))
-    .collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+    .collect(toModelMap());
 
   @Nullable
   private String methodName;

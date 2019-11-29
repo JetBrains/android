@@ -26,8 +26,8 @@ import java.util.Map;
  * Represents a map of {@link GradleDslElement}s from their names.
  */
 public class GradleDslElementMap extends GradlePropertiesDslElement {
-  protected GradleDslElementMap(@NotNull GradleDslElement parent, @NotNull String name) {
-    super(parent, null, GradleNameElement.create(name));
+  protected GradleDslElementMap(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, null, name);
   }
 
   @NotNull

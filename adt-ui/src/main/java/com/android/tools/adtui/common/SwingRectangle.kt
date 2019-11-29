@@ -18,6 +18,8 @@ package com.android.tools.adtui.common
 import com.google.common.base.Joiner
 import java.awt.geom.Rectangle2D
 
+private const val SEPARATOR = 'x'
+
 /**
  * Represents a rectangle in swing space
  * Defined by [SwingX], [SwingY], and length and width of [SwingLength]
@@ -41,17 +43,13 @@ inline class SwingRectangle(val value: Rectangle2D.Float) {
   val center: SwingPoint
     get() = SwingPoint(SwingX(value.centerX.toFloat()), SwingY(value.centerY.toFloat()))
 
-  override fun toString(): String = Joiner.on('x').join(this.x, this.y, this.width, this.height)
+  override fun toString(): String = Joiner.on(SEPARATOR).join(this.x, this.y, this.width, this.height)
 
   fun growRectangle(growX: SwingLength, growY: SwingLength) =
     SwingRectangle(this.x - growX, this.y - growY, this.width + 2 * growX, this.height + 2 * growY)
 }
 
 fun String.toSwingRect(): SwingRectangle {
-  val sp = this.split('x').dropLastWhile { it.isEmpty() }
-  val x = sp[0].toSwingX()
-  val y = sp[1].toSwingY()
-  val width = sp[2].toSwingLength()
-  val height = sp[3].toSwingLength()
-  return SwingRectangle(x, y, width, height)
+  val(x, y, width, height) = this.split(SEPARATOR)
+  return SwingRectangle(x.toSwingX(), y.toSwingY(), width.toSwingLength(), height.toSwingLength())
 }

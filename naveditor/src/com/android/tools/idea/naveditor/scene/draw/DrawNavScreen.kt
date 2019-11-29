@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingRectangle
-import com.android.tools.adtui.common.toSwingRoundRect
+import com.android.tools.adtui.common.toSwingRect
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommandBase
@@ -49,7 +49,7 @@ private const val FONT_NAME = "Default"
 class DrawNavScreen(@VisibleForTesting val rectangle: SwingRectangle,
                     @VisibleForTesting val image: RefinableImage) : DrawCommandBase() {
 
-  private constructor(tokens: Array<String>) : this(tokens[0].toSwingRoundRect(), RefinableImage())
+  private constructor(tokens: Array<String>) : this(tokens[0].toSwingRect(), RefinableImage())
 
   constructor(serialized: String) : this(parse(serialized, 1))
 

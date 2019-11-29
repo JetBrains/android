@@ -24,9 +24,6 @@ import org.jetbrains.annotations.NotNull;
 public class CpuCaptureFileTypeFactory extends FileTypeFactory {
   @Override
   public void createFileTypes(@NotNull FileTypeConsumer consumer) {
-    // Only consume .trace files if PROFILER_OPEN_CAPTURES flag is enabled.
-    if (StudioFlags.PROFILER_OPEN_CAPTURES.get()) {
-      consumer.consume(CpuCaptureFileType.getInstance(), CpuCaptureFileType.getInstance().getDefaultExtension());
-    }
+    consumer.consume(CpuCaptureFileType.getInstance(), CpuCaptureFileType.getInstance().getDefaultExtension());
   }
 }

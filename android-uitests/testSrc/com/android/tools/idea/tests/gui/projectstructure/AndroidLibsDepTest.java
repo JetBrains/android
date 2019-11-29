@@ -85,11 +85,11 @@ public class AndroidLibsDepTest {
     IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, APP_NAME, MIN_SDK_API, JAVA);
 
     DependenciesTestUtil.createAndroidLibrary(ideFrame, LIB_NAME_1);
-    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, LIB_NAME_1, "app", "IMPLEMENTATION");
+    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, LIB_NAME_1, "app", "implementation");
     DependenciesTestUtil.createJavaClassInModule(ideFrame, LIB_NAME_1, DependenciesTestUtil.CLASS_NAME_1);
 
     createAndroidLibrary(ideFrame, LIB_NAME_2);
-    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, LIB_NAME_2, LIB_NAME_1, "API");
+    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, LIB_NAME_2, LIB_NAME_1, "api");
     DependenciesTestUtil.createJavaClassInModule(ideFrame, LIB_NAME_2, DependenciesTestUtil.CLASS_NAME_2);
 
     DependenciesTestUtil.accessLibraryClassAndVerify(ideFrame, LIB_NAME_1, LIB_NAME_2);

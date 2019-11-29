@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.kotlin.findValueArgument
 import com.android.tools.idea.kotlin.getQualifiedName
 import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInspection.LocalInspectionToolSession
@@ -155,7 +156,7 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
                                              function: KtNamedFunction,
                                              previewAnnotation: KtAnnotationEntry,
                                              functionAnnotations: Map<String, KtAnnotationEntry>) {
-    previewAnnotation.getArgumentValue(WIDTH_PARAMETER)?.let {
+    previewAnnotation.findValueArgument(WIDTH_PARAMETER)?.let {
       if (it.exceedsLimit(MAX_WIDTH)) {
         holder.registerProblem(it.psiOrParent as PsiElement,
                                message("inspection.width.limit.description", MAX_WIDTH),
@@ -163,7 +164,7 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
       }
     }
 
-    previewAnnotation.getArgumentValue(HEIGHT_PARAMETER)?.let {
+    previewAnnotation.findValueArgument(HEIGHT_PARAMETER)?.let {
       if (it.exceedsLimit(MAX_HEIGHT)) {
         holder.registerProblem(it.psiOrParent as PsiElement,
                                message("inspection.height.limit.description", MAX_HEIGHT),
@@ -178,6 +179,3 @@ private fun KtValueArgument.exceedsLimit(limit: Int): Boolean {
   (getArgumentExpression() as? PsiElement)?.node?.text?.toIntOrNull()?.let { return it > limit }
   return false
 }
-
-private fun KtAnnotationEntry.getArgumentValue(name: String) =
-  valueArguments.firstOrNull { it.getArgumentName()?.asName?.asString() == name } as? KtValueArgument

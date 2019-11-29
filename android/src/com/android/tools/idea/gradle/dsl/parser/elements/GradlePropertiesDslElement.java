@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
@@ -375,6 +377,63 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   @Nullable
+  public <T extends GradlePropertiesDslElement> T getPropertyElement(@NotNull PropertiesElementDescription<T> description) {
+    assert description.name != null;
+    return getPropertyElement(description.name, description.clazz);
+  }
+
+  @NotNull
+  public <T extends GradlePropertiesDslElement> T ensurePropertyElement(@NotNull PropertiesElementDescription<T> description) {
+    return ensurePropertyElementAt(description, null);
+  }
+
+  @NotNull
+  public <T extends GradlePropertiesDslElement, U> T ensurePropertyElementBefore(
+    @NotNull PropertiesElementDescription<T> description,
+    Class<U> before
+  ) {
+    Integer at = null;
+    List<GradleDslElement> elements = getAllElements();
+    for (int i = 0; i < elements.size(); i++) {
+      if (before.isInstance(elements.get(i))) {
+        at = i;
+        break;
+      }
+    }
+    return ensurePropertyElementAt(description, at);
+  }
+
+  @NotNull
+  public <T extends GradlePropertiesDslElement> T ensureNamedPropertyElement(
+    PropertiesElementDescription<T> description,
+    GradleNameElement name
+  ) {
+    T propertyElement = getPropertyElement(name.name(), description.clazz);
+    if (propertyElement != null) return propertyElement;
+    T newElement;
+    assert description.name == null;
+    newElement = description.constructor.construct(this, name);
+    setNewElement(newElement);
+    return newElement;
+  }
+
+  @NotNull
+  public <T extends GradlePropertiesDslElement> T ensurePropertyElementAt(PropertiesElementDescription<T> description, Integer at) {
+    T propertyElement = getPropertyElement(description);
+    if (propertyElement != null) return propertyElement;
+    T newElement;
+    assert description.name != null;
+    newElement = description.constructor.construct(this, GradleNameElement.create(description.name));
+    if (at != null) {
+      addNewElementAt(at, newElement);
+    }
+    else {
+      setNewElement(newElement);
+    }
+    return newElement;
+  }
+
+  @Nullable
   public <T extends GradleDslElement> T getPropertyElement(@NotNull List<String> properties, @NotNull Class<T> clazz) {
     GradleDslElement propertyElement = myProperties.getElementWhere(e -> properties.contains(e.myElement.getName()));
     return clazz.isInstance(propertyElement) ? clazz.cast(propertyElement) : null;
@@ -557,8 +616,14 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
         return lastElement;
       }
 
-      if (item.myElementState != TO_BE_REMOVED && item.myElementState != HIDDEN && item.myElementState != APPLIED &&
-          item.myElement.getNameElement().qualifyingParts().equals(element.getNameElement().qualifyingParts())) {
+      if (item.myElementState != TO_BE_REMOVED && item.myElementState != HIDDEN && item.myElementState != APPLIED) {
+        GradleDslElement currentElement = item.myElement;
+        // Don't count empty ProjectPropertiesModel, this can cause the properties to be added at the top of the file where
+        // we require that they be below other properties (e.g project(':lib')... should be after include: 'lib').
+        if (currentElement instanceof ProjectPropertiesDslElement &&
+            ((ProjectPropertiesDslElement)currentElement).getAllPropertyElements().isEmpty()) {
+          continue;
+        }
         if (item.myElement instanceof ApplyDslElement) {
           lastElement = item.myElement.requestAnchor(element);
         }

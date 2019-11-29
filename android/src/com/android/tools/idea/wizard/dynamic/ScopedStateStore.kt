@@ -20,6 +20,7 @@ import com.google.common.collect.Iterables
 import com.google.common.collect.Lists
 import com.google.common.collect.Maps
 import com.google.common.collect.Sets
+import org.jetbrains.kotlin.utils.addToStdlib.cast
 import java.lang.ref.WeakReference
 
 /**
@@ -109,7 +110,7 @@ class ScopedStateStore(
    */
   operator fun <T> get(key: Key<T>): T? = when {
     scope == key.scope && state.containsKey(key) -> try {
-      key.expectedClass.cast(state[key])
+      key.cast(state[key])
     }
     catch (e: ClassCastException) {
       null
@@ -327,7 +328,15 @@ class ScopedStateStore(
     val scope: Scope,
     @JvmField
     val expectedClass: Class<T>
-  )
+  ) {
+    @Suppress("UNCHECKED_CAST")
+    fun cast(obj: Any?): T? =
+      when {
+        // can't cast java boxed types to kotlin primitives using cast(), and we'll get boxed types due to nullability
+        expectedClass.isPrimitive -> obj as T?
+        else -> expectedClass.cast(obj)
+      }
+  }
 
   enum class Scope {
     STEP,

@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.testartifacts.scopes
 
-import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getLatestAndroidPlatform
 import com.android.testutils.TestUtils.getPlatformFile
-import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.buildDependenciesStub
@@ -31,6 +29,7 @@ import com.google.common.collect.Sets
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.JavaParameters
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.normalize
 import com.intellij.testFramework.UsefulTestCase
 import junit.framework.TestCase
@@ -180,6 +179,8 @@ class AndroidJunitPatcherTest : AndroidTestCase() {
 
   fun testRuntimeClasspath() {
     val runtimeJar = "/tmp/runtime.jar"
+    // Fix for Windows since the drive will be prepended
+    val canonicalName = FileUtil.toCanonicalPath(File(runtimeJar).absolutePath)
     setUpProject(createAndroidProjectBuilder(
       unitTestArtifactStub = {
         buildUnitTestArtifactStub(it, dependencies = buildDependenciesStub(runtimeOnlyClasses = listOf(File(runtimeJar))))
@@ -187,6 +188,6 @@ class AndroidJunitPatcherTest : AndroidTestCase() {
     ))
     patcher.patchJavaParameters(myModule, javaParameters)
     val result = javaParameters.classPath.pathList.map { normalize(it) }
-    assertThat(result).contains(runtimeJar)
+    assertThat(result).contains(canonicalName)
   }
 }

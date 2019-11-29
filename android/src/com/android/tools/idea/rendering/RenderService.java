@@ -572,11 +572,6 @@ public class RenderService implements Disposable {
         LayoutLibrary layoutLib;
         try {
           layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(module.getProject());
-          if (layoutLib == null) {
-            String message = AndroidBundle.message("android.layout.preview.cannot.load.library.error");
-            myLogger.addMessage(RenderProblem.createPlain(ERROR, message));
-            return null;
-          }
         }
         catch (UnsupportedJavaRuntimeException e) {
           RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);

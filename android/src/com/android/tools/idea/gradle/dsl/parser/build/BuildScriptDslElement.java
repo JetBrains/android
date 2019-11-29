@@ -18,13 +18,14 @@ package com.android.tools.idea.gradle.dsl.parser.build;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import org.jetbrains.annotations.NonNls;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
 public class BuildScriptDslElement extends GradleDslBlockElement {
-  @NonNls public static final String BUILDSCRIPT_BLOCK_NAME = "buildscript";
+  public static final PropertiesElementDescription<BuildScriptDslElement> BUILDSCRIPT =
+    new PropertiesElementDescription<>("buildscript", BuildScriptDslElement.class, BuildScriptDslElement::new);
 
-  public BuildScriptDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(BUILDSCRIPT_BLOCK_NAME));
+  public BuildScriptDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

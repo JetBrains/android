@@ -17,6 +17,8 @@
 
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
+import com.intellij.openapi.diagnostic.Logger
+
 /**
  * BLeak checks for memory leaks by repeatedly running a test that returns to its original state, taking
  * and analyzing memory snapshots between each run. It looks for paths from GC roots through the heap that
@@ -48,14 +50,15 @@ fun Signature.isWhitelisted(): Boolean =
   entry(-2) == "java.util.concurrent.ForkJoinPool#workQueues" ||
   entry(-4) == "java.io.DeleteOnExitHook#files" ||
 
-  // don't report growing weak or soft maps. Nodes whose weak or soft referents have been GC'd will be removed from the map during some
-  // future map operation.
+  // don't report growing weak or soft collections. Nodes whose weak or soft referents have been GC'd will be removed from the map during
+  // some future map operation.
   entry(-2) == "com.intellij.util.containers.ConcurrentWeakHashMap#myMap" ||
   entry(-2) == "com.intellij.util.containers.ConcurrentWeakKeyWeakValueHashMap#myMap" ||
   entry(-3) == "com.intellij.util.containers.WeakHashMap#myMap" && lastType() == "[Ljava.lang.Object;" ||
   entry(-2) == "com.intellij.util.containers.ConcurrentSoftHashMap#myMap" ||
   entry(-2) == "com.intellij.util.containers.ConcurrentSoftValueHashMap#myMap" ||
   entry(-2) == "com.intellij.util.containers.ConcurrentSoftKeySoftValueHashMap#myMap" ||
+  entry(-2) == "java.lang.invoke.MethodType\$ConcurrentWeakInternSet#map" ||
 
   entry(-4) == "com.android.tools.idea.configurations.ConfigurationManager#myCache" ||
   entry(-4) == "com.maddyhome.idea.copyright.util.NewFileTracker#newFiles" || // b/126417715
@@ -83,8 +86,12 @@ fun Signature.isWhitelisted(): Boolean =
   entry(-2) == "com.intellij.openapi.fileEditor.impl.IdeDocumentHistoryImpl#myBackPlaces" ||
   entry(-2) == "com.intellij.openapi.editor.impl.RangeMarkerTree\$RMNode#intervals"
 
-class BleakResult(val leakInfos: List<LeakInfo> = listOf(), val disposerInfo: Map<DisposerInfo.Key, Int> = mapOf()) {
-  val success = leakInfos.filterNot { it.whitelisted }.isEmpty() && disposerInfo.isEmpty()
+class BleakResult(leakInfos: List<LeakInfo> = listOf(), private val disposerInfo: Map<DisposerInfo.Key, Int> = mapOf()) {
+  private val leaksAndKnownIssues = leakInfos.filterNot { it.whitelisted }.partition { it.isKnownIssue() } // [known issues] + [leaks]
+  private val actualLeaks = leaksAndKnownIssues.second
+
+  val knownIssues = leaksAndKnownIssues.first
+  val success = actualLeaks.isEmpty() && disposerInfo.isEmpty()
   val errorMessage = mangleSunReflect(
     buildString {
       if (disposerInfo.isNotEmpty()) {
@@ -94,9 +101,25 @@ class BleakResult(val leakInfos: List<LeakInfo> = listOf(), val disposerInfo: Ma
         }
         append("\n------------------------------\n")
       }
-      append(leakInfos.filterNot { it.whitelisted }.joinToString(separator = "\n------------------------------\n"))
+      append(actualLeaks.joinToString(separator = "\n------------------------------\n"))
     }
   )
+}
+
+/**
+ * Known issues must have a corresponding tracking bug and should be removed as soon it's fixed.
+ */
+private fun LeakInfo.isKnownIssue(): Boolean {
+  // b/144418512: Compose Preview leaking ModuleClassLoader
+  if (leaktrace.signature().size == 1 // Only ROOT
+      // 2 new instances of ModuleClassLoader are added
+      && addedChildren.size == 2
+      && addedChildren[0].type.name == "org.jetbrains.android.uipreview.ModuleClassLoader"
+      && addedChildren[1].type.name == "org.jetbrains.android.uipreview.ModuleClassLoader") {
+    return true
+  }
+
+  return false
 }
 
 fun runWithBleak(scenario: Runnable) {
@@ -107,6 +130,10 @@ fun runWithBleak(runs: Int = 3, scenario: () -> Unit) {
   val result = findLeaks(runs, scenario)
   if (!result.success) {
     throw MemoryLeakDetectedError(result.errorMessage)
+  }
+
+  result.knownIssues.takeUnless { it.isEmpty() }?.let {
+    Logger.getInstance(BleakResult::class.java).warn("${it.size} known issue(s) found when running the test with BLeak.")
   }
 }
 

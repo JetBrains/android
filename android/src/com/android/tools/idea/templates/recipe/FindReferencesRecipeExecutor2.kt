@@ -16,7 +16,8 @@
 package com.android.tools.idea.templates.recipe
 
 import com.android.tools.idea.wizard.template.SourceSetType
-import com.google.common.io.Resources.getResource
+import com.android.tools.idea.wizard.template.findResource
+import com.intellij.openapi.vfs.VfsUtil
 import com.android.tools.idea.wizard.template.RecipeExecutor as RecipeExecutor2
 import java.io.File
 
@@ -36,18 +37,15 @@ internal class FindReferencesRecipeExecutor2(private val context: RenderingConte
     addTargetFile(to)
   }
 
-  override fun mergeGradleFile(source: String, to: File) {
-    addTargetFile(to)
-  }
-
   override fun open(file: File) {
     context.filesToOpen.add(resolveTargetFile(file))
   }
 
   override fun copy(from: File, to: File) {
-    val source = File(getResource(from.path).path)
-    if (source.isDirectory) {
-      throw RuntimeException("Directories not supported for Find References")
+    val sourceUrl = findResource(context.templateData.javaClass, from)
+    val sourceFile = VfsUtil.findFileByURL(sourceUrl) ?: error("$from ($sourceUrl)")
+    if (sourceFile.isDirectory) {
+      return
     }
     addTargetFile(to)
   }
@@ -66,6 +64,8 @@ internal class FindReferencesRecipeExecutor2(private val context: RenderingConte
     context.dependencies.put(configuration, mavenCoordinate)
   }
 
+  override fun addModuleDependency(configuration: String, moduleName: String, toModule: String) {}
+
   fun addTargetFile(file: File) {
     context.targetFiles.add(resolveTargetFile(file))
   }
@@ -77,4 +77,11 @@ internal class FindReferencesRecipeExecutor2(private val context: RenderingConte
 
   override fun setExtVar(name: String, value: Any) {
   }
+
+  override fun addIncludeToSettings(moduleName: String) {}
+
+  override fun setBuildFeature(name: String, value: Boolean) {}
+
+  override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {}
+  override fun addDynamicFeature(name: String, toModule: String) {}
 }

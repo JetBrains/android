@@ -22,11 +22,13 @@ import com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKey
 import com.android.tools.idea.templates.KeystoreUtils.sha1
 import com.android.tools.idea.templates.Template.CATEGORY_PROJECTS
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_TITLE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_CLASS_NAME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_DEBUG_KEYSTORE_SHA1
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_HAS_APPLICATION_THEME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LAUNCHER
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_JAVA_VERSION
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API_LEVEL
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_THEME_EXISTS
@@ -54,6 +56,8 @@ class TestNewProjectWizardState(moduleTemplate: Template) {
     put(ATTR_TOP_OUT, WizardUtils.getProjectLocationParent().path)
     put(ATTR_MIN_API_LEVEL, defaultMinApi)
     put(ATTR_MIN_API, defaultMinApi.toString())
+    put(ATTR_CLASS_NAME, "TestClass")
+    put(ATTR_JAVA_VERSION, "1.7")
 
     put(TemplateAttributes.ATTR_TARGET_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API)
     put(TemplateAttributes.ATTR_TARGET_API_STRING, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString())

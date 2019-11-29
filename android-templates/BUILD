@@ -24,9 +24,9 @@ iml_module(
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
         "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
+        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
         "//tools/idea/java/manifest:intellij.java.manifest",
         "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
         "//tools/idea:intellij.java.ui.tests",
@@ -47,12 +47,10 @@ iml_module(
     runtime_deps = [
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
-        "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
-        "//tools/idea/java/ide-customization:intellij.java.ide.customization",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
@@ -78,5 +76,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:truth[test]",
+        "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
+        "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
     ],
 )

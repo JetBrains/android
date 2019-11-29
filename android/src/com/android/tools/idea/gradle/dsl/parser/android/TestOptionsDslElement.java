@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import static com.android.tools.idea.gradle.dsl.model.android.TestOptionsModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
@@ -27,23 +27,20 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class TestOptionsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String TEST_OPTIONS_BLOCK_NAME = "testOptions";
-
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"reportDir", property, REPORT_DIR, VAR},
     {"resultsDir", property, RESULTS_DIR, VAR},
     {"execution", property, EXECUTION, VAR}
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
@@ -53,8 +50,9 @@ public class TestOptionsDslElement extends GradleDslBlockElement {
     {"resultsDir", exactly(1), RESULTS_DIR, SET},
     {"execution", property, EXECUTION, VAR},
     {"execution", exactly(1), EXECUTION, SET}
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
+  public static final PropertiesElementDescription<TestOptionsDslElement> TEST_OPTIONS =
+    new PropertiesElementDescription<>("testOptions", TestOptionsDslElement.class, TestOptionsDslElement::new);
 
   @Override
   @NotNull
@@ -70,7 +68,7 @@ public class TestOptionsDslElement extends GradleDslBlockElement {
     }
   }
 
-  public TestOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(TEST_OPTIONS_BLOCK_NAME));
+  public TestOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 }

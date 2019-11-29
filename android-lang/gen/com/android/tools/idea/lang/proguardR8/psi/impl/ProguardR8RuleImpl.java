@@ -45,14 +45,14 @@ public class ProguardR8RuleImpl extends ASTWrapperPsiElement implements Proguard
 
   @Override
   @NotNull
-  public List<ProguardR8FlagArgument> getFlagArgumentList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8FlagArgument.class);
+  public ProguardR8Flag getFlag() {
+    return findNotNullChildByClass(ProguardR8Flag.class);
   }
 
   @Override
   @NotNull
-  public PsiElement getFlag() {
-    return findNotNullChildByType(FLAG);
+  public List<ProguardR8FlagArgument> getFlagArgumentList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8FlagArgument.class);
   }
 
 }

@@ -53,6 +53,9 @@ public abstract class GradleModelProvider {
   public abstract GradleSettingsModel getSettingsModel(@NotNull Project project);
 
   @NotNull
+  public abstract GradleSettingsModel getSettingsModel(@NotNull VirtualFile settingsFile, @NotNull Project hostProject);
+
+  @NotNull
   public abstract ArtifactDependencySpec getArtifactDependencySpec(@NotNull String name,
                                                                    @Nullable String group,
                                                                    @Nullable String version);

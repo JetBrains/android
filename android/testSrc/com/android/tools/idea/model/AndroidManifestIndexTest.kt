@@ -29,32 +29,68 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class AndroidManifestIndexTest {
   @Test
+  fun indexer_reallyShortManifest() {
+    val manifest = AndroidManifestIndex.Indexer.computeValue(FakeXmlFileContent("<"))
+    assertThat(manifest).isNull()
+  }
+
+  @Test
   fun indexer_wellFormedManifest() {
     @Language("xml")
     val manifestContent = """
 <?xml version='1.0' encoding='utf-8'?>
-<manifest xmlns:android='http://schemas.android.com/apk/res/android' 
-  package='com.example' android:debuggable="false" android:enabled='true'>
-  <application android:theme='@style/Theme.AppCompat'>
-    <activity android:name='.EnabledActivity' android:enabled='true'>
-      <intent-filter>
-        <action android:name='android.intent.action.MAIN'/>
-        <category android:name='android.intent.category.DEFAULT'/>
-      </intent-filter>
-    </activity>
-    <activity android:name='.DisabledActivity' android:enabled='false'>
-    </activity>
-    <activity-alias android:name='.EnabledAlias' android:enabled='true' android:targetActivity='.DisabledActivity'>
-    </activity-alias>
-    <activity-alias android:name='.DisabledAlias' android:enabled='false' android:targetActivity='.EnabledActivity'>
-    </activity-alias>
-  </application>
-  <uses-permission android:name='android.permission.SEND_SMS'/>
-  <uses-permission-sdk-23 android:name='custom.permissions.NO_GROUP'/>
-  <permission-group android:name='custom.permissions.CUSTOM_GROUP'/>
-  <permission android:name='custom.permissions.IN_CUSTOM_GROUP' android:permissionGroup='custom.permissions.CUSTOM_GROUP'/>
-  <permission android:name='custom.permissions.NO_GROUP'/>
-  <uses-sdk android:minSdkVersion='22' android:targetSdkVersion='28'/>
+<manifest xmlns:android='http://schemas.android.com/apk/res/android'
+    xmlns:tools="http://schemas.android.com/tools"
+    package='com.example'
+    android:debuggable="false"
+    android:enabled='true'>
+
+    <application android:theme='@style/Theme.AppCompat'>
+        <activity
+            android:name='.EnabledActivity'
+            android:enabled='true'
+            tools:node='merge'>
+            <intent-filter>
+                <action android:name='android.intent.action.MAIN' />
+                <category android:name='android.intent.category.DEFAULT' />
+            </intent-filter>
+        </activity>
+        
+        <activity
+            android:name='.DisabledActivity'
+            android:enabled='false'
+            tools:node='merge'>
+        </activity>
+
+        <activity-alias
+            android:name='.EnabledAlias'
+            android:enabled='true'
+            android:targetActivity='.DisabledActivity'
+            tools:node='merge'>
+        </activity-alias>
+        
+        <activity-alias
+            android:name='.DisabledAlias'
+            android:enabled='false'
+            android:targetActivity='.EnabledActivity'
+            tools:node='merge'>
+        </activity-alias>
+    </application>
+    <uses-permission android:name='android.permission.SEND_SMS' />
+    <uses-permission-sdk-23 android:name='custom.permissions.NO_GROUP' tools:node='remove'/>
+    <permission-group android:name='custom.permissions.CUSTOM_GROUP' tools:node='remove'/>
+
+    <permission
+        android:name='custom.permissions.IN_CUSTOM_GROUP'
+        android:permissionGroup='custom.permissions.CUSTOM_GROUP' 
+        tools:node='remove'/>
+    <permission android:name='custom.permissions.NO_GROUP' />
+
+    <uses-sdk
+        tools:overrideLibrary="com.google.android.libraries.foo, com.google.android.libraries.bar"
+        android:minSdkVersion='22'
+        android:targetSdkVersion='28'
+        tools:node='merge'/>
 </manifest>
     """.trimIndent()
     val manifest = AndroidManifestIndex.Indexer.computeValue(FakeXmlFileContent(manifestContent))
@@ -64,26 +100,33 @@ class AndroidManifestIndexTest {
           ActivityRawText(
             name = ".EnabledActivity",
             enabled = "true",
+            nodeMergeRule = "merge",
             intentFilters = setOf(
               IntentFilterRawText(actionNames = setOf("android.intent.action.MAIN"),
                                   categoryNames = setOf("android.intent.category.DEFAULT"))
             )
           ),
-          ActivityRawText(name = ".DisabledActivity", enabled = "false", intentFilters = setOf())
+          ActivityRawText(name = ".DisabledActivity", enabled = "false", nodeMergeRule = "merge", intentFilters = setOf())
         ),
         activityAliases = setOf(
-          ActivityAliasRawText(name = ".EnabledAlias", targetActivity = ".DisabledActivity", enabled = "true", intentFilters = setOf()),
-          ActivityAliasRawText(name = ".DisabledAlias", targetActivity = ".EnabledActivity", enabled = "false", intentFilters = setOf())
+          ActivityAliasRawText(name = ".EnabledAlias", targetActivity = ".DisabledActivity",
+                               enabled = "true", nodeMergeRule = "merge", intentFilters = setOf()),
+          ActivityAliasRawText(name = ".DisabledAlias", targetActivity = ".EnabledActivity",
+                               enabled = "false", nodeMergeRule = "merge", intentFilters = setOf())
         ),
-        customPermissionGroupNames = setOf("custom.permissions.CUSTOM_GROUP"),
-        customPermissionNames = setOf("custom.permissions.IN_CUSTOM_GROUP", "custom.permissions.NO_GROUP"),
+        customPermissionGroupNames = setOf(AndroidNameWithMergeRules(name = "custom.permissions.CUSTOM_GROUP", nodeMergeRule = "remove")),
+        customPermissionNames = setOf(AndroidNameWithMergeRules(name = "custom.permissions.IN_CUSTOM_GROUP", nodeMergeRule = "remove"),
+                                      AndroidNameWithMergeRules(name = "custom.permissions.NO_GROUP", nodeMergeRule = null)),
         debuggable = "false",
         enabled = "true",
-        minSdkLevel = "22",
         packageName = "com.example",
-        usedPermissionNames = setOf("android.permission.SEND_SMS", "custom.permissions.NO_GROUP"),
-        targetSdkLevel = "28",
-        theme = "@style/Theme.AppCompat"
+        usedPermissionNames = setOf(AndroidNameWithMergeRules(name = "android.permission.SEND_SMS", nodeMergeRule = null),
+                                    AndroidNameWithMergeRules(name = "custom.permissions.NO_GROUP", nodeMergeRule = "remove")),
+        theme = "@style/Theme.AppCompat",
+        usesSdk = SdkRawText(minSdkLevel = "22",
+                             targetSdkLevel = "28",
+                             nodeMergeRule = "merge",
+                             overrideLibraries = setOf("com.google.android.libraries.foo", "com.google.android.libraries.bar"))
       )
     )
   }

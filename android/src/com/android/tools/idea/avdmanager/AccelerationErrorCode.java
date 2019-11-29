@@ -15,11 +15,25 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.annotations.NonNull;
-import com.intellij.openapi.util.SystemInfo;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SOLUTION_ACCELERATION_NOT_SUPPORTED;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SOLUTION_NESTED_VIRTUAL_MACHINE;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SOLUTION_TURN_OFF_HYPER_V;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.DOWNLOAD_EMULATOR;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.INSTALL_GVM;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.INSTALL_HAXM;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.INSTALL_KVM;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.NONE;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.REINSTALL_GVM;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.REINSTALL_HAXM;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.TURNOFF_HYPER_V;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.UPDATE_EMULATOR;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.UPDATE_PLATFORM_TOOLS;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.UPDATE_SYSTEM_IMAGES;
 
-import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.*;
-import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.*;
+import com.android.annotations.NonNull;
+import com.android.tools.idea.welcome.install.CpuVendor;
+import com.intellij.openapi.util.SystemInfo;
 
 /**
  * Error codes returned by "emulator -accel-check".
@@ -33,20 +47,26 @@ public enum AccelerationErrorCode {
   NO_CPU_VTX_SUPPORT(4, "Your CPU does not support VT-x.", NONE, SOLUTION_ACCELERATION_NOT_SUPPORTED),
   NO_CPU_NX_SUPPORT(5, "Your CPU does not support NX.", NONE, SOLUTION_ACCELERATION_NOT_SUPPORTED),
   ACCELERATION_NOT_INSTALLED_LINUX(6, "KVM is not installed.", INSTALL_KVM, "Enable Linux KVM for better emulation performance."),
-  ACCELERATION_NOT_INSTALLED_WIN_MAC(6, "HAXM is not installed.", INSTALL_HAXM, "Install Intel HAXM for better emulation performance."),
+  ACCELERATION_NOT_INSTALLED_WIN_MAC_INTEL(6, "HAXM is not installed.", INSTALL_HAXM, "Install Intel HAXM for better emulation performance."),
+  ACCELERATION_NOT_INSTALLED_WIN_AMD(6, "Android Emulator Hypervisor Driver for AMD Processors is not installed.", INSTALL_GVM, "Install Android Emulator Hypervisor Driver for AMD Processors for better emulation performance."),
   ACCELERATION_OBSOLETE(7, "Virtual machine acceleration driver is out-of-date.", REINSTALL_HAXM, "A newer HAXM Version is required. Please update."),
   DEV_NOT_FOUND_LINUX(8, "/dev/kvm is not found.", NONE, "Enable VT-x in your BIOS security settings, ensure that your Linux distro has working KVM module."),
-  DEV_NOT_FOUND_WIN_MAC(8, "HAXM device is not found.", NONE, "Enable VT-x in your BIOS security settings, ensure that HAXM is installed properly. Try disabling 3rd party security software if the problem still occurs."),
+  DEV_NOT_FOUND_WIN_MAC_INTEL(8, "HAXM device is not found.", NONE, "Enable VT-x in your BIOS security settings, ensure that HAXM is installed properly. Try disabling 3rd party security software if the problem still occurs."),
+  DEV_NOT_FOUND_WIN_AMD(8, "Android Emulator Hypervisor Driver for AMD Processors device is not found.", NONE, "Enable VT-x in your BIOS security settings, ensure that Android Emulator Hypervisor Driver for AMD Processors is installed properly. Try disabling 3rd party security software if the problem still occurs."),
   VT_DISABLED(9, "VT-x is disabled in BIOS.", NONE, "Enable VT-x in your BIOS security settings (refer to documentation for your computer)."),
   NX_DISABLED(10, "NX is disabled in BIOS.", NONE, "Enable NX in your BIOS settings (refer to documentation for your computer)."),
   DEV_PERMISSION_LINUX(11, "/dev/kvm device: permission denied.", NONE, "Grant current user access to /dev/kvm"),
-  DEV_PERMISSION_WIN_MAC(11, "HAXM device: permission denied.", REINSTALL_HAXM, "Reinstall HAXM."),
+  DEV_PERMISSION_WIN_MAC_INTEL(11, "HAXM device: permission denied.", REINSTALL_HAXM, "Reinstall HAXM."),
+  DEV_PERMISSION_WIN_AMD(11, "Android Emulator Hypervisor Driver for AMD Processors device: permission denied.", REINSTALL_GVM, "Reinstall Android Emulator Hypervisor Driver for AMD Processors."),
   DEV_OPEN_FAILED_LINUX(12, "/dev/kvm device: open failed.", NONE, "Grant current user access to /dev/kvm"),
-  DEV_OPEN_FAILED_WIN_MAC(12, "HAXM device: open failed.", REINSTALL_HAXM, "Reinstall HAXM."),
+  DEV_OPEN_FAILED_WIN_MAC_INTEL(12, "HAXM device: open failed.", REINSTALL_HAXM, "Reinstall HAXM."),
+  DEV_OPEN_FAILED_WIN_AMD(12, "Android Emulator Hypervisor Driver for AMD Processors device: open failed.", REINSTALL_GVM, "Reinstall Android Emulator Hypervisor Driver for AMD Processors."),
   DEV_IOCTL_FAILED_LINUX(13, "/dev/kvm device: ioctl denied.", NONE, "Upgrade your kernel."),
-  DEV_IOCTL_FAILED_WIN_MAC(13, "HAXM device: ioctl denied.", REINSTALL_HAXM, "Reinstall HAXM."),
+  DEV_IOCTL_FAILED_WIN_MAC_INTEL(13, "HAXM device: ioctl denied.", REINSTALL_HAXM, "Reinstall HAXM."),
+  DEV_IOCTL_FAILED_WIN_AMD(13, "Android Emulator Hypervisor Driver for AMD Processors device: ioctl denied.", REINSTALL_GVM, "Reinstall Android Emulator Hypervisor Driver for AMD Processors."),
   DEV_OBSOLETE_LINUX(14, "KVM module is too old.", NONE, "Upgrade your kernel."),
-  DEV_OBSOLETE_WIN_MAC(14, "Virtual machine acceleration driver out-of-date.", REINSTALL_HAXM, "Reinstall HAXM."),
+  DEV_OBSOLETE_WIN_MAC_INTEL(14, "Virtual machine acceleration driver out-of-date.", REINSTALL_HAXM, "Reinstall HAXM."),
+  DEV_OBSOLETE_WIN_AMD(14, "Virtual machine acceleration driver out-of-date.", REINSTALL_GVM, "Reinstall Android Emulator Hypervisor Driver for AMD Processors."),
   HYPER_V_ENABLED(15, "Android Emulator is incompatible with Hyper-V.", TURNOFF_HYPER_V, SOLUTION_TURN_OFF_HYPER_V),
   EMULATOR_ERROR(138, "Accelerator Detection Problem.", NONE, "Please file a bug against Android Studio."),
   UNKNOWN_ERROR(-1, "Unknown Error", NONE, "Please file a bug against Android Studio."),
@@ -97,15 +117,27 @@ public enum AccelerationErrorCode {
       case  3: return NO_CPU_SUPPORT;
       case  4: return NO_CPU_VTX_SUPPORT;
       case  5: return NO_CPU_NX_SUPPORT;
-      case  6: return SystemInfo.isLinux ? ACCELERATION_NOT_INSTALLED_LINUX : ACCELERATION_NOT_INSTALLED_WIN_MAC;
+      case  6: return SystemInfo.isLinux ? ACCELERATION_NOT_INSTALLED_LINUX :
+                      (SystemInfo.isWindows && CpuVendor.isAMD() ? ACCELERATION_NOT_INSTALLED_WIN_AMD :
+                      ACCELERATION_NOT_INSTALLED_WIN_MAC_INTEL);
       case  7: return ACCELERATION_OBSOLETE;
-      case  8: return SystemInfo.isLinux? DEV_NOT_FOUND_LINUX : DEV_NOT_FOUND_WIN_MAC;
+      case  8: return SystemInfo.isLinux? DEV_NOT_FOUND_LINUX :
+                      (SystemInfo.isWindows && CpuVendor.isAMD() ? DEV_NOT_FOUND_WIN_AMD :
+                      DEV_NOT_FOUND_WIN_MAC_INTEL);
       case  9: return VT_DISABLED;
       case 10: return NX_DISABLED;
-      case 11: return SystemInfo.isLinux ? DEV_PERMISSION_LINUX : DEV_PERMISSION_WIN_MAC;
-      case 12: return SystemInfo.isLinux ? DEV_OPEN_FAILED_LINUX : DEV_OPEN_FAILED_WIN_MAC;
-      case 13: return SystemInfo.isLinux ? DEV_IOCTL_FAILED_LINUX : DEV_IOCTL_FAILED_WIN_MAC;
-      case 14: return SystemInfo.isLinux ? DEV_OBSOLETE_LINUX : DEV_OBSOLETE_WIN_MAC;
+      case 11: return SystemInfo.isLinux ? DEV_PERMISSION_LINUX :
+                      (SystemInfo.isWindows && CpuVendor.isAMD() ? DEV_PERMISSION_WIN_AMD :
+                      DEV_PERMISSION_WIN_MAC_INTEL);
+      case 12: return SystemInfo.isLinux ? DEV_OPEN_FAILED_LINUX :
+                      (SystemInfo.isWindows && CpuVendor.isAMD() ? DEV_OPEN_FAILED_WIN_AMD :
+                      DEV_OPEN_FAILED_WIN_MAC_INTEL);
+      case 13: return SystemInfo.isLinux ? DEV_IOCTL_FAILED_LINUX :
+                      (SystemInfo.isWindows && CpuVendor.isAMD() ? DEV_IOCTL_FAILED_WIN_AMD :
+                      DEV_IOCTL_FAILED_WIN_MAC_INTEL);
+      case 14: return SystemInfo.isLinux ? DEV_OBSOLETE_LINUX :
+                      (SystemInfo.isWindows && CpuVendor.isAMD() ? DEV_OBSOLETE_WIN_AMD :
+                      DEV_OBSOLETE_WIN_MAC_INTEL);
       case 15: return HYPER_V_ENABLED;
       default: return UNKNOWN_ERROR;
     }

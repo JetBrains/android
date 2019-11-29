@@ -100,14 +100,21 @@ class MigrateToAndroidxTest : AndroidTestCase() {
       .withEntry(GradleDependencyMigrationEntry("com.android.support", "exifinterface",
                                                 "androidx.exifinterface", "exifinterface", "1.0.0-alpha1"))
       .withEntry(
-        UpdateGradleDepedencyVersionMigrationEntry("androidx.core", "core-ktx",
-                                                   "1.0.0-alpha1"))
-      .withEntry(UpdateGradleDepedencyVersionMigrationEntry("androidx.core",
-                                                            "newer-core-ktx",
-                                                            "1.5.0"))
-      .withEntry(UpdateGradleDepedencyVersionMigrationEntry("androidx.core",
-                                                            "variable-ktx",
-                                                            "1.0.0-alpha1"))
+        UpdateGradleDependencyVersionMigrationEntry(
+          "androidx.core", "core-ktx",
+          "1.0.0-alpha1"))
+      .withEntry(UpdateGradleDependencyVersionMigrationEntry(
+        "androidx.core",
+        "newer-core-ktx",
+        "1.5.0"))
+      .withEntry(UpdateGradleDependencyVersionMigrationEntry(
+        "androidx.core",
+        "variable-ktx",
+        "1.0.0-alpha1"))
+      .withEntry(UpdateGradleDependencyVersionMigrationEntry(
+        "androidx.core",
+        "newer-version-ktx",
+        "1.1.0"))
       .withFileInProject("buildDependencies.gradle", "build.gradle")
       .withVersionProvider { _, _, defaultVersion -> defaultVersion }
       .run(myFixture)

@@ -158,10 +158,24 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
       return motionTag.getAttributeValue(property.getName());
     }
     MotionSceneTag sectionTag = getSubTag(motionTag, subTag);
-    if (sectionTag == null ){
+    if (sectionTag == null) {
       return null;
     }
     return sectionTag.getAttributeValue(property.getName());
+  }
+
+  @Override
+  @Nullable
+  public XmlTag getPropertyTag(@NotNull NelePropertyItem property) {
+    MotionSelection selection = getMotionSelection(property);
+    if (selection == null) {
+      return null;
+    }
+    MotionSceneTag motionTag = selection.getMotionSceneTag();
+    if (motionTag == null) {
+      return null;
+    }
+    return selection.getXmlTag(motionTag);
   }
 
   @Override

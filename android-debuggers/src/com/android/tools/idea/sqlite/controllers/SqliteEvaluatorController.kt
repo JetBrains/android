@@ -20,9 +20,9 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
-import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewListener
 import com.google.common.util.concurrent.FutureCallback
-import com.intellij.openapi.Disposable
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.util.Disposer
 
 /**
@@ -32,18 +32,12 @@ import com.intellij.openapi.util.Disposer
  */
 @UiThread
 class SqliteEvaluatorController(
-  parentDisposable: Disposable,
   private val view: SqliteEvaluatorView,
   private val edtExecutor: FutureCallbackExecutor
-) : Disposable {
-
+) : DatabaseInspectorController.TabController {
   private var currentTableController: TableController? = null
-  private val sqliteEvaluatorViewListener: SqliteEvaluatorViewListener = SqliteEvaluatorViewListenerImpl()
-  private val listeners = mutableListOf<SqliteEvaluatorControllerListener>()
-
-  init {
-    Disposer.register(parentDisposable, this)
-  }
+  private val sqliteEvaluatorViewListener: SqliteEvaluatorView.Listener = SqliteEvaluatorViewListenerImpl()
+  private val listeners = mutableListOf<Listener>()
 
   fun setUp() {
     view.addListener(sqliteEvaluatorViewListener)
@@ -53,16 +47,20 @@ class SqliteEvaluatorController(
     view.removeDatabase(index)
   }
 
+  override fun refreshData(): ListenableFuture<Unit> {
+    return currentTableController?.refreshData() ?: Futures.immediateFuture(Unit)
+  }
+
   override fun dispose() {
     view.removeListener(sqliteEvaluatorViewListener)
     listeners.clear()
   }
 
-  fun addListener(listener: SqliteEvaluatorControllerListener) {
+  fun addListener(listener: Listener) {
     listeners.add(listener)
   }
 
-  fun removeListener(listener: SqliteEvaluatorControllerListener) {
+  fun removeListener(listener: Listener) {
     listeners.remove(listener)
   }
 
@@ -88,8 +86,8 @@ class SqliteEvaluatorController(
   }
 
   private fun executeUpdate(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
-    val sqliteService = database.sqliteService
-    edtExecutor.addCallback(sqliteService.executeUpdate(sqliteStatement), object : FutureCallback<Int> {
+    val databaseConnection = database.databaseConnection
+    edtExecutor.addCallback(databaseConnection.executeUpdate(sqliteStatement), object : FutureCallback<Int> {
       override fun onSuccess(result: Int?) {
         view.tableView.resetView()
         listeners.forEach { it.onSchemaUpdated(database) }
@@ -102,30 +100,29 @@ class SqliteEvaluatorController(
   }
 
   private fun executeQuery(database: SqliteDatabase, sqliteStatement: SqliteStatement, doOnFailure: (Throwable) -> Unit) {
-    val sqliteService = database.sqliteService
+    val databaseConnection = database.databaseConnection
 
     currentTableController = TableController(
-      parentDisposable = this@SqliteEvaluatorController,
       view = view.tableView,
       tableName = null,
-      sqliteService = sqliteService,
+      databaseConnection = databaseConnection,
       sqliteStatement = sqliteStatement,
       edtExecutor = edtExecutor
-    )
+    ).also { Disposer.register(this, it) }
 
     edtExecutor.catching(currentTableController!!.setUp(), Throwable::class.java) { throwable ->
       doOnFailure(throwable)
     }
   }
 
-  private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorViewListener {
+  private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {
     override fun evaluateSqlActionInvoked(database: SqliteDatabase, sqliteStatement: String) {
       // TODO(b/143341562) handle SQLite statements with templates for ad-hoc queries.
       evaluateSqlStatement(database, SqliteStatement(sqliteStatement, emptyList()))
     }
   }
-}
 
-interface SqliteEvaluatorControllerListener {
-  fun onSchemaUpdated(database: SqliteDatabase)
+  interface Listener {
+    fun onSchemaUpdated(database: SqliteDatabase)
+  }
 }

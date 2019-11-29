@@ -170,7 +170,7 @@ public class AndroidGradleTests {
                                    pluginVersion);
       contents = replaceRegexGroup(contents, "[a-zA-Z]+\\s*\\(?\\s*['\"]org.jetbrains.kotlin:kotlin[a-zA-Z\\-]*:(.+)['\"]",
                                    KotlinCompilerVersion.VERSION);
-      // "implementation"(kotlin("stdlib", "1.3.60-eap-25"))
+      // "implementation"(kotlin("stdlib", "1.3.61"))
       contents =
         replaceRegexGroup(contents, "\"[a-zA-Z]+\"\\s*\\(\\s*kotlin\\(\"[a-zA-Z\\-]+\",\\s*\"(.+)\"", KotlinCompilerVersion.VERSION);
       contents = replaceRegexGroup(contents, "\\(\"com.android.application\"\\) version \"(.+)\"", pluginVersion);
@@ -482,7 +482,19 @@ public class AndroidGradleTests {
 
   public static void defaultPatchPreparedProject(@NotNull File projectRoot, @Nullable String gradleVersion,
                                                  @Nullable String gradlePluginVersion) throws IOException {
+    preCreateDotGradle(projectRoot);
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
     updateToolingVersionsAndPaths(projectRoot, gradleVersion, gradlePluginVersion);
+  }
+
+  /**
+   * Pre-creates .gradle directory under the project root to avoid it being asynchronously created by Gradle.
+   */
+  public static void preCreateDotGradle(@NotNull File projectRoot) {
+    File dotGradle = new File(projectRoot, ".gradle");
+    if (!dotGradle.exists()) {
+      //noinspection ResultOfMethodCallIgnored
+      dotGradle.mkdir();
+    }
   }
 }

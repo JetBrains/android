@@ -26,6 +26,10 @@ fun interpolate(x: Double, x0: Double, x1: Double, y0: Int, y1: Int): Int {
   return ((y0 * (x1 - x) + y1 * (x - x0)) / (x1 - x0)).toInt()
 }
 
+fun a(c: Int): Int {
+  return c shr 24 and 0xFF
+}
+
 fun r(c: Int): Int {
   return c shr 16 and 0xFF
 }
@@ -48,6 +52,10 @@ fun getColorString(color: Int): String {
 
 fun combine(r: Int, g: Int, b: Int): Int {
   return r shl 16 or (g shl 8) or b
+}
+
+fun combine(r: Double, g: Double, b: Double): Int {
+  return r.toInt() shl 16 or (g.toInt() shl 8) or b.toInt()
 }
 
 class LMS(val l: Double, val m: Double, val s: Double): Double3D(l, m, s)
@@ -107,7 +115,7 @@ class Mat3D(val aa: Double, val ab: Double, val ac: Double,
   )
 
   companion object {
-    private const val COMPARE_THRESHOLD = 0.0001
+    private const val COMPARE_THRESHOLD = 0.001
   }
 
   // Not very optimal so don't use it too often.
