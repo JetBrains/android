@@ -318,7 +318,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("debuggable", buildType.debuggable());
     assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
     assertMissingProperty("jniDebuggable", buildType.jniDebuggable());
-    assertMissingProperty("manifestPlaceholders", buildType.manifestPlaceholders());
+    verifyEmptyMapProperty("manifestPlaceholders", buildType.manifestPlaceholders());
     assertMissingProperty("minifyEnabled", buildType.minifyEnabled());
     assertMissingProperty("multiDexEnabled", buildType.multiDexEnabled());
     assertMissingProperty("proguardFiles", buildType.proguardFiles());
@@ -436,7 +436,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("debuggable", buildType.debuggable());
     assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
     assertMissingProperty("jniDebuggable", buildType.jniDebuggable());
-    assertMissingProperty("manifestPlaceholders", buildType.manifestPlaceholders());
+    verifyEmptyMapProperty("manifestPlaceholders", buildType.manifestPlaceholders());
     assertMissingProperty("minifyEnabled", buildType.minifyEnabled());
     assertMissingProperty("multiDexEnabled", buildType.multiDexEnabled());
     assertMissingProperty("proguardFiles", buildType.proguardFiles());
@@ -487,7 +487,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("debuggable", buildType.debuggable());
     assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
     assertMissingProperty("jniDebuggable", buildType.jniDebuggable());
-    assertMissingProperty("manifestPlaceholders", buildType.manifestPlaceholders());
+    verifyEmptyMapProperty("manifestPlaceholders", buildType.manifestPlaceholders());
     assertMissingProperty("minifyEnabled", buildType.minifyEnabled());
     assertMissingProperty("multiDexEnabled", buildType.multiDexEnabled());
     assertMissingProperty("proguardFiles", buildType.proguardFiles());
@@ -651,7 +651,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
-    assertMissingProperty("manifestPlaceholders", buildType.manifestPlaceholders());
+    verifyEmptyMapProperty("manifestPlaceholders", buildType.manifestPlaceholders());
 
     buildType.manifestPlaceholders().getMapValue("activityLabel1").setValue("newName1");
     buildType.manifestPlaceholders().getMapValue("activityLabel2").setValue("newName2");
@@ -659,7 +659,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
                  buildType.manifestPlaceholders());
 
     buildModel.resetState();
-    assertMissingProperty("manifestPlaceholders", buildType.manifestPlaceholders());
+    verifyEmptyMapProperty("manifestPlaceholders", buildType.manifestPlaceholders());
   }
 
   @Test
@@ -744,7 +744,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("debuggable", buildType.debuggable());
     assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
     assertMissingProperty("jniDebuggable", buildType.jniDebuggable());
-    assertMissingProperty("manifestPlaceholders", buildType.manifestPlaceholders());
+    verifyEmptyMapProperty("manifestPlaceholders", buildType.manifestPlaceholders());
     assertMissingProperty("minifyEnabled", buildType.minifyEnabled());
     assertMissingProperty("multiDexEnabled", buildType.multiDexEnabled());
     assertMissingProperty("proguardFiles", buildType.proguardFiles());
@@ -771,7 +771,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("debuggable", buildType.debuggable());
     assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
     assertMissingProperty("jniDebuggable", buildType.jniDebuggable());
-    assertMissingProperty("manifestPlaceholders", buildType.manifestPlaceholders());
+    verifyEmptyMapProperty("manifestPlaceholders", buildType.manifestPlaceholders());
     assertMissingProperty("minifyEnabled", buildType.minifyEnabled());
     assertMissingProperty("multiDexEnabled", buildType.multiDexEnabled());
     assertMissingProperty("proguardFiles", buildType.proguardFiles());
@@ -799,7 +799,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("debuggable", buildType.debuggable());
     assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
     assertMissingProperty("jniDebuggable", buildType.jniDebuggable());
-    assertMissingProperty("manifestPlaceholders", buildType.manifestPlaceholders());
+    verifyEmptyMapProperty("manifestPlaceholders", buildType.manifestPlaceholders());
     assertMissingProperty("minifyEnabled", buildType.minifyEnabled());
     assertMissingProperty("multiDexEnabled", buildType.multiDexEnabled());
     assertMissingProperty("proguardFiles", buildType.proguardFiles());
@@ -938,7 +938,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("debuggable", buildType.debuggable());
     assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
     assertMissingProperty("jniDebuggable", buildType.jniDebuggable());
-    assertMissingProperty("manifestPlaceholders", buildType.manifestPlaceholders());
+    verifyEmptyMapProperty("manifestPlaceholders", buildType.manifestPlaceholders());
     assertMissingProperty("minifyEnabled", buildType.minifyEnabled());
     assertMissingProperty("multiDexEnabled", buildType.multiDexEnabled());
     assertMissingProperty("proguardFiles", buildType.proguardFiles());
@@ -1250,7 +1250,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
-    assertMissingProperty("manifestPlaceholders", buildType.manifestPlaceholders());
+    verifyEmptyMapProperty("manifestPlaceholders", buildType.manifestPlaceholders());
 
     buildType.manifestPlaceholders().getMapValue("activityLabel1").setValue("newName1");
     buildType.manifestPlaceholders().getMapValue("activityLabel2").setValue("newName2");

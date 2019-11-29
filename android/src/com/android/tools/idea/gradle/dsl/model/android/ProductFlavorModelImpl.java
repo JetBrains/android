@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOption
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDrawablesOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -232,6 +233,10 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @Override
   @NotNull
   public ResolvedPropertyModel testInstrumentationRunnerArguments() {
+    GradleDslExpressionMap testInstrumentationRunnerArguments = myDslElement.getPropertyElement(GradleDslExpressionMap.TEST_INSTRUMENTATION_RUNNER_ARGUMENTS);
+    if (testInstrumentationRunnerArguments == null) {
+      myDslElement.addDefaultProperty(new GradleDslExpressionMap(myDslElement, GradleNameElement.fake(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS)));
+    }
     return getModelForProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS);
   }
 
