@@ -240,6 +240,11 @@ public final class StudioFlags {
     "Show the popup picker for resource picking or attribute customization in layout editor.",
     true);
 
+  public static final Flag<Boolean> NELE_LOG_ANDROID_FRAMEWORK = Flag.create(
+    NELE, "log.android.framework", "Log messages coming from Layoutlib Native.",
+    "Log in the IDEA log the messages coming from Java and native code of Layoutlib Native.",
+    false);
+
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",
