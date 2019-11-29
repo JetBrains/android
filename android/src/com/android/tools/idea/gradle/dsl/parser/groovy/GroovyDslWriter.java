@@ -98,12 +98,12 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
 
   @Override
   public PsiElement createDslElement(@NotNull GradleDslElement element) {
-    GradleDslElement anchorAfter = element.getAnchor();
     GroovyPsiElement psiElement = ensureGroovyPsi(element.getPsiElement());
     if (psiElement != null) {
       return psiElement;
     }
 
+    GradleDslElement anchorAfter = element.getAnchor();
     if (element.isNewEmptyBlockElement()) {
       return null; // Avoid creation of an empty block statement.
     }

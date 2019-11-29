@@ -61,6 +61,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -665,6 +666,14 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       GradlePropertyModel tempModel = actualValues.get(i);
       verifyPropertyModel(message, tempModel, expectedValues.get(i), resolveItems);
     }
+  }
+
+  public static void verifyEmptyMapProperty(@Nullable GradlePropertyModel model) {
+    verifyEmptyMapProperty("verifyEmptyMapProperty", model);
+  }
+
+  public static void verifyEmptyMapProperty(@NotNull String message, @Nullable GradlePropertyModel model) {
+    verifyMapProperty(message, model, ImmutableMap.of());
   }
 
   public static void verifyMapProperty(@Nullable GradlePropertyModel model,

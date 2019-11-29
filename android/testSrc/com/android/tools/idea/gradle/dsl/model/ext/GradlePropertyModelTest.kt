@@ -593,21 +593,21 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.android().defaultConfig().manifestPlaceholders()
-      assertMissingProperty(propertyModel)
+      verifyEmptyMapProperty(propertyModel)
       propertyModel.getMapValue("key").setValue("true")
       verifyMapProperty(propertyModel, mapOf("key" to "true"))
       val valueModel = propertyModel.getMapValue("key")
       verifyPropertyModel(valueModel, STRING_TYPE, "true", STRING, DERIVED, 0, "key")
       valueModel.delete()
       assertMissingProperty(valueModel)
-      verifyMapProperty(propertyModel, mapOf())
+      verifyEmptyMapProperty(propertyModel)
     }
 
     applyChangesAndReparse(buildModel)
 
     run {
       val propertyModel = buildModel.android().defaultConfig().manifestPlaceholders()
-      assertMissingProperty(propertyModel)
+      verifyEmptyMapProperty(propertyModel)
     }
   }
 

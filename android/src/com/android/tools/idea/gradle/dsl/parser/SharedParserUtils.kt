@@ -15,11 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser
 
-import com.android.tools.idea.gradle.dsl.parser.android.AbstractProductFlavorDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.ExternalNativeBuildOptionsDslElement.EXTERNAL_NATIVE_BUILD_OPTIONS
-import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement.NDK_OPTIONS
-import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDrawablesOptionsDslElement.VECTOR_DRAWABLES_OPTIONS
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT
@@ -27,7 +22,6 @@ import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
@@ -88,18 +82,6 @@ fun GradleDslFile.getBlockElement(
     val newElement: GradlePropertiesDslElement = when (resultElement) {
       // Some parent blocks require special-case treatment
       is GradleDslFile, is SubProjectsDslElement -> createNewElementForFileOrSubProject(resultElement, nestedElementName) ?: return null
-      is AbstractProductFlavorDslElement -> when (nestedElementName) {
-        "manifestPlaceholders" -> GradleDslExpressionMap(resultElement, elementName)
-        "testInstrumentationRunnerArguments" -> GradleDslExpressionMap(resultElement, elementName)
-        EXTERNAL_NATIVE_BUILD_OPTIONS.name -> EXTERNAL_NATIVE_BUILD_OPTIONS.constructor.construct(resultElement, elementName)
-        NDK_OPTIONS.name -> NDK_OPTIONS.constructor.construct(resultElement, elementName)
-        VECTOR_DRAWABLES_OPTIONS.name -> VECTOR_DRAWABLES_OPTIONS.constructor.construct(resultElement, elementName)
-        else -> return null
-      }
-      is BuildTypeDslElement -> when (nestedElementName) {
-        "manifestPlaceholders" -> GradleDslExpressionMap(resultElement, elementName)
-        else -> return null
-      }
       // we're not going to be clever about the contents of a ConfigurationDslElement: but we do need
       // to record whether there's anything there or not.
       is ConfigurationDslElement -> GradleDslClosure(resultElement, null, elementName)

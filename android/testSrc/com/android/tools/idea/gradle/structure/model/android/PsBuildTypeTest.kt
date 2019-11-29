@@ -139,7 +139,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(File("proguard-rules2.txt")))
 
       assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf()))
-      assertThat(manifestPlaceholders.parsedValue.asTestValue(), nullValue())
+      assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf()))
     }
     run {
       val appModule = project.findModuleByName("app") as PsAndroidModule
@@ -334,19 +334,9 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
       // TODO(b/144074581): there is a distinction between emptying a map that is the right-hand side of an assignment, where the map itself
       //  must remain in the Dsl, and emptying the implicit map argument to a Dsl method call, where (probably) the entire method call
-      //  should be deleted.  This test assumes that manifestPlaceholders is assigned (and hence removal of the keys should leave an
-      //  empty map) but details of Dsl language might say that that isn't always true.  For now, both answers are acceptable dependent
-      //  on which Dsl language is used.
-      if (!afterSync) {
-        assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf()))
-      }
-      else {
-        when (appModule.parsedModel?.psiFile?.language) {
-          is GroovyLanguage -> assertThat(manifestPlaceholders.parsedValue.asTestValue(), nullValue())
-          is KotlinLanguage -> assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf()))
-          else -> Unit
-        }
-      }
+      //  should be deleted.  The current implementation of manifestPlaceholders in the Dsl parser/model as an always-present property hides
+      //  a possible variation in behaviour, the distinction between a missing property and a property with a value of an empty map.
+      assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf()))
 
       if (afterSync) {
         assertThat(applicationIdSuffix.parsedValue.asTestValue(), equalTo(applicationIdSuffix.resolved.asTestValue()))

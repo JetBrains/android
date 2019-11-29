@@ -162,7 +162,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     assertMissingProperty("applicationId", productFlavor.applicationId());
     assertMissingProperty("consumerProguardFiles", productFlavor.consumerProguardFiles());
     assertMissingProperty("dimension", productFlavor.dimension());
-    assertMissingProperty("manifestPlaceholders", productFlavor.manifestPlaceholders());
+    verifyEmptyMapProperty("manifestPlaceholders", productFlavor.manifestPlaceholders());
     assertMissingProperty("maxSdkVersion", productFlavor.maxSdkVersion());
     assertMissingProperty("minSdkVersion", productFlavor.minSdkVersion());
     assertMissingProperty("multiDexEnabled", productFlavor.multiDexEnabled());
@@ -174,7 +174,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     assertMissingProperty("testFunctionalTest", productFlavor.testFunctionalTest());
     assertMissingProperty("testHandleProfiling", productFlavor.testHandleProfiling());
     assertMissingProperty("testInstrumentationRunner", productFlavor.testInstrumentationRunner());
-    assertMissingProperty("testInstrumentationRunnerArguments", productFlavor.testInstrumentationRunnerArguments());
+    verifyEmptyMapProperty("testInstrumentationRunnerArguments", productFlavor.testInstrumentationRunnerArguments());
     assertMissingProperty("useJack", productFlavor.useJack());
     assertMissingProperty("versionCode", productFlavor.versionCode());
     assertMissingProperty("versionName", productFlavor.versionName());
