@@ -2180,12 +2180,14 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   fun testSetProguardFiles() {
     writeToBuildFile(PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES)
 
+    val quote = if(isGroovy) "'" else "\""
+
     val buildModel = gradleBuildModel
     val defaultConfig = buildModel.android().defaultConfig()
     val proguardFiles = defaultConfig.proguardFiles()
-    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile('proguard-android.txt')", "proguard-rules.pro"))
+    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android.txt${quote})", "proguard-rules.pro"))
     proguardFiles.addListValue().setValue("value")
-    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile('proguard-android.txt')", "proguard-rules.pro", "value"))
+    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android.txt${quote})", "proguard-rules.pro", "value"))
     proguardFiles.toList()!![0].delete()
     verifyListProperty(proguardFiles, listOf("proguard-rules.pro", "value"))
 
@@ -2201,13 +2203,15 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   fun testSetProguardFilesWithReference() {
     writeToBuildFile(PRODUCT_FLAVOR_MODEL_SET_PROGUARD_FILES_WITH_REFERENCE)
 
+    val quote = if(isGroovy) "'" else "\""
+
     val buildModel = gradleBuildModel
     val defaultConfig = buildModel.android().defaultConfig()
     val proguardFiles = defaultConfig.proguardFiles()
-    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile('proguard-android.txt')", "proguard-rules.pro"))
+    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android.txt${quote})", "proguard-rules.pro"))
     val varModel = buildModel.ext().findProperty("list")
     varModel.addListValue().setValue("value")
-    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile('proguard-android.txt')", "proguard-rules.pro", "value"))
+    verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android.txt${quote})", "proguard-rules.pro", "value"))
     varModel.toList()!![0].delete()
     verifyListProperty(proguardFiles, listOf("proguard-rules.pro", "value"))
 
