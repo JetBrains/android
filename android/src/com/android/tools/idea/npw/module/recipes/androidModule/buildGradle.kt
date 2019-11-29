@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidModule
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.npw.module.recipes.androidConfig
 import com.android.tools.idea.npw.module.recipes.getConfigurationName
 import com.android.tools.idea.npw.module.recipes.kotlinDependencies
@@ -36,8 +37,8 @@ fun buildGradle(
   useAndroidX: Boolean,
   language: Language,
   gradlePluginVersion: GradlePluginVersion,
-  supportsImprovedTestDeps: Boolean,
-  includeCppSupport: Boolean,
+  supportsImprovedTestDeps: Boolean = GradleVersion.parse(gradlePluginVersion).compareIgnoringQualifiers("3.0.0") >= 0,
+  includeCppSupport : Boolean = false,
   // TODO(qumeric): do something better
   cppFlags: String = "",
   isCompose: Boolean = false,
