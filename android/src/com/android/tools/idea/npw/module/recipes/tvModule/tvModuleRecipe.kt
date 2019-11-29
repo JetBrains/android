@@ -22,6 +22,7 @@ import com.android.tools.idea.npw.module.recipes.addKotlinPlugins
 import com.android.tools.idea.npw.module.recipes.addKotlinToBaseProject
 import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
+import com.android.tools.idea.npw.module.recipes.basicStylesXml
 import com.android.tools.idea.npw.module.recipes.copyMipmap
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -92,13 +93,6 @@ fun RecipeExecutor.generateTvModule(
     addDependency("androidx.core:core-ktx:+")
   }
 
-  save(stylesXml(), resOut.resolve("values/styles.xml"))
+  save(basicStylesXml("@style/Theme.Leanback"), resOut.resolve("values/styles.xml"))
   save(androidModuleStrings(appTitle!!), resOut.resolve("values/strings.xml"))
 }
-
-private fun stylesXml() = """
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="AppTheme" parent="@style/Theme.Leanback" />
-</resources> 
-"""
