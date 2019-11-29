@@ -84,7 +84,7 @@ class ProguardR8InvalidFlagInspection : LocalInspectionTool() {
         super.visitFlag(flag)
         val flagText = flag.text.substring(1)
         if (!R8_FLAGS.contains(flagText) && !PROGUARD_FLAGS.contains(flagText)) {
-          holder.registerProblem(flag, "Invalid flag name", ProblemHighlightType.ERROR)
+          holder.registerProblem(flag, "Invalid flag", ProblemHighlightType.ERROR)
         }
       }
     }
@@ -102,7 +102,7 @@ class ProguardR8IgnoredFlagInspection : LocalInspectionTool() {
         if (flag.getModuleSystem()?.codeShrinker == CodeShrinker.R8) {
           val flagText = flag.text.substring(1)
           if (!R8_FLAGS.contains(flagText) && PROGUARD_FLAGS.contains(flagText)) {
-            holder.registerProblem(flag, "Flag is ignored by R8", ProblemHighlightType.WARNING)
+            holder.registerProblem(flag, "Flag ignored by R8", ProblemHighlightType.WARNING)
           }
         }
       }

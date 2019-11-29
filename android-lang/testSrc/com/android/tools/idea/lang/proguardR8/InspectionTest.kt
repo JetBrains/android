@@ -63,7 +63,7 @@ class InspectionTest : ProguardR8TestCase() {
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
       """
-        ${"-invalidflag".highlightedAs(ERROR, "Invalid flag name")}
+        ${"-invalidflag".highlightedAs(ERROR, "Invalid flag")}
       """.trimIndent()
     )
 
@@ -107,7 +107,7 @@ class ProguardR8IgnoredFlagInspectionTest : AndroidTestCase() {
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
       """
-        ${"-${flag}".highlightedAs(WARNING, "Flag is ignored by R8")}
+        ${"-${flag}".highlightedAs(WARNING, "Flag ignored by R8")}
       """.trimIndent()
     )
 

@@ -54,7 +54,7 @@ class ProguardR8InspectionSuppressorTest : ProguardR8TestCase() {
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
       """
-        ${"<caret>-notexistingflag".highlightedAs(HighlightSeverity.ERROR, "Invalid flag name")}
+        ${"<caret>-notexistingflag".highlightedAs(HighlightSeverity.ERROR, "Invalid flag")}
       """.trimIndent()
     )
     myFixture.checkHighlighting()
