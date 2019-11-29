@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.npw.module.recipes
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestJava
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestKt
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestJava
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestKt
+import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.Revision
@@ -210,3 +212,23 @@ fun basicStylesXml(parent: String) = """
     <style name="AppTheme" parent="$parent" />
 </resources> 
 """
+
+fun supportsImprovedTestDeps(agpVersion: GradlePluginVersion) =
+  GradleVersion.parse(agpVersion).compareIgnoringQualifiers("3.0.0") >= 0
+
+fun RecipeExecutor.addTestDependencies(agpVersion: GradlePluginVersion) {
+  addDependency("junit:junit:4.12", "testCompile")
+  if (supportsImprovedTestDeps(agpVersion)) {
+    addDependency("com.android.support.test:runner:+", "androidTestCompile")
+    addDependency("com.android.support.test.espresso:espresso-core:+", "androidTestCompile")
+  }
+}
+
+// TODO(qumeric): is seems that we actually never need resOut. Delete if it's the case
+fun RecipeExecutor.createDefaultDirectories(moduleOut: File, srcOut: File, resOut: File? = null) {
+  createDirectory(srcOut)
+  createDirectory(moduleOut.resolve("libs"))
+  if (resOut != null) {
+    createDirectory(resOut.resolve("drawable"))
+  }
+}
