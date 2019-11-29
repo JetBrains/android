@@ -3,7 +3,7 @@ android {
     xyz {
     }
     release {
-      jniDebuggable = android.buildTypes.xyz.isDebuggable
+      jniDebuggable = android.buildTypes.xyz.debuggable
     }
   }
 }
