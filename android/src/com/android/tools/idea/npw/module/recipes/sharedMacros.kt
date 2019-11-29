@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.npw.module.recipes
 
+import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestJava
+import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestKt
+import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestJava
+import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestKt
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.Revision
 import com.android.tools.idea.wizard.template.getMaterialComponentName
@@ -178,3 +183,30 @@ fun RecipeExecutor.copyMipmap(destination: File) {
   copy(resource("mipmap-xxhdpi"), destination.resolve("mipmap-xxhdpi"))
   copy(resource("mipmap-xxxhdpi"), destination.resolve("mipmap-xxxhdpi"))
 }
+
+fun RecipeExecutor.addTests(
+  packageName: String, useAndroidX: Boolean, isLibraryProject: Boolean, testOut: File, unitTestOut: File, language: Language
+) {
+  val ext = language.extension
+  save(
+    if (language == Language.Kotlin)
+      exampleInstrumentedTestKt(packageName, useAndroidX, isLibraryProject)
+    else
+      exampleInstrumentedTestJava(packageName, useAndroidX, isLibraryProject) ,
+    testOut.resolve("ExampleInstrumentedTest.$ext")
+  )
+  save(
+    if (language == Language.Kotlin)
+      exampleUnitTestKt(packageName)
+    else
+      exampleUnitTestJava(packageName),
+    unitTestOut.resolve("ExampleUnitTest.$ext")
+  )
+}
+
+fun basicStylesXml(parent: String) = """
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="$parent" />
+</resources> 
+"""
