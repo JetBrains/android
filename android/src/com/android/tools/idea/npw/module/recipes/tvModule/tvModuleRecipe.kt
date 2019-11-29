@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.npw.module.recipes.tvModule
 
-import com.android.ide.common.repository.GradleVersion
-import com.android.repository.Revision
-import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
-import com.android.tools.idea.npw.module.recipes.addKotlinPlugins
-import com.android.tools.idea.npw.module.recipes.addKotlinToBaseProject
+import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
 import com.android.tools.idea.npw.module.recipes.basicStylesXml
 import com.android.tools.idea.npw.module.recipes.copyMipmap
-import com.android.tools.idea.wizard.template.Language
+import com.android.tools.idea.npw.module.recipes.createDefaultDirectories
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.generateManifest
@@ -43,56 +39,37 @@ fun RecipeExecutor.generateTvModule(
   val targetApi = apis.targetApi
   val minApi = apis.minApiLevel
 
-  if (language == Language.Kotlin) {
-    addKotlinToBaseProject(language, projectData.kotlinVersion)
-  }
-
-  addDependency("com.google.android.support:leanback-v17:+")
-  createDirectory(srcOut)
-  createDirectory(moduleOut.resolve("libs"))
-
+  createDefaultDirectories(moduleOut, srcOut)
   addIncludeToSettings(data.name)
 
-  val buildToolsVersion = projectData.buildToolsVersion
-
-  val buildGradle = buildGradle(
-    isLibraryProject,
-    false,
-    packageName,
-    apis.buildApiString!!,
-    needsExplicitBuildToolsVersion(GradleVersion.parse(projectData.gradlePluginVersion), Revision.parseRevision(buildToolsVersion)),
-    buildToolsVersion,
-    minApi,
-    targetApi,
-    projectData.androidXSupport,
-    language,
-    projectData.gradlePluginVersion
-  )
-
-  save(buildGradle, moduleOut.resolve("build.gradle"))
-
-  if (language == Language.Kotlin) {
-    addKotlinPlugins()
-  }
-
   save(
-    generateManifest(packageName, !isLibraryProject),
-    manifestOut.resolve("AndroidManifest.xml")
+    buildGradle(
+      isLibraryProject,
+      false,
+      packageName,
+      apis.buildApiString!!,
+      projectData.buildToolsVersion,
+      minApi,
+      targetApi,
+      projectData.androidXSupport,
+      language,
+      projectData.gradlePluginVersion
+    ),
+    moduleOut.resolve("build.gradle")
   )
-
-  save(
-    gitignore(),
-    moduleOut.resolve(".gitignore")
-  )
-
+  //addDependency("com.android.support:appcompat-v7:${buildApi}.+")
+  save(generateManifest(packageName, !isLibraryProject), manifestOut.resolve("AndroidManifest.xml"))
+  save(gitignore(), moduleOut.resolve(".gitignore"))
+  //addTests(packageName, useAndroidX, isLibraryProject, testOut, unitTestOut, language)
+  //addTestDependencies(projectData.gradlePluginVersion)
   proguardRecipe(moduleOut, data.isLibrary)
 
+  save(androidModuleStrings(appTitle!!), resOut.resolve("values/strings.xml"))
   copyMipmap(resOut)
 
-  if (projectData.language == Language.Kotlin && projectData.androidXSupport) {
-    addDependency("androidx.core:core-ktx:+")
-  }
+  addKotlinIfNeeded(projectData)
 
+  // Unique to TV module
   save(basicStylesXml("@style/Theme.Leanback"), resOut.resolve("values/styles.xml"))
-  save(androidModuleStrings(appTitle!!), resOut.resolve("values/strings.xml"))
+  addDependency("com.google.android.support:leanback-v17:+")
 }

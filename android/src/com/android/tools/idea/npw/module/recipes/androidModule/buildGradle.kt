@@ -16,9 +16,12 @@
 package com.android.tools.idea.npw.module.recipes.androidModule
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.repository.Revision.parseRevision
+import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.npw.module.recipes.androidConfig
 import com.android.tools.idea.npw.module.recipes.getConfigurationName
 import com.android.tools.idea.npw.module.recipes.kotlinDependencies
+import com.android.tools.idea.npw.module.recipes.supportsImprovedTestDeps
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.wizard.template.GradlePluginVersion
@@ -30,15 +33,13 @@ fun buildGradle(
   isDynamicFeature: Boolean,
   packageName: String,
   buildApiString: String,
-  explicitBuildToolsVersion: Boolean,
   buildToolsVersion: String,
   minApi: Int,
   targetApi: Int,
   useAndroidX: Boolean,
   language: Language,
   gradlePluginVersion: GradlePluginVersion,
-  supportsImprovedTestDeps: Boolean = GradleVersion.parse(gradlePluginVersion).compareIgnoringQualifiers("3.0.0") >= 0,
-  includeCppSupport : Boolean = false,
+  includeCppSupport: Boolean = false,
   // TODO(qumeric): do something better
   cppFlags: String = "",
   isCompose: Boolean = false,
@@ -47,6 +48,8 @@ fun buildGradle(
   mobileIncluded: Boolean = true,
   wearIncluded: Boolean = false
 ): String {
+  val explicitBuildToolsVersion = needsExplicitBuildToolsVersion(GradleVersion.parse(gradlePluginVersion), parseRevision(buildToolsVersion))
+  val supportsImprovedTestDeps = supportsImprovedTestDeps(gradlePluginVersion)
   val isApplicationProject = !isLibraryProject
   val kotlinPluginsBlock = renderIf(language == Language.Kotlin) {
     """
@@ -90,10 +93,6 @@ fun buildGradle(
     """
   }
 
-  val kotlinDependenciesBlock = renderIf(language == Language.Kotlin) {
-    kotlinDependencies(gradlePluginVersion)
-  }
-
   val dynamicFeatureBlock = when {
     isDynamicFeature -> """implementation project (":${baseFeatureName}")"""
     !wearProjectName.isBlank() && mobileIncluded && wearIncluded -> """wearApp project (":${wearProjectName}")"""
@@ -105,7 +104,6 @@ fun buildGradle(
     $composeDependenciesBlock
     ${getConfigurationName("compile", gradlePluginVersion)} fileTree (dir: "libs", include: ["*.jar"])
     $oldTestDependenciesBlock
-    $kotlinDependenciesBlock
     $dynamicFeatureBlock
   }
   """

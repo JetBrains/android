@@ -15,23 +15,19 @@
  */
 package com.android.tools.idea.npw.module.recipes.automotiveModule
 
-import com.android.ide.common.repository.GradleVersion
-import com.android.repository.Revision
-import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
-import com.android.tools.idea.npw.module.recipes.addKotlinPlugins
-import com.android.tools.idea.npw.module.recipes.addKotlinToBaseProject
+import com.android.SdkConstants.FD_RES_VALUES
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
+import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
+import com.android.tools.idea.npw.module.recipes.addTestDependencies
+import com.android.tools.idea.npw.module.recipes.addTests
 import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColors
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
-import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStyles
-import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestJava
-import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestKt
-import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestJava
-import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestKt
 import com.android.tools.idea.npw.module.recipes.copyIcons
+import com.android.tools.idea.npw.module.recipes.createDefaultDirectories
 import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.npw.module.recipes.gitignore
 import com.android.tools.idea.npw.module.recipes.proguardRecipe
@@ -50,87 +46,39 @@ fun RecipeExecutor.generateAutomotiveModule(
   val minApi = apis.minApiLevel
   val useAndroidX = projectData.androidXSupport
 
-  addKotlinToBaseProject(language, projectData.kotlinVersion)
-
-  createDirectory(moduleOut.resolve("libs"))
-  createDirectory(resOut.resolve("drawable"))
-  createDirectory(srcOut)
-  createDirectory(unitTestOut)
-
+  createDefaultDirectories(moduleOut, srcOut, resOut)
   addIncludeToSettings(data.name)
 
-  val buildToolsVersion = projectData.buildToolsVersion
-  val supportsImprovedTestDeps = GradleVersion.parse(projectData.gradlePluginVersion).compareIgnoringQualifiers("3.0.0") >= 0
-  val buildGradle = buildGradle(
-    isLibraryProject,
-    false,
-    packageName,
-    apis.buildApiString!!,
-    needsExplicitBuildToolsVersion(GradleVersion.parse(projectData.gradlePluginVersion), Revision.parseRevision(buildToolsVersion)),
-    buildToolsVersion,
-    minApi,
-    targetApi,
-    projectData.androidXSupport,
-    language,
-    projectData.gradlePluginVersion,
-    supportsImprovedTestDeps,
-    false
-  )
-
-  save(buildGradle, moduleOut.resolve("build.gradle"))
-
-  if (language == Language.Kotlin) {
-    addKotlinPlugins()
-  }
-
   save(
-    generateManifest(packageName, !isLibraryProject),
-    manifestOut.resolve("AndroidManifest.xml")
+    buildGradle(
+      isLibraryProject,
+      false,
+      packageName,
+      apis.buildApiString!!,
+      projectData.buildToolsVersion,
+      minApi,
+      targetApi,
+      projectData.androidXSupport,
+      language,
+      projectData.gradlePluginVersion,
+      false
+    ), moduleOut.resolve("build.gradle")
   )
-
-  save(
-    gitignore(),
-    moduleOut.resolve(".gitignore")
-  )
-
-  if (!isLibraryProject) {
-    save(androidModuleStrings(appTitle), resOut.resolve("values/strings.xml"))
-  }
-  save(
-    if (language == Language.Kotlin)
-      exampleInstrumentedTestKt(packageName, useAndroidX, isLibraryProject)
-    else
-      exampleInstrumentedTestJava(packageName, useAndroidX, isLibraryProject) ,
-    testOut.resolve("ExampleInstrumentedTest.${language.extension}")
-  )
-  save(
-    if (language == Language.Kotlin)
-      exampleUnitTestKt(packageName)
-    else
-      exampleUnitTestJava(packageName),
-    unitTestOut.resolve("ExampleUnitTest.${language.extension}")
-  )
-  addDependency("junit:junit:4.12", "testCompile")
-
-  if (supportsImprovedTestDeps) {
-    addDependency("com.android.support.test:runner:+", "androidTestCompile")
-    addDependency("com.android.support.test.espresso:espresso-core:+", "androidTestCompile")
-  }
-
   addDependency("com.android.support:appcompat-v7:${buildApi}.+")
-
+  save(generateManifest(packageName, !isLibraryProject), manifestOut.resolve(FN_ANDROID_MANIFEST_XML))
+  save(gitignore(), moduleOut.resolve(".gitignore"))
+  addTests(packageName, useAndroidX, isLibraryProject, testOut, unitTestOut, language)
+  addTestDependencies(projectData.gradlePluginVersion)
   proguardRecipe(moduleOut, data.isLibrary)
 
   if (!isLibraryProject) {
     copyIcons(resOut)
+    with(resOut.resolve(FD_RES_VALUES)) {
+      save(androidModuleStrings(appTitle), resolve("strings.xml"))
+      save(androidModuleStyles(), resolve("styles.xml"))
+      save(androidModuleColors(), resolve("colors.xml"))
+    }
   }
 
-  if (!isLibraryProject) {
-    save(androidModuleStyles(), resOut.resolve("values/styles.xml"))
-    save(androidModuleColors(), resOut.resolve("values/colors.xml"))
-  }
-
-  if (projectData.language == Language.Kotlin && projectData.androidXSupport) {
-    addDependency("androidx.core:core-ktx:+")
-  }
+  addKotlinIfNeeded(projectData)
 }
