@@ -617,6 +617,18 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareGoogleAdMobFragment() {
+    checkCreateTemplate("fragments", "GoogleAdMobAdsFragment",
+                        ActivityCreationMode.WITHOUT_PROJECT, false, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareGoogleAdMobFragmentWithKotlin() {
+    checkCreateTemplate("fragments", "GoogleAdMobAdsFragment",
+                        ActivityCreationMode.WITHOUT_PROJECT, false, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testLoginFragment() {
     checkCreateTemplate("fragments", "LoginFragment")
   }
