@@ -21,55 +21,20 @@ import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplic
 import com.android.tools.idea.npw.module.recipes.addKotlinPlugins
 import com.android.tools.idea.npw.module.recipes.addKotlinToBaseProject
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColors
+import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
-import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStyles
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestJava
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestKt
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestJava
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestKt
+import com.android.tools.idea.npw.module.recipes.copyIcons
 import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.npw.module.recipes.gitignore
 import com.android.tools.idea.npw.module.recipes.proguardRecipe
 import com.android.tools.idea.wizard.template.FormFactor
-import java.io.File
-
-private fun resource(path: String) = File("templates/module", path)
-
-fun RecipeExecutor.copyMipmap(destination: File, icon: String) {
-  copy(resource("mipmap-hdpi/${icon}"), destination.resolve("mipmap-hdpi/${icon}"))
-  copy(resource("mipmap-mdpi/${icon}"), destination.resolve("mipmap-mdpi/${icon}"))
-  copy(resource("mipmap-xhdpi/${icon}"), destination.resolve("mipmap-xhdpi/${icon}"))
-  copy(resource("mipmap-xxhdpi/${icon}"), destination.resolve("mipmap-xxhdpi/${icon}"))
-  copy(resource("mipmap-xxxhdpi/${icon}"), destination.resolve("mipmap-xxxhdpi/${icon}"))
-}
-
-fun RecipeExecutor.copyIconCommands(buildApi: Int, targetApi: Int, destination: File) {
-  fun copyAdaptiveIcons() {
-    copy(
-      resource("mipmap-anydpi-v26/ic_launcher.xml"),
-      destination.resolve("mipmap-anydpi-v26/ic_launcher.xml")
-    )
-    copy(
-      resource("drawable/ic_launcher_background.xml"),
-      destination.resolve("drawable/ic_launcher_background.xml")
-    )
-    copy(
-      resource("drawable-v24/ic_launcher_foreground.xml"),
-      destination.resolve("drawable-v24/ic_launcher_foreground.xml")
-    )
-    copy(
-      resource("mipmap-anydpi-v26/ic_launcher_round.xml"),
-      destination.resolve("mipmap-anydpi-v26/ic_launcher_round.xml")
-    )
-  }
-
-  copyMipmap(destination, "ic_launcher.png")
-  copyMipmap(destination, "ic_launcher_round.png")
-  copyAdaptiveIcons()
-}
 
 fun RecipeExecutor.generateAndroidModule(
   data: ModuleTemplateData,
@@ -160,7 +125,7 @@ fun RecipeExecutor.generateAndroidModule(
   proguardRecipe(moduleOut, data.isLibrary)
 
   if (!isLibraryProject) {
-    copyIconCommands(buildApi, targetApi, resOut)
+    copyIcons(resOut)
   }
 
   if (!isLibraryProject) {
