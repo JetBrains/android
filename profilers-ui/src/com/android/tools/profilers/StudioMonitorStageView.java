@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuMonitorTooltipView;
@@ -87,7 +88,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
-    ProfilerScrollbar sb = new ProfilerScrollbar(getTimeline(), getComponent());
+    ProfilerScrollbar sb = new ProfilerScrollbar(getStage().getTimeline(), getComponent());
     getComponent().add(sb, BorderLayout.SOUTH);
 
     // Create a 2-row panel. First row, all monitors; second row, the timeline. This way, the
@@ -102,14 +103,14 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     // Use FlowLayout instead of the usual BorderLayout since BorderLayout doesn't respect min/preferred sizes.
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
-    RangeTooltipComponent tooltip =
-      new RangeTooltipComponent(getTimeline(), getTooltipPanel(), getProfilersView().getComponent(), () -> true);
+    RangeTooltipComponent tooltipComponent =
+      new RangeTooltipComponent(getStage().getTimeline(), getTooltipPanel(), getProfilersView().getComponent(), () -> true);
 
     getTooltipBinder().bind(NetworkMonitorTooltip.class, NetworkMonitorTooltipView::new);
     getTooltipBinder().bind(CpuMonitorTooltip.class, CpuMonitorTooltipView::new);
     getTooltipBinder().bind(MemoryMonitorTooltip.class, MemoryMonitorTooltipView::new);
-    getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
-    getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
+    getTooltipBinder().bind(LifecycleTooltip.class, (stageView, tooltip) -> new LifecycleTooltipView(stageView.getComponent(), tooltip));
+    getTooltipBinder().bind(UserEventTooltip.class, (stageView, tooltip) -> new UserEventTooltipView(stageView.getComponent(), tooltip));
     if (isEnergyProfilerEnabled) {
       getTooltipBinder().bind(EnergyMonitorTooltip.class, EnergyMonitorTooltipView::new);
     }
@@ -121,7 +122,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     int rowIndex = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
       ProfilerMonitorView view = binder.build(profilersView, monitor);
-      view.registerTooltip(tooltip, stage);
+      view.registerTooltip(tooltipComponent, stage);
       JComponent component = view.getComponent();
       component.addMouseListener(new MouseAdapter() {
         @Override
@@ -172,7 +173,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     StudioProfilers profilers = stage.getStudioProfilers();
     JComponent timeAxis = buildTimeAxis(profilers);
 
-    topPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
+    topPanel.add(tooltipComponent, new TabularLayout.Constraint(0, 0));
     topPanel.add(monitors, new TabularLayout.Constraint(0, 0));
     topPanel.add(timeAxis, new TabularLayout.Constraint(1, 0));
 

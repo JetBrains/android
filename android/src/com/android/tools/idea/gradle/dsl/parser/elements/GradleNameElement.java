@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
+
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
-import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
@@ -240,7 +241,7 @@ public class GradleNameElement {
     if (!parts.isEmpty() && parts.get(0).equals(name)) {
       return true;
     }
-    if (parts.size() > 1 && parts.get(0).equals(ExtDslElement.EXT_BLOCK_NAME) && parts.get(1).equals(name)) {
+    if (parts.size() > 1 && parts.get(0).equals(EXT.name) && parts.get(1).equals(name)) {
       return true;
     }
 

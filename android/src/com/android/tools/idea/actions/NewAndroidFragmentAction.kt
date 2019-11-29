@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.actions
 
-import com.android.tools.idea.actions.NewAndroidComponentAction.CREATED_FILES
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.NewModuleModel
@@ -83,7 +82,7 @@ class NewAndroidFragmentAction
 
     val dialog = StudioWizardDialogBuilder(wizard, dialogTitle).setProject(project).build()
     dialog.show()
-    val createdFiles = dataContext.getData(CREATED_FILES) as MutableList<File>?
+    val createdFiles = dataContext.getData(CREATED_FILES)
     createdFiles?.addAll(renderModel.createdFiles)
   }
 }

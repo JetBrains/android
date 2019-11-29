@@ -31,8 +31,8 @@ import com.intellij.pom.Navigatable
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.ClassUtil
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
-import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
 import javax.swing.Icon
 
@@ -98,7 +98,8 @@ class ResourceLookup(private val project: Project) {
     resolver?.resolveAsIcon(property)?.let { return it }
     val value = property.value
     val color = value?.let { parseColor(value) } ?: return null
-    return JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, color, false))
+    // TODO: Convert this into JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, color, false)) when JBCachingScalableIcon extends JBScalableIcon
+    return ColorIcon(RESOURCE_ICON_SIZE, color, false).scale(JBUIScale.scale(1f))
   }
 
   /**

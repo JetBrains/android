@@ -15,8 +15,6 @@
  */
 package com.android.tools.adtui.common
 
-import com.google.common.base.Joiner
-import java.awt.geom.Rectangle2D
 import java.awt.geom.RoundRectangle2D
 
 inline class SwingRoundRectangle(val value: RoundRectangle2D.Float) {
@@ -35,21 +33,4 @@ inline class SwingRoundRectangle(val value: RoundRectangle2D.Float) {
 
   val height: SwingLength
     get() = SwingLength(value.height)
-
-  val arcwidth: SwingLength
-    get() = SwingLength(value.arcwidth)
-
-  val archeight: SwingLength
-    get() = SwingLength(value.archeight)
-
-  override fun toString(): String = Joiner.on('x').join(this.x, this.y, this.width, this.height, this.arcwidth, this.archeight)
-}
-
-fun String.toSwingRoundRect(): SwingRectangle {
-  val sp = this.split('x').dropLastWhile { it.isEmpty() }
-  val x = sp[0].toSwingX()
-  val y = sp[1].toSwingY()
-  val width = sp[2].toSwingLength()
-  val height = sp[3].toSwingLength()
-  return SwingRectangle(x, y, width, height)
 }

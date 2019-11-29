@@ -23,12 +23,14 @@ import com.android.tools.property.ptable2.PTableCellRenderer
 import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableItem
+import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JTable
 import kotlin.math.max
 
@@ -46,11 +48,13 @@ class DefaultNameTableCellRenderer : PTableCellRenderer {
   private val depthIndent = JBUI.scale(DEPTH_INDENT)
   private val iconWidth = UIUtil.getTreeCollapsedIcon().iconWidth
   private val label = RendererLabel()
+  private val fontSize = UIUtil.FontSize.SMALL
+  private val topOffset = computeTopOffset(fontSize)
 
   override fun getEditorComponent(table: PTable, item: PTableItem, column: PTableColumn, depth: Int,
                                   isSelected: Boolean, hasFocus: Boolean, isExpanded: Boolean): JComponent {
     label.text = if (isExpanded) "<html><nobr>${item.name}</nobr></html>" else item.name
-    label.font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
+    label.font = UIUtil.getLabelFont(fontSize)
     label.isOpaque = true
     var indent = standardIndent + depth * depthIndent
     when {
@@ -76,8 +80,27 @@ class DefaultNameTableCellRenderer : PTableCellRenderer {
       label.foreground = table.foregroundColor
       label.background = table.backgroundColor
     }
-    label.border = BorderFactory.createEmptyBorder(0, indent, 0, JBUI.scale(RIGHT_STANDARD_INDENT))
+
+    // Some editors in the layout inspector are much taller than a single text editor.
+    // Make the label look centered with a standard text editor, and top aligned with a taller editor.
+    label.border = BorderFactory.createEmptyBorder(topOffset, indent, 0, JBUI.scale(RIGHT_STANDARD_INDENT))
+    label.verticalAlignment = JLabel.TOP
+
     return label
+  }
+
+  /**
+   * Compute the top offset for making a small label appear vertical centered with a standard text editor.
+   *
+   * A standard editor is using a normal size font and a DarculaTextBorder.
+   */
+  private fun computeTopOffset(fontSize: UIUtil.FontSize): Int {
+    val label = JBLabel("M")
+    label.font = UIUtil.getLabelFont(fontSize)
+    val height = label.preferredSize.height
+    label.font = UIUtil.getLabelFont()
+    label.border = DarculaTextBorder()
+    return (label.preferredSize.height - height) / 2
   }
 
   private class RendererLabel : JBLabel() {

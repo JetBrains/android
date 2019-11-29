@@ -27,7 +27,6 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilerScrollbar;
-import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilersView;
@@ -151,8 +150,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       myToolbar = new CpuProfilerToolbar.NormalMode(stage, getIdeComponents());
     }
 
-    ProfilerTimeline timeline = getTimeline();
-    myTooltipComponent = new RangeTooltipComponent(timeline,
+    myTooltipComponent = new RangeTooltipComponent(getStage().getTimeline(),
                                                    getTooltipPanel(),
                                                    getProfilersView().getComponent(),
                                                    this::shouldShowTooltipSeekComponent);
@@ -164,17 +162,17 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     stage.getStudioProfilers().addDependency(this)
          .onChange(ProfilerAspect.MODE, this::updateCaptureViewVisibility);
 
-    getTooltipBinder().bind(CpuUsageTooltip.class, CpuUsageTooltipView::new);
-    getTooltipBinder().bind(CpuKernelTooltip.class, CpuKernelTooltipView::new);
-    getTooltipBinder().bind(CpuThreadsTooltip.class, CpuThreadsTooltipView::new);
-    getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
-    getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
-    getTooltipBinder().bind(CpuFrameTooltip.class, CpuFrameTooltipView::new);
+    getTooltipBinder().bind(CpuProfilerStageCpuUsageTooltip.class, CpuProfilerStageCpuUsageTooltipView::new);
+    getTooltipBinder().bind(CpuKernelTooltip.class, (stageView, tooltip) -> new CpuKernelTooltipView(stageView.getComponent(), tooltip));
+    getTooltipBinder().bind(CpuThreadsTooltip.class, (stageView, tooltip) -> new CpuThreadsTooltipView(stageView.getComponent(), tooltip));
+    getTooltipBinder().bind(CpuFrameTooltip.class, (stageView, tooltip) -> new CpuFrameTooltipView(stageView.getComponent(), tooltip));
+    getTooltipBinder().bind(LifecycleTooltip.class, (stageView, tooltip) -> new LifecycleTooltipView(stageView.getComponent(), tooltip));
+    getTooltipBinder().bind(UserEventTooltip.class, (stageView, tooltip) -> new UserEventTooltipView(stageView.getComponent(), tooltip));
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
     if (!myStage.isImportTraceMode()) {
       myTooltipComponent.registerListenersOn(myUsageView);
-      MouseListener listener = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuUsageTooltip(myStage));
+      MouseListener listener = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuProfilerStageCpuUsageTooltip(myStage));
       myUsageView.addMouseListener(listener);
     }
 
@@ -203,7 +201,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     // Panel that represents all of L2
     details.add(mainPanel, new TabularLayout.Constraint(1, 0));
     details.add(buildTimeAxis(myStage.getStudioProfilers()), new TabularLayout.Constraint(3, 0));
-    details.add(new ProfilerScrollbar(timeline, details), new TabularLayout.Constraint(4, 0));
+    details.add(new ProfilerScrollbar(myStage.getTimeline(), details), new TabularLayout.Constraint(4, 0));
 
     // The first component in the splitter is the L2 components, the 2nd component is the L3 components.
     mySplitter = new JBSplitter(true);
@@ -287,10 +285,22 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   @Override
-  public boolean navigationControllersEnabled() {
+  public boolean supportsStreaming() {
+    if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
+      // Imported traces will be displayed in the new capture stage. No need to override here.
+      return super.supportsStreaming();
+    }
     return !myStage.isImportTraceMode();
   }
 
+  @Override
+  public boolean supportsStageNavigation() {
+    if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
+      // Imported traces will be displayed in the new capture stage. No need to override here.
+      return super.supportsStageNavigation();
+    }
+    return !myStage.isImportTraceMode();
+  }
 
   private void updateCaptureViewVisibility() {
     if (myStage.getProfilerMode() == ProfilerMode.EXPANDED) {
@@ -304,6 +314,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    */
   @VisibleForTesting
   boolean shouldShowTooltipSeekComponent() {
-    return myStage.getTooltip() instanceof CpuUsageTooltip && myUsageView.shouldShowTooltipSeekComponent();
+    return myStage.getTooltip() instanceof CpuProfilerStageCpuUsageTooltip && myUsageView.shouldShowTooltipSeekComponent();
   }
 }

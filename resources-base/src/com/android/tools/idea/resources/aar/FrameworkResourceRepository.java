@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.Executor;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.jetbrains.annotations.NotNull;
@@ -88,7 +89,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   private int myNumberOfLanguageGroupsLoadedFromCache;
   private final boolean myUseCompiled9Patches;
 
-  private FrameworkResourceRepository(@NotNull RepositoryLoader loader, boolean useCompiled9Patches) {
+  private FrameworkResourceRepository(@NotNull RepositoryLoader<FrameworkResourceRepository> loader, boolean useCompiled9Patches) {
     super(loader, null);
     myUseCompiled9Patches = useCompiled9Patches;
   }
@@ -230,8 +231,10 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
         sourceConfigurations.add(((BasicResourceItemBase)item).getRepositoryConfiguration());
         if (item instanceof BasicValueResourceItemBase) {
-          NamespaceResolver resolver = (NamespaceResolver)((BasicValueResourceItemBase)item).getNamespaceResolver();
-          namespaceResolverCache.put(resolver, resolver);
+          ResourceNamespace.Resolver resolver = ((BasicValueResourceItemBase)item).getNamespaceResolver();
+          NamespaceResolver namespaceResolver =
+              resolver == ResourceNamespace.Resolver.EMPTY_RESOLVER ? NamespaceResolver.EMPTY : (NamespaceResolver)resolver;
+          namespaceResolverCache.put(namespaceResolver, namespaceResolver);
         }
         String name = item.getName();
         stringCache.put(name, name);
@@ -575,8 +578,8 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     @NotNull
     public Set<String> getAllCacheFileLanguages() {
       Set<String> result = new TreeSet<>();
-      try {
-        Files.list(myLanguageNeutralFile.getParent()).forEach(file -> {
+      try (Stream<Path> stream = Files.list(myLanguageNeutralFile.getParent())) {
+        stream.forEach(file -> {
           String language = getLanguage(file.getFileName().toString());
           if (language != null) {
             result.add(language);

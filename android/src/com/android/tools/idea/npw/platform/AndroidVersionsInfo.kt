@@ -38,6 +38,7 @@ import com.android.sdklib.repository.meta.DetailsTypes.SysImgDetailsType
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision
 import com.android.tools.idea.npw.FormFactor
+import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.StudioDownloader
@@ -49,8 +50,6 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionExcep
 import com.android.tools.idea.templates.TemplateMetadata
 import com.android.tools.idea.templates.TemplateUtils.knownVersions
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.io.File
 import java.util.function.Consumer
@@ -175,8 +174,6 @@ class AndroidVersionsInfo {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
 
     val runCallbacks = Runnable { itemsLoadedCallback.accept(versionItemList) }
-
-    fun invokeLater(f: () -> Unit) = ApplicationManager.getApplication().invokeLater(f, ModalityState.any())
 
     val onComplete = RepoLoadedCallback { packages: RepositoryPackages ->
       invokeLater {

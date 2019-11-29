@@ -37,9 +37,11 @@ import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQ
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
 import com.android.tools.idea.gradle.util.GradleVersionsRepository
+import com.google.common.base.Function
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.search.FilenameIndex
@@ -133,19 +135,18 @@ fun dependencyVersionValues(model: PsDeclaredLibraryDependency): ListenableFutur
   Futures.transform(
     model.parent.parent.repositorySearchFactory
       .create(model.parent.getArtifactRepositories())
-      .search(SearchRequest(SearchQuery(model.spec.group, model.spec.name), MAX_ARTIFACTS_TO_REQUEST, 0))
-  ) {
-    it!!.toVersionValueDescriptors()
-  }
+      .search(SearchRequest(SearchQuery(model.spec.group, model.spec.name), MAX_ARTIFACTS_TO_REQUEST, 0)),
+    Function<SearchResult?, List<ValueDescriptor<String>>> { it -> it!!.toVersionValueDescriptors() },
+    MoreExecutors.directExecutor())
 
 fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<ValueDescriptor<String>>> =
   Futures.transform(
     model.repositorySearchFactory
       .create(model.getBuildScriptArtifactRepositories())
-      .search(SearchRequest(SearchQuery("com.android.tools.build", "gradle"), MAX_ARTIFACTS_TO_REQUEST, 0))
-  ) {
-    it!!.toVersionValueDescriptors()
-  }
+      .search(SearchRequest(SearchQuery("com.android.tools.build", "gradle"), MAX_ARTIFACTS_TO_REQUEST, 0)),
+    Function<SearchResult?, List<ValueDescriptor<String>>> { it -> it!!.toVersionValueDescriptors() },
+    MoreExecutors.directExecutor())
+
 
 fun gradleVersionValues(): ListenableFuture<KnownValues<String>> =
   GradleVersionsRepository.getKnownVersionsFuture().transform {

@@ -31,6 +31,7 @@ import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
@@ -265,7 +266,7 @@ public class AppBarConfigurationDialog extends JDialog {
       public void onFailure(@NotNull Throwable t) {
         onBuildError();
       }
-    });
+    }, MoreExecutors.directExecutor());
 
     return true;
   }

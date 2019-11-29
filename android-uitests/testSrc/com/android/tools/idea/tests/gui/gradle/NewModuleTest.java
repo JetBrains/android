@@ -134,7 +134,7 @@ public class NewModuleTest {
     assertThat(guiTest.getProjectFileText("app/build.gradle"))
       .contains("androidx.appcompat:appcompat");
 
-    assertThat(guiTest.getProjectFileText("othermodule/build.gradle"))
+    assertThat(guiTest.getProjectFileText("otherModule/build.gradle"))
       .contains("androidx.appcompat:appcompat");
   }
 
@@ -156,11 +156,11 @@ public class NewModuleTest {
     assertThat(guiTest.getProjectFileText("build.gradle"))
       .contains("classpath 'androidx.navigation:navigation-safe-args-gradle-plugin:");
 
-    String otherModuleBuildGradleText = guiTest.getProjectFileText("othermodule/build.gradle");
+    String otherModuleBuildGradleText = guiTest.getProjectFileText("otherModule/build.gradle");
     assertThat(otherModuleBuildGradleText).contains("implementation 'androidx.navigation:navigation-fragment-ktx:");
     assertThat(otherModuleBuildGradleText).contains("apply plugin: 'androidx.navigation.safeargs'");
 
-    String navGraphText = guiTest.getProjectFileText("othermodule/src/main/res/navigation/nav_graph.xml");
+    String navGraphText = guiTest.getProjectFileText("otherModule/src/main/res/navigation/nav_graph.xml");
     assertThat(navGraphText).contains("navigation xmlns:android=");
     assertThat(navGraphText).contains("app:startDestination=\"@id/FirstFragment\"");
   }

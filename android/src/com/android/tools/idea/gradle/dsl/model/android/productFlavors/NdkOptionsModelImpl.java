@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class NdkOptionsModelImpl extends GradleDslBlockModel implements NdkOptionsModel {
-  @NonNls private static final String ABI_FILTERS = "abiFilters";
+  @NonNls public static final String ABI_FILTERS = "mAbiFilters";
 
   public NdkOptionsModelImpl(@NotNull NdkOptionsDslElement dslElement) {
     super(dslElement);
@@ -32,6 +32,6 @@ public class NdkOptionsModelImpl extends GradleDslBlockModel implements NdkOptio
   @Override
   @NotNull
   public ResolvedPropertyModel abiFilters() {
-    return getModelForProperty(ABI_FILTERS, true);
+    return getModelForProperty(ABI_FILTERS);
   }
 }

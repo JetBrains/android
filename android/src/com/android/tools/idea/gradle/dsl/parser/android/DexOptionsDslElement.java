@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import static com.android.tools.idea.gradle.dsl.model.android.DexOptionsModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
@@ -28,16 +28,14 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class DexOptionsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String DEX_OPTIONS_BLOCK_NAME = "dexOptions";
-
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"additionalParameters", property, ADDITIONAL_PARAMETERS, VAR},
@@ -51,13 +49,12 @@ public class DexOptionsDslElement extends GradleDslBlockElement {
     {"maxProcessCount", property, MAX_PROCESS_COUNT, VAR},
     {"setMaxProcessCount", exactly(1), MAX_PROCESS_COUNT, SET},
     {"optimize", property, OPTIMIZE, VAR},
-    {"setOptimize", exactly(1), OPTIMIZE, VAR},
+    {"setOptimize", exactly(1), OPTIMIZE, SET},
     {"preDexLibraries", property, PRE_DEX_LIBRARIES, VAR},
     {"setPreDexLibraries", exactly(1), PRE_DEX_LIBRARIES, SET},
     {"threadCount", property, THREAD_COUNT, VAR},
     {"setThreadCount", exactly(1), THREAD_COUNT, SET}
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
@@ -77,8 +74,9 @@ public class DexOptionsDslElement extends GradleDslBlockElement {
     {"preDexLibraries", exactly(1), PRE_DEX_LIBRARIES, SET},
     {"threadCount", property, THREAD_COUNT, VAR},
     {"threadCount", exactly(1), THREAD_COUNT, SET}
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
+  public static final PropertiesElementDescription<DexOptionsDslElement> DEX_OPTIONS =
+    new PropertiesElementDescription<>("dexOptions", DexOptionsDslElement.class, DexOptionsDslElement::new);
 
   @Override
   @NotNull
@@ -94,8 +92,8 @@ public class DexOptionsDslElement extends GradleDslBlockElement {
     }
   }
 
-  public DexOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(DEX_OPTIONS_BLOCK_NAME));
+  public DexOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

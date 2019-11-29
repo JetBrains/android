@@ -88,7 +88,7 @@ private class LayoutInspectorToolWindowManagerListener(private val project: Proj
     }
     val inspector = lookupLayoutInspector(window) ?: return
     if (!inspector.currentClient.isConnected) {
-      inspector.allClients.find { it.attachIfSupported(preferredProcess) }
+      inspector.allClients.find { it.attachIfSupported(preferredProcess) != null }
     }
   }
 }

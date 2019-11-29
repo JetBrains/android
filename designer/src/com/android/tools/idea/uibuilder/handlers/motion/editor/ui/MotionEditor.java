@@ -318,14 +318,14 @@ public class MotionEditor extends JPanel {
   }
 
   public void setMTag(@NotNull MTag motionScene, @NotNull MTag layout, @Nullable String layoutFileName,
-                      @Nullable String motionSceneFileName,String setupError) {
+                      @Nullable String motionSceneFileName, String setupError) {
     if (setupError == null && myErrorPanel.validateMotionScene(motionScene)) {
       mErrorSwitchCard.show(this, MAIN_PANEL);
       setMTag(new MeModel(motionScene, layout, layoutFileName, motionSceneFileName));
     }
     else {
       if (setupError != null) {
-        myErrorPanel.myErrorLabel.setText( "<HTML>MotionScene error:<ul>"+setupError+"</ul></HTML>");
+        myErrorPanel.myErrorLabel.setText("<HTML>MotionScene error:<ul>" + setupError + "</ul></HTML>");
       }
       mErrorSwitchCard.show(this, ERROR_PANEL);
     }
@@ -349,6 +349,10 @@ public class MotionEditor extends JPanel {
     return selection != null && selection.getTagName().equals(Tags.TRANSITION) ? selection : null;
   }
 
+  public void clearSelectedTags() {
+    mSelectedTag = null;
+  }
+
   public void setMTag(MeModel model) {
     mUpdatingModel = true;
     try {
@@ -358,6 +362,7 @@ public class MotionEditor extends JPanel {
       mMotionSceneTabb.setMTag(mMeModel.motionScene);
       mCombinedListPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
       mOverviewPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
+      mLayoutPanel.setMTag(mMeModel.layout, mMeModel);
       mConstraintSetPanel.setMTag(asConstraintSet(newSelection), mMeModel);
       mTransitionPanel.setMTag(asTransition(newSelection), mMeModel);
       mSelectedTag = newSelection;
@@ -446,15 +451,21 @@ public class MotionEditor extends JPanel {
       }
       else {
         Track.showLayoutTable();
+        boolean inlayout = (mCurrentlyDisplaying == LAYOUT_PANEL);
+
         mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = LAYOUT_PANEL);
         mLayoutPanel.setMTag(mCombinedListPanel.mMotionLayout, mMeModel);
-        notifyListeners(MotionEditorSelector.Type.LAYOUT,
-                        (mCombinedListPanel.mMotionLayout == null) ? new MTag[0] :
-                        new MTag[]{mCombinedListPanel.mMotionLayout}, 0);
+        if (inlayout) {
+          notifyListeners(MotionEditorSelector.Type.LAYOUT,
+                          (mCombinedListPanel.mMotionLayout == null) ? new MTag[0] :
+                          new MTag[]{mCombinedListPanel.mMotionLayout}, 0);
+        }
+
         mSelectedTag = mCombinedListPanel.mMotionLayout;
       }
     }
   }
+
 
   void transitionSelection() {
     Track.transitionSelection();

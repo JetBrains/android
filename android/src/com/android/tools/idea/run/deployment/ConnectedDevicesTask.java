@@ -20,12 +20,15 @@ import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.ConnectedAndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.util.ThreeState;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,12 +42,33 @@ final class ConnectedDevicesTask implements AsyncSupplier<List<ConnectedDevice>>
   @Nullable
   private final LaunchCompatibilityChecker myChecker;
 
+  @NotNull
+  private final Executor myExecutor;
+
+  @NotNull
+  private final Function<IDevice, AndroidDevice> myAndroidDeviceFactory;
+
   ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge,
                        boolean selectDeviceSnapshotComboBoxSnapshotsEnabled,
                        @Nullable LaunchCompatibilityChecker checker) {
+    this(androidDebugBridge,
+         selectDeviceSnapshotComboBoxSnapshotsEnabled,
+         checker,
+         AppExecutorUtil.getAppExecutorService(),
+         device -> new ConnectedAndroidDevice(device, null));
+  }
+
+  @VisibleForTesting
+  ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge,
+                       boolean selectDeviceSnapshotComboBoxSnapshotsEnabled,
+                       @Nullable LaunchCompatibilityChecker checker,
+                       @NotNull Executor executor,
+                       @NotNull Function<IDevice, AndroidDevice> androidDeviceFactory) {
     myAndroidDebugBridge = androidDebugBridge;
     mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
     myChecker = checker;
+    myExecutor = executor;
+    myAndroidDeviceFactory = androidDeviceFactory;
   }
 
   @NotNull
@@ -53,7 +77,7 @@ final class ConnectedDevicesTask implements AsyncSupplier<List<ConnectedDevice>>
     ListenableFuture<Collection<IDevice>> devices = myAndroidDebugBridge.getConnectedDevices();
 
     // noinspection UnstableApiUsage
-    return Futures.transformAsync(devices, this::newConnectedDevices, AppExecutorUtil.getAppExecutorService());
+    return Futures.transformAsync(devices, this::newConnectedDevices, myExecutor);
   }
 
   @NotNull
@@ -73,7 +97,7 @@ final class ConnectedDevicesTask implements AsyncSupplier<List<ConnectedDevice>>
       ListenableFuture<String> idFuture = myAndroidDebugBridge.getVirtualDeviceId(ddmlibDevice);
 
       // noinspection ConstantConditions, UnstableApiUsage
-      return Futures.transform(idFuture, id -> newConnectedDevice(ddmlibDevice, id), AppExecutorUtil.getAppExecutorService());
+      return Futures.transform(idFuture, id -> newConnectedDevice(ddmlibDevice, id), myExecutor);
     }
 
     // noinspection UnstableApiUsage
@@ -82,7 +106,7 @@ final class ConnectedDevicesTask implements AsyncSupplier<List<ConnectedDevice>>
 
   @NotNull
   private ConnectedDevice newConnectedDevice(@NotNull IDevice ddmlibDevice, @NotNull String id) {
-    AndroidDevice androidDevice = new ConnectedAndroidDevice(ddmlibDevice, null);
+    AndroidDevice androidDevice = myAndroidDeviceFactory.apply(ddmlibDevice);
 
     ConnectedDevice.Builder builder = new ConnectedDevice.Builder()
       .setName(ddmlibDevice.isEmulator() ? "Virtual Device" : "Physical Device")
@@ -107,15 +131,14 @@ final class ConnectedDevicesTask implements AsyncSupplier<List<ConnectedDevice>>
       return new Key(connectedDevice.getSerialNumber());
     }
 
-    String virtualDevice = connectedDevice.getAvdName();
-    assert virtualDevice != null;
+    String virtualDeviceName = connectedDevice.getAvdName();
 
-    if (virtualDevice.equals("<build>")) {
-      // The developer built their own system image. I try to consistently use names as virtual device keys but I assume that all self built
-      // system images will be named "<build>". Fall back to the serial number.
+    if (virtualDeviceName == null || virtualDeviceName.equals("<build>")) {
+      // Either the virtual device name is null or the developer built their own system image. Neither names will work as virtual device
+      // keys. Fall back to the serial number.
       return new Key(connectedDevice.getSerialNumber());
     }
 
-    return new Key(mySelectDeviceSnapshotComboBoxSnapshotsEnabled ? id : virtualDevice);
+    return new Key(mySelectDeviceSnapshotComboBoxSnapshotsEnabled ? id : virtualDeviceName);
   }
 }

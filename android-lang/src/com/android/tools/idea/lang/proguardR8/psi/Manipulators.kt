@@ -18,6 +18,10 @@ package com.android.tools.idea.lang.proguardR8.psi
 import com.android.tools.idea.lang.proguardR8.parser.ProguardR8Lexer
 import com.android.tools.idea.lang.proguardR8.parser.ProguardR8Parser
 import com.android.tools.idea.lang.proguardR8.parser.ProguardR8ParserDefinition
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.DOUBLE_QUOTED_CLASS
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.SINGLE_QUOTED_CLASS
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.UNTERMINATED_DOUBLE_QUOTED_CLASS
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.UNTERMINATED_SINGLE_QUOTED_CLASS
 import com.intellij.lang.PsiBuilderFactory
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.AbstractElementManipulator
@@ -25,7 +29,16 @@ import com.intellij.psi.impl.source.DummyHolderFactory
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.util.IncorrectOperationException
 
+
 class ProguardR8QualifiedNameManipulator : AbstractElementManipulator<ProguardR8QualifiedName>() {
+
+  private val quotedElements = arrayOf(
+    SINGLE_QUOTED_CLASS,
+    DOUBLE_QUOTED_CLASS,
+    UNTERMINATED_SINGLE_QUOTED_CLASS,
+    UNTERMINATED_DOUBLE_QUOTED_CLASS
+  )
+  private val terminatedQuotedElements = arrayOf(SINGLE_QUOTED_CLASS, DOUBLE_QUOTED_CLASS)
 
   private fun createQualifiedNameFromText(text: String, element: ProguardR8QualifiedName): ProguardR8QualifiedName? {
     val lexer = ProguardR8Lexer(acceptJavaIdentifiers = true)
@@ -37,6 +50,20 @@ class ProguardR8QualifiedNameManipulator : AbstractElementManipulator<ProguardR8
     dummyHolder.treeElement.addChild(ast)
 
     return qualifiedName
+  }
+
+  override fun getRangeInElement(element: ProguardR8QualifiedName): TextRange {
+    val firstChildNodeType = element.node.firstChildNode.elementType
+    var start = 0
+    var end = element.text.length
+    if (firstChildNodeType in quotedElements) {
+      start += 1
+    }
+
+    if (firstChildNodeType in terminatedQuotedElements) {
+      end -= 1
+    }
+    return TextRange(start, end)
   }
 
   override fun handleContentChange(element: ProguardR8QualifiedName, range: TextRange, newContent: String): ProguardR8QualifiedName {

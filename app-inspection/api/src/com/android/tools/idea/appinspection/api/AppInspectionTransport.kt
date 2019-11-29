@@ -58,25 +58,27 @@ class AppInspectionTransport(
     fun lastGeneratedCommandId() = commandIdGenerator.get() - 1
   }
 
+  /**
+   * Creates a new [TransportEventListener] given the provided filtering criteria.
+   */
   fun createEventListener(
     filter: (Common.Event) -> Boolean = { true },
-    eventKind: Common.Event.Kind = Common.Event.Kind.APP_INSPECTION,
+    eventKind: Common.Event.Kind,
+    startTimeNs: () -> Long = { Long.MIN_VALUE },
     callback: (Common.Event) -> Boolean
   ) = TransportEventListener(eventKind = eventKind,
                              executor = executorService,
+                             startTime = startTimeNs,
                              streamId = stream::getStreamId,
                              filter = filter,
                              processId = process::getPid,
                              callback = callback)
 
-  fun registerEventListener(
-    filter: (Common.Event) -> Boolean = { true },
-    eventKind: Common.Event.Kind = Common.Event.Kind.APP_INSPECTION,
-    callback: (Common.Event) -> Boolean
-  ): TransportEventListener {
-    val listener = createEventListener(filter, eventKind, callback)
+  /**
+   * Registers the given listener with poller.
+   */
+  fun registerEventListener(listener: TransportEventListener) {
     poller.registerListener(listener)
-    return listener
   }
 
   fun executeCommand(appInspectionCommand: AppInspection.AppInspectionCommand): Int {
@@ -86,7 +88,7 @@ class AppInspectionTransport(
       .setPid(process.pid)
       .setAppInspectionCommand(appInspectionCommand.toBuilder().setCommandId(
         generateNextCommandId()).build())
-    executorService.submit{ client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build()) }
+    executorService.submit { client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build()) }
     return command.appInspectionCommand.commandId
   }
 }

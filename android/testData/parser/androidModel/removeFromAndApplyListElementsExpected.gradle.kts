@@ -1,4 +1,4 @@
 android {
-  dynamicFeatures = listOf(":f2")
+  dynamicFeatures = mutableSetOf(":f2")
   flavorDimensions("abi")
 }

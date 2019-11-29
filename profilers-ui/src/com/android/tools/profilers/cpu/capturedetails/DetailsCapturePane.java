@@ -15,22 +15,24 @@
  */
 package com.android.tools.profilers.cpu.capturedetails;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_TRIGGER_DELAY_MS;
+import static com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_WIDTH;
+import static com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_HISTORY_SIZE;
+
 import com.android.tools.adtui.FilterComponent;
+import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterHandler;
 import com.android.tools.adtui.model.filter.FilterResult;
 import com.android.tools.profilers.StudioProfilersView;
-import com.android.tools.profilers.ViewBinder;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
+import java.awt.BorderLayout;
+import java.awt.KeyboardFocusManager;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
-import static com.android.tools.profilers.ProfilerLayout.*;
 
 /**
  * A {@link CapturePane} that renders the selected {@link CaptureDetails}.
@@ -107,10 +109,10 @@ class DetailsCapturePane extends CapturePane {
   private void setCaptureDetailToTab() {
     String tabTitle = myTabsPanel.getTitleAt(myTabsPanel.getSelectedIndex());
     CaptureDetails.Type type = myTabs.entrySet().stream()
-                                     .filter(e -> tabTitle.equals(e.getValue()))
-                                     .map(e -> e.getKey())
-                                     .findFirst()
-                                     .orElse(null);
+      .filter(e -> tabTitle.equals(e.getValue()))
+      .map(e -> e.getKey())
+      .findFirst()
+      .orElse(null);
     myStageView.getStage().setCaptureDetails(type);
   }
 }

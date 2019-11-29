@@ -118,7 +118,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
       .build();
     Disposer.register(this, mySurface);
     mySurface.setCentered(true);
-    mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
+    mySurface.setScreenMode(SceneMode.RENDER, false);
     mySurface.setName(PREVIEW_DESIGN_SURFACE);
 
     myRenderingQueue =
@@ -486,10 +486,10 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
       if (!model.getType().isEditable()) {
         mySceneMode = mySurface.getSceneMode();
-        mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
+        mySurface.setScreenMode(SceneMode.RENDER, false);
         myWorkBench.setMinimizePanelsVisible(false);
       }
-      else if (mySceneMode != null && mySurface.getSceneMode() == SceneMode.SCREEN_ONLY) {
+      else if (mySceneMode != null && mySurface.getSceneMode() == SceneMode.RENDER) {
         mySurface.setScreenMode(mySceneMode, false);
         myWorkBench.setMinimizePanelsVisible(true);
       }

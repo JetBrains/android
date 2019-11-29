@@ -50,6 +50,8 @@ class MotionAttributeRule(
   private val motionSceneFilename: String
 ) : ExternalResource() {
   private var componentStack: ComponentStack? = null
+  private var nlModel: SyncNlModel? = null
+  private var sceneFile: XmlFile? = null
   private var selectionFactory: MotionSelectionFactory? = null
   private var timeline: FakeMotionAccessoryPanel? = null
   private var model: MotionLayoutAttributesModel? = null
@@ -74,6 +76,10 @@ class MotionAttributeRule(
 
   fun property(namespace: String, name: String, subTag: String = ""): NelePropertyItem {
     return model!!.allProperties!![subTag]!![namespace, name]
+  }
+
+  fun update() {
+    selectionFactory = MotionSelectionFactory(nlModel!!, sceneFile!!)
   }
 
   val properties: Map<String, PropertiesTable<NelePropertyItem>>
@@ -107,14 +113,14 @@ class MotionAttributeRule(
     val layout = projectRule.fixture.copyFileToProject(motionLayoutFilename, "res/layout/$motionLayoutFilename")
     val layoutFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, layout) as XmlFile
     val scene = projectRule.fixture.copyFileToProject(motionSceneFilename, "res/xml/$motionSceneFilename")
-    val sceneFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, scene) as XmlFile
+    sceneFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, scene) as XmlFile
     timeline = FakeMotionAccessoryPanel()
     runInEdtAndWait {
-      val nlModel = createNlModel(layoutFile, timeline!!)
-      selectionFactory = MotionSelectionFactory(nlModel, sceneFile)
+      nlModel = createNlModel(layoutFile, timeline!!)
+      selectionFactory = MotionSelectionFactory(nlModel!!, sceneFile!!)
       model = MotionLayoutAttributesModel(projectRule.fixture.projectDisposable, facet)
       model!!.updateQueue.isPassThrough = true
-      model!!.surface = nlModel.surface
+      model!!.surface = nlModel!!.surface
     }
   }
 

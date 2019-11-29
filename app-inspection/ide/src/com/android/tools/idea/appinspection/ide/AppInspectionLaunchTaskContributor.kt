@@ -26,6 +26,8 @@ import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
 import com.android.tools.idea.run.util.LaunchStatus
+import com.android.tools.idea.transport.TransportFileManager
+import com.android.tools.idea.transport.TransportService
 import com.intellij.execution.Executor
 import com.intellij.openapi.module.Module
 
@@ -51,7 +53,8 @@ private class AppInspectionLaunchTask(private val module: Module) : LaunchTask {
 
   override fun run(executor: Executor, device: IDevice, launchStatus: LaunchStatus, printer: ConsolePrinter): LaunchResult {
     val packageName = AndroidModuleInfo.getInstance(module)?.`package`
-    AppInspectionHostService.instance.discoveryHost.connect(device,
+
+    AppInspectionHostService.instance.discoveryHost.connect(TransportFileManager(device, TransportService.getInstance().messageBus),
                                                             AutoPreferredProcess(
                                                               device,
                                                               packageName))

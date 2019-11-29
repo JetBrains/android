@@ -18,13 +18,14 @@ package com.android.tools.idea.lang.databinding.completion
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.lang.databinding.DataBindingCompletionSupport
 import com.android.tools.idea.lang.databinding.config.DbFileType
+import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.AutoPopupController
 import com.intellij.codeInsight.TailType
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.InsertionContext
-import com.intellij.codeInsight.completion.JavaClassNameCompletionContributor
 import com.intellij.codeInsight.completion.JavaPsiClassReferenceElement
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
@@ -35,6 +36,7 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.search.searches.AllClassesSearch
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
@@ -87,7 +89,6 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
     val packagePrefix = getPackagePrefix(originalParent, params.offset)
     fillAliases(resultSet, packagePrefix, originalPosition, module, originalParent)
     fillClassNames(resultSet, packagePrefix, module)
-    JavaClassNameCompletionContributor.addAllClasses(params, true, resultSet.prefixMatcher) { element -> resultSet.addElement(element) }
   }
 
   /**
@@ -112,6 +113,7 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
     val file = domManager.getFileElement(containingFile, Layout::class.java) ?: return
     val facade = JavaPsiFacade.getInstance(project)
 
+    val moduleScope = module.getModuleSystem().getResolveScope(ScopeType.MAIN)
     for (data in file.rootElement.dataElements) {
       if (packagePrefix.isEmpty()) {
         // If here, we're trying to autocomplete an unqualified name, e.g. "" or "Lis". Include all
@@ -121,7 +123,7 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
 
           val type = import.type.xmlAttributeValue ?: continue
           val typeValue = type.value.replace('$', '.')
-          val aClass = facade.findClass(typeValue, module.getModuleWithDependenciesAndLibrariesScope(false))
+          val aClass = facade.findClass(typeValue, moduleScope)
           if (aClass != null) {
             resultSet.addElement(getClassReferenceElement(alias, aClass))
           }
@@ -139,16 +141,14 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
         val alias = DataBindingUtil.getAlias(import)!! // Non-null because we matched firstOrNull condition above
 
         // The following line converts the alias into its type
-        // import: type="java.util.Map" alias="MyMap"
-        // variable: type="MyMap.Ent|" -> "java.util.Map.Ent|"
+        // <import type="java.util.Map" alias="MyMap">
+        // <variable type="MyMap.Entry">
+        // fqcn <- "java.util.Map.Entry"
         val fqcn = packagePrefix.replaceFirst(alias, type)
-        val aClass = facade.findClass(fqcn, module.getModuleWithDependenciesAndLibrariesScope(false)) ?: continue
+        val aClass = facade.findClass(fqcn, moduleScope) ?: continue
         aClass.innerClasses.asSequence()
-          .filter { innerClass -> innerClass.qualifiedName != null }
-          .forEach { innerClass ->
-            val name = innerClass.qualifiedName!!
-            resultSet.addElement(getClassReferenceElement(name.substring(type.length + 1), innerClass))
-          }
+          .filter { innerClass -> innerClass.name != null }
+          .forEach { innerClass -> resultSet.addElement(getClassReferenceElement(innerClass.name!!, innerClass)) }
       }
     }
   }
@@ -159,25 +159,25 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
     val project = module.project
     val javaPsiFacade = JavaPsiFacade.getInstance(project)
     val rootPackage = javaPsiFacade.findPackage(packagePrefix)
+    val moduleScope = module.getModuleSystem().getResolveScope(ScopeType.MAIN)
     if (rootPackage == null) {
       // If here, it's because we are specifying the path to an inner class, e.g. "a.b.c.Outer.Inner"
       // "a.b.c.Outer" is treated as an invalid package (thus, rootPackage is null), but that means we
       // should treat it as a fully qualified class name.
-      val outerClass = javaPsiFacade.findClass(packagePrefix, module.getModuleWithDependenciesAndLibrariesScope(false))
+      val outerClass = javaPsiFacade.findClass(packagePrefix, moduleScope)
       if (outerClass != null) {
         for (innerClass in outerClass.innerClasses) {
           resultSet.addElement(JavaPsiClassReferenceElement(innerClass))
         }
       }
-      // TODO: add completions for java.lang classes
     }
     else {
-      // If here, we are grounded to some package. Add all its direct subpackages and classes.
-      val scope = module.getModuleWithDependenciesAndLibrariesScope(false)
-      rootPackage.getSubPackages(scope).asSequence()
+      // If here, we are grounded to some package (or maybe no package, i.e. top-level).
+      // Either way, add all direct subpackages.
+      rootPackage.getSubPackages(moduleScope).asSequence()
         // Make sure that the package contains some useful content before suggesting it. Without this check,
         // many res folders also show up as package suggestions - eg. drawable-hdpi, which is clearly not a package.
-        .filter { pkg -> pkg.getSubPackages(scope).isNotEmpty() || pkg.getClasses(scope).isNotEmpty() }
+        .filter { pkg -> pkg.getSubPackages(moduleScope).isNotEmpty() || pkg.getClasses(moduleScope).isNotEmpty() }
         // pkg.name is always non-null for subpackages
         .filter { pkg -> pkg.name!!.all { char -> Character.isJavaIdentifierPart(char) } }
         .forEach { pkg ->
@@ -189,8 +189,19 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
             }
           })
         }
-      for (psiClass in rootPackage.getClasses(scope)) {
-        resultSet.addElement(JavaPsiClassReferenceElement(psiClass))
+
+      if (rootPackage.name.isNullOrEmpty()) {
+        // If here, we're typing an unqualified name (e.g. "AtomicBo|"). At this point, add all
+        // classes accessible to the current module, as the user might not remember the class's
+        // package.
+        val query = AllClassesSearch.search(moduleScope, project)
+        query.forEach { psiClass -> resultSet.addElement(JavaPsiClassReferenceElement(psiClass)) }
+      }
+      else {
+        // If in a subpackage (e.g. "a.b.c"), only add classes directly under that package.
+        for (psiClass in rootPackage.getClasses(moduleScope)) {
+          resultSet.addElement(JavaPsiClassReferenceElement(psiClass))
+        }
       }
     }
   }

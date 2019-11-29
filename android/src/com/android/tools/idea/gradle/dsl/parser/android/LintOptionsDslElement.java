@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import static com.android.tools.idea.gradle.dsl.model.android.LintOptionsModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
@@ -34,8 +35,6 @@ import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public class LintOptionsDslElement extends GradleDslBlockElement {
-  public static final String LINT_OPTIONS_BLOCK_NAME = "lintOptions";
-
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"isAbortOnError", property, ABORT_ON_ERROR, VAR},
@@ -73,8 +72,7 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
     {"ignore", atLeast(0), IGNORE, OTHER},
     // TODO(b/144403889): {"informational", atLeast(0), INFORMATIONAL, OTHER},
     {"warning", atLeast(0), WARNING, OTHER},
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
@@ -126,8 +124,9 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
     {"ignore", atLeast(0), IGNORE, OTHER},
     // TODO(b/144403889): {"informational", atLeast(0), INFORMATIONAL, OTHER},
     {"warning", atLeast(0), WARNING, OTHER},
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
+  public static final PropertiesElementDescription<LintOptionsDslElement> LINT_OPTIONS =
+    new PropertiesElementDescription<>("lintOptions", LintOptionsDslElement.class, LintOptionsDslElement::new);
 
   @Override
   @NotNull
@@ -144,8 +143,8 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
   }
 
 
-  public LintOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(LINT_OPTIONS_BLOCK_NAME));
+  public LintOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

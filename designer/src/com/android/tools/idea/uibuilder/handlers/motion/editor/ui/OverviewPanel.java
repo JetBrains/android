@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MESceneP
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.StringMTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Drawing;
 import java.awt.BasicStroke;
@@ -33,6 +34,10 @@ import java.awt.LinearGradientPaint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -40,7 +45,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import javax.swing.JPanel;
 
 /**
@@ -193,9 +200,20 @@ class OverviewPanel extends JPanel {
                        }
                        else if (mConstraintSetSelected >= 0) {
                          switch (e.getKeyCode()) {
+                           case KeyEvent.VK_C:
+                             if (e.isControlDown() || e.isMetaDown()) {
+                               MEUI.copy(mConstraintSet[mConstraintSetSelected - 1]);
+                             }
+                             break;
+                           case KeyEvent.VK_V:
+                             if (e.isControlDown() || e.isMetaDown()) {
+                               paste();
+                             }
+                             break;
+
                            case KeyEvent.VK_DELETE:
                            case KeyEvent.VK_BACK_SPACE:
-                             if (mConstraintSetSelected > 0) {
+                             if (mConstraintSetSelected > 0 && (mConstraintSetSelected - 1) < mConstraintSet.length) {
                                mListener.delete(new MTag[]{mConstraintSet[mConstraintSetSelected - 1]}, 0);
                              }
                              return;
@@ -231,6 +249,67 @@ class OverviewPanel extends JPanel {
                      }
                    }
     );
+  }
+
+  private void paste() {
+    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+    try {
+      String buff = (String)(clipboard.getContents(this).getTransferData(DataFlavor.stringFlavor));
+      StringMTag pastedTag = StringMTag.parse(buff);
+      HashMap<String, MTag.Attribute> attr = pastedTag.getAttrList();
+
+      if ("ConstraintSet".equals(pastedTag.getTagName())) {
+        MTag.TagWriter writer = mMotionScene.getChildTagWriter(MotionSceneAttrs.Tags.CONSTRAINTSET);
+        if (writer == null) {
+          return;
+        }
+        for (String s : attr.keySet()) {
+          MTag.Attribute a = attr.get(s);
+          if (a == null || a.mAttribute.equals("id")) { // add _c to the id
+            String value = a.mValue;
+            if (value.matches(".*_c[0123456789]+")) {
+              int n = value.lastIndexOf("_c");
+              int end = Integer.parseInt(value.substring(n + 2));
+              String start = value.substring(0, n);
+              value = start + "_c" + (end + 1);
+            }
+            else if (value.matches(".*_c")) {
+              value = value + "1";
+            }
+            else {
+              value = value + "_c";
+            }
+            writer.setAttribute(a.mNamespace, a.mAttribute, value);
+            continue;
+          }
+          writer.setAttribute(a.mNamespace, a.mAttribute, a.mValue);
+        }
+        addRecursive(pastedTag.getChildTags(), writer);
+        writer.commit("paste");
+      }
+    }
+    catch (UnsupportedFlavorException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void addRecursive(StringMTag[] children, MTag.TagWriter writer) {
+    if (children == null || children.length == 0) {
+      return;
+    }
+    for (StringMTag child : children) {
+      MTag.TagWriter childWriter = writer.getChildTagWriter(child.getTagName());
+      HashMap<String, MTag.Attribute> attr = child.getAttrList();
+      for (String s : attr.keySet()) {
+        MTag.Attribute a = attr.get(s);
+        childWriter.setAttribute(a.mNamespace, a.mAttribute, a.mValue);
+        addRecursive(child.getChildTags(), childWriter);
+      }
+    }
   }
 
   private void updateFromMouse(int x, int y, boolean select) {
@@ -523,8 +602,9 @@ class OverviewPanel extends JPanel {
     }
     maxStringWidth = fm.stringWidth(maxString);
     int margin = MEUI.scale(1);
+    g.setFont(ourBaseFont);
     while (csWidth < maxStringWidth + margin) {
-      float f = ourBaseFont.getSize() / 1.4f;
+      float f = g.getFont().getSize() / 1.4f;
       g.setFont(g.getFont().deriveFont(f));
       fm = g.getFontMetrics();
       maxStringWidth = fm.stringWidth(maxString);
@@ -544,9 +624,9 @@ class OverviewPanel extends JPanel {
       boolean hover = false;
       boolean drawLayout = i == 0;
       boolean selected = (mConstraintSetSelected == i);
-       if (selectedEnd == setIndex || selectedStart == setIndex) {
-         selected = true;
-       }
+      if (selectedEnd == setIndex || selectedStart == setIndex) {
+        selected = true;
+      }
       boolean transitionHighlightStart = mHighlightStart && (selectedStart == setIndex);
       boolean transitionHighlightEnd = mHighlightEnd && (selectedEnd == setIndex);
 

@@ -15,8 +15,19 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getDefaultPhysicalPathFromGradlePath;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Iterables.contains;
+import static com.google.common.collect.Iterables.transform;
+import static com.google.common.io.Files.createTempDir;
+import static com.google.common.io.Files.write;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.util.PathUtil.toSystemIndependentName;
+
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.parser.GradleSettingsFile;
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.base.Function;
@@ -36,21 +47,18 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import org.jetbrains.android.AndroidTestBase;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.*;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.getDefaultPhysicalPathFromGradlePath;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.collect.Iterables.*;
-import static com.google.common.io.Files.createTempDir;
-import static com.google.common.io.Files.write;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.util.PathUtil.toSystemIndependentName;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
+import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link GradleModuleImporter#importModules(Object, Map, Project, GradleSyncListener)}.
@@ -111,9 +119,9 @@ public final class GradleModuleImportTest extends AndroidTestBase {
   }
 
   private static void assertModuleInSettingsFile(Project project, String name) {
-    GradleSettingsFile settingsFile = GradleSettingsFile.get(project);
-    assertNotNull("Missing " + SdkConstants.FN_SETTINGS_GRADLE, settingsFile);
-    Iterable<String> modules = settingsFile.getModules();
+    GradleSettingsModel settingsModel = ProjectBuildModel.get(project).getProjectSettingsModel();
+    assertNotNull("Missing " + SdkConstants.FN_SETTINGS_GRADLE, settingsModel);
+    Iterable<String> modules = settingsModel.modulePaths();
     if (!contains(modules, name)) {
       fail(String.format("Subproject %s is not in %s. Found subprojects: %s", name, SdkConstants.FN_SETTINGS_GRADLE,
                          Joiner.on(", ").join(modules)));

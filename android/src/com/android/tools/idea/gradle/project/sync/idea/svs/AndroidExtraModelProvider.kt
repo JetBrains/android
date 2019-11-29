@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import com.android.tools.idea.gradle.project.sync.idea.getSourcesAndJavadocArtifacts
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.tooling.model.BuildModel
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
@@ -33,10 +34,12 @@ import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 @UsedInBuildAction
 class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions) : ProjectImportModelProvider {
-  override fun populateBuildModels(controller: BuildController,
-                                   buildModel: GradleBuild,
-                                   consumer: ProjectImportModelProvider.BuildModelConsumer) {
-    populateAndroidModels(controller, buildModel, consumer)
+  override fun <T> populateBuildModels(
+    controller: BuildController,
+    buildModel: T,
+    consumer: ProjectImportModelProvider.BuildModelConsumer)
+    where T : Model, T : BuildModel {
+    populateAndroidModels(controller, buildModel as GradleBuild, consumer)
     // Requesting ProjectSyncIssues must be performed last since all other model requests may produces addition issues.
     populateProjectSyncIssues(controller, buildModel, consumer)
   }

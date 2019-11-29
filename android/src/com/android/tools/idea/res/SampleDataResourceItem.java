@@ -50,6 +50,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -72,7 +73,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
     CacheBuilder.newBuilder()
       .expireAfterAccess(2, TimeUnit.MINUTES)
       .softValues()
-      .weigher((String key, SampleDataHolder value) -> value.getFileSizeMb()) // length returns unicode codepoints so not exactly in MB
+      .weigher((String key, SampleDataHolder value) -> value.getFileSizeMb()) // Length returns unicode codepoints so not exactly in MB.
       .maximumWeight(50) // MB
       .build();
 
@@ -86,16 +87,16 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
   private final ContentType myContentType;
 
   /**
-   * Creates a new {@link SampleDataResourceItem}
+   * Creates a new {@link SampleDataResourceItem}.
    *
-   * @param name                        name of the resource
-   * @param namespace                   optional resource namespace. Pre-defined data sources use the {@link ResourceNamespace#TOOLS} namespace.
-   * @param dataSource                  {@link Function} that writes the content to be used for this item to the passed {@link OutputStream}. The function
-   *                                    must return any exceptions that happened during the processing of the file.
-   * @param dataSourceModificationStamp {@link Supplier} that returns a modification stamp. This stamp should change every time the
-   *                                    content changes. If 0, the content won't be cached.
-   * @param sourceElement               optional {@link SmartPsiElementPointer} where the content was obtained from. This will be used to display
-   *                                    references to the content.
+   * @param name name of the resource
+   * @param namespace optional resource namespace. Pre-defined data sources use the {@link ResourceNamespace#TOOLS} namespace.
+   * @param dataSource {@link Function} that writes the content to be used for this item to the passed {@link OutputStream}. The function
+   *     must return any exceptions that happened during the processing of the file.
+   * @param dataSourceModificationStamp {@link Supplier} that returns a modification stamp. This stamp should change every time the content
+   *     changes. If 0, the content won't be cached.
+   * @param sourceElement optional {@link SmartPsiElementPointer} where the content was obtained from. This will be used to display
+   *     references to the content.
    */
   private SampleDataResourceItem(@NotNull String name,
                                  @NotNull ResourceNamespace namespace,
@@ -133,7 +134,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
 
   /**
    * Returns a {@link SampleDataResourceItem} from the given {@link SmartPsiElementPointer<PsiElement>}. The file is tracked to invalidate
-   * the contents of the {@link SampleDataResourceItem} if the sourceElement changes.
+   * the contents of the {@link SampleDataResourceItem} if the source element changes.
    */
   @NotNull
   private static SampleDataResourceItem getFromPlainFile(@NotNull SmartPsiElementPointer<PsiElement> filePointer,
@@ -169,13 +170,16 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
     VirtualFile directory = directoryPointer.getVirtualFile();
     // For directories, at this point, we always consider them images since it's the only type we handle for them
     return new SampleDataResourceItem(directory.getName(), namespace, output -> {
-      try (PrintStream printStream = new PrintStream(output)) {
+      try (PrintStream printStream = new PrintStream(output, false, UTF_8.name())) {
         Arrays.stream(directory.getChildren())
               .filter(child -> !child.isDirectory())
               .sorted(Comparator.comparing(VirtualFile::getName))
               .forEach(file -> printStream.println(file.getPath()));
-        return null;
       }
+      catch (UnsupportedEncodingException e) {
+        LOG.error(e);
+      }
+      return null;
     }, () -> directory.getModificationStamp() + 1, directoryPointer, ContentType.IMAGE);
   }
 

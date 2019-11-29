@@ -68,6 +68,7 @@ import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
 import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
+import org.jetbrains.plugins.gradle.model.LegacyIdeaProjectModelAdapter;
 import org.jetbrains.plugins.gradle.model.ProjectImportAction;
 import org.jetbrains.plugins.gradle.service.project.BaseGradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.service.project.DefaultProjectResolverContext;
@@ -121,7 +122,12 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
     String projectPath = toSystemDependentName(myProjectModel.getBuildFile().getParent());
     ExternalSystemTaskNotificationListener notificationListener = new ExternalSystemTaskNotificationListenerAdapter() {
     };
-    myResolverCtx = new DefaultProjectResolverContext(id, projectPath, null, mock(ProjectConnection.class), notificationListener, true);
+    myResolverCtx = new DefaultProjectResolverContext(id, projectPath, null, mock(ProjectConnection.class), notificationListener, true) {
+      @Override
+      public boolean isResolveModulePerSourceSet() {
+        return false;
+      }
+    };
     myResolverCtx.setModels(allModels);
 
     myProjectResolver = new AndroidGradleProjectResolver(myCommandLineArgs, myProjectFinder, myVariantSelector,
@@ -261,7 +267,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
 
     IdeaProjectStub includedProject = new IdeaProjectStub("includedProject");
     IdeaModuleStub includedModule = includedProject.addModule("lib", "clean", "jar");
-    myResolverCtx.getModels().getIncludedBuilds().add(includedProject);
+    myResolverCtx.getModels().getIncludedBuilds().add(new LegacyIdeaProjectModelAdapter(includedProject));
 
     // Verify that task data for non-included module.
     Collection<TaskData> taskData = myProjectResolver.populateModuleTasks(includedModule, moduleDataNode, projectNode);

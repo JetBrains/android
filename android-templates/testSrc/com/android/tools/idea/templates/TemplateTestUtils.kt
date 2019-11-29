@@ -210,8 +210,6 @@ internal fun getModifiedModuleName(
 ): String =
   when {
     SystemInfo.isWindows -> if (isNewRenderingContext) moduleName.substringBefore('_') else "app"
-    // Bug 142926378
-    isNewRenderingContext -> moduleName
     // Bug 137161906
     usesSafeArgs(moduleName) && activityState != null && Language.KOTLIN.toString() == activityState.getString(
       ATTR_LANGUAGE) -> moduleName
@@ -337,7 +335,8 @@ internal fun Element.toOption() = Option(
   minBuild = readSdkAttribute(ATTR_MIN_BUILD_API)
 )
 
-internal fun getCheckKey(category: String, name: String, createWithProject: Boolean) = "$category:$name:$createWithProject"
+internal fun getCheckKey(category: String, name: String, activityCreationMode: ActivityCreationMode) =
+  "$category:$name:$activityCreationMode"
 
 internal fun findTemplate(category: String, name: String) =
   File(TemplateManager.getTemplateRootFolder()!!, category + File.separator + name).also {

@@ -262,7 +262,7 @@ public class NewProjectTest {
   @Test
   public void hasProjectNameInGradleSettings() {
     newProject("P").create(guiTest);
-    assertThat(guiTest.getProjectFileText("settings.gradle")).contains("rootProject.name='P'");
+    assertThat(guiTest.getProjectFileText("settings.gradle")).contains("rootProject.name = \"P\"");
   }
 
   @NotNull

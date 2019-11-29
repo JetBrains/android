@@ -19,12 +19,12 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.SeriesData
-import com.android.tools.profiler.proto.Common
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
@@ -65,10 +65,10 @@ class CpuFrameTooltipViewTest {
     profilers.stage = stage
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     val stageView = view.stageView as CpuProfilerStageView
-    tooltip = CpuFrameTooltip(stage)
+    tooltip = CpuFrameTooltip(stage.timeline)
     tooltipView = FakeCpuFrameTooltipView(stageView, tooltip)
     stage.tooltip = tooltip
-    stageView.timeline.apply {
+    stageView.stage.timeline.apply {
       dataRange.set(0.0, TimeUnit.SECONDS.toMicros(5).toDouble())
       tooltipRange.set(1.0, 1.0)
       viewRange.set(0.0, TimeUnit.SECONDS.toMicros(10).toDouble())
@@ -146,7 +146,7 @@ class CpuFrameTooltipViewTest {
   private class FakeCpuFrameTooltipView(
     view: CpuProfilerStageView,
     tooltip: CpuFrameTooltip
-  ) : CpuFrameTooltipView(view, tooltip) {
+  ) : CpuFrameTooltipView(view.component, tooltip) {
     val tooltipPanel = createComponent()
   }
 }

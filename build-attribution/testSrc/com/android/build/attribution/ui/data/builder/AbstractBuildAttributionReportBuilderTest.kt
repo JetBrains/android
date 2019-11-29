@@ -19,10 +19,12 @@ import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.PluginBuildData
+import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
+import java.time.Duration
 
 open class AbstractBuildAttributionReportBuilderTest {
 
@@ -50,4 +52,12 @@ open class AbstractBuildAttributionReportBuilderTest {
     override fun getNonCacheableTasks(): List<TaskData> = emptyList()
     override fun getTasksSharingOutput(): List<TasksSharingOutputData> = emptyList()
   }
+
+  fun plugin(pluginData: PluginData, duration: Long, nested: List<PluginConfigurationData> = emptyList()) = PluginConfigurationData(
+    pluginData, Duration.ofMillis(duration), nested
+  )
+
+  fun project(name: String, duration: Long, plugins: List<PluginConfigurationData> = emptyList()) = ProjectConfigurationData(
+    plugins, name, Duration.ofMillis(duration)
+  )
 }

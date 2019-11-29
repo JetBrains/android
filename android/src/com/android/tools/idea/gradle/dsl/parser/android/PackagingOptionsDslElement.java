@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import static com.android.tools.idea.gradle.dsl.model.android.PackagingOptionsModelImpl.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
@@ -27,16 +27,14 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class PackagingOptionsDslElement extends GradleDslBlockElement {
-  @NonNls public static final String PACKAGING_OPTIONS_BLOCK_NAME = "packagingOptions";
-
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"excludes", property, EXCLUDES, VAR},
@@ -45,8 +43,7 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
     {"merge", exactly(1), MERGES, OTHER},
     {"pickFirsts", property, PICK_FIRSTS, VAR},
     {"pickFirst", exactly(1), PICK_FIRSTS, OTHER}
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
@@ -56,8 +53,9 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
     {"merge", exactly(1), MERGES, OTHER},
     {"pickFirsts", property, PICK_FIRSTS, VAR},
     {"pickFirst", exactly(1), PICK_FIRSTS, OTHER}
-  }).collect(toImmutableMap(data -> new Pair<>((String) data[0], (Integer) data[1]),
-                            data -> new Pair<>((String) data[2], (SemanticsDescription) data[3])));
+  }).collect(toModelMap());
+  public static final PropertiesElementDescription<PackagingOptionsDslElement> PACKAGING_OPTIONS =
+    new PropertiesElementDescription<>("packagingOptions", PackagingOptionsDslElement.class, PackagingOptionsDslElement::new);
 
   @Override
   @NotNull
@@ -73,8 +71,8 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
     }
   }
 
-  public PackagingOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(PACKAGING_OPTIONS_BLOCK_NAME));
+  public PackagingOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override

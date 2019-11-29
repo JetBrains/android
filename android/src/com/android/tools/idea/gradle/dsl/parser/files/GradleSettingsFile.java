@@ -17,11 +17,13 @@ package com.android.tools.idea.gradle.dsl.parser.files;
 
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl.INCLUDE;
+import static com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement.INCLUDE;
 
 public class GradleSettingsFile extends GradleDslFile {
   public GradleSettingsFile(@NotNull VirtualFile file,
@@ -33,8 +35,13 @@ public class GradleSettingsFile extends GradleDslFile {
 
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
-    if (INCLUDE.equals(element.getName())) {
-      addToParsedExpressionList(element.getName(), element);
+    if (INCLUDE.name.equals(element.getName())) {
+      IncludeDslElement includeDslElement = getPropertyElement(INCLUDE);
+      if (includeDslElement == null) {
+        includeDslElement = new IncludeDslElement(this, GradleNameElement.create(INCLUDE.name));
+        super.addParsedElement(includeDslElement);
+      }
+      includeDslElement.addParsedElement(element);
       return;
     }
     super.addParsedElement(element);

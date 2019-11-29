@@ -15,11 +15,24 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.java;
 
+import static com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl.SOURCE_COMPATIBILITY;
+import static com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl.TARGET_COMPATIBILITY;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
+
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NonNls;
+import java.util.stream.Stream;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,25 +40,76 @@ import org.jetbrains.annotations.Nullable;
  * Holds the data in addition to the project element, which added by Java plugin
  */
 public class JavaDslElement extends BaseCompileOptionsDslElement {
-  @NonNls public static final String JAVA_BLOCK_NAME = "java";
+  public static final PropertiesElementDescription<JavaDslElement> JAVA =
+    new PropertiesElementDescription<>("java", JavaDslElement.class, JavaDslElement::new);
 
-  public JavaDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(JAVA_BLOCK_NAME));
-  }
+  // The Java Dsl element has a different mapping of external names to functionality than the BaseCompileOptionsDslElement, even though
+  // the corresponding models are identical.  This suggests that JavaDslElement should probably not in fact be a
+  // BaseCompileOptionsDslElement.
+  //
+  // It is also a bit odd in that in Groovy the java block need not be explicitly present -- sourceCompatibility and targetCompatibility
+  // properties set at top-level are treated as altering the java block properties.  (I think).
+  @NotNull
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
+    {"sourceCompatibility", property, SOURCE_COMPATIBILITY, VAR},
+    {"targetCompatibility", property, TARGET_COMPATIBILITY, VAR}
+  }).collect(toModelMap());
+
+  @NotNull
+  public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
+    {"sourceCompatibility", property, SOURCE_COMPATIBILITY, VAR},
+    {"targetCompatibility", property, TARGET_COMPATIBILITY, VAR}
+  }).collect(toModelMap());
 
   @Override
-  @Nullable
-  public PsiElement getPsiElement() {
-    return null; // This class just act as an intermediate class for java properties and doesn't represent any real element on the file.
+  @NotNull
+  public ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+    if (converter instanceof KotlinDslNameConverter) {
+      return ktsToModelNameMap;
+    }
+    else if (converter instanceof GroovyDslNameConverter) {
+      return groovyToModelNameMap;
+    }
+    else {
+      return super.getExternalToModelMap(converter);
+    }
+  }
+
+  public JavaDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, name);
   }
 
   @Override
   @Nullable
   public PsiElement create() {
-    return myParent == null ? null : myParent.create();
+    GradleDslNameConverter converter = getDslFile().getWriter();
+    if (converter instanceof KotlinDslNameConverter) {
+      return super.create();
+    }
+    else if (converter instanceof GroovyDslNameConverter) {
+      if (myParent == null) {
+        return null;
+      }
+      else {
+        return myParent.create();
+      }
+    }
+    else {
+      return super.create();
+    }
   }
 
   @Override
   public void setPsiElement(@Nullable PsiElement psiElement) {
+    GradleDslNameConverter converter = getDslFile().getWriter();
+    if (converter instanceof KotlinDslNameConverter) {
+      super.setPsiElement(psiElement);
+    }
+    else if (converter instanceof GroovyDslNameConverter) {
+      // do nothing
+    }
+    else {
+      super.setPsiElement(psiElement);
+    }
   }
 }

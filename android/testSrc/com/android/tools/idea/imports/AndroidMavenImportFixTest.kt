@@ -35,17 +35,16 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.MIGRATE_TO_APP_COMPAT) // project not using AndroidX
     assertBuildGradle { !it.contains("com.android.support:recyclerview-v7:") } // not already using recyclerview
 
-    // This is the XML file with <error>error range</error> and <caret> markers overlaid. It's IntelliJ's
-    // testing infrastructure, which was originally used for Java where these made sense; in XML files it's pretty
-    // confusing but you can call AndroidLintTest's stripMarkers to see what the file looks like
-    myFixture.loadNewFile("app/src/main/res/layout/my_layout.xml", """
+    myFixture.loadNewFile(
+      "app/src/main/res/layout/my_layout.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <${"android.support.v7.widget.RecyclerView".highlightedAs(ERROR, "Cannot resolve class android.support.v7.widget.RecyclerView")} />
-      """.trimIndent())
+      """.trimIndent()
+    )
 
-    myFixture.doHighlighting()
-    myFixture.moveCaret("Recycler|View")
     myFixture.checkHighlighting(true, false, false)
+    myFixture.moveCaret("Recycler|View")
     val action = myFixture.getIntentionAction("Add dependency on com.android.support:recyclerview-v7")!!
 
     assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))

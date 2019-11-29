@@ -547,7 +547,7 @@ public final class ResourceRepositoryManager implements Disposable {
     if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
       return ImmutableList.of(appRepository);
     }
-    return appRepository.getRepositoriesForNamespace(namespace);
+    return ImmutableList.copyOf(appRepository.getRepositoriesForNamespace(namespace));
   }
 
   @SuppressWarnings("Duplicates") // No way to refactor this without something like Variable Handles.

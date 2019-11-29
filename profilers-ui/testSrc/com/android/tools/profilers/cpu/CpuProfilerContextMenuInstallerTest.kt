@@ -68,8 +68,6 @@ class CpuProfilerContextMenuInstallerTest {
 
   @Test
   fun contextMenuShouldBeInstalled() {
-    // Enable the export trace flag
-    ideServices.enableExportTrace(true)
     // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView
     ideComponents.clearContextMenuItems()
 
@@ -84,25 +82,10 @@ class CpuProfilerContextMenuInstallerTest {
       "Previous capture",
       ContextMenuItem.SEPARATOR.text
     ).inOrder()
-
-    // Disable the export trace flag
-    ideServices.enableExportTrace(false)
-    ideComponents.clearContextMenuItems()
-    CpuProfilerContextMenuInstaller.install(stage, ideComponents, JPanel(), JPanel())
-
-    assertThat(ideComponents.allContextMenuItems.map { it.text }).containsExactly(
-      "Record CPU trace",
-      ContextMenuItem.SEPARATOR.text,
-      "Next capture",
-      "Previous capture",
-      ContextMenuItem.SEPARATOR.text
-    ).inOrder()
   }
 
   @Test
   fun contextMenuShouldBeDisabledInImportTraceMode() {
-    // Enable the export trace flag because we are going to test if the export menu item is enabled/disabled.
-    ideServices.enableExportTrace(true)
     // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView
     ideComponents.clearContextMenuItems()
     CpuProfilerContextMenuInstaller.install(stage, ideComponents, JPanel(), JPanel())
@@ -124,8 +107,6 @@ class CpuProfilerContextMenuInstallerTest {
     assertThat(items[5].text).isEqualTo("Previous capture")
     assertThat(items[5].isEnabled).isTrue()
 
-    // Enable import trace flag which is required for import-trace-mode.
-    ideServices.enableImportTrace(true)
     stage = CpuProfilerStage(stage.studioProfilers, File("FakePathToTraceFile.trace"))
     stage.enter()
     // Clear any context menu items added to the service to make sure we'll have only the items created in CpuProfilerStageView

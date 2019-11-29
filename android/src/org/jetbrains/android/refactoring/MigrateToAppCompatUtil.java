@@ -39,7 +39,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -348,7 +348,7 @@ class MigrateToAppCompatUtil {
 
   static boolean isKotlinSimpleNameReference(PsiReference reference) {
     PluginId kotlinPluginId = PluginId.findId("org.jetbrains.kotlin");
-    IdeaPluginDescriptor kotlinPlugin = ObjectUtils.notNull(PluginManager.getPlugin(kotlinPluginId));
+    IdeaPluginDescriptor kotlinPlugin = ObjectUtils.notNull(PluginManagerCore.getPlugin(kotlinPluginId));
     ClassLoader pluginClassLoader = kotlinPlugin.getPluginClassLoader();
     try {
       Class<?> simpleNameReferenceClass =

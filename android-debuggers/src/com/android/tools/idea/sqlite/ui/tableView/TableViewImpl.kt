@@ -48,7 +48,7 @@ class TableViewImpl : TableView {
     }
   }
 
-  private val listeners = mutableListOf<TableViewListener>()
+  private val listeners = mutableListOf<TableView.Listener>()
   private val pageSizeDefaultValues = listOf(5, 10, 20, 25, 50)
   private var isLoading = false
 
@@ -64,6 +64,8 @@ class TableViewImpl : TableView {
   private val nextRowsPageButton = CommonButton("Next", AllIcons.Actions.Play_forward)
 
   private val pageSizeComboBox = ComboBox<Int>()
+
+  private val refreshButton = CommonButton("Refresh table", AllIcons.Actions.Refresh)
 
   init {
     firstRowsPageButton.toolTipText = "First"
@@ -86,6 +88,10 @@ class TableViewImpl : TableView {
     lastRowsPageButton.toolTipText = "Last"
     panel.controlsPanel.add(lastRowsPageButton)
     lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() }}
+
+    refreshButton.toolTipText = "Sync table"
+    panel.controlsPanel.add(refreshButton)
+    refreshButton.addActionListener{ listeners.forEach { it.refreshDataInvoked() } }
 
     panel.table.tableHeader.defaultRenderer = HeaderRenderer()
 
@@ -157,11 +163,11 @@ class TableViewImpl : TableView {
     lastRowsPageButton.isEnabled = enable
   }
 
-  override fun addListener(listener: TableViewListener) {
+  override fun addListener(listener: TableView.Listener) {
     listeners.add(listener)
   }
 
-  override fun removeListener(listener: TableViewListener) {
+  override fun removeListener(listener: TableView.Listener) {
     listeners.remove(listener)
   }
 

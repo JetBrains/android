@@ -19,6 +19,11 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+/**
+ * Greeting element.
+ *
+ * @sample DefaultPreview
+ */
 @Composable
 fun Greeting(name: String) {
     Text(text = "Hello $name!")

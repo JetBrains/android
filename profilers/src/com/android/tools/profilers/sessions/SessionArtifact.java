@@ -15,15 +15,14 @@
  */
 package com.android.tools.profilers.sessions;
 
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.updater.Updatable;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.idea.protobuf.GeneratedMessageV3;
-import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.OutputStream;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A SessionArtifact is any session-related entity that should show up in the sessions panel as its own row. (e.g. A session, a memory
@@ -101,7 +100,7 @@ public interface SessionArtifact<T extends GeneratedMessageV3> extends Updatable
    * zoom level. So first we adjust the zoom level to fit the current size of the ongoing capture + 10% of the view range, so the user can
    * see the capture animating for a while before it takes the entire view range.
    */
-  static void navigateTimelineToOngoingCapture(@NotNull ProfilerTimeline timeline, long startTimeUs) {
+  static void navigateTimelineToOngoingCapture(@NotNull StreamingTimeline timeline, long startTimeUs) {
     double viewRange90PercentLength = 0.9 * timeline.getViewRange().getLength();
     double currentOngoingCaptureLength = timeline.getDataRange().getMax() - startTimeUs;
     if (currentOngoingCaptureLength > viewRange90PercentLength) {

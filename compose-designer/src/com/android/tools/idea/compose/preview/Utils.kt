@@ -18,25 +18,59 @@ package com.android.tools.idea.compose.preview
 import com.android.SdkConstants
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.actionSystem.ShortcutSet
+import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.LightVirtualFile
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
 import kotlin.math.max
+
+/** Preview element name */
+internal const val PREVIEW_NAME = "Preview"
+
+/** Package containing the preview definitions */
+private const val PREVIEW_PACKAGE = "androidx.ui.tooling.preview"
+
+/** Only composables with this annotation will be rendered to the surface */
+internal const val PREVIEW_ANNOTATION_FQN = "$PREVIEW_PACKAGE.$PREVIEW_NAME"
+
+internal const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.Composable"
+
+/** View included in the runtime library that will wrap the @Composable element so it gets rendered by layoutlib */
+internal const val COMPOSE_VIEW_ADAPTER = "$PREVIEW_PACKAGE.ComposeViewAdapter"
+
+/** [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call */
+private const val COMPOSABLE_NAME_ATTR = "tools:composableName"
+
+/** Action ID of the IDE declared force refresh action (see PlatformActions.xml). This allows us to re-use the shortcut of the declared action. */
+private const val FORCE_REFRESH_ACTION_ID = "ForceRefresh"
+
+/** [ShortcutSet] that triggers a build and refreshes the preview */
+internal fun getBuildAndRefreshShortcut(): ShortcutSet = KeymapUtil.getActiveKeymapShortcuts(FORCE_REFRESH_ACTION_ID)
 
 const val UNDEFINED_API_LEVEL = -1
 const val UNDEFINED_DIMENSION = -1
@@ -148,20 +182,37 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
   }
 }
 
+/** Configuration equivalent to defining a `@Preview` annotation with no parameters */
+private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null)
+
 /**
  * @param displayName display name of this preview element
+ * @param groupName name that allows multiple previews in separate groups
  * @param composableMethodFqn Fully Qualified Name of the composable method
  * @param previewElementDefinitionPsi [SmartPsiElementPointer] to the preview element definition
  * @param previewBodyPsi [SmartPsiElementPointer] to the preview body. This is the code that will be ran during preview
  * @param configuration the preview element configuration
  */
 data class PreviewElement(val displayName: String,
+                          val groupName: String?,
                           val composableMethodFqn: String,
                           val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
                           val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
-                          val configuration: PreviewConfiguration)
+                          val configuration: PreviewConfiguration) {
+  companion object {
+    @JvmStatic
+    @TestOnly
+    fun forTesting(composableMethodFqn: String,
+                   displayName: String = "", groupName: String? = null,
+                   configuration: PreviewConfiguration = nullConfiguration) =
+      PreviewElement(displayName, groupName, composableMethodFqn, null, null, configuration)
+  }
+}
 
-interface PreviewElementFinder {
+/**
+ * Interface to be implemented by classes able to find [PreviewElement]s on [VirtualFile]s.
+ */
+interface FilePreviewElementFinder {
   /**
    * Returns whether this Preview element finder might apply to the given Kotlin file.
    * The main difference with [findPreviewMethods] is that method might be called on Dumb mode so it must not use any indexes.
@@ -176,7 +227,8 @@ interface PreviewElementFinder {
   fun findPreviewMethods(project: Project, vFile: VirtualFile): List<PreviewElement> {
     assert(!DumbService.getInstance(project).isDumb) { "findPreviewMethods can not be called on dumb mode" }
 
-    val uFile: UFile = PsiManager.getInstance(project).findFile(vFile)?.toUElement() as? UFile ?: return emptyList()
+    val psiFile = ReadAction.compute<PsiFile?, Throwable> { PsiManager.getInstance(project).findFile(vFile) } ?: return emptyList()
+    val uFile: UFile = psiFile.toUElement() as? UFile ?: return emptyList()
 
     return findPreviewMethods(uFile)
   }
@@ -189,6 +241,41 @@ interface PreviewElementFinder {
   fun findPreviewMethods(uFile: UFile): List<PreviewElement>
 }
 
+/**
+ * Triggers the build of the given [modules] by calling the compile`Variant`Kotlin task
+ */
+private fun requestKotlinBuild(project: Project, modules: Set<Module>) {
+  fun createBuildTasks(module: Module): String? {
+    val gradlePath = GradleFacet.getInstance(module)?.configuration?.GRADLE_PROJECT_PATH ?: return null
+    val currentVariant = AndroidModuleModel.get(module)?.selectedVariant?.name?.capitalize() ?: return null
+    // We need to get the compileVariantKotlin task name. There is not direct way to get it from the model so, for now,
+    // we just build it ourselves.
+    // TODO(b/145199867): Replace this with the right API call to obtain compileVariantKotlin after the bug is fixed.
+    return "${gradlePath}${SdkConstants.GRADLE_PATH_SEPARATOR}compile${currentVariant}Kotlin"
+  }
+
+  fun createBuildTasks(modules: Collection<Module>): Map<Module, List<String>> =
+    modules
+      .mapNotNull {
+        Pair(it, listOf(createBuildTasks(it) ?: return@mapNotNull null))
+      }
+      .filter { it.second.isNotEmpty() }
+      .toMap()
+
+  val moduleFinder = ProjectStructure.getInstance(project).moduleFinder
+
+  createBuildTasks(modules).forEach {
+    val path = moduleFinder.getRootProjectPath(it.key)
+    GradleBuildInvoker.getInstance(project).executeTasks(path.toFile(), it.value)
+  }
+}
+
+/**
+ * Triggers the build of the given [modules] by calling the compileSourcesDebug task
+ */
+private fun requestCompileJavaBuild(project: Project, modules: Set<Module>) =
+  GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray(), TestCompileType.NONE)
+
 internal fun requestBuild(project: Project, module: Module) {
   if (project.isDisposed || module.isDisposed) {
     return
@@ -196,7 +283,15 @@ internal fun requestBuild(project: Project, module: Module) {
 
   val modules = mutableSetOf(module)
   ModuleUtil.collectModulesDependsOn(module, modules)
-  GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray(), TestCompileType.NONE)
+
+  // When COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD is enabled, we just trigger the module:compileDebugKotlin task. This avoids executing
+  // a few extra tasks that are not required for the preview to refresh.
+  if (StudioFlags.COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD.get()) {
+    requestKotlinBuild(project, modules)
+  }
+  else {
+    requestCompileJavaBuild(project, modules)
+  }
 }
 
 fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {

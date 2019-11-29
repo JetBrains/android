@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDsl
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement.UNIT_TESTS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement.UNIT_TESTS;
 
 public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOptionsModel {
   // TODO(xof): support animationsDisabled?
@@ -52,11 +52,7 @@ public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOpt
   @Override
   @NotNull
   public UnitTestsModel unitTests() {
-    UnitTestsDslElement unitTestsDslElement = myDslElement.getPropertyElement(UNIT_TESTS_BLOCK_NAME, UnitTestsDslElement.class);
-    if (unitTestsDslElement == null) {
-      unitTestsDslElement = new UnitTestsDslElement(myDslElement);
-      myDslElement.setNewElement(unitTestsDslElement);
-    }
+    UnitTestsDslElement unitTestsDslElement = myDslElement.ensurePropertyElement(UNIT_TESTS);
     return new UnitTestsModelImpl(unitTestsDslElement);
   }
 

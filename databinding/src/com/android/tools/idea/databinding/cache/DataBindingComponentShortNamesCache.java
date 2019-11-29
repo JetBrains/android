@@ -110,11 +110,6 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
     return ArrayUtil.EMPTY_STRING_ARRAY;
   }
 
-  @Override
-  public void getAllMethodNames(@NotNull HashSet<String> set) {
-
-  }
-
   @NotNull
   @Override
   public PsiField[] getFieldsByName(@NotNull @NonNls String name, @NotNull GlobalSearchScope scope) {
@@ -125,10 +120,5 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
   @Override
   public String[] getAllFieldNames() {
     return ArrayUtil.EMPTY_STRING_ARRAY;
-  }
-
-  @Override
-  public void getAllFieldNames(@NotNull HashSet<String> set) {
-
   }
 }

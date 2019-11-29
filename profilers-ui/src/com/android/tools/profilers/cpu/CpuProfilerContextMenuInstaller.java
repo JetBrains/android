@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
+
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.ContextMenuInstaller;
@@ -22,16 +24,15 @@ import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerAction;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.intellij.icons.AllIcons;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.event.KeyEvent;
-
-import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Installs context menus for CPU Profiler.
- * This class should not be created directly instead {@link #install(CpuProfilerStageView, JComponent)} should be used.
+ * This class should not be created directly instead {@link #install(CpuProfilerStage, IdeProfilerComponents, JComponent, JComponent)}
+ * should be used.
  */
 class CpuProfilerContextMenuInstaller {
   @NotNull private final CpuProfilerStage myStage;
@@ -59,9 +60,7 @@ class CpuProfilerContextMenuInstaller {
     installRecordMenuItem();
 
     // Add the item to export a trace file.
-    if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isExportCpuTraceEnabled()) {
-      installExportTraceMenuItem();
-    }
+    installExportTraceMenuItem();
 
     installCaptureNavigationMenuItems();
   }
@@ -138,10 +137,10 @@ class CpuProfilerContextMenuInstaller {
   }
 
   /**
-   * Returns the trace ID of a capture that intersects with the mouse X coordinate within {@link #mySelection}.
+   * Returns the trace ID of a capture that intersects with the mouse X coordinate within the selection.
    */
   private CpuTraceInfo getTraceIntersectingWithMouseX(int mouseXLocation) {
-    Range range = myStage.getStudioProfilers().getTimeline().getViewRange();
+    Range range = myStage.getTimeline().getViewRange();
     double pos = mouseXLocation / myComponent.getSize().getWidth() * range.getLength() + range.getMin();
     return myStage.getIntersectingTraceInfo(new Range(pos, pos));
   }

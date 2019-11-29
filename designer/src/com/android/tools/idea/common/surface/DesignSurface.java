@@ -202,7 +202,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final DesignerAnalyticsManager myAnalyticsManager;
 
   @NotNull
-  private State myState = State.FULL;
+  private State myState;
   @Nullable
   private StateChangeListener myStateChangeListener;
 
@@ -216,12 +216,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
     @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
-    @NotNull Function<DesignSurface, InteractionProvider> interactionProviderCreator,
+    @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
+    @NotNull State defaultSurfaceState,
     boolean isEditable) {
     super(new BorderLayout());
     Disposer.register(parentDisposable, this);
     myProject = project;
     myIsEditable = isEditable;
+    myState = defaultSurfaceState;
 
     setOpaque(true);
     setFocusable(false);

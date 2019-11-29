@@ -50,7 +50,6 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
@@ -68,7 +67,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
-import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.ui.UIBundle;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.tree.TreeModelAdapter;
@@ -114,7 +113,6 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
-import org.picocontainer.MutablePicoContainer;
 
 public class DeviceExplorerControllerTest extends AndroidTestCase {
 
@@ -449,7 +447,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
   public void testFileHandlerExtensionIsCalled() throws Exception {
     FileHandler mockFileHandler = mock(FileHandler.class);
-    PlatformTestUtil.registerExtension(Extensions.getRootArea(), FileHandler.EP_NAME, mockFileHandler, getTestRootDisposable());
+    ServiceContainerUtil.registerExtension(ApplicationManager.getApplication(), FileHandler.EP_NAME, mockFileHandler, getTestRootDisposable());
 
     downloadFile(() -> {
       // Send a VK_ENTER key event
@@ -701,13 +699,14 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       // Prepare
       // The "Save As" dialog does not work in headless mode, so we register a custom
       // component that simply returns the tempFile we created above.
-      replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
+      FileChooserFactoryImpl factory = new FileChooserFactoryImpl() {
         @NotNull
         @Override
         public FileSaverDialog createSaveFileDialog(@NotNull FileSaverDescriptor descriptor, @Nullable Project project) {
           return (baseDir, filename) -> new VirtualFileWrapper(tempFile);
         }
-      });
+      };
+      ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), FileChooserFactory.class, factory, getTestRootDisposable());
 
       // Invoke "Save As..." content menu
       ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
@@ -761,7 +760,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     myDevice1.setDownloadFileChunkSize(1_000); // download chunks of 1000 bytes at a time
     myDevice1.setDownloadFileChunkIntervalMillis(10); // wait 10 millis between each 1000 bytes chunk
 
-    replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
+    FileChooserFactoryImpl factory = new FileChooserFactoryImpl() {
       @NotNull
       @Override
       public PathChooserDialog createPathChooser(@NotNull FileChooserDescriptor descriptor,
@@ -772,7 +771,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
           callback.consume(list);
         };
       }
-    });
+    };
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), FileChooserFactory.class, factory, getTestRootDisposable());
 
     // Act
     myMockView.getStartTreeBusyIndicatorTacker().clear();
@@ -830,7 +830,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     myDevice1.setDownloadFileChunkSize(1_000); // download chunks of 1000 bytes at a time
     myDevice1.setDownloadFileChunkIntervalMillis(10); // wait 10 millis between each 1000 bytes chunk
 
-    replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
+    FileChooserFactoryImpl factory = new FileChooserFactoryImpl() {
       @NotNull
       @Override
       public PathChooserDialog createPathChooser(@NotNull FileChooserDescriptor descriptor,
@@ -841,7 +841,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
           callback.consume(list);
         };
       }
-    });
+    };
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), FileChooserFactory.class, factory, getTestRootDisposable());
 
     // Act
     myMockView.getStartTreeBusyIndicatorTacker().clear();
@@ -897,7 +898,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     String downloadErrorMessage = "[test] Error downloading file";
     myDevice1.setDownloadError(new Exception(downloadErrorMessage));
 
-    replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
+    FileChooserFactoryImpl factory = new FileChooserFactoryImpl() {
       @NotNull
       @Override
       public PathChooserDialog createPathChooser(@NotNull FileChooserDescriptor descriptor,
@@ -908,7 +909,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
           callback.consume(list);
         };
       }
-    });
+    };
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), FileChooserFactory.class, factory, getTestRootDisposable());
 
     // Act
     myMockView.getStartTreeBusyIndicatorTacker().clear();
@@ -1246,7 +1248,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     myDevice1.setUploadFileChunkSize(500);
     myDevice1.setUploadFileChunkIntervalMillis(20);
 
-    replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
+    FileChooserFactoryImpl factory = new FileChooserFactoryImpl() {
       @NotNull
       @Override
       public PathChooserDialog createPathChooser(@NotNull FileChooserDescriptor descriptor,
@@ -1259,7 +1261,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
           callback.consume(files);
         };
       }
-    });
+    };
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), FileChooserFactory.class, factory, getTestRootDisposable());
 
     // Assert
     assertTrue(e.getPresentation().isVisible());
@@ -1315,7 +1318,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // The "Choose file" dialog does not work in headless mode, so we register a custom
     // component that simply returns the tempFile we created above.
-    replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
+    FileChooserFactoryImpl factory = new FileChooserFactoryImpl() {
       @NotNull
       @Override
       public PathChooserDialog createPathChooser(@NotNull FileChooserDescriptor descriptor,
@@ -1328,7 +1331,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
           callback.consume(files);
         };
       }
-    });
+    };
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), FileChooserFactory.class, factory, getTestRootDisposable());
 
     // Assert
     assertTrue(e.getPresentation().isVisible());
@@ -1384,7 +1388,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // The "Choose file" dialog does not work in headless mode, so we register a custom
     // component that simply returns the tempFile we created above.
-    replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
+    FileChooserFactoryImpl factory = new FileChooserFactoryImpl() {
       @NotNull
       @Override
       public PathChooserDialog createPathChooser(@NotNull FileChooserDescriptor descriptor,
@@ -1397,7 +1401,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
           callback.consume(files);
         };
       }
-    });
+    };
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), FileChooserFactory.class, factory, getTestRootDisposable());
 
     // Ensure file upload fails
     myDevice1.setUploadError(new AdbShellCommandException("Permission error"));
@@ -1504,16 +1509,6 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     if (myInitialTestInputDialog == null) {
       myInitialTestInputDialog = previousDialog;
     }
-  }
-
-  /**
-   * Replace an application component with a custom component instance
-   */
-  private static <T> void replaceApplicationComponent(Class<T> cls, T instance) {
-    String key = cls.getName();
-    MutablePicoContainer container = (MutablePicoContainer)ApplicationManager.getApplication().getPicoContainer();
-    container.unregisterComponent(key);
-    container.registerComponentInstance(key, instance);
   }
 
   @NotNull

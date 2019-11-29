@@ -164,6 +164,12 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
   fun getManifestOverrides(): ManifestOverrides
 
   /**
+   * Returns a structure describing the manifest files contributing to the module's merged manifest.
+   */
+  @JvmDefault
+  fun getMergedManifestContributors(): MergedManifestContributors = defaultGetMergedManifestContributors()
+
+  /**
    * Returns the module's resource package name, or null if it could not be determined.
    *
    * The resource package name is equivalent to the "package" attribute of the module's
@@ -188,6 +194,10 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
   /** Whether the Jetpack Compose feature is enabled for this module. */
   @JvmDefault
   val usesCompose: Boolean get() = false
+
+  /** Shrinker type in selected variant or null if minification is disabled or shrinker cannot be determined.**/
+  @JvmDefault
+  val codeShrinker: CodeShrinker? get() = null
 
   /**
    * Whether the R class generated for this module is transitive.

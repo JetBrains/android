@@ -268,31 +268,20 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // "!"? qualifiedName | quoted_class_names
+  // "!"? qualifiedName
   public static boolean class_name(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "class_name")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, CLASS_NAME, "<class name>");
     result = class_name_0(builder, level + 1);
-    if (!result) result = quoted_class_names(builder, level + 1);
+    result = result && qualifiedName(builder, level + 1);
     exit_section_(builder, level, marker, result, false, null);
     return result;
   }
 
-  // "!"? qualifiedName
+  // "!"?
   private static boolean class_name_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "class_name_0")) return false;
-    boolean result;
-    Marker marker = enter_section_(builder);
-    result = class_name_0_0(builder, level + 1);
-    result = result && qualifiedName(builder, level + 1);
-    exit_section_(builder, marker, null, result);
-    return result;
-  }
-
-  // "!"?
-  private static boolean class_name_0_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "class_name_0_0")) return false;
     consumeToken(builder, EM);
     return true;
   }
@@ -746,6 +735,18 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // FLAG_TOKEN
+  public static boolean flag(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "flag")) return false;
+    if (!nextTokenIs(builder, FLAG_TOKEN)) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeToken(builder, FLAG_TOKEN);
+    exit_section_(builder, marker, FLAG, result);
+    return result;
+  }
+
+  /* ********************************************************** */
   // file_list ('(' file_filter ')')?
   public static boolean flag_argument(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "flag_argument")) return false;
@@ -805,13 +806,12 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   // '@' file_
   public static boolean include_file(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "include_file")) return false;
-    if (!nextTokenIs(builder, AT)) return false;
     boolean result, pinned;
-    Marker marker = enter_section_(builder, level, _NONE_, INCLUDE_FILE, null);
+    Marker marker = enter_section_(builder, level, _NONE_, INCLUDE_FILE, "<include file>");
     result = consumeToken(builder, AT);
     pinned = result; // pin = 1
     result = result && file_(builder, level + 1);
-    exit_section_(builder, level, marker, result, pinned, null);
+    exit_section_(builder, level, marker, result, pinned, ProguardR8Parser::not_flag);
     return result || pinned;
   }
 
@@ -1203,18 +1203,18 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // !FLAG
+  // !FLAG_TOKEN
   static boolean not_flag(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "not_flag")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NOT_);
-    result = !consumeToken(builder, FLAG);
+    result = !consumeToken(builder, FLAG_TOKEN);
     exit_section_(builder, level, marker, result, false, null);
     return result;
   }
 
   /* ********************************************************** */
-  // !(OPEN_BRACE|FLAG)
+  // !(OPEN_BRACE|FLAG_TOKEN)
   static boolean not_open_brace_or_new_flag(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "not_open_brace_or_new_flag")) return false;
     boolean result;
@@ -1224,12 +1224,12 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // OPEN_BRACE|FLAG
+  // OPEN_BRACE|FLAG_TOKEN
   private static boolean not_open_brace_or_new_flag_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "not_open_brace_or_new_flag_0")) return false;
     boolean result;
     result = consumeToken(builder, OPEN_BRACE);
-    if (!result) result = consumeToken(builder, FLAG);
+    if (!result) result = consumeToken(builder, FLAG_TOKEN);
     return result;
   }
 
@@ -1291,31 +1291,42 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // java_identifier_ ("." java_identifier_)*
+  // (java_identifier_ ("." java_identifier_)*)|quoted_identifier
   public static boolean qualifiedName(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "qualifiedName")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, QUALIFIED_NAME, "<qualified name>");
-    result = java_identifier_(builder, level + 1);
-    result = result && qualifiedName_1(builder, level + 1);
+    result = qualifiedName_0(builder, level + 1);
+    if (!result) result = quoted_identifier(builder, level + 1);
     exit_section_(builder, level, marker, result, false, null);
     return result;
   }
 
+  // java_identifier_ ("." java_identifier_)*
+  private static boolean qualifiedName_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "qualifiedName_0")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = java_identifier_(builder, level + 1);
+    result = result && qualifiedName_0_1(builder, level + 1);
+    exit_section_(builder, marker, null, result);
+    return result;
+  }
+
   // ("." java_identifier_)*
-  private static boolean qualifiedName_1(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "qualifiedName_1")) return false;
+  private static boolean qualifiedName_0_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "qualifiedName_0_1")) return false;
     while (true) {
       int pos = current_position_(builder);
-      if (!qualifiedName_1_0(builder, level + 1)) break;
-      if (!empty_element_parsed_guard_(builder, "qualifiedName_1", pos)) break;
+      if (!qualifiedName_0_1_0(builder, level + 1)) break;
+      if (!empty_element_parsed_guard_(builder, "qualifiedName_0_1", pos)) break;
     }
     return true;
   }
 
   // "." java_identifier_
-  private static boolean qualifiedName_1_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "qualifiedName_1_0")) return false;
+  private static boolean qualifiedName_0_1_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "qualifiedName_0_1_0")) return false;
     boolean result;
     Marker marker = enter_section_(builder);
     result = consumeToken(builder, DOT);
@@ -1326,8 +1337,8 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // SINGLE_QUOTED_CLASS|DOUBLE_QUOTED_CLASS|UNTERMINATED_SINGLE_QUOTED_CLASS|UNTERMINATED_DOUBLE_QUOTED_CLASS
-  static boolean quoted_class_names(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "quoted_class_names")) return false;
+  static boolean quoted_identifier(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "quoted_identifier")) return false;
     boolean result;
     result = consumeToken(builder, SINGLE_QUOTED_CLASS);
     if (!result) result = consumeToken(builder, DOUBLE_QUOTED_CLASS);
@@ -1360,13 +1371,13 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // FLAG (flag_argument ("," flag_argument)*)?
+  // flag (flag_argument ("," flag_argument)*)?
   public static boolean rule(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "rule")) return false;
-    if (!nextTokenIs(builder, FLAG)) return false;
+    if (!nextTokenIs(builder, FLAG_TOKEN)) return false;
     boolean result;
     Marker marker = enter_section_(builder);
-    result = consumeToken(builder, FLAG);
+    result = flag(builder, level + 1);
     result = result && rule_1(builder, level + 1);
     exit_section_(builder, marker, RULE, result);
     return result;
@@ -1425,13 +1436,13 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // FLAG  ("," keep_option_modifier)* class_specification_header class_specification_body?
+  // flag  ("," keep_option_modifier)* class_specification_header class_specification_body?
   public static boolean rule_with_class_specification(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "rule_with_class_specification")) return false;
-    if (!nextTokenIs(builder, FLAG)) return false;
+    if (!nextTokenIs(builder, FLAG_TOKEN)) return false;
     boolean result;
     Marker marker = enter_section_(builder);
-    result = consumeToken(builder, FLAG);
+    result = flag(builder, level + 1);
     result = result && rule_with_class_specification_1(builder, level + 1);
     result = result && class_specification_header(builder, level + 1);
     result = result && rule_with_class_specification_3(builder, level + 1);
@@ -1469,37 +1480,26 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // "!"? qualifiedName | quoted_class_names
+  // "!"? qualifiedName
   public static boolean super_class_name(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "super_class_name")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, SUPER_CLASS_NAME, "<super class name>");
     result = super_class_name_0(builder, level + 1);
-    if (!result) result = quoted_class_names(builder, level + 1);
+    result = result && qualifiedName(builder, level + 1);
     exit_section_(builder, level, marker, result, false, null);
     return result;
   }
 
-  // "!"? qualifiedName
+  // "!"?
   private static boolean super_class_name_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "super_class_name_0")) return false;
-    boolean result;
-    Marker marker = enter_section_(builder);
-    result = super_class_name_0_0(builder, level + 1);
-    result = result && qualifiedName(builder, level + 1);
-    exit_section_(builder, marker, null, result);
-    return result;
-  }
-
-  // "!"?
-  private static boolean super_class_name_0_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "super_class_name_0_0")) return false;
     consumeToken(builder, EM);
     return true;
   }
 
   /* ********************************************************** */
-  // any_type|(any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName|quoted_class_names)array_type?
+  // any_type|(any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName)array_type?
   public static boolean type(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "type")) return false;
     boolean result;
@@ -1510,7 +1510,7 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // (any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName|quoted_class_names)array_type?
+  // (any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName)array_type?
   private static boolean type_1(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "type_1")) return false;
     boolean result;
@@ -1521,7 +1521,7 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName|quoted_class_names
+  // any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName
   private static boolean type_1_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "type_1_0")) return false;
     boolean result;
@@ -1529,7 +1529,6 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     if (!result) result = any_not_primitive_type(builder, level + 1);
     if (!result) result = java_primitive(builder, level + 1);
     if (!result) result = qualifiedName(builder, level + 1);
-    if (!result) result = quoted_class_names(builder, level + 1);
     return result;
   }
 

@@ -20,7 +20,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.assetstudio.IconGenerator
+import com.android.tools.idea.npw.module.NewAndroidModuleRecipe
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getPackageForApplication
@@ -34,11 +34,11 @@ import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
+import com.android.tools.idea.templates.ProjectTemplateDataBuilder
 import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_APPLICATION_PACKAGE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LAUNCHER
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_SOURCE_PROVIDER_NAME
-import com.android.tools.idea.templates.TemplateManager.CATEGORY_COMPOSE
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
@@ -49,7 +49,6 @@ import com.android.tools.idea.wizard.template.WizardParameterData
 import com.intellij.ide.scratch.ScratchFileService
 import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.module.Module
@@ -68,7 +67,9 @@ class ExistingNewModuleModelData(
 ) : ModuleModelData, ProjectModelData by existingNewProjectModelData {
   override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(template)
   override val moduleName: StringValueProperty = StringValueProperty(facet.module.name)
+  override var moduleRecipe: NewAndroidModuleRecipe? = null
   override val moduleTemplateValues: MutableMap<String, Any> = mutableMapOf()
+  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false))
 
   override val moduleParent: String? get() = TODO("not implemented")
   override val formFactor: ObjectValueProperty<FormFactor> get() = TODO("not implemented")
@@ -88,18 +89,13 @@ class RenderTemplateModel private constructor(
   private val shouldOpenFiles: Boolean,
   /** Populated in [Template.render] */
   val createdFiles: MutableList<File> = arrayListOf()
-  // TODO(qumeric): this should replace templateHandle eventually
 ) : WizardModel(), ModuleModelData by moduleModelData {
   /**
    * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
    * try to render anything.
    */
   val templateValues = hashMapOf<String, Any>()
-  /**
-   * This is used in place of [templateValues] for the new templates.
-   */
-  val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(false) // FIXME(qumeric)
-  lateinit var wizardParameterData: WizardParameterData
+  private lateinit var wizardParameterData: WizardParameterData
   var newTemplate: Template2 = Template2.NoActivity
   set(value) {
     field = value
@@ -150,7 +146,7 @@ class RenderTemplateModel private constructor(
 
       templateValues.putAll(moduleTemplateValues)
 
-      if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get() && isNew) {
+      if (StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get() && isNew) {
         moduleTemplateDataBuilder.apply {
           // sourceProviderName = template.get().name TODO(qumeric) there is no sourcesProvider (yet?)
           projectTemplateDataBuilder.setProjectDefaults(project.value)
@@ -230,7 +226,7 @@ class RenderTemplateModel private constructor(
     ): Boolean {
       paths.moduleRoot ?: return false
 
-      if (StudioFlags.NPW_EXPERIMENTAL_ACTIVITY_GALLERY.get() && isNew) {
+      if (StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get() && isNew) {
         val context = RenderingContext2(
           project = project,
           module = module,

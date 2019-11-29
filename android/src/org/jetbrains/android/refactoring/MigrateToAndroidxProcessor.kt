@@ -65,7 +65,7 @@ import org.jetbrains.android.refactoring.AppCompatMigrationEntry.GradleDependenc
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.GradleMigrationEntry
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.PackageMigrationEntry
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.UPGRADE_GRADLE_DEPENDENCY_VERSION
-import org.jetbrains.android.refactoring.AppCompatMigrationEntry.UpdateGradleDepedencyVersionMigrationEntry
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.UpdateGradleDependencyVersionMigrationEntry
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.PackageMigrationUsageInfo
 import org.jetbrains.android.util.AndroidBundle
@@ -204,7 +204,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
             gradleDependencyEntries[migrationEntry.compactKey()] = migrationEntry
           }
           UPGRADE_GRADLE_DEPENDENCY_VERSION -> {
-            val migrationEntry = entry as UpdateGradleDepedencyVersionMigrationEntry
+            val migrationEntry = entry as UpdateGradleDependencyVersionMigrationEntry
             gradleDependencyEntries[migrationEntry.compactKey()] = migrationEntry
           }
         }
@@ -413,6 +413,12 @@ open class MigrateToAndroidxProcessor(val project: Project,
           val gc = GradleCoordinate.parseCoordinateString(compactDependencyNotation) ?: continue
           val key: Pair<String, String> = Pair.create(gc.groupId, gc.artifactId)
           val entry = gradleDependencyEntries[key] ?: continue
+          val migrationEntryCoordinates = GradleCoordinate.parseCoordinateString(entry.toCompactNotation(entry.newBaseVersion)) ?: continue
+          // Prevent showing the migration entry if there is already a newer version in the file
+          if (gc.isSameArtifact(migrationEntryCoordinates) &&
+              GradleCoordinate.COMPARE_PLUS_HIGHER.compare(migrationEntryCoordinates, gc) <= 0) {
+            continue
+          }
           gradleUsages.add(
             MigrateToAppCompatUsageInfo.GradleDependencyUsageInfo(psiElement, projectBuildModel, dep, entry, versionProvider))
         }

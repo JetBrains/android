@@ -542,6 +542,9 @@ public class ImageUtils {
     // Read the image, with the optional downsampling.
     BufferedImage intermediateImage = reader.read(0, readParams);
 
+    imageStream.close();
+    inputStream.close();
+
     // Do a final scale to be sure that the image fits in the provided dimension
     double finalScale = srcW > srcH
                         ? dimension.width / (double)intermediateImage.getWidth()

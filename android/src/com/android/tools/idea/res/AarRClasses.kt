@@ -65,7 +65,7 @@ class SmallAarRClass(
       .toTypedArray()
   }
 
-  override fun getInnerClassesDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
+  override fun getInnerClassesDependencies(): ModificationTracker = ModificationTracker.NEVER_CHANGED
 }
 
 /**
@@ -89,7 +89,7 @@ private class SmallAarInnerRClass(
     )
   }
 
-  override fun getFieldsDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
+  override fun getFieldsDependencies(): ModificationTracker = ModificationTracker.NEVER_CHANGED
 }
 
 /**
@@ -147,7 +147,7 @@ class TransitiveAarRClass(
     private val LOG: Logger = Logger.getInstance(TransitiveAarRClass::class.java)
   }
 
-  override fun getInnerClassesDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
+  override fun getInnerClassesDependencies(): ModificationTracker = ModificationTracker.NEVER_CHANGED
 }
 
 /**
@@ -229,5 +229,5 @@ private class TransitiveAarInnerRClass(
     )
   }
 
-  override fun getFieldsDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
+  override fun getFieldsDependencies(): ModificationTracker = ModificationTracker.NEVER_CHANGED
 }

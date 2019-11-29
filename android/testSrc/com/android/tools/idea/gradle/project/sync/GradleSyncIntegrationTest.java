@@ -144,6 +144,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.jetbrains.plugins.gradle.util.GradleUtil;
 import org.mockito.ArgumentCaptor;
 
 /**
@@ -825,7 +826,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     // Verify that buildSrc modules exists.
     Module buildSrcModule = getModule(getName() + "_buildSrc");
     assertNotNull(buildSrcModule);
-    DataNode<ModuleData> moduleData = ExternalSystemApiUtil.findModuleData(buildSrcModule, GradleConstants.SYSTEM_ID);
+    DataNode<ModuleData> moduleData = GradleUtil.findGradleModuleData(buildSrcModule);
     assertNotNull(moduleData);
 
     // Verify that ContentRootData DataNode is created for buildSrc module.

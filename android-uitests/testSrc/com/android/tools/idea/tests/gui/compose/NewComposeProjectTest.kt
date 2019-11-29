@@ -26,12 +26,13 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
 class NewComposeProjectTest {
   @Rule
   @JvmField
-  val guiTest = GuiTestRule()
+  val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
 
   @Before
   fun setup() {

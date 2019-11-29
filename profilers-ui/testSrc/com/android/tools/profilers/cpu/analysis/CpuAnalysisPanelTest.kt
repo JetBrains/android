@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -40,7 +41,8 @@ class CpuAnalysisPanelTest {
 
   private val timer = FakeTimer()
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", FakeCpuService(), FakeProfilerService(timer))
+  var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", FakeCpuService(), FakeProfilerService(timer),
+                                    FakeTransportService(timer, true))
   private val profilerClient = ProfilerClient(grpcChannel.name)
   private lateinit var profilers: StudioProfilers
   private val services = FakeIdeProfilerServices()

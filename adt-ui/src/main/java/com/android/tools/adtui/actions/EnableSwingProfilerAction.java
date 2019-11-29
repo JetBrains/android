@@ -105,7 +105,7 @@ public class EnableSwingProfilerAction extends DumbAwareToggleAction {
 
     try {
       Path jarPath =
-        Paths.get(PathManager.getHomePath(), "../../bazel-genfiles/tools/adt/idea/swingp/swing-instrumenter_deploy.jarjar.jar");
+        Paths.get(PathManager.getHomePath(), "../../bazel-bin/tools/adt/idea/swingp/swing-instrumenter_deploy.jarjar.jar");
       VirtualMachine vm = VirtualMachine.attach(pid);
       // Only supports development mode, not release mode, therefore only look in the bazel-bin directory.
       vm.loadAgent(jarPath.toString(), null);

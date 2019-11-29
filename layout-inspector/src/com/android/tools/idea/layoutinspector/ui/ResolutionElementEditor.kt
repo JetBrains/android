@@ -25,7 +25,6 @@ import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableVariableHeightCellEditor
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
-import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -72,8 +71,8 @@ class ResolutionElementEditor(
 
   private fun updateFromModel() {
     val property = editorModel.property as InspectorPropertyItem
-    val resourceLookup = property.model.layoutInspector?.layoutInspectorModel?.resourceLookup
-    val locations = resourceLookup?.findFileLocations(property) ?: emptyList()
+    val resourceLookup = property.resourceLookup
+    val locations = resourceLookup?.findFileLocations(property) ?: listOf()
     val classLocation = (property as? InspectorGroupPropertyItem)?.classLocation
     val hideLinkPanel = (locations.isEmpty() && classLocation == null) || (property is PTableGroupItem && !editorModel.isExpandedTableItem)
     linkPanel.isVisible = !hideLinkPanel
@@ -148,13 +147,14 @@ class ResolutionElementEditor(
 
     init {
       val showAsLink = location.navigatable != null
-      text = location.source
-      font = getSmallFont(showAsLink, isOverridden)
-      foreground = when {
+      val normalForegroundColor = when {
         isSelected -> UIUtil.getTableForeground(true, true)
-        showAsLink -> JBColor.BLUE
+        showAsLink -> JBUI.CurrentTheme.Link.linkColor()
         else -> UIUtil.getTableForeground(false, false)
       }
+      text = location.source
+      font = getSmallFont(showAsLink, isOverridden)
+      foreground = normalForegroundColor
       isFocusable = true
       border = JBUI.Borders.empty(0, LINK_BORDER, LINK_BORDER, LINK_BORDER)
       alignmentX = Component.LEFT_ALIGNMENT

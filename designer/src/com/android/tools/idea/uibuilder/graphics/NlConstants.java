@@ -22,7 +22,6 @@ import java.awt.Color;
 
 @SuppressWarnings("UseJBColor")
 public class NlConstants {
-  public static final int RULER_SIZE_PX = 20;
   public static final int BOUNDS_RECT_DELTA = 20;
 
   public static final int DEFAULT_SCREEN_OFFSET_X = 50;
@@ -54,21 +53,14 @@ public class NlConstants {
   public static final Color RESIZING_TEXT_COLOR = new JBColor(new Color(0x80000000, true), DARK_LIST_FOREGROUND);
   public static final Color RESIZING_BUCKET_COLOR = new Color(0x03, 0xa9, 0xf4, 26);
 
-  public static final Color CYAN_100 = new Color(178, 235, 242, 100);
-  public static final Color CYAN_200 = new Color(128, 222, 234, 100);
-  public static final Color CYAN_300 = new Color(77, 208, 225, 100);
-  public static final Color CYAN_400 = new Color(38, 198, 218, 100);
-  public static final Color CYAN_500 = new Color(0, 188, 212, 100);
-  public static final Color CYAN_600 = new Color(0, 172, 193, 100);
-  public static final Color CYAN_700 = new Color(0, 151, 167, 100);
-  public static final Color CYAN_800 = new Color(0, 131, 143, 100);
-  public static final Color CYAN_900 = new Color(0, 96, 100, 100);
-  public static final Color[] RESIZING_OTHER_CONFIG_COLOR_ARRAY =
-    {CYAN_100, CYAN_200, CYAN_300, CYAN_400, CYAN_500, CYAN_600, CYAN_700, CYAN_800, CYAN_900};
-
-  public static final BasicStroke SOLID_STROKE = new BasicStroke(1.0f);
   public static final BasicStroke THICK_SOLID_STROKE = new BasicStroke(2.0f);
+  public static final BasicStroke DOTTED_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f,
+                                                                  new float[] { 2, 2 }, 0.0f);
   public static final BasicStroke DASHED_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f,
-                                                                   new float[] { 4, 4 }, 0.0f);
-  
+                                                                  new float[] { 4, 4 }, 0.0f);
+  public static final BasicStroke PATTERN_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f,
+                                                                   new float[] { 8, 4 }, 0.0f);
+  public static final BasicStroke THICK_PATTERN_STROKE = new BasicStroke(2.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f,
+                                                                         new float[] { 8, 4 }, 0.0f);
+  public static final BasicStroke SOLID_STROKE = new BasicStroke(1.0f);
 }

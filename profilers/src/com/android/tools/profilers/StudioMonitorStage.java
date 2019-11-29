@@ -21,7 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public class StudioMonitorStage extends Stage {
+public class StudioMonitorStage extends StreamingStage {
 
   @NotNull
   private final List<ProfilerMonitor> myMonitors;
@@ -34,7 +34,7 @@ public class StudioMonitorStage extends Stage {
   @Override
   public void enter() {
     // Clear the selection
-    getStudioProfilers().getTimeline().getSelectionRange().clear();
+    getTimeline().getSelectionRange().clear();
 
     Common.Session session = getStudioProfilers().getSession();
     if (session != Common.Session.getDefaultInstance()) {

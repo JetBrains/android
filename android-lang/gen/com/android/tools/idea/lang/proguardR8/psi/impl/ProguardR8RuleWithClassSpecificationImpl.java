@@ -57,14 +57,14 @@ public class ProguardR8RuleWithClassSpecificationImpl extends ASTWrapperPsiEleme
 
   @Override
   @NotNull
-  public List<ProguardR8KeepOptionModifier> getKeepOptionModifierList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8KeepOptionModifier.class);
+  public ProguardR8Flag getFlag() {
+    return findNotNullChildByClass(ProguardR8Flag.class);
   }
 
   @Override
   @NotNull
-  public PsiElement getFlag() {
-    return findNotNullChildByType(FLAG);
+  public List<ProguardR8KeepOptionModifier> getKeepOptionModifierList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8KeepOptionModifier.class);
   }
 
 }

@@ -26,7 +26,6 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.diagnostics.PerfDebugHelper;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionInformation;
@@ -112,12 +111,9 @@ public class CanvasResizeInteraction extends Interaction {
   private int myCurrentY;
   @Nullable private DeviceSizeList.DeviceSize myLastSnappedDevice;
 
-  private final PerfDebugHelper myPerfDebugHelper = new PerfDebugHelper();
-
   public CanvasResizeInteraction(@NotNull NlDesignSurface designSurface,
                                  @NotNull ScreenView screenView,
                                  @NotNull Configuration configuration) {
-    myPerfDebugHelper.start("[Simple Resize] - constructor");
     myDesignSurface = designSurface;
     myScreenView = screenView;
     myConfiguration = configuration;
@@ -167,7 +163,6 @@ public class CanvasResizeInteraction extends Interaction {
     }
 
     myMaxSize = (int)(MAX_ANDROID_SIZE * currentDpi / DEFAULT_DENSITY);
-    myPerfDebugHelper.end("[Simple Resize] - constructor");
   }
 
   @Override
@@ -180,13 +175,11 @@ public class CanvasResizeInteraction extends Interaction {
 
   @Override
   public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    myPerfDebugHelper.start("[Simple Resize] - begin");
     super.begin(x, y, modifiersEx);
     myCurrentX = x;
     myCurrentY = y;
 
     myDesignSurface.setResizeMode(true);
-    myPerfDebugHelper.end("[Simple Resize] - begin");
   }
 
   private static void constructPolygon(@NotNull Polygon polygon, @Nullable ScreenRatio ratio, int dim, boolean isPortrait) {
@@ -221,7 +214,6 @@ public class CanvasResizeInteraction extends Interaction {
 
   @Override
   public void update(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    myPerfDebugHelper.start("[Simple Resize] - update");
     if (myOriginalDevice.isScreenRound()) {
       // Force aspect preservation
       int deltaX = x - myStartX;
@@ -248,7 +240,6 @@ public class CanvasResizeInteraction extends Interaction {
     }
 
     myUpdateQueue.queue(myPositionUpdate);
-    myPerfDebugHelper.end("[Simple Resize] - update");
   }
 
   private void snapToDevice(int x, int y) {
@@ -274,8 +265,6 @@ public class CanvasResizeInteraction extends Interaction {
 
   @Override
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    myPerfDebugHelper.start("[Simple Resize] - end");
-
     // Set the surface in resize mode so it doesn't try to re-center the screen views all the time
     myDesignSurface.setResizeMode(false);
 
@@ -295,8 +284,6 @@ public class CanvasResizeInteraction extends Interaction {
         NlModelHelperKt.updateConfigurationScreenSize(myConfiguration, androidX, androidY);
       }
     }
-    myPerfDebugHelper.end("[Simple Resize] - end");
-    myPerfDebugHelper.print();
   }
 
   @Override
@@ -307,7 +294,6 @@ public class CanvasResizeInteraction extends Interaction {
 
   @Override
   public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    myPerfDebugHelper.start("[Simple Resize] - end");
     myConfiguration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);
   }
 

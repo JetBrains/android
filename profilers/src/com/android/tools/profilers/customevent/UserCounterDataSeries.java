@@ -18,6 +18,7 @@ package com.android.tools.profilers.customevent;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
@@ -34,18 +35,18 @@ import org.jetbrains.annotations.NotNull;
  */
 public class UserCounterDataSeries implements DataSeries<Long> {
 
-  @NotNull private final static long COUNTER_BUCKET = TimeUnit.MILLISECONDS.toNanos(500);
+  private final static long COUNTER_BUCKET = TimeUnit.MILLISECONDS.toNanos(500);
   @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myClient;
-  @NotNull private final StudioProfilers myStudioProfilers;
-  @NotNull private final long myStreamId;
-  @NotNull private final int myPid;
-  @NotNull private final long mySessionStartTimestamp;
+  @NotNull private final StreamingTimeline myTimeline;
+  private final long myStreamId;
+  private final int myPid;
+  private final long mySessionStartTimestamp;
 
 
   public UserCounterDataSeries(@NotNull TransportServiceGrpc.TransportServiceBlockingStub client,
                                @NotNull StudioProfilers profilers) {
     myClient = client;
-    myStudioProfilers = profilers;
+    myTimeline = profilers.getTimeline();
     myStreamId = profilers.getSession().getStreamId();
     myPid = profilers.getSession().getPid();
     mySessionStartTimestamp = profilers.getSession().getStartTimestamp();
@@ -85,7 +86,7 @@ public class UserCounterDataSeries implements DataSeries<Long> {
 
     // Add in the minimum, which will either be the range minimum or data minimum depending on where the range starts.
     // This will be the starting point for where the state chart will be drawn.
-    long minDataNs = myStudioProfilers.getTimeline().getDataStartTimeNs();
+    long minDataNs = myTimeline.getDataStartTimeNs();
     long intersectMin = minNs < minDataNs ? minDataNs : minNs;
     bucketStartToCount.put(intersectMin, 0L);
 

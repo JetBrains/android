@@ -23,20 +23,20 @@ private const val ERROR_THRESHOLD = 0.0001
 class ColorBlindSimulatorTest : TestCase() {
 
   /**
-   * Hunt-Pointer-Estevez transformation matrix in D65.
+   * Smith and Pokorny XYZ to LMS.
    */
   fun testrgb2lms() {
-    val MatHPE = Mat3D(
-      0.4002, 0.7076, -0.0808,
-      -0.22981, 1.1834, 0.04641,
-      0.0, 0.0, 1.0)
-
     val rgb2xyz = Mat3D(
-      0.4124564,  0.3575761,  0.1804375,
-      0.2126729,  0.7151522,  0.0721750,
-      0.0193339,  0.1191920,  0.9503041)
+      40.9568, 35.5041, 17.9167,
+      21.3389, 70.6743, 7.98680,
+      1.86297, 11.4620, 91.2367)
 
-    val rgb2lmsCalc = MatHPE * rgb2xyz
+    val xyz2lmx = Mat3D(
+      0.15514, 0.54312, -0.03286,
+      -0.15514, 0.45684, 0.03286,
+      0.0, 0.0, 0.01608)
+
+    val rgb2lmsCalc = xyz2lmx * rgb2xyz
     assertTrue(RGB_TO_LMS.close(rgb2lmsCalc))
   }
 
@@ -69,10 +69,12 @@ class ColorBlindSimulatorTest : TestCase() {
     val b = LMS(bluetmp.first, bluetmp.second, bluetmp.third)
 
     val aa = (b.l * w.s - w.l * b.s) / (b.m * w.s - w.m * b.s)
-    assertTrue(Math.abs(aa - 1.0352608118354494) < ERROR_THRESHOLD)
+    val expected_aa = 2.0234421986713973
+    assertTrue(Math.abs(aa - expected_aa) < ERROR_THRESHOLD)
 
     val bb = (b.l * w.m - w.l * b.m) / (b.s * w.m - w.s * b.m)
-    assertTrue(Math.abs(bb + 0.0469461764090493) < ERROR_THRESHOLD)
+    val expected_bb = -2.5257918939861366
+    assertTrue(Math.abs(bb - expected_bb) < ERROR_THRESHOLD)
 
     val mat3D = Mat3D(0.0, aa, bb,
                       0.0, 1.0, 0.0,
@@ -98,10 +100,12 @@ class ColorBlindSimulatorTest : TestCase() {
     val b = LMS(bluetmp.first, bluetmp.second, bluetmp.third)
 
     val aa = (b.m * w.s - b.s * w.m) / (b.l * w.s - w.l * b.s)
-    assertTrue(Math.abs(aa - 0.9659401655772768) < ERROR_THRESHOLD)
+    val exptected_aa = 0.49420734659809173
+    assertTrue(Math.abs(aa - exptected_aa) < ERROR_THRESHOLD)
 
     val bb = (w.l * b.m - b.l * w.m) / (w.l * b.s - b.l * w.s)
-    assertTrue(Math.abs(bb - 0.04534719741377713) < ERROR_THRESHOLD)
+    val exptected_bb = 1.2482649099858572
+    assertTrue(Math.abs(bb - exptected_bb) < ERROR_THRESHOLD)
 
     val mat3D = Mat3D(1.0, 0.0, 0.0,
                       aa, 0.0, bb,
@@ -128,10 +132,12 @@ class ColorBlindSimulatorTest : TestCase() {
     val r = LMS(redtmp.first, redtmp.second, redtmp.third)
 
     val aa = (r.s * w.m - w.s * r.m) / (r.l * w.m - w.l * r.m)
-    assertTrue(Math.abs(aa + 0.9441144099606331) < ERROR_THRESHOLD)
+    val exptected_aa = -0.01224497828329193
+    assertTrue(Math.abs(aa - exptected_aa) < ERROR_THRESHOLD)
 
     val bb = (r.s * w.l - w.s * r.l) / (r.m * w.l - w.m * r.l)
-    assertTrue(Math.abs(bb - 2.002171741176532) < ERROR_THRESHOLD)
+    val exptected_bb = 0.07203455200993725
+    assertTrue(Math.abs(bb - exptected_bb) < ERROR_THRESHOLD)
 
     val mat3D = Mat3D(1.0, 0.0, 0.0,
                       0.0, 1.0, 0.0,

@@ -17,15 +17,11 @@ package com.android.tools.idea.compose.preview.renderer
 
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffUtil
-import com.android.tools.idea.compose.preview.PreviewConfiguration
+import com.android.tools.idea.compose.preview.NoSecurityManagerRenderService
 import com.android.tools.idea.compose.preview.PreviewElement
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.rendering.RenderService
-import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -33,13 +29,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
-
-private const val PROJECT_RELATIVE_PATH = "projects/SimpleComposeApplication"
-/** Configuration equivalent to defining a `@Preview` annotation with no parameters */
-private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null)
-
-private fun previewFromMethodName(fqn: String): PreviewElement =
-  PreviewElement("", fqn, null, null, nullConfiguration)
 
 class SinglePreviewElementRendererTest {
   @get:Rule
@@ -49,9 +38,9 @@ class SinglePreviewElementRendererTest {
   fun setUp() {
     RenderService.shutdownRenderExecutor(5)
     RenderService.initializeRenderExecutor()
-    RenderService.setForTesting(projectRule.project, MyRenderService(projectRule.project))
+    RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
     projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/compose-designer/testData").path
-    projectRule.load(PROJECT_RELATIVE_PATH)
+    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH)
     projectRule.requestSyncAndWait()
 
     assertTrue("The project must compile correctly for the test to pass", projectRule.invokeTasks("compileDebugSources").isBuildSuccessful)
@@ -68,7 +57,7 @@ class SinglePreviewElementRendererTest {
   @Test
   fun testInvalidPreview() {
     assertNull(renderPreviewElement(projectRule.androidFacet,
-                                    previewFromMethodName("google.simpleapplication.MainActivityKt.InvalidPreview")).get())
+                                    PreviewElement.forTesting("google.simpleapplication.MainActivityKt.InvalidPreview")).get())
   }
 
   /**
@@ -77,17 +66,21 @@ class SinglePreviewElementRendererTest {
   @Test
   fun testDefaultPreviewRendering() {
     val defaultRender = renderPreviewElement(projectRule.androidFacet,
-                                             previewFromMethodName("google.simpleapplication.MainActivityKt.DefaultPreview")).get()
-    ImageDiffUtil.assertImageSimilar(File("${projectRule.fixture.testDataPath}/${PROJECT_RELATIVE_PATH}/defaultRender.png"),
+                                             PreviewElement.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")).get()
+    ImageDiffUtil.assertImageSimilar(File("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"),
                                      defaultRender!!,
                                      0.0)
   }
 
-  // Disable security manager during tests (for bazel)
-  private class MyRenderService(project: Project) : RenderService(project) {
-    override fun taskBuilder(facet: AndroidFacet, configuration: Configuration): RenderService.RenderTaskBuilder {
-      return super.taskBuilder(facet, configuration)
-        .disableSecurityManager()
-    }
+  /**
+   * Checks the rendering that rendering an empty preview does not throw an exception.
+   * Regression test for b/144722608.
+   */
+  @Test
+  fun testEmptyRender() {
+    val defaultRender = renderPreviewElement(projectRule.androidFacet,
+                                             PreviewElement.forTesting("google.simpleapplication.OtherPreviewsKt.EmptyPreview")).get()
+
+    assertTrue(defaultRender!!.width > 0 && defaultRender.height > 0)
   }
 }

@@ -15,17 +15,23 @@
  */
 package com.android.tools.idea.npw.module
 
+import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.FormFactor.Companion.get
 import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
+import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.templates.Template.ANDROID_PROJECT_TEMPLATE
 import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.TemplateData
 import com.intellij.openapi.project.Project
+import icons.AndroidIcons
 import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
 import javax.swing.Icon
@@ -33,6 +39,7 @@ import javax.swing.Icon
 class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   override fun getDescriptions(project: Project): Collection<ModuleTemplateGalleryEntry> {
     val manager = TemplateManager.getInstance()!!
+
     return manager.getTemplatesInCategory(CATEGORY_APPLICATION)
       .filter { manager.getTemplateMetadata(it)?.formFactor != null }
       .flatMap { templateFile ->
@@ -42,7 +49,21 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
 
         fun File.getIcon(): Icon = getTemplateIcon(TemplateHandle(this))!!
         fun createTemplateEntry(isLibrary: Boolean, icon: Icon, title: String = metadata.title!!) =
-          AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, isLibrary, icon, title, metadata.description!!)
+          if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get() && title == message("android.wizard.module.new.mobile"))
+            AndroidModuleTemplateGalleryEntry(
+              null,
+              { appTitle: String? ->
+                { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle) }
+              },
+              FormFactor.MOBILE,
+              LOWEST_ACTIVE_API,
+              false,
+              AndroidIcons.Wizards.AndroidModule,
+              title,
+              message("android.wizard.module.new.mobile.description")
+            )
+          else
+            AndroidModuleTemplateGalleryEntry(templateFile, null, formFactor, minSdk, isLibrary, icon, title, metadata.description!!)
 
         val templateIcon = templateFile.getIcon()
 
@@ -60,14 +81,20 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   }
 
   private class AndroidModuleTemplateGalleryEntry(
-    override val templateFile: File,
+    override val templateFile: File?,
+    override val recipe: NewAndroidModuleRecipe?,
     override val formFactor: FormFactor,
     private val minSdkLevel: Int,
     override val isLibrary: Boolean,
     override val icon: Icon,
     override val name: String,
-    override val description: String) : ModuleTemplateGalleryEntry {
+    override val description: String
+  ) : ModuleTemplateGalleryEntry {
     override fun toString(): String = name
+
+    init {
+      requireNotNull(templateFile ?: recipe)
+    }
 
     override fun createStep(model: NewModuleModel): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()

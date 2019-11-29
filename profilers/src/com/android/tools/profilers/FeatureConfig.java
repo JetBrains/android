@@ -25,9 +25,6 @@ public interface FeatureConfig {
   boolean isCpuCaptureStageEnabled();
   boolean isCpuNewRecordingWorkflowEnabled();
   boolean isEnergyProfilerEnabled();
-  boolean isExportCpuTraceEnabled();
-  boolean isFragmentsEnabled();
-  boolean isImportCpuTraceEnabled();
   boolean isJniReferenceTrackingEnabled();
   boolean isLiveAllocationsEnabled();
   boolean isLiveAllocationsSamplingEnabled();
@@ -37,8 +34,6 @@ public interface FeatureConfig {
   boolean isPerformanceMonitoringEnabled();
   boolean isAuditsEnabled();
   boolean isCustomEventVisualizationEnabled();
-  boolean isSessionImportEnabled();
-  boolean isSimpleperfHostEnabled();
   boolean isStartupCpuProfilingEnabled();
   boolean isUnifiedPipelineEnabled();
   // Add new features alphabetically instead of at the end of the list

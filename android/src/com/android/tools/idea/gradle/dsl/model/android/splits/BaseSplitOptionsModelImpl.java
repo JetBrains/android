@@ -28,9 +28,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public abstract class BaseSplitOptionsModelImpl extends GradleDslBlockModel implements BaseSplitOptionsModel {
-  @NonNls private static final String ENABLE = "enable";
-  @NonNls private static final String EXCLUDE = "exclude";
-  @NonNls private static final String INCLUDE = "include";
+  @NonNls public static final String ENABLE = "mEnable";
+  @NonNls public static final String EXCLUDE = "mExclude";
+  @NonNls public static final String INCLUDE = "mInclude";
+
+  // This isn't in and of itself a property; instead, we use it (by string equality) to mark where in the Dsl we have reset the include
+  // property.
   @NonNls private static final String RESET = "reset";
 
   public BaseSplitOptionsModelImpl(@NotNull GradleDslBlockElement element) {
@@ -40,19 +43,19 @@ public abstract class BaseSplitOptionsModelImpl extends GradleDslBlockModel impl
   @Override
   @NotNull
   public ResolvedPropertyModel enable() {
-    return GradlePropertyModelBuilder.create(myDslElement, ENABLE).asMethod(true).buildResolved();
+    return getModelForProperty(ENABLE);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel exclude() {
-    return GradlePropertyModelBuilder.create(myDslElement, EXCLUDE).asMethod(true).buildResolved();
+    return getModelForProperty(EXCLUDE);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel include() {
-    return GradlePropertyModelBuilder.create(myDslElement, INCLUDE).asMethod(true).buildResolved();
+    return getModelForProperty(INCLUDE);
   }
 
   @Override
@@ -72,5 +75,4 @@ public abstract class BaseSplitOptionsModelImpl extends GradleDslBlockModel impl
                   .forEach(myDslElement::removeProperty);
     }
   }
-
 }

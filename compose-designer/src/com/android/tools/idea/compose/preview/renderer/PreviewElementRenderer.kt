@@ -29,13 +29,16 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executor
 import java.util.function.Supplier
 
 /**
  * Renders a single [PreviewElement] and returns a [CompletableFuture] containing the result or null if the preview could not be rendered.
  * This method will render the element asynchronously and will return immediately.
  */
-fun renderPreviewElement(facet: AndroidFacet, previewElement: PreviewElement): CompletableFuture<BufferedImage?> {
+fun renderPreviewElement(facet: AndroidFacet,
+                         previewElement: PreviewElement,
+                         executor: Executor = AppExecutorUtil.getAppExecutorService()): CompletableFuture<BufferedImage?> {
   val project = facet.module.project
 
   val file = ComposeAdapterLightVirtualFile("singlePreviewElement.xml", previewElement.toPreviewXmlString())
@@ -50,7 +53,7 @@ fun renderPreviewElement(facet: AndroidFacet, previewElement: PreviewElement): C
     .build()
 
   val renderedImageFuture = CompletableFuture.supplyAsync(Supplier<RenderTask> { renderTaskFuture.get() },
-                                                          AppExecutorUtil.getAppExecutorService())
+                                                          executor)
     .thenCompose { it.render() }
     .thenApply { if (it.renderResult.isSuccess && it.hasImage() && it.logger.brokenClasses.isEmpty()) it.renderedImage.copy else null }
 

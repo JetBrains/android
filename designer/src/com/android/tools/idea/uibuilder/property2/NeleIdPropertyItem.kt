@@ -26,10 +26,11 @@ import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.xml.XmlAttributeValue
+import com.intellij.psi.xml.XmlTag
 import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 
-class NeleIdPropertyItem(
+open class NeleIdPropertyItem(
   model: NelePropertiesModel,
   definition: AttributeDefinition?,
   componentName: String,
@@ -59,7 +60,7 @@ class NeleIdPropertyItem(
       val oldId = stripIdPrefix(super.value)
       val newId = stripIdPrefix(value)
       val newValue = toValue(newId)
-      val tag = firstTag
+      val tag = model.getPropertyTag(this)
       val attribute = if (tag != null && tag.isValid) tag.getAttribute(ATTR_ID, ANDROID_URI) else null
       val xmlValue = attribute?.valueElement
 

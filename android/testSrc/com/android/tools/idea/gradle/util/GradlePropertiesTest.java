@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.google.common.collect.Comparators;
+import com.google.common.collect.ContiguousSet;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.util.net.HttpConfigurable;
-
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Properties;
 
 /**
  * Tests for {@link GradleProperties}.
@@ -87,13 +92,43 @@ public class GradlePropertiesTest extends PlatformTestCase {
     assertEquals(host, gradleProxySetting.getHost());
     assertEquals(port, gradleProxySetting.getPort());
 
-    // Verify that username and password are removed from properties file, if authentication is disabled in IDE settings.
+    // Verify that username is removed but password not if authentication is disabled in IDE settings.
     ideSettings.PROXY_AUTHENTICATION = false;
 
     ideProxySettings = new ProxySettings(ideSettings);
     ideProxySettings.applyProxySettings(myProperties.getProperties());
 
     assertNull(myProperties.getProperty("systemProp.http.proxyUser"));
-    assertNull(myProperties.getProperty("systemProp.http.proxyPassword"));
+    assertEquals(password, myProperties.getProperty("systemProp.http.proxyPassword"));
+  }
+
+  /**
+   * Verify that the content of getSortedProperties is enumerated lexicographically. This method is used while saving files.
+   */
+  public void testGetSortedProperties() {
+    // Add a sequence of keys permuted randomly
+    Properties properties = myProperties.getProperties();
+    ArrayList<Integer> permutation = new ArrayList<>(ContiguousSet.closedOpen(0, 20));
+    Collections.shuffle(permutation);
+    permutation.forEach(index -> properties.setProperty(String.format("key%02d", index), String.format("value%02d", index)));
+    // Add some common properties
+    HttpConfigurable ideSettings = HttpConfigurable.getInstance();
+    ideSettings.USE_HTTP_PROXY = true;
+    ideSettings.PROXY_HOST = "myproxy.test.com";
+    ideSettings.PROXY_PORT = 443;
+    ideSettings.PROXY_AUTHENTICATION = true;
+    ideSettings.setProxyLogin("johndoe");
+    ideSettings.setPlainProxyPassword("123456");
+    ProxySettings ideProxySettings = new ProxySettings(ideSettings);
+    ideProxySettings.applyProxySettings(properties);
+    properties.setProperty("org.gradle.parallel", "true");
+    properties.setProperty("org.gradle.jvmargs", "-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8");
+
+    // Generated sorted properties
+    Properties sortedProperties = myProperties.getSortedProperties();
+    ArrayList<Object> list = Collections.list(sortedProperties.keys());
+
+    assertSameElements(list, properties.keySet());
+    assertTrue("getSortedProperties should be sorted: " + list, Comparators.isInOrder(list, Comparator.comparing(obj -> (String)obj)));
   }
 }

@@ -150,9 +150,6 @@ public final class CpuProfilerTest {
     Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
                        myUnifiedPipeline);
 
-    // Enable the import trace flag
-    myIdeServices.enableImportTrace(true);
-
     myCpuProfiler = new CpuProfiler(myProfilers);
     File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
@@ -166,31 +163,9 @@ public final class CpuProfilerTest {
   }
 
   @Test
-  public void importedSessionListenerShouldntBeRegisteredIfFlagIsDisabled() {
-    Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
-                       myUnifiedPipeline);
-
-    // Enable the import trace flag
-    myIdeServices.enableImportTrace(false);
-
-    myCpuProfiler = new CpuProfiler(myProfilers);
-    SessionsManager sessionsManager = myProfilers.getSessionsManager();
-    Common.Session session =
-      sessionsManager.createImportedSessionLegacy("name.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 0);
-    sessionsManager.update();
-    // Expect setting the session to fail, because session manager shouldn't be aware of Common.SessionMetaData.SessionType.CPU_CAPTURE,
-    // as we didn't register a listener for this type of captures.
-    myExpectedException.expect(AssertionError.class);
-    sessionsManager.setSession(session);
-  }
-
-  @Test
   public void traceImportHandlerShouldBeRegistered() {
     Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
                        myUnifiedPipeline);
-
-    // Enable the import trace flag
-    myIdeServices.enableImportTrace(true);
 
     myCpuProfiler = new CpuProfiler(myProfilers);
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
@@ -203,30 +178,9 @@ public final class CpuProfilerTest {
   }
 
   @Test
-  public void traceImportHandlerShouldntBeRegisteredIfFlagIsDisabled() {
-    Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
-                       myUnifiedPipeline);
-
-    // Disable the import trace flag
-    myIdeServices.enableImportTrace(false);
-
-    myCpuProfiler = new CpuProfiler(myProfilers);
-    SessionsManager sessionsManager = myProfilers.getSessionsManager();
-    File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
-
-    boolean sessionImportedSuccessfully = sessionsManager.importSessionFromFile(trace);
-    assertThat(sessionImportedSuccessfully).isFalse();
-
-    assertThat(myProfilerService.getLastImportedSessionType()).isNull();
-  }
-
-  @Test
   public void referenceToTraceFilesAreSavedPerSession() {
     Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
                        myUnifiedPipeline);
-
-    // Enable the import trace flag
-    myIdeServices.enableImportTrace(true);
 
     myCpuProfiler = new CpuProfiler(myProfilers);
     File trace1 = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
@@ -247,9 +201,6 @@ public final class CpuProfilerTest {
   public void importedSessionsStartTimeShouldBeTraceCreationTime() throws IOException {
     Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
                        myUnifiedPipeline);
-
-    // Enable the import trace flag
-    myIdeServices.enableImportTrace(true);
 
     myCpuProfiler = new CpuProfiler(myProfilers);
     File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
@@ -308,9 +259,6 @@ public final class CpuProfilerTest {
   public void reimportTraceShouldSelectSameSession() throws IOException {
     Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
                        myUnifiedPipeline);
-
-    // Enable the import trace flag
-    myIdeServices.enableImportTrace(true);
 
     myCpuProfiler = new CpuProfiler(myProfilers);
     File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");

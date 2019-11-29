@@ -15,27 +15,26 @@
  */
 package com.android.tools.idea.sqlite.model
 
-import com.android.tools.idea.sqlite.SqliteService
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.vfs.VirtualFile
+import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import java.sql.JDBCType
 
 /**
  * Representation of a database instance.
  */
-data class SqliteDatabase(
-  val virtualFile: VirtualFile,
-  val sqliteService: SqliteService
-) : Disposable {
+sealed class SqliteDatabase {
+  /**
+   * Human readable name of the database.
+   */
+  abstract val name: String
 
-  // TODO(b/139525976)
-  val name = virtualFile.path.split("data/data/").getOrNull(1)?.replace("databases/", "")
-             ?: virtualFile.path
-
-  override fun dispose() {
-    sqliteService.closeDatabase().get()
-  }
+  /**
+   * A connection to the database.
+   */
+  abstract val databaseConnection: DatabaseConnection
 }
+
+data class LiveSqliteDatabase(override val name: String, override val databaseConnection: DatabaseConnection) : SqliteDatabase()
+data class FileSqliteDatabase(override val name: String, override val databaseConnection: DatabaseConnection) : SqliteDatabase()
 
 /** Representation of the Sqlite database schema */
 data class SqliteSchema(val tables: List<SqliteTable>)

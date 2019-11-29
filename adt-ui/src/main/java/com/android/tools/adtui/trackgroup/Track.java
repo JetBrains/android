@@ -29,6 +29,11 @@ import org.jetbrains.annotations.NotNull;
  * Represents horizontal data visualization (e.g. time-based data series), used in a {@link TrackGroup}.
  */
 public class Track {
+  /**
+   * The first column displays the title header. The second column displays the track content.
+   */
+  public static final String COL_SIZES = "150px,*";
+
   private final JPanel myComponent;
 
   private Track(@NotNull TrackModel trackModel, @NotNull JComponent trackComponent) {
@@ -38,7 +43,7 @@ public class Track {
 
     trackComponent.setBorder(new JBEmptyBorder(4, 0, 4, 0));
 
-    myComponent = new JPanel(new TabularLayout("150px,*", "Fit"));
+    myComponent = new JPanel(new TabularLayout(COL_SIZES, "Fit"));
     if (trackModel.getHideHeader()) {
       myComponent.add(trackComponent, new TabularLayout.Constraint(0, 0, 2));
     }

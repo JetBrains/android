@@ -16,9 +16,16 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.SwingEllipse
+import com.android.tools.adtui.common.SwingFont
 import com.android.tools.adtui.common.SwingLength
+import com.android.tools.adtui.common.SwingPath
 import com.android.tools.adtui.common.SwingPoint
 import com.android.tools.adtui.common.SwingRectangle
+import com.android.tools.adtui.common.SwingStroke
+import com.android.tools.adtui.common.scaledSwingLength
+import com.android.tools.adtui.common.times
+import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.model.scaledAndroidLength
 import com.android.tools.idea.common.model.times
 import com.android.tools.idea.common.scene.LerpEllipse
@@ -29,19 +36,12 @@ import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
 import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.util.ui.JBUI
-import java.awt.BasicStroke
 import java.awt.Color
-import java.awt.Font
-import java.awt.geom.Ellipse2D
-import java.awt.geom.Path2D
-import java.awt.geom.Point2D
-import java.awt.geom.Rectangle2D
-import java.awt.geom.RoundRectangle2D
+import kotlin.math.min
 
 @VisibleForTesting
 const val DEFAULT_FONT_NAME = "Default"
-private val DEFAULT_FONT_SIZE = JBUI.scale(12)
+private val DEFAULT_FONT_SIZE = scaledAndroidLength(12f)
 
 val INNER_RADIUS_SMALL = scaledAndroidLength(5f)
 val INNER_RADIUS_LARGE = scaledAndroidLength(8f)
@@ -49,7 +49,7 @@ val OUTER_RADIUS_SMALL = scaledAndroidLength(7f)
 val OUTER_RADIUS_LARGE = scaledAndroidLength(11f)
 
 @SwingCoordinate
-val HANDLE_STROKE = BasicStroke(JBUI.scale(2).toFloat())
+val HANDLE_STROKE = SwingStroke(scaledSwingLength(2f))
 
 val FRAGMENT_BORDER_SPACING = scaledAndroidLength(2f)
 val ACTION_HANDLE_OFFSET = FRAGMENT_BORDER_SPACING + scaledAndroidLength(2f)
@@ -64,14 +64,13 @@ val HEADER_TEXT_HEIGHT = HEADER_ICON_SIZE - 2 * HEADER_TEXT_PADDING
 val ACTION_ARROW_PARALLEL = scaledAndroidLength(10f)
 val ACTION_ARROW_PERPENDICULAR = scaledAndroidLength(12f)
 
-fun regularFont(scale: Float, style: Int): Font {
-  val size = scale * DEFAULT_FONT_SIZE
-  return Font(DEFAULT_FONT_NAME, style, size.toInt())
+fun regularFont(scale: Scale, style: Int): SwingFont {
+  return SwingFont(DEFAULT_FONT_NAME, style, scale * DEFAULT_FONT_SIZE)
 }
 
-fun scaledFont(scale: Float, style: Int): Font {
-  val size = (scale * (2.0 - Math.min(scale, 1f))) * DEFAULT_FONT_SIZE // keep font size slightly larger at smaller scales
-  return Font(DEFAULT_FONT_NAME, style, size.toInt())
+fun scaledFont(scale: Scale, style: Int): SwingFont {
+  val newScale = scale.value.let { Scale(it * (2.0 - min(it, 1.0))) }  // keep font size slightly larger at smaller scales
+  return regularFont(newScale, style)
 }
 
 fun createDrawImageCommand(rectangle: SwingRectangle, image: RefinableImage?): DrawCommand {
@@ -83,16 +82,16 @@ fun createDrawImageCommand(rectangle: SwingRectangle, image: RefinableImage?): D
   }
 }
 
-fun makeCircle(center: SwingPoint, radius: SwingLength): Ellipse2D.Float {
+fun makeCircle(center: SwingPoint, radius: SwingLength): SwingEllipse {
   val x = center.x - radius
   val y = center.y - radius
-  return Ellipse2D.Float(x.value, y.value, 2 * radius.value, 2 * radius.value)
+  return SwingEllipse(x, y, 2 * radius, 2 * radius)
 }
 
 fun makeCircleLerp(center: SwingPoint, initialRadius: SwingLength, finalRadius: SwingLength, duration: Int): LerpEllipse {
   val initialCircle = makeCircle(center, initialRadius)
   val finalCircle = makeCircle(center, finalRadius)
-  return LerpEllipse(initialCircle, finalCircle, duration)
+  return LerpEllipse(initialCircle.value, finalCircle.value, duration)
 }
 
 fun getHeaderRect(context: SceneContext, rectangle: SwingRectangle): SwingRectangle {
@@ -108,25 +107,25 @@ enum class ArrowDirection {
 }
 
 fun makeDrawArrowCommand(rectangle: SwingRectangle, direction: ArrowDirection, color: Color): DrawCommand {
-  val left = rectangle.x.value
-  val right = left + rectangle.width.value
+  val left = rectangle.x
+  val right = left + rectangle.width
 
   val xValues = when (direction) {
-    ArrowDirection.LEFT -> floatArrayOf(right, left, right)
-    ArrowDirection.RIGHT -> floatArrayOf(left, right, left)
-    else -> floatArrayOf(left, (left + right) / 2, right)
+    ArrowDirection.LEFT -> arrayOf(right, left, right)
+    ArrowDirection.RIGHT -> arrayOf(left, right, left)
+    else -> arrayOf(left, left + (right - left) / 2, right)
   }
 
-  val top = rectangle.y.value
-  val bottom = top + rectangle.height.value
+  val top = rectangle.y
+  val bottom = top + rectangle.height
 
   val yValues = when (direction) {
-    ArrowDirection.UP -> floatArrayOf(bottom, top, bottom)
-    ArrowDirection.DOWN -> floatArrayOf(top, bottom, top)
-    else -> floatArrayOf(top, (top + bottom) / 2, bottom)
+    ArrowDirection.UP -> arrayOf(bottom, top, bottom)
+    ArrowDirection.DOWN -> arrayOf(top, bottom, top)
+    else -> arrayOf(top, top + (bottom - top) / 2, bottom)
   }
 
-  val path = Path2D.Float()
+  val path = SwingPath()
   path.moveTo(xValues[0], yValues[0])
 
   for (i in 1 until xValues.count()) {
@@ -134,6 +133,6 @@ fun makeDrawArrowCommand(rectangle: SwingRectangle, direction: ArrowDirection, c
   }
   path.closePath()
 
-  return FillShape(path, color)
+  return FillShape(path.value, color)
 }
 

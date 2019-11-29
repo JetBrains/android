@@ -22,7 +22,7 @@ public class AndroidConversionTest extends PlatformTestCase {
     final File testData = new File(testDataPath, "before");
     final File tempDir = FileUtil.createTempDirectory("project", null);
     FileUtil.copyDir(testData, tempDir);
-    ProjectConversionTestUtil.convert(tempDir.getAbsolutePath());
+    ProjectConversionTestUtil.convert(tempDir.toPath());
     final File expectedDataDir = new File(testDataPath, "after");
     PlatformTestUtil.assertDirectoriesEqual(
       LocalFileSystem.getInstance().refreshAndFindFileByIoFile(expectedDataDir),

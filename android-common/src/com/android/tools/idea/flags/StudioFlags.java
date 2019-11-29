@@ -81,9 +81,19 @@ public final class StudioFlags {
     "Show JDK Setup Step in Welcome Wizard",
     true);
 
-  public static final Flag<Boolean> NPW_EXPERIMENTAL_ACTIVITY_GALLERY = Flag.create(
-    NPW, "experimental.activity.gallery", "Show experimental activity gallery",
-    "Show experimental activity gallery which contains Kotlin templates passed through plugin in addition to the normal gallery",
+  public static final Flag<Boolean> NPW_NEW_PROJECT_TEMPLATE = Flag.create(
+    NPW, "new.project.template", "Use the new project template",
+    "Use the new Kotlin-based template system for new project creation over the old Freemarker system.",
+    true);
+
+  public static final Flag<Boolean> NPW_NEW_MODULE_TEMPLATES = Flag.create(
+    NPW, "new.module.templates", "Use new module templates",
+    "Use the new Kotlin-based template system for module templates over the old Freemarker system when it is available.",
+    true);
+
+  public static final Flag<Boolean> NPW_NEW_ACTIVITY_TEMPLATES = Flag.create(
+    NPW, "new.activity.templates", "Use new activity templates",
+    "Use the new Kotlin-based template system for activity templates over the old Freemarker system when it is available .",
     true);
 
   public static final Flag<Boolean> NPW_SHOW_FRAGMENT_GALLERY = Flag.create(
@@ -101,44 +111,14 @@ public final class StudioFlags {
     "CpuProfilerStageView flow.",
     false);
 
-  public static final Flag<Boolean> PROFILER_FRAGMENT_PROFILER_ENABLED = Flag.create(
-    PROFILER, "event.fragment", "Enable fragment profiling",
-    "Shows fragment information in event profiler's activity bar and tooltip.",
-    true);
-
   public static final Flag<Boolean> PROFILER_UNIFIED_PIPELINE = Flag.create(
     PROFILER, "unified.pipeline", "Enables new event pipeline to be used for core components.",
     "Toggles usage of gRPC apis to fetch data from perfd and the datastore.",
     true);
 
-  public static final Flag<Boolean> PROFILER_IMPORT_SESSION = Flag.create(
-    PROFILER, "import.session", "Enable the session import dialog",
-    "Shows the file open drop down menu for session import.",
-    true);
-
   public static final Flag<Boolean> PROFILER_ENERGY_PROFILER_ENABLED = Flag.create(
     PROFILER, "energy", "Enable Energy profiling",
     "Enable the new energy profiler. It monitors battery usage of the selected app.", true);
-
-  public static final Flag<Boolean> PROFILER_IMPORT_CPU_TRACE = Flag.create(
-    PROFILER, "cpu.import.trace", "Enable CPU trace importing",
-    "Add the option to import CPU trace files when right-clicking the CPU profiler usage chart.",
-    true);
-
-  public static final Flag<Boolean> PROFILER_EXPORT_CPU_TRACE = Flag.create(
-    PROFILER, "cpu.export.trace", "Enable CPU trace exporting",
-    "Add the option to export CPU trace files when right-clicking a CPU capture.",
-    true);
-
-  public static final Flag<Boolean> PROFILER_SIMPLEPERF_HOST = Flag.create(
-    PROFILER, "cpu.simpleperf.host", "Enable simpleperf report-sample to be run on the host.",
-    "If enabled, simpleperf report-sample commands are going to be run on the host instead of the device.",
-    true);
-
-  public static final Flag<Boolean> PROFILER_OPEN_CAPTURES = Flag.create(
-    PROFILER, "profiler.open.captures", "Enable opening .trace and .hprof files",
-    "Allow opening .hprof and .trace files (e.g. File -> Open; via Drag & Drop) which imports them into Android Profiler.",
-    true);
 
   public static final Flag<Boolean> PROFILER_STARTUP_CPU_PROFILING = Flag.create(
     PROFILER, "startup.cpu.profiling", "Enable startup CPU Profiling",
@@ -277,11 +257,6 @@ public final class StudioFlags {
     "Enable the new Property Panel",
     true);
 
-  public static final Flag<Boolean> NELE_NEW_PROPERTY_PANEL_WITH_TABS = Flag.create(
-    NELE, "new.property.tabs", "Use a tab panel to switch to the advanced table",
-    "Use a tab panel to switch to advanced",
-    false);
-
   public static final Flag<Boolean> NELE_DRAG_PLACEHOLDER = Flag.create(
     NELE, "drag.placeholder", "Dragging widgets with Placeholders",
     "New architecture for dragging widgets in Layout Editor",
@@ -301,11 +276,6 @@ public final class StudioFlags {
     NELE, "property.panel.actionbar", "Property Panel Actionbar",
     "Support Actionbar in property panel",
     false);
-
-  public static final Flag<Boolean> NELE_DISPLAY_MODEL_NAME = Flag.create(
-    NELE, "display.model.name", "Display Model Name",
-    "Enable the feature which can display the model name in Layout Editor.",
-    true);
 
   public static final Flag<Boolean> NELE_CUSTOM_VIEW_PREVIEW = Flag.create(
     NELE, "show.custom.view.preview", "Show Custom View Preview",
@@ -327,10 +297,20 @@ public final class StudioFlags {
     "Enable Visualisation Tool to preview layouts in multiple color blind modes at the same time",
     true);
 
+  public static final Flag<Boolean> NELE_LARGE_FONT_MODE = Flag.create(
+    NELE, "large.font.mode", "Large Font Mode",
+    "Enable Visualisation Tool to preview layouts in multiple font sizes at the same time",
+    true);
+
   public static final Flag<Boolean> NELE_NEW_INTERACTION_INTERFACE = Flag.create(
     NELE, "new.interaction.interface", "New Interaction Interface",
     "Enable new interaction interface in design surface.",
     true);
+
+  public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
+    NELE, "show.source.code.editor", "New Source Code Editor",
+    "Enable new source code editor with preview(s) coming as a substitute to Compose and Custom View editors.",
+    false);
   //endregion
 
   //region Navigation Editor
@@ -438,15 +418,16 @@ public final class StudioFlags {
     GRADLE_IDE, "jdk.allow.different", "Allow different Gradle JDK", "Allow usage of a different JDK version when running Gradle.", true);
   //endregion
 
-  //region SQLite Inspector
-  private static final FlagGroup SQLITE_VIEWER = new FlagGroup(FLAGS, "sqlite.viewer", "SQLite Viewer");
-  public static final Flag<Boolean> SQLITE_VIEWER_ENABLED = Flag.create(
-    SQLITE_VIEWER, "enabled", "Enable the SQLite database viewer",
-    "If enabled, SQLite files downloaded from Android devices or emulators are open in a custom SQLite editor window",
+  //region Database Inspector
+  private static final FlagGroup DATABASE_INSPECTOR = new FlagGroup(FLAGS, "database.inspector", "Database Inspector");
+  public static final Flag<Boolean> DATABASE_INSPECTOR_ENABLED = Flag.create(
+    DATABASE_INSPECTOR, "enabled", "Enable Database Inspector",
+    "If enabled the Database Inspector tool window will appear. SQLite files opened from the Device Explorer will be opened in the inspector.",
     false);
 
+  // TODO(b/144073974) why do we need a separate flag for this?
   public static final Flag<Boolean> SQLITE_APP_INSPECTOR_ENABLED = Flag.create(
-    SQLITE_VIEWER, "sqlite.app.inspector", "Enable experimental SQLite inspector",
+    DATABASE_INSPECTOR, "sqlite.app.inspector", "Enable experimental SQLite inspector",
     "SQLite inspector runs and executes all operations in app process",
     false);
   //endregion
@@ -480,12 +461,6 @@ public final class StudioFlags {
 
   //region Refactorings
   private static final FlagGroup REFACTORINGS = new FlagGroup(FLAGS, "refactor", "Refactor menu");
-  public static final Flag<Boolean> MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED = Flag.create(
-    REFACTORINGS, "migrateto.appcompat.enabled", "Enable the Migrate to AppCompat refactoring",
-    "If enabled, show the action in the refactoring menu", true);
-  public static final Flag<Boolean> MIGRATE_TO_ANDROID_X_REFACTORING_ENABLED = Flag.create(
-    REFACTORINGS, "migrateto.androidx.enabled", "Enable the Migrate to AndroidX refactoring",
-    "If enabled, show the action in the refactoring menu", true);
   public static final Flag<Boolean> MIGRATE_TO_RESOURCE_NAMESPACES_REFACTORING_ENABLED = Flag.create(
     REFACTORINGS, "migrateto.resourcenamespaces.enabled", "Enable the Migrate to Resource Namespaces refactoring",
     "If enabled, show the action in the refactoring menu", false);
@@ -703,6 +678,17 @@ public final class StudioFlags {
     "If enabled, a visual preview will be available for Compose.",
     true);
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD = Flag.create(
+    COMPOSE, "preview.fast.build.enabled", "Enable the use of \"compileDebugKotlin\" for the preview refresh",
+    "If enabled, the refresh button will only trigger the \"compileDebugKotlin\" task as opposed to others like" +
+    "\"generateDebugSources\" or \"compileJava\".",
+    true);
+
+  public static final Flag<Boolean> COMPOSE_PREVIEW_AUTO_BUILD = Flag.create(
+    COMPOSE, "preview.auto.build.enabled", "Enable the compose auto-build",
+    "If enabled, the preview will automatically trigger a build after the user finishes typing.",
+    false);
+
   public static final Flag<Boolean> COMPOSE_COMPLETION_PRESENTATION = Flag.create(
     COMPOSE, "completion.presentation",
     "Custom presentation for code completion items for composable functions",
@@ -738,6 +724,20 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION = Flag.create(
+    COMPOSE, "documentation.render.sample",
+    "Render samples of compose elements inside documentation",
+    "If enabled, adds rendered image of sample for compose element if such exists",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION_SLOW = Flag.create(
+    COMPOSE, "documentation.render.sample.slow",
+    "Slow down rendering of samples of compose elements inside documentation",
+    "If enabled, slow down rendering of samples of compose elements inside documentation, this flag is used for demonstration of non-blocking behavior",
+    false
+  );
+
   //endregion
 
   //region Manifests
@@ -746,6 +746,7 @@ public final class StudioFlags {
     MANIFESTS, "index.enabled", "Enable Android Manifest Indexing",
     "Enables a custom index for pre-parsing your project's AndroidManifest.xml files",
     true);
+
   //endregion
   private StudioFlags() { }
 }

@@ -19,6 +19,7 @@ import com.android.build.attribution.ui.TreeNodeSelector
 import com.android.build.attribution.ui.colorIcon
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
+import com.android.build.attribution.ui.TaskIssueReporter
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
@@ -48,7 +49,8 @@ import javax.swing.JComponent
 class CriticalPathPluginsRoot(
   private val criticalPathUiData: CriticalPathPluginsUiData,
   parent: SimpleNode,
-  private val nodeSelector: TreeNodeSelector
+  private val nodeSelector: TreeNodeSelector,
+  private val issueReporter: TaskIssueReporter
 ) : AbstractBuildAttributionNode(parent, "Plugins With Critical Path Tasks") {
 
   private val chartItems: List<ChartDataItem<CriticalPathPluginUiData>> = createPluginChartItems(criticalPathUiData)
@@ -71,9 +73,9 @@ class CriticalPathPluginsRoot(
     for (item in chartItems) {
       when (item) {
         is SingularChartDataItem<CriticalPathPluginUiData> ->
-          nodes.add(PluginNode(item.underlyingData, chartItems, item, this, nodeSelector))
+          nodes.add(PluginNode(item.underlyingData, chartItems, item, this, nodeSelector, issueReporter))
         is AggregatedChartDataItem<CriticalPathPluginUiData> ->
-          item.underlyingData.forEach { nodes.add(PluginNode(it, chartItems, item, this, nodeSelector)) }
+          item.underlyingData.forEach { nodes.add(PluginNode(it, chartItems, item, this, nodeSelector, issueReporter)) }
       }
     }
     return nodes.toTypedArray()
@@ -99,7 +101,8 @@ private class PluginNode(
   private val chartItems: List<ChartDataItem<CriticalPathPluginUiData>>,
   private val selectedChartItem: ChartDataItem<CriticalPathPluginUiData>,
   parent: SimpleNode,
-  private val nodeSelector: TreeNodeSelector
+  private val nodeSelector: TreeNodeSelector,
+  private val issueReporter: TaskIssueReporter
 ) : AbstractBuildAttributionNode(parent, pluginData.name) {
 
   private val issueRoots = HashMap<TaskIssueType, PluginIssueRootNode>()
@@ -132,7 +135,7 @@ private class PluginNode(
     nodes.add(PluginTasksRootNode(pluginData, chartItems, selectedChartItem, this, issueClickListener))
     pluginData.issues.forEach { issuesGroup ->
       nodes.add(
-        PluginIssueRootNode(issuesGroup, pluginData, this, nodeSelector)
+        PluginIssueRootNode(issuesGroup, pluginData, this, nodeSelector, issueReporter)
           .also { issueRoots[issuesGroup.type] = it }
       )
     }
@@ -193,7 +196,8 @@ private class PluginIssueRootNode(
   private val issuesGroup: TaskIssuesGroup,
   private val pluginUiData: CriticalPathPluginUiData,
   parent: SimpleNode,
-  private val nodeSelector: TreeNodeSelector
+  private val nodeSelector: TreeNodeSelector,
+  private val issueReporter: TaskIssueReporter
 ) : AbstractBuildAttributionNode(parent, issuesGroup.type.uiName), TreeLinkListener<TaskIssueUiData> {
 
   override val presentationIcon: Icon? = null
@@ -218,6 +222,6 @@ private class PluginIssueRootNode(
   }
 
   override fun buildChildren(): Array<SimpleNode> = issuesGroup.issues
-    .map { issue -> TaskIssueNode(issue, this) }
+    .map { issue -> TaskIssueNode(issue, this, issueReporter) }
     .toTypedArray()
 }

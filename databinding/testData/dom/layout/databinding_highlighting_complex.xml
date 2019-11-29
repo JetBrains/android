@@ -10,9 +10,9 @@
         <variable name="boxedBoolean" type="Boolean"/>
         <variable name="list" type="List&lt;String&gt;"/>
         <variable name="map" type="MyMap&lt;String, Integer&gt;"/>
-        <variable name="unresolvedType1" type="<error descr="Cannot resolve symbol 'Map'">Map&lt;String, Integer&gt;</error>"/>
+        <variable name="unresolvedType1" type="<error descr="Cannot resolve symbol 'Map'">Map</error>&lt;String, Integer&gt;"/>
         <variable name="unresolvedType2" type="<error descr="Cannot resolve symbol 'Bogus'">List&lt;Bogus&gt;</error>"/>
-        <variable name="unresolvedType3" type="<error descr="Cannot resolve symbol 'Bogus'">Bogus&lt;String&gt;</error>"/>
+        <variable name="unresolvedType3" type="<error descr="Cannot resolve symbol 'Bogus'">Bogus</error>&lt;String&gt;"/>
     </data>
     <LinearLayout
         android:orientation="horizontal" android:layout_width="wrap_content"

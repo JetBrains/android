@@ -39,7 +39,13 @@ open class DesignToolsSplitEditor(textEditor: TextEditor,
                                   editorName: String,
                                   private val project: Project)
   : SplitEditor<DesignerEditor>(textEditor, designerEditor, editorName,
-                if (AndroidEditorSettings.getInstance().globalState.isPreferXmlEditor) Layout.SHOW_EDITOR else Layout.SHOW_PREVIEW) {
+                if (AndroidEditorSettings.getInstance().globalState.isPreferXmlEditor) Layout.SHOW_EDITOR else {
+                  when (designerEditor.component.surface.state) {
+                    DesignSurface.State.FULL -> Layout.SHOW_PREVIEW
+                    DesignSurface.State.SPLIT -> Layout.SHOW_EDITOR_AND_PREVIEW
+                    DesignSurface.State.DEACTIVATED -> Layout.SHOW_EDITOR
+                  }
+                }) {
 
   private val propertiesComponent = PropertiesComponent.getInstance()
 

@@ -17,7 +17,7 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.sqlite.mocks.MockParametersBindingDialogView
-import com.android.tools.idea.sqlite.mocks.MockSqliteEditorViewFactory
+import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
 import com.intellij.openapi.util.Disposer
@@ -35,7 +35,7 @@ class ParametersBindingControllerTest : PlatformTestCase() {
   override fun setUp() {
     super.setUp()
 
-    val factory = MockSqliteEditorViewFactory()
+    val factory = MockDatabaseInspectorViewsFactory()
     view = spy(factory.parametersBindingDialogView)
     orderVerifier = Mockito.inOrder(view)
 
@@ -55,7 +55,6 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     orderVerifier.verify(view).addListener(any(ParametersBindingDialogView.Listener::class.java))
     orderVerifier.verify(view).showNamedParameters(setOf("param1", "param2"))
-    orderVerifier.verify(view).show()
   }
 
   fun testRunStatement() {

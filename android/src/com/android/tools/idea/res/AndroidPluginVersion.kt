@@ -16,7 +16,7 @@
 @file:JvmName("AndroidPluginVersion")
 package com.android.tools.idea.res
 
-import com.intellij.ide.plugins.PluginManager
+import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.extensions.PluginId
 
 private const val ANDROID_PLUGIN_ID = "org.jetbrains.android"
@@ -25,4 +25,4 @@ private const val ANDROID_PLUGIN_ID = "org.jetbrains.android"
  * Returns the version of the Android IDE plugin, or null if not running inside an IDE.
  */
 fun getAndroidPluginVersion() =
-    PluginManager.getPlugin(PluginId.getId(ANDROID_PLUGIN_ID))?.version
+    PluginManagerCore.getPlugin(PluginId.getId(ANDROID_PLUGIN_ID))?.version

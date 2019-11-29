@@ -38,6 +38,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.wireless.android.sdk.stats.AdbAssistantStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -215,7 +216,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
         Logger.getInstance(DeployTargetPickerDialog.class).info("Unable to obtain list of AVDs", tt);
         thePanel.stopLoading();
       }
-    });
+    }, MoreExecutors.directExecutor());
   }
 
   @Nullable

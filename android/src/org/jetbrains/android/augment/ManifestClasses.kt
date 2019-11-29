@@ -21,6 +21,7 @@ import com.android.tools.idea.res.AndroidClassWithOnlyInnerClassesBase
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.text.StringUtil.getShortName
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
@@ -75,9 +76,9 @@ class ManifestClass(
     return classes.toTypedArray()
   }
 
-  override fun getInnerClassesDependencies(): Array<Any> {
+  override fun getInnerClassesDependencies(): ModificationTracker {
     // TODO(b/110188226): implement a ModificationTracker for the set of existing manifest files.
-    return arrayOf(AndroidPsiUtils.getXmlPsiModificationTracker(project))
+    return AndroidPsiUtils.getXmlPsiModificationTracker(project)
   }
 }
 

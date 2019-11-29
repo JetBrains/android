@@ -23,11 +23,11 @@ import com.android.tools.idea.deviceExplorer.FileHandler
 import com.android.tools.idea.explorer.mocks.MockDeviceFileEntry
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystem
 import com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService
-import com.intellij.openapi.extensions.Extensions
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.registerExtension
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.ide.PooledThreadExecutor
@@ -120,7 +120,7 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
     // Setup
     val mockFileHandler = mock(FileHandler::class.java)
     `when`(mockFileHandler.getAdditionalDevicePaths(eq("/foo/bar1"), any(VirtualFile::class.java))).thenReturn(listOf("/foo/bar2"))
-    PlatformTestUtil.registerExtension(Extensions.getRootArea(), FileHandler.EP_NAME, mockFileHandler, testRootDisposable)
+    ApplicationManager.getApplication().registerExtension(FileHandler.EP_NAME, mockFileHandler, testRootDisposable)
 
     val downloadProgress = mock(DownloadProgress::class.java)
 
@@ -150,7 +150,7 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
   fun testDownloadFileEntryAdditionalEntriesDifferentParent() {
     // Setup
     val fileHandler = FileHandler { _, _ -> listOf("/foo2/bar1") }
-    PlatformTestUtil.registerExtension(Extensions.getRootArea(), FileHandler.EP_NAME, fileHandler, testRootDisposable)
+    ApplicationManager.getApplication().registerExtension(FileHandler.EP_NAME, fileHandler, testRootDisposable)
 
     val downloadProgress = mock(DownloadProgress::class.java)
 

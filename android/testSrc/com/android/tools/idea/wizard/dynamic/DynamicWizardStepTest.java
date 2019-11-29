@@ -137,7 +137,7 @@ public class DynamicWizardStepTest extends TestCase {
     @Nullable
     @Override
     public Icon getIcon() {
-      return AndroidIcons.Wizards.NewModuleSidePanel;
+      return AndroidIcons.Wizards.AndroidModule;
     }
 
     @Override

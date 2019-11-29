@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.project.DefaultModuleSystem
+import com.android.tools.idea.projectsystem.CodeShrinker
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.completion.JavaPsiClassReferenceElement
+import org.jetbrains.android.AndroidTestCase
 
 class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
 
@@ -444,5 +449,42 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
 
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).doesNotContain("static")
+  }
+}
+
+class ProguardR8FlagsCodeCompletion : AndroidTestCase() {
+  override fun setUp() {
+    StudioFlags.R8_SUPPORT_ENABLED.override(true)
+    super.setUp()
+  }
+
+  override fun tearDown() {
+    StudioFlags.R8_SUPPORT_ENABLED.clearOverride()
+    super.tearDown()
+  }
+
+  fun testFlagSuggestionRegardinShrinkerType() {
+    (myModule.getModuleSystem() as DefaultModuleSystem).codeShrinker = CodeShrinker.R8
+
+    val justProguardFlag = PROGUARD_FLAGS.minus(R8_FLAGS).first()
+    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
+        -$caret
+    """.trimIndent())
+
+    myFixture.completeBasic()
+    var flags = myFixture.lookupElementStrings
+
+    assertThat(flags).doesNotContain(justProguardFlag)
+
+    (myModule.getModuleSystem() as DefaultModuleSystem).codeShrinker = CodeShrinker.PROGUARD
+
+    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
+        -$caret
+    """.trimIndent())
+
+    myFixture.completeBasic()
+    flags = myFixture.lookupElementStrings
+
+    assertThat(flags).contains(justProguardFlag)
   }
 }

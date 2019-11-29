@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui
 
+import com.google.common.base.Function
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -38,12 +39,16 @@ internal fun <I, O> ListenableFuture<I>.continueOnEdt(function: (I) -> O) =
     })
 
 internal fun <T> ListenableFuture<T>.handleFailureOnEdt(function: (Throwable?) -> Unit): ListenableFuture<T> =
-  Futures.catching(this, Throwable::class.java) { ex ->
-    val application = ApplicationManager.getApplication()
-    if (application.isDispatchThread) function(ex)
-    else application.invokeLater({ function(ex) }, ModalityState.any())
-    null
-  }
+  Futures.catching(
+    this,
+    Throwable::class.java,
+    Function<Throwable?, T> { ex ->
+      val application = ApplicationManager.getApplication()
+      if (application.isDispatchThread) function(ex)
+      else application.invokeLater({ function(ex) }, ModalityState.any())
+      null
+    },
+    MoreExecutors.directExecutor())
 
 internal fun <I, O> ListenableFuture<I>.invokeLater(function: (I) -> O) =
   Futures.transform(

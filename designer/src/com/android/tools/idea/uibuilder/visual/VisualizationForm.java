@@ -25,6 +25,7 @@ import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.editor.ActionToolbarUtil;
+import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.res.ResourceHelper;
@@ -57,6 +58,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.DefaultFocusTraversalPolicy;
+import java.awt.event.AdjustmentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -79,7 +81,7 @@ import org.jetbrains.annotations.Nullable;
  * Most of the codes are copied from {@link NlPreviewForm} instead of sharing, because {@link NlPreviewForm} is being
  * removed after we enable split editor.
  */
-public class VisualizationForm implements Disposable, ConfigurationSetListener {
+public class VisualizationForm implements Disposable, ConfigurationSetListener, PanZoomListener {
 
   public static final String VISUALIZATION_DESIGN_SURFACE = "VisualizationFormDesignSurface";
 
@@ -100,7 +102,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   private VirtualFile myFile;
   private boolean isActive = false;
   private JComponent myContentPanel;
-  private ActionToolbar myActionToolbar;
+  private JComponent myActionToolbarPanel;
   private JLabel myFileNameLabel;
 
   /**
@@ -121,7 +123,8 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
 
   private FileEditor myEditor;
 
-  @NotNull private ConfigurationSet myCurrentConfigurationSet = ConfigurationSet.PIXEL_DEVICES;
+  @NotNull private ConfigurationSet myCurrentConfigurationSet;
+  @NotNull private VisualizationModelsProvider myCurrentModelsProvider;
 
   /**
    * {@link CompletableFuture} of the next model load. This is kept so the load can be cancelled.
@@ -130,16 +133,22 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
 
   public VisualizationForm(@NotNull Project project) {
     myProject = project;
+    myCurrentConfigurationSet = VisualizationToolSettings.getInstance().getGlobalState().getConfigurationSet();
+    myCurrentModelsProvider = myCurrentConfigurationSet.getModelsProviderCreator().invoke(this);
+
     mySurface = NlDesignSurface.builder(myProject, myProject)
       .showModelNames()
       .setIsPreview(false)
-      .setEditable(false)
+      .setEditable(true)
       .setActionManagerProvider((surface) -> new VisualizationActionManager((NlDesignSurface) surface))
+      .setInteractionHandlerProvider((surface) -> new VisualizationInteractionHandler(surface, () -> myCurrentModelsProvider ))
       .setLayoutManager(new GridSurfaceLayoutManager(DEFAULT_SCREEN_OFFSET_X,
                                                      DEFAULT_SCREEN_OFFSET_Y,
                                                      HORIZONTAL_SCREEN_DELTA,
                                                      VERTICAL_SCREEN_DELTA))
       .build();
+    mySurface.addPanZoomListener(this);
+
     updateScreenMode();
     Disposer.register(this, mySurface);
     mySurface.setCentered(true);
@@ -172,7 +181,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   private void updateScreenMode() {
     switch (myCurrentConfigurationSet) {
       case COLOR_BLIND_MODE:
-        mySurface.setScreenMode(SceneMode.COLOR_BLIND_MODE, false);
+        mySurface.setScreenMode(SceneMode.COLOR_BLIND, false);
         break;
       default:
         mySurface.setScreenMode(SceneMode.VISUALIZATION, false);
@@ -183,21 +192,39 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   @NotNull
   private JComponent createToolbarPanel() {
     myFileNameLabel = new JLabel();
-    ActionGroup group = new DefaultActionGroup(new ConfigurationSetMenuAction(this, myCurrentConfigurationSet));
+    myActionToolbarPanel = new AdtPrimaryPanel(new BorderLayout());
+    myActionToolbarPanel.addMouseListener(myClickToFocusWindowListener);
+
+    JComponent toolbarRootPanel = new AdtPrimaryPanel(new BorderLayout());
+    toolbarRootPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
+                                                              BorderFactory.createEmptyBorder(0, 6, 0, 0)));
+
+    toolbarRootPanel.add(myFileNameLabel, BorderLayout.WEST);
+    toolbarRootPanel.add(myActionToolbarPanel, BorderLayout.CENTER);
+    toolbarRootPanel.addMouseListener(myClickToFocusWindowListener);
+
+    updateActionToolbar();
+    return toolbarRootPanel;
+  }
+
+  private void updateActionToolbar() {
+    myActionToolbarPanel.removeAll();
+    DefaultActionGroup group = new DefaultActionGroup(new ConfigurationSetMenuAction(this, myCurrentConfigurationSet));
+    if (myFile != null) {
+      PsiFile file = PsiManager.getInstance(myProject).findFile(myFile);
+      AndroidFacet facet = file != null ? AndroidFacet.getInstance(file) : null;
+      if (facet != null) {
+        ActionGroup configurationActions = myCurrentModelsProvider.createActions(file, facet);
+        group.addAll(configurationActions);
+      }
+    }
     // Use ActionPlaces.EDITOR_TOOLBAR as place to update the ui when appearance is changed.
     // In IJ's implementation, only the actions in ActionPlaces.EDITOR_TOOLBAR toolbar will be tweaked when ui is changed.
     // See com.intellij.openapi.actionSystem.impl.ActionToolbarImpl.tweakActionComponentUI()
-    myActionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, group, true);
-    ActionToolbarUtil.makeToolbarNavigable(myActionToolbar);
-
-    JComponent toolbarPanel = new AdtPrimaryPanel(new BorderLayout());
-    toolbarPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
-                                                              BorderFactory.createEmptyBorder(0, 6, 0, 0)));
-    toolbarPanel.add(myFileNameLabel, BorderLayout.WEST);
-    toolbarPanel.add(myActionToolbar.getComponent(), BorderLayout.CENTER);
-    toolbarPanel.addMouseListener(myClickToFocusWindowListener);
-    myActionToolbar.getComponent().addMouseListener(myClickToFocusWindowListener);
-    return toolbarPanel;
+    ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, group, true);
+    actionToolbar.updateActionsImmediately();
+    ActionToolbarUtil.makeToolbarNavigable(actionToolbar);
+    myActionToolbarPanel.add(actionToolbar.getComponent(), BorderLayout.CENTER);
   }
 
   private void createContentPanel() {
@@ -209,6 +236,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
     if (editor != myEditor) {
       myEditor = editor;
       mySurface.setFileEditorDelegate(editor);
+      updateActionToolbar();
     }
   }
 
@@ -236,7 +264,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
     for (NlModel model : models) {
       model.deactivate(this);
       mySurface.removeModel(model);
-      mySurface.zoomToFit();
       Disposer.dispose(model);
     }
   }
@@ -340,7 +367,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
       .supplyAsync(() -> {
         // Hide the content while adding the models.
         myWorkBench.hideContent();
-        List<NlModel> models = myCurrentConfigurationSet.getModelsProvider().createNlModels(this, file, facet);
+        List<NlModel> models = myCurrentModelsProvider.createNlModels(this, file, facet);
         if (models.isEmpty()) {
           myWorkBench.showLoading("No Device Found");
           return null;
@@ -375,7 +402,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
         addModelFuture.thenRunAsync(() -> {
           if (!isRequestCancelled.get() && !facet.isDisposed() && !isAddingModelCanceled.get()) {
             activeModels(models);
-            mySurface.setScale(0.25 / mySurface.getScreenScalingFactor());
+            mySurface.setScale(VisualizationToolSettings.getInstance().getGlobalState().getScale() / mySurface.getScreenScalingFactor());
             myWorkBench.showContent();
           }
           else {
@@ -422,7 +449,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
     }
     else {
       myFile = models.get(0).getVirtualFile();
-      mySurface.zoomToFit();
       setEditor(myPendingEditor);
       myPendingEditor = null;
 
@@ -472,14 +498,28 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   }
 
   @Override
-  public void onConfigurationSetChanged(@NotNull ConfigurationSet newConfigurationSet) {
+  public void onSelectedConfigurationSetChanged(@NotNull ConfigurationSet newConfigurationSet) {
     if (myCurrentConfigurationSet != newConfigurationSet) {
       myCurrentConfigurationSet = newConfigurationSet;
-      updateScreenMode();
-      myActionToolbar.updateActionsImmediately();
-      // Dispose old models and create new models with new configuration set.
-      initNeleModel();
+      VisualizationToolSettings.getInstance().getGlobalState().setConfigurationSet(newConfigurationSet);
+      myCurrentModelsProvider = newConfigurationSet.getModelsProviderCreator().invoke(this);
+      refresh();
     }
+  }
+
+  @Override
+  public void onCurrentConfigurationSetUpdated() {
+    refresh();
+  }
+
+  /**
+   * Refresh the previews. This recreates the {@link NlModel}s from the current {@link ConfigurationSet}.
+   */
+  private void refresh() {
+    updateScreenMode();
+    updateActionToolbar();
+    // Dispose old models and create new models with new configuration set.
+    initNeleModel();
   }
 
   private NlAnalyticsManager getAnalyticsManager() {
@@ -489,6 +529,16 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener {
   @Nullable
   public final FileEditor getEditor() {
     return myEditor;
+  }
+
+  @Override
+  public void zoomChanged() {
+    VisualizationToolSettings.getInstance().getGlobalState().setScale(mySurface.getScale());
+  }
+
+  @Override
+  public void panningChanged(AdjustmentEvent adjustmentEvent) {
+    // Do nothing.
   }
 
   private static class VisualizationTraversalPolicy extends DefaultFocusTraversalPolicy {

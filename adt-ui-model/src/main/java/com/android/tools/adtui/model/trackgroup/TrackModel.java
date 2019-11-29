@@ -16,7 +16,9 @@
 package com.android.tools.adtui.model.trackgroup;
 
 import com.android.tools.adtui.model.DragAndDropModelListElement;
+import com.android.tools.adtui.model.TooltipModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Data model for Track, a generic UI component for representing horizontal data visualization.
@@ -30,6 +32,7 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
   private final String myTitle;
   private final boolean myHideHeader;
   private final int myId;
+  private final TooltipModel myTooltipModel;
 
   private TrackModel(@NotNull Builder<M, R> builder) {
     myDataModel = builder.myDataModel;
@@ -37,6 +40,7 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
     myTitle = builder.myTitle;
     myHideHeader = builder.myHideHeader;
     myId = builder.myId;
+    myTooltipModel = builder.myTooltipModel;
   }
 
   @NotNull
@@ -69,6 +73,11 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
     return myId;
   }
 
+  @Nullable
+  public TooltipModel getTooltipModel() {
+    return myTooltipModel;
+  }
+
   /**
    * Instantiates a new builder with parameters required for the track model.
    *
@@ -86,6 +95,7 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
     private final String myTitle;
     private boolean myHideHeader;
     private int myId;
+    private TooltipModel myTooltipModel;
 
     private Builder(@NotNull M dataModel, @NotNull R rendererType, @NotNull String title) {
       myDataModel = dataModel;
@@ -93,6 +103,7 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
       myTitle = title;
       myHideHeader = false;
       myId = -1;
+      myTooltipModel = null;
     }
 
     public Builder<M, R> setHideHeader(boolean hideHeader) {
@@ -105,6 +116,11 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
      */
     protected Builder<M, R> setId(int id) {
       myId = id;
+      return this;
+    }
+
+    public Builder<M, R> setTooltipModel(TooltipModel tooltipModel) {
+      myTooltipModel = tooltipModel;
       return this;
     }
 

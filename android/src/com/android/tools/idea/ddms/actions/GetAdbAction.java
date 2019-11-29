@@ -20,6 +20,7 @@ import com.android.tools.idea.adb.AdbService;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -63,6 +64,6 @@ public class GetAdbAction extends AnAction {
       public void onFailure(Throwable t) {
         Notifications.Bus.notify(new Notification("Android", "ADB", "ADB error: " + t.toString(), NotificationType.INFORMATION));
       }
-    });
+    }, MoreExecutors.directExecutor());
   }
 }

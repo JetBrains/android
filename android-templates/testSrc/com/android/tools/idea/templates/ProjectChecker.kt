@@ -26,16 +26,22 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker.Request
 import com.android.tools.idea.io.FilePaths
+import com.android.tools.idea.npw.model.doRender
 import com.android.tools.idea.npw.model.render
+import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
+import com.android.tools.idea.npw.module.recipes.benchmarkModule.generateBenchmarkModule
+import com.android.tools.idea.npw.module.recipes.pureLibrary.generatePureLibrary
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.setGradleWrapperExecutable
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.templates.Template.titleToTemplateRenderer
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_AIDL_OUT
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_ANDROIDX_SUPPORT
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_TITLE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API_STRING
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_TOOLS_VERSION
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_CLASS_NAME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_GRADLE_PLUGIN_VERSION
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_HAS_APPLICATION_THEME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LAUNCHER
@@ -65,10 +71,13 @@ import com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesFor
 import com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.util.toIoFile
+import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.BooleanParameter
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.StringParameter
+import com.android.tools.idea.wizard.template.TemplateData
 import com.android.tools.idea.wizard.template.ThemesData
 import com.android.tools.idea.wizard.template.WizardParameterData
 import com.google.common.base.Charsets.UTF_8
@@ -90,13 +99,19 @@ import java.io.File
 import java.io.IOException
 import com.android.tools.idea.wizard.template.Template as Template2
 
+enum class ActivityCreationMode {
+  WITH_PROJECT,
+  WITHOUT_PROJECT, // first we will create a project and module and then an activity
+  DO_NOT_CREATE
+}
+
 data class ProjectChecker(
   private val syncProject: Boolean,
   private val projectState: TestNewProjectWizardState,
   private val activityState: TestTemplateWizardState,
   private val usageTracker: TestUsageTracker,
   private val language: Language,
-  private val createActivityWithProject: Boolean
+  private val activityCreationMode: ActivityCreationMode
 ) {
   private val moduleState: TestTemplateWizardState get() = projectState.moduleTemplateState
 
@@ -136,7 +151,9 @@ data class ProjectChecker(
   private fun Project.verify(language: Language) {
     val projectDir = getBaseDirPath(this)
     verifyLanguageFiles(projectDir, language)
-    invokeGradleForProjectDir(projectDir)
+    if(basePath?.contains("PureLibrary") != true) { // we cannot build a project which has only pure library module
+      invokeGradleForProjectDir(projectDir)
+    }
     lintIfNeeded(this)
   }
 
@@ -211,23 +228,17 @@ data class ProjectChecker(
   }
 
   private fun createProjectForNewRenderingContext(
-    project: Project, activityState: TestTemplateWizardState, newTemplate: Template2
+    project: Project, moduleName: String, activityState: TestTemplateWizardState, newTemplate: Template2? = null, recipe: Recipe? = null
   ) {
+    requireNotNull(newTemplate ?: recipe) { "Either a template or a recipe should be passed" }
+    require(newTemplate == null || recipe == null) { "Either a template or a recipe should be passed, not both" }
     val isLauncher = activityState.getBoolean(ATTR_IS_LAUNCHER)
     val packageName = activityState.getString(ATTR_PACKAGE_NAME)
     val generateLayout = activityState["generateLayout"] as Boolean?
     val projectRoot = VfsUtilCore.virtualToIoFile(project.guessProjectDir()!!)
-    val modifiedModuleName = getModifiedModuleName(project.name, activityState, true)
-    val moduleRoot = File(projectRoot, modifiedModuleName)
-    val projectTemplateDataBuilder = ProjectTemplateDataBuilder(!createActivityWithProject).apply {
-      minApi = activityState.getString(ATTR_MIN_API)
-      minApiLevel = activityState.getInt(ATTR_MIN_API_LEVEL)
-      buildApi = activityState.getInt(ATTR_BUILD_API)
+    val moduleRoot = File(projectRoot, moduleName)
+    val projectTemplateDataBuilder = ProjectTemplateDataBuilder(activityCreationMode == ActivityCreationMode.WITHOUT_PROJECT).apply {
       androidXSupport = activityState.getBoolean(ATTR_ANDROIDX_SUPPORT)
-      buildApiString = activityState.getString(ATTR_BUILD_API_STRING)
-      buildApiRevision = 0
-      targetApi = activityState.getInt(ATTR_TARGET_API)
-      targetApiString = activityState.getString(ATTR_TARGET_API_STRING)
       gradlePluginVersion = GradleVersion.tryParse(activityState.getString(ATTR_GRADLE_PLUGIN_VERSION))
       javaVersion = JavaVersion.parse("1.8")
       sdkDir = File(activityState.getString(ATTR_SDK_DIR))
@@ -237,6 +248,17 @@ data class ProjectChecker(
       topOut = File(activityState.getString(ATTR_TOP_OUT))
       applicationPackage = null
     }
+
+    val apis = ApiTemplateData(
+      minApi = activityState.getString(ATTR_MIN_API),
+      minApiLevel = activityState.getInt(ATTR_MIN_API_LEVEL),
+      buildApi = activityState.getInt(ATTR_BUILD_API),
+      buildApiString = activityState.getString(ATTR_BUILD_API_STRING),
+      buildApiRevision = 0,
+      targetApi = activityState.getInt(ATTR_TARGET_API),
+      targetApiString = activityState.getString(ATTR_TARGET_API_STRING)
+    )
+
     val moduleTemplateData = ModuleTemplateData(
       projectTemplateDataBuilder.build(),
       File(activityState.getString(ATTR_SRC_OUT)),
@@ -254,8 +276,10 @@ data class ProjectChecker(
       packageName,
       FormFactor.Mobile,
       ThemesData(),
-      null
+      null,
+      apis
     )
+
     val context = RenderingContext2(
       project = project,
       module = null,
@@ -265,14 +289,24 @@ data class ProjectChecker(
       dryRun = false,
       showErrors = true
     )
+
     val executor = DefaultRecipeExecutor2(context)
     // Updates wizardParameterData for all parameters.
-    WizardParameterData(packageName, false, "main", newTemplate.parameters)
-    (newTemplate.parameters.find { it.name == "Package name" } as StringParameter?)?.value = packageName
-    (newTemplate.parameters.find { it.name == "Generate a Layout File" } as BooleanParameter?)?.value = generateLayout!!
-    (newTemplate.parameters.find { it.name == "Launcher Activity" } as BooleanParameter?)?.value = isLauncher!!
-    runWriteAction {
-      newTemplate.render(context, executor)
+    if (newTemplate != null) {
+      WizardParameterData(packageName, false, "main", newTemplate.parameters)
+      (newTemplate.parameters.find { it.name == "Package name" } as StringParameter?)?.value = packageName
+      (newTemplate.parameters.find { it.name == "Generate a Layout File" } as BooleanParameter?)?.value = generateLayout!!
+      (newTemplate.parameters.find { it.name == "Launcher Activity" } as BooleanParameter?)?.value = isLauncher!!
+      // TODO: More generalized way of overriding the parameters
+      activityState["multipleScreens"]?.let {multipleScreens ->
+        (newTemplate.parameters.find { it.name == "Split settings hierarchy into separate sub-screens" } as BooleanParameter?)?.value =
+          multipleScreens as Boolean
+      }
+      runWriteAction {
+        newTemplate.render(context, executor)
+      }
+    } else {
+      recipe!!.doRender(context, executor)
     }
   }
 
@@ -312,33 +346,63 @@ data class ProjectChecker(
     fun Template.renderAndCheck(templateValues: Map<String, Any>) {
       val context = createRenderingContext(this, this@create, projectRoot, moduleRoot, templateValues)
       render(context, false)
-      verifyLastLoggedUsage(usageTracker, titleToTemplateRenderer(metadata!!.title), templateValues)
+      verifyLastLoggedUsage(usageTracker, titleToTemplateRenderer(metadata!!.title, metadata!!.formFactor), templateValues)
     }
 
     // TODO(qumeric): should it be projectState.templateValues?
     projectState.projectTemplate.renderAndCheck(moduleState.templateValues)
     setGradleWrapperExecutable(projectRoot)
-    moduleState.template.renderAndCheck(moduleState.templateValues)
 
-    if (createActivityWithProject) {
-      val activityState = projectState.activityTemplateState
-      activityState.template.renderAndCheck(activityState.templateValues)
-    }
-    else {
-      val template = activityState.template
-      activityState.apply {
-        put(ATTR_TOP_OUT, projectPath)
-        put(ATTR_MODULE_NAME, moduleName)
-        put(ATTR_SOURCE_PROVIDER_NAME, "main")
-        populateDirectoryParameters()
-      }
+    // if mode is "DO_NOT_CREATE" then "activityState" actually contains module state
+    if (activityCreationMode != ActivityCreationMode.DO_NOT_CREATE) {
       if (isNewRenderingContext) {
-        val newTemplates = TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
-        val newTemplate = newTemplates.find { it.name == template.metadata?.title }!!
-        createProjectForNewRenderingContext(this, activityState, newTemplate)
+        val appTitle = moduleState.getString(ATTR_APP_TITLE)
+        val recipe: Recipe = { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle) }
+        createProjectForNewRenderingContext(this, moduleName, activityState, recipe = recipe)
       }
       else {
-        template.renderAndCheck(activityState.templateValues)
+        moduleState.template.renderAndCheck(moduleState.templateValues)
+      }
+    }
+
+    when (activityCreationMode) {
+      ActivityCreationMode.WITH_PROJECT -> {
+        val activityState = projectState.activityTemplateState
+        activityState.template.renderAndCheck(activityState.templateValues)
+      }
+      ActivityCreationMode.WITHOUT_PROJECT -> {
+        val template = activityState.template
+        activityState.apply {
+          put(ATTR_TOP_OUT, projectPath)
+          put(ATTR_MODULE_NAME, moduleName)
+          put(ATTR_SOURCE_PROVIDER_NAME, "main")
+          populateDirectoryParameters()
+        }
+        if (isNewRenderingContext) {
+          val newTemplates = TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
+          val newTemplate = newTemplates.find { it.name == template.metadata?.title }!!
+          createProjectForNewRenderingContext(this, moduleName, activityState, newTemplate)
+        }
+        else {
+          template.renderAndCheck(activityState.templateValues)
+        }
+      }
+      ActivityCreationMode.DO_NOT_CREATE -> {
+        if (isNewRenderingContext) {
+          val appTitle = moduleState[ATTR_APP_TITLE] as String?
+          val className = moduleState[ATTR_CLASS_NAME] as String?
+          val recipe: Recipe = { data: TemplateData ->
+            when {
+              moduleName.contains("NewAndroidModule") -> this.generateAndroidModule(data as ModuleTemplateData, appTitle!!)
+              moduleName.contains("NewJavaOrKotlinLibrary") -> this.generatePureLibrary(data as ModuleTemplateData, className!!)
+              moduleName.contains("NewBenchmarkModule") -> this.generateBenchmarkModule(data as ModuleTemplateData)
+              else -> throw IllegalArgumentException("given module name ($moduleName) is unknown")
+            }
+          }
+          createProjectForNewRenderingContext(this, moduleName, activityState, recipe = recipe)
+        } else {
+          activityState.template.renderAndCheck(activityState.templateValues)
+        }
       }
     }
 
@@ -350,7 +414,7 @@ data class ProjectChecker(
      * Set of relative file paths that are going to be excluded from the comparison of [compareFilesBetweenNewAndOldRenderingContexts].
      */
     private val comparisonExcludedPaths = setOf(
-      "gradle/wrapper/gradle-wrapper.properties" // Created time should be different
+      "gradle/wrapper/gradle-wrapper.properties" // Creation time may be different
     )
 
     // It is fine to do comparison ignoring whitespace because we do format all files after rendering anyway.

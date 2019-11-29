@@ -15,11 +15,28 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.profilers.ProfilerMonitorTooltip;
+import com.android.tools.adtui.model.Timeline;
+import com.android.tools.adtui.model.TooltipModel;
+import com.android.tools.adtui.model.event.EventModel;
+import com.android.tools.adtui.model.event.UserEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class UserEventTooltip extends ProfilerMonitorTooltip<EventMonitor> {
-  public UserEventTooltip(@NotNull EventMonitor eventMonitor) {
-    super(eventMonitor);
+public class UserEventTooltip implements TooltipModel {
+  @NotNull private final Timeline myTimeline;
+  @NotNull private final EventModel<UserEvent> myUserEvents;
+
+  public UserEventTooltip(@NotNull Timeline timeline, @NotNull EventModel<UserEvent> userEvents) {
+    myTimeline = timeline;
+    myUserEvents = userEvents;
+  }
+
+  @NotNull
+  public Timeline getTimeline() {
+    return myTimeline;
+  }
+
+  @NotNull
+  public EventModel<UserEvent> getUserEvents() {
+    return myUserEvents;
   }
 }

@@ -57,6 +57,64 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     assertThat(qName!!.resolveToPsiClass()).isEqualTo(myFixture.findClass("test.MyClass"))
   }
 
+  fun testResolvePsiClassFromQualifiedNameInQuotes() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      class MyClass {}
+    """.trimIndent())
+
+    //double quotes
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class "test.MyClas${caret}s" {}
+      """.trimIndent())
+
+    var qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8QualifiedName::class)
+
+    assertThat(qName).isNotNull()
+    assertThat(qName!!.resolveToPsiClass()).isEqualTo(myFixture.findClass("test.MyClass"))
+
+    //single quotes
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class 'test.MyClas${caret}s' {}
+      """.trimIndent())
+
+    qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8QualifiedName::class)
+
+    assertThat(qName).isNotNull()
+    assertThat(qName!!.resolveToPsiClass()).isEqualTo(myFixture.findClass("test.MyClass"))
+
+    // unterminated quotes
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class "test.MyClas${caret}s
+      """.trimIndent())
+
+    qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8QualifiedName::class)
+
+    assertThat(qName).isNotNull()
+    assertThat(qName!!.resolveToPsiClass()).isEqualTo(myFixture.findClass("test.MyClass"))
+
+    // unterminated quotes
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class test.MyClas${caret}s' {}
+      """.trimIndent())
+
+    qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8QualifiedName::class)
+
+    assertThat(qName).isNotNull()
+    assertThat(qName!!.resolveToPsiClass()).isEqualTo(myFixture.findClass("test.MyClass"))
+  }
+
   fun testMatchesArrayType() {
     myFixture.addClass(
       //language=JAVA

@@ -17,14 +17,15 @@ package com.android.tools.idea.gradle.dsl.parser.files;
 
 
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.SOURCE_COMPATIBILITY_ATTRIBUTE_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_ATTRIBUTE_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl.SOURCE_COMPATIBILITY;
+import static com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl.TARGET_COMPATIBILITY;
+import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA;
 
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -54,16 +55,32 @@ public class GradleBuildFile extends GradleDslFile {
 
   @Override
   public void setParsedElement(@NotNull GradleDslElement element) {
-    if ((SOURCE_COMPATIBILITY_ATTRIBUTE_NAME.equals(element.getName()) || TARGET_COMPATIBILITY_ATTRIBUTE_NAME.equals(element.getName())) &&
-        (element instanceof GradleDslLiteral)) {
-      JavaDslElement javaDslElement = getPropertyElement(JAVA_BLOCK_NAME, JavaDslElement.class);
+    // TODO(xof): explicit renaming here is ugly, but a GradleDslFile is not a GradleBlockDslElement, but a
+    //  GradlePropertiesDslElement.  Maybe we should rethink where in the hierarchy the renaming logic should go?
+
+    if (element instanceof GradleDslLiteral) {
+      // This is only in setParsedElement, not addParsedElement, because these are only supported as properties, not as setter methods.
+      //
+      // TODO(xof): these are only supported in Groovy.  Or maybe the criterion is something else?
+      if (element.getName().equals("sourceCompatibility")) {
+        element.getNameElement().canonize(SOURCE_COMPATIBILITY); // NOTYPO
+      }
+      else if (element.getName().equals("targetCompatibility")) {
+        element.getNameElement().canonize(TARGET_COMPATIBILITY); // NOTYPO
+      }
+      else {
+        super.setParsedElement(element);
+        return;
+      }
+      JavaDslElement javaDslElement = getPropertyElement(JAVA);
       if (javaDslElement == null) {
-        javaDslElement = new JavaDslElement(this);
-        super.setParsedElement(javaDslElement);
+        javaDslElement = new JavaDslElement(this, GradleNameElement.create(JAVA.name));
+        setParsedElement(javaDslElement);
       }
       javaDslElement.setParsedElement(element);
       return;
     }
+
     super.setParsedElement(element);
   }
 }

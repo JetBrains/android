@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.model
 
 import com.android.SdkConstants
+import com.android.tools.idea.flags.StudioFlags.NPW_NEW_MODULE_TEMPLATES
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
 import com.android.tools.idea.npw.FormFactor
@@ -41,10 +42,19 @@ import java.util.Locale
 
 private val log: Logger get() = logger<NewProjectModuleModel>()
 
+/**
+ * Orchestrates creation of the new project. Creates three steps (Project, Model, Activity) and renders them in a proper order.
+ */
 class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardModel() {
   @JvmField
   val formFactor = ObjectValueProperty(FormFactor.MOBILE)
-  private val newModuleModel = NewModuleModel(projectModel, File(""), createDummyTemplate(), formFactor)
+  private val newModuleModel = NewModuleModel(
+    projectModel,
+    File("").takeUnless { NPW_NEW_MODULE_TEMPLATES.get() },
+    null,
+    createDummyTemplate(),
+    formFactor
+  )
   /**
    * A model which is used at the optional step after usual activity configuring. Currently only used for Android Things.
    */

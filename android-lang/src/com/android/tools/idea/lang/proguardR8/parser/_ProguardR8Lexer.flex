@@ -24,7 +24,7 @@ import static com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.*;
 
 WHITE_SPACE=\s+
 
-FLAG=-[a-z]+
+FLAG_TOKEN=-[a-z]+
 FILE_NAME=[\w\-./<>*?]+
 
 UNTERMINATED_SINGLE_QUOTED_STRING = '(\\'|[^'])*
@@ -51,7 +51,7 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
 <YYINITIAL> {
     {WHITE_SPACE}                          { return WHITE_SPACE; }
     "@"                                    { yybegin(STATE_FILE_NAME); return AT; }
-    {FLAG}                                 { yybegin(STATE_FLAG_ARGS); return FLAG; }
+    {FLAG_TOKEN}                           { yybegin(STATE_FLAG_ARGS); return FLAG_TOKEN; }
     {LINE_CMT}                             { return LINE_CMT; }
 }
 
@@ -90,13 +90,13 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
   "class"                                { yybegin(STATE_JAVA_SECTION_HEADER); return CLASS; }
   "enum"                                 { yybegin(STATE_JAVA_SECTION_HEADER); return ENUM; }
 
-  {FLAG}                                 {  yypushback(yytext().length()); yybegin(YYINITIAL); }
-  {FILE_NAME}                            { return FILE_NAME; }
+  {FLAG_TOKEN}                        {  yypushback(yytext().length()); yybegin(YYINITIAL); }
+  {FILE_NAME}                         { return FILE_NAME; }
   {SINGLE_QUOTED_STRING}              { return SINGLE_QUOTED_STRING; }
   {DOUBLE_QUOTED_STRING}              { return DOUBLE_QUOTED_STRING; }
   {UNTERMINATED_SINGLE_QUOTED_STRING} { return UNTERMINATED_SINGLE_QUOTED_STRING; }
   {UNTERMINATED_DOUBLE_QUOTED_STRING} { return UNTERMINATED_DOUBLE_QUOTED_STRING; }
-  {LINE_CMT}                             { return LINE_CMT; }
+  {LINE_CMT}                          { return LINE_CMT; }
 }
 
 <STATE_JAVA_SECTION_HEADER> {
@@ -130,7 +130,7 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
   {UNTERMINATED_DOUBLE_QUOTED_STRING}    { return UNTERMINATED_DOUBLE_QUOTED_CLASS; }
   {JAVA_IDENTIFIER}                      { return JAVA_IDENTIFIER; }
   {JAVA_IDENTIFIER_WITH_WILDCARDS}       { return JAVA_IDENTIFIER_WITH_WILDCARDS; }
-  {FLAG}                                 { yypushback(yytext().length()); yybegin(YYINITIAL);}
+  {FLAG_TOKEN}                           { yypushback(yytext().length()); yybegin(YYINITIAL);}
   {LINE_CMT}                             { return LINE_CMT; }
 }
 

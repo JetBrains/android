@@ -20,12 +20,10 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
-import com.android.ide.common.resources.ResourceVisitor;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
@@ -50,34 +48,19 @@ public abstract class AbstractResourceRepositoryWithLocking extends AbstractReso
    */
   public static final Object ITEM_MAP_LOCK = new Object();
 
-  /**
-   * Returns the fully computed {@link ResourceTable} for this repository.
-   *
-   * <p>The returned object should be accessed only while holding {@link #ITEM_MAP_LOCK}.
-   */
-  @GuardedBy("AbstractResourceRepositoryWithLocking.ITEM_MAP_LOCK")
-  @NotNull
-  protected abstract ResourceTable getFullTable();
-
-  @GuardedBy("AbstractResourceRepositoryWithLocking.ITEM_MAP_LOCK")
+  @SuppressWarnings("InstanceGuardedByStatic")
+  @GuardedBy("ITEM_MAP_LOCK")
   @Nullable
   protected abstract ListMultimap<String, ResourceItem> getMap(
-      @NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType, boolean create);
+      @NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType);
 
-  @GuardedBy("AbstractResourceRepositoryWithLocking.ITEM_MAP_LOCK")
-  @NotNull
-  protected final ListMultimap<String, ResourceItem> getOrCreateMap(
-      @NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType) {
-    //noinspection ConstantConditions - won't return null if create is false.
-    return getMap(namespace, resourceType, true);
-  }
-
-  @GuardedBy("AbstractResourceRepositoryWithLocking.ITEM_MAP_LOCK")
+  @SuppressWarnings("InstanceGuardedByStatic")
+  @GuardedBy("ITEM_MAP_LOCK")
   @Override
   @NotNull
   protected ListMultimap<String, ResourceItem> getResourcesInternal(
       @NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType) {
-    ListMultimap<String, ResourceItem> map = getMap(namespace, resourceType, false);
+    ListMultimap<String, ResourceItem> map = getMap(namespace, resourceType);
     return map == null ? ImmutableListMultimap.of() : map;
   }
 
@@ -107,22 +90,6 @@ public abstract class AbstractResourceRepositoryWithLocking extends AbstractReso
     synchronized (ITEM_MAP_LOCK) {
       return super.getResources(namespace, resourceType);
     }
-  }
-
-  @Override
-  @NotNull
-  public ResourceVisitor.VisitResult accept(@NotNull ResourceVisitor visitor) {
-    synchronized (ITEM_MAP_LOCK) {
-      for (Map.Entry<ResourceNamespace, Map<ResourceType, ListMultimap<String, ResourceItem>>> entry : getFullTable().rowMap().entrySet()) {
-        if (visitor.shouldVisitNamespace(entry.getKey())) {
-          if (acceptByResources(entry.getValue(), visitor) == ResourceVisitor.VisitResult.ABORT) {
-            return ResourceVisitor.VisitResult.ABORT;
-          }
-        }
-      }
-    }
-
-    return ResourceVisitor.VisitResult.CONTINUE;
   }
 
   @Override

@@ -25,6 +25,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.Projects.getBaseDirPath
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
@@ -43,13 +44,14 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_APPLICATION_PACK
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BASE_FEATURE_DIR
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API_STRING
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_DYNAMIC_FEATURE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_NAME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
 import com.android.tools.idea.templates.TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP
 import com.android.tools.idea.templates.TemplateUtils.hasExtension
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
-import com.android.tools.idea.templates.mergeGradleSettingsFile
 import com.android.tools.idea.templates.mergeXml
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2.DryRunRecipeIO
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2.RecipeIO
@@ -228,7 +230,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
 
     val buildFile = findGradleBuildFile(File(toModule))
 
-    // TODO(qumeric) handle it in a better way?
     val buildModel = getBuildModel(buildFile, context.project) ?: return
     buildModel.dependencies().addModule(configuration, ":$moduleName")
     io.applyChanges(buildModel)
@@ -336,7 +337,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
         readTextFromDisk(sourceFile) ?: return
 
       val contents: String = when {
-        targetFile.name == GRADLE_PROJECT_SETTINGS_FILE -> mergeGradleSettingsFile(sourceText, targetText)
         targetFile.name == FN_BUILD_GRADLE -> {
           val compileSdkVersion = paramMap[ATTR_BUILD_API_STRING] as String
           io.mergeBuildFiles(sourceText, targetText, context.project, compileSdkVersion)
@@ -368,6 +368,16 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     }
     catch (e: IOException) {
       throw RuntimeException(e)
+    }
+  }
+
+  /**
+   * Adds a module dependency to global settings.gradle[.kts] file.
+   */
+  override fun addIncludeToSettings(moduleName: String?) {
+    ProjectBuildModel.get(context.project).projectSettingsModel?.apply {
+      addModulePath(moduleName ?: context.paramMap[ATTR_MODULE_NAME] as String)
+      io.applyChanges(this)
     }
   }
 
@@ -428,7 +438,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     updateCompatibility(currentSourceCompatibility)
     updateCompatibility(currentTargetCompatibility)
 
-    if (!parseBoolean(kotlinSupport, "kotlinSupport")) {
+    if (!parseBoolean(kotlinSupport, "kotlinSupport") || context.paramMap[ATTR_IS_DYNAMIC_FEATURE] == true) {
       io.applyChanges(buildModel)
       return
     }
@@ -440,6 +450,20 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
       currentKotlinJvmTarget.setValue(version)
     }
 
+    io.applyChanges(buildModel)
+  }
+
+  override fun addDynamicFeature(name: String, toModule: String) {
+    require(name.isNotEmpty() && toModule.isNotEmpty()) {
+      "Module name cannot be empty"
+    }
+    // Translate from "configuration" to "implementation" based on the parameter map context
+    val buildFile = findGradleBuildFile(File(toModule))
+
+    val gradleName = ':' + name.trimStart(':')
+    // TODO(qumeric) handle it in a better way?
+    val buildModel = getBuildModel(buildFile, context.project) ?: return
+    buildModel.android().dynamicFeatures().addListValue().setValue(gradleName)
     io.applyChanges(buildModel)
   }
 

@@ -1,11 +1,11 @@
 android {
   signingConfigs {
     create("release") {
-      storeFile = file("release.keystore")
-      storePassword = "password"
-      storeType = "type"
-      keyAlias = "myReleaseKey"
-      keyPassword = "releaseKeyPassword"
+      setStoreFile(file("release.keystore"))
+      setStorePassword("password")
+      setStoreType("type")
+      setKeyAlias("myReleaseKey")
+      setKeyPassword("releaseKeyPassword")
     }
   }
 }

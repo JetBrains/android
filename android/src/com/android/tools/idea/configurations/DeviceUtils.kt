@@ -49,14 +49,32 @@ enum class DeviceGroup {
  *
  * The order of devices is ascending by its screen size.
  *
+ * @see groupDevices
  * @see DeviceGroup
  * @return map of sorted devices
  */
 fun getSuitableDevices(configuration: Configuration): Map<DeviceGroup, List<Device>> = DEVICE_CACHES.getOrPut(configuration) {
-  val configurationManager = configuration.configurationManager
-  val deviceList = configurationManager.devices
+  return groupDevices(configuration.configurationManager.devices)
+}
 
-  return deviceList.filterNot { Configuration.CUSTOM_DEVICE_ID == it.id || ConfigurationManager.isAvdDevice(it) }
+/**
+ * Group the given devices by [DeviceGroup]:
+ * - For Nexus/Pixel devices which diagonal Length < 5 inch: [DeviceGroup.NEXUS]
+ * - Nexus/Pixel devices which diagonal Length < 6.5 inch: [DeviceGroup.NEXUS_XL]
+ * - Other Nexus/Pixel devices: [DeviceGroup.NEXUS_TABLET]
+ * - Watch devices: [DeviceGroup.WEAR]
+ * - TV devices: : [DeviceGroup.TV]
+ * - Automotive devices: [DeviceGroup.AUTOMOTIVE]
+ * - For mobiles devices which are *NOT* nexus devices: [DeviceGroup.GENERIC]
+ * - Other devices: [DeviceGroup.OTHER]
+ *
+ * The order of devices is ascending by its screen size.
+ *
+ * @see DeviceGroup
+ * @return map of sorted devices
+ */
+fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> =
+  devices.filterNot { Configuration.CUSTOM_DEVICE_ID == it.id || ConfigurationManager.isAvdDevice(it) }
     .apply { sortDevicesByScreenSize(this) }
     .groupBy {
       when {
@@ -69,7 +87,6 @@ fun getSuitableDevices(configuration: Configuration): Map<DeviceGroup, List<Devi
       }
     }
     .toSortedMap()
-}
 
 private fun sizeGroupNexus(device: Device): DeviceGroup {
   val diagonalLength = device.defaultHardware.screen.diagonalLength

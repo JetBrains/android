@@ -26,11 +26,10 @@ import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkB
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement.CMAKE_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement.NDK_BUILD_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement.CMAKE;
+import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement.NDK_BUILD;
 
-public class ExternalNativeBuildModelImpl extends GradleDslBlockModel implements
-                                                                      ExternalNativeBuildModel {
+public class ExternalNativeBuildModelImpl extends GradleDslBlockModel implements ExternalNativeBuildModel {
   public ExternalNativeBuildModelImpl(@NotNull GradlePropertiesDslElement dslElement) {
     super(dslElement);
   }
@@ -38,36 +37,28 @@ public class ExternalNativeBuildModelImpl extends GradleDslBlockModel implements
   @NotNull
   @Override
   public CMakeModel cmake() {
-    CMakeDslElement cMakeDslElement = myDslElement.getPropertyElement(CMAKE_BLOCK_NAME, CMakeDslElement.class);
-    if (cMakeDslElement == null) {
-      cMakeDslElement = new CMakeDslElement(myDslElement);
-      myDslElement.setNewElement(cMakeDslElement);
-    }
+    CMakeDslElement cMakeDslElement = myDslElement.ensurePropertyElement(CMAKE);
     return new CMakeModelImpl(cMakeDslElement);
   }
 
   @NotNull
   @Override
   public ExternalNativeBuildModel removeCMake() {
-    myDslElement.removeProperty(CMAKE_BLOCK_NAME);
+    myDslElement.removeProperty(CMAKE.name);
     return this;
   }
 
   @NotNull
   @Override
   public NdkBuildModel ndkBuild() {
-    NdkBuildDslElement ndkBuildDslElement = myDslElement.getPropertyElement(NDK_BUILD_BLOCK_NAME, NdkBuildDslElement.class);
-    if (ndkBuildDslElement == null) {
-      ndkBuildDslElement = new NdkBuildDslElement(myDslElement);
-      myDslElement.setNewElement(ndkBuildDslElement);
-    }
+    NdkBuildDslElement ndkBuildDslElement = myDslElement.ensurePropertyElement(NDK_BUILD);
     return new NdkBuildModelImpl(ndkBuildDslElement);
   }
 
   @NotNull
   @Override
   public ExternalNativeBuildModel removeNdkBuild() {
-    myDslElement.removeProperty(NDK_BUILD_BLOCK_NAME);
+    myDslElement.removeProperty(NDK_BUILD.name);
     return this;
   }
 }

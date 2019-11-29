@@ -34,7 +34,6 @@ import org.junit.runner.RunWith
 import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_TAB
 
-@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRemoteRunner::class)
 class EditableConfigurationsTest {
 
@@ -60,6 +59,7 @@ class EditableConfigurationsTest {
     GradleExperimentalSettings.getInstance().USE_NEW_PSD = GradleExperimentalSettings().USE_NEW_PSD
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   fun testEditableJarDependencyConfiguration() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
@@ -147,6 +147,7 @@ class EditableConfigurationsTest {
     }
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   fun testEditableModuleDependencyConfiguration() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
@@ -228,6 +229,7 @@ class EditableConfigurationsTest {
     }
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   fun testEditableLibraryDependencyConfiguration() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")

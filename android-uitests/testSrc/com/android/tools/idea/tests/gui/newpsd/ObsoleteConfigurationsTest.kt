@@ -39,7 +39,6 @@ import org.junit.runner.RunWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRemoteRunner::class)
 class ObsoleteConfigurationsTest {
   data class IssueAndFixes (
@@ -145,6 +144,7 @@ class ObsoleteConfigurationsTest {
     psd.clickCancel()
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   fun testQuickFixEffect() {
     val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")

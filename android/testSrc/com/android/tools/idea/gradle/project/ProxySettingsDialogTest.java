@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.util.ProxySettings;
-import com.intellij.openapi.Disposable;
-import com.intellij.testFramework.PlatformTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Properties;
-
 import static com.android.tools.idea.gradle.util.ProxySettings.HTTP_PROXY_TYPE;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.Disposer.dispose;
 import static com.intellij.openapi.util.Disposer.isDisposed;
+
+import com.android.tools.idea.gradle.util.ProxySettings;
+import com.intellij.openapi.Disposable;
+import com.intellij.testFramework.PlatformTestCase;
+import java.util.Properties;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link ProxySettingsDialog}.
@@ -72,7 +71,7 @@ public class ProxySettingsDialogTest extends PlatformTestCase {
     myDialog.setHttpProxyLogin(login);
 
     Properties properties = new Properties();
-    myDialog.applyProxySettings(properties);
+    assertTrue(myDialog.applyProxySettings(properties));
 
     assertEquals(host, getHttpProxyHost(properties));
     assertEquals(port, getHttpProxyPort(properties));
@@ -81,6 +80,36 @@ public class ProxySettingsDialogTest extends PlatformTestCase {
 
     // Verify http://b/63914231
     assertThat(getHttpProxyPassword(properties)).isEmpty();
+  }
+
+  public void testApplyHttpProxySettingsWithAuthenticationWithPassword() {
+    myDialog.setHttpsProxyEnabled(false);
+    String host = "tatooine.com";
+    myDialog.setHttpProxyHost(host);
+
+    int port = 88;
+    myDialog.setHttpPortNumber(port);
+
+    String exception = "exception1";
+    myDialog.setHttpProxyException(exception);
+
+    myDialog.setHttpProxyAuthenticationEnabled(true);
+
+    String login = "luke";
+    myDialog.setHttpProxyLogin(login);
+
+    Properties properties = new Properties();
+    String password = "myPass";
+    properties.setProperty("systemProp.http.proxyPassword", password);
+    assertFalse(myDialog.applyProxySettings(properties));
+
+    assertEquals(host, getHttpProxyHost(properties));
+    assertEquals(port, getHttpProxyPort(properties));
+    assertEquals(exception, getHttpNonProxyHosts(properties));
+    assertEquals(login, getHttpProxyUser(properties));
+
+    // Verify password is not overwritten
+    assertThat(getHttpProxyPassword(properties)).isEqualTo(password);
   }
 
   public void testApplyHttpProxySettingsWithoutAuthentication() {
@@ -98,7 +127,7 @@ public class ProxySettingsDialogTest extends PlatformTestCase {
     myDialog.setHttpProxyLogin("leia");
 
     Properties properties = new Properties();
-    myDialog.applyProxySettings(properties);
+    assertFalse(myDialog.applyProxySettings(properties));
 
     assertEquals(host, getHttpProxyHost(properties));
     assertEquals(port, getHttpProxyPort(properties));

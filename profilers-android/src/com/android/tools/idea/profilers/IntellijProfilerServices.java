@@ -247,16 +247,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       }
 
       @Override
-      public boolean isExportCpuTraceEnabled() {
-        return StudioFlags.PROFILER_EXPORT_CPU_TRACE.get();
-      }
-
-      @Override
-      public boolean isImportCpuTraceEnabled() {
-        return StudioFlags.PROFILER_IMPORT_CPU_TRACE.get();
-      }
-
-      @Override
       public boolean isJniReferenceTrackingEnabled() {
         return StudioFlags.PROFILER_TRACK_JNI_REFS.get();
       }
@@ -291,21 +281,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
 
       @Override
       public boolean isAuditsEnabled() { return StudioFlags.PROFILER_AUDITS.get(); }
-
-      @Override
-      public boolean isSessionImportEnabled() {
-        return StudioFlags.PROFILER_IMPORT_SESSION.get();
-      }
-
-      @Override
-      public boolean isSimpleperfHostEnabled() {
-        return StudioFlags.PROFILER_SIMPLEPERF_HOST.get();
-      }
-
-      @Override
-      public boolean isFragmentsEnabled() {
-        return StudioFlags.PROFILER_FRAGMENT_PROFILER_ENABLED.get();
-      }
 
       @Override
       public boolean isStartupCpuProfilingEnabled() {

@@ -89,10 +89,10 @@ public class InteractionManager implements Disposable {
   private final DesignSurface mySurface;
 
   /**
-   * The {@linkplain InteractionProvider} which provides the {@linkplain Interaction} during interacting.
+   * The {@linkplain InteractionHandler} which provides the {@linkplain Interaction} during interacting.
    */
   @NotNull
-  private final InteractionProvider myInteractionProvider;
+  private final InteractionHandler myInteractionHandler;
 
   /**
    * The currently executing {@link Interaction}, or null.
@@ -177,9 +177,9 @@ public class InteractionManager implements Disposable {
    *
    * @param surface The surface which controls this {@link InteractionManager}
    */
-  public InteractionManager(@NotNull DesignSurface surface, @NotNull InteractionProvider provider) {
+  public InteractionManager(@NotNull DesignSurface surface, @NotNull InteractionHandler provider) {
     mySurface = surface;
-    myInteractionProvider = provider;
+    myInteractionHandler = provider;
     Disposer.register(surface, this);
 
     myListener = new Listener();
@@ -341,7 +341,7 @@ public class InteractionManager implements Disposable {
         myCurrentInteraction.update(event, new InteractionInformation(x, y, myLastModifiersEx));
       }
       else {
-        myInteractionProvider.hoverWhenNoInteraction(x, y, myLastModifiersEx);
+        myInteractionHandler.hoverWhenNoInteraction(x, y, myLastModifiersEx);
       }
     }
     else {
@@ -377,7 +377,7 @@ public class InteractionManager implements Disposable {
       myCurrentInteraction = null;
       myLastModifiersEx = 0;
       if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
-        myInteractionProvider.hoverWhenNoInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx);
+        myInteractionHandler.hoverWhenNoInteraction(myLastMouseX, myLastMouseY, myLastModifiersEx);
       }
       updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
       mySurface.repaint();
@@ -429,7 +429,7 @@ public class InteractionManager implements Disposable {
     if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
       Cursor cursor;
       if (myCurrentInteraction == null) {
-        cursor = myInteractionProvider.getCursorWhenNoInteraction(x, y, modifiersEx);
+        cursor = myInteractionHandler.getCursorWhenNoInteraction(x, y, modifiersEx);
       }
       else {
         cursor = myCurrentInteraction.getCursor();
@@ -438,7 +438,7 @@ public class InteractionManager implements Disposable {
     }
     else {
       // TODO: Remove below code after StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
-      Cursor cursor = myInteractionProvider.getCursorWhenNoInteraction(x, y, modifiersEx);
+      Cursor cursor = myInteractionHandler.getCursorWhenNoInteraction(x, y, modifiersEx);
       mySurface.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
     }
   }
@@ -463,17 +463,17 @@ public class InteractionManager implements Disposable {
       int clickCount = event.getClickCount();
 
       if (clickCount == 2 && event.getButton() == MouseEvent.BUTTON1) {
-        myInteractionProvider.doubleClick(x, y);
+        myInteractionHandler.doubleClick(x, y);
         return;
       }
 
       // No need to navigate XML when click was done holding some modifiers (e.g multi-selecting).
       if (clickCount == 1 && event.getButton() == MouseEvent.BUTTON1 && !event.isShiftDown() && !AdtUiUtils.isActionKeyDown(event)) {
-        myInteractionProvider.singleClick(x, y);
+        myInteractionHandler.singleClick(x, y);
       }
 
       if (event.isPopupTrigger()) {
-        myInteractionProvider.popupMenuTrigger(event, true);
+        myInteractionHandler.popupMenuTrigger(event, true);
       }
     }
 
@@ -490,8 +490,13 @@ public class InteractionManager implements Disposable {
       myLastModifiersEx = event.getModifiersEx();
 
       if (event.isPopupTrigger()) {
-        myInteractionProvider.popupMenuTrigger(event, true);
+        myInteractionHandler.popupMenuTrigger(event, true);
         event.consume();
+        return;
+      }
+      if (SwingUtilities.isRightMouseButton(event)) {
+        // On Windows the convention is that the mouse up event triggers the popup.
+        // If the user is starting a right click, return and handle the popup in mouseReleased.
         return;
       }
       if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
@@ -512,7 +517,7 @@ public class InteractionManager implements Disposable {
         return;
       }
 
-      Interaction interaction = myInteractionProvider.createInteractionOnClick(myLastMouseX, myLastMouseY);
+      Interaction interaction = myInteractionHandler.createInteractionOnClick(myLastMouseX, myLastMouseY);
       if (interaction != null) {
         if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
           startInteraction(event, interaction);
@@ -530,7 +535,9 @@ public class InteractionManager implements Disposable {
         return;
       }
       if (event.isPopupTrigger()) {
-        myInteractionProvider.popupMenuTrigger(event, true);
+        // On Windows the convention is that the mouse up event triggers the popup.
+        // Handle popup triggers here for Windows.
+        myInteractionHandler.popupMenuTrigger(event, true);
         return;
       }
 
@@ -565,7 +572,7 @@ public class InteractionManager implements Disposable {
       int modifiersEx = event.getModifiersEx();
 
       if (myCurrentInteraction == null) {
-        myInteractionProvider.mouseReleaseWhenNoInteraction(x, y, modifiersEx);
+        myInteractionHandler.mouseReleaseWhenNoInteraction(x, y, modifiersEx);
         updateCursor(x, y, modifiersEx);
       }
       else {
@@ -640,7 +647,7 @@ public class InteractionManager implements Disposable {
         y = myLastMouseY;
         myLastModifiersEx = modifiersEx;
 
-        Interaction interaction = myInteractionProvider.createInteractionOnDrag(x, y);
+        Interaction interaction = myInteractionHandler.createInteractionOnDrag(x, y);
 
         if (interaction != null) {
           if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
@@ -681,7 +688,7 @@ public class InteractionManager implements Disposable {
         updateCursor(x, y, modifiersEx);
       }
       else {
-        myInteractionProvider.hoverWhenNoInteraction(x, y, modifiersEx);
+        myInteractionHandler.hoverWhenNoInteraction(x, y, modifiersEx);
         if ((myLastModifiersEx & InputEvent.BUTTON1_DOWN_MASK) != 0) {
           if (myCurrentInteraction != null) {
             updateMouseMoved(event, x, y);
@@ -795,7 +802,7 @@ public class InteractionManager implements Disposable {
         Point location = dragEvent.getLocation();
         myLastMouseX = location.x;
         myLastMouseY = location.y;
-        Interaction interaction = myInteractionProvider.createInteractionOnDragEnter(dragEvent);
+        Interaction interaction = myInteractionHandler.createInteractionOnDragEnter(dragEvent);
         if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
           startInteraction(dragEvent, interaction);
         }
@@ -942,7 +949,7 @@ public class InteractionManager implements Disposable {
       }
 
       if (myCurrentInteraction == null) {
-        Interaction scrollInteraction = myInteractionProvider.createInteractionOnMouseWheelMoved(e);
+        Interaction scrollInteraction = myInteractionHandler.createInteractionOnMouseWheelMoved(e);
 
         if (scrollInteraction == null) {
           // There is no component consuming the scroll

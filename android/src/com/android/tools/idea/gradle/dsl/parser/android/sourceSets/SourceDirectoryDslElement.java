@@ -18,10 +18,28 @@ package com.android.tools.idea.gradle.dsl.parser.android.sourceSets;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
 
 public class SourceDirectoryDslElement extends GradleDslBlockElement {
+  public static final PropertiesElementDescription<SourceDirectoryDslElement> AIDL =
+    new PropertiesElementDescription<>("aidl", SourceDirectoryDslElement.class, SourceDirectoryDslElement::new);
+  public static final PropertiesElementDescription<SourceDirectoryDslElement> ASSETS =
+    new PropertiesElementDescription<>("assets", SourceDirectoryDslElement.class, SourceDirectoryDslElement::new);
+  public static final PropertiesElementDescription<SourceDirectoryDslElement> JAVA =
+    new PropertiesElementDescription<>("java", SourceDirectoryDslElement.class, SourceDirectoryDslElement::new);
+  public static final PropertiesElementDescription<SourceDirectoryDslElement> JNI =
+    new PropertiesElementDescription<>("jni", SourceDirectoryDslElement.class, SourceDirectoryDslElement::new);
+  public static final PropertiesElementDescription<SourceDirectoryDslElement> JNI_LIBS =
+    new PropertiesElementDescription<>("jniLibs", SourceDirectoryDslElement.class, SourceDirectoryDslElement::new);
+  public static final PropertiesElementDescription<SourceDirectoryDslElement> RENDERSCRIPT =
+    new PropertiesElementDescription<>("renderscript", SourceDirectoryDslElement.class, SourceDirectoryDslElement::new);
+  public static final PropertiesElementDescription<SourceDirectoryDslElement> RES =
+    new PropertiesElementDescription<>("res", SourceDirectoryDslElement.class, SourceDirectoryDslElement::new);
+  public static final PropertiesElementDescription<SourceDirectoryDslElement> RESOURCES =
+    new PropertiesElementDescription<>("resources", SourceDirectoryDslElement.class, SourceDirectoryDslElement::new);
+
   public SourceDirectoryDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }

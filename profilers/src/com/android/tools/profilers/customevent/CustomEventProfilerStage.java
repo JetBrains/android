@@ -25,9 +25,8 @@ import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerTrackRendererType;
-import com.android.tools.profilers.Stage;
+import com.android.tools.profilers.StreamingStage;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.event.LifecycleEventDataSeries;
 import com.android.tools.profilers.event.UserEventDataSeries;
 import com.google.common.annotations.VisibleForTesting;
@@ -35,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public class CustomEventProfilerStage extends Stage {
+public class CustomEventProfilerStage extends StreamingStage {
 
   private final List<TrackGroupModel> myTrackGroupModels = new ArrayList<>();
   @NotNull private final List<UserCounterModel> myUserCounterModels = new ArrayList<>();
@@ -49,7 +48,7 @@ public class CustomEventProfilerStage extends Stage {
     myEventTrackGroupModel = TrackGroupModel.newBuilder().setTitle("Custom Events").build();
 
     // Checks to see if a new event has been added
-    getStudioProfilers().getTimeline().getViewRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::updateEventNames);
+    getTimeline().getViewRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::updateEventNames);
     updateEventNames();
   }
 
@@ -93,13 +92,13 @@ public class CustomEventProfilerStage extends Stage {
     myUserCounterModels.add(dataModel);
 
     // Create a track model with that has the data model for this event.
-    Range dataRange = getStudioProfilers().getTimeline().getDataRange();
+    Range dataRange = getTimeline().getDataRange();
     return new CustomEventTrackModel(dataModel, dataRange);
   }
 
 
   private TrackGroupModel createInteractionTrackGroup() {
-    Range viewRange = getStudioProfilers().getTimeline().getViewRange();
+    Range viewRange = getTimeline().getViewRange();
     TrackGroupModel interaction = TrackGroupModel.newBuilder().setTitle("Interaction").build();
     interaction.addTrackModel(
       TrackModel.newBuilder(

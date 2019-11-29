@@ -17,27 +17,37 @@ package com.android.tools.profilers.event;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.Timeline;
+import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.event.LifecycleAction;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.LifecycleEvent;
-import com.android.tools.profilers.ProfilerMonitorTooltip;
+import com.android.tools.adtui.model.event.LifecycleEventModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class LifecycleTooltip extends ProfilerMonitorTooltip<EventMonitor> {
-  public LifecycleTooltip(@NotNull EventMonitor eventMonitor) {
-    super(eventMonitor);
+public class LifecycleTooltip implements TooltipModel {
+  @NotNull private final Timeline myTimeline;
+  @NotNull private final LifecycleEventModel myEventModel;
+
+  public LifecycleTooltip(@NotNull Timeline timeline, @NotNull LifecycleEventModel eventModel) {
+    myTimeline = timeline;
+    myEventModel = eventModel;
+  }
+
+  @NotNull
+  public Timeline getTimeline() {
+    return myTimeline;
   }
 
   // Find the activity that overlaps a specific time, the activities are sorted so if there are multiple the first
   // one we encounter will be the one that is presented in the UI.
   @Nullable
   public LifecycleAction getActivityAt(double time) {
-    List<SeriesData<EventAction<LifecycleEvent>>> activitySeries =
-      getMonitor().getLifecycleEvents().getActivitySeries().getSeries();
+    List<SeriesData<EventAction<LifecycleEvent>>> activitySeries = myEventModel.getActivitySeries().getSeries();
     for (SeriesData<EventAction<LifecycleEvent>> series : activitySeries) {
       if (series.value.getStartUs() <= time && (series.value.getEndUs() > time || series.value.getEndUs() == 0)) {
         return (LifecycleAction)series.value;
@@ -48,8 +58,7 @@ public class LifecycleTooltip extends ProfilerMonitorTooltip<EventMonitor> {
 
   @NotNull
   public List<LifecycleAction> getFragmentsAt(@NotNull Range range) {
-    List<SeriesData<EventAction<LifecycleEvent>>> fragmentSeries =
-      getMonitor().getLifecycleEvents().getFragmentSeries().getSeries();
+    List<SeriesData<EventAction<LifecycleEvent>>> fragmentSeries = myEventModel.getFragmentSeries().getSeries();
     ArrayList<LifecycleAction> fragments = new ArrayList<>();
     for (SeriesData<EventAction<LifecycleEvent>> series : fragmentSeries) {
       if (series.value.getStartUs() <= range.getMax() && (series.value.getEndUs() > range.getMin() || series.value.getEndUs() == 0)) {

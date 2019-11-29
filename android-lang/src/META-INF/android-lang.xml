@@ -69,6 +69,25 @@
                      shortName="ShrinkerUnresolvedClassMember"
                      implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8ClassMemberInspection"
                      displayName="Unresolved reference in Shrinker Config file"/>
+
+    <localInspection groupPath="Android"
+                     groupName="Shrinker"
+                     language="SHRINKER_CONFIG"
+                     enabledByDefault="true"
+                     level="WARNING"
+                     shortName="R8IgnoredFlags"
+                     implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8IgnoredFlagInspection"
+                     displayName="Flags ignored by R8"/>
+
+    <localInspection groupPath="Android"
+                     groupName="Shrinker"
+                     language="SHRINKER_CONFIG"
+                     enabledByDefault="true"
+                     level="ERROR"
+                     shortName="ShrinkerInvalidFlags"
+                     implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8InvalidFlagInspection"
+                     displayName="Invalid flag in shrinker config"/>
+
     <lang.syntaxHighlighterFactory language="PROGUARD"
                                    implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory"/>
     <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter"/>

@@ -17,6 +17,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.adtui.common.AdtSecondaryPanel
+import com.android.tools.idea.actions.CREATED_FILES
 import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.actions.NewAndroidFragmentAction
 import com.android.tools.idea.common.model.NlComponent
@@ -179,7 +180,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     destinationsList = JBList()
     val result = object : AdtSecondaryPanel(VerticalLayout(8)), DataProvider {
       override fun getData(dataId: String): Any? {
-        return if (NewAndroidComponentAction.CREATED_FILES.`is`(dataId)) {
+        return if (CREATED_FILES.`is`(dataId)) {
           createdFiles
         }
         else {
@@ -327,7 +328,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       }
     } else {
       NewAndroidComponentAction("Fragment", "Fragment (Blank)", 7).apply {
-        setShouldOpenFiles(false)
+        shouldOpenFiles = false
       }
     }
     createNewDestination(e, action)

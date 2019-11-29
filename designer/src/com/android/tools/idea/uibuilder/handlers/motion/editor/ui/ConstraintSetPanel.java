@@ -27,26 +27,25 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSc
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.StringMTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
-import com.intellij.ide.plugins.IdeaVersionBean;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.Vector;
+import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -58,7 +57,6 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -150,8 +148,10 @@ class ConstraintSetPanel extends JPanel {
     mConstraintSetTable.setRowHeight(MEUI.scale(18));
     mConstraintSetTable.setShowHorizontalLines(false);
     mConstraintSetTable.setAlignmentY(0.0f);
+    mConstraintSetTable.getColumnModel().getColumn(0).setPreferredWidth(MEUI.scale(32));
     mConstraintSetTable.setDefaultRenderer(Icon.class, new TableCellRenderer() {
       JLabel myLabel = new JLabel();
+
       @Override
       public Component getTableCellRendererComponent(JTable table,
                                                      Object value,
@@ -159,18 +159,20 @@ class ConstraintSetPanel extends JPanel {
                                                      boolean hasFocus,
                                                      int row,
                                                      int column) {
-        myLabel.setIcon((Icon) value);
-        myLabel.setSize(new Dimension(MEUI.scale(18),MEUI.scale(12)));
+        myLabel.setIcon((Icon)value);
+        myLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        myLabel.setSize(new Dimension(MEUI.scale(18), MEUI.scale(12)));
         if (isSelected) {
-          if (value ==  MEIcons.LIST_STATE_DERIVED) {
-            myLabel.setIcon( MEIcons.LIST_STATE_DERIVED_SELECTED);
-          } else  if (value == MEIcons.LIST_STATE) {
-            myLabel.setIcon( MEIcons.LIST_STATE_SELECTED);
-
+          if (value == MEIcons.LIST_STATE_DERIVED) {
+            myLabel.setIcon(MEIcons.LIST_STATE_DERIVED_SELECTED);
           }
-          myLabel.setBackground(table.hasFocus() ? MEUI.CSPanel.our_SelectedFocusBackground : MEUI.CSPanel.our_SelectedBackground  );
+          else if (value == MEIcons.LIST_STATE) {
+            myLabel.setIcon(MEIcons.LIST_STATE_SELECTED);
+          }
+          myLabel.setBackground(table.hasFocus() ? MEUI.CSPanel.our_SelectedFocusBackground : MEUI.CSPanel.our_SelectedBackground);
           myLabel.setOpaque(true);
-        } else {
+        }
+        else {
           myLabel.setOpaque(false);
           myLabel.setBackground(MEUI.ourPrimaryPanelBackground);
         }
@@ -193,15 +195,13 @@ class ConstraintSetPanel extends JPanel {
     left.add(label = new JLabel(")", SwingConstants.LEFT));
     makeRightMenu(right);
     right.add(cbox);
-    KeyStroke copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK, false);
 
-    KeyStroke paste = KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK, false);
     ActionListener copyListener = e -> copy();
     ActionListener pasteListener = e -> {
       paste();
     };
-    mConstraintSetTable.registerKeyboardAction(copyListener, "Copy", copy, JComponent.WHEN_FOCUSED);
-    mConstraintSetTable.registerKeyboardAction(pasteListener, "Paste", paste, JComponent.WHEN_FOCUSED);
+
+    MEUI.addCopyPaste(copyListener, pasteListener, mConstraintSetTable);
 
     mConstraintSetTable.getSelectionModel().addListSelectionListener(
       e -> {
@@ -446,6 +446,28 @@ class ConstraintSetPanel extends JPanel {
     }
   }
 
+  private void updateModelIfNecessary() {
+    Set<String> ids = Arrays.stream(mConstraintSet.getChildTags(MotionSceneAttrs.Tags.CONSTRAINT))
+      .map(view -> view.getAttributeValue(MotionSceneAttrs.ATTR_ANDROID_ID))
+      .filter(Objects::nonNull)
+      .collect(Collectors.toSet());
+    if (showAll && mMeModel.layout != null) {
+      Arrays.stream(mMeModel.layout.getChildTags())
+        .map(view -> Utils.stripID(view.getAttributeValue(MotionSceneAttrs.ATTR_ANDROID_ID)))
+        .filter(Objects::nonNull)
+        .forEach(ids::add);
+    }
+
+    //noinspection unchecked
+    Set<String> found = (Set<String>)mConstraintSetModel.getDataVector().stream()
+      .map(row -> ((Vector)row).get(1))
+      .collect(Collectors.toSet());
+
+    if (!ids.equals(found)) {
+      buildTable();
+    }
+  }
+
   private String findFirstDefOfView(String viewId, MTag constraintSet) {
     MTag[] sets = constraintSet.getChildTags("Constraint");
     for (int i = 0; i < sets.length; i++) {
@@ -592,6 +614,7 @@ class ConstraintSetPanel extends JPanel {
   }
 
   public void selectById(String[] ids) {
+    updateModelIfNecessary();
     HashSet<String> selectedSet = new HashSet<>(Arrays.asList(ids));
     mConstraintSetTable.clearSelection();
     for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
