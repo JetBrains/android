@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.npw.module.recipes
 
+import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.Revision
 import com.android.tools.idea.wizard.template.getMaterialComponentName
 import com.android.tools.idea.wizard.template.renderIf
+import java.io.File
 
 fun generateManifest(
   packageName: String,
@@ -140,4 +142,39 @@ fun androidConfig(
     }
     """
          )
+}
+
+private fun resource(path: String) = File("templates/module", path)
+
+fun RecipeExecutor.copyIcons(destination: File) {
+  fun copyAdaptiveIcons() {
+    copy(
+      resource("mipmap-anydpi-v26/ic_launcher.xml"),
+      destination.resolve("mipmap-anydpi-v26/ic_launcher.xml")
+    )
+    copy(
+      resource("drawable/ic_launcher_background.xml"),
+      destination.resolve("drawable/ic_launcher_background.xml")
+    )
+    copy(
+      resource("drawable-v24/ic_launcher_foreground.xml"),
+      destination.resolve("drawable-v24/ic_launcher_foreground.xml")
+    )
+    copy(
+      resource("mipmap-anydpi-v26/ic_launcher_round.xml"),
+      destination.resolve("mipmap-anydpi-v26/ic_launcher_round.xml")
+    )
+  }
+
+  copyMipmap(destination)
+  copyMipmap(destination)
+  copyAdaptiveIcons()
+}
+
+fun RecipeExecutor.copyMipmap(destination: File) {
+  copy(resource("mipmap-hdpi"), destination.resolve("mipmap-hdpi"))
+  copy(resource("mipmap-mdpi"), destination.resolve("mipmap-mdpi"))
+  copy(resource("mipmap-xhdpi"), destination.resolve("mipmap-xhdpi"))
+  copy(resource("mipmap-xxhdpi"), destination.resolve("mipmap-xxhdpi"))
+  copy(resource("mipmap-xxxhdpi"), destination.resolve("mipmap-xxxhdpi"))
 }
