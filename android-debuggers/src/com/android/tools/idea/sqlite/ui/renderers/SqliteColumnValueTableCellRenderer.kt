@@ -25,35 +25,16 @@ import java.sql.JDBCType
 import javax.swing.JTable
 import javax.swing.SwingConstants
 
-private const val TEXT_RENDERER_HORIZ_PADDING = 6
-
-@JdkConstants.HorizontalAlignment
-fun headerAlignment(column: SqliteColumn): Int {
-  return when (column.type) {
-    JDBCType.BIT,
-    JDBCType.TINYINT,
-    JDBCType.SMALLINT,
-    JDBCType.INTEGER,
-    JDBCType.BIGINT,
-    JDBCType.FLOAT,
-    JDBCType.REAL,
-    JDBCType.DOUBLE,
-    JDBCType.NUMERIC,
-    JDBCType.BOOLEAN,
-    JDBCType.ROWID,
-    JDBCType.DECIMAL -> SwingConstants.TRAILING
-    else -> SwingConstants.LEADING
-  }
-}
-
 /**
- * Implementation of [ColoredTableCellRenderer] for header cells of the [JTable] used to display values of a
- * [com.android.tools.idea.sqlite.model.SqliteResultSet].
+ * Implementation of [ColoredTableCellRenderer] for cells of a [JTable] used to display [SqliteColumnValue]s.
  */
-class ResultSetTreeCellRenderer : ColoredTableCellRenderer() {
+class SqliteColumnValueTableCellRenderer : ColoredTableCellRenderer() {
+  private val TEXT_RENDERER_HORIZ_PADDING = 6
 
   override fun customizeCellRenderer(table: JTable?, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
-    if (value is SqliteColumnValue) {
+    if (value !is SqliteColumnValue) {
+      appendUnsupportedDataTypeToCell()
+    } else {
       when (value.column.type) {
         JDBCType.NULL -> appendNullValueToCell()
 
@@ -98,9 +79,6 @@ class ResultSetTreeCellRenderer : ColoredTableCellRenderer() {
         JDBCType.REF_CURSOR -> appendUnsupportedDataTypeToCell()
       }
     }
-    else {
-      appendUnsupportedDataTypeToCell()
-    }
 
     border = JBUI.Borders.empty(0, TEXT_RENDERER_HORIZ_PADDING / 2)
   }
@@ -113,6 +91,25 @@ class ResultSetTreeCellRenderer : ColoredTableCellRenderer() {
       append(it.toString())
       setTextAlign(headerAlignment(columnValue.column))
     } ?: appendNullValueToCell()
+  }
+
+  @JdkConstants.HorizontalAlignment
+  private fun headerAlignment(column: SqliteColumn): Int {
+    return when (column.type) {
+      JDBCType.BIT,
+      JDBCType.TINYINT,
+      JDBCType.SMALLINT,
+      JDBCType.INTEGER,
+      JDBCType.BIGINT,
+      JDBCType.FLOAT,
+      JDBCType.REAL,
+      JDBCType.DOUBLE,
+      JDBCType.NUMERIC,
+      JDBCType.BOOLEAN,
+      JDBCType.ROWID,
+      JDBCType.DECIMAL -> SwingConstants.TRAILING
+      else -> SwingConstants.LEADING
+    }
   }
 
   /**
