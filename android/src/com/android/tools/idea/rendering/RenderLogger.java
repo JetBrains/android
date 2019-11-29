@@ -23,6 +23,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.lint.UpgradeConstraintLayoutFix;
@@ -762,5 +763,48 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
   @Nullable
   public List<String> getMissingFragments() {
     return myMissingFragments;
+  }
+
+  /**
+   * Android framework log priority levels.
+   * They are defined in system/core/liblog/include/android/log.h in the Android Framework code.
+   */
+  private static final int ANDROID_LOG_UNKNOWN = 0;
+  private static final int ANDROID_LOG_DEFAULT = 1;
+  private static final int ANDROID_LOG_VERBOSE = 2;
+  private static final int ANDROID_LOG_DEBUG = 3;
+  private static final int ANDROID_LOG_INFO = 4;
+  private static final int ANDROID_LOG_WARN = 5;
+  private static final int ANDROID_LOG_ERROR = 6;
+  private static final int ANDROID_LOG_FATAL = 7;
+  private static final int ANDROID_LOG_SILENT = 8;
+
+  @Override
+  public void logAndroidFramework(int priority, String tag, String message) {
+    if (StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get()) {
+      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+      try {
+        String fullMessage = tag + ": " + message;
+        switch (priority) {
+          case ANDROID_LOG_VERBOSE:
+          case ANDROID_LOG_DEBUG:
+            LOG.debug(fullMessage);
+            break;
+          case ANDROID_LOG_INFO:
+            LOG.info(fullMessage);
+            break;
+          case ANDROID_LOG_WARN:
+          case ANDROID_LOG_ERROR:
+            LOG.warn(fullMessage);
+            break;
+          case ANDROID_LOG_FATAL:
+            LOG.error(fullMessage);
+            break;
+        }
+      }
+      finally {
+        RenderSecurityManager.exitSafeRegion(token);
+      }
+    }
   }
 }
