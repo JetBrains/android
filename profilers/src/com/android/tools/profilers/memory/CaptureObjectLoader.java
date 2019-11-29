@@ -59,7 +59,7 @@ public class CaptureObjectLoader {
       }
     }, SameThreadExecutor.INSTANCE);
 
-    myExecutorService.submit(task);
+    myExecutorService.execute(task);
     return task;
   }
 
