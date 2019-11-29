@@ -69,6 +69,7 @@ internal class GroupSwitchAction : DropDownAction(
 
   private fun addGroups(groups: Set<String>, selected: String?) {
     add(SetGroupAction("All", null, selected == null))
+    addSeparator()
     groups.sorted().forEach { add(SetGroupAction(it, it, it == selected)) }
   }
 }
