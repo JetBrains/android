@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.ActionsToolbar
@@ -41,8 +42,9 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
-import com.google.common.util.concurrent.Futures
+import com.android.utils.concurrency.EvictingExecutor
 import com.intellij.ide.util.PsiNavigationSupport
+import com.intellij.openapi.application.AppUIExecutor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
@@ -53,7 +55,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
@@ -62,11 +63,12 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.uipreview.ModuleClassLoader
 import org.jetbrains.kotlin.backend.common.pop
 import java.awt.BorderLayout
-import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 import java.util.function.Supplier
 import javax.swing.Box
@@ -124,22 +126,6 @@ private fun configureExistingModel(existingModel: NlModel,
 }
 
 /**
- * Refreshes the given [surface] with the given list of [CompletableFuture<NlModel>]. The method
- */
-private fun updateSurfaceWithNewModels(surface: NlDesignSurface,
-                                       futureModels: List<CompletableFuture<NlModel>>): CompletableFuture<Void> =
-  CompletableFuture.allOf(*(futureModels.toTypedArray()))
-    .thenCompose {
-      val modelAddedFutures = futureModels.map {
-        // We call addModel even though the model might not be new. If we try to add an existing model,
-        // this will trigger a new render which is exactly what we want.
-        surface.addModel(Futures.getDone(it))
-      }
-
-      CompletableFuture.allOf(*(modelAddedFutures.toTypedArray()))
-    }
-
-/**
  * A [PreviewRepresentation] that provides a compose elements preview representation of the given [psiFile].
  *
  * A [component] is implied to display previews for all declared `@Composable` functions that also use the `@Preview` (see
@@ -165,6 +151,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
   }
   override val availableGroups: Set<String> get() = previewProvider.availableGroups
+
+  private val refreshExecutor = EvictingExecutor(
+    AppExecutorUtil.createBoundedApplicationPoolExecutor(
+      "Compose Preview thread", AppExecutorUtil.getAppExecutorService(), 1, this), 1)
 
   private val navigationHandler = PreviewNavigationHandler()
   private val surface = NlDesignSurface.builder(project, this)
@@ -353,7 +343,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   /**
    * Hides the preview content and shows an error message on the surface.
    */
-  private fun showModalErrorMessage(message: String) {
+  private fun showModalErrorMessage(message: String) = UIUtil.invokeLaterIfNeeded {
     LOG.debug("showModelErrorMessage: $message")
     workbench.loadingStopped(message)
   }
@@ -362,7 +352,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Method called when the notifications of the [PreviewEditor] need to be updated. This is called by the
    * [ComposePreviewEditorNotificationAdapter] when the editor needs to refresh the notifications.
    */
-  override fun updateNotifications(parentEditor: FileEditor) {
+  override fun updateNotifications(parentEditor: FileEditor) = UIUtil.invokeLaterIfNeeded {
+    if (!parentEditor.isValid) return@invokeLaterIfNeeded
+
     notificationsPanel.updateNotifications(psiFilePointer.virtualFile, parentEditor, project)
   }
 
@@ -371,7 +363,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * certain updates like a build or a preview refresh has happened.
    * Calling this method will also update the FileEditor notifications.
    */
-  private fun updateSurfaceVisibilityAndNotifications() {
+  private fun updateSurfaceVisibilityAndNotifications() = UIUtil.invokeLaterIfNeeded {
     if (workbench.isMessageVisible && !hasAtLeastOneValidPreview()) {
       LOG.debug("No valid previews available")
       showModalErrorMessage(message("panel.needs.build"))
@@ -388,13 +380,14 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   /**
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
+   * The call will block until all the given [PreviewElement]s have completed rendering.
    */
-  private fun doRefresh(filePreviewElements: List<PreviewElement>) {
-    if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.size} elements")
+  @Slow
+  private fun doRefreshSync(filePreviewElements: List<PreviewElement>) {
+    if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.size} elements.")
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
-
     val psiFile = psiFilePointer.element
-    if (psiFile == null) {
+    if (psiFile == null || !psiFile.isValid) {
       LOG.warn("doRefresh with invalid PsiFile")
       return
     }
@@ -406,7 +399,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     val showDecorations = RenderSettings.getProjectSettings(project).showDecorations
 
     // Now we generate all the models (or reuse) for the PreviewElements.
-    val futureModels = filePreviewElements
+    val models = filePreviewElements
       .asSequence()
       .map { Pair(it, it.toPreviewXmlString(matchParent = showDecorations)) }
       .map {
@@ -421,33 +414,30 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           """.trimIndent())
         }
 
-        val modelFuture = if (existingModels.isNotEmpty()) {
+        val model = if (existingModels.isNotEmpty()) {
           LOG.debug("Re-using model")
-          CompletableFuture.completedFuture(configureExistingModel(existingModels.pop(), previewElement.displayName, fileContents, surface))
+          configureExistingModel(existingModels.pop(), previewElement.displayName, fileContents, surface)
         }
         else {
           LOG.debug("No models to reuse were found. New model.")
           val file = ComposeAdapterLightVirtualFile("testFile.xml", fileContents)
           val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
-          CompletableFuture.supplyAsync(Supplier<NlModel> {
-            NlModel.create(this@ComposePreviewRepresentation,
-                           previewElement.displayName,
-                           facet,
-                           file,
-                           configuration,
-                           surface.componentRegistrar,
-                           modelUpdater)
-          }, AppExecutorUtil.getAppExecutorService())
+          NlModel.create(this@ComposePreviewRepresentation,
+                         previewElement.displayName,
+                         facet,
+                         file,
+                         configuration,
+                         surface.componentRegistrar,
+                         modelUpdater)
         }
 
-        modelFuture.whenComplete { model, ex ->
-          ex?.let { LOG.warn(ex) }
-          val navigable: Navigatable = PsiNavigationSupport.getInstance().createNavigatable(
-            project, psiFile.virtualFile, previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0)
-          navigationHandler.addDefaultLocation(model, navigable, psiFile.virtualFile)
+        val navigable: Navigatable = PsiNavigationSupport.getInstance().createNavigatable(
+          project, psiFile.virtualFile, previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0)
+        navigationHandler.addDefaultLocation(model, navigable, psiFile.virtualFile)
 
-          previewElement.configuration.applyTo(model.configuration)
-        }
+        previewElement.configuration.applyTo(model.configuration)
+
+        model
       }
       .toList()
 
@@ -455,59 +445,53 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     // This will happen if the user removes one or more previews.
     if (LOG.isDebugEnabled) LOG.debug("Removing ${existingModels.size} model(s)")
     existingModels.forEach { surface.removeModel(it) }
-    surface.zoomToFit()
+    models
+      .onEach {
+        // We call addModel even though the model might not be new. If we try to add an existing model,
+        // this will trigger a new render which is exactly what we want.
+        surface.addModel(it).get()
+      }.ifEmpty {
+        showModalErrorMessage(message("panel.no.previews.defined"))
+      }
 
-    val rendersCompletedFuture = if (futureModels.isNotEmpty()) {
-      updateSurfaceWithNewModels(surface, futureModels)
-    }
-    else {
-      showModalErrorMessage(message("panel.no.previews.defined"))
-      CompletableFuture.completedFuture(null)
-    }
+    if (LOG.isDebugEnabled) {
+      LOG.debug("Render completed in ${stopwatch?.duration?.toMillis()}ms")
 
-    rendersCompletedFuture
-      .whenComplete { _, ex ->
-        if (LOG.isDebugEnabled) {
-          LOG.debug("Render completed in ${stopwatch?.duration?.toMillis()}ms")
-
-          // Log any rendering errors
-          surface.models.asSequence()
-            .mapNotNull { surface.getSceneManager(it) }
-            .filterIsInstance<LayoutlibSceneManager>()
-            .forEach {
-              val modelName = it.model.modelDisplayName
-              it.renderResult?.let { result ->
-                val logger = result.logger
-                LOG.debug("""modelName="$modelName" result
+      // Log any rendering errors
+      surface.models.asSequence()
+        .mapNotNull { surface.getSceneManager(it) }
+        .filterIsInstance<LayoutlibSceneManager>()
+        .forEach {
+          val modelName = it.model.modelDisplayName
+          it.renderResult?.let { result ->
+            val logger = result.logger
+            LOG.debug("""modelName="$modelName" result
                   | ${result}
                   | hasErrors=${logger.hasErrors()}
                   | missingClasses=${logger.missingClasses}
                   | messages=${logger.messages}
                   | exceptions=${logger.brokenClasses.values + logger.classesWithIncorrectFormat.values}
                 """.trimMargin())
-              }
-            }
+          }
         }
+    }
 
-        previewElements = filePreviewElements
-        if (ex != null) {
-          LOG.warn(ex)
-        }
+    previewElements = filePreviewElements
+    hasRenderedAtLeastOnce = true
+    savedIsShowingDecorations = showDecorations
 
-        isContentBeingRendered = false
-        hasRenderedAtLeastOnce = true
-        savedIsShowingDecorations = showDecorations
-        updateSurfaceVisibilityAndNotifications()
+    AppUIExecutor.onUiThread().submit {
+      surface.zoomToFit()
+    }.blockingGet(1, TimeUnit.SECONDS)
 
-        onRefresh?.invoke()
-      }
+    onRefresh?.invoke()
   }
 
   /**
    * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
-  override fun refresh() {
+  override fun refresh() = refreshExecutor.execute {
     isContentBeingRendered = true
     val filePreviewElements = previewProvider.previewElements
 
@@ -526,14 +510,16 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
 
       // There are not elements, skip model creation
-      surface.requestRender().whenComplete { _, _ ->
-        isContentBeingRendered = false
-        updateSurfaceVisibilityAndNotifications()
-      }
-      return
+      surface.requestRender().get()
+    }
+    else {
+      doRefreshSync(filePreviewElements)
     }
 
-    doRefresh(filePreviewElements)
+    ApplicationManager.getApplication().invokeLater {
+      isContentBeingRendered = false
+      updateSurfaceVisibilityAndNotifications()
+    }
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {
