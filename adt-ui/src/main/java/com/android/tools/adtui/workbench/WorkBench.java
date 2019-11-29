@@ -16,10 +16,10 @@
 package com.android.tools.adtui.workbench;
 
 import com.android.annotations.Nullable;
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.workbench.AttachedToolWindow.ButtonDragListener;
 import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
@@ -202,7 +202,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myMainPanel.add(myRightMinimizePanel, BorderLayout.EAST);
     myLoadingPanel = new WorkBenchLoadingPanel(new BorderLayout(), this, 1000);
     myLoadingPanel.add(myMainPanel);
-    Disposer.register(this, mySplitter);
     Disposer.register(this, layeredPanel);
     add(myLoadingPanel, JLayeredPane.DEFAULT_LAYER);
     myMainPanel.setVisible(false);
@@ -592,7 +591,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     private static <T> InitParams<T> createParams(@NotNull Project project) {
       SideModel<T> model = new SideModel<>(project);
       return new InitParams<>(model,
-                              new ThreeComponentsSplitter(),
+                              new ThreeComponentsSplitter(project),
                               new MinimizedPanel<>(Side.LEFT, model),
                               new MinimizedPanel<>(Side.RIGHT, model));
     }

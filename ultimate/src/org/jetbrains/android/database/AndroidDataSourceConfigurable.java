@@ -122,7 +122,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     myExternalStorageRadioButton.addActionListener(l);
     myInternalStorageRadioButton.addActionListener(l);
 
-    new UiNotifyConnector.Once(myPanel, new Activatable.Adapter() {
+    new UiNotifyConnector.Once(myPanel, new Activatable() {
       @Override
       public void showNotify() {
         loadDevices();
