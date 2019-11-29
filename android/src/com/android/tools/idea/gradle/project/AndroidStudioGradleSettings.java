@@ -41,7 +41,6 @@ public class AndroidStudioGradleSettings extends GradleSettings{
   static void configureForAndroidStudio(@NotNull GradleProjectSettings projectSettings) {
     projectSettings.setResolveModulePerSourceSet(false);
     projectSettings.setTestRunner(TestRunner.PLATFORM);
-    projectSettings.setUseAutoImport(false);
     projectSettings.setUseQualifiedModuleNames(true);
 
     // Workaround to make integration (non-UI tests pass)
