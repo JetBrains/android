@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.intThat
@@ -51,6 +52,16 @@ class VisualizationInteractionHandlerTest : SceneTest() {
 
     interactionHandler.hoverWhenNoInteraction(view.x - 100, view.y - 100, 0)
     Mockito.verify(surface).setDesignToolTip(null)
+  }
+
+  fun testDoubleClickToNavigateToFileOfPreview() {
+    val navigationManager = Mockito.mock(LayoutNavigationManager::class.java)
+    registerProjectComponent(LayoutNavigationManager::class.java, navigationManager)
+    val handler = VisualizationInteractionHandler(myModel.surface) { Mockito.mock(VisualizationModelsProvider::class.java) }
+    val file = myModel.virtualFile
+    val view = myModel.surface.sceneManager?.sceneView!!
+    handler.doubleClick(view.x + view.size.width, view.y + view.size.height)
+    Mockito.verify(navigationManager).pushFile(file, file)
   }
 
   override fun createModel(): ModelBuilder {
