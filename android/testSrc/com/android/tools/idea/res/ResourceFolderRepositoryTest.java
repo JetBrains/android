@@ -3207,8 +3207,15 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   public void testInvalidFileResourceName() {
+    // Test initial loading.
     myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable/foo.bar.xml");
     ResourceFolderRepository resources = createRepository(false);
+    assertThat(resources.getResources(RES_AUTO, ResourceType.DRAWABLE)).isEmpty();
+    assertThat(resources.getResources(RES_AUTO, ResourceType.ID)).isEmpty();
+
+    // Test adding a file after repository has been loaded.
+    resources = createRegisteredRepository();
+    myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable/bar.baz.xml");
     assertThat(resources.getResources(RES_AUTO, ResourceType.DRAWABLE)).isEmpty();
     assertThat(resources.getResources(RES_AUTO, ResourceType.ID)).isEmpty();
   }
