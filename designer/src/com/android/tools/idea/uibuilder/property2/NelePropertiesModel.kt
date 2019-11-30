@@ -15,13 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.SdkConstants.ANDROID_URI
-import com.android.SdkConstants.ATTR_LAYOUT
-import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.TOOLS_URI
-import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
@@ -47,17 +42,13 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.pom.Navigatable
-import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.Alarm
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.resourceManagers.LocalResourceManager
-import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
 import java.util.Collections
 import java.util.concurrent.Future
@@ -194,28 +185,8 @@ open class NelePropertiesModel(parentDisposable: Disposable,
             firePropertiesGenerated()
           }
         }
-        else if (property.namespace == ANDROID_URI && property.name == ATTR_NAME) {
-          val component = property.components[0]
-          val layout = newValue?.let { findLayoutForClass(component, it) }
-          component.setAttribute(TOOLS_URI, ATTR_LAYOUT, layout)
-        }
       }
     })
-  }
-
-  private fun findLayoutForClass(component: NlComponent, className: String): String? {
-    val module = component.model.module
-    val resourceManager = LocalResourceManager.getInstance(module) ?: return null
-
-    for (resourceFile in resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
-      .filterIsInstance<XmlFile>()) {
-      val contextClass = AndroidUtils.getContextClass(module, resourceFile) ?: continue
-      if (contextClass.qualifiedName == className) {
-        return "@layout/" + FileUtil.getNameWithoutExtension(resourceFile.name)
-      }
-    }
-
-    return null
   }
 
   private fun createMergingUpdateQueue(): MergingUpdateQueue {

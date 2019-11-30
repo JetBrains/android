@@ -88,14 +88,10 @@ class NavEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
     }
 
     private fun getClasses(component: NlComponent): List<EnumValue> {
-      val classes = getClassesForTag(component.model.module, component.tagName).keys
-        .filter { it.qualifiedName != null }
-        .distinctBy { it.qualifiedName }
-
-      return classes
-        .map { EnumValue.item(it.qualifiedName!!, displayString(it)) to it.isInProject() }
-        .sortedWith(compareBy({ !it.second }, { it.first.display }))
-        .map { it.first }
+      return getClassesForTag(component.model.module, component.tagName)
+        .filterKeys { it.qualifiedName != null }
+        .map { ClassEnumValue(it.key.qualifiedName!!, displayString(it.key), it.value, it.key.isInProject()) }
+        .sortedWith(compareBy({ !it.isInProject }, { it.display }))
         .toList()
     }
 
