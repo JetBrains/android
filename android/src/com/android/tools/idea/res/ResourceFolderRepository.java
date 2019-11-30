@@ -740,7 +740,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         setModificationCount(ourModificationCounter.incrementAndGet());
         invalidateParentCaches();
       }
-    } else {
+    } else if (isValidResourceFileName(file.getName(), folderType)) {
       ResourceItemSource<? extends ResourceItem> source = mySources.get(file.getVirtualFile());
       if (source instanceof PsiResourceFile && file.getFileType() == StdFileTypes.XML) {
         // If the old file was a PsiResourceFile for an XML file, we can update ID ResourceItems in place.
