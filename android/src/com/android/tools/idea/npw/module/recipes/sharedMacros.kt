@@ -224,11 +224,7 @@ fun RecipeExecutor.addTestDependencies(agpVersion: GradlePluginVersion) {
   }
 }
 
-// TODO(qumeric): is seems that we actually never need resOut. Delete if it's the case
-fun RecipeExecutor.createDefaultDirectories(moduleOut: File, srcOut: File, resOut: File? = null) {
+fun RecipeExecutor.createDefaultDirectories(moduleOut: File, srcOut: File) {
   createDirectory(srcOut)
   createDirectory(moduleOut.resolve("libs"))
-  if (resOut != null) {
-    createDirectory(resOut.resolve("drawable"))
-  }
 }
