@@ -115,6 +115,8 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
 
     override val isCustomHeight: Boolean
       get() = editor is PTableVariableHeightCellEditor && editor.isCustomHeight
+
+    override var updateRowHeight = {}
   }
 
   private data class ControlKey(val type: ControlType, val hasBrowseButton: Boolean)

@@ -24,6 +24,7 @@ import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.ptable2.PTableModel
+import com.android.tools.property.ptable2.PTableVariableHeightCellEditor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.wm.IdeFocusManager
@@ -299,7 +300,15 @@ class PTableImpl(
   }
 
   override fun getCellEditor(row: Int, column: Int): PTableCellEditorWrapper {
-    tableCellEditor.editor = editorProvider(this, item(row), PTableColumn.fromColumn(column))
+    val editor = editorProvider(this, item(row), PTableColumn.fromColumn(column))
+    val cellEditor = editor.editorComponent
+    if (cellEditor is PTableVariableHeightCellEditor) {
+      cellEditor.updateRowHeight = {
+        setRowHeight(row, cellEditor.preferredSize.height)
+        scrollRectToVisible(getCellRect(row, column, true))
+      }
+    }
+    tableCellEditor.editor = editor
     return tableCellEditor
   }
 
@@ -574,7 +583,7 @@ class PTableImpl(
     override fun keyTyped(event: KeyEvent) {
       val row = selectedRow
       val type = Character.getType(event.keyChar).toByte()
-      if (isEditing || row == -1 || type == Character.CONTROL || type == Character.OTHER_SYMBOL) {
+      if (isEditing || row == -1 || type == Character.CONTROL || type == Character.OTHER_SYMBOL || type == Character.SPACE_SEPARATOR) {
         return
       }
       autoStartEditingAndForwardKeyEventToEditor(row, event)
