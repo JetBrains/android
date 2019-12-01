@@ -170,7 +170,11 @@ class PTableCellEditorImpl : PTableCellEditor {
 }
 
 @VisibleForTesting
-class EditorPanel(val editor: JComponent, withBorder: Border, backgroundColor: Color?): JPanel(BorderLayout()) {
+class EditorPanel(
+  val editor: JComponent,
+  withBorder: Border,
+  backgroundColor: Color?
+): JPanel(BorderLayout()), PTableVariableHeightCellEditor {
 
   init {
     add(editor, BorderLayout.CENTER)
@@ -181,4 +185,11 @@ class EditorPanel(val editor: JComponent, withBorder: Border, backgroundColor: C
   override fun requestFocus() {
     editor.requestFocus()
   }
+
+  override val isCustomHeight: Boolean
+    get() = (editor as? PTableVariableHeightCellEditor)?.isCustomHeight ?: false
+
+  override var updateRowHeight: () -> Unit
+    get() = (editor as? PTableVariableHeightCellEditor)?.updateRowHeight ?: {}
+    set(value) { (editor as? PTableVariableHeightCellEditor)?.updateRowHeight = value }
 }

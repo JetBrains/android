@@ -27,6 +27,7 @@ import com.android.tools.property.ptable2.item.Item
 import com.android.tools.property.ptable2.item.PTableTestModel
 import com.android.tools.property.ptable2.item.createModel
 import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.property.ptable2.PTableVariableHeightCellEditor
 import com.android.tools.property.testing.ApplicationRule
 import com.android.tools.property.testing.RunWithTestFocusManager
 import com.android.tools.property.testing.SwingFocusRule
@@ -38,6 +39,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.AWTEvent
+import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import javax.swing.JPanel
@@ -342,6 +344,16 @@ class PTableImplTest {
   }
 
   @Test
+  fun typingSpaceDoesNotStartEditing() {
+    table!!.setRowSelectionInterval(5, 5)
+    val event = KeyEvent(table, KeyEvent.KEY_TYPED, 0, 0, 0, ' ')
+    imitateFocusManagerIsDispatching(event)
+    table!!.dispatchEvent(event)
+    assertThat(table!!.editingRow).isEqualTo(-1)
+    assertThat(model!!.editedItem).isNull()
+  }
+
+  @Test
   fun typingIsNoopIfNeitherNameNorValueIsEditable() {
     table!!.setRowSelectionInterval(2, 2)
     val event = KeyEvent(table, KeyEvent.KEY_TYPED, 0, 0, 0, 's')
@@ -360,6 +372,22 @@ class PTableImplTest {
     assertThat(table!!.editingRow).isEqualTo(0)
     assertThat(table!!.editingColumn).isEqualTo(1)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
+  }
+
+  @Test
+  fun resizeRowHeight() {
+    table!!.setRowSelectionInterval(5, 5)
+    val event = KeyEvent(table, KeyEvent.KEY_TYPED, 0, 0, 0, 's')
+    imitateFocusManagerIsDispatching(event)
+    table!!.dispatchEvent(event)
+    assertThat(table!!.editingRow).isEqualTo(5)
+    val editor = table!!.editorComponent as SimpleEditorComponent
+    editor.preferredSize = Dimension(400, 400)
+    editor.updateRowHeight()
+    assertThat(table!!.getRowHeight(5)).isEqualTo(400)
+    editor.preferredSize = Dimension(400, 800)
+    editor.updateRowHeight()
+    assertThat(table!!.getRowHeight(5)).isEqualTo(800)
   }
 
   @Test
@@ -539,7 +567,7 @@ class PTableImplTest {
     var cancelCount = 0
     var refreshCount = 0
 
-    override val editorComponent = JPanel()
+    override val editorComponent = SimpleEditorComponent()
     val textEditor = JTextField()
     val icon = JBLabel()
 
@@ -575,6 +603,11 @@ class PTableImplTest {
     override fun refresh() {
       refreshCount++
     }
+  }
+
+  private class SimpleEditorComponent: JPanel(), PTableVariableHeightCellEditor {
+    override var isCustomHeight = false
+    override var updateRowHeight = {}
   }
 
   private inner class SimplePTableCellEditorProvider : PTableCellEditorProvider {
