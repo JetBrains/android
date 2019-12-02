@@ -296,7 +296,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
       action.actionPerformed(AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, new DataContext() {
         @Nullable
         @Override
-        public Object getData(String dataId) {
+        public Object getData(@NotNull String dataId) {
           if (dataId.equalsIgnoreCase(CommonDataKeys.PROJECT.getName())) {
             return myFacet.getModule().getProject();
           }
