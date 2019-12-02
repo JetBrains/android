@@ -151,7 +151,7 @@ data class ProjectChecker(
   private fun Project.verify(language: Language) {
     val projectDir = getBaseDirPath(this)
     verifyLanguageFiles(projectDir, language)
-    if(basePath?.contains("PureLibrary") != true) { // we cannot build a project which has only pure library module
+    if(basePath?.contains("compare") != true) {
       invokeGradleForProjectDir(projectDir)
     }
     lintIfNeeded(this)
