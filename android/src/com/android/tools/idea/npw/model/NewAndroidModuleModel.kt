@@ -149,7 +149,9 @@ class NewAndroidModuleModel(
   }
 
   protected inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
-    override val recipe: Recipe get() = { data: TemplateData -> generateAndroidModule(data as ModuleTemplateData, applicationName.get()) }
+    override val recipe: Recipe get() = { data: TemplateData ->
+      generateAndroidModule(data as ModuleTemplateData, applicationName.get(), enableCppSupport.get())
+    }
     @WorkerThread
     override fun init() {
       super.init()
