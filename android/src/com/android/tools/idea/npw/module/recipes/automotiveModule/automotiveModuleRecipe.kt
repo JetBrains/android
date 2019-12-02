@@ -18,8 +18,21 @@ package com.android.tools.idea.npw.module.recipes.automotiveModule
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
+import com.android.tools.idea.npw.module.recipes.generateManifest
 
 fun RecipeExecutor.generateAutomotiveModule(
   data: ModuleTemplateData,
   appTitle: String
-) = generateCommonModule(data, appTitle, true)
+) {
+  val usesFeatureBlock = """
+<uses-feature
+    android:name="android.hardware.type.automotive"
+    android:required="true"/>
+"""
+  generateCommonModule(
+    data, appTitle,
+    generateManifest(data.packageName, !data.isLibrary, usesFeatureBlock = usesFeatureBlock),
+    true
+  )
+  addDependency("com.android.support:appcompat-v7:${data.apis.buildApi}.+")
+}

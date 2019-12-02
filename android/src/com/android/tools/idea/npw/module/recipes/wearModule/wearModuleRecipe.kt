@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.module.recipes.wearModule
 
 import com.android.tools.idea.npw.module.recipes.IconsGenerationStyle
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
+import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
@@ -24,9 +25,11 @@ fun RecipeExecutor.generateWearModule(
   data: ModuleTemplateData,
   appTitle: String?
 ) {
+  val usesFeatureBlock = """<uses-feature android:name="android.hardware.type.watch" />"""
   generateCommonModule(
     data, appTitle,
-    iconsGenerationStyle = IconsGenerationStyle.MIPMAP_ONLY,
+    generateManifest(data.packageName, !data.isLibrary, "@android:style/Theme.DeviceDefault", usesFeatureBlock, false),
+    iconsGenerationStyle = IconsGenerationStyle.MIPMAP_SQUARE_ONLY,
     stylesXml = null, colorsXml = null
   )
 

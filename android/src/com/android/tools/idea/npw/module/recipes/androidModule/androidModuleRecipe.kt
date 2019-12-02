@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.module.recipes.androidModule
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
+import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.wizard.template.FormFactor
 
 fun RecipeExecutor.generateAndroidModule(
@@ -26,8 +27,11 @@ fun RecipeExecutor.generateAndroidModule(
   includeCppSupport: Boolean = false,
   cppFlags: String
 ) {
-  generateCommonModule(data, appTitle, true, includeCppSupport, cppFlags = cppFlags)
+  generateCommonModule(
+    data, appTitle, generateManifest(data.packageName, !data.isLibrary), true, includeCppSupport, cppFlags = cppFlags
+  )
   val projectData = data.projectTemplateData
+  addDependency("com.android.support:appcompat-v7:${data.apis.buildApi}.+")
   // TODO(qumeric): currently only works for a new project
   if (projectData.hasFormFactor(FormFactor.Mobile) && projectData.hasFormFactor(FormFactor.Wear)) {
     addDependency("com.google.android.gms:play-services-wearable:+", "compile")

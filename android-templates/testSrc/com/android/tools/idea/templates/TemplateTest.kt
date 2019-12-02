@@ -417,8 +417,28 @@ open class TemplateTest : TemplateTestBase() {
   //--- Non-activity templates ---
 
   @TemplateCheck
-  fun testCompareNewModule() {
+  fun testCompareNewAndroidModule() {
     checkCreateTemplate("gradle-projects", "NewAndroidModule", ActivityCreationMode.DO_NOT_CREATE, false, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareNewAutomotiveModule() {
+    checkCreateTemplate("gradle-projects", "NewAndroidAutomotiveModule", ActivityCreationMode.DO_NOT_CREATE, false, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareNewThingsModule() {
+    checkCreateTemplate("gradle-projects", "NewAndroidThingsModule", ActivityCreationMode.DO_NOT_CREATE, false, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareNewTvModule() {
+    checkCreateTemplate("gradle-projects", "NewAndroidTVModule", ActivityCreationMode.DO_NOT_CREATE, false, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareNewWearModule() {
+    checkCreateTemplate("gradle-projects", "AndroidWearModule", ActivityCreationMode.DO_NOT_CREATE, false, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck

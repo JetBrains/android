@@ -29,18 +29,21 @@ import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androi
 enum class IconsGenerationStyle {
   ALL,
   MIPMAP_ONLY,
+  MIPMAP_SQUARE_ONLY,
   NONE;
 }
 
 fun RecipeExecutor.generateCommonModule(
   data: ModuleTemplateData,
   appTitle: String?, // may be null only for libraries
+  manifestXml: String,
   generateTests: Boolean = false,
   includeCppSupport: Boolean = false,
   iconsGenerationStyle: IconsGenerationStyle = IconsGenerationStyle.ALL,
   stylesXml: String? = androidModuleStyles(),
   colorsXml: String? = androidModuleColors(),
-  cppFlags: String = ""
+  cppFlags: String = "",
+  addLintOptions: Boolean = false
   ) {
   val (projectData, srcOut, resOut, manifestOut, testOut, unitTestOut, _, moduleOut) = data
   val (useAndroidX, agpVersion) = projectData
@@ -68,12 +71,13 @@ fun RecipeExecutor.generateCommonModule(
       language,
       agpVersion,
       includeCppSupport,
-      cppFlags
+      cppFlags,
+      hasTests = generateTests,
+      addLintOptions = addLintOptions
     ),
     moduleOut.resolve(FN_BUILD_GRADLE)
   )
-  addDependency("com.android.support:appcompat-v7:${buildApi}.+")
-  save(generateManifest(packageName, !isLibraryProject), manifestOut.resolve(FN_ANDROID_MANIFEST_XML))
+  save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))
   save(gitignore(), moduleOut.resolve(".gitignore"))
   if (generateTests) {
     addTests(packageName, useAndroidX, isLibraryProject, testOut, unitTestOut, language)
@@ -86,7 +90,8 @@ fun RecipeExecutor.generateCommonModule(
   if (!isLibraryProject) {
     when(iconsGenerationStyle) {
       IconsGenerationStyle.ALL -> copyIcons(resOut)
-      IconsGenerationStyle.MIPMAP_ONLY -> copyMipmap(resOut)
+      IconsGenerationStyle.MIPMAP_ONLY -> copyMipmapFolder(resOut)
+      IconsGenerationStyle.MIPMAP_SQUARE_ONLY -> copyMipmapFile(resOut, "ic_launcher.png")
       IconsGenerationStyle.NONE -> Unit
     }
     with(resOut.resolve(SdkConstants.FD_RES_VALUES)) {

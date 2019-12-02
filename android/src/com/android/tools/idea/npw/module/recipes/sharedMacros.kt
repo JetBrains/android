@@ -30,22 +30,26 @@ import java.io.File
 
 fun generateManifest(
   packageName: String,
-  hasApplicationBlock: Boolean = false
+  hasApplicationBlock: Boolean = false,
+  theme: String = "@style/AppTheme",
+  usesFeatureBlock: String = "",
+  hasRoundIcon: Boolean = true
 ): String {
   val applicationBlock = if (hasApplicationBlock) """
     <application
     android:allowBackup="true"
     android:label="@string/app_name"
     android:icon="@mipmap/ic_launcher"
-    android:roundIcon="@mipmap/ic_launcher_round"
+    ${renderIf(hasRoundIcon) { """android:roundIcon="@mipmap/ic_launcher_round"""" }}
     android:supportsRtl="true"
-    android:theme="@style/AppTheme"/>
+    android:theme="$theme" />
   """
   else "/"
 
   return """
     <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="${packageName}">
+    $usesFeatureBlock
     $applicationBlock
     </manifest>
   """
@@ -96,7 +100,8 @@ fun androidConfig(
   applicationId: String = "",
   hasTests: Boolean = false,
   canHaveCpp: Boolean = false,
-  canUseProguard: Boolean = false
+  canUseProguard: Boolean = false,
+  addLintOptions: Boolean = false
 ): String {
   val buildToolsVersionBlock = renderIf(explicitBuildToolsVersion) { "buildToolsVersion \"$buildToolsVersion\"" }
   val applicationIdBlock = renderIf(hasApplicationId) { "applicationId \"${applicationId}\"" }
@@ -105,6 +110,14 @@ fun androidConfig(
   }
   val proguardConsumerBlock = renderIf(canUseProguard && isLibraryProject) { "consumerProguardFiles \"consumer-rules.pro\"" }
   val proguardConfigBlock = renderIf(canUseProguard) { proguardConfig() }
+  val lintOptionsBlock = renderIf(addLintOptions) {
+    """
+      lintOptions {
+          disable ('AllowBackup', 'GoogleAppIndexingWarning', 'MissingApplicationIcon')
+      }
+    """
+  }
+
   val cppBlock = renderIf(canHaveCpp && includeCppSupport) {
     """
       externalNativeBuild {
@@ -126,8 +139,7 @@ fun androidConfig(
   }
 
   // TODO(qumeric): add compileOptions
-  return (
-    """
+  return """
     android {
     compileSdkVersion ${buildApiString.toIntOrNull() ?: "\"$buildApiString\""}
     $buildToolsVersionBlock
@@ -145,10 +157,10 @@ fun androidConfig(
     }
 
     $proguardConfigBlock
+    $lintOptionsBlock
     $cppBlock2
     }
     """
-         )
 }
 
 private fun resource(path: String) = File("templates/module", path)
@@ -173,17 +185,25 @@ fun RecipeExecutor.copyIcons(destination: File) {
     )
   }
 
-  copyMipmap(destination)
-  copyMipmap(destination)
+  copyMipmapFolder(destination)
+  copyMipmapFolder(destination)
   copyAdaptiveIcons()
 }
 
-fun RecipeExecutor.copyMipmap(destination: File) {
+fun RecipeExecutor.copyMipmapFolder(destination: File) {
   copy(resource("mipmap-hdpi"), destination.resolve("mipmap-hdpi"))
   copy(resource("mipmap-mdpi"), destination.resolve("mipmap-mdpi"))
   copy(resource("mipmap-xhdpi"), destination.resolve("mipmap-xhdpi"))
   copy(resource("mipmap-xxhdpi"), destination.resolve("mipmap-xxhdpi"))
   copy(resource("mipmap-xxxhdpi"), destination.resolve("mipmap-xxxhdpi"))
+}
+
+fun RecipeExecutor.copyMipmapFile(destination: File, file: String) {
+  copy(resource("mipmap-hdpi/$file"), destination.resolve("mipmap-hdpi/$file"))
+  copy(resource("mipmap-mdpi/$file"), destination.resolve("mipmap-mdpi/$file"))
+  copy(resource("mipmap-xhdpi/$file"), destination.resolve("mipmap-xhdpi/$file"))
+  copy(resource("mipmap-xxhdpi/$file"), destination.resolve("mipmap-xxhdpi/$file"))
+  copy(resource("mipmap-xxxhdpi/$file"), destination.resolve("mipmap-xxxhdpi/$file"))
 }
 
 fun RecipeExecutor.addTests(
@@ -194,7 +214,7 @@ fun RecipeExecutor.addTests(
     if (language == Language.Kotlin)
       exampleInstrumentedTestKt(packageName, useAndroidX, isLibraryProject)
     else
-      exampleInstrumentedTestJava(packageName, useAndroidX, isLibraryProject) ,
+      exampleInstrumentedTestJava(packageName, useAndroidX, isLibraryProject),
     testOut.resolve("ExampleInstrumentedTest.$ext")
   )
   save(
@@ -207,7 +227,6 @@ fun RecipeExecutor.addTests(
 }
 
 fun basicStylesXml(parent: String) = """
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="AppTheme" parent="$parent" />
 </resources> 
