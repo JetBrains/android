@@ -36,7 +36,7 @@ class AppInspectionDiscoveryTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
-  private val FAKE_PROCESS = AutoPreferredProcess(
+  private val FAKE_PROCESS = ProcessDescriptor(
     FakeTransportService.FAKE_DEVICE.manufacturer,
     FakeTransportService.FAKE_DEVICE.model,
     FakeTransportService.FAKE_DEVICE.serial,
@@ -132,5 +132,46 @@ class AppInspectionDiscoveryTest {
 
     // Verify
     assertThat(connectionsList).containsExactly(connectionFuture.get())
+  }
+
+  @Test
+  fun removeConnectionFromCacheWhenProcessEnds() {
+    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
+    val discoveryHost = AppInspectionDiscoveryHost(
+      executor,
+      object : AppInspectionDiscoveryHost.Channel {
+        override val name = grpcServerRule.name
+      }
+    )
+
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
+
+    discoveryHost.discovery.addTargetListener(executor) {}
+
+    val latch = CountDownLatch(1)
+
+    // Attach to the process.
+    val connectionFuture = discoveryHost.connect(AppInspectionServiceRule.TestTransportFileCopier(), FAKE_PROCESS)
+    connectionFuture.get().addTargetTerminatedListener(executor) { latch.countDown() }
+
+    // Generate a fake process ended event.
+    transportService.addEventToStream(
+      FakeTransportService.FAKE_DEVICE_ID,
+      Common.Event.newBuilder()
+        .setPid(FakeTransportService.FAKE_PROCESS.pid)
+        .setKind(Common.Event.Kind.PROCESS)
+        .setGroupId(FakeTransportService.FAKE_PROCESS.pid.toLong())
+        .setIsEnded(true)
+        .build()
+    )
+
+    // Wait for connection to be removed from cache.
+    latch.await()
+
+    // Connect to the same process again.
+    val connectionFuture2 = discoveryHost.connect(AppInspectionServiceRule.TestTransportFileCopier(), FAKE_PROCESS)
+
+    // Verify the two connection futures are not the same.
+    assertThat(connectionFuture2).isNotSameAs(connectionFuture)
   }
 }

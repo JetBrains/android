@@ -18,9 +18,9 @@ package com.android.tools.idea.sqlite
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.appinspection.api.AppInspectorJar
+import com.android.tools.idea.appinspection.api.TargetTerminatedListener
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.sql.protocol.SqliteInspection
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -29,6 +29,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import java.util.concurrent.Executor
 
 class DatabaseInspectorClientTest : PlatformTestCase() {
   private lateinit var databaseInspectorClient: DatabaseInspectorClient
@@ -58,6 +59,10 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
         creator: (AppInspectorClient.CommandMessenger) -> T
       ): ListenableFuture<T> {
         return Futures.immediateFuture(creator(mockMessenger))
+      }
+
+      override fun addTargetTerminatedListener(executor: Executor, listener: TargetTerminatedListener): TargetTerminatedListener {
+        return listener
       }
     }
 

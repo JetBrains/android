@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.poller.TransportEventPoller
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import java.util.concurrent.Executor
@@ -37,7 +38,14 @@ typealias TargetListener = (AppInspectionTarget) -> Unit
  * the discovery with interested clients.
  */
 // TODO(b/143628758): This Discovery mechanism must be called only behind the flag SQLITE_APP_INSPECTOR_ENABLED
-class AppInspectionDiscoveryHost(executor: ScheduledExecutorService, channel: Channel) {
+class AppInspectionDiscoveryHost(
+  executor: ScheduledExecutorService,
+  transportChannel: Channel,
+  @VisibleForTesting client: TransportClient = TransportClient(transportChannel.name),
+  @VisibleForTesting poller: TransportEventPoller = TransportEventPoller.createPoller(
+    client.transportStub, TimeUnit.MILLISECONDS.toNanos(100)
+  )
+) {
   /**
    * This class represents a channel between some host (which should implement this class) and a target Android device.
    */
@@ -45,16 +53,17 @@ class AppInspectionDiscoveryHost(executor: ScheduledExecutorService, channel: Ch
     val name: String
   }
 
-  val discovery = AppInspectionDiscovery(executor, channel)
+  val discovery = AppInspectionDiscovery(executor, client, poller, AppInspectionAttacher(executor, client))
 
   /**
-   * Connects to a process on device defined by [preferredProcess]. This method returns a future of [AppInspectionPipelineConnection]. If
+   * Connects to a process on device defined by [processDescriptor]. This method returns a future of [AppInspectionPipelineConnection]. If
    * the connection is cached, the future is ready to be gotten immediately.
    */
   fun connect(
     jarCopier: AppInspectionJarCopier,
-    preferredProcess: AutoPreferredProcess
-  ): ListenableFuture<AppInspectionTarget> = discovery.connect(jarCopier, preferredProcess)
+    processDescriptor: ProcessDescriptor
+  ): ListenableFuture<AppInspectionTarget> =
+    discovery.connect(jarCopier, processDescriptor)
 }
 
 /**
@@ -64,33 +73,34 @@ class AppInspectionDiscoveryHost(executor: ScheduledExecutorService, channel: Ch
  * to and fire listeners for all of them.
  */
 // TODO(b/143628758): This Discovery mechanism must be called only behind the flag SQLITE_APP_INSPECTOR_ENABLED
-class AppInspectionDiscovery(
+class AppInspectionDiscovery internal constructor(
   private val executor: ScheduledExecutorService,
-  transportChannel: AppInspectionDiscoveryHost.Channel
+  private val transportClient: TransportClient,
+  private val transportPoller: TransportEventPoller,
+  private val attacher: AppInspectionAttacher
 ) {
   @GuardedBy("this")
   private val listeners = mutableMapOf<TargetListener, Executor>()
 
   @GuardedBy("this")
-  private val connections = mutableMapOf<AutoPreferredProcess, ListenableFuture<AppInspectionTarget>>()
-
-  private val attacher = AppInspectionAttacher(executor, transportChannel)
-
-  private val client = TransportClient(transportChannel.name)
-  private val transportPoller = TransportEventPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
+  private val connections = mutableMapOf<ProcessDescriptor, ListenableFuture<AppInspectionTarget>>()
 
   internal fun connect(
     jarCopier: AppInspectionJarCopier,
-    preferredProcess: AutoPreferredProcess
+    processDescriptor: ProcessDescriptor
   ): ListenableFuture<AppInspectionTarget> {
     return connections.computeIfAbsent(
-      preferredProcess,
-      Function { autoPreferredProcess ->
+      processDescriptor,
+      Function { descriptor ->
         val connectionFuture = SettableFuture.create<AppInspectionTarget>()
-        attacher.attach(autoPreferredProcess) { stream, process ->
-          val transport = AppInspectionTransport(client, stream, process, executor, transportPoller)
+        attacher.attach(descriptor) { stream, process ->
+          val transport = AppInspectionTransport(transportClient, stream, process, executor, transportPoller)
           AppInspectionTarget.attach(transport, jarCopier)
             .transform(executor) { connection ->
+              connection.addTargetTerminatedListener(executor) {
+                connections.remove(ProcessDescriptor(stream.device.manufacturer, stream.device.model, stream.device.serial, process.name))
+                  ?.cancel(false)
+              }
               listeners.forEach { it.value.execute { it.key(connection) } }
               connectionFuture.set(connection)
             }

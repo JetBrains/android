@@ -20,6 +20,9 @@ import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.appinspection.internal.attachAppInspectionTarget
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
+import java.util.concurrent.Executor
+
+typealias TargetTerminatedListener = () -> Unit
 
 /**
  * Represents an app-inspection target process (on the device) being connected to from the host.
@@ -41,6 +44,13 @@ interface AppInspectionTarget {
     inspectorJar: AppInspectorJar,
     @WorkerThread creator: (AppInspectorClient.CommandMessenger) -> T
   ): ListenableFuture<T>
+
+  /**
+   * Adds a listener to be notified (via [executor]) of when this connection is closed.
+   *
+   * Listener fires immediately if connection is already closed.
+   */
+  fun addTargetTerminatedListener(executor: Executor, listener: TargetTerminatedListener): TargetTerminatedListener
 
   companion object {
     /**

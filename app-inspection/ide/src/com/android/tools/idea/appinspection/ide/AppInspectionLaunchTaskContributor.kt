@@ -18,7 +18,7 @@ package com.android.tools.idea.appinspection.ide
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectorJar
-import com.android.tools.idea.appinspection.api.AutoPreferredProcess
+import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
@@ -62,7 +62,7 @@ private class AppInspectionLaunchTask(private val module: Module) : LaunchTask {
         private val delegate = TransportFileManager(device, TransportService.getInstance().messageBus)
         override fun copyFileToDevice(jar: AppInspectorJar): List<Path> = delegate.copyFileToDevice(jar.toDeployableFile())
       },
-      AutoPreferredProcess(device, packageName)
+      ProcessDescriptor(device, packageName)
     )
     return LaunchResult.success()
   }

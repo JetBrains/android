@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.internal
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
 import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Status.SUCCESS
 import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
@@ -22,11 +23,14 @@ import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.appinspection.api.AppInspectorJar
+import com.android.tools.idea.appinspection.api.TargetTerminatedListener
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.transport.TransportFileManager
+import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Commands.Command.CommandType.ATTACH_AGENT
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.Event.Kind.AGENT
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
@@ -39,6 +43,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
 import java.nio.file.Path
+import java.util.concurrent.Executor
 
 /**
  * Sends ATTACH command to the transport daemon, that makes sure an agent is running and is ready
@@ -76,15 +81,43 @@ internal fun attachAppInspectionTarget(
 }
 
 private class DefaultAppInspectionTarget(
-  val processTransport: AppInspectionTransport,
+  val transport: AppInspectionTransport,
   private val jarCopier: AppInspectionJarCopier
 ) : AppInspectionTarget {
+
+  @GuardedBy("this")
+  private var isTerminated = false
+
+  @GuardedBy("this")
+  private val listeners = mutableMapOf<TargetTerminatedListener, Executor>()
+
+  init {
+    transport.registerEventListener(
+      TransportEventListener(
+        eventKind = Common.Event.Kind.PROCESS,
+        streamId = transport.stream::getStreamId,
+        processId = transport.process::getPid,
+        groupId = { transport.process.pid.toLong() },
+        filter = { it.isEnded },
+        executor = transport.executorService
+      ) {
+        synchronized(this) {
+          if (!isTerminated) {
+            isTerminated = true
+            listeners.forEach { it.value.execute { it.key() } }
+          }
+        }
+        true
+      }
+    )
+  }
+
   override fun <T : AppInspectorClient> launchInspector(
     inspectorId: String,
     inspectorJar: AppInspectorJar,
     creator: (AppInspectorClient.CommandMessenger) -> T
   ): ListenableFuture<T> {
-    val launchResultFuture = MoreExecutors.listeningDecorator(processTransport.executorService)
+    val launchResultFuture = MoreExecutors.listeningDecorator(transport.executorService)
       .submit<Path> { jarCopier.copyFileToDevice(inspectorJar).first() }
     return Futures.transformAsync(
       launchResultFuture,
@@ -97,14 +130,14 @@ private class DefaultAppInspectionTarget(
           .setInspectorId(inspectorId)
           .setCreateInspectorCommand(createInspectorCommand)
           .build()
-        val commandId = processTransport.executeCommand(appInspectionCommand)
-        processTransport.registerEventListener(
-          processTransport.createEventListener(
+        val commandId = transport.executeCommand(appInspectionCommand)
+        transport.registerEventListener(
+          transport.createEventListener(
             eventKind = APP_INSPECTION_RESPONSE,
             filter = { it.appInspectionResponse.commandId == commandId }
           ) { event ->
             if (event.appInspectionResponse.status == SUCCESS) {
-              connectionFuture.set(AppInspectorConnection(processTransport, inspectorId, event.timestamp))
+              connectionFuture.set(AppInspectorConnection(transport, inspectorId, event.timestamp))
             } else {
               connectionFuture.setException(RuntimeException("Could not launch inspector $inspectorId"))
             }
@@ -113,9 +146,23 @@ private class DefaultAppInspectionTarget(
         )
         connectionFuture
       },
-      processTransport.executorService
+      transport.executorService
     )
-      .transform(processTransport.executorService) { setupEventListener(creator, it) }
+      .transform(transport.executorService) { setupEventListener(creator, it) }
+  }
+
+  override fun addTargetTerminatedListener(
+    executor: Executor,
+    listener: TargetTerminatedListener
+  ): TargetTerminatedListener {
+    return synchronized(this) {
+      if (isTerminated) {
+        executor.execute(listener)
+      } else {
+        listeners[listener] = executor
+      }
+      listener
+    }
   }
 }
 
