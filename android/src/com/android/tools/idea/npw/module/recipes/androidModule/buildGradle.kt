@@ -46,7 +46,9 @@ fun buildGradle(
   baseFeatureName: String = "base",
   wearProjectName: String = "wear",
   mobileIncluded: Boolean = true,
-  wearIncluded: Boolean = false
+  wearIncluded: Boolean = false,
+  hasTests: Boolean = true,
+  addLintOptions: Boolean = false
 ): String {
   val explicitBuildToolsVersion = needsExplicitBuildToolsVersion(GradleVersion.parse(gradlePluginVersion), parseRevision(buildToolsVersion))
   val supportsImprovedTestDeps = supportsImprovedTestDeps(gradlePluginVersion)
@@ -76,9 +78,10 @@ fun buildGradle(
     includeCppSupport,
     isApplicationProject,
     packageName,
-    hasTests = true,
+    hasTests = hasTests,
     canHaveCpp = true,
-    canUseProguard = true
+    canUseProguard = true,
+    addLintOptions = addLintOptions
   )
 
   val composeDependenciesBlock = renderIf(isCompose) { "kotlinPlugin \"androidx.compose:compose-compiler:+\"" }

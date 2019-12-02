@@ -26,7 +26,7 @@ fun RecipeExecutor.addKotlinPlugins()  {
 }
 
 fun RecipeExecutor.addKotlinDependencies(androidX: Boolean) {
-  addDependency("org.jetbrains.kotlin:kotlin-stdlib-jdk7:\$kotlin_version\"")
+  addDependency("org.jetbrains.kotlin:kotlin-stdlib-jdk7:\$kotlin_version")
   if (androidX) {
     addDependency("androidx.core:core-ktx:+")
   }

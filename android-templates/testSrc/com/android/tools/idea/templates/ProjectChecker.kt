@@ -29,8 +29,12 @@ import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.npw.model.doRender
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
+import com.android.tools.idea.npw.module.recipes.automotiveModule.generateAutomotiveModule
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.generateBenchmarkModule
 import com.android.tools.idea.npw.module.recipes.pureLibrary.generatePureLibrary
+import com.android.tools.idea.npw.module.recipes.thingsModule.generateThingsModule
+import com.android.tools.idea.npw.module.recipes.tvModule.generateTvModule
+import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.setGradleWrapperExecutable
 import com.android.tools.idea.npw.template.TemplateResolver
@@ -42,6 +46,7 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API_STRING
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_TOOLS_VERSION
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_CLASS_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_CPP_SUPPORT
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_GRADLE_PLUGIN_VERSION
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_HAS_APPLICATION_THEME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LAUNCHER
@@ -205,11 +210,16 @@ data class ProjectChecker(
       val relativePath = it.path.removePrefix(this).substring(1)
       if (!comparisonExcludedPaths.contains(relativePath.replace(File.separatorChar, '/'))) {
         /** Forces templates to conform to the same style */
-        fun String.harmonize() = this
-          .replace('\'', '"')
-          .replace(" : ", ": ")
-          .replace(" (", "(")
-          .trimAllWhitespace()
+        fun String.harmonize(): String {
+          val mainHarmonization = this
+            .replace('\'', '"')
+            .replace(" : ", ": ")
+            .replace(" (", "(")
+            .trimAllWhitespace()
+
+          // For complicated reasons, we have a different line order for the new modules. Therefore, we only check if lines are the same.
+          return mainHarmonization.takeUnless { "Module" in projectBaseNew } ?: mainHarmonization.split("\n").sorted().joinToString("\n")
+        }
         // Compare the contents of each file between the new and the old RenderingContext
         val expected = FileUtil.loadFile(it).harmonize()
         val actual = FileUtil.loadFile(File(projectBaseNew + File.separatorChar + relativePath)).harmonize()
@@ -357,7 +367,7 @@ data class ProjectChecker(
     if (activityCreationMode != ActivityCreationMode.DO_NOT_CREATE) {
       if (isNewRenderingContext) {
         val appTitle = moduleState.getString(ATTR_APP_TITLE)
-        val recipe: Recipe = { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle) }
+        val recipe: Recipe = { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle, false, "") }
         createProjectForNewRenderingContext(this, moduleName, activityState, recipe = recipe)
       }
       else {
@@ -391,9 +401,15 @@ data class ProjectChecker(
         if (isNewRenderingContext) {
           val appTitle = moduleState[ATTR_APP_TITLE] as String?
           val className = moduleState[ATTR_CLASS_NAME] as String?
+          val cppSupport = moduleState[ATTR_CPP_SUPPORT] as Boolean? ?: false
           val recipe: Recipe = { data: TemplateData ->
             when {
-              moduleName.contains("NewAndroidModule") -> this.generateAndroidModule(data as ModuleTemplateData, appTitle!!)
+              // TODO(qumeric) pass cppFlags?
+              moduleName.contains("NewAndroidModule") -> this.generateAndroidModule(data as ModuleTemplateData, appTitle!!, cppSupport, "")
+              moduleName.contains("NewAndroidAutomotiveModule") -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle!!)
+              moduleName.contains("NewAndroidThingsModule") -> this.generateThingsModule(data as ModuleTemplateData, appTitle!!)
+              moduleName.contains("NewAndroidTVModule") -> this.generateTvModule(data as ModuleTemplateData, appTitle!!)
+              moduleName.contains("AndroidWearModule") -> this.generateWearModule(data as ModuleTemplateData, appTitle!!)
               moduleName.contains("NewJavaOrKotlinLibrary") -> this.generatePureLibrary(data as ModuleTemplateData, className!!)
               moduleName.contains("NewBenchmarkModule") -> this.generateBenchmarkModule(data as ModuleTemplateData)
               else -> throw IllegalArgumentException("given module name ($moduleName) is unknown")
