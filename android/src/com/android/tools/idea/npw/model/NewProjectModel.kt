@@ -208,8 +208,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       if (StudioFlags.NPW_NEW_PROJECT_TEMPLATE.get()) {
         projectTemplateDataBuilder.apply {
           // TODO(qumeric)
-          // cppSupport = this@NewProjectModel.cppSupport.get()
-          // cppFlags = this@NewProjectModel.cppFlags.get()
+          //cppFlags = this@NewProjectModel.cppFlags.get()
           topOut = File(project.basePath ?: "")
           androidXSupport = !useAppCompat.get()
 
