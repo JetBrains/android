@@ -45,4 +45,9 @@ public class LayoutLogWrapper extends LayoutLog {
   public void error(String tag, String message, Throwable throwable, Object viewCookie, Object data) {
     myLog.error(message, throwable);
   }
+
+  @Override
+  public void logAndroidFramework(int priority, String tag, String message) {
+    myLog.warn(tag + ": " + message);
+  }
 }
