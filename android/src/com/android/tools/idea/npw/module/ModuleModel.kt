@@ -59,22 +59,20 @@ import java.io.File
 private val log: Logger get() = logger<ModuleModel>()
 
 abstract class ModuleModel(
-  project: Project,
   override var templateFile: File?,
-  projectSyncInvoker: ProjectSyncInvoker,
   moduleName: String,
   private val commandName: String = "New Module",
   override val isLibrary: Boolean,
-  projectModelData: ProjectModelData = ExistingProjectModelData(project, projectSyncInvoker)
+  projectModelData: ProjectModelData
 ) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
   override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(
-    NamedModuleTemplate("", GradleAndroidModuleTemplate.createDefaultTemplateAt(project.basePath!!, moduleName).paths)
+    NamedModuleTemplate("", GradleAndroidModuleTemplate.createDefaultTemplateAt(if (!isNewProject) project.basePath!! else "", moduleName).paths)
   )
   override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
   override val packageName: StringProperty = StringValueProperty()
   override val moduleName = StringValueProperty(moduleName).apply { addConstraint(String::trim) }
   override val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
-  override val language = OptionalValueProperty(getInitialSourceLanguage(project))
+  override val language = OptionalValueProperty(getInitialSourceLanguage(if (!isNewProject) project else null))
   override val moduleTemplateValues = mutableMapOf<String, Any>()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false))
   override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
@@ -86,6 +84,15 @@ abstract class ModuleModel(
     projectSyncInvoker.syncProject(project)
   }
   protected abstract val renderer: MultiTemplateRenderer.TemplateRenderer
+
+  constructor(
+    project: Project,
+    templateFile: File?,
+    projectSyncInvoker: ProjectSyncInvoker,
+    moduleName: String,
+    commandName: String = "New Module",
+    isLibrary: Boolean
+  ): this(templateFile, moduleName, commandName, isLibrary, ExistingProjectModelData(project, projectSyncInvoker))
 
   public override fun handleFinished() {
     multiTemplateRenderer.requestRender(renderer)
