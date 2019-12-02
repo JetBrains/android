@@ -33,6 +33,7 @@ import com.intellij.util.net.HttpConfigurable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
@@ -43,6 +44,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class GradlePreSyncTest {
   @Nullable private File myBackupProperties;
+  @NotNull private HttpConfigurable myBackupIdeSettings;
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
@@ -53,6 +55,8 @@ public class GradlePreSyncTest {
   @Before
   public void backupPropertiesFile() {
     myBackupProperties = backupGlobalGradlePropertiesFile();
+    myBackupIdeSettings = new HttpConfigurable();
+    myBackupIdeSettings.loadState(HttpConfigurable.getInstance());
   }
 
   /**
@@ -61,6 +65,7 @@ public class GradlePreSyncTest {
   @After
   public void restorePropertiesFile() {
     restoreGlobalGradlePropertiesFile(myBackupProperties);
+    HttpConfigurable.getInstance().loadState(myBackupIdeSettings);
   }
 
   // Verifies that the IDE, during sync, asks the user to copy IDE proxy settings to gradle.properties, if applicable.
