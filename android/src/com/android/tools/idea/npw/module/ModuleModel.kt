@@ -66,12 +66,10 @@ abstract class ModuleModel(
     NamedModuleTemplate("", GradleAndroidModuleTemplate.createDefaultTemplateAt(if (!isNewProject) project.basePath!! else "", moduleName).paths)
   )
   override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
-  override val packageName: StringProperty = StringValueProperty()
   override val moduleName = StringValueProperty(moduleName).apply { addConstraint(String::trim) }
   override val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
-  override val language = OptionalValueProperty(getInitialSourceLanguage(if (!isNewProject) project else null))
   override val moduleTemplateValues = mutableMapOf<String, Any>()
-  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false))
+  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
   protected abstract val renderer: MultiTemplateRenderer.TemplateRenderer
 
   constructor(
