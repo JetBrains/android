@@ -19,24 +19,33 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.transport.TransportServiceProxy
 import com.android.tools.profiler.proto.Common
 
-data class AutoPreferredProcess(
+/**
+ * Describes a device and the id of a process on the device.
+ */
+data class ProcessDescriptor(
+  /** Device Information. **/
   val manufacturer: String,
   val model: String,
   val serialNumber: String,
-  val packageName: String?
+
+  /** Application Id. **/
+  val applicationId: String?
 ) {
-
-  constructor(device: IDevice, packageName: String?)
-    : this(TransportServiceProxy.getDeviceManufacturer(device),
-           TransportServiceProxy.getDeviceModel(device),
-           device.serialNumber, packageName)
-
   /**
    * Returns true if a device from the transport layer matches the device profile stored.
    */
-  fun isDeviceMatch(device: Common.Device): Boolean {
+  fun matchesDevice(device: Common.Device): Boolean {
     return device.manufacturer == manufacturer &&
-           device.model == model &&
-           device.serial == serialNumber
+      device.model == model &&
+      device.serial == serialNumber
   }
 }
+
+/**
+ * Creates a [ProcessDescriptor] using an [IDevice].
+ */
+fun ProcessDescriptor(device: IDevice, applicationId: String?) = ProcessDescriptor(
+  TransportServiceProxy.getDeviceManufacturer(device),
+  TransportServiceProxy.getDeviceModel(device),
+  device.serialNumber, applicationId
+)
