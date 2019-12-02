@@ -102,9 +102,7 @@ class NewAndroidModuleModel(
   override val isLibrary: Boolean = false,
   templateFile: File? = null
 ) : ModuleModel(
-  projectModelData.project,
   templateFile,
-  projectModelData.projectSyncInvoker,
   "",
   commandName,
   isLibrary,
