@@ -49,11 +49,8 @@ import com.android.tools.idea.wizard.template.Recipe
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.util.AndroidBundle.message
 import java.io.File
 
 private val log: Logger get() = logger<ModuleModel>()
@@ -75,14 +72,6 @@ abstract class ModuleModel(
   override val language = OptionalValueProperty(getInitialSourceLanguage(if (!isNewProject) project else null))
   override val moduleTemplateValues = mutableMapOf<String, Any>()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false))
-  override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
-    object : Task.Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
-      override fun run(indicator: ProgressIndicator) {
-        renderer(project)
-      }
-    }.queue()
-    projectSyncInvoker.syncProject(project)
-  }
   protected abstract val renderer: MultiTemplateRenderer.TemplateRenderer
 
   constructor(
