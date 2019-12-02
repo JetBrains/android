@@ -108,8 +108,6 @@ class NewAndroidModuleModel(
   isLibrary,
   projectModelData
 ) {
-  override val moduleTemplateValues = mutableMapOf<String, Any>()
-  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
   override val renderer = ModuleTemplateRenderer()
 
   init {
