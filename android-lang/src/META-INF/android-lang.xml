@@ -62,7 +62,7 @@
 
     <!-- This inspection uses the same highlight as "unused symbol", so the level is only visible in the gutter.   -->
     <localInspection groupPath="Android"
-                     groupName="Shrikner"
+                     groupName="Shrinker"
                      language="SHRINKER_CONFIG"
                      enabledByDefault="true"
                      level="WEAK WARNING"
