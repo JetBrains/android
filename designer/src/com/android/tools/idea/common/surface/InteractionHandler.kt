@@ -39,34 +39,73 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 
 /**
- * Handles the interaction events of [DesignSurface]. The events is dispatched from [InteractionManager].
+ * Handles the interaction events of [DesignSurface]. The events are dispatched from [InteractionManager].
  */
 interface InteractionHandler {
-  fun createInteractionOnClick(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction?
 
-  fun createInteractionOnDrag(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction?
+  /**
+   * Called when [InteractionManager] has a single click event. ([mouseX], [mouseY]) is the clicked point, and [modifiersEx] is the pressed
+   * modifiers when mouse is pressed.
+   */
+  fun createInteractionOnPressed(@SwingCoordinate mouseX: Int,
+                                 @SwingCoordinate mouseY: Int,
+                                 @JdkConstants.InputEventMask modifiersEx: Int): Interaction?
 
+  /**
+   * Called when [InteractionManager] has the dragging event and there is no interactive [Interaction]. ([mouseX], [mouseY]) is the position
+   * and [modifiersEx] is the pressed modifiers when dragging starts.
+   */
+  fun createInteractionOnDrag(@SwingCoordinate mouseX: Int,
+                              @SwingCoordinate mouseY: Int,
+                              @JdkConstants.InputEventMask modifiersEx: Int): Interaction?
+
+  /**
+   * Called when user dragging the [java.awt.Component] into [DesignSurface]. For example, dragging a widget from Palette or ComponentTree
+   * into [DesignSurface]
+   */
   fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction?
 
+  /**
+   * Called when [InteractionManager] has the mouse wheel scrolling event and there is no active [Interaction].
+   */
   fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction?
 
   /**
-   * Called by [InteractionManager] when mouse is released without any interaction.
+   * Called by [InteractionManager] when mouse is released without any active [Interaction].
    */
-  fun mouseReleaseWhenNoInteraction(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifierEx: Int)
+  fun mouseReleaseWhenNoInteraction(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int)
 
-  fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int)
+  /**
+   * Called by [InteractionManager] when left mouse is clicked without shift and control (cmd on mac). ([x], [y]) is the clicked point of
+   * mouse, and [modifiersEx] is the pressed modifiers when clicked.
+   *
+   * This event happens when mouse is pressed and released at the same position without any dragging.
+   */
+  fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int)
 
-  fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int)
+  /**
+   * Called by [InteractionManager] when left mouse is double clicked (even the shift or control (cmd on mac) is pressed). ([x], [y]) is the
+   * clicked point of mouse, and [modifiersEx] is the pressed modifiers when clicking.
+   *
+   * This event happens when mouse is pressed and released at the same position without any dragging, before this event is triggered the
+   * [singleClick] will be triggered first.
+   */
+  fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int)
 
+  /**
+   * Called when [InteractionManager] has no active [Interaction] but mouse is moved. ([mouseX], [mouseY]) is the mouse position , and
+   * [modifiersEx] is the pressed modifiers when mouse moves.
+   */
   fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
                              @SwingCoordinate mouseY: Int,
                              @JdkConstants.InputEventMask modifiersEx: Int)
 
   /**
-   * Called by [InteractionManager] when the popup context menu event is triggered. (e.g. right click on a component)
+   * Called by [InteractionManager] when the popup context menu event is triggered (e.g. right click on a component). Note that the event
+   * may be triggered by different mouse events in different platforms. For example, on Mac and Linux, this event is triggered when
+   * **pressing** right mouse button on [DesignSurface]. On Windows, this event is triggered when **releasing** right mouse button.
    */
-  fun popupMenuTrigger(mouseEvent: MouseEvent, ignoredIfAlreadySelected: Boolean)
+  fun popupMenuTrigger(mouseEvent: MouseEvent)
 
   /**
    * Get Cursor by [InteractionManager] when there is no active [Interaction].
@@ -133,9 +172,9 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
 
   override fun mouseReleaseWhenNoInteraction(@SwingCoordinate x: Int,
                                              @SwingCoordinate y: Int,
-                                             @JdkConstants.InputEventMask modifierEx: Int) {
-    val allowToggle = modifierEx and (InputEvent.SHIFT_MASK or Toolkit.getDefaultToolkit().menuShortcutKeyMask) != 0
-    surface.getSceneView(x, y)?.selectComponentAt(x, y, modifierEx, allowToggle, false)
+                                             @JdkConstants.InputEventMask modifiersEx: Int) {
+    val allowToggle = modifiersEx and (InputEvent.SHIFT_MASK or Toolkit.getDefaultToolkit().menuShortcutKeyMask) != 0
+    surface.getSceneView(x, y)?.selectComponentAt(x, y, modifiersEx, allowToggle, false)
   }
 
   override fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
@@ -160,13 +199,13 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
     }
   }
 
-  override fun popupMenuTrigger(mouseEvent: MouseEvent, ignoredIfAlreadySelected: Boolean) {
+  override fun popupMenuTrigger(mouseEvent: MouseEvent) {
     val x = mouseEvent.x
     val y = mouseEvent.y
     val modifiersEx = mouseEvent.modifiersEx
     val sceneView = surface.getSceneView(x, y)
     if (sceneView != null) {
-      val component = sceneView.selectComponentAt(x, y, modifiersEx, false, ignoredIfAlreadySelected)
+      val component = sceneView.selectComponentAt(x, y, modifiersEx, false, true)
       surface.actionManager.showPopup(mouseEvent, component)
     }
   }
@@ -179,7 +218,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
     return ScrollInteraction.createScrollInteraction(sceneView, component)
   }
 
-  override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int) {
+  override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
     if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
       val selectedEditor = FileEditorManager.getInstance(surface.project).selectedEditor
       if (selectedEditor is DesignToolsSplitEditor) {
@@ -197,7 +236,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
     }
   }
 
-  override fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int) {
+  override fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
     val sceneView = surface.getSceneView(x, y) ?: return
 
     // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
