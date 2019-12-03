@@ -2,7 +2,7 @@ android {
   buildTypes {
     create("xyz") {
       applicationIdSuffix = "mySuffix"
-      setConsumerProguardFiles("proguard-android.txt", "proguard-rules.pro")
+      setConsumerProguardFiles(listOf("proguard-android.txt", "proguard-rules.pro"))
       isDebuggable = true
       isEmbedMicroApp = false
       isJniDebuggable = true
@@ -23,14 +23,14 @@ android {
 }
 android.buildTypes.getByName("xyz") {
   applicationIdSuffix = "mySuffix-1"
-  setConsumerProguardFiles("proguard-android-1.txt", "proguard-rules-1.pro")
+  setConsumerProguardFiles(listOf("proguard-android-1.txt", "proguard-rules-1.pro"))
   isDebuggable = false
   isEmbedMicroApp = true
   isJniDebuggable = false
   manifestPlaceholders = mapOf("activityLabel3" to "defaultName3", "activityLabel4" to "defaultName4")
   isMinifyEnabled = true
   multiDexEnabled = false
-  setProguardFiles("proguard-android-1.txt", "proguard-rules-1.pro")
+  setProguardFiles(listOf("proguard-android-1.txt", "proguard-rules-1.pro"))
   isPseudoLocalesEnabled = true
   isRenderscriptDebuggable = false
   renderscriptOptimLevel = 2
