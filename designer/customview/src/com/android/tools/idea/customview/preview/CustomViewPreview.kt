@@ -27,6 +27,9 @@ import com.android.tools.idea.common.util.setupBuildListener
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.editors.notifications.NotificationPanel
+import com.android.tools.idea.gradle.project.build.BuildStatus
+import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -35,17 +38,22 @@ import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
+import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.util.function.BiFunction
 import java.util.function.Consumer
 import javax.swing.JPanel
+import javax.swing.OverlayLayout
 
 
 private fun fqcn2name(fcqn: String) = fcqn.substringAfterLast('.')
@@ -129,6 +137,10 @@ internal class CustomViewPreviewRepresentation(
   override val state: CustomViewPreviewManager.PreviewState
     get() = previewState
 
+  private val notificationsPanel = NotificationPanel(
+    ExtensionPointName.create<EditorNotifications.Provider<EditorNotificationPanel>>(
+      "com.android.tools.idea.customview.preview.customViewEditorNotificationProvider"))
+
   private val surface = NlDesignSurface.builder(project, this)
     .setDefaultSurfaceState(DesignSurface.State.SPLIT)
     .setSceneManagerProvider { surface, model ->
@@ -143,13 +155,26 @@ internal class CustomViewPreviewRepresentation(
 
   private val editorPanel = JPanel(BorderLayout()).apply {
     add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
-    add(surface, BorderLayout.CENTER)
+
+    val overlayPanel = object : JPanel() {
+      // Since the overlay panel is transparent, we can not use optimized drawing or it will produce rendering artifacts.
+      override fun isOptimizedDrawingEnabled(): Boolean = false
+    }
+
+    overlayPanel.apply {
+      layout = OverlayLayout(this)
+
+      add(notificationsPanel)
+      add(surface)
+    }
+
+    add(overlayPanel, BorderLayout.CENTER)
   }
 
   /**
    * [WorkBench] used to contain all the preview elements.
    */
-  val workbench = WorkBench<DesignSurface>(project, "Main Preview", null, this).apply {
+  private val workbench = WorkBench<DesignSurface>(project, "Main Preview", null, this).apply {
     init(editorPanel, surface, listOf(), false)
   }
 
@@ -160,22 +185,25 @@ internal class CustomViewPreviewRepresentation(
       }
 
       override fun buildFailed() {
-        previewState = CustomViewPreviewManager.PreviewState.NOT_COMPILED
-        updatePreviewAndNotifications()
+        updatePreviewAndNotifications(CustomViewPreviewManager.PreviewState.NOT_COMPILED)
       }
 
       override fun buildStarted() {
-        previewState = CustomViewPreviewManager.PreviewState.BUILDING
-        updatePreviewAndNotifications()
+        updatePreviewAndNotifications(CustomViewPreviewManager.PreviewState.BUILDING)
       }
     }, this)
 
     project.runWhenSmartAndSyncedOnEdt(this, Consumer { refresh() })
 
-    updatePreviewAndNotifications()
+    val previewState = when (GradleBuildState.getInstance(project).summary?.status) {
+      BuildStatus.SKIPPED, BuildStatus.SUCCESS, null -> CustomViewPreviewManager.PreviewState.LOADING
+      else -> CustomViewPreviewManager.PreviewState.NOT_COMPILED
+    }
+    updatePreviewAndNotifications(previewState)
   }
 
-  private fun updatePreviewAndNotifications() {
+  private fun updatePreviewAndNotifications(newState: CustomViewPreviewManager.PreviewState) {
+    previewState = newState
     fun updatePreview() {
       val nothingToShow = classes.isEmpty()
       when (previewState) {
@@ -202,13 +230,9 @@ internal class CustomViewPreviewRepresentation(
         }
       }
     }
-    if (ApplicationManager.getApplication().isDispatchThread) {
+
+    UIUtil.invokeLaterIfNeeded {
       updatePreview()
-    }
-    else {
-      ApplicationManager.getApplication().invokeLater {
-        updatePreview()
-      }
     }
 
     EditorNotifications.getInstance(project).updateNotifications(virtualFile)
@@ -222,8 +246,7 @@ internal class CustomViewPreviewRepresentation(
    * Refresh the preview surfaces
    */
   private fun refresh() {
-    previewState = CustomViewPreviewManager.PreviewState.RENDERING
-    updatePreviewAndNotifications()
+    updatePreviewAndNotifications(CustomViewPreviewManager.PreviewState.RENDERING)
     // We are in a smart mode here
     classes = (AndroidPsiUtils.getPsiFileSafely(project,
                                                 virtualFile) as PsiClassOwner).classes.filter { it.name != null && it.extendsView() }.mapNotNull { it.qualifiedName }
@@ -273,14 +296,17 @@ internal class CustomViewPreviewRepresentation(
         if (ex != null) {
           Logger.getInstance(CustomViewPreviewRepresentation::class.java).warn(ex)
         }
-        previewState = CustomViewPreviewManager.PreviewState.OK
 
-        updatePreviewAndNotifications()
+        updatePreviewAndNotifications(CustomViewPreviewManager.PreviewState.OK)
       }
     }
     editorWithPreview?.isPureTextEditor = selectedClass == null
   }
   var editorWithPreview: TextEditorWithCustomViewPreview? = null
+
+  override fun updateNotifications(parentEditor: FileEditor) {
+    notificationsPanel.updateNotifications(virtualFile, parentEditor, project)
+  }
 }
 
 /**
