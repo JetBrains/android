@@ -16,10 +16,12 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.DataSeries;
+import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.Timeline;
+import com.android.tools.adtui.model.trackgroup.SelectableTrackModel;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisChartModel;
@@ -46,12 +48,14 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   private final CpuThreadInfo myThreadInfo;
   @NotNull private final CpuThreadsTooltip myThreadStateTooltip;
   @NotNull private final Function<CaptureNode, CpuCaptureNodeTooltip> myTraceEventTooltipBuilder;
+  @NotNull private final MultiSelectionModel<CpuAnalyzable> myMultiSelectionModel;
 
   public CpuThreadTrackModel(@NotNull StudioProfilers profilers,
                              @NotNull Range range,
                              @NotNull CpuCapture capture,
                              @NotNull CpuThreadInfo threadInfo,
-                             @NotNull Timeline timeline) {
+                             @NotNull Timeline timeline,
+                             @NotNull MultiSelectionModel<CpuAnalyzable> multiSelectionModel) {
     DataSeries<CpuProfilerStage.ThreadState> threadStateDataSeries = buildThreadStateDataSeries(profilers, capture, threadInfo.getId());
 
     myThreadStateChartModel = new StateChartModel<>();
@@ -65,6 +69,8 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
     myThreadStateTooltip.setThread(threadInfo.getName(), threadStateDataSeries);
 
     myTraceEventTooltipBuilder = captureNode -> new CpuCaptureNodeTooltip(timeline, captureNode);
+
+    myMultiSelectionModel = multiSelectionModel;
   }
 
   @NotNull
@@ -78,8 +84,8 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   }
 
   @NotNull
-  public Range getCaptureRange() {
-    return myCapture.getRange();
+  public CpuCapture getCapture() {
+    return myCapture;
   }
 
   @NotNull
@@ -102,6 +108,11 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
     return model;
   }
 
+  @Override
+  public boolean isCompatibleWith(@NotNull SelectableTrackModel otherObj) {
+    return otherObj instanceof CpuThreadTrackModel;
+  }
+
   /**
    * @return a tooltip model for thread states.
    */
@@ -116,6 +127,11 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   @NotNull
   public Function<CaptureNode, CpuCaptureNodeTooltip> getTraceEventTooltipBuilder() {
     return myTraceEventTooltipBuilder;
+  }
+
+  @NotNull
+  public MultiSelectionModel<CpuAnalyzable> getMultiSelectionModel() {
+    return myMultiSelectionModel;
   }
 
   private Collection<CaptureNode> getCaptureNode() {

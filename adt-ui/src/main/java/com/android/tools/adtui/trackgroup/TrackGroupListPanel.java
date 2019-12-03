@@ -23,6 +23,7 @@ import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.ViewBinder;
+import com.android.tools.adtui.model.trackgroup.SelectableTrackModel;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.util.SwingUtil;
@@ -123,7 +124,7 @@ public class TrackGroupListPanel implements TrackGroupMover {
     }
   }
 
-  public <T> void registerMultiSelectionModel(@NotNull MultiSelectionModel<T> multiSelectionModel) {
+  public <T extends SelectableTrackModel> void registerMultiSelectionModel(@NotNull MultiSelectionModel<T> multiSelectionModel) {
     myTrackGroups.forEach(
       trackGroup -> {
         if (trackGroup.getModel().isTrackSelectable()) {
@@ -220,7 +221,7 @@ public class TrackGroupListPanel implements TrackGroupMover {
     myTooltipPanel.repaint();
   }
 
-  private static class TrackGroupSelectionListener<T> implements ListSelectionListener {
+  private static class TrackGroupSelectionListener<T extends SelectableTrackModel> implements ListSelectionListener {
     private final TrackGroup myTrackGroup;
     private final MultiSelectionModel<T> myMultiSelectionModel;
 
@@ -234,6 +235,10 @@ public class TrackGroupListPanel implements TrackGroupMover {
       for (int i = e.getFirstIndex(); i <= e.getLastIndex(); ++i) {
         T selectedModel = (T)myTrackGroup.getTrackList().getModel().getElementAt(i).getDataModel();
         if (myTrackGroup.getTrackList().isSelectedIndex(i)) {
+          if (!myMultiSelectionModel.getSelection().isEmpty() &&
+              !selectedModel.isCompatibleWith(myMultiSelectionModel.getSelection().iterator().next())) {
+            myMultiSelectionModel.clearSelection();
+          }
           myMultiSelectionModel.addToSelection(selectedModel);
         }
         else {

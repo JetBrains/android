@@ -20,6 +20,8 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.TooltipModel
+import com.android.tools.adtui.model.trackgroup.BooleanSelectable
+import com.android.tools.adtui.model.trackgroup.StringSelectable
 import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel
 import com.android.tools.adtui.model.trackgroup.TrackModel
@@ -81,34 +83,44 @@ class TrackGroupListPanelTest {
 
   @Test
   fun multiSelectionModel() {
-    val multiSectionModel = MultiSelectionModel<String>()
+    val multiSectionModel = MultiSelectionModel<StringSelectable>()
     val trackGroupListPanel = TrackGroupListPanel(TRACK_RENDERER_FACTORY)
-    // Group 1 is multi-selectable
+    // Group 1 is multi-selectable.
     val trackGroupModel1 = TrackGroupModel.newBuilder().setTitle("Group1").setTrackSelectable(true).build()
-    trackGroupModel1.addTrackModel(TrackModel.newBuilder("Bar1", TestTrackRendererType.BAR, "Group1 - Bar1"))
-    trackGroupModel1.addTrackModel(TrackModel.newBuilder("Bar2", TestTrackRendererType.BAR, "Group1 - Bar2"))
-    // Group 2 is not selectable
+    trackGroupModel1.addTrackModel(
+      TrackModel.newBuilder(StringSelectable("Bar1"), TestTrackRendererType.STRING_SELECTABLE, "Group1 - Bar1"))
+    trackGroupModel1.addTrackModel(
+      TrackModel.newBuilder(StringSelectable("Bar2"), TestTrackRendererType.STRING_SELECTABLE, "Group1 - Bar2"))
+    // Group 2 is not selectable.
     val trackGroupModel2 = TrackGroupModel.newBuilder().setTitle("Group2").build()
-    trackGroupModel2.addTrackModel(TrackModel.newBuilder("Bar1", TestTrackRendererType.BAR, "Group2 - Bar1"))
+    trackGroupModel2.addTrackModel(TrackModel.newBuilder("Bar1", TestTrackRendererType.STRING, "Group2 - Bar1"))
+    // Group 3 is multi-selectable but contains a different type.
+    val trackGroupModel3 = TrackGroupModel.newBuilder().setTitle("Group3").setTrackSelectable(true).build()
+    trackGroupModel3.addTrackModel(
+      TrackModel.newBuilder(BooleanSelectable(true), TestTrackRendererType.BOOLEAN_SELECTABLE, "Group3 - Bar1"))
 
-    trackGroupListPanel.loadTrackGroups(listOf(trackGroupModel1, trackGroupModel2))
+    trackGroupListPanel.loadTrackGroups(listOf(trackGroupModel1, trackGroupModel2, trackGroupModel3))
     trackGroupListPanel.registerMultiSelectionModel(multiSectionModel)
 
-    // Selecting items should update the multi-selection model
+    // Selecting items should update the multi-selection model.
     trackGroupListPanel.trackGroups[0].trackList.selectedIndices = intArrayOf(0, 1)
-    assertThat(multiSectionModel.selection).containsExactly("Bar1", "Bar2")
+    assertThat(multiSectionModel.selection).containsExactly(StringSelectable("Bar1"), StringSelectable("Bar2"))
 
-    // Selecting an unselectable track group should not update the multi-selection model
+    // Selecting an unselectable track group should not update the multi-selection model.
     multiSectionModel.clearSelection()
     trackGroupListPanel.trackGroups[1].trackList.selectedIndex = 0
     assertThat(multiSectionModel.selection).isEmpty()
+
+    // Selecting a different selectable type will clear current selection before adding the new item.
+    trackGroupListPanel.trackGroups[2].trackList.selectedIndex = 0
+    assertThat(multiSectionModel.selection).containsExactly(BooleanSelectable(true))
   }
 
   @Test
   fun showTooltip() {
     val trackGroupListPanel = TrackGroupListPanel(TRACK_RENDERER_FACTORY)
     val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group1").build()
-    trackGroupModel.addTrackModel(TrackModel.newBuilder(true, TestTrackRendererType.FOO, "Foo").setDefaultTooltipModel(TestTooltip()))
+    trackGroupModel.addTrackModel(TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "Foo").setDefaultTooltipModel(TestTooltip()))
     trackGroupListPanel.tooltipBinder.bind(TestTooltip::class.java, ::TestTooltipView)
     trackGroupListPanel.loadTrackGroups(listOf(trackGroupModel))
     trackGroupListPanel.component.setBounds(0, 0, 500, 500)

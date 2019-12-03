@@ -17,11 +17,11 @@ package com.android.tools.adtui.trackgroup
 
 import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 import com.android.tools.adtui.model.trackgroup.TrackModel
-import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.JLabel
 
-class BarTrackRenderer : TrackRenderer<String, TestTrackRendererType> {
+class StringTrackRenderer : TrackRenderer<String, TestTrackRendererType> {
   override fun render(trackModel: TrackModel<String, TestTrackRendererType>): JComponent {
-    return JButton(trackModel.dataModel)
+    return JLabel(trackModel.dataModel)
   }
 }

@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu.analysis;
+package com.android.tools.adtui.model.trackgroup;
 
-import com.android.tools.adtui.model.trackgroup.SelectableTrackModel;
+import com.android.tools.adtui.model.MultiSelectionModel;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents something that can generate a {@link CpuAnalysisModel}. Implementations can be a CPU capture trace, a thread or a trace event.
+ * Interface to be used with multiple {@link TrackModel}s in a {@link MultiSelectionModel}.
  */
-public interface CpuAnalyzable<T extends CpuAnalyzable<?>> extends SelectableTrackModel {
+public interface SelectableTrackModel {
   /**
-   * @return a model that contains analysis data.
+   * @return true if this object can be added to the same {@link MultiSelectionModel} with the other object.
    */
-  @NotNull
-  CpuAnalysisModel<T> getAnalysisModel();
+  boolean isCompatibleWith(@NotNull SelectableTrackModel otherObj);
 }

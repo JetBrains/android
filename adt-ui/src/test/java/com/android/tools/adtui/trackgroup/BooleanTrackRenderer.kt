@@ -16,15 +16,12 @@
 package com.android.tools.adtui.trackgroup
 
 import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
+import com.android.tools.adtui.model.trackgroup.TrackModel
+import javax.swing.JComponent
+import javax.swing.JLabel
 
-class TestTrackRendererFactory : TrackRendererFactory<TestTrackRendererType> {
-  override fun createRenderer(rendererType: TestTrackRendererType): TrackRenderer<*, TestTrackRendererType> {
-    return when (rendererType) {
-      TestTrackRendererType.BOOLEAN -> BooleanTrackRenderer()
-      TestTrackRendererType.BOOLEAN_SELECTABLE -> BooleanSelectableTrackRenderer()
-      TestTrackRendererType.STRING -> StringTrackRenderer()
-      TestTrackRendererType.STRING_SELECTABLE -> StringSelectableTrackRenderer()
-      else -> DefaultTrackRenderer<Void, TestTrackRendererType>()
-    }
+class BooleanTrackRenderer : TrackRenderer<Boolean, TestTrackRendererType> {
+  override fun render(trackModel: TrackModel<Boolean, TestTrackRendererType>): JComponent {
+    return JLabel(trackModel.dataModel.toString())
   }
 }

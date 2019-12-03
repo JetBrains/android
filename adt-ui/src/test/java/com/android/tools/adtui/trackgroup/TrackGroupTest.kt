@@ -26,8 +26,8 @@ class TrackGroupTest {
   @Test
   fun createTrackGroup() {
     val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").build()
-    trackGroupModel.addTrackModel(TrackModel.newBuilder(true, TestTrackRendererType.FOO, "Foo"))
-    trackGroupModel.addTrackModel(TrackModel.newBuilder("text", TestTrackRendererType.BAR, "Bar"))
+    trackGroupModel.addTrackModel(TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "Foo"))
+    trackGroupModel.addTrackModel(TrackModel.newBuilder("text", TestTrackRendererType.STRING, "Bar"))
     val trackGroup = TrackGroup(trackGroupModel, TestTrackRendererFactory())
 
     assertThat(trackGroup.titleLabel.text).isEqualTo("Group")
@@ -60,7 +60,7 @@ class TrackGroupTest {
   @Test
   fun hideTrackGroupHeader() {
     val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").setHideHeader(true).build()
-    trackGroupModel.addTrackModel(TrackModel.newBuilder("text", TestTrackRendererType.BAR, "Bar"))
+    trackGroupModel.addTrackModel(TrackModel.newBuilder("text", TestTrackRendererType.STRING, "Bar"))
     val trackGroup = TrackGroup(trackGroupModel, TestTrackRendererFactory())
 
     assertThat(trackGroup.titleLabel.parent).isNull()
