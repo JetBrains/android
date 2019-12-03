@@ -22,6 +22,7 @@ import com.android.tools.property.panel.api.NewPropertyItem
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.ptable2.PTableColumn
+import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.ptable2.PTableModel
 import com.android.tools.property.ptable2.PTableModelUpdateListener
@@ -101,6 +102,7 @@ class FilteredPTableModelImpl<P : PropertyItem>(
   override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean {
     return allowEditing && when (item) {
       is NewPropertyItem -> column == PTableColumn.NAME || item.delegate != null
+      is PTableGroupItem -> true
       else -> column == PTableColumn.VALUE
     }
   }
