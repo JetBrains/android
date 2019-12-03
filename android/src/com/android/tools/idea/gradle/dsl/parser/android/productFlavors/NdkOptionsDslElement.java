@@ -50,7 +50,7 @@ public class NdkOptionsDslElement extends GradleDslBlockElement {
 
   @NotNull
   private static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
-    {"generatedDensities", property, ABI_FILTERS, VAR},
+    {"abiFilters", property, ABI_FILTERS, VAR},
     {"abiFilters", atLeast(0), ABI_FILTERS, OTHER},
     {"abiFilter", exactly(1), ABI_FILTERS, OTHER}
   }).collect(toModelMap());
