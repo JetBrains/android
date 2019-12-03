@@ -431,9 +431,10 @@ public class NlPreviewManager implements ProjectComponent {
       // Thus we have to handle this case here.
       // In other cases, do not respond to fileClosed events since this has led to problems
       // with the preview window in the past. See b/64199946 and b/64288544
-      if (source.getOpenFiles().length == 0) {
-        ApplicationManager.getApplication()
-          .invokeLater(() -> processFileEditorChange(null), myProject.getDisposed());
+      if (!source.hasOpenFiles()) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+          processFileEditorChange(null);
+        }, myProject.getDisposed());
       }
     }
 
