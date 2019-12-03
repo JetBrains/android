@@ -18,9 +18,9 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.fs.DownloadProgress
-import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.SchemaProvider
+import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -221,7 +221,7 @@ class DatabaseInspectorControllerImpl(
         view = tableView,
         tableName = table.name,
         databaseConnection = databaseConnection,
-        sqliteStatement = SqliteStatement("SELECT * FROM ${AndroidSqlLexer.getValidName(table.name)}"),
+        sqliteStatement = SqliteStatement(selectAllAndRowIdFromTable(table)),
         edtExecutor = edtExecutor
       )
       Disposer.register(project, tableController)

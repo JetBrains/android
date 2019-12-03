@@ -72,7 +72,7 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
 
   private lateinit var mockDatabaseConnection: DatabaseConnection
 
-  private val testSqliteTable = SqliteTable("testTable", arrayListOf(), true)
+  private val testSqliteTable = SqliteTable("testTable", arrayListOf(), null, true)
   private lateinit var sqliteResultSet: SqliteResultSet
 
   private lateinit var tempDirTestFixture: TempDirTestFixture
@@ -333,7 +333,7 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
 
   fun testTablesAreRemovedWhenDatabasedIsRemoved() {
     // Prepare
-    val schema = SqliteSchema(listOf(SqliteTable("table1", emptyList(), false), testSqliteTable))
+    val schema = SqliteSchema(listOf(SqliteTable("table1", emptyList(), null, false), testSqliteTable))
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
     sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -352,7 +352,7 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
   fun testUpdateExistingDatabaseAddTables() {
     // Prepare
     val schema = SqliteSchema(emptyList())
-    val newSchema = SqliteSchema(listOf(SqliteTable("table", emptyList(), false)))
+    val newSchema = SqliteSchema(listOf(SqliteTable("table", emptyList(), null,false)))
     val evaluatorView = mockViewFactory.sqliteEvaluatorView
 
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
@@ -371,7 +371,7 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
     // Assert
     verify(mockSqliteView).updateDatabase(
       sqliteDatabase1,
-      listOf(SqliteTable("table", emptyList(), false))
+      listOf(SqliteTable("table", emptyList(), null, false))
     )
   }
 

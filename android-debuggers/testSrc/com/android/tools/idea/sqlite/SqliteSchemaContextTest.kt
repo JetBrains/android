@@ -54,7 +54,7 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
       SqliteColumn("col1", JDBCType.VARCHAR, false),
       SqliteColumn("col2", JDBCType.INTEGER, false)
     )
-    val table = SqliteTable("table", columns, false)
+    val table = SqliteTable("table", columns, null, false)
 
     val sqlFile = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "")
     val androidSqliteSchema = table.convertToSqlTable(sqlFile)
@@ -72,7 +72,7 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testGetContextFromFile() {
-    val schema = SqliteSchema(listOf(SqliteTable("User", emptyList(), false)))
+    val schema = SqliteSchema(listOf(SqliteTable("User", emptyList(), null,false)))
 
     val sqlFile = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT * FROM Us<caret>er").virtualFile
     sqlFile.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
@@ -83,7 +83,7 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testGetContextFromFileDuringCompletion() {
-    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", JDBCType.VARCHAR, false)), false)))
+    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", JDBCType.VARCHAR, false)), null,false)))
     val sqlFile = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT <caret> FROM User").virtualFile
     sqlFile.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
 
@@ -94,7 +94,7 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testProvideCorrectDescription() {
-    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", JDBCType.VARCHAR, false)), false)))
+    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", JDBCType.VARCHAR, false)), null,false)))
     val sqlFile = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT n<caret>ame FROM User").virtualFile
     sqlFile.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
 
