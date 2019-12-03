@@ -51,6 +51,7 @@ import java.util.EventObject
 import javax.swing.JComponent
 import javax.swing.ListSelectionModel
 import javax.swing.RowFilter
+import javax.swing.SwingUtilities
 import javax.swing.event.ChangeEvent
 import javax.swing.event.TableModelEvent
 import javax.swing.table.TableCellEditor
@@ -99,7 +100,7 @@ class PTableImpl(
   override val gridLineColor: Color
     get() = gridColor
   override var wrap = false
-  var isPaintingTable = false
+  var rendererShouldUpdateCellHeight = false
     private set
 
   init {
@@ -136,12 +137,12 @@ class PTableImpl(
   }
 
   override fun paint(g: Graphics) {
-    isPaintingTable = true
+    rendererShouldUpdateCellHeight = true
     try {
       super.paint(g)
     }
     finally {
-      isPaintingTable = false
+      rendererShouldUpdateCellHeight = false
     }
   }
 
@@ -157,8 +158,20 @@ class PTableImpl(
     return super.getValueAt(row, 0) as PTableItem
   }
 
+  override fun depth(item: PTableItem): Int {
+    return model.depth(item)
+  }
+
   override fun isExpanded(item: PTableGroupItem): Boolean {
     return model.isExpanded(item)
+  }
+
+  override fun toggle(item: PTableGroupItem) {
+    val index = model.toggle(item)
+    if (index >= 0) {
+      val row = convertRowIndexToView(index)
+      scrollCellIntoView(row, 0, true)
+    }
   }
 
   override fun getExpandableItemsHandler(): ExpandableItemsHandler<TableCell> {
@@ -243,10 +256,19 @@ class PTableImpl(
   }
 
   private fun tableChangedWithoutNextEditedRow(event: TableModelEvent) {
-    if (isEditing) {
+    val wasEditing = isEditing
+    val wasEditingColumn = editingColumn
+    var editing: PTableItem? = null
+    if (wasEditing) {
+      editing = item(editingRow)
       removeEditor()
     }
     super.tableChanged(event)
+    if (editing != null) {
+      val row = model.indexOf(editing)
+      val newEditingRow = if (row >= 0) convertRowIndexToView(row) else -1
+      startEditing(newEditingRow, wasEditingColumn)
+    }
   }
 
   private fun tableChangedWithNextEditedRow(event: TableModelEvent, nextEditedRow: Int) {
@@ -305,7 +327,7 @@ class PTableImpl(
     if (cellEditor is PTableVariableHeightCellEditor) {
       cellEditor.updateRowHeight = {
         setRowHeight(row, cellEditor.preferredSize.height)
-        scrollRectToVisible(getCellRect(row, column, true))
+        scrollCellIntoView(row, column, false)
       }
     }
     tableCellEditor.editor = editor
@@ -314,6 +336,21 @@ class PTableImpl(
 
   override fun getToolTipText(event: MouseEvent): String? {
     return customToolTipHook(event)
+  }
+
+  private fun scrollCellIntoView(row: Int, column: Int, updateRowHeight: Boolean) {
+    if (updateRowHeight) {
+      // The value renderer may be of variable height. Give it a chance to update before scrolling:
+      rendererShouldUpdateCellHeight = true
+      try {
+        val renderer = getCellRenderer(row, 1)
+        prepareRenderer(renderer, row, 1)
+      }
+      finally {
+        rendererShouldUpdateCellHeight = false
+      }
+    }
+    scrollRectToVisible(getCellRect(row, column, true))
   }
 
   private fun filterChanged(oldValue: String, newValue: String) {
@@ -365,6 +402,7 @@ class PTableImpl(
   private fun toggleTreeNode(row: Int) {
     val index = convertRowIndexToModel(row)
     model.toggle(index)
+    scrollCellIntoView(row, 0, true)
   }
 
   private fun selectRow(row: Int) {
@@ -561,6 +599,9 @@ class PTableImpl(
 
       // Ignore a toggle if the cell is editable. Allow the TableUI to start editing instead:
       if (tableModel.isCellEditable(item(row), PTableColumn.NAME)) {
+        val editor = editorComponent ?: return
+        val newEvent = SwingUtilities.convertMouseEvent(this@PTableImpl, event, editor)
+        editor.dispatchEvent(newEvent)
         return
       }
 

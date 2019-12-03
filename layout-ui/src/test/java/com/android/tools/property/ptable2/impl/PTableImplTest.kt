@@ -73,7 +73,8 @@ class PTableImplTest {
     UIManager.put("TextField.caretBlinkRate", 0)
 
     editorProvider = SimplePTableCellEditorProvider()
-    model = createModel(Item("weight"), Item("size"), Item("readonly"), Item("visible"), Group("weiss", Item("siphon"), Item("extra")),
+    model = createModel(Item("weight"), Item("size"), Item("readonly"), Item("visible"),
+                        Group("weiss", Item("siphon"), Item("extra"), Group("flower", Item("rose"))),
                         Item("new"))
     table = PTableImpl(model!!, null, DefaultPTableCellRendererProvider(), editorProvider!!)
   }
@@ -137,10 +138,11 @@ class PTableImplTest {
   fun testFilterWithExpandedParentMatch() {
     table!!.filter = "eis"
     table!!.model.expand(4)
-    assertThat(table!!.rowCount).isEqualTo(3)
+    assertThat(table!!.rowCount).isEqualTo(4)
     assertThat(table!!.item(0).name).isEqualTo("weiss")
     assertThat(table!!.item(1).name).isEqualTo("siphon")
     assertThat(table!!.item(2).name).isEqualTo("extra")
+    assertThat(table!!.item(3).name).isEqualTo("flower")
   }
 
   @Test
@@ -156,21 +158,21 @@ class PTableImplTest {
     table!!.model.expand(4)
     table!!.setRowSelectionInterval(0, 0)
     dispatchAction(KeyStrokes.END)
-    assertThat(table!!.selectedRow).isEqualTo(7)
+    assertThat(table!!.selectedRow).isEqualTo(8)
   }
 
   @Test
   fun testExpandAction() {
     table!!.setRowSelectionInterval(4, 4)
     dispatchAction(KeyStrokes.RIGHT)
-    assertThat(table!!.rowCount).isEqualTo(8)
+    assertThat(table!!.rowCount).isEqualTo(9)
   }
 
   @Test
   fun testExpandActionWithNumericKeyboard() {
     table!!.setRowSelectionInterval(4, 4)
     dispatchAction(KeyStrokes.NUM_RIGHT)
-    assertThat(table!!.rowCount).isEqualTo(8)
+    assertThat(table!!.rowCount).isEqualTo(9)
   }
 
   @Test
@@ -193,7 +195,7 @@ class PTableImplTest {
   fun enterExpandsClosedGroup() {
     table!!.setRowSelectionInterval(4, 4)
     dispatchAction(KeyStrokes.ENTER)
-    assertThat(table!!.rowCount).isEqualTo(8)
+    assertThat(table!!.rowCount).isEqualTo(9)
   }
 
   @Test
@@ -279,9 +281,9 @@ class PTableImplTest {
   @Test
   fun startNextEditorWhenAtEndOfTable() {
     table!!.model.expand(4)
-    table!!.setRowSelectionInterval(7, 7)
+    table!!.setRowSelectionInterval(8, 8)
     dispatchAction(KeyStrokes.ENTER)
-    assertThat(table!!.editingRow).isEqualTo(7)
+    assertThat(table!!.editingRow).isEqualTo(8)
     assertThat(table!!.editingColumn).isEqualTo(0)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
     assertThat(table!!.startNextEditor()).isFalse()
@@ -298,7 +300,9 @@ class PTableImplTest {
     assertThat(table!!.editingRow).isEqualTo(6)
     assertThat(model!!.editedItem).isEqualTo((model!!.items[4] as PTableGroupItem).children[1])
     assertThat(table!!.startNextEditor()).isTrue()
-    assertThat(table!!.editingRow).isEqualTo(7)
+    assertThat(table!!.startNextEditor()).isTrue()
+    assertThat(table!!.editingRow).isEqualTo(8)
+    assertThat(table!!.item(8).name).isEqualTo("new")
     assertThat(table!!.editingColumn).isEqualTo(0)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
   }
@@ -410,7 +414,7 @@ class PTableImplTest {
     assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
 
     table!!.tableChanged(TableModelEvent(table!!.model))
-    assertThat(table!!.editingRow).isEqualTo(-1)
+    assertThat(table!!.editingRow).isEqualTo(0)
   }
 
   @Test
@@ -533,6 +537,26 @@ class PTableImplTest {
     assertThat(table!!.editingRow).isEqualTo(5)
     assertThat(table!!.editingColumn).isEqualTo(0)
     assertThat(focusRule.focusOwner?.name).isEqualTo(ICON_CELL_EDITOR)
+  }
+
+  @Test
+  fun testDepth() {
+    table!!.model.expand(4)
+    table!!.model.expand(7)
+    assertThat(table!!.rowCount).isEqualTo(10)
+    assertThat(table!!.depth(table!!.item(0))).isEqualTo(0)
+    assertThat(table!!.depth(table!!.item(5))).isEqualTo(1)
+    assertThat(table!!.depth(table!!.item(8))).isEqualTo(2)
+  }
+
+  @Test
+  fun testToggle() {
+    table!!.toggle(table!!.item(4) as PTableGroupItem)
+    assertThat(table!!.rowCount).isEqualTo(9)
+    table!!.toggle(table!!.item(7) as PTableGroupItem)
+    assertThat(table!!.rowCount).isEqualTo(10)
+    table!!.toggle(table!!.item(4) as PTableGroupItem)
+    assertThat(table!!.rowCount).isEqualTo(6)
   }
 
   private fun createPanel(): JPanel {

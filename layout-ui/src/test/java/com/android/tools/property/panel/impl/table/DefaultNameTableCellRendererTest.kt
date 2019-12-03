@@ -40,7 +40,6 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JTable
 
 class DefaultNameTableCellRendererTest {
@@ -82,11 +81,11 @@ class DefaultNameTableCellRendererTest {
     val renderer = DefaultNameTableCellRenderer()
     val table = createTable() as PTable
     val item = table.item(1)
-    val unselected = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, false, false, false) as JLabel
+    val unselected = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, false, false, false) as DefaultNameComponent
     assertThat(unselected.icon).isSameAs(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE)
 
-    val selected = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, true, true, false) as JLabel
-    assertThat(IconTester.hasOnlyWhiteColors(selected.icon)).isTrue()
+    val selected = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, true, true, false) as DefaultNameComponent
+    assertThat(IconTester.hasOnlyWhiteColors(selected.icon!!)).isTrue()
   }
 
   private fun createTable(): JTable {
