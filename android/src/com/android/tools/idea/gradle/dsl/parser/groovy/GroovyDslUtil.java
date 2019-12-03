@@ -65,6 +65,7 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrVariableDeclaration;
@@ -145,6 +146,27 @@ public final class GroovyDslUtil {
 
     Project project = psiElement.getProject();
     return GroovyPsiElementFactory.getInstance(project);
+  }
+
+  static String getGradleNameForPsiElement(@NotNull PsiElement element) {
+    StringBuilder gradleName = new StringBuilder();
+
+    GroovyPsiElementVisitor visitor = new GroovyPsiElementVisitor(new GroovyElementVisitor() {
+      @Override
+      public void visitMethodCallExpression(@NotNull GrMethodCallExpression e) {
+        if (e.getText().startsWith("project") && e.getArgumentList().getAllArguments().length == 1 &&
+            e.getArgumentList().getAllArguments()[0] instanceof GrLiteral) {
+          // TODO(karimai): Add interpolation handling when these are supported.
+          gradleName.append(e.getText().replaceAll("\\s", "").replace("\"", "'"));
+        }
+      }
+    });
+
+    for (PsiElement child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
+      if (child instanceof GrMethodCallExpression) child.accept(visitor);
+      else gradleName.append(child.getText());
+    }
+    return (gradleName.length() == 0) ? element.getText() : gradleName.toString();
   }
 
   static void  maybeDeleteIfEmpty(@Nullable PsiElement element, @NotNull GradleDslElement dslElement) {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
+import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getGradleNameForPsiElement;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
@@ -22,13 +23,10 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanti
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VWO;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
-import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
-import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
-import java.util.Arrays;
 import java.util.Map;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +35,7 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
   @NotNull
   @Override
   public String psiToName(@NotNull PsiElement element) {
-    return element.getText();
+    return getGradleNameForPsiElement(element);
   }
 
   @NotNull

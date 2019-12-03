@@ -234,12 +234,23 @@ fun gradleNameFor(expression: KtExpression): String? {
     }
 
     override fun visitCallExpression(expression: KtCallExpression) {
-      val name = methodCallBlockName(expression)
-      if (name == null) {
-        allValid = false
+      if (expression.name() == "project" && expression.valueArguments.size == 1) {
+        when (expression.valueArguments[0].getArgumentExpression()) {
+          is KtStringTemplateExpression -> {
+            // TODO(karimai): decide on checking for parameters with interpolations once these are supported.
+            sb.append(expression.text.replace("\\s".toRegex(), "").replace("\"", "'"))
+          }
+          else -> allValid = false
+        }
       }
       else {
-        sb.append(name)
+        val name = methodCallBlockName(expression)
+        if (name == null) {
+          allValid = false
+        }
+        else {
+          sb.append(name)
+        }
       }
     }
 
