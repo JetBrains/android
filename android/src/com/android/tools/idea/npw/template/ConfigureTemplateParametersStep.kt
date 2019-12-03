@@ -64,6 +64,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.ui.RecentsManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.uiDesigner.core.GridConstraints
@@ -132,6 +133,8 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     // Add an extra blank line under the template description to separate it from the main body
     border = JBUI.Borders.emptyBottom(templateDescriptionLabel.font.size)
   }
+
+  private val project: Project? get() = if (model.isNewProject) null else model.project
 
   // TODO(b/142107543) Replace it with TabularLayout for more readability
   private val rootPanel = JPanel(GridLayoutManager(2, 2)).apply {
@@ -402,7 +405,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
         return@mapNotNull null
       }
 
-      parameter.validate(model.project, model.module, sourceProvider, model.packageName.get(), property.get(), getRelatedValues(parameter))
+      parameter.validate(project, model.module, sourceProvider, model.packageName.get(), property.get(), getRelatedValues(parameter))
     }.firstOrNull()
   }
 
@@ -548,7 +551,6 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       val filenameJoiner = Joiner.on('.').skipNulls()
 
       var suffix = 2
-      val project = model.project
       val relatedValues = getRelatedValues(parameter)
       val sourceProvider = model.template.get().getSourceProvider()
       while (!parameter.uniquenessSatisfied(project, model.module, sourceProvider, model.packageName.get(), suggested, relatedValues)) {
