@@ -771,20 +771,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @Override
-  public boolean isResizeAvailable() {
-    Configuration configuration = getConfiguration();
-    if (configuration == null) {
-      return false;
-    }
-    Device device = configuration.getCachedDevice();
-    if (device == null) {
-      return false;
-    }
-
-    return true;
-  }
-
-  @Override
   protected void notifySelectionListeners(@NotNull List<NlComponent> newSelection) {
     super.notifySelectionListeners(newSelection);
     scrollToCenter(newSelection);

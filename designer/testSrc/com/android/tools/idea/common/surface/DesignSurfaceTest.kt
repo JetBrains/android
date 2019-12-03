@@ -176,8 +176,6 @@ private class TestDesignSurface(project: Project, disposible: Disposable)
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
 
-  override fun isResizeAvailable() = false
-
   override fun getScrolledAreaSize(): Dimension? = null
 
   override fun getDefaultOffset() = Dimension()

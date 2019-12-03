@@ -26,6 +26,7 @@ import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
@@ -195,12 +196,21 @@ public class Scene implements SelectionListener, Disposable {
     return true;
   }
 
-  public boolean isInRTL() {
-    // TODO: Update to support multi-model
-    Configuration configuration = myDesignSurface.getConfiguration();
-    if (configuration == null) {
+  /**
+   * Return true if the designed content is resizable, false otherwise
+   */
+  public boolean isResizeAvailable() {
+    Configuration configuration = mySceneManager.getModel().getConfiguration();
+    Device device = configuration.getCachedDevice();
+    if (device == null) {
       return false;
     }
+
+    return true;
+  }
+
+  public boolean isInRTL() {
+    Configuration configuration = mySceneManager.getModel().getConfiguration();
     LayoutDirectionQualifier qualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
     if (qualifier == null) {
       return false;
@@ -210,12 +220,10 @@ public class Scene implements SelectionListener, Disposable {
 
   public int getRenderedApiLevel() {
     // TODO: Update to support multi-model
-    Configuration configuration = myDesignSurface.getConfiguration();
-    if (configuration != null) {
-      IAndroidTarget target = configuration.getTarget();
-      if (target != null) {
-        return target.getVersion().getApiLevel();
-      }
+    Configuration configuration = mySceneManager.getModel().getConfiguration();
+    IAndroidTarget target = configuration.getTarget();
+    if (target != null) {
+      return target.getVersion().getApiLevel();
     }
     return AndroidVersion.VersionCodes.BASE;
   }
