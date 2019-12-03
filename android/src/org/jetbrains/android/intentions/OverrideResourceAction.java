@@ -17,7 +17,6 @@ package org.jetbrains.android.intentions;
 
 import static com.android.SdkConstants.ATTR_NAME;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -27,6 +26,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.utils.Pair;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.navigation.NavigationUtil;
@@ -286,27 +286,28 @@ public class OverrideResourceAction extends AbstractIntentionAction {
    * @param open      if true, open the file after creating it
    */
   public static void forkResourceFile(@NotNull EditorDesignSurface surface, @Nullable String newFolder, boolean open) {
-    Configuration configuration = surface.getConfiguration();
-    if (configuration == null) {
-      assert false;
-      return; // Should not happen
+    for (Configuration configuration : surface.getConfigurations()) {
+      if (configuration == null) {
+        assert false;
+        return; // Should not happen
+      }
+      final VirtualFile file = configuration.getFile();
+      if (file == null) {
+        assert false;
+        return; // Should not happen
+      }
+      Module module = configuration.getModule();
+      if (module == null) {
+        assert false;
+        return; // Should not happen
+      }
+      XmlFile xmlFile = (XmlFile)configuration.getPsiFile();
+      ResourceFolderType folderType = ResourceHelper.getFolderType(xmlFile);
+      if (folderType == null) {
+        folderType = ResourceFolderType.LAYOUT;
+      }
+      forkResourceFile(module.getProject(), folderType, file, xmlFile, newFolder, configuration, open);
     }
-    final VirtualFile file = configuration.getFile();
-    if (file == null) {
-      assert false;
-      return; // Should not happen
-    }
-    Module module = configuration.getModule();
-    if (module == null) {
-      assert false;
-      return; // Should not happen
-    }
-    XmlFile xmlFile = (XmlFile)configuration.getPsiFile();
-    ResourceFolderType folderType = ResourceHelper.getFolderType(xmlFile);
-    if (folderType == null) {
-      folderType = ResourceFolderType.LAYOUT;
-    }
-    forkResourceFile(module.getProject(), folderType, file, xmlFile, newFolder, configuration, open);
   }
 
   /**
