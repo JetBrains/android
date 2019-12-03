@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import java.util.Map;
+import java.util.Objects;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,8 +79,7 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
         String entryName = entry.getKey().getFirst();
         Integer arity = entry.getKey().getSecond();
         // TODO(xof): distinguish between semantics based on expressed arities (and then do something different based on those semantics)
-        //noinspection NumberEquality (property is null)
-        if (entryName.equals(name) && arity != property) {
+        if (entryName.equals(name) && !Objects.equals(arity, property)) {
           String newName = entry.getValue().getFirst();
           element.getNameElement().canonize(newName); // NOTYPO
           return;
