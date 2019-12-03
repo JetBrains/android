@@ -1204,8 +1204,8 @@ public class Scene implements SelectionListener, Disposable {
       return null;
     }
     viewInfo = RenderService.getSafeBounds(viewInfo);
-    return new Dimension(Coordinates.pxToDp(getDesignSurface(), viewInfo.getRight() - viewInfo.getLeft()),
-                         Coordinates.pxToDp(getDesignSurface(), viewInfo.getBottom() - viewInfo.getTop()));
+    return new Dimension(Coordinates.pxToDp(getSceneManager(), viewInfo.getRight() - viewInfo.getLeft()),
+                         Coordinates.pxToDp(getSceneManager(), viewInfo.getBottom() - viewInfo.getTop()));
   }
 
   /**

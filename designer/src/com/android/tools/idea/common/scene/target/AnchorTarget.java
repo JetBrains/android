@@ -447,7 +447,7 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
     }
     Notch notch = new Notch.Circle(owner, x, y, null);
     // Make it bigger for snapping.
-    notch.setGap(Coordinates.getAndroidDimensionDip(snappableComponent.getScene().getDesignSurface(), ANCHOR_SIZE * 2));
+    notch.setGap(Coordinates.getAndroidDimensionDip(snappableComponent.getScene(), ANCHOR_SIZE * 2));
     notch.setTarget(this);
     notchBuilder.add(notch);
   }

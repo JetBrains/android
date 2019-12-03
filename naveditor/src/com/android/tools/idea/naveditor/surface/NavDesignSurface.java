@@ -210,11 +210,6 @@ public class NavDesignSurface extends DesignSurface {
     return super.getData(dataId);
   }
 
-  @Override
-  public float getSceneScalingFactor() {
-    return 1f;
-  }
-
   @NotNull
   @Override
   public CompletableFuture<Void> forceUserRequestedRefresh() {

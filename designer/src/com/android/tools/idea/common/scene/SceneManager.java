@@ -15,15 +15,20 @@
  */
 package com.android.tools.idea.common.scene;
 
+import static com.android.resources.Density.DEFAULT_DENSITY;
+
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
@@ -95,6 +100,12 @@ abstract public class SceneManager implements Disposable {
   public ImmutableList<Layer> getLayers() {
     return mySceneView.getLayers();
   }
+
+  /**
+   * In the layout editor, Scene uses {@link AndroidDpCoordinate}s whereas rendering is done in (zoomed and offset)
+   * {@link AndroidCoordinate}s. The scaling factor between them is the ratio of the screen density to the standard density (160).
+   */
+  public abstract float getSceneScalingFactor();
 
   @Override
   public void dispose() {

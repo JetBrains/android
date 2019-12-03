@@ -101,8 +101,6 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertFalse(surface.setScale(0.664, -1, -1))
     assertTrue(surface.setScale(0.665, -1, -1))
 
-    surface.sceneScalingFactor = 2f
-
     surface.setScale(0.33, -1, -1)
     assertFalse(surface.setScale(0.332, -1, -1))
     assertTrue(surface.setScale(0.335, -1, -1))
@@ -165,12 +163,6 @@ private class TestDesignSurface(project: Project, disposible: Disposable)
   override fun createActionHandler(): DesignSurfaceActionHandler {
     throw UnsupportedOperationException("Action handler not implemented for TestDesignSurface")
   }
-
-  fun setSceneScalingFactor(factor: Float) {
-    this.factor = factor
-  }
-
-  override fun getSceneScalingFactor() = factor
 
   override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
 

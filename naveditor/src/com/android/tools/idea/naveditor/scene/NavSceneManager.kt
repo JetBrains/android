@@ -244,6 +244,8 @@ open class NavSceneManager(
     return hierarchy
   }
 
+  override fun getSceneScalingFactor() = 1f
+
   private fun findAndCreateExitActionComponents(component: NlComponent): List<SceneComponent> {
     return component.flatten()
       .filter { it.isAction && it.actionDestination?.parent == root }

@@ -308,14 +308,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myVisibleSurfaceLayerPanel.add(myActionManager.createDesignSurfaceToolbar(), BorderLayout.EAST);
   }
 
-  /**
-   * @return The scaling factor between Scene coordinates and un-zoomed, un-offset Swing coordinates.
-   * <p>
-   * TODO: reconsider where this value is stored/who's responsible for providing it. It might make more sense for it to be stored in
-   * the Scene or provided by the SceneManager.
-   */
-  public abstract float getSceneScalingFactor();
-
   @Override
   public float getScreenScalingFactor() {
     return 1f;
