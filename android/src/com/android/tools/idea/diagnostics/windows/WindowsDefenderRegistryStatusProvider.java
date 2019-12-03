@@ -20,6 +20,7 @@ import com.sun.jna.platform.win32.Win32Exception;
 import com.sun.jna.platform.win32.WinReg;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -29,12 +30,12 @@ public class WindowsDefenderRegistryStatusProvider implements VirusCheckerStatus
   @Override
   public List<String> getExcludedPaths() throws IOException {
     try {
-      Set<String> localPaths = Advapi32Util.registryGetValues(
+      Set<String> localPaths = new HashSet<>(Advapi32Util.registryGetValues(
         WinReg.HKEY_LOCAL_MACHINE,
-        "SOFTWARE\\Microsoft\\Windows Defender\\Exclusions\\Paths").keySet();
-      Set<String> policyPaths = Advapi32Util.registryGetValues(
+        "SOFTWARE\\Microsoft\\Windows Defender\\Exclusions\\Paths").keySet());
+      Set<String> policyPaths = new HashSet<>(Advapi32Util.registryGetValues(
         WinReg.HKEY_LOCAL_MACHINE,
-        "SOFTWARE\\Policies\\Microsoft\\Windows Defender\\exclusions\\paths").keySet();
+        "SOFTWARE\\Policies\\Microsoft\\Windows Defender\\exclusions\\paths").keySet());
 
       localPaths.addAll(policyPaths);
       return new ArrayList<>(localPaths);
