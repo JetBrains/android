@@ -41,9 +41,6 @@ fun RecipeExecutor.androidProjectRecipe(
 
   save(androidProjectGradleSettings(appTitle), topOut.resolve("settings.gradle"))
   save(androidProjectGradleProperties(addAndroidXSupport), topOut.resolve("gradle.properties"))
+  save(androidProjectLocalProperties(data.sdkDir), topOut.resolve("local.properties"))
   copy(resource("wrapper"), topOut)
-
-  if (data.sdkDir != null) {
-    save(androidProjectLocalProperties(data.sdkDir), topOut.resolve("local.properties"))
-  }
 }

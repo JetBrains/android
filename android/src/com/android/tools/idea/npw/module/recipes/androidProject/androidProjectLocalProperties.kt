@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidProject
 
+import com.android.utils.SdkUtils.escapePropertyValue
 import java.io.File
 
 fun androidProjectLocalProperties(sdkDir: File?) =
@@ -28,5 +29,5 @@ fun androidProjectLocalProperties(sdkDir: File?) =
 # Location of the SDK. This is only used by Gradle.
 # For customization when using a Version Control System, please read the
 # header note.
-sdk.dir=${sdkDir?.path ?: "unset"}
+sdk.dir=${escapePropertyValue(sdkDir?.path ?: "unset")}
 """
