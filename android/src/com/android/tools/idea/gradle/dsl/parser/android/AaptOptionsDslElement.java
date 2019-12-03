@@ -40,7 +40,7 @@ public class AaptOptionsDslElement extends GradleDslBlockElement {
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"additionalParameters", property, ADDITIONAL_PARAMETERS, VAR},
-    {"additionalParameters", atLeast(0), ADDITIONAL_PARAMETERS, OTHER},
+    {"additionalParameters", atLeast(0), ADDITIONAL_PARAMETERS, ADD_AS_LIST},
     {"cruncherEnabled", property, CRUNCHER_ENABLED, VAR},
     {"cruncherProcesses", property, CRUNCHER_PROCESSES, VAR},
     {"failOnMissingConfigEntry", property, FAIL_ON_MISSING_CONFIG_ENTRY, VAR},
@@ -48,7 +48,7 @@ public class AaptOptionsDslElement extends GradleDslBlockElement {
     {"ignoreAssetsPattern", property, IGNORE_ASSETS, VAR},
     {"ignoreAssets", property, IGNORE_ASSETS, VAR},
     {"noCompress", property, NO_COMPRESS, VAL},
-    {"noCompress", atLeast(0), NO_COMPRESS, OTHER},
+    {"noCompress", atLeast(0), NO_COMPRESS, ADD_AS_LIST},
     {"setNoCompress", exactly(1), NO_COMPRESS, SET}, // actually there are more setNoCompress() methods than just the pure setter
     {"namespaced", property, NAMESPACED, VAR},
     {"namespaced", exactly(1), NAMESPACED, SET}
@@ -57,7 +57,7 @@ public class AaptOptionsDslElement extends GradleDslBlockElement {
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
     {"additionalParameters", property, ADDITIONAL_PARAMETERS, VAR},
-    {"additionalParameters", atLeast(0), ADDITIONAL_PARAMETERS, OTHER},
+    {"additionalParameters", atLeast(0), ADDITIONAL_PARAMETERS, ADD_AS_LIST},
     {"cruncherEnabled", property, CRUNCHER_ENABLED, VAR},
     {"cruncherEnabled", exactly(1), CRUNCHER_ENABLED, SET},
     {"cruncherProcesses", property, CRUNCHER_PROCESSES, VAR},
@@ -69,7 +69,7 @@ public class AaptOptionsDslElement extends GradleDslBlockElement {
     {"ignoreAssets", property, IGNORE_ASSETS, VAR},
     {"ignoreAssets", exactly(1), IGNORE_ASSETS, SET},
     {"noCompress", property, NO_COMPRESS, VAR},
-    {"noCompress", atLeast(0), NO_COMPRESS, OTHER},
+    {"noCompress", atLeast(0), NO_COMPRESS, ADD_AS_LIST},
     {"namespaced", property, NAMESPACED, VAR},
     {"namespaced", exactly(1), NAMESPACED, SET}
   }).collect(toModelMap());
@@ -92,20 +92,5 @@ public class AaptOptionsDslElement extends GradleDslBlockElement {
 
   public AaptOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    if (element instanceof GradleDslSimpleExpression) {
-      if (element.getName().equals("additionalParameters")) {
-        addAsParsedDslExpressionList(ADDITIONAL_PARAMETERS, (GradleDslSimpleExpression)element);
-        return;
-      }
-      else if (element.getName().equals("noCompress")) {
-        addAsParsedDslExpressionList(NO_COMPRESS, (GradleDslSimpleExpression)element);
-        return;
-      }
-    }
-    super.addParsedElement(element);
   }
 }

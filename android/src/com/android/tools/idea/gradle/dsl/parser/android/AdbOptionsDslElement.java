@@ -39,7 +39,7 @@ public class AdbOptionsDslElement extends GradleDslBlockElement {
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"installOptions", property, INSTALL_OPTIONS, VAL},
-    {"installOptions", atLeast(0), INSTALL_OPTIONS, OTHER},
+    {"installOptions", atLeast(0), INSTALL_OPTIONS, ADD_AS_LIST},
     {"setInstallOptions", exactly(1), INSTALL_OPTIONS, SET},
     {"timeOutInMs", property, TIME_OUT_IN_MS, VAR},
     {"timeOutInMs", exactly(1), TIME_OUT_IN_MS, SET}
@@ -48,7 +48,7 @@ public class AdbOptionsDslElement extends GradleDslBlockElement {
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
     {"installOptions", property, INSTALL_OPTIONS, VAL},
-    {"installOptions", atLeast(0), INSTALL_OPTIONS, OTHER},
+    {"installOptions", atLeast(0), INSTALL_OPTIONS, ADD_AS_LIST},
     {"timeOutInMs", property, TIME_OUT_IN_MS, VAR},
     {"timeOutInMs", exactly(1), TIME_OUT_IN_MS, SET}
   }).collect(toModelMap());
@@ -70,14 +70,5 @@ public class AdbOptionsDslElement extends GradleDslBlockElement {
   }
   public AdbOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    if (element instanceof GradleDslSimpleExpression && element.getName().equals("installOptions")) {
-      addAsParsedDslExpressionList(INSTALL_OPTIONS, (GradleDslSimpleExpression)element);
-      return;
-    }
-    super.addParsedElement(element);
   }
 }

@@ -76,7 +76,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"defaultPublishConfig", property, DEFAULT_PUBLISH_CONFIG, VAR},
     {"defaultPublishConfig", exactly(1), DEFAULT_PUBLISH_CONFIG, SET},
     {"dynamicFeatures", property, DYNAMIC_FEATURES, VAR},
-    {"flavorDimensions", atLeast(0), FLAVOR_DIMENSIONS, OTHER}, // SETN: sets the property to the list of varargs arguments
+    {"flavorDimensions", atLeast(0), FLAVOR_DIMENSIONS, ADD_AS_LIST},
     {"generatePureSplits", property, GENERATE_PURE_SPLITS, VAR},
     {"generatePureSplits", exactly(1), GENERATE_PURE_SPLITS, SET},
     {"ndkVersion", property, NDK_VERSION, VAR},
@@ -94,7 +94,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"defaultPublishConfig", property, DEFAULT_PUBLISH_CONFIG, VAR},
     {"defaultPublishConfig", exactly(1), DEFAULT_PUBLISH_CONFIG, SET},
     {"dynamicFeatures", property, DYNAMIC_FEATURES, VAR},
-    {"flavorDimensions", atLeast(0), FLAVOR_DIMENSIONS, OTHER},
+    {"flavorDimensions", atLeast(0), FLAVOR_DIMENSIONS, ADD_AS_LIST},
     {"generatePureSplits", property, GENERATE_PURE_SPLITS, VAR},
     {"generatePureSplits", exactly(1), GENERATE_PURE_SPLITS, SET},
     {"ndkVersion", property, NDK_VERSION, VAR},
@@ -121,14 +121,5 @@ public final class AndroidDslElement extends GradleDslBlockElement {
 
   public AndroidDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    if (element.getName().equals("flavorDimensions") && element instanceof GradleDslSimpleExpression) {
-      addAsParsedDslExpressionList(FLAVOR_DIMENSIONS, (GradleDslSimpleExpression)element);
-      return;
-    }
-    super.addParsedElement(element);
   }
 }
