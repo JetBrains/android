@@ -28,6 +28,7 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.keymap.KeymapUtil
+import com.intellij.openapi.project.DumbAware
 import com.intellij.pom.Navigatable
 import javax.swing.Icon
 
@@ -109,7 +110,7 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
   protected open inner class SplitEditorAction internal constructor(val name: String,
                                                                     val icon: Icon,
                                                                     val delegate: ToggleAction)
-    : ToggleAction(name, name, icon) {
+    : ToggleAction(name, name, icon), DumbAware {
 
     override fun isSelected(e: AnActionEvent) = delegate.isSelected(e)
 
