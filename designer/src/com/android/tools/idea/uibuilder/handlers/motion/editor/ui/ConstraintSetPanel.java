@@ -181,20 +181,12 @@ class ConstraintSetPanel extends JPanel {
     });
     top.setPreferredSize(new Dimension(0, MEUI.scale(32)));
 
-    JCheckBox cbox = new JCheckBox("All");
 
-    cbox.setSelected(true);
-    cbox.addActionListener(e -> {
-                             showAll = cbox.isSelected();
-                             buildTable();
-                           }
-    );
     JLabel label;
     left.add(label = new JLabel("ConstraintSet (", MEIcons.CONSTRAINT_SET, SwingConstants.LEFT));
     left.add(mTitle = new JLabel("", SwingConstants.LEFT));
     left.add(label = new JLabel(")", SwingConstants.LEFT));
     makeRightMenu(right);
-    right.add(cbox);
 
     ActionListener copyListener = e -> copy();
     ActionListener pasteListener = e -> {
