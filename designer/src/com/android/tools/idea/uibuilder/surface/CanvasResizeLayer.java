@@ -58,6 +58,6 @@ public class CanvasResizeLayer extends Layer {
 
   @Override
   public boolean isVisible() {
-    return myDesignSurface.isResizeAvailable();
+    return myScreenView.getScene().isResizeAvailable();
   }
 }

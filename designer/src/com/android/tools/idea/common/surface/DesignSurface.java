@@ -819,11 +819,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   public abstract void scrollToCenter(@NotNull List<NlComponent> list);
 
-  /**
-   * Return true if the designed content is resizable, false otherwise
-   */
-  public abstract boolean isResizeAvailable();
-
   public void setScrollPosition(@SwingCoordinate int x, @SwingCoordinate int y) {
     setScrollPosition(new Point(x, y));
   }

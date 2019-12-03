@@ -659,11 +659,6 @@ public class NavDesignSurface extends DesignSurface {
     getScheduleRef().set(AppExecutorUtil.getAppScheduledExecutorService().scheduleWithFixedDelay(action, 0, 10, TimeUnit.MILLISECONDS));
   }
 
-  @Override
-  public boolean isResizeAvailable() {
-    return false;
-  }
-
   @VisibleForTesting
   @NotNull
   AtomicReference<Future<?>> getScheduleRef() {
