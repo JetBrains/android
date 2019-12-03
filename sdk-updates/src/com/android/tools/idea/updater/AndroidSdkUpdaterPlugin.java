@@ -15,28 +15,19 @@
  */
 package com.android.tools.idea.updater;
 
-import com.android.repository.api.ConstantSourceProvider;
-import com.android.repository.api.RepositorySourceProvider;
-import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.intellij.credentialStore.CredentialAttributes;
 import com.intellij.credentialStore.Credentials;
 import com.intellij.credentialStore.OneTimeString;
 import com.intellij.ide.externalComponents.ExternalComponentManager;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.ide.passwordSafe.PasswordSafe;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.util.proxy.CommonProxy;
 import com.intellij.util.proxy.NonStaticAuthenticator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
 
@@ -49,29 +40,7 @@ public final class AndroidSdkUpdaterPlugin {
     if (isAndroidSdkManagerEnabled()) {
       setUpAuthenticator();
       ExternalComponentManager.getInstance().registerComponentSource(new SdkComponentSource());
-
-      URL offlineRepo = getOfflineRepoDir();
-      if (offlineRepo != null) {
-        // We don't have an actual RepoManager yet, so just get all the modules statically.
-        RepositorySourceProvider provider =
-          new ConstantSourceProvider(offlineRepo.toString(), "Offline Repo", AndroidSdkHandler.getAllModules());
-        AndroidSdkHandler.addCustomSourceProvider(provider, new StudioLoggerProgressIndicator(getClass()));
-      }
     }
-  }
-
-  @Nullable
-  private static URL getOfflineRepoDir() {
-    Path path = Paths.get(PathManager.getPreInstalledPluginsPath(), "sdk-updates", "offline-repo", "offline-repo.xml");
-    if (Files.exists(path)) {
-      try {
-        return path.toUri().toURL();
-      }
-      catch (MalformedURLException e) {
-        return null;
-      }
-    }
-    return null;
   }
 
   private void setUpAuthenticator() {
