@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.trackgroup
+package com.android.tools.adtui.model.trackgroup
 
-import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
-import com.android.tools.adtui.model.trackgroup.TrackModel
-import javax.swing.JCheckBox
-import javax.swing.JComponent
+class StringSelectable(val value: String) : SelectableTrackModel {
+  override fun isCompatibleWith(otherObj: SelectableTrackModel): Boolean {
+    return otherObj is StringSelectable
+  }
 
-class FooTrackRenderer : TrackRenderer<Boolean, TestTrackRendererType> {
-  override fun render(trackModel: TrackModel<Boolean, TestTrackRendererType>): JComponent {
-    return JCheckBox("Checked", trackModel.dataModel)
+  override fun equals(other: Any?): Boolean {
+    if (other is StringSelectable) {
+      return value == other.value
+    }
+    return false
+  }
+
+  override fun hashCode(): Int {
+    return value.hashCode()
   }
 }

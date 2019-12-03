@@ -61,7 +61,6 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
 
   private final TrackGroupListPanel myTrackGroupList;
   private final CpuAnalysisPanel myAnalysisPanel;
-  private final MultiSelectionModel<CpuAnalyzable> myMultiSelectionModel = new MultiSelectionModel<>();
 
   public CpuCaptureStageView(@NotNull StudioProfilersView view, @NotNull CpuCaptureStage stage) {
     super(view, stage);
@@ -80,7 +79,8 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     myTrackGroupList.getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
 
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
-    myMultiSelectionModel.addDependency(this).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, this::onTrackGroupSelectionChange);
+    stage.getMultiSelectionModel().addDependency(this)
+      .onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, this::onTrackGroupSelectionChange);
     updateComponents();
   }
 
@@ -182,7 +182,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                                 getProfilersView().getComponent(),
                                 () -> false));
     myTrackGroupList.loadTrackGroups(getStage().getTrackGroupModels(), true);
-    myTrackGroupList.registerMultiSelectionModel(myMultiSelectionModel);
+    myTrackGroupList.registerMultiSelectionModel(getStage().getMultiSelectionModel());
   }
 
   private void onTrackGroupSelectionChange() {
@@ -192,7 +192,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     }
 
     // Merge all selected items' analysis models and provide one combined model to the analysis panel.
-    myMultiSelectionModel.getSelection().stream()
+    getStage().getMultiSelectionModel().getSelection().stream()
       .map(CpuAnalyzable::getAnalysisModel)
       .reduce(CpuAnalysisModel::mergeWith)
       .ifPresent(getStage()::addCpuAnalysisModel);

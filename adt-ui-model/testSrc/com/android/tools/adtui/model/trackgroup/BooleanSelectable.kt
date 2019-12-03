@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu.analysis;
+package com.android.tools.adtui.model.trackgroup
 
-import com.android.tools.adtui.model.trackgroup.SelectableTrackModel;
-import org.jetbrains.annotations.NotNull;
+class BooleanSelectable(val value: Boolean) : SelectableTrackModel {
+  override fun isCompatibleWith(otherObj: SelectableTrackModel): Boolean {
+    return otherObj is BooleanSelectable
+  }
 
-/**
- * Represents something that can generate a {@link CpuAnalysisModel}. Implementations can be a CPU capture trace, a thread or a trace event.
- */
-public interface CpuAnalyzable<T extends CpuAnalyzable<?>> extends SelectableTrackModel {
-  /**
-   * @return a model that contains analysis data.
-   */
-  @NotNull
-  CpuAnalysisModel<T> getAnalysisModel();
+  override fun equals(other: Any?): Boolean {
+    if (other is BooleanSelectable) {
+      return value == other.value
+    }
+    return false
+  }
+
+  override fun hashCode(): Int {
+    return value.hashCode()
+  }
 }

@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.DefaultTimeline;
+import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
@@ -33,6 +34,7 @@ import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
+import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.AtraceFrame;
@@ -123,6 +125,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
   private final AspectModel<Aspect> myAspect = new AspectModel<>();
   private final List<CpuAnalysisModel> myAnalysisModels = new ArrayList<>();
   private final List<TrackGroupModel> myTrackGroupModels = new ArrayList<>();
+  private final MultiSelectionModel<CpuAnalyzable> myMultiSelectionModel = new MultiSelectionModel<>();
 
   private CpuCaptureMinimapModel myMinimapModel;
   private State myState = State.PARSING;
@@ -192,6 +195,11 @@ public class CpuCaptureStage extends Stage<Timeline> {
   @NotNull
   public List<TrackGroupModel> getTrackGroupModels() {
     return myTrackGroupModels;
+  }
+
+  @NotNull
+  public MultiSelectionModel<CpuAnalyzable> getMultiSelectionModel() {
+    return myMultiSelectionModel;
   }
 
   @NotNull
@@ -340,7 +348,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
       // track renderer to switch between its various tooltip models.
       threads.addTrackModel(
         TrackModel.newBuilder(
-          new CpuThreadTrackModel(getStudioProfilers(), selectionRange, capture, threadInfo, getTimeline()),
+          new CpuThreadTrackModel(getStudioProfilers(), selectionRange, capture, threadInfo, getTimeline(), myMultiSelectionModel),
           ProfilerTrackRendererType.CPU_THREAD,
           threadInfo.getName()));
     }
