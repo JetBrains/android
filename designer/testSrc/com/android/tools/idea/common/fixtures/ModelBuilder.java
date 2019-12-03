@@ -195,7 +195,6 @@ public class ModelBuilder {
       SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myModelDisplayName, myFacet, xmlFile.getVirtualFile());
       when(surface.getModel()).thenReturn(model);
       when(surface.getConfigurations()).thenReturn(ImmutableList.of(model.getConfiguration()));
-      when(surface.getSceneScalingFactor()).thenCallRealMethod();
 
       // TODO: NlDesignSurface should not be referenced from here.
       // TODO: Do we need a special version of ModelBuilder for Nele?

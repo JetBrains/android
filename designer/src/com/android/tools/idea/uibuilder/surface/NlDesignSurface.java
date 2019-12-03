@@ -536,19 +536,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myCentered = centered;
   }
 
-  /**
-   * In the layout editor, Scene uses {@link AndroidDpCoordinate}s whereas rendering is done in (zoomed and offset)
-   * {@link AndroidCoordinate}s. The scaling factor between them is the ratio of the screen density to the standard density (160).
-   */
-  @Override
-  public float getSceneScalingFactor() {
-    Configuration configuration = getConfiguration();
-    if (configuration != null) {
-      return configuration.getDensity().getDpiValue() / (float)DEFAULT_DENSITY;
-    }
-    return 1f;
-  }
-
   @Override
   public float getScreenScalingFactor() {
     return JBUIScale.sysScale(this);
