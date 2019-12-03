@@ -2,8 +2,8 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "intellij.android.designer.perf-tests",
-    iml_files = ["intellij.android.designer.perf-tests.iml"],
+    name = "intellij.android.designer-perf-tests",
+    iml_files = ["intellij.android.designer-perf-tests.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.rendering.PerfgateRenderTestSuite",
     test_data = [
