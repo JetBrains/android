@@ -30,6 +30,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.TestActionEvent
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import org.junit.Before
@@ -73,7 +74,7 @@ class ShowFileInResourceManagerActionTest {
   @Test
   fun itemIsSelectedInResourceManager() {
     val newFile = rule.fixture.loadNewFile("res/drawable-hdpi/icon.xml", "<drawable></drawable>")
-    val resourceExplorer = ResourceExplorer.createForToolWindow(rule.module.androidFacet!!)
+    val resourceExplorer = runInEdtAndGet{ ResourceExplorer.createForToolWindow(rule.module.androidFacet!!) }
     val resourceExplorerView = UIUtil.findComponentOfType(resourceExplorer, ResourceExplorerView::class.java)!!
     Disposer.register(rule.project, resourceExplorer)
 

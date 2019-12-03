@@ -54,6 +54,7 @@ import com.intellij.psi.impl.source.xml.XmlFileImpl
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.speedSearch.SpeedSearch
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.plugins.groovy.lang.psi.util.childrenOfType
@@ -61,6 +62,7 @@ import java.util.Locale
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 import java.util.concurrent.CompletableFuture.supplyAsync
+import java.util.function.BiConsumer
 import java.util.function.Supplier
 import kotlin.properties.Delegates
 
@@ -134,6 +136,16 @@ class ResourceExplorerListViewModelImpl(
    */
   override val summaryPreviewManager: AssetPreviewManager by lazy {
     AssetPreviewManagerImpl(facet, summaryImageCache, resourceResolver)
+  }
+
+  override fun clearCacheForCurrentResources() {
+    getCurrentModuleResourceLists().whenCompleteAsync(BiConsumer { lists, throwable ->
+      if (throwable == null) {
+        val designAssets = lists.flatMap { it.assetSets.flatMap { it.assets.filterIsInstance<DesignAsset>() } }
+        designAssets.forEach(::clearImageCache)
+        updateUiCallback?.invoke(UpdateUiReason.IMAGE_CACHE_CHANGED)
+      }
+    }, EdtExecutorService.getInstance())
   }
 
   override fun clearImageCache(asset: DesignAsset) {
