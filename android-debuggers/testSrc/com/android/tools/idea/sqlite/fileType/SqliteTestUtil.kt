@@ -63,7 +63,25 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     }
   }
 
-  fun createEmptyTempSqliteDatabase(name: String): VirtualFile = runReadAction {
+  fun createTestSqliteDatabase(
+    dbName: String = "sqlite-database",
+    tableName: String = "tab",
+    columns: List<String> = emptyList(),
+    integerPrimaryKeyColName: String? = null,
+    withoutRowId: Boolean = false
+  ): VirtualFile = runWriteAction {
+    createEmptyTempSqliteDatabase(dbName).also { file ->
+      // Note: We need to close the connection so the database file handle is released by the Sqlite engine.
+      openSqliteDatabase(file).use { connection ->
+        fillConfigurableTestDB(connection, tableName, columns, integerPrimaryKeyColName, withoutRowId)
+      }
+
+      // File as changed on disk, refresh virtual file cached data
+      file.refresh(false, false)
+    }
+  }
+
+  private fun createEmptyTempSqliteDatabase(name: String): VirtualFile = runReadAction {
     tempDirTestFixture.createFile(name).also { file ->
 
       // Note: We need to close the connection so the database file handle is released by the Sqlite engine.
@@ -96,35 +114,39 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     }
   }
 
-  private fun fillDatabase(connection: Connection) = runWriteAction {
-    connection.createStatement().use { stmt ->
-      val sql = "CREATE TABLE contacts (\n" +
-          " contact_id integer PRIMARY KEY,\n" +
-          " first_name text NOT NULL,\n" +
-          " last_name text NOT NULL,\n" +
-          " email text NOT NULL UNIQUE,\n" +
-          " phone text NOT NULL UNIQUE\n" +
-          ");"
-      stmt.executeUpdate(sql)
+  private fun fillConfigurableTestDB(
+    connection: Connection,
+    tableName: String,
+    columns: List<String>,
+    integerPrimaryKeyColName: String?,
+    withoutRowId: Boolean = false
+  ) {
+    var columnsString = ""
+
+    if (integerPrimaryKeyColName != null) {
+      columnsString += " $integerPrimaryKeyColName integer PRIMARY KEY"
+      if (columns.isNotEmpty()) {
+        columnsString += ",\n"
+      } else {
+        columnsString += "\n"
+      }
     }
 
-    // Batch insert a bunch of rows
-    connection.autoCommit = false
-    val sql = "INSERT INTO contacts(contact_id, first_name, last_name, email, phone) VALUES(?, ?, ?, ?, ?)"
-    connection.prepareStatement(sql).use { pstmt ->
-      // 300 rows so the file size is non trivial (currently about 40KB)
-      for (i in 0..299) {
-        pstmt.setInt(1, i * 10)
-        pstmt.setString(2, "MyName $i")
-        pstmt.setString(3, "MyLastName $i")
-        pstmt.setString(4, "MyEmail@$i")
-        pstmt.setString(5, "MyPhone: 555-$i")
-        pstmt.addBatch()
-      }
-      pstmt.executeBatch()
+    columns.forEachIndexed { index, col ->
+      columnsString += " $col text NOT NULL"
+      if (index < columns.size-1) columnsString += ",\n"
+      else columnsString += "\n"
     }
-    connection.commit()
-    connection.autoCommit = true
+
+    val sqlStatement = "CREATE TABLE $tableName (\n" +
+                       columnsString +
+                       ")" +
+                       if (withoutRowId) " WITHOUT ROWID " else "" +
+                       ";"
+
+    connection.createStatement().use { stmt ->
+      stmt.executeUpdate(sqlStatement)
+    }
   }
 
   private fun fillTestDatabase(connection: Connection) = runWriteAction {

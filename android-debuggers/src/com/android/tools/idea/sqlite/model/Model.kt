@@ -56,7 +56,7 @@ data class SqliteSchema(val tables: List<SqliteTable>)
  *
  * @see [https://www.sqlite.org/lang_createview.html] for isView
  **/
-data class SqliteTable(val name: String, val columns: List<SqliteColumn>, val isView: Boolean)
+data class SqliteTable(val name: String, val columns: List<SqliteColumn>, val rowIdName: RowIdName?, val isView: Boolean)
 
 /** Representation of the Sqlite table row */
 data class SqliteRow(val values: List<SqliteColumnValue>)
@@ -85,4 +85,8 @@ data class SqliteStatement(val sqliteStatementText: String, val parametersValues
 
     return  renderedStatement
   }
+}
+
+enum class RowIdName(val stringName: String) {
+  ROWID("rowid"), OID("oid"), _ROWID_("_rowid_")
 }

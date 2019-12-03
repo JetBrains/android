@@ -87,7 +87,8 @@ class LiveDatabaseConnection(
   private fun SqliteInspection.Schema.toSqliteSchema(): SqliteSchema {
     val tables = tablesList.map { table ->
       val sqliteColumns = table.columnsList.map { it.toSqliteColumn() }
-      SqliteTable(table.name, sqliteColumns, false)
+      // TODO(blocked): add support for rowIdName
+      SqliteTable(table.name, sqliteColumns, null, false)
     }
     return SqliteSchema(tables)
   }

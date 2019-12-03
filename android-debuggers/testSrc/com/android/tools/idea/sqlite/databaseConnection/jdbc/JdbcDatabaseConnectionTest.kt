@@ -38,13 +38,14 @@ import java.sql.JDBCType
 class JdbcDatabaseConnectionTest : PlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
   private lateinit var sqliteFile: VirtualFile
+  private var customSqliteFile: VirtualFile? = null
   private lateinit var databaseConnection: DatabaseConnection
+  private var customConnection: DatabaseConnection? = null
   private var previouslyEnabled: Boolean = false
 
   override fun setUp() {
     super.setUp()
-    sqliteUtil = SqliteTestUtil(
-      IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+    sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     sqliteUtil.setUp()
     previouslyEnabled = DatabaseInspectorFlagController.enableFeature(true)
 
@@ -57,6 +58,10 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
   override fun tearDown() {
     try {
       pumpEventsAndWaitForFuture(databaseConnection.close())
+      if (customConnection != null) {
+        pumpEventsAndWaitForFuture(customConnection!!.close())
+      }
+
       sqliteUtil.tearDown()
       DatabaseInspectorFlagController.enableFeature(previouslyEnabled)
     }
@@ -189,6 +194,78 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     pumpEventsAndWaitForFutureException(
       databaseConnection.execute(SqliteStatement("SELECT * FROM wrongName"))
     )
+  }
+
+  fun test_rowid_IsAssignedCorrectly() {
+    // Prepare
+    customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1", "col2"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    assertEquals("_rowid_", schema.tables.first().rowIdName!!.stringName)
+  }
+
+  fun testRowidIsAssignedCorrectly() {
+    // Prepare
+    customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1", "col2", "_rowid_"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    assertEquals("rowid", schema.tables.first ().rowIdName!!.stringName)
+  }
+
+  fun testOidIsAssignedCorrectly() {
+    // Prepare
+    customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1", "col2", "_rowid_", "rowid"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    assertEquals("oid", schema.tables.first ().rowIdName!!.stringName)
+  }
+
+  fun testRowIdIsNull() {
+    // Prepare
+    customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1", "col2", "rowid", "oid", "_rowid_"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    assertNull("rowid", schema.tables.first().rowIdName)
+  }
+
+  fun testPrimaryKeyInWithoutRowIdTable() {
+    // Prepare
+    customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1"), "pk", true)
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    assertNull(schema.tables.first().rowIdName)
+    val pk = schema.tables.first().columns.find { it.name == "pk" }
+    assertTrue(pk!!.inPrimaryKey)
   }
 
   private fun SqliteResultSet.hasColumn(name: String, type: JDBCType) : Boolean {
