@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
-import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtExpression
