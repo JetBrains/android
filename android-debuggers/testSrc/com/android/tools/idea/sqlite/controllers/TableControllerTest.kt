@@ -84,9 +84,9 @@ class TableControllerTest : PlatformTestCase() {
       getSqliteJdbcService(sqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
 
-    authorIdColumn = SqliteColumn("author_id", JDBCType.INTEGER)
-    val authorNameColumn = SqliteColumn("first_name", JDBCType.VARCHAR)
-    val authorLastColumn = SqliteColumn("last_name", JDBCType.VARCHAR)
+    authorIdColumn = SqliteColumn("author_id", JDBCType.INTEGER, true)
+    val authorNameColumn = SqliteColumn("first_name", JDBCType.VARCHAR, false)
+    val authorLastColumn = SqliteColumn("last_name", JDBCType.VARCHAR, false)
 
     authorsRow1 = SqliteRow(
       listOf(
