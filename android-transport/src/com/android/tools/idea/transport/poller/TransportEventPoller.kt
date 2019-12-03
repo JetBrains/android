@@ -101,8 +101,8 @@ class TransportEventPoller(private val transportClient: TransportServiceGrpc.Tra
                      executorServiceForTest: ScheduledExecutorService? = null
     ): TransportEventPoller {
       val poller = TransportEventPoller(transportClient, sortOrder)
-      val scheduledFuture = (executorServiceForTest ?: myExecutorService).scheduleAtFixedRate({ poller.poll() },
-                                                                                              0, pollPeriodNs, TimeUnit.NANOSECONDS)
+      val scheduledFuture = (executorServiceForTest ?: myExecutorService).scheduleWithFixedDelay({ poller.poll() },
+                                                                                                 0, pollPeriodNs, TimeUnit.NANOSECONDS)
       myScheduledFutures[poller] = scheduledFuture
       return poller
     }
