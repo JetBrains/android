@@ -110,7 +110,7 @@ public class NewModuleTest {
       .waitForGradleProjectSyncToFinish();
 
     String gradleFileContents = guiTest.getProjectFileText("somelibrary/build.gradle");
-    assertThat(gradleFileContents).contains("apply plugin: 'com.android.library'");
+    assertThat(gradleFileContents).contains("apply plugin : \"com.android.library\"");
     assertThat(gradleFileContents).contains("consumerProguardFiles");
     assertAbout(file()).that(guiTest.getProjectPath("somelibrary/.gitignore")).isFile();
   }
