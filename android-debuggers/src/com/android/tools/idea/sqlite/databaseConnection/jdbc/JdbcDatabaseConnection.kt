@@ -70,24 +70,18 @@ class JdbcDatabaseConnection(
     SqliteSchema(sqliteTables).apply { logger.info("Successfully read database schema: ${sqliteFile.path}") }
   }
 
-  private fun readColumnDefinitions(connection: Connection, tableName: String?): ArrayList<SqliteColumn> {
+  private fun readColumnDefinitions(connection: Connection, tableName: String): List<SqliteColumn> {
     val columnsSet = connection.metaData.getColumns(null, null, tableName, null)
-    val columns = ArrayList<SqliteColumn>()
-    while (columnsSet.next()) {
-      if (logger.isDebugEnabled) {
-        logger.debug("Table \"$tableName\" metadata:")
-        for (i in 1..columnsSet.metaData.columnCount) {
-          logger.debug("  Column \"${columnsSet.metaData.getColumnName(i)}\" = ${columnsSet.getString(i)}")
-        }
-      }
-      columns.add(
-        SqliteColumn(
-          columnsSet.getString("COLUMN_NAME"),
-          JDBCType.valueOf(columnsSet.getInt("DATA_TYPE"))
-        )
+    val keyColumnsNames = connection.getColumnNamesInPrimaryKey(tableName)
+
+    return columnsSet.map {
+      val columnName = columnsSet.getString("COLUMN_NAME")
+      SqliteColumn(
+        columnName,
+        JDBCType.valueOf(columnsSet.getInt("DATA_TYPE")),
+        keyColumnsNames.contains(columnName)
       )
-    }
-    return columns
+    }.toList()
   }
 
   override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet?> {
