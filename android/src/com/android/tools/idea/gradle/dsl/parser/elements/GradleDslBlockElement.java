@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VWO;
 
@@ -109,7 +110,15 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
       applyDslElement.addParsedElement(element);
       return;
     }
-    maybeCanonizeElement(element); // NOTYPO
+    Pair<String,SemanticsDescription> semantics = getSemantics(element);
+    if (semantics != null) {
+      SemanticsDescription description = semantics.getSecond();
+      if (description == ADD_AS_LIST && element instanceof GradleDslSimpleExpression) {
+        addAsParsedDslExpressionList(semantics.getFirst(), (GradleDslSimpleExpression) element);
+        return;
+      }
+      maybeCanonizeElement(element); // NOTYPO
+    }
     super.addParsedElement(element);
   }
 
