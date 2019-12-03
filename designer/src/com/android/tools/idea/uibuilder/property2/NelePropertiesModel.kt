@@ -29,6 +29,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener
@@ -379,13 +380,11 @@ open class NelePropertiesModel(parentDisposable: Disposable,
 
   open fun browseToValue(property: NelePropertyItem) {
     val tag = property.firstTag ?: return
-    val attribute = tag.getAttribute(property.name, property.namespace) ?: return
-    val attributeValue = attribute.valueElement ?: return
-    val file = tag.containingFile
-    val ref = file.findReferenceAt(attributeValue.textOffset)
-    val navigable = ref?.resolve() as? Navigatable ?: return
-    if (navigable != attributeValue) {
-      navigable.navigate(true)
+    val resourceReference = property.resolveValueAsReference(property.value) ?: return
+    val folderConfiguration = property.getFolderConfiguration() ?: return
+    val targetElement = ResourceRepositoryToPsiResolver.getBestGotoDeclarationTarget(resourceReference, tag, folderConfiguration) ?: return
+    if (targetElement is Navigatable) {
+      targetElement.navigate(true)
     }
   }
 
