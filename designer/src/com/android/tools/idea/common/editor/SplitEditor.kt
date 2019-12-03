@@ -143,6 +143,8 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
     }
 
     open fun onUserSelectedAction() {}
+
+    override fun displayTextInToolbar() = true
   }
 
   @Suppress("UNCHECKED_CAST")
