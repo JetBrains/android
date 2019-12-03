@@ -28,6 +28,7 @@ import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceVisitor
+import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.resources.ResourceVisibility
@@ -245,6 +246,10 @@ open class NelePropertyItem(
     else {
       return resolver?.getResolvedResource(reference)
     }
+  }
+
+  fun getFolderConfiguration(): FolderConfiguration? {
+    return nlModel?.configuration?.fullConfig
   }
 
   private fun resolveValue(resValue: ResourceValue?): String? {
