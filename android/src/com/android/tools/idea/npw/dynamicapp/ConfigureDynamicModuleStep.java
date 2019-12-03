@@ -19,6 +19,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
+import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
 import static com.android.tools.idea.gradle.util.DynamicAppUtils.baseIsInstantEnabled;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
@@ -215,6 +216,12 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
     myAndroidVersionsInfo.loadRemoteTargetVersions(MOBILE, LOWEST_ACTIVE_API, items -> myApiLevelCombo.init(MOBILE, items));
 
     setTemplateThumbnail(new TemplateHandle(Objects.requireNonNull(getModel().getTemplateFile())));
+  }
+
+  @Override
+  protected void onProceeding() {
+    // Now that the module name was validated, update the model template
+    getModel().getTemplate().set(createDefaultTemplateAt(getModel().getProject().getBasePath(), getModel().getModuleName().get()));
   }
 
   @Override

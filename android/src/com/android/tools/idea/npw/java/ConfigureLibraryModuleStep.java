@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.npw.java;
 
+import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
+import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
@@ -39,14 +43,14 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.ui.ContextHelpLabel;
+import java.util.Collection;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.Collection;
-
-import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
-import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class ConfigureLibraryModuleStep extends SkippableWizardStep<NewLibraryModuleModel> {
   @NotNull private final StudioWizardStepPanel myRootPanel;
@@ -103,6 +107,12 @@ public class ConfigureLibraryModuleStep extends SkippableWizardStep<NewLibraryMo
   @Override
   protected ObservableBool canGoForward() {
     return myValidatorPanel.hasErrors().not();
+  }
+
+  @Override
+  protected void onProceeding() {
+    // Now that the module name was validated, update the model template
+    getModel().getTemplate().set(createDefaultTemplateAt(getModel().getProject().getBasePath(), getModel().getModuleName().get()));
   }
 
   @NotNull
