@@ -20,12 +20,13 @@ import com.android.repository.Revision.parseRevision
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.npw.module.recipes.androidConfig
 import com.android.tools.idea.npw.module.recipes.getConfigurationName
-import com.android.tools.idea.npw.module.recipes.kotlinDependencies
 import com.android.tools.idea.npw.module.recipes.supportsImprovedTestDeps
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.templates.resolveDependency
+import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
+import com.android.tools.idea.wizard.template.has
 import com.android.tools.idea.wizard.template.renderIf
 
 fun buildGradle(
@@ -45,8 +46,7 @@ fun buildGradle(
   isCompose: Boolean = false,
   baseFeatureName: String = "base",
   wearProjectName: String = "wear",
-  mobileIncluded: Boolean = true,
-  wearIncluded: Boolean = false,
+  formFactorNames: Map<FormFactor, List<String>>,
   hasTests: Boolean = true,
   addLintOptions: Boolean = false
 ): String {
@@ -98,7 +98,8 @@ fun buildGradle(
 
   val dynamicFeatureBlock = when {
     isDynamicFeature -> """implementation project (":${baseFeatureName}")"""
-    !wearProjectName.isBlank() && mobileIncluded && wearIncluded -> """wearApp project (":${wearProjectName}")"""
+    !wearProjectName.isBlank() && formFactorNames.has(FormFactor.Mobile) && formFactorNames.has(FormFactor.Wear) ->
+      """wearApp project (":${wearProjectName}")"""
     else -> ""
   }
 

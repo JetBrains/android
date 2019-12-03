@@ -73,6 +73,7 @@ fun RecipeExecutor.generateCommonModule(
       includeCppSupport,
       cppFlags,
       hasTests = generateTests,
+      formFactorNames = projectData.includedFormFactorNames,
       addLintOptions = addLintOptions
     ),
     moduleOut.resolve(FN_BUILD_GRADLE)
