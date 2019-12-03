@@ -81,6 +81,9 @@ class ResourceExplorerToolbarViewModel(
   /** Callback for when a new resource is created from a toolbar action. */
   var resourceUpdaterCallback: ((String, ResourceType) -> Unit)? = null
 
+  /** Callback for when a request to refresh resources previews is made. */
+  var refreshResourcesPreviewsCallback: () -> Unit = {}
+
   var resourceType: ResourceType by Delegates.observable(initialResourceType) { _, oldValue, newValue ->
     if (newValue != oldValue) {
       updateUICallback()

@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.ui.resourcemanager.actions
 
-import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.RESOURCE_DESIGN_ASSETS_KEY
+import com.android.tools.idea.ui.resourcemanager.rendering.SlowResource.Companion.isSlowResource
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey
-import java.util.EnumSet
 
 /**
  * Action that calls the given [refreshAssetsCallback] when there are supported [DesignAsset]s under the [RESOURCE_DESIGN_ASSETS_KEY]
@@ -29,7 +28,6 @@ import java.util.EnumSet
  */
 class RefreshDesignAssetAction(private val refreshAssetsCallback: (Array<DesignAsset>) -> Unit)
   : AnAction("Refresh Preview", "Refresh the preview for the selected resources", null) {
-  private val supportedResourceTypes = EnumSet.of(ResourceType.DRAWABLE, ResourceType.MIPMAP, ResourceType.LAYOUT, ResourceType.MENU)
 
   override fun actionPerformed(e: AnActionEvent) {
     val assets = e.getData(RESOURCE_DESIGN_ASSETS_KEY)
@@ -47,7 +45,7 @@ class RefreshDesignAssetAction(private val refreshAssetsCallback: (Array<DesignA
       false
     }
     else {
-      assets.all { supportedResourceTypes.contains(it.type) }
+      assets.all { it.type.isSlowResource() }
     }
   }
 }

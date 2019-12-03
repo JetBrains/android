@@ -162,6 +162,13 @@ class ResourceExplorerViewModel private constructor(
     subscribeListener(defaultFacet)
   }
 
+  /**
+   * Refresh the previews of the current [listViewModel].
+   */
+  fun refreshPreviews() {
+    listViewModel?.clearCacheForCurrentResources()
+  }
+
   fun getTabIndexForFile(virtualFile: VirtualFile): Int {
     val folderType = if (virtualFile.isDirectory) ResourceFolderType.getFolderType(virtualFile.name) else getFolderType(virtualFile)
     val type = folderType?.let { FolderTypeRelationship.getRelatedResourceTypes(it) }?.firstOrNull()

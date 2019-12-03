@@ -18,6 +18,8 @@ package com.android.tools.idea.ui.resourcemanager.rendering
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.rendering.SlowResource.Companion.toSlowResource
+import com.google.common.collect.ImmutableSet
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -72,15 +74,19 @@ class AssetPreviewManagerImpl(
   /**
    * Returns an [AssetIconProvider] for [ResourceType.COLOR], [ResourceType.DRAWABLE], [ResourceType.LAYOUT]
    */
-  override fun getPreviewProvider(resourceType: ResourceType): AssetIconProvider =
-    when (resourceType) {
-      ResourceType.COLOR -> colorPreviewProvider
-      ResourceType.FONT -> fontPreviewProvider
-      ResourceType.DRAWABLE,
-      ResourceType.MIPMAP -> drawablePreviewProvider
-      ResourceType.MENU,
-      ResourceType.LAYOUT -> layoutPreviewProvider
-      else -> DefaultIconProvider.INSTANCE
+  override fun getPreviewProvider(resourceType: ResourceType): AssetIconProvider {
+    return resourceType.toSlowResource()?.let { getPreviewManager(it) } ?:
+      return when (resourceType) {
+        ResourceType.COLOR -> colorPreviewProvider
+        ResourceType.FONT -> fontPreviewProvider
+        else -> DefaultIconProvider.INSTANCE
+      }
+  }
+
+  private fun getPreviewManager(slowResource: SlowResource): SlowResourcePreviewManager =
+    when(slowResource) {
+      SlowResource.IMAGE -> drawablePreviewProvider
+      SlowResource.LAYOUT -> layoutPreviewProvider
     }
 
   /**
@@ -99,4 +105,28 @@ class AssetPreviewManagerImpl(
       ResourceType.STRING -> valueDataProvider
       else -> defaultDataProvider
     }
+}
+
+/**
+ * Describes different types of resources that are slow to preview. Ie: Requires a long running service to generate a preview.
+ */
+enum class SlowResource(val supportedResourceTypes: ImmutableSet<ResourceType>) {
+  IMAGE(ImmutableSet.of(ResourceType.DRAWABLE, ResourceType.MIPMAP)),
+  LAYOUT(ImmutableSet.of(ResourceType.LAYOUT, ResourceType.MENU));
+
+  companion object {
+    /**
+     * Returns the [SlowResource] representation of [this] [ResourceType]. Returns null if [this] is not a [SlowResource].
+     */
+    fun ResourceType.toSlowResource(): SlowResource? {
+      return values().firstOrNull { it.supportedResourceTypes.contains(this) }
+    }
+
+    /**
+     * Whether if [this] has a [SlowResource] representation.
+     */
+    fun ResourceType.isSlowResource(): Boolean {
+      return values().any { it.supportedResourceTypes.contains(this) }
+    }
+  }
 }
