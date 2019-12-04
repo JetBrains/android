@@ -43,6 +43,8 @@ import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher;
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.InternalDecorator;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
@@ -75,7 +77,6 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   @Mock private JPopupMenu myPopupMenu;
   @Mock private KeyboardFocusManager myKeyboardFocusManager;
 
-  @SuppressWarnings("MagicConstant")
   private KeyStroke myCommandF = KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask());
   private PropertiesComponent myPropertiesComponent;
   private ToolWindowDefinition<String> myDefinition;
@@ -102,6 +103,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     when(myModel.getProject()).thenReturn(getProject());
     myPropertiesComponent = PropertiesComponent.getInstance();
     myDefinition = PalettePanelToolContent.getDefinition();
+    //noinspection unchecked
     myWorkBench = (WorkBench<String>)mock(WorkBench.class);
     when(myWorkBench.getName()).thenReturn("DESIGNER");
     when(myWorkBench.getContext()).thenReturn("");
@@ -673,6 +675,19 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     dispatcher.dispatchKeyEvent(
       new KeyEvent(panel.getComponent(), KeyEvent.KEY_PRESSED, 0, myCommandF.getModifiers(), myCommandF.getKeyCode(), 'F'));
     assertThat(myToolWindow.getSearchField().isVisible()).isTrue();
+  }
+
+  public void testActionsEnabledAtStartup() {
+    DumbServiceImpl dumbService = (DumbServiceImpl)DumbService.getInstance(getProject());
+    dumbService.setDumb(true);
+    try {
+      ActionButton button = findRequiredButtonByName(myToolWindow.getComponent(), "More Options");
+      myToolWindow.updateActions();
+      assertThat(button.isEnabled()).isTrue();
+    }
+    finally {
+      dumbService.setDumb(false);
+    }
   }
 
   private static void fireFocusLost(@NotNull JComponent component) {
