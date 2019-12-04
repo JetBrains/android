@@ -283,18 +283,15 @@ public class CpuCaptureStage extends Stage<Timeline> {
     // Interaction events, e.g. user interaction, app lifecycle.
     myTrackGroupModels.add(createInteractionTrackGroup(selectionRange));
 
-    // Display pipeline events, e.g. frames, surfaceflinger. Systrace only.
     if (capture instanceof AtraceCpuCapture) {
+      // Display pipeline events, e.g. frames, surfaceflinger. Systrace only.
       myTrackGroupModels.add(createDisplayTrackGroup(selectionRange, (AtraceCpuCapture)capture));
+      // CPU per-core usage and event etc. Systrace only.
+      myTrackGroupModels.add(createCpuCoresTrackGroup(selectionRange, (AtraceCpuCapture)capture));
     }
 
     // Thread states and trace events.
     myTrackGroupModels.add(createThreadsTrackGroup(selectionRange, capture));
-
-    // CPU per-core usage and event etc. Systrace only.
-    if (capture instanceof AtraceCpuCapture) {
-      myTrackGroupModels.add(createCpuCoresTrackGroup(selectionRange, (AtraceCpuCapture)capture));
-    }
   }
 
   private TrackGroupModel createInteractionTrackGroup(@NotNull Range selectionRange) {
