@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.api
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.appinspection.internal.AppInspectionAttacher
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.concurrency.transform
@@ -23,7 +24,6 @@ import com.android.tools.idea.transport.TransportFileCopier
 import com.android.tools.idea.transport.poller.TransportEventPoller
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -69,10 +69,14 @@ class AppInspectionDiscovery(
   private val executor: ScheduledExecutorService,
   transportChannel: AppInspectionDiscoveryHost.Channel
 ) {
-  private val listeners = ConcurrentHashMap<TargetListener, Executor>()
+  @GuardedBy("this")
+  private val listeners = mutableMapOf<TargetListener, Executor>()
+
+  @GuardedBy("this")
+  private val connections = mutableMapOf<AutoPreferredProcess, ListenableFuture<AppInspectionTarget>>()
+
   private val attacher = AppInspectionAttacher(executor, transportChannel)
 
-  private val connections = ConcurrentHashMap<AutoPreferredProcess, ListenableFuture<AppInspectionTarget>>()
   private val client = TransportClient(transportChannel.name)
   private val transportPoller = TransportEventPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
 
@@ -96,8 +100,16 @@ class AppInspectionDiscovery(
       })
   }
 
+  /**
+   * Adds a [TargetListener] to discovery service. Listener will receive future connections when they come online.
+   *
+   * This has the side effect of notifying users of all existing live connections the discovery service is aware of.
+   */
   fun addTargetListener(executor: Executor, listener: TargetListener): TargetListener {
-    listeners[listener] = executor
+    synchronized(this) {
+      listeners[listener] = executor
+      connections.filterValues { it.isDone }.map { it.value.get() }.forEach { executor.execute { listener(it) } }
+    }
     return listener
   }
 }

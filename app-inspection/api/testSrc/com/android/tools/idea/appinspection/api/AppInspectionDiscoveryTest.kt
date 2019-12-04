@@ -103,4 +103,34 @@ class AppInspectionDiscoveryTest {
 
     assertThat(connection1).isSameAs(connection2)
   }
+
+  @Test
+  fun addListenerReceivesExistingConnections() {
+    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
+    val discoveryHost = AppInspectionDiscoveryHost(
+      executor,
+      object : AppInspectionDiscoveryHost.Channel {
+        override val name = grpcServerRule.name
+      }
+    )
+
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
+
+    // Attach to a new process.
+    val connectionFuture = discoveryHost.connect(AppInspectionServiceRule.TestTransportFileCopier(), FAKE_PROCESS)
+    connectionFuture.get()
+
+    val latch = CountDownLatch(1)
+    val connectionsList = mutableListOf<AppInspectionTarget>()
+    discoveryHost.discovery.addTargetListener(executor) {
+      connectionsList.add(it)
+      latch.countDown()
+    }
+
+    // Wait for discovery to notify us of existing connections
+    latch.await()
+
+    // Verify
+    assertThat(connectionsList).containsExactly(connectionFuture.get())
+  }
 }
