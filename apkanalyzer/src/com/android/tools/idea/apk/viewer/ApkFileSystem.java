@@ -72,6 +72,7 @@ public class ApkFileSystem extends ArchiveFileSystem {
   public FileAttributes getAttributes(@NotNull VirtualFile file) {
     return myAttrGetter.accessDiskWithCheckCanceled(file);
   }
+
   @NotNull
   @Override
   public String getProtocol() {
