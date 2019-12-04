@@ -101,7 +101,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl
-import com.intellij.openapi.roots.LanguageLevelProjectExtension
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -111,7 +110,6 @@ import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.sdk.AndroidPlatform
-import org.jetbrains.jps.model.java.JpsJavaSdkType
 import org.jetbrains.kotlin.idea.versions.bundledRuntimeVersion
 import java.io.File
 import java.util.HashMap
@@ -228,10 +226,17 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     val min = ApplicationManager.getApplication().runReadAction<LanguageLevel> {
       ModuleManager.getInstance(project).modules
         .mapNotNull { LanguageLevelModuleExtensionImpl.getInstance(it)?.languageLevel }
-        .min() ?: LanguageLevelProjectExtension.getInstance(project).languageLevel
+        .min() ?: LanguageLevel.JDK_1_7
     }
 
-    myTemplateValues[ATTR_JAVA_VERSION] = JpsJavaSdkType.complianceOption(min.toJavaVersion())
+    /** Returns the enumerated name of [org.gradle.api.JavaVersion] */
+    fun LanguageLevel.toGradleJavaVersionString() : String {
+      // See enum names in org.gradle.api.JavaVersion
+      val javaMajorVersion = toJavaVersion().feature
+      return if (javaMajorVersion <= 10) "1.$javaMajorVersion" else javaMajorVersion.toString()
+    }
+
+    myTemplateValues[ATTR_JAVA_VERSION] = min.toGradleJavaVersionString()
     return this
   }
 
