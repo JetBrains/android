@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.fileType
 
+import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.util.io.ByteArraySequence
@@ -67,13 +68,13 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     dbName: String = "sqlite-database",
     tableName: String = "tab",
     columns: List<String> = emptyList(),
-    integerPrimaryKeyColName: String? = null,
+    primaryKeys: List<String> = emptyList(),
     withoutRowId: Boolean = false
   ): VirtualFile = runWriteAction {
     createEmptyTempSqliteDatabase(dbName).also { file ->
       // Note: We need to close the connection so the database file handle is released by the Sqlite engine.
       openSqliteDatabase(file).use { connection ->
-        fillConfigurableTestDB(connection, tableName, columns, integerPrimaryKeyColName, withoutRowId)
+        fillConfigurableTestDB(connection, tableName, columns, primaryKeys, withoutRowId)
       }
 
       // File as changed on disk, refresh virtual file cached data
@@ -118,34 +119,44 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     connection: Connection,
     tableName: String,
     columns: List<String>,
-    integerPrimaryKeyColName: String?,
+    primaryKeys: List<String>,
     withoutRowId: Boolean = false
   ) {
-    var columnsString = ""
+    var columnsString = primaryKeys.joinToString(
+      separator = ", ",
+      postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else " "
+    ) { "${AndroidSqlLexer.getValidName(it)} INTEGER NOT NULL" }
+    columnsString += columns.joinToString(separator = ", ") { AndroidSqlLexer.getValidName(it) }
 
-    if (integerPrimaryKeyColName != null) {
-      columnsString += " $integerPrimaryKeyColName integer PRIMARY KEY"
-      if (columns.isNotEmpty()) {
-        columnsString += ",\n"
-      } else {
-        columnsString += "\n"
-      }
-    }
+    val primaryKeysNames = primaryKeys.joinToString(separator = ",") { AndroidSqlLexer.getValidName(it) }
 
-    columns.forEachIndexed { index, col ->
-      columnsString += " $col text NOT NULL"
-      if (index < columns.size-1) columnsString += ",\n"
-      else columnsString += "\n"
-    }
-
-    val sqlStatement = "CREATE TABLE $tableName (\n" +
-                       columnsString +
-                       ")" +
-                       if (withoutRowId) " WITHOUT ROWID " else "" +
-                       ";"
+    val createTableStatement = "CREATE TABLE ${AndroidSqlLexer.getValidName(tableName)} ( $columnsString " +
+                               ( if (primaryKeys.isNotEmpty()) ", PRIMARY KEY ( $primaryKeysNames ) " else "" ) +
+                               " ) " + if (withoutRowId) " WITHOUT rowid" else ""
 
     connection.createStatement().use { stmt ->
-      stmt.executeUpdate(sqlStatement)
+      stmt.executeUpdate(createTableStatement)
+    }
+
+    var colsNames = primaryKeys.joinToString(
+      separator = ", ",
+      postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else ""
+    ) { AndroidSqlLexer.getValidName(it) }
+    colsNames += columns.joinToString(separator = ", ") { AndroidSqlLexer.getValidName(it) }
+
+    var colsValues = primaryKeys.joinToString(
+      separator = ", ",
+      postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else ""
+    ) { "?" }
+    colsValues += columns.joinToString(separator = ", ") { "?" }
+
+    val insertStatement = "INSERT INTO ${AndroidSqlLexer.getValidName(tableName)} ( $colsNames ) VALUES ( $colsValues )"
+
+    var index = 1
+    connection.prepareStatement(insertStatement).use { preparedStatement ->
+      repeat(primaryKeys.size) { preparedStatement.setInt(index, index); index+=1 }
+      repeat(columns.size) { preparedStatement.setString(index, "val $index"); index+=1 }
+      preparedStatement.execute()
     }
   }
 

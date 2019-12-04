@@ -87,7 +87,7 @@ class SqliteEvaluatorController(
           // query statement
           currentTableController = TableController(
             view = view.tableView,
-            tableName = null,
+            table = null,
             databaseConnection = databaseConnection,
             sqliteStatement = sqliteStatement,
             edtExecutor = edtExecutor
