@@ -205,7 +205,6 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
     NdkBuildModel ndkBuild = externalNativeBuild.ndkBuild();
     checkForValidPsiElement(ndkBuild, NdkBuildModelImpl.class);
-    // TODO(b/144492499): need to handle File(String parent, String child) constructor
     assertEquals("path", "foo/Android.mk", ndkBuild.path());
   }
 
@@ -321,7 +320,6 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     NdkBuildModel ndkBuildModel = android.externalNativeBuild().ndkBuild();
-    // TODO(b/144492499): need to handle File(String parent, String child) constructor
     assertEquals("path", "foo/Android.mk", ndkBuildModel.path());
 
     ndkBuildModel.path().setValue("foo/bar/file.txt");
