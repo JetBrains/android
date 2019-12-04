@@ -45,7 +45,7 @@ public class CodeSwapAction extends BaseAction {
   private static final String DESC = "Attempt to apply only code changes without restarting anything.";
 
   public CodeSwapAction() {
-    super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.APPLY_CODE_SWAP, SHORTCUT, DESC);
+    super(NAME, KEY, StudioIcons.Shell.Toolbar.APPLY_CODE_SWAP, DESC);
   }
 
   @Override

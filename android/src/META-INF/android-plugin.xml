@@ -123,7 +123,11 @@
 
     <group id="Android.InstantRunActions">
       <action id="android.deploy.ApplyChanges" class="com.android.tools.idea.run.ui.ApplyChangesAction"/>
-      <action id="android.deploy.CodeSwap" class="com.android.tools.idea.run.ui.CodeSwapAction"/>
+      <action id="android.deploy.CodeSwap" class="com.android.tools.idea.run.ui.CodeSwapAction">
+        <keyboard-shortcut first-keystroke="control alt F10" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control meta shift R" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control meta shift R" keymap="Mac OS X 10.5+"/>
+      </action>
       <add-to-group group-id="RunnerActions" anchor="after" relative-to-action="Run"/>
     </group>
 
@@ -756,6 +760,8 @@
 
     <projectImportProvider implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectImportProvider"/>
     <projectImportBuilder implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectImportProvider$AndroidGradleImportBuilder"/>
+
+    <runningApplicationUpdaterProvider implementation="com.android.tools.idea.run.ui.ApplyChangesAction$UpdaterProvider"/>
   </extensions>
 
   <projectListeners>
