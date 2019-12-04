@@ -49,7 +49,7 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
-import org.jetbrains.android.augment.AndroidStyleableAttrLightField
+import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
@@ -988,8 +988,8 @@ b/145874569 */
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
       myFixture.checkHighlighting()
       val elementUnderCaret = resolveReferenceUnderCaret()
-      assertThat(elementUnderCaret).isInstanceOf(AndroidStyleableAttrLightField::class.java)
-      val styleable = (elementUnderCaret as AndroidStyleableAttrLightField).styleableAttrFieldUrl.styleable
+      assertThat(elementUnderCaret).isInstanceOf(StyleableAttrLightField::class.java)
+      val styleable = (elementUnderCaret as StyleableAttrLightField).styleableAttrFieldUrl.styleable
       assertThat(styleable).isEqualTo(ResourceReference(RES_AUTO, ResourceType.STYLEABLE, "LibStyleable"))
       val attr = elementUnderCaret.styleableAttrFieldUrl.attr
       assertThat(attr).isEqualTo(ResourceReference(RES_AUTO, ResourceType.ATTR, "attrOne"))
@@ -1026,8 +1026,8 @@ b/145874569 */
       myFixture.configureFromExistingVirtualFile(activityWithStyleablePackage.virtualFile)
       myFixture.checkHighlighting()
       val elementUnderCaret = resolveReferenceUnderCaret()
-      assertThat(elementUnderCaret).isInstanceOf(AndroidStyleableAttrLightField::class.java)
-      val styleable = (elementUnderCaret as AndroidStyleableAttrLightField).styleableAttrFieldUrl.styleable
+      assertThat(elementUnderCaret).isInstanceOf(StyleableAttrLightField::class.java)
+      val styleable = (elementUnderCaret as StyleableAttrLightField).styleableAttrFieldUrl.styleable
       assertThat(styleable).isEqualTo(ResourceReference(RES_AUTO, ResourceType.STYLEABLE, "LibStyleable"))
       val attr = elementUnderCaret.styleableAttrFieldUrl.attr
       assertThat(attr).isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.ATTR, "maxWidth"))
@@ -1168,7 +1168,7 @@ b/145874569 */
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
       myFixture.checkHighlighting()
       val elementUnderCaret = resolveReferenceUnderCaret()
-      assertThat(elementUnderCaret).isNotInstanceOf(AndroidStyleableAttrLightField::class.java)
+      assertThat(elementUnderCaret).isNotInstanceOf(StyleableAttrLightField::class.java)
       assertThat(elementUnderCaret).isInstanceOf(AndroidLightField::class.java)
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly(

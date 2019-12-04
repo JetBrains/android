@@ -104,7 +104,7 @@ sealed class ManifestInnerClass(
     else {
       CachedValueProvider.Result.create<Array<PsiField>>(
         doGetFields().map { (name, value) ->
-          AndroidLightField(
+          ManifestLightField(
             name,
             this,
             javaLangString,
