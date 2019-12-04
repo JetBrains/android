@@ -47,6 +47,7 @@ class CompileErrorsTest {
     projectRule.load(TestDataPaths.PROJECT_WITH_COMPILE_ERRORS)
   }
 
+  @org.junit.Ignore("b/145854390")
   @Test
   fun compileErrorsContainExpectedValues() {
     val assembleDebug = projectRule.invokeTasks("assembleDebug")
