@@ -120,6 +120,7 @@ internal fun getPsiElementForAnchor(parent : PsiElement, dslAnchor : GradleDslEl
           null
         }
       }
+      is KtScript -> anchorAfter.blockExpression.lastChild ?: null
       else -> anchorAfter
     }
   }
