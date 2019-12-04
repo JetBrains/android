@@ -151,8 +151,7 @@ public class HtmlLinkManager {
     );
   }
 
-  public void handleUrl(@NotNull String url, @Nullable Module module, @Nullable PsiFile file, @Nullable DataContext dataContext,
-                        @Nullable RenderResult result, @Nullable EditorDesignSurface surface) {
+  public void handleUrl(@NotNull String url, @Nullable Module module, @Nullable PsiFile file, @Nullable EditorDesignSurface surface) {
     if (url.startsWith("http:") || url.startsWith("https:")) {
       BrowserLauncher.getInstance().browse(url, null, module == null ? null : module.getProject());
     }
@@ -166,12 +165,10 @@ public class HtmlLinkManager {
       handleReplaceTagsUrl(url, module, file);
     }
     else if (url.equals(URL_BUILD)) {
-      assert dataContext != null;
       assert module != null;
       handleBuildProjectUrl(url, module.getProject());
     }
     else if (url.equals(URL_SYNC)) {
-      assert dataContext != null;
       assert module != null;
       handleSyncProjectUrl(url, module.getProject());
     }
@@ -208,17 +205,14 @@ public class HtmlLinkManager {
       handleAssignLayoutUrl(url, module, file);
     }
     else if (url.equals(URL_ACTION_IGNORE_FRAGMENTS)) {
-      assert result != null;
       handleIgnoreFragments(url, surface);
     }
     else if (url.startsWith(URL_EDIT_ATTRIBUTE)) {
-      assert result != null;
       if (module != null && file != null) {
         handleEditAttribute(url, module, file);
       }
     }
     else if (url.startsWith(URL_REPLACE_ATTRIBUTE_VALUE)) {
-      assert result != null;
       if (module != null && file != null) {
         handleReplaceAttributeValue(url, module, file);
       }

@@ -20,6 +20,7 @@ import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
@@ -30,6 +31,10 @@ import java.util.List;
 import java.util.Map;
 
 public class RenderResult {
+  private static final Logger LOG = Logger.getInstance(RenderResult.class);
+
+  private static final String ALREADY_DISPOSED = "Result already disposed";
+
   @NotNull private final PsiFile myFile;
   @NotNull private final RenderLogger myLogger;
   @NotNull private final ImmutableList<ViewInfo> myRootViews;
@@ -37,8 +42,8 @@ public class RenderResult {
   @NotNull private final ImagePool.Image myImage;
   @Nullable private final RenderTask myRenderTask;
   @NotNull private final Result myRenderResult;
-  @NotNull private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
-  @NotNull private final Map<Object, String> myDefaultStyles;
+  @NotNull private final ImmutableMap<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
+  @NotNull private final ImmutableMap<Object, String> myDefaultStyles;
   @NotNull private final Module myModule;
   private boolean isDisposed;
 
@@ -50,8 +55,8 @@ public class RenderResult {
                          @NotNull ImmutableList<ViewInfo> rootViews,
                          @NotNull ImmutableList<ViewInfo> systemRootViews,
                          @NotNull ImagePool.Image image,
-                         @NotNull Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties,
-                         @NotNull Map<Object, String> defaultStyles) {
+                         @NotNull ImmutableMap<Object, Map<ResourceReference, ResourceValue>> defaultProperties,
+                         @NotNull ImmutableMap<Object, String> defaultStyles) {
     myRenderTask = renderTask;
     myModule = module;
     myFile = file;
@@ -178,26 +183,31 @@ public class RenderResult {
 
   @NotNull
   public PsiFile getFile() {
+    assert !isDisposed : ALREADY_DISPOSED;
     return myFile;
   }
 
   @Nullable
   public RenderTask getRenderTask() {
+    assert !isDisposed : ALREADY_DISPOSED;
     return myRenderTask;
   }
 
   @NotNull
   public Module getModule() {
+    assert !isDisposed : ALREADY_DISPOSED;
     return myModule;
   }
 
   @NotNull
   public ImmutableList<ViewInfo> getRootViews() {
+    assert !isDisposed : ALREADY_DISPOSED;
     return myRootViews;
   }
 
   @NotNull
   public ImmutableList<ViewInfo> getSystemRootViews() {
+    assert !isDisposed : ALREADY_DISPOSED;
     return mySystemRootViews;
   }
 
@@ -206,7 +216,7 @@ public class RenderResult {
    * The map is index by view cookie.
    */
   @NotNull
-  public Map<Object, Map<ResourceReference, ResourceValue>> getDefaultProperties() {
+  public ImmutableMap<Object, Map<ResourceReference, ResourceValue>> getDefaultProperties() {
     return myDefaultProperties;
   }
 
@@ -215,7 +225,7 @@ public class RenderResult {
    * The map is index by view cookie.
    */
   @NotNull
-  public Map<Object, String> getDefaultStyles() {
+  public ImmutableMap<Object, String> getDefaultStyles() {
     return myDefaultStyles;
   }
 
