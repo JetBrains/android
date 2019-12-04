@@ -180,6 +180,14 @@ public final class StudioFlags {
     false);
   //endregion
 
+  //region ML Kit
+  private static final FlagGroup MLKIT = new FlagGroup(FLAGS, "mlkit", "ML Kit");
+  public static final Flag<Boolean> MLKIT_TFLITE_MODEL_FILE_TYPE = Flag.create(
+    MLKIT, "modelfiletype", "Enable TFLite model file type",
+    "When enabled, TFLite model file can be recognized as a particular type and has its own viewer.",
+    false);
+  //endregion
+
   //region Layout Editor
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
   public static final Flag<Boolean> NELE_ANIMATIONS_PREVIEW = Flag.create(

@@ -17,6 +17,8 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.mlkit.MlkitProjectService"/>
+    <fileTypeFactory implementation="com.android.tools.idea.mlkit.MlModelFileTypeFactory"/>
+    <fileEditorProvider implementation="com.android.tools.idea.mlkit.TfliteModelFileEditorProvider" />
   </extensions>
 
 </idea-plugin>
