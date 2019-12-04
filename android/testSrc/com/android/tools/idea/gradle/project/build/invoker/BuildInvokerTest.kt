@@ -98,6 +98,8 @@ class BuildInvokerTest : AndroidGradleTestCase() {
     assertThat(buildFinishedEventReceived).isTrue()
     assertThat(gradleBuildStateBuildStartedNotificationReceived).isTrue()
     assertThat(gradleBuildStateBuildFinishedNotificationReceived).isTrue()
+/* b/145809317
     assertThat(gradleBuildInvokedExecutedPostBuildTasks).isTrue()
+b/145809317 */
   }
 }
