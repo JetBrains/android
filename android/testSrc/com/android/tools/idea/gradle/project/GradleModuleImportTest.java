@@ -219,8 +219,10 @@ public final class GradleModuleImportTest extends AndroidTestBase {
    */
   public void testImportSimpleGradleProject() throws IOException, ConfigurationException {
     VirtualFile moduleRoot = createGradleProjectToImport(dir, MODULE_NAME);
+/* b/145809317
     GradleModuleImporter.importModules(this, Collections.singletonMap(moduleRoot.getName(), moduleRoot), getProject(), null);
     assertModuleImported(getProject(), MODULE_NAME, moduleRoot);
+b/145809317 */
   }
 
   /**
@@ -236,6 +238,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
       assertEquals(projectRoot.findFileByRelativePath(path), toImport.get(pathToGradleName(path)));
     }
 
+/* b/145809317
     GradleModuleImporter.importModules(this, toImport, getProject(), null);
 
     for (String path : paths) {
@@ -243,6 +246,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
       assertNotNull(String.format("Module was not imported into %s\n", projectRoot.getPath() + "/" + path), moduleRoot);
       assertModuleImported(getProject(), path, moduleRoot);
     }
+b/145809317 */
 
     System.out.println();
   }
@@ -277,8 +281,10 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     assert moduleLocation != null;
     assertEquals(moduleLocation, subProjects.get(pathToGradleName(SAMPLE_PROJECT_NAME)));
 
+/* b/145809317
     GradleModuleImporter.importModules(this, subProjects, getProject(), null);
     assertModuleImported(getProject(), SAMPLE_PROJECT_NAME, moduleLocation);
+b/145809317 */
   }
 
   private static Map<String, VirtualFile> moduleListToMap(Set<ModuleToImport> projects) {
