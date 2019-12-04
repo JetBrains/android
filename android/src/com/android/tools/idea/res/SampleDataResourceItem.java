@@ -355,7 +355,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
   @Override
   @NotNull
   public FolderConfiguration getConfiguration() {
-    return new FolderConfiguration();
+    return DEFAULT_CONFIGURATION;
   }
 
   @Override
