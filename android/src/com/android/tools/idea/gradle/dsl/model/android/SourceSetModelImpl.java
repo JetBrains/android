@@ -42,8 +42,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSetModel {
-  @NonNls private static final String ROOT = "root";
-  @NonNls private static final String SET_ROOT = "setRoot";
+  @NonNls public static final String ROOT = "mRoot";
 
   public SourceSetModelImpl(@NotNull SourceSetDslElement dslElement) {
     super(dslElement);
@@ -64,12 +63,7 @@ public class SourceSetModelImpl extends GradleDslBlockModel implements SourceSet
   @Override
   @NotNull
   public ResolvedPropertyModel root() {
-    GradleDslSimpleExpression rootElement =
-      myDslElement.getPropertyElement(ImmutableList.of(ROOT, SET_ROOT), GradleDslSimpleExpression.class);
-
-    return rootElement != null ?
-           GradlePropertyModelBuilder.create(rootElement).buildResolved() :
-           GradlePropertyModelBuilder.create(myDslElement, SET_ROOT).asMethod(true).buildResolved();
+    return getModelForProperty(ROOT);
   }
 
   @Override
