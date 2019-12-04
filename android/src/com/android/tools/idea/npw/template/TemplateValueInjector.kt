@@ -228,7 +228,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     val min = ApplicationManager.getApplication().runReadAction<LanguageLevel> {
       ModuleManager.getInstance(project).modules
         .mapNotNull { LanguageLevelModuleExtensionImpl.getInstance(it)?.languageLevel }
-        .min() ?: LanguageLevel.JDK_1_8
+        .min() ?: LanguageLevelProjectExtension.getInstance(project).languageLevel
     }
 
     myTemplateValues[ATTR_JAVA_VERSION] = JpsJavaSdkType.complianceOption(min.toJavaVersion())
