@@ -83,8 +83,8 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
 
     myManager = new DetachedToolWindowManager(
       ApplicationManager.getApplication(),
-      myProject,
-      FileEditorManager.getInstance(myProject));
+      getProject(),
+      FileEditorManager.getInstance(getProject()));
     myManager.initComponent();
     myManager.setDetachedToolWindowFactory(myDetachedToolWindowFactory);
     assert myManager.getComponentName().equals("DetachedToolWindowManager");
