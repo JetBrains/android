@@ -101,6 +101,55 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     </attr>""".trim()))
   }
 
+  fun testGotoResourceFromStartOfReferenceXml() {
+    val file = myFixture.addFileToProject(
+      "res/values/colors.xml",
+      //language=XML
+      """<?xml version="1.0" encoding="utf-8"?>
+      <resources>
+        <color name="colorPrimary">#3f51b5</color>
+        <color name="colorPrimaryDark">${caret}@color/colorPrimary</color>
+      </resources>
+      """).virtualFile
+    val declaration = getDeclarationsFrom(file)
+    assertThat(declaration).hasLength(1)
+    assertThat(describeElements(declaration))
+      .isEqualTo("""
+        values/colors.xml:3:
+          <color name="colorPrimary">#3f51b5</color>
+                      ~|~~~~~~~~~~~~~               
+
+      """.trimIndent())
+  }
+
+  fun testGotoResourceFromStartOfReferenceLayoutXml() {
+    myFixture.addFileToProject(
+      "res/values/colors.xml",
+      //language=XML
+      """<?xml version="1.0" encoding="utf-8"?>
+      <resources>
+        <color name="colorPrimary">#3f51b5</color>
+      </resources>
+      """)
+    val layoutFile = myFixture.addFileToProject(
+      "res/layout/layout_main.xml",
+      //language=XML
+      """<?xml version="1.0" encoding="utf-8"?>
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
+          <TextView android:textColor="${caret}@color/colorPrimary"/>
+        </LinearLayout>
+      """).virtualFile
+    val declaration = getDeclarationsFrom(layoutFile)
+    assertThat(declaration).hasLength(1)
+    assertThat(describeElements(declaration))
+      .isEqualTo("""
+        values/colors.xml:3:
+          <color name="colorPrimary">#3f51b5</color>
+                      ~|~~~~~~~~~~~~~               
+
+      """.trimIndent())
+  }
+
   fun testGotoString() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
     myFixture.copyFileToProject(basePath + "layout.xml", "res/layout/layout.xml")
