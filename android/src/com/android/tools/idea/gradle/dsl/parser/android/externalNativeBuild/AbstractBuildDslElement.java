@@ -37,7 +37,8 @@ import org.jetbrains.annotations.NotNull;
 public abstract class AbstractBuildDslElement extends GradleDslBlockElement {
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
-    {"path", property, PATH, VAR}
+    {"path", property, PATH, VAR},
+    {"setPath", exactly(1), PATH, SET}
   }).collect(toModelMap());
 
   @NotNull
