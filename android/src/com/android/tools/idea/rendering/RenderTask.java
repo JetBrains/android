@@ -296,8 +296,9 @@ public class RenderTask {
       // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
       RenderService.runAsyncRenderAction(() -> {
         try {
-          ThreadLocal<?> gapWorkerFieldValue = (ThreadLocal)gapWorkerField.get(null);
+          ThreadLocal<?> gapWorkerFieldValue = (ThreadLocal<?>)gapWorkerField.get(null);
           gapWorkerFieldValue.set(null);
+          LOG.debug("GapWorker was cleared");
         }
         catch (IllegalAccessException e) {
           LOG.debug(e);
@@ -343,8 +344,6 @@ public class RenderTask {
       }
       myImageFactoryDelegate = null;
       myAssetRepository = null;
-
-      clearGapWorkerCache();
 
       return null;
     });
@@ -826,6 +825,12 @@ public class RenderTask {
             myLogger.error(null, renderResult.getErrorMessage(), renderResult.getException(), null, null);
           }
           return result;
+        }).whenComplete((result, ex) -> {
+          // After render clean-up. Dispose the GapWorker cache and the Choreographer queued tasks.
+          clearGapWorkerCache();
+          RenderService.runAsyncRenderAction(() -> {
+            android.view.Choreographer.releaseInstance();
+          });
         });
       }
       catch (Exception e) {
