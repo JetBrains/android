@@ -219,7 +219,7 @@ class DatabaseInspectorControllerImpl(
 
       val tableController = TableController(
         view = tableView,
-        tableName = table.name,
+        table = table,
         databaseConnection = databaseConnection,
         sqliteStatement = SqliteStatement(selectAllAndRowIdFromTable(table)),
         edtExecutor = edtExecutor

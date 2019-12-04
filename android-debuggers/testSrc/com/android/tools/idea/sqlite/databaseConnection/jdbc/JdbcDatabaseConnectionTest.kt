@@ -254,7 +254,7 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
 
   fun testPrimaryKeyInWithoutRowIdTable() {
     // Prepare
-    customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1"), "pk", true)
+    customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1"), listOf("pk"), true)
     customConnection = pumpEventsAndWaitForFuture(
       getSqliteJdbcService(customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
     )

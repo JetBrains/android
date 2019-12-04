@@ -73,8 +73,8 @@ data class SqliteColumn(val name: String, val type: JDBCType, val inPrimaryKey: 
  *  If the statement doesn't contain parameters, [parametersValues] is an empty list.
  *  If it does contain parameters, [parametersValues] contains their values, assigned by order.
  */
-data class SqliteStatement(val sqliteStatementText: String, val parametersValues: List<Any>) {
-  constructor(sqliteStatement: String) : this(sqliteStatement, emptyList<Any>())
+data class SqliteStatement(val sqliteStatementText: String, val parametersValues: List<Any?>) {
+  constructor(sqliteStatement: String) : this(sqliteStatement, emptyList<Any?>())
 
   override fun toString(): String {
     var renderedStatement = sqliteStatementText
