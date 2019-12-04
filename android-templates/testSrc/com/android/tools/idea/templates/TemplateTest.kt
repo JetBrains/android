@@ -23,6 +23,7 @@ import java.io.File
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
 
+@org.junit.Ignore("b/145856067")
 open class TemplateTest : TemplateTestBase() {
   private val withKotlin = { templateMap: MutableMap<String, Any>, projectMap: MutableMap<String, Any> ->
     projectMap[TemplateAttributes.ATTR_KOTLIN_VERSION] = TestUtils.getKotlinVersionForTests()
