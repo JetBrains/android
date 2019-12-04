@@ -138,7 +138,6 @@ public class CpuCaptureStage extends Stage<Timeline> {
    * View range: minimap selection;
    * Tooltip range: all track groups share the same mouse-over range, different from the minimap or profilers;
    * Selection range: union of all selected trace events;
-   *
    */
   private final Timeline myTrackGroupTimeline = new DefaultTimeline();
 
@@ -333,7 +332,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   private TrackGroupModel createThreadsTrackGroup(@NotNull Range selectionRange, @NotNull CpuCapture capture) {
-    List<CpuThreadInfo> threadInfos = capture.getThreads().stream().sorted().collect(Collectors.toList());
+    List<CpuThreadInfo> threadInfos =
+      capture.getThreads().stream().sorted(new CaptureThreadComparator(capture)).collect(Collectors.toList());
     String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
     TrackGroupModel threads = TrackGroupModel.newBuilder().setTitle(threadsTitle).setTrackSelectable(true).build();
     for (CpuThreadInfo threadInfo : threadInfos) {
