@@ -40,7 +40,6 @@ import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.layoutlib.bridge.impl.RenderSessionImpl;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
@@ -50,7 +49,6 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.utils.HtmlBuilder;
 import com.android.xml.AndroidManifest;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -68,7 +66,6 @@ import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
@@ -90,10 +87,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.CachedValue;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.awt.datatransfer.StringSelection;
@@ -150,7 +144,6 @@ public class RenderErrorContributor {
   private final HtmlLinkManager myLinkManager;
   private final HyperlinkListener myLinkHandler;
   private final RenderResult myResult;
-  private final DataContext myDataContext;
   private final EditorDesignSurface myDesignSurface;
 
   protected RenderErrorContributor(@Nullable EditorDesignSurface surface, @NotNull RenderResult result, @Nullable DataContext dataContext) {
@@ -158,7 +151,10 @@ public class RenderErrorContributor {
 
     myDesignSurface = surface;
     myLinkManager = myResult.getLogger().getLinkManager();
+    Module module = result.getModule();
+    PsiFile file = result.getFile();
     myLinkHandler = e -> {
+      if (module.isDisposed()) return;
       if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
         JEditorPane pane = (JEditorPane)e.getSource();
         if (e instanceof HTMLFrameHyperlinkEvent) {
@@ -168,11 +164,10 @@ public class RenderErrorContributor {
           return;
         }
 
-        performClick(myResult, e.getDescription());
+        myLinkManager.handleUrl(e.getDescription(), module, file, myDesignSurface);
       }
     };
 
-    myDataContext = dataContext;
   }
 
   private static boolean isHiddenFrame(@NotNull StackTraceElement frame) {
@@ -432,14 +427,6 @@ public class RenderErrorContributor {
     }
     ShowExceptionFix showExceptionFix = new ShowExceptionFix(module.getProject(), throwable);
     builder.addLink("Show Exception", linkManager.createRunnableLink(showExceptionFix));
-  }
-
-  @VisibleForTesting
-  public void performClick(@NotNull RenderResult result, @NotNull String url) {
-    Module module = result.getModule();
-    PsiFile file = result.getFile();
-
-    myLinkManager.handleUrl(url, module, file, myDataContext, result, myDesignSurface);
   }
 
   private void reportRelevantCompilationErrors(@NotNull RenderLogger logger, @NotNull RenderTask renderTask) {

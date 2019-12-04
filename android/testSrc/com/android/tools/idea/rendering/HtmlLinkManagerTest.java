@@ -21,12 +21,12 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
 import com.google.common.collect.ImmutableList;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-public class HtmlLinkManagerTest extends PlatformTestCase {
+public class HtmlLinkManagerTest extends LightPlatformTestCase {
   public void testRunnable() {
     HtmlLinkManager manager = new HtmlLinkManager();
     final AtomicBoolean result1 = new AtomicBoolean(false);
@@ -46,11 +46,11 @@ public class HtmlLinkManagerTest extends PlatformTestCase {
     String url1 = manager.createRunnableLink(runnable1);
     String url2 = manager.createRunnableLink(runnable2);
     assertFalse(result1.get());
-    manager.handleUrl(url1, null, null, null, null, null);
+    manager.handleUrl(url1, null, null, null);
     assertTrue(result1.get());
     assertFalse(result2.get());
     result1.set(false);
-    manager.handleUrl(url2, null, null, null, null, null);
+    manager.handleUrl(url2, null, null, null);
     assertFalse(result1.get());
     assertTrue(result2.get());
   }
@@ -65,18 +65,18 @@ public class HtmlLinkManagerTest extends PlatformTestCase {
     testProjectSystem.useInTests();
 
     // try multiple invalid links
-    HtmlLinkManager.handleAddDependency("addDependency:", myModule);
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support", myModule);
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:", myModule);
-    HtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:palette-v7", myModule);
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7-broken", myModule);
-    assertThat(testProjectSystem.getAddedDependencies(myModule)).isEmpty();
+    HtmlLinkManager.handleAddDependency("addDependency:", getModule());
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support", getModule());
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:", getModule());
+    HtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:palette-v7", getModule());
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7-broken", getModule());
+    assertThat(testProjectSystem.getAddedDependencies(getModule())).isEmpty();
 
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7", myModule);
-    HtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:play-services", myModule);
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support.constraint:constraint-layout", myModule);
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7", getModule());
+    HtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:play-services", getModule());
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support.constraint:constraint-layout", getModule());
     assertThat(
-      testProjectSystem.getAddedDependencies(myModule).stream()
+      testProjectSystem.getAddedDependencies(getModule()).stream()
                        .map(artifact -> artifact.getGroupId() + ":" + artifact.getArtifactId())
                        .collect(Collectors.toList()))
       .containsExactly("com.android.support:palette-v7",
