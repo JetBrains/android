@@ -31,7 +31,10 @@ internal class PsiResourceReference(element: PsiElement, resolveTo: PsiElement, 
   override val resolvedType: PsiModelClass?
     get() {
       val psiType = when (resourceValue.resourceType) {
-                      "plurals" -> if (resolve()!!.children.isEmpty()) PsiType.INT else parseType("java.lang.String")
+                      // A plurals resource, e.g. @plurals/dog -> "dog" or "dogs", can be queried for the
+                      // underlying String value (e.g. "@plurals/dog(2)") or for the plurals resource ID
+                      // directly (e.g. "@plurals/dog").
+                      "plurals" -> if (element.children.isEmpty()) PsiType.INT else parseType("java.lang.String")
                       "anim" -> parseType("android.view.animation.Animation")
                       "animator" -> parseType("android.animation.Animator")
                       "colorStateList" -> parseType("android.content.res.ColorStateList")
