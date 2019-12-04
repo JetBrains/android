@@ -17,10 +17,12 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer
 
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.SplitEditor
+import com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.WorkBenchLoadingPanelFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesignSurfaceFixture
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.base.Preconditions.checkState
 import com.intellij.openapi.fileEditor.FileEditor
@@ -44,8 +46,8 @@ class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEdito
 
 
   private val designSurface: NlDesignSurfaceFixture by lazy {
-    val surface = robot.finder().findByType(target(), NlDesignSurface::class.java, false)
-    NlDesignSurfaceFixture(robot, surface as NlDesignSurface)
+    val surface = waitUntilShowing(robot, Matchers.byType(NlDesignSurface::class.java))
+    NlDesignSurfaceFixture(robot, surface)
   }
 
   private val loadingPanel: WorkBenchLoadingPanelFixture by lazy {
