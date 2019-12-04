@@ -18,6 +18,7 @@ package org.jetbrains.android
 import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
@@ -157,6 +158,33 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     assertEquals("values/strings.xml:2:\n" +
                  "  <string name=\"hello\">hello</string>\n" +
                  "               ~|~~~~~~              \n",
+                 describeElements(getDeclarationsFrom(file))
+    )
+  }
+
+  fun testGotoFlattenableResource() {
+    myFixture.addFileToProject(
+      "res/values/flattencolors.xml",
+      //language=XML
+      """<?xml version="1.0" encoding="utf-8"?>
+      <resources>
+          <color name="foo.bar" />
+      </resources>
+      """)
+    val file = myFixture.addFileToProject(
+      "src/p1/p2/Activity.kt",
+      """
+        package p1.p2
+        import android.app.Activity
+        class ExampleActivity: Activity() {
+            fun resource() {
+                R.color.foo_${caret}bar
+            }
+        }
+      """.trimIndent()).virtualFile
+    assertEquals("values/flattencolors.xml:3:\n" +
+                 "  <color name=\"foo.bar\" />\n" +
+                 "              ~|~~~~~~~~  \n",
                  describeElements(getDeclarationsFrom(file))
     )
   }
