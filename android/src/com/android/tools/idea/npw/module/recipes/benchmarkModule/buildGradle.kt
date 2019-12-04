@@ -64,8 +64,8 @@ fun buildGradle(
   }
 
   return """
-apply plugin: "com.android.library"
-apply plugin: "androidx.benchmark"
+apply plugin: 'com.android.library'
+apply plugin: 'androidx.benchmark'
 $kotlinPluginsBlock
 
 android {

@@ -40,8 +40,8 @@ fun buildGradle(
 ): String {
   val kotlinPluginsBlock = renderIf(language == Language.Kotlin) {
     """
-apply plugin: "kotlin-android"
-apply plugin: "kotlin-android-extensions"
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
     """
   }
 
