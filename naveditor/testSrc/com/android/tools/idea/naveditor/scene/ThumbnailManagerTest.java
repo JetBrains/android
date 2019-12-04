@@ -179,6 +179,7 @@ public class ThumbnailManagerTest extends NavTestCase {
   public void testGeneratedImage() throws Exception {
     ThumbnailManager manager = ThumbnailManager.getInstance(myFacet);
 
+/* b/145856229
     VirtualFile file = getProject().getBaseDir().findFileByRelativePath("../unitTest/res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
@@ -196,5 +197,6 @@ public class ThumbnailManagerTest extends NavTestCase {
     BufferedImage goldenImage = ImageIO.read(goldenFile);
 
     ImageDiffUtil.assertImageSimilar("thumbnail.png", goldenImage, image, MAX_PERCENT_DIFFERENT);
+b/145856229 */
   }
 }
