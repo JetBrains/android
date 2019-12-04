@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_CONSTRUCTOR_NAME;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_METHOD_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement.INCLUDE;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.BUILD_FILE_NAME;
@@ -33,7 +34,6 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
@@ -195,9 +195,8 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
       GradleDslLiteral rootDirArg = new GradleDslLiteral(methodCall, GradleNameElement.empty());
       rootDirArg.setValue(new ReferenceTo("rootDir"));
       methodCall.addNewArgument(rootDirArg);
-      // TODO: This is definitely not the best way to achieve this.
-      methodCall.setMethodName("new File");
-
+      methodCall.setMethodName(FILE_CONSTRUCTOR_NAME);
+      methodCall.setIsConstructor(true);
       dirPath = rootDir.toURI().relativize(moduleDir.toURI()).getPath();
     }
 

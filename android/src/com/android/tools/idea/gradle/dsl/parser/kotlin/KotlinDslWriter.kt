@@ -363,14 +363,19 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       anchorAfter = null
     }
 
-    val parentPsiElement = methodParent.create() ?: return null
+    var parentPsiElement = methodParent.create() ?: return null
     val anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter)
     val psiFactory = KtPsiFactory(parentPsiElement.project)
 
     val statementText =
       if (methodCall.fullName.isNotEmpty() && methodCall.fullName != methodCall.methodName) {
         val externalNameInfo = maybeTrimForParent(methodCall.nameElement, methodCall.parent, this)
-        val propertyName = externalNameInfo.first
+        var propertyName = externalNameInfo.first
+        // If we are writing a project property, we should be make sure to use double quotes instead of single quotes
+        // since we use single quotes for ProjectPropertiesDslElement.
+        if (propertyName.startsWith("project(':")) {
+          propertyName = propertyName.replace("\\s".toRegex(), "").replace("'", "\"")
+        }
         val useAssignment = when (val asMethod = externalNameInfo.second) {
           null -> methodCall.shouldUseAssignment()
           else -> !asMethod
@@ -399,7 +404,14 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       addedElement = requireNotNull(addedArgument.getArgumentExpression())
     }
     else {
-      addedElement = parentPsiElement.addAfter(expression, anchor)
+      // If the parent is a KtFile, we should be careful adding the methodCall to it's main block.
+      if (parentPsiElement is KtFile) {
+        parentPsiElement = parentPsiElement.script?.blockExpression ?: parentPsiElement
+        addedElement = parentPsiElement.addAfter(expression, anchor)
+      }
+      else {
+        addedElement = parentPsiElement.addAfter(expression, anchor)
+      }
       // We need to add empty lines if we're adding expressions to a file because IDEA doesn't handle formatting
       // in kotlin the same way as GROOVY.
       val lineTerminator = psiFactory.createNewLine()

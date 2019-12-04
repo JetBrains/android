@@ -40,7 +40,7 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
    */
   @NotNull private String myMethodName;
   @NotNull private GradleDslExpressionList myArguments;
-  private final boolean myIsConstructor;
+  private boolean myIsConstructor;
 
   /**
    * Create a new method call.
@@ -99,6 +99,10 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
 
   public boolean isConstructor() {
     return myIsConstructor;
+  }
+
+  public void setIsConstructor(boolean isConstructor) {
+    myIsConstructor = isConstructor;
   }
 
   @Nullable
