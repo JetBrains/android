@@ -29,11 +29,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.idea.KotlinFileType
 
-private fun VirtualFile.hasSourceFileExtension() = when (extension) {
-  KotlinFileType.INSTANCE.defaultExtension, JavaFileType.INSTANCE.defaultExtension -> true
-  else -> false
-}
-
 /**
  * [FileEditorProvider] intended to be used with all source code files universally and therefore accepts all source code files. Creates
  * [SourceCodeEditorWithMultiRepresentationPreview] as a corresponding [FileEditor].

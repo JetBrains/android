@@ -19,7 +19,6 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.editor.ActionsToolbar
-import com.android.tools.idea.common.editor.DesignFileEditor
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.BuildListener
@@ -36,12 +35,10 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
@@ -72,7 +69,7 @@ private fun getXmlLayout(qualifiedName: String, shrinkWidth: Boolean, shrinkHeig
  * A preview for a file containing custom android view classes. Allows selecting between the classes if multiple custom view classes are
  * present in the file.
  */
-internal class CustomViewPreviewRepresentation(
+class CustomViewPreviewRepresentation(
   private val psiFile: PsiFile,
   persistenceProvider: (Project) -> PropertiesComponent = { p -> PropertiesComponent.getInstance(p)}) :
   PreviewRepresentation, CustomViewPreviewManager {
@@ -300,34 +297,9 @@ internal class CustomViewPreviewRepresentation(
         updatePreviewAndNotifications(CustomViewPreviewManager.PreviewState.OK)
       }
     }
-    editorWithPreview?.isPureTextEditor = selectedClass == null
   }
-  var editorWithPreview: TextEditorWithCustomViewPreview? = null
 
   override fun updateNotifications(parentEditor: FileEditor) {
     notificationsPanel.updateNotifications(virtualFile, parentEditor, project)
   }
-}
-
-/**
- * A thin [FileEditor] wrapper around [CustomViewPreviewRepresentation]
- *
- * @param psiFile [PsiFile] pointing to the source code containing custom views to preview.
- * @param representation a custom view [PreviewRepresentation] of the [psiFile].
- */
-internal class CustomViewPreview(psiFile: PsiFile, private val representation: CustomViewPreviewRepresentation) :
-  CustomViewPreviewManager by representation, DesignFileEditor(psiFile.virtualFile!!) {
-
-  var editorWithPreview: TextEditorWithCustomViewPreview? = null
-    set(value) {
-      field = value
-      representation.editorWithPreview = value
-    }
-
-  init {
-    Disposer.register(this, representation)
-    component.add(representation.component, BorderLayout.CENTER)
-  }
-
-  override fun getName(): String = "Custom View Preview"
 }

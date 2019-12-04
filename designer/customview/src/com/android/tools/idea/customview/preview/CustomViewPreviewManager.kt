@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.customview.preview
 
-internal interface CustomViewPreviewManager {
+interface CustomViewPreviewManager {
   enum class PreviewState {
     /**
      * Initial state right after the construction when the preview is waiting for the Smart mode and Gradle sync
