@@ -18,17 +18,18 @@ package com.android.tools.idea.run.ui;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationType;
+import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.update.RunningApplicationUpdater;
+import com.intellij.execution.update.RunningApplicationUpdaterProvider;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.KeyboardShortcut;
-import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.SystemInfo;
 import icons.StudioIcons;
-import javax.swing.KeyStroke;
+import javax.swing.Icon;
 
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ApplyChangesAction extends BaseAction {
 
@@ -38,35 +39,71 @@ public class ApplyChangesAction extends BaseAction {
 
   public static final String NAME = "Apply Changes and Restart Activity";
 
-  private static final Shortcut SHORTCUT =
-    new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta R" : "control F10"), null);
-
   private static final String DESC = "Attempt to apply resource and code changes and restart activity.";
 
   public ApplyChangesAction() {
-    super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.APPLY_ALL_CHANGES, SHORTCUT, DESC);
+    super(NAME, KEY, StudioIcons.Shell.Toolbar.APPLY_ALL_CHANGES, DESC);
   }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
     super.update(e);
 
-    Project project = e.getProject();
-    if (project == null) {
-        return;
+    DisableMessage message = disableForTestProject(e.getProject());
+    if (message != null) {
+      disableAction(e.getPresentation(), message);
     }
+  }
 
+  private static DisableMessage disableForTestProject(Project project) {
+    if (project == null) {
+      return null;
+    }
     // Disable "Apply Changes" for any kind of test project.
     RunnerAndConfigurationSettings runConfig = RunManager.getInstance(project).getSelectedConfiguration();
     if (runConfig != null) {
       ConfigurationType type = runConfig.getType();
       String id = type.getId();
       if (AndroidCommonUtils.isTestConfiguration(id) || AndroidCommonUtils.isInstrumentationTestConfiguration(id)) {
-        disableAction(e.getPresentation(), new DisableMessage(DisableMessage.DisableMode.DISABLED, "test project",
-                                                              "the selected configuration is a test configuration"));
+        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "test project",
+                                                              "the selected configuration is a test configuration");
       }
     }
+    return null;
   }
 
+  public static class UpdaterProvider implements RunningApplicationUpdaterProvider {
+
+    @Nullable
+    @Override
+    public RunningApplicationUpdater createUpdater(@NotNull Project project,
+                                                   @NotNull ProcessHandler process) {
+
+      if (getDisableMessage(project) != null || disableForTestProject(project) != null) {
+        return null;
+      }
+      return new RunningApplicationUpdater() {
+        @Override
+        public String getDescription() {
+          return NAME;
+        }
+
+        @Override
+        public String getShortName() {
+          return NAME;
+        }
+
+        @Override
+        public Icon getIcon() {
+          return StudioIcons.Shell.Toolbar.APPLY_ALL_CHANGES;
+        }
+
+        @Override
+        public void performUpdate(AnActionEvent event) {
+          new ApplyChangesAction().actionPerformed(event);
+        }
+      };
+    }
+  }
 }
 
