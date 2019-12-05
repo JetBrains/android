@@ -43,12 +43,15 @@ import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.io.Closeable
 import java.util.concurrent.TimeUnit
 
-class BuildAttributionAnalyticsManager(project: Project) : Closeable {
+class BuildAttributionAnalyticsManager(
+  buildSessionId: String,
+  project: Project
+) : Closeable {
   private val eventBuilder = AndroidStudioEvent.newBuilder()
     .setKind(AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS)
     .withProjectId(project)
 
-  private val attributionStatsBuilder = BuildAttributionStats.newBuilder()
+  private val attributionStatsBuilder = BuildAttributionStats.newBuilder().setBuildAttributionReportSessionId(buildSessionId)
 
   fun recordPostBuildAnalysis(block: () -> Unit) {
     val watch = Stopwatch.createStarted()

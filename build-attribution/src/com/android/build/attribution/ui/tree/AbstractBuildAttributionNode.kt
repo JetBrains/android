@@ -15,10 +15,12 @@
  */
 package com.android.build.attribution.ui.tree
 
+import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.BuildAttributionViewControllersProvider
 import com.android.build.attribution.ui.controllers.TaskIssueReporter
 import com.android.build.attribution.ui.controllers.TreeNodeSelector
 import com.android.build.attribution.ui.panels.AbstractBuildAttributionInfoPanel
+import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.openapi.ui.ComponentContainer
 import com.intellij.ui.SimpleTextAttributes
@@ -39,8 +41,10 @@ abstract class AbstractBuildAttributionNode protected constructor(
   open val nodeId: String = if (parent is AbstractBuildAttributionNode) "${parent.nodeId} > $nodeName" else nodeName
 
   override val nodeSelector: TreeNodeSelector = parent.nodeSelector
+  override val analytics: BuildAttributionUiAnalytics = parent.analytics
   override val issueReporter: TaskIssueReporter = parent.issueReporter
 
+  abstract val pageType: BuildAttributionUiEvent.Page.PageType
   abstract val presentationIcon: Icon?
   abstract val issuesCountsSuffix: String?
   abstract val timeSuffix: String?

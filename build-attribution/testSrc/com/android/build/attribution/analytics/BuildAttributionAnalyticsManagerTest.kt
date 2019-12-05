@@ -126,7 +126,7 @@ class BuildAttributionAnalyticsManagerTest {
 
   @Test
   fun testAnalyzersDataMetricsReporting() {
-    BuildAttributionAnalyticsManager(project).use { analyticsManager ->
+    BuildAttributionAnalyticsManager("46f89941-2cea-83d7-e613-0c5823be215a", project).use { analyticsManager ->
       analyticsManager.logAnalyzersData(getAnalyzersData())
     }
 
@@ -141,6 +141,9 @@ class BuildAttributionAnalyticsManagerTest {
     checkCriticalPathAnalyzerData(buildAttributionAnalyzersData.criticalPathAnalyzerData)
     checkProjectConfigurationAnalyzerData(buildAttributionAnalyzersData.projectConfigurationAnalyzerData)
     checkConfigurationIssuesAnalyzerData(buildAttributionAnalyzersData.tasksConfigurationIssuesAnalyzerData)
+
+    val buildAttributionReportSessionId = buildAttributionEvents.first().studioEvent.buildAttributionStats.buildAttributionReportSessionId
+    assertThat(buildAttributionReportSessionId).isEqualTo("46f89941-2cea-83d7-e613-0c5823be215a")
   }
 
   private fun checkAlwaysRunTasksAnalyzerData(analyzerData: AlwaysRunTasksAnalyzerData) {

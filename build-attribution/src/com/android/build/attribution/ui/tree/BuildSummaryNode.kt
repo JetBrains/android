@@ -20,6 +20,7 @@ import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.panels.AbstractBuildAttributionInfoPanel
 import com.android.build.attribution.ui.panels.headerLabel
 import com.android.utils.HtmlBuilder
+import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.panels.VerticalLayout
@@ -60,6 +61,8 @@ class BuildSummaryNode(
       }
     }
   }
+
+  override val pageType = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY
 
   private fun buildFinishedTime(): String = DateFormatUtil.formatDateTime(buildSummary.buildFinishedTimestamp)
 }

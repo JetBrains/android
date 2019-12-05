@@ -26,6 +26,7 @@ import com.android.build.attribution.ui.panels.AbstractBuildAttributionInfoPanel
 import com.android.build.attribution.ui.panels.headerLabel
 import com.android.build.attribution.ui.percentageString
 import com.android.build.attribution.ui.warningIcon
+import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.ui.HyperlinkAdapter
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
@@ -50,6 +51,8 @@ class PluginConfigurationTimeRoot(
   override val issuesCountsSuffix: String? = issuesCountString(configurationData.totalIssueCount, 0)
 
   override val timeSuffix: String? = configurationData.totalConfigurationTime.durationString()
+
+  override val pageType = BuildAttributionUiEvent.Page.PageType.CONFIGURATION_TIME_ROOT
 
   override fun createComponent() = object : AbstractBuildAttributionInfoPanel() {
     override fun createHeader(): JComponent {
@@ -78,6 +81,7 @@ private class ProjectNode(
   override val presentationIcon: Icon? = StudioIcons.Shell.Filetree.ANDROID_MODULE
   override val issuesCountsSuffix: String? = issuesCountString(projectData.issueCount, 0)
   override val timeSuffix: String? = projectData.configurationTime.durationString()
+  override val pageType = BuildAttributionUiEvent.Page.PageType.CONFIGURATION_TIME_PROJECT
   override fun createComponent() = object : AbstractBuildAttributionInfoPanel() {
     override fun createHeader(): JComponent = headerLabel(projectData.project + " Configuration Time")
 
@@ -116,6 +120,8 @@ private class PluginConfigurationNode(
 
   override val timeSuffix: String? = pluginData.configurationTime.durationString()
 
+  override val pageType = BuildAttributionUiEvent.Page.PageType.CONFIGURATION_TIME_PLUGIN
+
   override fun createComponent() = object : AbstractBuildAttributionInfoPanel() {
     override fun createHeader(): JComponent {
       return headerLabel(pluginData.pluginName)
@@ -130,6 +136,7 @@ private class PluginConfigurationNode(
       ))
 
       add(HyperlinkLabel("Learn more").apply {
+        addHyperlinkListener { analytics.helpLinkClicked() }
         setHyperlinkTarget("https://d.android.com/r/tools/build-attribution/optimize-configuration-phase")
       })
 

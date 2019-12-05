@@ -31,6 +31,7 @@ import com.android.build.attribution.ui.panels.criticalPathHeader
 import com.android.build.attribution.ui.panels.headerLabel
 import com.android.build.attribution.ui.panels.taskInfoPanel
 import com.android.build.attribution.ui.taskIcon
+import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.ui.treeStructure.SimpleNode
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -47,6 +48,8 @@ class CriticalPathTasksRoot(
   override val issuesCountsSuffix: String? = issuesCountString(data.warningCount, data.infoCount)
 
   override val timeSuffix: String? = data.criticalPathDuration.durationString()
+
+  override val pageType = BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT
 
   override fun buildChildren(): Array<SimpleNode> {
     val nodes = mutableListOf<SimpleNode>()
@@ -65,7 +68,7 @@ class CriticalPathTasksRoot(
     return object : ChartBuildAttributionInfoPanel() {
 
       override fun createHeader(): JComponent {
-        return criticalPathHeader("Tasks", data.criticalPathDuration.durationString())
+        return criticalPathHeader("Tasks", data.criticalPathDuration.durationString(), analytics)
       }
 
       override fun createChart(): JComponent {
@@ -96,6 +99,8 @@ private class TaskNode(
   override val issuesCountsSuffix: String? = null
 
   override val timeSuffix: String? = taskData.executionTime.durationString()
+
+  override val pageType = BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASK_PAGE
 
   override fun createComponent(): AbstractBuildAttributionInfoPanel {
     return object : ChartBuildAttributionInfoPanel() {
