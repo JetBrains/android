@@ -71,6 +71,12 @@ interface Asset {
       }
     }
 
+  /**
+   * A light-weight object to represent [Asset] instances, use for maps that may outlive the current Module. E.g. Cache<AssetKey, V>
+   */
+  val key: AssetKey
+    get() = AssetKey(name, type, null)
+
   companion object {
     /**
      * Returns an [Asset] implementation for the given [ResourceItem].
@@ -101,6 +107,14 @@ interface Asset {
     }
   }
 }
+
+/**
+ * A light-weight class to represent [Asset] instances.
+ *
+ * It's intended to be used to differentiate between different resource assets without depending on potentially large [ResourceItem]
+ * instances.
+ */
+data class AssetKey(val name: String, val type: ResourceType, val path: String?)
 
 /**
  * An [Asset] with the basic information to display a resource in the explorer. Unlike [DesignAsset], it can't point to a source file.
@@ -136,6 +150,9 @@ data class DesignAsset(
     }
     return ""
   }
+
+  override val key: AssetKey
+    get() = AssetKey(name, type, file.path)
 }
 
 fun getDesignAssets(

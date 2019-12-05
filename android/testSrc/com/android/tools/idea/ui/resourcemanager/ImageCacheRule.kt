@@ -40,6 +40,7 @@ class ImageCacheRule : NamedExternalResource() {
   }
 
   override fun after(description: Description) {
+    imageCache.clear()
     Disposer.dispose(disposable)
   }
 }

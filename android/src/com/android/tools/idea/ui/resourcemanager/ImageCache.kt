@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager
 
 import com.android.tools.idea.ui.resourcemanager.model.Asset
+import com.android.tools.idea.ui.resourcemanager.model.AssetKey
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.intellij.openapi.Disposable
@@ -41,7 +42,7 @@ private val LARGE_MAXIMUM_CACHE_WEIGHT_BYTES = (100 * 1024.0.pow(2)).toLong() //
  * @see CacheBuilder.softValues
  */
 class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
-                                     private val objectToImage: Cache<Asset, BufferedImage>
+                                     private val objectToImage: Cache<AssetKey, BufferedImage>
 ) : Disposable {
   companion object {
     private val largeObjectToImage by lazy { createObjectToImageCache(5, LARGE_MAXIMUM_CACHE_WEIGHT_BYTES) }
@@ -98,7 +99,7 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
   }
 
   fun clear(asset: Asset) {
-    objectToImage.invalidate(asset)
+    objectToImage.invalidate(asset.key)
   }
 
   fun clear() {
@@ -106,7 +107,7 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
   }
 
   /**
-   * Return the value identified by [key] in the cache if it exists, otherwise returns the [placeholder] image
+   * Return the value identified by [AssetKey] in the cache if it exists, otherwise returns the [placeholder] image
    * and gets the image from the [CompletableFuture] returned by [computationFutureProvider].
    *
    * If [forceComputation] is true, the [CompletableFuture] will be ran even if a value is present in the cache.
@@ -116,50 +117,49 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
    *
    * Once the image is cached, [onImageCached] is invoked on [executor] (or the EDT if none is provided)
    */
-  fun computeAndGet(@Async.Schedule key: Asset,
+  fun computeAndGet(@Async.Schedule asset: Asset,
                     placeholder: BufferedImage,
                     forceComputation: Boolean,
                     onImageCached: () -> Unit = {},
                     executor: Executor = EdtExecutorService.getInstance(),
                     computationFutureProvider: (() -> CompletableFuture<out BufferedImage?>))
     : BufferedImage {
-    val cachedImage = objectToImage.getIfPresent(key)
-    if ((cachedImage == null || forceComputation) && !pendingFutures.containsKey(key)) {
+    val cachedImage = objectToImage.getIfPresent(asset.key)
+    if ((cachedImage == null || forceComputation) && !pendingFutures.containsKey(asset)) {
       val executeImmediately = cachedImage == null // If we don't have any image, no need to wait.
-      runOrQueue(key, executeImmediately) {
-        startComputation(computationFutureProvider, key, onImageCached, executor)
+      runOrQueue(asset, executeImmediately) {
+        startComputation(computationFutureProvider, asset, onImageCached, executor)
       }
     }
     return cachedImage ?: placeholder
   }
 
-
   private fun startComputation(computationFutureProvider: () -> CompletableFuture<out BufferedImage?>,
-                               @Async.Execute key: Asset,
+                               @Async.Execute asset: Asset,
                                onImageCached: () -> Unit,
                                executor: Executor) {
     val future = computationFutureProvider()
       .thenAccept { image: BufferedImage? ->
         synchronized(pendingFutures) {
-          pendingFutures.remove(key)
+          pendingFutures.remove(asset)
         }
         if (image != null) {
-          objectToImage.put(key, image)
+          objectToImage.put(asset.key, image)
           executor.execute(onImageCached)
         }
       }
     synchronized(pendingFutures) {
       if (!future.isDone) {
-        pendingFutures[key] = future
+        pendingFutures[asset] = future
       }
     }
   }
 }
 
-private fun createObjectToImageCache(duration: Long, size: Long): Cache<Asset, BufferedImage> =
+private fun createObjectToImageCache(duration: Long, size: Long): Cache<AssetKey, BufferedImage> =
   CacheBuilder.newBuilder()
     .expireAfterAccess(duration, TimeUnit.MINUTES)
     .softValues()
-    .weigher<Asset, BufferedImage> { _, image -> image.raster.dataBuffer.size * Integer.BYTES }
+    .weigher<AssetKey, BufferedImage> { _, image -> image.raster.dataBuffer.size * Integer.BYTES }
     .maximumWeight(size)
-    .build<Asset, BufferedImage>()
+    .build<AssetKey, BufferedImage>()
