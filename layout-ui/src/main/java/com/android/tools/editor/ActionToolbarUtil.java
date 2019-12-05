@@ -21,6 +21,8 @@ import com.intellij.util.ui.accessibility.ScreenReader;
 import java.awt.Component;
 import java.awt.event.ContainerEvent;
 import java.awt.event.ContainerListener;
+import java.util.Arrays;
+import javax.swing.JCheckBox;
 import org.jetbrains.annotations.NotNull;
 
 public class ActionToolbarUtil {
@@ -36,19 +38,25 @@ public class ActionToolbarUtil {
    */
   public static void makeToolbarNavigable(@NotNull ActionToolbar toolbar) {
     if (!ScreenReader.isActive()) {
+      Arrays.stream(toolbar.getComponent().getComponents())
+        .forEach(component -> makeActionNavigable(component));
+
       toolbar.getComponent().addContainerListener(new ContainerListener() {
         @Override
         public void componentAdded(@NotNull ContainerEvent event) {
-          Component child = event.getChild();
-          if (child instanceof ActionButton) {
-            child.setFocusable(true);
-          }
+          makeActionNavigable(event.getChild());
         }
 
         @Override
         public void componentRemoved(@NotNull ContainerEvent event) {
         }
       });
+    }
+  }
+
+  private static void makeActionNavigable(@NotNull Component child) {
+    if (child instanceof ActionButton || child instanceof JCheckBox) {
+      child.setFocusable(true);
     }
   }
 }
