@@ -17,16 +17,16 @@ package com.android.tools.idea.appinspection.test
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
+import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.AppInspectorClient
+import com.android.tools.idea.appinspection.api.AppInspectorJar
 import com.android.tools.idea.appinspection.api.TestInspectorClient
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.appinspection.internal.launchInspectorForTest
 import com.android.tools.idea.testing.NamedExternalResource
-import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.idea.transport.TransportClient
-import com.android.tools.idea.transport.TransportFileCopier
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
@@ -41,7 +41,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
-val TEST_JAR = DeployableFile.Builder("test.jar").build()
+val TEST_JAR = AppInspectorJar("test")
 
 /**
  * Rule providing all of the underlying components of App Inspection, including [executorService], [poller], [transport] and [client].
@@ -176,13 +176,13 @@ class AppInspectionServiceRule(
   /**
    * Keeps track of the copied jar so tests could verify the operation happened.
    */
-  class TestTransportFileCopier : TransportFileCopier {
+  class TestTransportFileCopier : AppInspectionJarCopier {
     private val deviceBasePath = Paths.get("/test")
-    lateinit var copiedJar: DeployableFile
+    lateinit var copiedJar: AppInspectorJar
 
-    override fun copyFileToDevice(deployableFile: DeployableFile): List<Path> {
-      copiedJar = deployableFile
-      return listOf(deviceBasePath.resolve(deployableFile.fileName))
+    override fun copyFileToDevice(jar: AppInspectorJar): List<Path> {
+      copiedJar = jar
+      return listOf(deviceBasePath.resolve(jar.name))
     }
   }
 }

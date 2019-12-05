@@ -18,11 +18,11 @@ package com.android.tools.idea.appinspection.internal
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
 import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Status.SUCCESS
 import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
+import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.AppInspectorClient
+import com.android.tools.idea.appinspection.api.AppInspectorJar
 import com.android.tools.idea.concurrency.transform
-import com.android.tools.idea.transport.DeployableFile
-import com.android.tools.idea.transport.TransportFileCopier
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.Command
@@ -46,7 +46,7 @@ import java.nio.file.Path
  */
 internal fun attachAppInspectionTarget(
   transport: AppInspectionTransport,
-  fileCopier: TransportFileCopier
+  jarCopier: AppInspectionJarCopier
 ): ListenableFuture<AppInspectionTarget> {
   return Futures.submitAsync(
     AsyncCallable {
@@ -66,7 +66,7 @@ internal fun attachAppInspectionTarget(
       transport.registerEventListener(
         transport.createEventListener(eventKind = AGENT, filter = { it.agentData.status == ATTACHED }
         ) {
-          connectionFuture.set(DefaultAppInspectionTarget(transport, fileCopier))
+          connectionFuture.set(DefaultAppInspectionTarget(transport, jarCopier))
           true
         })
       transport.client.transportStub.execute(ExecuteRequest.newBuilder().setCommand(attachCommand).build())
@@ -77,15 +77,15 @@ internal fun attachAppInspectionTarget(
 
 private class DefaultAppInspectionTarget(
   val processTransport: AppInspectionTransport,
-  private val fileCopier: TransportFileCopier
+  private val jarCopier: AppInspectionJarCopier
 ) : AppInspectionTarget {
   override fun <T : AppInspectorClient> launchInspector(
     inspectorId: String,
-    inspectorJar: DeployableFile,
+    inspectorJar: AppInspectorJar,
     creator: (AppInspectorClient.CommandMessenger) -> T
   ): ListenableFuture<T> {
     val launchResultFuture = MoreExecutors.listeningDecorator(processTransport.executorService)
-      .submit<Path> { fileCopier.copyFileToDevice(inspectorJar).first() }
+      .submit<Path> { jarCopier.copyFileToDevice(inspectorJar).first() }
     return Futures.transformAsync(
       launchResultFuture,
       AsyncFunction<Path, AppInspectorConnection> { fileDevicePath ->

@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite
 
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.AppInspectorClient
+import com.android.tools.idea.appinspection.api.AppInspectorJar
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.transport.DeployableFile
@@ -53,7 +54,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
     val mockTarget = object : AppInspectionTarget {
       override fun <T : AppInspectorClient> launchInspector(
         inspectorId: String,
-        inspectorJar: DeployableFile,
+        inspectorJar: AppInspectorJar,
         creator: (AppInspectorClient.CommandMessenger) -> T
       ): ListenableFuture<T> {
         return Futures.immediateFuture(creator(mockMessenger))
