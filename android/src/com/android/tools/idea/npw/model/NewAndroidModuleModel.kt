@@ -53,7 +53,7 @@ import java.io.File
 
 class ExistingProjectModelData(
   override var project: Project,
-  override val projectSyncInvoker: ProjectSyncInvoker
+  override val projectSyncInvoker: ProjectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
 ) : ProjectModelData {
   override val applicationName: StringValueProperty = StringValueProperty(message("android.wizard.module.config.new.application"))
   override val packageName: StringValueProperty = StringValueProperty()
@@ -154,7 +154,7 @@ class NewAndroidModuleModel(
     multiTemplateRenderer.incrementRenders()
   }
 
-  protected inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
+  inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
     override val recipe: Recipe get() = when(formFactor.get()) {
       FormFactor.MOBILE -> { data: TemplateData ->
         generateAndroidModule(data as ModuleTemplateData, applicationName.get(), enableCppSupport.get(), cppFlags.get())
