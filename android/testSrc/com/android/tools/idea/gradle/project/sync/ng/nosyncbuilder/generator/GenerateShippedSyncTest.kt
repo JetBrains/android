@@ -35,11 +35,11 @@ import com.android.tools.idea.templates.Template.CATEGORY_PROJECTS
 import com.android.tools.idea.templates.TemplateMetadata.*
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME
-import com.intellij.idea.IdeaTestApplication
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtilRt
+import com.intellij.testFramework.TestApplicationManager
 import com.intellij.testFramework.ThreadTracker
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
@@ -86,7 +86,7 @@ class GenerateShippedSyncTest : AndroidTestBase() {
     super.setUp()
     // This is necessary when we don't create a default project,
     // to ensure that the LocalFileSystemHolder is initialized.
-    IdeaTestApplication.getInstance()
+    TestApplicationManager.getInstance()
 
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
     ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib")
