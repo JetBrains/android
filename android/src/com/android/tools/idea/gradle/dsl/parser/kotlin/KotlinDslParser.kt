@@ -269,7 +269,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       }
       // We might need to apply the block to multiple DslElements.
       val blockElements = Lists.newArrayList<GradlePropertiesDslElement>()
-      // If the block is allprojects, we need to apply the closure to the project and to all its subprojetcs.
+      // If the block is allprojects, we need to apply the closure to the project and to all its subprojects.
       if (parent is GradleDslFile && referenceName == "allprojects") {
         // The block has to be applied to the project.
         blockElements.add(parent)
@@ -292,9 +292,6 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       // Get args and block.
       val argumentsList = expression.valueArgumentList
       val argumentsBlock = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
-      val referenceExpression = expression.referenceExpression()
-      val name =
-        if (referenceExpression != null) GradleNameElement.from(referenceExpression, this) else GradleNameElement.create(referenceName)
       if (argumentsList != null) {
         val callExpression =
           getCallExpression(parent, expression, name, argumentsList, referenceName, true) ?: return
