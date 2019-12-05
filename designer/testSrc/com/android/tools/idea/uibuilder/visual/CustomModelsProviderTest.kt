@@ -66,7 +66,6 @@ class CustomModelsProviderTest : LayoutTestCase() {
     assertEquals(config, nlModels[0].configuration)
   }
 
-  @Ignore("b/145754274")
   fun testAddAndRemoveCustomConfig() {
     val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
 
@@ -78,7 +77,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val attributes = CustomConfigurationAttribute("Preview",
                                                   "pixel_3",
-                                                  28,
+                                                  29,
                                                   ScreenOrientation.PORTRAIT,
                                                   Locale.ANY.toString(),
                                                   configurationManager.computePreferredTheme(defaultConfig),
@@ -101,7 +100,6 @@ class CustomModelsProviderTest : LayoutTestCase() {
     assertEquals(defaultConfig, nlModelsAfterRemoved[0].configuration)
   }
 
-  @Ignore("b/145754274")
   fun testAddCustomConfigLoadsCorrectFile() {
     val defaultFile = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
     val enFile = myFixture.addFileToProject("/res/layout-en/test.xml", LAYOUT_FILE_CONTENT)
@@ -114,7 +112,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val attributes = CustomConfigurationAttribute("Preview",
                                                   "pixel_3",
-                                                  28,
+                                                  29,
                                                   ScreenOrientation.PORTRAIT,
                                                   Locale.create("en").toString(),
                                                   configurationManager.computePreferredTheme(defaultConfig),
