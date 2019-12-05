@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.adtui.model.filter.FilterResult;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CaptureNode;
@@ -73,12 +74,11 @@ public class CaptureModel {
   @NotNull
   private Filter myFilter = Filter.EMPTY_FILTER;
 
+  @NotNull
+  private FilterResult myFilterResult = new FilterResult();
+
   @Nullable
   private CaptureDetails myDetails;
-
-  private int myTotalNodeCount;
-
-  private int myFilterNodeCount;
 
   /**
    * Reference to a selection range converted to ClockType.THREAD.
@@ -159,12 +159,14 @@ public class CaptureModel {
     return myClockType;
   }
 
-  public void setFilter(@NotNull Filter filter) {
+  @NotNull
+  public FilterResult applyFilter(@NotNull Filter filter) {
     if (Objects.equals(filter, myFilter)) {
-      return;
+      return myFilterResult;
     }
     myFilter = filter;
     rebuildDetails();
+    return myFilterResult;
   }
 
   @NotNull
@@ -198,13 +200,11 @@ public class CaptureModel {
    */
   private void rebuildDetails(@Nullable CaptureDetails.Type suggestedType) {
     updateCaptureConvertedRange();
-    myTotalNodeCount = 0;
-    myFilterNodeCount = 0;
     if (myCapture != null) {
       // Grab the currently selected thread and apply any filters the user set.
       CaptureNode node = getNode();
       if (node != null) {
-        applyFilter(node, false);
+        myFilterResult = node.applyFilter(myFilter);
       }
       if (suggestedType == null) {
         suggestedType = myDetails == null ? CaptureDetails.Type.CALL_CHART : myDetails.getType();
@@ -228,46 +228,6 @@ public class CaptureModel {
   @Nullable
   private CaptureNode getNode() {
     return myCapture != null ? myCapture.getCaptureNode(myThread) : null;
-  }
-
-  public int getNodeCount() {
-    return myTotalNodeCount;
-  }
-
-  public int getFilterNodeCount() {
-    return myFilterNodeCount;
-  }
-
-  /**
-   * Applies the current filter {@link #myFilter} to the {@param node}.
-   *
-   * @param node    - a node to apply the current filter
-   * @param matches - whether there is a match to the filter in one of its ancestors.
-   */
-  private void applyFilter(@NotNull CaptureNode node, boolean matches) {
-    boolean nodeExactMatch = node.matchesToFilter(myFilter);
-    matches = matches || nodeExactMatch;
-    boolean allChildrenUnmatch = true;
-    myTotalNodeCount++;
-    if (nodeExactMatch) {
-      myFilterNodeCount++;
-    }
-    for (CaptureNode child : node.getChildren()) {
-      applyFilter(child, matches);
-      if (!child.isUnmatched()) {
-        allChildrenUnmatch = false;
-      }
-    }
-
-    if (!matches && allChildrenUnmatch) {
-      node.setFilterType(CaptureNode.FilterType.UNMATCH);
-    }
-    else if (nodeExactMatch && !myFilter.isEmpty()) {
-      node.setFilterType(CaptureNode.FilterType.EXACT_MATCH);
-    }
-    else {
-      node.setFilterType(CaptureNode.FilterType.MATCH);
-    }
   }
 
   /**

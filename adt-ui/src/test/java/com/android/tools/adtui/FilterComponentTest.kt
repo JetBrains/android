@@ -65,10 +65,10 @@ class FilterComponentTest {
         return if (filter.isEmpty) {
           // The FilterResult should not be enabled with empty filter.
           // We return an enabled filter intentionally to test if FilterHandler can correct it.
-          FilterResult(0, true)
+          FilterResult(0, 0, true)
         }
         else {
-          FilterResult(Integer.parseInt(filter.filterString), true)
+          FilterResult(Integer.parseInt(filter.filterString), 0, true)
         }
       }
     })
@@ -94,7 +94,7 @@ class FilterComponentTest {
     ui.filterComponent.setMatchCountVisibility(false)
     ui.filterComponent.model.setFilterHandler(object: FilterHandler() {
       override fun applyFilter(filter: Filter): FilterResult {
-        return FilterResult(Integer.parseInt(filter.filterString), true)
+        return FilterResult(Integer.parseInt(filter.filterString), 0, true)
       }
     })
     ui.filterComponent.model.filter = Filter("1234567")

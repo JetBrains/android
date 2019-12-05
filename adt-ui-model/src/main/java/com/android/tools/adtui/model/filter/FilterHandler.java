@@ -16,9 +16,8 @@
 package com.android.tools.adtui.model.filter;
 
 import com.intellij.util.Consumer;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The {@code FilterHandler} handles the filter content changes and update the match count results.
@@ -32,7 +31,7 @@ public abstract class FilterHandler {
     FilterResult result = applyFilter(filter);
     // Disable result when filter is empty.
     if (filter.isEmpty() && result.isFilterEnabled()) {
-      result = new FilterResult(result.getMatchCount(), false);
+      result = new FilterResult(result.getMatchCount(), result.getTotalCount(), false);
     }
     FilterResult finalResult = result;
     myMatchCountResultListeners.forEach(action -> action.consume(finalResult));

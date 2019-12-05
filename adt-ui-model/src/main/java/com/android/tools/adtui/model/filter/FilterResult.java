@@ -15,28 +15,59 @@
  */
 package com.android.tools.adtui.model.filter;
 
-/*
- * Relevant metadata about how much data matches a specified {@link Filter}"
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Relevant metadata about how much data matches a specified {@link Filter}.
  */
 public class FilterResult {
   private final int myMatchCount;
+  private final int myTotalCount;
   private final boolean myIsFilterEnabled;
 
-  public FilterResult(int count, boolean isFilterEnabled) {
-    assert count >= 0;
-    myMatchCount = count;
+  public FilterResult() {
+    this(0, 0, false);
+  }
+
+  public FilterResult(int matchCount, int totalCount, boolean isFilterEnabled) {
+    assert matchCount >= 0;
+    myMatchCount = matchCount;
+    myTotalCount = totalCount;
     myIsFilterEnabled = isFilterEnabled;
   }
 
+  /**
+   * @return number of elements that match the filter.
+   */
   public int getMatchCount() {
     return myMatchCount;
   }
 
-  /*
-   * Returns true if and only if the match count result is valid.
+  /**
+   * @return total number of elements traversed. For feature tracking only.
+   */
+  public int getTotalCount() {
+    return myTotalCount;
+  }
+
+  /**
+   * @return true if and only if the match count result is valid.
    */
   public boolean isFilterEnabled() {
     return myIsFilterEnabled;
+  }
+
+  /**
+   * Combine this instance with another instance.
+   *
+   * @return a new instance w/ match count combined, total count combined and {@link #isFilterEnabled()} set to true if either one's filter
+   * is enabled.
+   */
+  public FilterResult combine(@NotNull FilterResult anotherResult) {
+    return new FilterResult(getMatchCount() + anotherResult.getMatchCount(),
+                            getTotalCount() + anotherResult.getTotalCount(),
+                            isFilterEnabled() || anotherResult.isFilterEnabled());
   }
 
   @Override
@@ -44,7 +75,7 @@ public class FilterResult {
     if (object instanceof FilterResult) {
       FilterResult result = (FilterResult)object;
       if (myIsFilterEnabled) {
-        return result.myIsFilterEnabled && result.myMatchCount == myMatchCount;
+        return result.myIsFilterEnabled && result.myMatchCount == myMatchCount && result.myTotalCount == myTotalCount;
       }
       return !result.myIsFilterEnabled;
     }
@@ -53,6 +84,6 @@ public class FilterResult {
 
   @Override
   public int hashCode() {
-    return myIsFilterEnabled ? myMatchCount : -1;
+    return myIsFilterEnabled ? Objects.hash(myMatchCount, myTotalCount) : -1;
   }
 }

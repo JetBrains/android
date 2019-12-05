@@ -32,6 +32,7 @@ import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.adtui.model.filter.FilterResult;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
@@ -891,21 +892,14 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     }
   }
 
-  public void setCaptureFilter(@NotNull Filter filter) {
-    myCaptureModel.setFilter(filter);
-    trackFilterUsage(filter);
-  }
-
   @NotNull
-  public Filter getCaptureFilter() {
-    return myCaptureModel.getFilter();
+  public FilterResult applyCaptureFilter(@NotNull Filter filter) {
+    FilterResult filterResult = myCaptureModel.applyFilter(filter);
+    trackFilterUsage(filter, filterResult);
+    return filterResult;
   }
 
-  public int getCaptureFilterNodeCount() {
-    return myCaptureModel.getFilterNodeCount();
-  }
-
-  private void trackFilterUsage(@NotNull Filter filter) {
+  private void trackFilterUsage(@NotNull Filter filter, @NotNull FilterResult filterResult) {
     CaptureDetails details = getCaptureDetails();
     if (details == null) {
       // Not likely, but can happen if you modify a filter and then clear the selection. Filters
@@ -930,8 +924,8 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
         break;
     }
     filterMetadata.setFeaturesUsed(filter.isMatchCase(), filter.isRegex());
-    filterMetadata.setMatchedElementCount(myCaptureModel.getFilterNodeCount());
-    filterMetadata.setTotalElementCount(myCaptureModel.getNodeCount());
+    filterMetadata.setMatchedElementCount(filterResult.getMatchCount());
+    filterMetadata.setTotalElementCount(filterResult.getTotalCount());
     filterMetadata.setFilterTextLength(filter.isEmpty() ? 0 : filter.getFilterString().length());
     featureTracker.trackFilterMetadata(filterMetadata);
   }
