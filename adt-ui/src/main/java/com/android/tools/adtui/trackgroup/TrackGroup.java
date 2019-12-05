@@ -56,8 +56,8 @@ public class TrackGroup {
   private final JPanel myComponent;
   private final JLabel myTitleLabel;
   private final DragAndDropList<TrackModel> myTrackList;
-  private final CommonButton myFilterButton;
   private final CommonDropDownButton myActionsDropdown;
+  private final FlatSeparator mySeparator = new FlatSeparator();
   private final CommonButton myCollapseButton;
   private final Map<Integer, Track> myTrackMap;
 
@@ -87,7 +87,6 @@ public class TrackGroup {
       }
     });
 
-    myFilterButton = new CommonButton(AllIcons.General.Filter);
     myActionsDropdown = new CommonDropDownButton(new CommonAction("", AllIcons.Actions.More));
     initShowMoreDropdown();
 
@@ -98,9 +97,8 @@ public class TrackGroup {
 
     JPanel toolbarPanel = new JPanel(new GridBagLayout());
     toolbarPanel.setBorder(JBUI.Borders.emptyRight(16));
-    toolbarPanel.add(myFilterButton);
     toolbarPanel.add(myActionsDropdown);
-    toolbarPanel.add(new FlatSeparator());
+    toolbarPanel.add(mySeparator);
     toolbarPanel.add(myCollapseButton);
 
     myTitleLabel = new JLabel(groupModel.getTitle());
@@ -130,11 +128,15 @@ public class TrackGroup {
   public void setCollapsed(boolean collapsed) {
     if (collapsed) {
       myTrackList.setVisible(false);
-      myCollapseButton.setText("Expand Selection");
+      mySeparator.setVisible(false);
+      myActionsDropdown.setVisible(false);
+      myCollapseButton.setText("Expand Section");
       myCollapseButton.setIcon(EXPAND_ICON);
     }
     else {
       myTrackList.setVisible(true);
+      mySeparator.setVisible(false);
+      myActionsDropdown.setVisible(true);
       myCollapseButton.setText(null);
       myCollapseButton.setIcon(COLLAPSE_ICON);
     }
@@ -176,12 +178,22 @@ public class TrackGroup {
   }
 
   @VisibleForTesting
-  protected JLabel getTitleLabel() {
+  JLabel getTitleLabel() {
     return myTitleLabel;
   }
 
   @VisibleForTesting
-  protected CommonButton getCollapseButton() {
+  CommonDropDownButton getActionsDropdown() {
+    return myActionsDropdown;
+  }
+
+  @VisibleForTesting
+  FlatSeparator getSeparator() {
+    return mySeparator;
+  }
+
+  @VisibleForTesting
+  CommonButton getCollapseButton() {
     return myCollapseButton;
   }
 
