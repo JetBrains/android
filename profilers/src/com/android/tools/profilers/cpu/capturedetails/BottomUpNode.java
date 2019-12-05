@@ -20,9 +20,12 @@ import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
 
 public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
 
@@ -48,7 +51,11 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     stack.add(node);
     while (!stack.isEmpty()) {
       CaptureNode curNode = stack.pop();
-      allNodes.add(curNode);
+      // If we don't have an Id then we exclude this node from being added as a child to the parent.
+      // The only known occurrence of this is the empty root node used to aggregate multiple selected objects.
+      if (!curNode.getData().getId().isEmpty()) {
+        allNodes.add(curNode);
+      }
       // Adding in reverse order so that the first child is processed first
       for (int i = curNode.getChildren().size() - 1; i >= 0; --i) {
         stack.add(curNode.getChildren().get(i));
@@ -61,7 +68,6 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     Map<String, BottomUpNode> unmatchedChildren = new HashMap<>();
 
     for (CaptureNode curNode : allNodes) {
-      assert curNode.getData() != null;
       String curId = curNode.getData().getId();
 
       BottomUpNode child = curNode.isUnmatched() ? unmatchedChildren.get(curId) : children.get(curId);
@@ -106,7 +112,6 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
       if (parent == null) {
         continue;
       }
-      assert parent.getData() != null;
       String parentId = parent.getData().getId();
       BottomUpNode child = parent.isUnmatched() ? unmatchedChildren.get(parentId) : children.get(parentId);
       if (child == null) {
@@ -171,9 +176,7 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
       // Return a dummy entry for the root.
       return new SingleNameModel("");
     }
-    CaptureNodeModel model = myPathNodes.get(0).getData();
-    assert model != null;
-    return model;
+    return myPathNodes.get(0).getData();
   }
 
   @Override

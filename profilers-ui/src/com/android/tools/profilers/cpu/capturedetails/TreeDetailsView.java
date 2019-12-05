@@ -100,6 +100,7 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
     myTree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
     myTree.setBorder(TABLE_ROW_BORDER);
     myTree.setModel(model);
+    myTree.setRootVisible(model.isRootNodeIdValid());
     mySorter = new CpuTraceTreeSorter(myTree);
     mySorter.setModel(model, DEFAULT_SORT_ORDER);
 
