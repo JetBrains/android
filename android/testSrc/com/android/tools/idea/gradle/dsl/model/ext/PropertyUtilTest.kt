@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext
 
+import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_UTIL_WRITE_BACK_ELEMENT_WITH_TRIMMED_NAME
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.TransformTestCase
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
@@ -97,16 +100,25 @@ class PropertyUtilTest : TransformTestCase() {
 
   @Test
   fun testWriteBackElementWithTrimmedName() {
-    assumeTrue(isGroovy())
     val literal = createLiteral(name = "android.defaultConfig.applicationId")
     val buildModel = gradleBuildModel
     val defaultConfigBlock = (buildModel.android().defaultConfig() as ProductFlavorModelImpl).dslElement()
+    literal.elementType = PropertyType.REGULAR
+    if (!isGroovy) {
+      literal.setUseAssignment(true)
+    }
     defaultConfigBlock.setNewElement(literal)
     literal.setValue("hello")
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, PROPERTY_UTIL_WRITE_BACK_ELEMENT_WITH_TRIMMED_NAME);
 
     val applicationId = buildModel.android().defaultConfig().applicationId()
-    assertThat(applicationId.psiElement!!.parent!!.text, equalTo("applicationId 'hello'"))
+    if (isGroovy) {
+      assertThat(applicationId.psiElement!!.parent!!.text, equalTo("applicationId 'hello'"))
+    }
+    else {
+      assertThat(applicationId.psiElement!!.parent!!.text, equalTo("applicationId = \"hello\""))
+    }
   }
 }

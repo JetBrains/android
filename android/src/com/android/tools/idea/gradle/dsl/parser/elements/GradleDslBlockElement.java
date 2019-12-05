@@ -127,4 +127,11 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
     maybeCanonizeElement(element); // NOTYPO
     super.setParsedElement(element);
   }
+
+  @Override
+  @NotNull
+  public GradleDslElement setNewElement(@NotNull GradleDslElement element) {
+    maybeCanonizeElement(element); // NOTYPO
+    return super.setNewElement(element);
+  }
 }
