@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.Locale
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import org.intellij.lang.annotations.Language
+import org.junit.Ignore
 import org.mockito.Mockito
 
 class CustomModelsProviderTest : LayoutTestCase() {
@@ -65,6 +66,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
     assertEquals(config, nlModels[0].configuration)
   }
 
+  @Ignore("b/145754274")
   fun testAddAndRemoveCustomConfig() {
     val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
 
@@ -99,6 +101,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
     assertEquals(defaultConfig, nlModelsAfterRemoved[0].configuration)
   }
 
+  @Ignore("b/145754274")
   fun testAddCustomConfigLoadsCorrectFile() {
     val defaultFile = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
     val enFile = myFixture.addFileToProject("/res/layout-en/test.xml", LAYOUT_FILE_CONTENT)
