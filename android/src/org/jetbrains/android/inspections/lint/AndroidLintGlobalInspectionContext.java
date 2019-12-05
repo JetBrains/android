@@ -188,7 +188,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
           final List<VirtualFile> finalList = files;
           scope.accept(new PsiElementVisitor() {
             @Override
-            public void visitFile(PsiFile file) {
+            public void visitFile(@NotNull PsiFile file) {
               VirtualFile virtualFile = file.getVirtualFile();
               if (virtualFile != null) {
                 finalList.add(virtualFile);
