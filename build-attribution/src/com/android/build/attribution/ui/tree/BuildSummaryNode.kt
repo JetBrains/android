@@ -30,8 +30,8 @@ import javax.swing.JComponent
 
 class BuildSummaryNode(
   val buildSummary: BuildSummary,
-  root: SimpleNode
-) : AbstractBuildAttributionNode(root, "Build:") {
+  parent: ControllersAwareBuildAttributionNode
+) : AbstractBuildAttributionNode(parent, "Build:") {
 
   override val presentationIcon: Icon? = null
   override val issuesCountsSuffix = "finished at ${buildFinishedTime()}"

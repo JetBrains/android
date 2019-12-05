@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui
 
 import com.android.annotations.concurrency.UiThread
+import com.android.build.attribution.ui.controllers.TaskIssueReporter
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.intellij.build.BuildContentManager
 import com.intellij.openapi.Disposable

@@ -15,7 +15,7 @@
  */
 package com.android.build.attribution.ui.tree
 
-import com.android.build.attribution.ui.TreeNodeSelector
+import com.android.build.attribution.ui.controllers.TreeNodeSelector
 import com.android.build.attribution.ui.data.ConfigurationUiData
 import com.android.build.attribution.ui.data.PluginConfigurationUiData
 import com.android.build.attribution.ui.data.ProjectConfigurationUiData
@@ -42,8 +42,7 @@ import javax.swing.event.HyperlinkEvent
 
 class PluginConfigurationTimeRoot(
   private val configurationData: ConfigurationUiData,
-  parent: SimpleNode,
-  private val nodeSelector: TreeNodeSelector
+  parent: ControllersAwareBuildAttributionNode
 ) : AbstractBuildAttributionNode(parent, "Plugin Configuration Time") {
 
   override val presentationIcon: Icon? = null
@@ -65,7 +64,7 @@ class PluginConfigurationTimeRoot(
 
   override fun buildChildren(): Array<SimpleNode> {
     return configurationData.projects
-      .map { projectData -> ProjectNode(projectData, this, nodeSelector) }
+      .map { projectData -> ProjectNode(projectData, this) }
       .toTypedArray()
   }
 
@@ -73,8 +72,7 @@ class PluginConfigurationTimeRoot(
 
 private class ProjectNode(
   val projectData: ProjectConfigurationUiData,
-  parent: SimpleNode,
-  private val nodeSelector: TreeNodeSelector
+  parent: PluginConfigurationTimeRoot
 ) : AbstractBuildAttributionNode(parent, projectData.project) {
 
   override val presentationIcon: Icon? = StudioIcons.Shell.Filetree.ANDROID_MODULE
@@ -97,7 +95,7 @@ of total plugin configuration time) to configure the following plugins:
   override fun buildChildren(): Array<SimpleNode> {
     val childrenHasIcon = projectData.plugins.stream().anyMatch { plugin -> plugin.slowsConfiguration }
     return projectData.plugins
-      .map { data -> PluginConfigurationNode(data, childrenHasIcon, this, nodeSelector) }
+      .map { data -> PluginConfigurationNode(data, childrenHasIcon, this) }
       .toTypedArray()
   }
 }
@@ -105,8 +103,7 @@ of total plugin configuration time) to configure the following plugins:
 private class PluginConfigurationNode(
   val pluginData: PluginConfigurationUiData,
   needEmptyIconShift: Boolean,
-  parent: SimpleNode,
-  private val nodeSelector: TreeNodeSelector
+  parent: AbstractBuildAttributionNode
 ) : AbstractBuildAttributionNode(parent, pluginData.pluginName) {
 
   override val presentationIcon: Icon? = when {
@@ -146,13 +143,13 @@ private class PluginConfigurationNode(
   override fun buildChildren(): Array<SimpleNode> {
     val childrenHaveIcon = pluginData.nestedPlugins.stream().anyMatch { plugin -> plugin.slowsConfiguration }
     return pluginData.nestedPlugins
-      .map { data -> PluginConfigurationNode(data, childrenHaveIcon, this, nodeSelector) }
+      .map { data -> PluginConfigurationNode(data, childrenHaveIcon, this) }
       .toTypedArray()
   }
 }
 
 //todo looks ugly, but the plan is to re-use stack charts code from critical path here when have time
-private fun createProjectsTable(projects: Array<SimpleNode>, nodeSelector: TreeNodeSelector): JComponent {
+private fun createProjectsTable(projects: Array<SimpleNode>, nodeController: TreeNodeSelector): JComponent {
   val tablePanel = JBPanel<JBPanel<*>>(GridBagLayout())
   val c = GridBagConstraints()
   c.gridy = 0
@@ -174,7 +171,7 @@ private fun createProjectsTable(projects: Array<SimpleNode>, nodeSelector: TreeN
     val link = HyperlinkLabel(projectNode.projectData.project)
     link.addHyperlinkListener(object : HyperlinkAdapter() {
       override fun hyperlinkActivated(e: HyperlinkEvent) {
-        nodeSelector.selectNode(node)
+        nodeController.selectNode(node)
       }
     })
     tablePanel.add(link, c)
@@ -184,7 +181,7 @@ private fun createProjectsTable(projects: Array<SimpleNode>, nodeSelector: TreeN
   return tablePanel
 }
 
-private fun createPluginsTable(plugins: Array<SimpleNode>, nodeSelector: TreeNodeSelector): JComponent {
+private fun createPluginsTable(plugins: Array<SimpleNode>, nodeController: TreeNodeSelector): JComponent {
   val tablePanel = JBPanel<JBPanel<*>>(GridBagLayout())
   val c = GridBagConstraints()
   c.gridy = 0
@@ -206,7 +203,7 @@ private fun createPluginsTable(plugins: Array<SimpleNode>, nodeSelector: TreeNod
     val link = HyperlinkLabel(pluginNode.pluginData.pluginName)
     link.addHyperlinkListener(object : HyperlinkAdapter() {
       override fun hyperlinkActivated(e: HyperlinkEvent) {
-        nodeSelector.selectNode(node)
+        nodeController.selectNode(node)
       }
     })
     tablePanel.add(link, c)
