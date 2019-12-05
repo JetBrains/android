@@ -18,8 +18,6 @@ package com.android.tools.idea.appinspection.api
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.appinspection.internal.attachAppInspectionTarget
-import com.android.tools.idea.transport.DeployableFile
-import com.android.tools.idea.transport.TransportFileCopier
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
 
@@ -40,7 +38,7 @@ interface AppInspectionTarget {
   @WorkerThread
   fun <T : AppInspectorClient> launchInspector(
     inspectorId: String,
-    inspectorJar: DeployableFile,
+    inspectorJar: AppInspectorJar,
     @WorkerThread creator: (AppInspectorClient.CommandMessenger) -> T
   ): ListenableFuture<T>
 
@@ -52,7 +50,7 @@ interface AppInspectionTarget {
     @WorkerThread
     fun attach(
       transport: AppInspectionTransport,
-      fileCopier: TransportFileCopier
-    ): ListenableFuture<AppInspectionTarget> = attachAppInspectionTarget(transport, fileCopier)
+      jarCopier: AppInspectionJarCopier
+    ): ListenableFuture<AppInspectionTarget> = attachAppInspectionTarget(transport, jarCopier)
   }
 }

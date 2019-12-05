@@ -20,7 +20,6 @@ import com.android.tools.idea.appinspection.internal.AppInspectionAttacher
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.transport.TransportClient
-import com.android.tools.idea.transport.TransportFileCopier
 import com.android.tools.idea.transport.poller.TransportEventPoller
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
@@ -53,9 +52,9 @@ class AppInspectionDiscoveryHost(executor: ScheduledExecutorService, channel: Ch
    * the connection is cached, the future is ready to be gotten immediately.
    */
   fun connect(
-    transportFileCopier: TransportFileCopier,
+    jarCopier: AppInspectionJarCopier,
     preferredProcess: AutoPreferredProcess
-  ): ListenableFuture<AppInspectionTarget> = discovery.connect(transportFileCopier, preferredProcess)
+  ): ListenableFuture<AppInspectionTarget> = discovery.connect(jarCopier, preferredProcess)
 }
 
 /**
@@ -81,7 +80,7 @@ class AppInspectionDiscovery(
   private val transportPoller = TransportEventPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
 
   internal fun connect(
-    fileCopier: TransportFileCopier,
+    jarCopier: AppInspectionJarCopier,
     preferredProcess: AutoPreferredProcess
   ): ListenableFuture<AppInspectionTarget> {
     return connections.computeIfAbsent(
@@ -90,7 +89,7 @@ class AppInspectionDiscovery(
         val connectionFuture = SettableFuture.create<AppInspectionTarget>()
         attacher.attach(autoPreferredProcess) { stream, process ->
           val transport = AppInspectionTransport(client, stream, process, executor, transportPoller)
-          AppInspectionTarget.attach(transport, fileCopier)
+          AppInspectionTarget.attach(transport, jarCopier)
             .transform(executor) { connection ->
               listeners.forEach { it.value.execute { it.key(connection) } }
               connectionFuture.set(connection)

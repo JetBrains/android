@@ -17,9 +17,9 @@ package com.android.tools.idea.sqlite
 
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.AppInspectorClient
+import com.android.tools.idea.appinspection.api.AppInspectorJar
 import com.android.tools.idea.appinspection.ide.AppInspectionClientsService
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.sql.protocol.SqliteInspection
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
@@ -37,9 +37,8 @@ class DatabaseInspectorClient private constructor(
 
   companion object {
     private const val inspectorId = "appinspector.sqlite"
-    private val deployableFile = DeployableFile.Builder("live_sql_viewer_dex.jar")
-      .setDevDir("../../bazel-bin/tools/base/experimental/live-sql-inspector")
-      .build()
+    private val inspectorJar =
+      AppInspectorJar("live_sql_viewer_dex.jar", developmentDirectory = "../../bazel-bin/tools/base/experimental/live-sql-inspector")
 
     /**
      * Starts listening for the creation of new connections to a device.
@@ -58,7 +57,7 @@ class DatabaseInspectorClient private constructor(
       target: AppInspectionTarget,
       taskExecutor: FutureCallbackExecutor
     ): ListenableFuture<DatabaseInspectorClient> {
-      val launchInspectorFuture = target.launchInspector(inspectorId, deployableFile) { messenger ->
+      val launchInspectorFuture = target.launchInspector(inspectorId, inspectorJar) { messenger ->
         DatabaseInspectorClient(databaseInspectorProjectService, messenger)
       }
 
