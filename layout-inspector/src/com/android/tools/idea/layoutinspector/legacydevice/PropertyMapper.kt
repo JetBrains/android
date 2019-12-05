@@ -178,7 +178,7 @@ object PropertyMapper {
       "mClipBounds" to PropertyDefinition("clipBounds", Type.STRING),  // hasAttrId=false
       "mID" to PropertyDefinition(ATTR_ID, Type.RESOURCE) { mapId(it) },
       "mLayerType" to PropertyDefinition("layerType", Type.STRING) { mapLayerType(it) },
-      "mLeft" to PropertyDefinition(ATTR_LEFT, Type.INT32),
+      "getLocationOnScreen_x()" to PropertyDefinition(ATTR_LEFT, Type.INT32),
       "mMeasuredHeight" to PropertyDefinition("measuredHeight", Type.INT32),
       "mMeasuredWidth" to PropertyDefinition("measuredWidth", Type.INT32),
       "mMinHeight" to PropertyDefinition(ATTR_MIN_HEIGHT, Type.INT32),
@@ -190,7 +190,7 @@ object PropertyMapper {
       "mRight" to PropertyDefinition(ATTR_RIGHT, Type.INT32),
       "mScrollX" to PropertyDefinition(ATTR_SCROLL_X, Type.INT32),
       "mScrollY" to PropertyDefinition(ATTR_SCROLL_Y, Type.INT32),
-      "mTop" to PropertyDefinition(ATTR_TOP, Type.INT32),
+      "getLocationOnScreen_y()" to PropertyDefinition(ATTR_TOP, Type.INT32),
 
       // android.view.View.TransformationInfo
       "mAlpha" to PropertyDefinition(ATTR_ALPHA, Type.FLOAT),
@@ -219,6 +219,7 @@ object PropertyMapper {
       // android.view.WindowManager.LayoutParams
       "layout_x" to PropertyDefinition(ATTR_LAYOUT_X, Type.INT32),
       "layout_y" to PropertyDefinition(ATTR_LAYOUT_Y, Type.INT32),
+      "layout_flags_DIM_BEHIND" to PropertyDefinition(ATTR_DIM_BEHIND, Type.INT32),
 
       // android.webkit.WebView
       "getContentHeight()" to PropertyDefinition("contentHeight", Type.INT32),
@@ -346,7 +347,7 @@ object PropertyMapper {
     )
   }
 
-  private fun toInt(value: String): Int? {
+  internal fun toInt(value: String): Int? {
     if (value.startsWith("0x")) {
       return value.substring(2).toIntOrNull(16)
     }

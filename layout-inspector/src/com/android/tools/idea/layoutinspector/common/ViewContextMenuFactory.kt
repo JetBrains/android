@@ -24,8 +24,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import javax.swing.JComponent
 
 fun showViewContextMenu(view: ViewNode?, inspectorModel: InspectorModel, source: JComponent, x: Int, y: Int) {
-  val root = inspectorModel.root
-  if (root != null) {
+  if (!inspectorModel.isEmpty) {
+    val root = inspectorModel.root
     val actionManager = ActionManager.getInstance()
     val group = object : ActionGroup("", true) {
       override fun getChildren(e: AnActionEvent?): Array<AnAction> {

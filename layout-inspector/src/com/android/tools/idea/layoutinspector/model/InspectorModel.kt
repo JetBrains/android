@@ -18,15 +18,15 @@ package com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.intellij.openapi.project.Project
+import java.awt.Color
+import java.awt.image.BufferedImage
 import kotlin.properties.Delegates
 
-class InspectorModel(val project: Project, initialRoot: ViewNode? = null) {
+class InspectorModel(val project: Project) {
   val selectionListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
   val modificationListeners = mutableListOf<(ViewNode?, ViewNode?, Boolean) -> Unit>()
   val connectionListeners = mutableListOf<(InspectorClient?) -> Unit>()
   val resourceLookup = ResourceLookup(project)
-  var hasSubImages = findSubimages(initialRoot)
-    private set
 
   private fun findSubimages(root: ViewNode?) =
     root?.flatten()?.minus(root)?.any { it.imageBottom != null || it.imageTop != null } == true
@@ -44,8 +44,48 @@ class InspectorModel(val project: Project, initialRoot: ViewNode? = null) {
     }
   }
 
-  var root: ViewNode? by Delegates.observable(initialRoot) { _, old, new ->
-    modificationListeners.forEach { it(old, new, true) }
+  private val roots = mutableMapOf<Any, ViewNode>()
+  // dummy node to hold the roots of the current windows.
+  val root = ViewNode(-1, "root - hide", null, 0, 0, 0, 0, 0, 0, null, "", 0)
+
+  var hasSubImages = false
+    private set
+
+  /** Whether there are currently any views in this model */
+  val isEmpty
+    get() = root.children.isEmpty()
+
+  /**
+   * Get a ViewNode by drawId
+   */
+  operator fun get(id: Long) = root.flatten().find { it.drawId == id }
+
+  /**
+   * Update [root]'s bounds and children based on any updates to [roots]
+   * Also adds a dark layer between windows if DIM_BEHIND is set.
+   */
+  private fun updateRoot(allIds: List<Long>) {
+    root.children.clear()
+    val maxWidth = roots.values.map { it.width }.max() ?: 0
+    val maxHeight = roots.values.map { it.height }.max() ?: 0
+    root.width = maxWidth
+    root.height = maxHeight
+    for (id in allIds) {
+      val viewNode = roots[id] ?: continue
+      if (viewNode.isDimBehind) {
+        val dimmer = ViewNode(-1, "DIM_BEHIND", null, 0, 0, 0, 0, maxWidth, maxHeight, null, "", 0)
+        // TODO: subclass ViewNode so we don't have to create and hold on to this image
+        val image = BufferedImage(maxWidth, maxHeight, BufferedImage.TYPE_INT_ARGB)
+        dimmer.imageBottom = image
+        val graphics = image.graphics
+        graphics.color = Color(0.0f, 0.0f, 0.0f, 0.5f)
+        graphics.fillRect(0, 0, maxWidth, maxHeight)
+        root.children.add(dimmer)
+        dimmer.parent = root
+      }
+      root.children.add(viewNode)
+      viewNode.parent = root
+    }
   }
 
   fun updateConnection(client: InspectorClient?) {
@@ -55,14 +95,19 @@ class InspectorModel(val project: Project, initialRoot: ViewNode? = null) {
   /**
    * Replaces all subtrees with differing root IDs. Existing views are updated.
    */
-  fun update(newRoot: ViewNode?) {
-    if (newRoot == root) {
+  fun update(newRoot: ViewNode?, id: Any, allIds: List<Long>) {
+    var structuralChange: Boolean = roots.keys.retainAll(allIds)
+    val oldRoot = roots[id]
+    if (newRoot == oldRoot && !structuralChange) {
       return
     }
-    val oldRoot = root
-    val structuralChange: Boolean
-    if (newRoot?.drawId != root?.drawId || newRoot?.qualifiedName != root?.qualifiedName) {
-      root = newRoot
+    if (newRoot?.drawId != oldRoot?.drawId || newRoot?.qualifiedName != oldRoot?.qualifiedName) {
+      if (newRoot != null) {
+        roots[id] = newRoot
+      }
+      else {
+        roots.remove(id)
+      }
       structuralChange = true
     }
     else {
@@ -71,11 +116,13 @@ class InspectorModel(val project: Project, initialRoot: ViewNode? = null) {
       }
       else {
         val updater = Updater(oldRoot, newRoot)
-        structuralChange = updater.update()
+        structuralChange = updater.update() || structuralChange
       }
     }
-    hasSubImages = findSubimages(root)
-    modificationListeners.forEach { it(oldRoot, root, structuralChange) }
+
+    updateRoot(allIds)
+    hasSubImages = root.children.any { findSubimages(it) }
+    modificationListeners.forEach { it(oldRoot, roots[id], structuralChange) }
   }
 
   fun notifyModified() = modificationListeners.forEach { it(root, root, false) }
@@ -84,7 +131,7 @@ class InspectorModel(val project: Project, initialRoot: ViewNode? = null) {
     private val oldNodes = oldRoot.flatten().associateBy { it.drawId }
 
     fun update(): Boolean {
-      return update(oldRoot, null, newRoot)
+      return update(oldRoot, oldRoot.parent, newRoot)
     }
 
     private fun update(oldNode: ViewNode, parent: ViewNode?, newNode: ViewNode): Boolean {

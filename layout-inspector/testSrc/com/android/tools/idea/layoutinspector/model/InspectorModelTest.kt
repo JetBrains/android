@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.view
 import com.intellij.testFramework.UsefulTestCase.assertSameElements
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -35,38 +36,36 @@ class InspectorModelTest {
         view(VIEW2, 8, 7, 6, 5, "v2Type")
       }
     }
+    val origRoot = model.root.children[0]
     var isModified = false
     var newRootReported: ViewNode? = null
     model.modificationListeners.add { _, newRoot, structuralChange ->
-      run {
-        newRootReported = newRoot
-        isModified = structuralChange
-      }
+      newRootReported = newRoot
+      isModified = structuralChange
     }
 
-    val model2 = model {
+    val newRoot =
       view(ROOT, 2, 4, 6, 8, "rootType") {
         view(VIEW1, 8, 6, 4, 2, "v1Type") {
           view(VIEW3, 9, 8, 7, 6, "v3Type")
         }
         view(VIEW2, 6, 7, 8, 9, "v2Type")
       }
-    }
 
-    val origNodes = model.root!!.flatten().associateBy { it.drawId }
 
-    model.update(model2.root)
+    val origNodes = model.root.flatten().associateBy { it.drawId }
+
+    model.update(newRoot, ROOT, listOf(ROOT))
     // property change doesn't count as "modified."
     // TODO: confirm this behavior is as desired
     assertFalse(isModified)
 
-    val newNodes = model.root!!.flatten().associateBy { it.drawId }
     for ((id, orig) in origNodes) {
-      assertSame(orig, newNodes[id])
+      assertSame(orig, model[id])
     }
-    assertEquals(2, newNodes[ROOT]?.x)
-    assertEquals(6, newNodes[VIEW3]?.height)
-    assertSame(model.root, newRootReported)
+    assertEquals(2, model[ROOT]?.x)
+    assertEquals(6, model[VIEW3]?.height)
+    assertSame(origRoot, newRootReported)
   }
 
   @Test
@@ -79,20 +78,19 @@ class InspectorModelTest {
     var isModified = false
     model.modificationListeners.add { _, _, structuralChange -> isModified = structuralChange }
 
-    val model2 = model {
+    val newRoot =
       view(ROOT, 1, 2, 3, 4, "rootType") {
         view(VIEW1, 4, 3, 2, 1, "v1Type") {
           view(VIEW3, 9, 8, 7, 6, "v3Type")
         }
       }
-    }
 
-    val origNodes = model.root!!.flatten().associateBy { it.drawId }
+    val origNodes = model.root.flatten().associateBy { it.drawId }
 
-    model.update(model2.root)
+    model.update(newRoot, ROOT, listOf(ROOT))
     assertTrue(isModified)
 
-    val newNodes = model.root!!.flatten().associateBy { it.drawId }
+    val newNodes = model.root.flatten().associateBy { it.drawId }
     assertSameElements(newNodes.keys, origNodes.keys.plus(VIEW3))
     assertSameElements(origNodes[VIEW1]?.children!!, newNodes[VIEW3])
   }
@@ -109,18 +107,17 @@ class InspectorModelTest {
     var isModified = false
     model.modificationListeners.add { _, _, structuralChange -> isModified = structuralChange }
 
-    val model2 = model {
+    val newRoot =
       view(ROOT, 1, 2, 3, 4, "rootType") {
         view(VIEW1, 4, 3, 2, 1, "v1Type")
       }
-    }
 
-    val origNodes = model.root!!.flatten().associateBy { it.drawId }
+    val origNodes = model.root.flatten().associateBy { it.drawId }
 
-    model.update(model2.root)
+    model.update(newRoot, ROOT, listOf(ROOT))
     assertTrue(isModified)
 
-    val newNodes = model.root!!.flatten().associateBy { it.drawId }
+    val newNodes = model.root.flatten().associateBy { it.drawId }
     assertSameElements(newNodes.keys.plus(VIEW3), origNodes.keys)
     assertEquals(true, origNodes[VIEW1]?.children?.isEmpty())
   }
@@ -138,29 +135,26 @@ class InspectorModelTest {
     var isModified = false
     model.modificationListeners.add { _, _, structuralChange -> isModified = structuralChange }
 
-    val model2 = model {
+    val newRoot =
       view(ROOT, 2, 4, 6, 8, "rootType") {
         view(VIEW4, 8, 6, 4, 2, "v4Type") {
           view(VIEW3, 9, 8, 7, 6, "v3Type")
         }
         view(VIEW2, 6, 7, 8, 9, "v2Type")
       }
-    }
 
-    val origNodes = model.root!!.flatten().associateBy { it.drawId }
+    val origNodes = model.root.flatten().associateBy { it.drawId }
 
-    model.update(model2.root)
+    model.update(newRoot, ROOT, listOf(ROOT))
     assertTrue(isModified)
 
-    val newNodes = model.root!!.flatten().associateBy { it.drawId }
+    assertSame(origNodes[ROOT], model[ROOT])
+    assertSame(origNodes[VIEW2], model[VIEW2])
 
-    assertSame(origNodes[ROOT], newNodes[ROOT])
-    assertSame(origNodes[VIEW2], newNodes[VIEW2])
-
-    assertNotSame(origNodes[VIEW1], newNodes[VIEW4])
-    assertSameElements(model.root!!.children.map { it.drawId }, VIEW4, VIEW2)
-    assertEquals("v4Type", newNodes[VIEW4]?.qualifiedName)
-    assertEquals("v3Type", newNodes[VIEW3]?.qualifiedName)
-    assertEquals(8, newNodes[VIEW3]?.y)
+    assertNotSame(origNodes[VIEW1], model[VIEW4])
+    assertSameElements(model[ROOT]!!.children.map { it.drawId }, VIEW4, VIEW2)
+    assertEquals("v4Type", model[VIEW4]?.qualifiedName)
+    assertEquals("v3Type", model[VIEW3]?.qualifiedName)
+    assertEquals(8, model[VIEW3]?.y)
   }
 }

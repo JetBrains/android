@@ -27,6 +27,19 @@ import java.awt.Rectangle
 fun model(project: Project = mock(Project::class.java), body: InspectorModelDescriptor.() -> Unit) =
   InspectorModelDescriptor(project).also(body).build()
 
+fun view(drawId: Long,
+         x: Int = 0,
+         y: Int = 0,
+         width: Int = 0,
+         height: Int = 0,
+         qualifiedName: String = CLASS_VIEW,
+         viewId: ResourceReference? = null,
+         textValue: String = "",
+         imageBottom: Image? = null,
+         imageTop: Image? = null,
+         body: InspectorViewDescriptor.() -> Unit = {}) =
+  InspectorViewDescriptor(drawId, qualifiedName, x, y, width, height, viewId, textValue, imageBottom, imageTop).also(body).build()
+
 class InspectorViewDescriptor(private val drawId: Long,
                               private val qualifiedName: String,
                               private val x: Int,
@@ -61,7 +74,7 @@ class InspectorViewDescriptor(private val drawId: Long,
     view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, null, null, body)
 
   fun build(): ViewNode {
-    val result = ViewNode(drawId, qualifiedName, null, x, y, 0, 0, width, height, viewId, textValue)
+    val result = ViewNode(drawId, qualifiedName, null, x, y, 0, 0, width, height, viewId, textValue, 0)
     result.imageBottom = imageBottom
     result.imageTop = imageTop
     children.forEach { result.children.add(it.build()) }
@@ -95,5 +108,10 @@ class InspectorModelDescriptor(val project: Project) {
            body: InspectorViewDescriptor.() -> Unit = {}) =
     view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, null, null, body)
 
-  fun build() = InspectorModel(project, root.build())
+  fun build(): InspectorModel {
+    val windowRoot = root.build()
+    val model = InspectorModel(project)
+    model.update(windowRoot, windowRoot.drawId, listOf(windowRoot.drawId))
+    return model
+  }
 }

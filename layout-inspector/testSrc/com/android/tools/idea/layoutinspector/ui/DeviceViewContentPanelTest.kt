@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.layoutinspector.view
 import junit.framework.TestCase.assertEquals
 import org.junit.After
 import org.junit.Before
@@ -69,11 +70,10 @@ class DeviceViewContentPanelTest {
     settings.scalePercent = 100
     assertEquals(Dimension(510, 542), panel.preferredSize)
 
-    model.root = model {
+    model.update(
       view(ROOT, 0, 0, 100, 200) {
         view(VIEW1, 0, 0, 50, 50)
-      }
-    }.root
+      }, ROOT, listOf(ROOT))
     assertEquals(Dimension(366, 410), panel.preferredSize)
   }
 
@@ -107,12 +107,13 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_rotated.png"), generatedImage, 0.05)
 
-    model.selection = model.root
+    val windowRoot = model.root.children[0]
+    model.selection = windowRoot
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_selected.png"), generatedImage, 0.05)
 
-    model.hoveredNode = model.root!!.children[0]
+    model.hoveredNode = windowRoot.children[0]
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_hovered.png"), generatedImage, 0.05)
@@ -164,7 +165,7 @@ class DeviceViewContentPanelTest {
     childImageGraphics.color = Color.RED
     childImageGraphics.fillOval(0, 0, 50, 100)
 
-    model.root!!.children[0].imageBottom = childImage
+    model[VIEW1]!!.imageBottom = childImage
 
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)

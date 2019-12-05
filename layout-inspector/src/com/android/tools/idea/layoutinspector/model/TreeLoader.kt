@@ -23,4 +23,6 @@ import com.android.tools.idea.layoutinspector.transport.InspectorClient
  */
 interface TreeLoader {
   fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient): ViewNode?
+
+  fun getAllWindowIds(data: Any?, client: InspectorClient): List<Long>?
 }

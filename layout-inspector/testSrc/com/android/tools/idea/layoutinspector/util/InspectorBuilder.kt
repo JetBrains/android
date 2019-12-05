@@ -59,7 +59,8 @@ object InspectorBuilder {
 
   fun createLayoutInspectorForDemo(projectRule: AndroidProjectRule): LayoutInspector {
     val root = createDemoViewNodes()
-    val inspectorModel = InspectorModel(projectRule.project, root)
+    val inspectorModel = InspectorModel(projectRule.project)
+    inspectorModel.update(root, root.drawId, listOf(root.drawId))
     val configBuilder = ConfigurationBuilder(projectRule.module.androidFacet!!)
     val (config, stringTable) = configBuilder.makeConfiguration()
     inspectorModel.resourceLookup.updateConfiguration(config, stringTable)
@@ -67,7 +68,7 @@ object InspectorBuilder {
   }
 
   fun findViewNode(inspector: LayoutInspector, id: String): ViewNode? {
-    return findViewNode(inspector.layoutInspectorModel.root!!, id)
+    return findViewNode(inspector.layoutInspectorModel.root, id)
   }
 
   private fun findViewNode(node: ViewNode, id: String): ViewNode? {
@@ -81,8 +82,8 @@ object InspectorBuilder {
     val layout = ResourceReference(ResourceNamespace.TODO(), ResourceType.LAYOUT, "demo")
     val relativeLayoutId = ResourceReference(ResourceNamespace.TODO(), ResourceType.ID, "relativeLayout")
     val textViewId = ResourceReference(ResourceNamespace.TODO(), ResourceType.ID, "title")
-    val relativeLayout = ViewNode(1, "RelativeLayout", layout, 0, 0, 0, 0, 1200, 1600, relativeLayoutId, "")
-    val textView = ViewNode(1, "TextView", layout, 200, 400, 0, 0, 400, 100, textViewId, "@drawable/battery")
+    val relativeLayout = ViewNode(1, "RelativeLayout", layout, 0, 0, 0, 0, 1200, 1600, relativeLayoutId, "", 0)
+    val textView = ViewNode(1, "TextView", layout, 200, 400, 0, 0, 400, 100, textViewId, "@drawable/battery", 0)
     relativeLayout.children.add(textView)
     textView.parent = relativeLayout
     return relativeLayout
